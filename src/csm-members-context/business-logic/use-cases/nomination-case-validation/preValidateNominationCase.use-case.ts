@@ -1,4 +1,5 @@
 import { NominationCaseRepository } from '../../gateways/repositories/NominationCaseRepository';
+import { OverseasToOverseasValidator } from '../../models/management-rules/OverseasToOverseasValidator';
 import { ProfiledPositionValidator } from '../../models/management-rules/ProfiledPositionValidator';
 import { TransferTimeValidator } from '../../models/management-rules/TransferTimeValidator';
 
@@ -11,6 +12,7 @@ export class PreValidateNominationCaseUseCase {
     const nominationCase = await this.nominationCaseRepository.byId(
       nominationCaseId,
     );
+
     const transferTimeValidated = new TransferTimeValidator().validate(
       nominationCase.currentPositionStartDate,
       nominationCase.takingOfficeDate,
@@ -18,6 +20,16 @@ export class PreValidateNominationCaseUseCase {
     const profiledPositionValidated = new ProfiledPositionValidator().validate(
       nominationCase.profiledPosition,
     );
-    return { transferTimeValidated, profiledPositionValidated };
+    const overseasToOverseasValidated =
+      new OverseasToOverseasValidator().validate(
+        nominationCase.currentPositionGeography,
+        nominationCase.newPositionGeography,
+      );
+
+    return {
+      transferTimeValidated,
+      profiledPositionValidated,
+      overseasToOverseasValidated,
+    };
   }
 }

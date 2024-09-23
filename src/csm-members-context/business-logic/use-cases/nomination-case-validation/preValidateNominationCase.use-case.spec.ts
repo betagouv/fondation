@@ -35,11 +35,57 @@ const testData = [
       profiledPositionValidated: false,
     },
   },
+
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('PARIS')
+      .build(),
+    expected: {
+      overseasToOverseasValidated: true,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('PITRE')
+      .build(),
+    expected: {
+      overseasToOverseasValidated: true,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withCurrentPositionCity('PITRE')
+      .withNewPositionCity('PITRE')
+      .build(),
+    expected: {
+      overseasToOverseasValidated: false,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder().withNoAssignment().build(),
+    expected: {
+      overseasToOverseasValidated: false,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder().withNoAssignment().build(),
+    expected: {
+      overseasToOverseasValidated: false,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder().withSecondment().build(),
+    expected: {
+      overseasToOverseasValidated: false,
+    },
+  },
 ];
 
 describe('Pre Validate Nomination Case', () => {
   it.each(testData)(
-    'validation of nomination case should be $expected',
+    'validation of nomination case $nominationCase should be $expected',
     async ({ nominationCase, expected }) => {
       // Given
       const nominationCaseRepository = new FakeNominationCaseRepository();
