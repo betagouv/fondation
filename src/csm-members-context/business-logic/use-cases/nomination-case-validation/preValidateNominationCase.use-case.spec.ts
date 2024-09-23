@@ -1,38 +1,59 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
 import { FakeNominationCaseRepository } from '../../../adapters/secondary/repositories/FakeNominationCaseRepository';
-import { NominationCase } from '../../models/NominationCase';
+import { NominationCaseBuilder } from '../../models/NominationCaseBuilder';
 import { PreValidateNominationCaseUseCase } from './preValidateNominationCase.use-case';
 
+const testData = [
+  {
+    nominationCase: new NominationCaseBuilder().build(),
+    expected: {
+      transferTimeValidated: true,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withCurrentPositionStartDate(new DateOnly(2022, 3, 20))
+      .build(),
+    expected: {
+      transferTimeValidated: false,
+    },
+  },
+
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withProfiledPosition(true)
+      .build(),
+    expected: {
+      profiledPositionValidated: true,
+    },
+  },
+  {
+    nominationCase: new NominationCaseBuilder()
+      .withProfiledPosition(false)
+      .build(),
+    expected: {
+      profiledPositionValidated: false,
+    },
+  },
+];
+
 describe('Pre Validate Nomination Case', () => {
-  it.each`
-    nominationCaseId   | currentPositionStartDate     | takingOfficeDate             | expectedApproval
-    ${'nomination-id'} | ${new DateOnly(2022, 1, 20)} | ${new DateOnly(2025, 1, 20)} | ${true}
-    ${'nomination-id'} | ${new DateOnly(2022, 3, 20)} | ${new DateOnly(2025, 1, 20)} | ${false}
-  `(
-    'validation of taking office date should be $expectedApproval',
-    async ({
-      nominationCaseId,
-      currentPositionStartDate,
-      takingOfficeDate,
-      expectedApproval,
-    }) => {
+  it.each(testData)(
+    'validation of nomination case should be $expected',
+    async ({ nominationCase, expected }) => {
       // Given
       const nominationCaseRepository = new FakeNominationCaseRepository();
       nominationCaseRepository.nominationCases = {
-        [nominationCaseId]: new NominationCase(
-          nominationCaseId,
-          currentPositionStartDate,
-          takingOfficeDate,
-        ),
+        [nominationCase.id]: nominationCase,
       };
 
       // When
-      const approval = await new PreValidateNominationCaseUseCase(
+      const validation = await new PreValidateNominationCaseUseCase(
         nominationCaseRepository,
-      ).execute(nominationCaseId);
+      ).execute(nominationCase.id);
 
       // Then
-      expect(approval).toBe(expectedApproval);
+      expect(validation).toMatchObject(expected);
     },
   );
 });

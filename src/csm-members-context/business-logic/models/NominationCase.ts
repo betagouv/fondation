@@ -2,8 +2,9 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
 
 export class NominationCase {
   constructor(
-    public readonly id: string,
-    public readonly currentPositionStartDate: DateOnly,
-    public readonly takingOfficeDate: DateOnly,
+    readonly id: string,
+    readonly currentPositionStartDate: DateOnly,
+    readonly takingOfficeDate: DateOnly,
+    readonly profiledPosition: boolean,
   ) {}
 }
