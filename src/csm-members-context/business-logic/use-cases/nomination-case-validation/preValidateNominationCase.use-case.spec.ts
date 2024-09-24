@@ -2,91 +2,138 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
 import { FakeNominationCaseRepository } from '../../../adapters/secondary/repositories/FakeNominationCaseRepository';
 import { NominationCaseBuilder } from '../../models/NominationCaseBuilder';
 import { PreValidateNominationCaseUseCase } from './preValidateNominationCase.use-case';
+import { NominationCase } from '../../models/NominationCase';
+import { PositionTitle } from '../../models/Position';
 
-const testData = [
-  {
-    nominationCase: new NominationCaseBuilder().build(),
-    expected: {
+const testData: [NominationCase, object][] = [
+  [
+    new NominationCaseBuilder().build(),
+    {
       transferTimeValidated: true,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder()
+  ],
+  [
+    new NominationCaseBuilder()
       .withCurrentPositionStartDate(new DateOnly(2022, 3, 20))
       .build(),
-    expected: {
+    {
       transferTimeValidated: false,
     },
-  },
+  ],
 
-  {
-    nominationCase: new NominationCaseBuilder()
-      .withProfiledPosition(true)
-      .build(),
-    expected: {
+  [
+    new NominationCaseBuilder().withProfiledPosition(true).build(),
+    {
       profiledPositionValidated: true,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder()
-      .withProfiledPosition(false)
-      .build(),
-    expected: {
+  ],
+  [
+    new NominationCaseBuilder().withProfiledPosition(false).build(),
+    {
       profiledPositionValidated: false,
     },
-  },
+  ],
 
-  {
-    nominationCase: new NominationCaseBuilder()
+  [
+    new NominationCaseBuilder()
       .withCurrentPositionCity('PARIS')
       .withNewPositionCity('PARIS')
       .build(),
-    expected: {
+    {
       overseasToOverseasValidated: true,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder()
+  ],
+  [
+    new NominationCaseBuilder()
       .withCurrentPositionCity('PARIS')
       .withNewPositionCity('PITRE')
       .build(),
-    expected: {
+    {
       overseasToOverseasValidated: true,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder()
+  ],
+  [
+    new NominationCaseBuilder()
       .withCurrentPositionCity('PITRE')
       .withNewPositionCity('PITRE')
       .build(),
-    expected: {
+    {
       overseasToOverseasValidated: false,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder().withNoAssignment().build(),
-    expected: {
+  ],
+  [
+    new NominationCaseBuilder().withNoAssignment().build(),
+    {
       overseasToOverseasValidated: false,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder().withNoAssignment().build(),
-    expected: {
+  ],
+  [
+    new NominationCaseBuilder().withSecondment().build(),
+    {
       overseasToOverseasValidated: false,
     },
-  },
-  {
-    nominationCase: new NominationCaseBuilder().withSecondment().build(),
-    expected: {
-      overseasToOverseasValidated: false,
+  ],
+  [
+    new NominationCaseBuilder()
+      .withCurrentPositionTitle(PositionTitle.PROCUREUR_GENERAL) // Parquet - Cour d'appel
+      .withNewPositionTitle(PositionTitle.PREMIER_PRESIDENT) // Siège - Cour d'appel
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('BOBIGNY')
+      .build(),
+    {
+      judiciaryRoleAndJuridictionDegreeChangeValidated: true,
     },
-  },
+  ],
+  [
+    new NominationCaseBuilder()
+      .withCurrentPositionTitle(PositionTitle.PRESIDENT) // Siège - Tribunal judiciaire
+      .withNewPositionTitle(PositionTitle.PREMIER_PRESIDENT) // Siège - Cour d'appel
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('BOBIGNY')
+      .build(),
+    {
+      judiciaryRoleAndJuridictionDegreeChangeValidated: true,
+    },
+  ],
+  [
+    new NominationCaseBuilder()
+      .withCurrentPositionTitle(PositionTitle.PROCUREUR_GENERAL) // Parquet - Cour d'appel
+      .withNewPositionTitle(PositionTitle.AVOCAT_GENERAL) // Parquet - Cour d'appel
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('BOBIGNY')
+      .build(),
+    {
+      judiciaryRoleAndJuridictionDegreeChangeValidated: true,
+    },
+  ],
+  [
+    new NominationCaseBuilder()
+      .withCurrentPositionTitle(PositionTitle.PRESIDENT) // Siège - Tribunal judiciaire
+      .withNewPositionTitle(PositionTitle.PROCUREUR_GENERAL) // Parquet - Cour d'appel
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('BOBIGNY')
+      .build(),
+    {
+      judiciaryRoleAndJuridictionDegreeChangeValidated: false,
+    },
+  ],
+  [
+    new NominationCaseBuilder()
+      .withCurrentPositionTitle(PositionTitle.PRESIDENT) // Siège - Tribunal judiciaire
+      .withNewPositionTitle(PositionTitle.PROCUREUR_GENERAL) // Parquet - Cour d'appel
+      .withCurrentPositionCity('PARIS')
+      .withNewPositionCity('PITRE')
+      .build(),
+    {
+      judiciaryRoleAndJuridictionDegreeChangeValidated: true,
+    },
+  ],
 ];
 
 describe('Pre Validate Nomination Case', () => {
   it.each(testData)(
-    'validation of nomination case $nominationCase should be $expected',
-    async ({ nominationCase, expected }) => {
+    'validation of: %s should be \n%p',
+    async (nominationCase, expected) => {
       // Given
       const nominationCaseRepository = new FakeNominationCaseRepository();
       nominationCaseRepository.nominationCases = {

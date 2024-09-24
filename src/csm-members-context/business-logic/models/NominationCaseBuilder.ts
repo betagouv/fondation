@@ -1,9 +1,7 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
-import {
-  NominationCase,
-  POSITION_CITY,
-  PositionGeography,
-} from './NominationCase';
+import { NominationCase } from './NominationCase';
+import { PositionGeography, POSITION_CITY } from './PositionGeography';
+import { PositionTitle } from './Position';
 
 export class NominationCaseBuilder {
   private nominationCaseId: string;
@@ -13,6 +11,8 @@ export class NominationCaseBuilder {
   private currentPositionGeography: PositionGeography;
   private newPositionGeography: PositionGeography;
   private hasNoAssignment: boolean;
+  private currentPositionTitle: PositionTitle;
+  private newPositionTitle: PositionTitle;
 
   constructor() {
     this.nominationCaseId = 'nomination-id';
@@ -47,6 +47,14 @@ export class NominationCaseBuilder {
     this.currentPositionGeography = new PositionGeography('SECONDMENT');
     return this;
   }
+  withCurrentPositionTitle(currentPositionTitle: PositionTitle) {
+    this.currentPositionTitle = currentPositionTitle;
+    return this;
+  }
+  withNewPositionTitle(newPositionTitle: PositionTitle) {
+    this.newPositionTitle = newPositionTitle;
+    return this;
+  }
 
   build() {
     return NominationCase.fromSnapshot({
@@ -57,6 +65,8 @@ export class NominationCaseBuilder {
       currentPositionGeography: this.currentPositionGeography,
       newPositionGeography: this.newPositionGeography,
       hasNoAssignment: this.hasNoAssignment,
+      currentPositionTitle: this.currentPositionTitle,
+      newPositionTitle: this.newPositionTitle,
     });
   }
 }

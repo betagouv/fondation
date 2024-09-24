@@ -1,39 +1,6 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
-
-export type POSITION_CITY = 'PARIS' | 'PITRE';
-
-export type NO_ASSIGNMENT = 'NO_ASSIGNMENT';
-export type SECONDMENT = 'SECONDMENT';
-
-export class PositionGeography {
-  position: POSITION_CITY | NO_ASSIGNMENT | SECONDMENT;
-  private readonly cityToOverseasMap = {
-    PARIS: false,
-    PITRE: true,
-  };
-
-  constructor(position: POSITION_CITY | NO_ASSIGNMENT | SECONDMENT) {
-    this.position = position;
-  }
-
-  isNotAssigned(): boolean {
-    return this.position === 'NO_ASSIGNMENT';
-  }
-  isSecondment(): boolean {
-    return this.position === 'SECONDMENT';
-  }
-
-  isOverseas(): boolean | null {
-    if (this.isNotAssigned() || this.isSecondment()) return null;
-
-    return this.cityToOverseasMap[
-      this.position as Exclude<
-        PositionGeography['position'],
-        'NO_ASSIGNMENT' | 'SECONDMENT'
-      >
-    ];
-  }
-}
+import { PositionGeography } from './PositionGeography';
+import { Position, PositionTitle } from './Position';
 
 export type NominationCaseSnapshot = {
   id: string;
@@ -43,6 +10,8 @@ export type NominationCaseSnapshot = {
   currentPositionGeography: PositionGeography;
   newPositionGeography: PositionGeography;
   hasNoAssignment: boolean;
+  currentPositionTitle: PositionTitle;
+  newPositionTitle: PositionTitle;
 };
 
 export class NominationCase {
@@ -51,8 +20,8 @@ export class NominationCase {
     readonly currentPositionStartDate: DateOnly,
     readonly takingOfficeDate: DateOnly,
     readonly profiledPosition: boolean,
-    readonly currentPositionGeography: PositionGeography,
-    readonly newPositionGeography: PositionGeography,
+    readonly currentPosition: Position,
+    readonly newPosition: Position,
   ) {}
 
   static fromSnapshot(snapshot: NominationCaseSnapshot): NominationCase {
@@ -61,8 +30,22 @@ export class NominationCase {
       snapshot.currentPositionStartDate,
       snapshot.takingOfficeDate,
       snapshot.profiledPosition,
-      snapshot.currentPositionGeography,
-      snapshot.newPositionGeography,
+      new Position(
+        snapshot.currentPositionTitle,
+        snapshot.currentPositionGeography,
+      ),
+      new Position(snapshot.newPositionTitle, snapshot.newPositionGeography),
     );
+  }
+
+  toString(): string {
+    return `
+        NominationCase: ${this.id}.
+          Current position: ${this.currentPosition.title} in ${this.currentPosition.geography.location}.
+          New position: ${this.newPosition.title} in ${this.newPosition.geography.location}.
+          Profiled position: ${this.profiledPosition}.
+          Current position start date: ${this.currentPositionStartDate}.
+          Taking office date: ${this.takingOfficeDate}.
+      `;
   }
 }

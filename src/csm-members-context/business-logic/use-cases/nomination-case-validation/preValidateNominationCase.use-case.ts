@@ -1,4 +1,5 @@
 import { NominationCaseRepository } from '../../gateways/repositories/NominationCaseRepository';
+import { JudiciaryRoleAndJuridictionDegreeChangeValidator } from '../../models/management-rules/JudiciaryRoleAndJuridictionDegreeChangeValidator';
 import { OverseasToOverseasValidator } from '../../models/management-rules/OverseasToOverseasValidator';
 import { ProfiledPositionValidator } from '../../models/management-rules/ProfiledPositionValidator';
 import { TransferTimeValidator } from '../../models/management-rules/TransferTimeValidator';
@@ -22,14 +23,20 @@ export class PreValidateNominationCaseUseCase {
     );
     const overseasToOverseasValidated =
       new OverseasToOverseasValidator().validate(
-        nominationCase.currentPositionGeography,
-        nominationCase.newPositionGeography,
+        nominationCase.currentPosition.geography,
+        nominationCase.newPosition.geography,
+      );
+    const judiciaryRoleAndJuridictionDegreeChangeValidated =
+      new JudiciaryRoleAndJuridictionDegreeChangeValidator().validate(
+        nominationCase.currentPosition,
+        nominationCase.newPosition,
       );
 
     return {
       transferTimeValidated,
       profiledPositionValidated,
       overseasToOverseasValidated,
+      judiciaryRoleAndJuridictionDegreeChangeValidated,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { PositionGeography } from '../NominationCase';
+import { PositionGeography } from '../PositionGeography';
 
 export class OverseasToOverseasValidator {
   validate(
