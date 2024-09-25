@@ -1,0 +1,7 @@
+root /app/dist;
+
+location / {
+  add_header X-Content-Type-Options "nosniff";
+  add_header X-Frame-Options "DENY";
+  try_files $uri $uri/ /index.html =404;
+}
