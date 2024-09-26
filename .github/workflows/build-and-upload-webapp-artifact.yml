@@ -1,0 +1,34 @@
+name: Build and upload web artifact
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+
+jobs:
+  build-and-deploy-webapp-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.11.0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.9.0"
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build webapp
+        run: pnpm build
+        working-directory: apps/webapp
+      - name: Create Archive
+        run: mkdir -p scalingo/webapp && cp -r apps/webapp/dist "$_" && cp -r apps/webapp/scalingo/{.,}* "$_" && tar -czf webapp-scalingo.tar.gz scalingo
+      - name: Archive dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-scalingo-${{ inputs.tag }}
+          path: webapp-scalingo.tar.gz
