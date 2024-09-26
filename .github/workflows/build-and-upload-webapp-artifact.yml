@@ -28,7 +28,12 @@ jobs:
         run: pnpm build
         working-directory: apps/webapp
       - name: Create Archive
-        run: mkdir -p scalingo/webapp && cp -r apps/webapp/dist "$_" && cp -r apps/webapp/scalingo/{.,}* "$_" && tar -czf webapp-scalingo.tar.gz scalingo
+        run: |
+          mkdir -p scalingo/webapp
+          cp -r apps/webapp/dist "$_"
+          cp -r apps/webapp/scalingo/* "$_"
+          cp apps/webapp/scalingo/.buildpacks "$_"
+          tar -czf webapp-scalingo.tar.gz scalingo
       - name: Archive dist
         uses: actions/upload-artifact@v4
         with:
