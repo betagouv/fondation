@@ -1,0 +1,3 @@
+# used to test locally the build of Scalingo artifacts
+*.tar.gz
+/scalingo
