@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@codegouvfr/react-dsfr':
+        specifier: ^1.13.6
+        version: 1.13.6
       '@reduxjs/toolkit':
         specifier: ^2.2.7
         version: 2.2.7(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
@@ -60,6 +63,9 @@ importers:
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
+      type-fest:
+        specifier: ^4.26.1
+        version: 4.26.1
       typescript:
         specifier: ^5.5.3
         version: 5.5.3
@@ -93,6 +99,15 @@ packages:
   '@babel/runtime@7.25.6':
     resolution: {integrity: sha512-VBj9MYyDb9tuLq7yzqjgzt6Q+IBQLrGZfdjOekyEirZPHxXWoTSGUTMrpsfi58Up73d13NfYLv8HT9vmznjzhQ==}
     engines: {node: '>=6.9.0'}
+
+  '@codegouvfr/react-dsfr@1.13.6':
+    resolution: {integrity: sha512-/ERzY5MhgZ8X8uz40qfBAx6wNjsqHk2BqjPbcrLNtsj5o3DIGYL6HBF7hRA3fRGq+l8CrFfLgE9xOIQRtTVfvA==}
+    hasBin: true
+    peerDependencies:
+      '@gouvfr/dsfr-chart': ^1.0.0
+    peerDependenciesMeta:
+      '@gouvfr/dsfr-chart':
+        optional: true
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -1300,9 +1315,16 @@ packages:
     peerDependencies:
       typescript: '>=4.2.0'
 
+  tsafe@1.7.2:
+    resolution: {integrity: sha512-dAPfQLhCfCRre5qs+Z5Q2a7s2CV7RxffZUmvj7puGaePYjECzWREJFd3w4XSFe/T5tbxgowfItA/JSSZ6Ma3dA==}
+
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
+
+  type-fest@4.26.1:
+    resolution: {integrity: sha512-yOGpmOAL7CkKe/91I5O3gPICmJNLJ1G4zFYVAsRHg7M64biSnPtRj0WNQt++bRkjYOqjWXrhnUw1utzmVErAdg==}
+    engines: {node: '>=16'}
 
   typescript-eslint@8.0.1:
     resolution: {integrity: sha512-V3Y+MdfhawxEjE16dWpb7/IOgeXnLwAEEkS7v8oDqNcR1oYlqWhGH/iHqHdKVdpWme1VPZ0SoywXAkCqawj2eQ==}
@@ -1440,6 +1462,10 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  yargs-parser@21.1.1:
+    resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
+    engines: {node: '>=12'}
+
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -1465,6 +1491,11 @@ snapshots:
   '@babel/runtime@7.25.6':
     dependencies:
       regenerator-runtime: 0.14.1
+
+  '@codegouvfr/react-dsfr@1.13.6':
+    dependencies:
+      tsafe: 1.7.2
+      yargs-parser: 21.1.1
 
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
@@ -2571,9 +2602,13 @@ snapshots:
     dependencies:
       typescript: 5.5.3
 
+  tsafe@1.7.2: {}
+
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
+
+  type-fest@4.26.1: {}
 
   typescript-eslint@8.0.1(eslint@9.9.0)(typescript@5.5.3):
     dependencies:
@@ -2688,5 +2723,7 @@ snapshots:
   xml-name-validator@5.0.0: {}
 
   xmlchars@2.2.0: {}
+
+  yargs-parser@21.1.1: {}
 
   yocto-queue@0.1.0: {}

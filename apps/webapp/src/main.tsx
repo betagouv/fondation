@@ -1,19 +1,23 @@
+import { startReactDsfr } from "@codegouvfr/react-dsfr/spa";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
 import App from "./App.tsx";
 import "./index.css";
-import { initReduxStore } from "./nomination-case/store/reduxStore.ts";
 import { FakeNominationCaseGateway } from "./nomination-case/adapters/secondary/gateways/FakeNominationCase.gateway.ts";
-import { Provider } from "react-redux";
+import { initReduxStore } from "./nomination-case/store/reduxStore.ts";
+
+startReactDsfr({ defaultColorScheme: "system" });
 
 const nominationCaseGateway = new FakeNominationCaseGateway();
 nominationCaseGateway.nominationCases["nomination-case-id"] = {
   id: "nomination-case-id",
-  name: "John Doe",
-  biography: "John Doe's biography",
+  name: "Julien Lavigne",
+  biography:
+    "Procueur général près la cour d'appel de Paris, 1er grade, nommé en 2019.",
   preValidatedRules: {
     managementRules: {
-      transferTime: true,
+      transferTime: false,
       gettingFirstGrade: true,
       gettingGradeHH: true,
       gettingGradeInPlace: true,
