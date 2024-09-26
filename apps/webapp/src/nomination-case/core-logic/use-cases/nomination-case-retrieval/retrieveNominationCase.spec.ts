@@ -1,6 +1,7 @@
 import { FakeNominationCaseGateway } from "../../../adapters/secondary/gateways/FakeNominationCase.gateway";
-import { AppState } from "../../../store/appState";
+import { AppState, NominationCase } from "../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
+import { NominationCaseBuilder } from "../../builders/nominationCase.builder";
 import { retrieveNominationCase } from "./retrieveNominationCase.use-case";
 
 describe("Retrieve Nomination Case", () => {
@@ -43,20 +44,8 @@ describe("Retrieve Nomination Case", () => {
   });
 });
 
-const aNomination = {
-  id: "1",
-  name: "John Doe",
-  biography: "John Doe's biography",
-  preValidatedRules: {
-    overseasToOverseas: true,
-  },
-};
+const aNomination: NominationCase = new NominationCaseBuilder().build();
 
-const anotherNomination = {
-  id: "2",
-  name: "Jane Doe",
-  biography: "Jane Doe's biography",
-  preValidatedRules: {
-    overseasToOverseas: false,
-  },
-};
+const anotherNomination = new NominationCaseBuilder()
+  .withId("another-nomination-case-id")
+  .build();

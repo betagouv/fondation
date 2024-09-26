@@ -3,7 +3,18 @@ export interface NominationCase {
   name: string;
   biography: string;
   preValidatedRules: {
-    overseasToOverseas: boolean;
+    managementRules: {
+      transferTime: boolean;
+      gettingFirstGrade: boolean;
+      gettingGradeHH: boolean;
+      gettingGradeInPlace: boolean;
+      profiledPosition: boolean;
+      cassationCourtNomination: boolean;
+      overseasToOverseas: boolean;
+      judiciaryRoleAndJuridictionDegreeChange: boolean;
+      judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean;
+    };
+    // statutoryRules: {};
   };
 }
 

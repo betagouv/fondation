@@ -12,7 +12,17 @@ nominationCaseGateway.nominationCases["nomination-case-id"] = {
   name: "John Doe",
   biography: "John Doe's biography",
   preValidatedRules: {
-    overseasToOverseas: true,
+    managementRules: {
+      transferTime: true,
+      gettingFirstGrade: true,
+      gettingGradeHH: true,
+      gettingGradeInPlace: true,
+      profiledPosition: true,
+      cassationCourtNomination: true,
+      overseasToOverseas: true,
+      judiciaryRoleAndJuridictionDegreeChange: true,
+      judiciaryRoleAndJuridictionDegreeChangeInSameRessort: true,
+    },
   },
 };
 

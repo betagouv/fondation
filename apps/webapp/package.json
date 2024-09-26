@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext ts,tsx",
+    "format:check": "pnpm prettier --check src/**/*.{ts,tsx}",
+    "types:check": "tsc --noEmit -p ./tsconfig.app.json",
     "preview": "vite preview",
     "test": "vitest"
   },
