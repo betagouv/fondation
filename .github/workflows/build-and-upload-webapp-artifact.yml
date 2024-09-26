@@ -29,6 +29,7 @@ jobs:
         working-directory: apps/webapp
       - name: Create Archive
         run: |
+          # In Scalingo dashboard, we set the PROJECT_DIR environment variable to webapp
           mkdir -p scalingo/webapp
           cp -r apps/webapp/dist "$_"
           cp -r apps/webapp/scalingo/* "$_"
