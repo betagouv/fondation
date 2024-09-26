@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/react-redux";
 import { selectNominationCase } from "../presenters/selectNominationCase";
 import { retrieveNominationCase } from "../../../core-logic/use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
-import { NominationRule } from "./NominationRule";
+import { NominationRules } from "./NominationRules";
+import { updateNominationRule } from "../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
+import { RuleGroup, RuleName } from "../../../store/appState";
 
 export type NominationCaseOverviewProps = {
   id: string;
@@ -16,6 +18,19 @@ export const NominationCaseOverview: React.FC<NominationCaseOverviewProps> = ({
   );
   const dispatch = useAppDispatch();
 
+  const onUpdateNominationRule =
+    (ruleGroup: RuleGroup, ruleName: RuleName) => () => {
+      if (!nominationCase) return;
+      dispatch(
+        updateNominationRule({
+          id,
+          ruleGroup,
+          ruleName,
+          validated: nominationCase.rulesChecked[ruleGroup][ruleName].checked,
+        })
+      );
+    };
+
   useEffect(() => {
     dispatch(retrieveNominationCase(id));
   }, [dispatch, id]);
@@ -26,49 +41,9 @@ export const NominationCaseOverview: React.FC<NominationCaseOverviewProps> = ({
       <h1>{nominationCase.name}</h1>
       <p>{nominationCase.biography}</p>
       <div>
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.transferTime}
-          label="Transfer time"
-        />
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.gettingFirstGrade}
-          label="Getting first grade"
-        />
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.gettingGradeHH}
-          label="Getting grade HH"
-        />
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.gettingGradeInPlace}
-          label="Getting grade in place"
-        />
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.profiledPosition}
-          label="Profiled position"
-        />
-        <NominationRule
-          checked={
-            nominationCase.rulesChecked.management.cassationCourtNomination
-          }
-          label="Cassation court nomination"
-        />
-        <NominationRule
-          checked={nominationCase.rulesChecked.management.overseasToOverseas}
-          label="Overseas to overseas"
-        />
-        <NominationRule
-          checked={
-            nominationCase.rulesChecked.management
-              .judiciaryRoleAndJuridictionDegreeChange
-          }
-          label="Judiciary role and jurisdiction degree change"
-        />
-        <NominationRule
-          checked={
-            nominationCase.rulesChecked.management
-              .judiciaryRoleAndJuridictionDegreeChangeInSameRessort
-          }
-          label="Judiciary role and jurisdiction degree change in same ressort"
+        <NominationRules
+          rulesChecked={nominationCase.rulesChecked}
+          onUpdateNominationRule={onUpdateNominationRule}
         />
       </div>
     </div>

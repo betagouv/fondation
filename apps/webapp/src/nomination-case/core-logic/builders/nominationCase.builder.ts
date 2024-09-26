@@ -1,10 +1,11 @@
-import { NominationCase } from "../../store/appState";
+import { NominationCase, RuleGroup, RuleName } from "../../store/appState";
 
 export class NominationCaseBuilder {
   private id: string;
   private name: string;
   private biography: string;
   private preValidatedRules: NominationCase["preValidatedRules"];
+
   constructor() {
     this.id = "nomination-case-id";
     this.name = "John Doe";
@@ -80,6 +81,26 @@ export class NominationCaseBuilder {
   ) {
     this.preValidatedRules.managementRules.judiciaryRoleAndJuridictionDegreeChangeInSameRessort =
       judiciaryRoleAndJuridictionDegreeChangeInSameRessort;
+    return this;
+  }
+  withAllRulesUnvalidated() {
+    this.withTransferTimeValidated(false)
+      .withGettingFirstGradeValidated(false)
+      .withGettingGradeHHValidated(false)
+      .withGettingGradeInPlaceValidated(false)
+      .withProfiledPositionValidated(false)
+      .withCassationCourtNominationValidated(false)
+      .withOverseasToOverseasValidated(false)
+      .withJudiciaryRoleAndJuridictionDegreeChangeValidated(false)
+      .withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(false);
+    return this;
+  }
+  withRuleValidated(
+    ruleGroup: RuleGroup,
+    ruleName: RuleName,
+    validated: boolean
+  ) {
+    this.preValidatedRules[ruleGroup][ruleName] = validated;
     return this;
   }
 

@@ -14,9 +14,13 @@ export interface NominationCase {
       judiciaryRoleAndJuridictionDegreeChange: boolean;
       judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean;
     };
-    // statutoryRules: {};
   };
 }
+
+export type RuleGroup = keyof NominationCase["preValidatedRules"];
+export type ManagementRuleName =
+  keyof NominationCase["preValidatedRules"]["managementRules"];
+export type RuleName = ManagementRuleName;
 
 export interface AppState {
   nominationCaseRetrieval: { byIds: Record<string, NominationCase> | null };

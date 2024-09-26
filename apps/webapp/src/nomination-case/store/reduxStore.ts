@@ -1,6 +1,6 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { NominationCaseGateway } from "../core-logic/gateways/nominationCase.gateway";
-import { nominationCaseRetrievalReducer as nominationCaseRetrieval } from "../core-logic/reducers/nominationCaseRetrieval.slice";
+import { nominationCaseRetrievalReducer as nominationCaseOverview } from "../core-logic/reducers/nominationCaseOverview.slice";
 import { AppState } from "./appState";
 
 export interface Gateways {
@@ -10,7 +10,7 @@ export interface Gateways {
 export const initReduxStore = (gateways?: Partial<Gateways>) => {
   return configureStore({
     reducer: {
-      nominationCaseRetrieval,
+      nominationCaseRetrieval: nominationCaseOverview,
     },
     middleware: (getDefaultMiddleware) => {
       return getDefaultMiddleware({
