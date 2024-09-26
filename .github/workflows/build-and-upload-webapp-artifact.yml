@@ -20,8 +20,10 @@ jobs:
         with:
           node-version: "20.9.0"
           cache: "pnpm"
+          working-directory: apps/webapp
       - name: Install dependencies
         run: pnpm install
+        working-directory: apps/webapp
       - name: Build webapp
         run: pnpm build
         working-directory: apps/webapp
