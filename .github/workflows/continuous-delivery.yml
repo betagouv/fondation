@@ -1,0 +1,21 @@
+name: "Continuous Delivery"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-upload-webapp-artifact:
+    uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
+    with:
+      tag: "v${{ github.run_number }}"
+
+  deploy-staging:
+    name: Deploy staging
+    needs: [build-and-upload-webapp-artifact]
+    uses: ./.github/workflows/deploy-to-scalingo.yml
+    with:
+      environment: staging
+      tag: "v${{ github.run_number }}"
+    secrets: inherit

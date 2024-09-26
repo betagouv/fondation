@@ -1,0 +1,36 @@
+name: Deploy application on scalingo
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+    secrets:
+      SCALINGO_API_TOKEN:
+        required: true
+
+jobs:
+    deploy:
+      name: "Deploy to ${{inputs.environment}}"
+      environment: ${{inputs.environment}}
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Download webapp artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: webapp-scalingo-${{ inputs.tag }}
+        - name: Install scalingo CLI
+          run: |
+            curl -O https://cli-dl.scalingo.com/install && bash install
+            echo "$HOME/bin" >> $GITHUB_PATH
+        - name: Login to scalingo
+          run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+        - name: Deploy web
+          run: |
+            echo "Deploying webapp on app ${{ vars.SCALINGO_APP_NAME }}"
+            scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_APP_NAME }} deploy webapp-scalingo.tar.gz

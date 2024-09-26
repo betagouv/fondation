@@ -1,0 +1,19 @@
+name: "Deploy production"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-upload-webapp-artifact:
+    uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
+    with:
+      tag: "v${{ github.run_number }}"
+
+  deploy-production:
+    name: Deploy production
+    needs: [build-and-upload-webapp-artifact]
+    uses: ./.github/workflows/deploy-to-scalingo.yml
+    with:
+      tag: "v${{ github.run_number }}"
+      environment: production
+    secrets: inherit
