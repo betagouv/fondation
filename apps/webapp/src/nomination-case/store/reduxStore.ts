@@ -1,7 +1,6 @@
-import { configureStore, ThunkDispatch } from "@reduxjs/toolkit";
+import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { NominationCaseGateway } from "../core-logic/gateways/nominationCase.gateway";
 import { nominationCaseRetrievalReducer as nominationCaseRetrieval } from "../core-logic/reducers/nominationCaseRetrieval.slice";
-import { AppAction } from "./appActions";
 import { AppState } from "./appState";
 
 export interface Gateways {
@@ -26,6 +25,6 @@ export const initReduxStore = (gateways?: Partial<Gateways>) => {
 };
 
 export type ReduxStore = ReturnType<typeof initReduxStore> & {
-  dispatch: ThunkDispatch<AppState, Gateways, AppAction>;
+  dispatch: ThunkDispatch<AppState, Gateways, Action>;
 };
 export type AppDispatch = ReduxStore["dispatch"];
