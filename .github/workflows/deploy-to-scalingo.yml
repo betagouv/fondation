@@ -12,6 +12,8 @@ on:
     secrets:
       SCALINGO_API_TOKEN:
         required: true
+  # Temporary to setup and debug this workflow
+  workflow_dispatch:
 
 jobs:
     deploy:
