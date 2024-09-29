@@ -1,12 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { NominationCase } from "../../../store/appState.ts";
-import { NominationCaseGateway } from "../../gateways/nominationCase.gateway.ts";
+import { Gateways } from "../../../store/reduxStore.ts";
 
 export const retrieveNominationCase = createAsyncThunk<
   NominationCase,
   string,
   {
-    extra: { nominationCaseGateway: NominationCaseGateway };
+    extra: Gateways;
   }
 >(
   "nominationCase/retrieval",
