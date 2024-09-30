@@ -22,7 +22,7 @@ describe("Retrieve Nomination Case", () => {
     await store.dispatch(retrieveNominationCase("nomination-case-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
-      nominationCaseRetrieval: { byIds: { [aNomination.id]: aNomination } },
+      nominationCaseOverview: { byIds: { [aNomination.id]: aNomination } },
     });
   });
 
@@ -34,7 +34,7 @@ describe("Retrieve Nomination Case", () => {
 
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
-      nominationCaseRetrieval: {
+      nominationCaseOverview: {
         byIds: {
           [aNomination.id]: aNomination,
           [anotherNomination.id]: anotherNomination,

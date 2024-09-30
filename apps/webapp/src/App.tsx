@@ -1,5 +1,6 @@
 import "./App.css";
-import { NominationCaseOverview } from "./nomination-case/adapters/primary/components/NominationCase";
+import { NominationCaseList } from "./nomination-case/adapters/primary/components/NominationCaseList/NominationCaseList";
+import { NominationCaseOverview } from "./nomination-case/adapters/primary/components/NominationCaseOverview/NominationCaseOverview";
 import { Header } from "@codegouvfr/react-dsfr/Header";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             "Accueil - Conseil Supérieur de la Magistrature - Ministère de la Justice",
         }}
       />
+      <NominationCaseList />
       <NominationCaseOverview id="nomination-case-id" />
     </>
   );

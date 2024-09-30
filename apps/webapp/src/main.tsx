@@ -14,7 +14,7 @@ nominationCaseGateway.nominationCases["nomination-case-id"] = {
   id: "nomination-case-id",
   name: "Julien Lavigne",
   biography:
-    "Procueur général près la cour d'appel de Paris, 1er grade, nommé en 2019.",
+    "Procureur général près la cour d'appel de Paris, 1er grade, nommé en 2019.",
   preValidatedRules: {
     managementRules: {
       transferTime: false,

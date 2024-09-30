@@ -3,7 +3,7 @@ import { AppState } from "../../store/appState";
 import { retrieveNominationCase } from "../use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
 import { updateNominationRule } from "../use-cases/nomination-rule-update/updateNominationRule.use-case";
 
-const initialState: AppState["nominationCaseRetrieval"] = { byIds: null };
+const initialState: AppState["nominationCaseOverview"] = { byIds: null };
 
 const nominationCaseOverviewSlice = createSlice({
   name: "nominationCase",
