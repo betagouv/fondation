@@ -3,9 +3,12 @@ import { NominationCaseGateway } from "../core-logic/gateways/nominationCase.gat
 import { nominationCaseListReducer as nominationCaseList } from "../core-logic/reducers/nominationCaseList.slice";
 import { nominationCaseRetrievalReducer as nominationCaseOverview } from "../core-logic/reducers/nominationCaseOverview.slice";
 import { AppState } from "./appState";
+import { authenticationReducer as authentication } from "../../authentication/core-logic/reducers/authentication.slice";
+import { AuthenticationGateway } from "../../authentication/core-logic/gateways/authentication.gateway";
 
 export interface Gateways {
   nominationCaseGateway: NominationCaseGateway;
+  authenticationGateway: AuthenticationGateway;
 }
 
 export const initReduxStore = (gateways?: Partial<Gateways>) => {
@@ -13,6 +16,7 @@ export const initReduxStore = (gateways?: Partial<Gateways>) => {
     reducer: {
       nominationCaseOverview,
       nominationCaseList,
+      authentication,
     },
     middleware: (getDefaultMiddleware) => {
       return getDefaultMiddleware({

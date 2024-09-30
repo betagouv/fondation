@@ -91,7 +91,7 @@ describe("Nomination Case Overview Component", () => {
     label: string,
     { initiallyChecked }: { initiallyChecked: boolean }
   ) => {
-    const initialStore = store.getState();
+    const initialState = store.getState();
 
     await userEvent.click(
       await screen.findByRole("checkbox", {
@@ -101,7 +101,7 @@ describe("Nomination Case Overview Component", () => {
     );
 
     await waitFor(async () => {
-      expect(store.getState()).not.toEqual(initialStore);
+      expect(store.getState()).not.toEqual(initialState);
       await screen.findByRole("checkbox", {
         name: label,
         checked: !initiallyChecked,
