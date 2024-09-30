@@ -1,6 +1,9 @@
 import { PartialDeep } from "type-fest";
 import { NominationCaseGateway } from "../../../core-logic/gateways/nominationCase.gateway";
-import { NominationCase } from "../../../store/appState";
+import {
+  NominationCase,
+  NominationCaseListItem,
+} from "../../../store/appState";
 
 export class FakeNominationCaseGateway implements NominationCaseGateway {
   nominationCases: Record<string, NominationCase> = {};
@@ -24,6 +27,12 @@ export class FakeNominationCaseGateway implements NominationCaseGateway {
     };
   }
 
+  async list(): Promise<NominationCaseListItem[]> {
+    return Object.values(this.nominationCases).map(({ id, name }) => ({
+      id,
+      name,
+    }));
+  }
   async retrieveNominationCase(id: string) {
     const nominationCase = this.nominationCases[id];
     if (!nominationCase) throw new Error("Nomination case not found");
