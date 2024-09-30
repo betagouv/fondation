@@ -58,15 +58,6 @@ const aNominationCase = new NominationCaseBuilder()
   .withId("nomination-case-id")
   .withName("John Doe")
   .withBiography("The biography.")
-  .withTransferTimeValidated(true)
-  .withGettingFirstGradeValidated(true)
-  .withGettingGradeHHValidated(true)
-  .withGettingGradeInPlaceValidated(true)
-  .withProfiledPositionValidated(true)
-  .withCassationCourtNominationValidated(true)
-  .withOverseasToOverseasValidated(true)
-  .withJudiciaryRoleAndJuridictionDegreeChangeValidated(true)
-  .withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(true)
   .build();
 const aNominationCaseVM: NominationCaseVM = {
   id: "nomination-case-id",
