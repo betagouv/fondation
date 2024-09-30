@@ -1,4 +1,4 @@
-import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
+import { Checkbox, CheckboxProps } from "@codegouvfr/react-dsfr/Checkbox";
 import { RuleGroup, RuleName } from "../../../store/appState";
 import { NominationCaseVM } from "../presenters/selectNominationCase";
 
@@ -14,12 +14,13 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
   rulesChecked,
   onUpdateNominationRule,
 }) => {
-  const options = Object.entries(rulesChecked)
+  const options: CheckboxProps["options"] = Object.entries(rulesChecked)
     .map(([ruleGroup, rule]) =>
       Object.entries(rule).map(([ruleName, { label, checked }]) => {
         return {
           label,
           nativeInputProps: {
+            name: ruleName,
             checked,
             onChange: onUpdateNominationRule(
               ruleGroup as RuleGroup,
@@ -31,5 +32,5 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
     )
     .flat();
 
-  return <Checkbox legend="Règles de gestion" options={options} />;
+  return <Checkbox id="rule" legend="Règles de gestion" options={options} />;
 };
