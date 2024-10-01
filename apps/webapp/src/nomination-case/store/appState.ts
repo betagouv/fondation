@@ -16,6 +16,7 @@ export interface NominationCase {
     };
   };
 }
+export type NominationCaseListItem = Pick<NominationCase, "id" | "name">;
 
 export type RuleGroup = keyof NominationCase["preValidatedRules"];
 export type ManagementRuleName =
@@ -23,5 +24,10 @@ export type ManagementRuleName =
 export type RuleName = ManagementRuleName;
 
 export interface AppState {
-  nominationCaseRetrieval: { byIds: Record<string, NominationCase> | null };
+  nominationCaseOverview: { byIds: Record<string, NominationCase> | null };
+  nominationCaseList: { data: NominationCaseListItem[] | null };
+  authentication: {
+    authenticated: boolean;
+    forbiddenPageAsked: boolean;
+  };
 }

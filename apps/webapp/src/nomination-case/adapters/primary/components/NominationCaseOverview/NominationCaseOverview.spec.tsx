@@ -1,15 +1,15 @@
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
-import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
-import { NominationCaseOverview } from "./NominationCase";
+import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { NominationCaseOverview } from "./NominationCaseOverview";
 import { Provider } from "react-redux";
-import { FakeNominationCaseGateway } from "../../secondary/gateways/FakeNominationCase.gateway";
-import { NominationCase, RuleName } from "../../../store/appState";
-import { NominationCaseBuilder } from "../../../core-logic/builders/nominationCase.builder";
+import { FakeNominationCaseGateway } from "../../../secondary/gateways/FakeNominationCase.gateway";
+import { NominationCase, RuleName } from "../../../../store/appState";
+import { NominationCaseBuilder } from "../../../../core-logic/builders/nominationCase.builder";
 import userEvent from "@testing-library/user-event";
-import { NominationCaseVM } from "../presenters/selectNominationCase";
+import { NominationCaseVM } from "../../presenters/selectNominationCase";
 
-describe("Nomination Case Component", () => {
+describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
   let nominationCaseGateway: FakeNominationCaseGateway;
 
@@ -91,7 +91,7 @@ describe("Nomination Case Component", () => {
     label: string,
     { initiallyChecked }: { initiallyChecked: boolean }
   ) => {
-    const initialStore = store.getState();
+    const initialState = store.getState();
 
     await userEvent.click(
       await screen.findByRole("checkbox", {
@@ -101,7 +101,7 @@ describe("Nomination Case Component", () => {
     );
 
     await waitFor(async () => {
-      expect(store.getState()).not.toEqual(initialStore);
+      expect(store.getState()).not.toEqual(initialState);
       await screen.findByRole("checkbox", {
         name: label,
         checked: !initiallyChecked,
