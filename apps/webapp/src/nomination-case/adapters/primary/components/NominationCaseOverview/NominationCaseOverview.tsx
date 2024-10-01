@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks/react-redux";
-import { selectNominationCase } from "../presenters/selectNominationCase";
-import { retrieveNominationCase } from "../../../core-logic/use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
+import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
+import { selectNominationCase } from "../../presenters/selectNominationCase";
+import { retrieveNominationCase } from "../../../../core-logic/use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
 import { NominationRules } from "./NominationRules";
-import { updateNominationRule } from "../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
-import { RuleGroup, RuleName } from "../../../store/appState";
+import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
+import { RuleGroup, RuleName } from "../../../../store/appState";
 
 export type NominationCaseOverviewProps = {
   id: string;
@@ -49,3 +49,4 @@ export const NominationCaseOverview: React.FC<NominationCaseOverviewProps> = ({
     </div>
   );
 };
+export default NominationCaseOverview;

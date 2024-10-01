@@ -31,7 +31,7 @@ describe("Nomination Rule Update", () => {
     );
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
-      nominationCaseRetrieval: {
+      nominationCaseOverview: {
         byIds: {
           [aNomination.id]: {
             ...aNomination,

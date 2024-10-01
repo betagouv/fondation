@@ -36,7 +36,7 @@ export class NominationCaseVM {
 
 export const selectNominationCase = createSelector(
   [
-    (state: AppState) => state.nominationCaseRetrieval.byIds,
+    (state: AppState) => state.nominationCaseOverview.byIds,
     (_, id: string) => id,
   ],
   (byIds, id): NominationCaseVM | null => {
