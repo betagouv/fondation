@@ -26,5 +26,8 @@ export type RuleName = ManagementRuleName;
 export interface AppState {
   nominationCaseOverview: { byIds: Record<string, NominationCase> | null };
   nominationCaseList: { data: NominationCaseListItem[] | null };
-  authentication: { authenticated: boolean };
+  authentication: {
+    authenticated: boolean;
+    forbiddenPageAsked: boolean;
+  };
 }

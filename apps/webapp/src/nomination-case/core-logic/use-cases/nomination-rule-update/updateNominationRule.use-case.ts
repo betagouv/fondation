@@ -1,6 +1,5 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
 import { RuleGroup, RuleName } from "../../../store/appState";
-import { Gateways } from "../../../store/reduxStore";
+import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
 
 export type UpdateNominationRuleParams = {
   id: string;
@@ -10,17 +9,18 @@ export type UpdateNominationRuleParams = {
 };
 export type UpdateNominationRulePayload = UpdateNominationRuleParams;
 
-export const updateNominationRule = createAsyncThunk<
+export const updateNominationRule = createAppAsyncThunk<
   UpdateNominationRulePayload,
-  UpdateNominationRuleParams,
-  {
-    extra: Gateways;
-  }
+  UpdateNominationRuleParams
 >(
   "nominationCase/updateRule",
   async (
     { id, ruleGroup, ruleName, validated },
-    { extra: { nominationCaseGateway } }
+    {
+      extra: {
+        gateways: { nominationCaseGateway },
+      },
+    }
   ) => {
     const updatedNominationCase = {
       preValidatedRules: {

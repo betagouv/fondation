@@ -1,16 +1,15 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
-import { NominationCase } from "../../../store/appState.ts";
-import { Gateways } from "../../../store/reduxStore.ts";
+import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk.ts";
 
-export const retrieveNominationCase = createAsyncThunk<
-  NominationCase,
-  string,
-  {
-    extra: Gateways;
-  }
->(
+export const retrieveNominationCase = createAppAsyncThunk(
   "nominationCase/retrieval",
-  async (id: string, { extra: { nominationCaseGateway } }) => {
+  async (
+    id: string,
+    {
+      extra: {
+        gateways: { nominationCaseGateway },
+      },
+    }
+  ) => {
     return nominationCaseGateway.retrieveNominationCase(id);
   }
 );
