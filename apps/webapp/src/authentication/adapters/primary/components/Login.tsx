@@ -5,7 +5,7 @@ export const Login = () => {
   const dispatch = useAppDispatch();
 
   const authenticateUser = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault();
 
     const form = event.currentTarget;
     const username = (form.elements.namedItem("username") as HTMLInputElement)
@@ -29,3 +29,5 @@ export const Login = () => {
     </form>
   );
 };
+
+export default Login;

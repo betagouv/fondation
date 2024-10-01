@@ -33,11 +33,11 @@ describe("Login Component", () => {
     await submitLogin();
 
     await waitFor(async () => {
-      expect(store.getState()).not.toEqual(initialState);
-
+      expect(store.getState()).not.toBe(initialState);
       expect(store.getState()).toEqual<AppState>({
         ...initialState,
         authentication: {
+          ...initialState.authentication,
           authenticated: true,
         },
       });

@@ -1,12 +1,16 @@
 import { createRouter, defineRoute, param } from "type-route";
 
-export const { RouteProvider, useRoute, routes } = createRouter({
-  home: defineRoute("/"),
-  nominationCaseList: defineRoute("/dossiers-de-nomination"),
+const routeSegments = {
+  dossierDeNomination: "dossiers-de-nomination",
+};
+
+export const { RouteProvider, useRoute, routes, session } = createRouter({
+  login: defineRoute(["/login", "/"]),
+  nominationCaseList: defineRoute(`/${routeSegments.dossierDeNomination}`),
   nominationCaseOverview: defineRoute(
     {
       id: param.path.string,
     },
-    (p) => `/dossiers-de-nomination/${p.id}`
+    (p) => `/${routeSegments.dossierDeNomination}/${p.id}`
   ),
 });

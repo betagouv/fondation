@@ -18,3 +18,4 @@ export const NominationCaseList = () => {
     <div>Aucune nomination.</div>
   );
 };
+export default NominationCaseList;

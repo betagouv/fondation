@@ -49,3 +49,4 @@ export const NominationCaseOverview: React.FC<NominationCaseOverviewProps> = ({
     </div>
   );
 };
+export default NominationCaseOverview;
