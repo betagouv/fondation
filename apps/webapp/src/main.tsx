@@ -14,7 +14,6 @@ import {
   TypeRouterProvider,
 } from "./router/adapters/type-route/typeRouter.ts";
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
-import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
 
 startReactDsfr({ defaultColorScheme: "system" });
