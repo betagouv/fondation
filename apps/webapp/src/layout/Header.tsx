@@ -1,7 +1,10 @@
 import Header from "@codegouvfr/react-dsfr/Header";
-import { routes } from "../router/router";
+import { selectLoginHref } from "../router/adapters/selectors/selectLoginHref";
+import { useAppSelector } from "../nomination-case/adapters/primary/hooks/react-redux";
 
 export const AppHeader = () => {
+  const loginHref = useAppSelector(selectLoginHref);
+
   return (
     <Header
       brandTop={
@@ -12,7 +15,7 @@ export const AppHeader = () => {
         </>
       }
       homeLinkProps={{
-        href: routes.nominationCaseList().href,
+        href: loginHref,
         title: "Dossiers de nomination",
       }}
     />

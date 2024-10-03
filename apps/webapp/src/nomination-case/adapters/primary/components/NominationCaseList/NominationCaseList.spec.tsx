@@ -11,9 +11,13 @@ describe("Nomination Case List Component", () => {
 
   beforeEach(() => {
     nominationCaseGateway = new FakeNominationCaseGateway();
-    store = initReduxStore({
-      nominationCaseGateway,
-    });
+    store = initReduxStore(
+      {
+        nominationCaseGateway,
+      },
+      {},
+      {}
+    );
   });
 
   it("shows an empty list message", async () => {

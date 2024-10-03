@@ -9,30 +9,71 @@ import {
   ReduxStore,
   initReduxStore,
 } from "../nomination-case/store/reduxStore";
+import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
+import {
+  RouteProvider,
+  TypeRouterProvider,
+} from "./adapters/type-route/typeRouter";
+import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponent";
 import { AppRouter } from "./AppRouter";
-import { RouteProvider, routes } from "./router";
+import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
 
 describe("App Router Component", () => {
   let store: ReduxStore;
+  let routerProvider: TypeRouterProvider;
+  const routeToComponentMap: RouteToComponentMap = {
+    login: () => <div>a login</div>,
+    nominationCaseList: () => <div>a list</div>,
+    nominationCaseOverview: () => <div>an overview</div>,
+  };
 
   beforeEach(() => {
-    store = initReduxStore(undefined, undefined);
+    routerProvider = new TypeRouterProvider();
+    store = initReduxStore(
+      {},
+      { routerProvider },
+      {
+        routeToComponentFactory: useRouteToComponentFactory,
+        routeChangedHandler: useRouteChanged,
+      },
+      [],
+      routeToComponentMap
+    );
   });
 
   describe("Anonymous visitor", () => {
     it("visits the login page by default", async () => {
       renderAppRouter();
-      await screen.findByPlaceholderText("Identifiant");
-      expect(window.location.pathname).toBe(routes.login().href);
+      await screen.findByText("a login");
+      expect(window.location.pathname).toBe(routerProvider.getLoginHref());
     });
 
     it("cannot visit the nomination case list page", async () => {
       act(() => {
         renderAppRouter();
-        routes.nominationCaseList().push();
+        routerProvider.goToNominationCaseList();
       });
-      await screen.findByPlaceholderText("Identifiant");
-      expect(window.location.pathname).toBe(routes.login().href);
+      await screen.findByText("a login");
+      expect(window.location.pathname).toBe(routerProvider.getLoginHref());
+    });
+
+    it("cannot show the nomination case list page before the redirection", async () => {
+      store = initReduxStore(
+        {},
+        { routerProvider },
+        {
+          routeToComponentFactory: useRouteToComponentFactory,
+          // routeChangedHandler is omitted here to prevent the redirection
+        },
+        [],
+        routeToComponentMap
+      );
+
+      act(() => {
+        renderAppRouter();
+        routerProvider.goToNominationCaseList();
+      });
+      expect(screen.findByText("a list")).rejects.toThrow();
     });
   });
 
@@ -51,10 +92,10 @@ describe("App Router Component", () => {
       renderAppRouter();
 
       act(() => {
-        routes.nominationCaseOverview({ id: aNomination.id }).push();
+        routerProvider.gotToNominationCaseOverview(aNomination.id);
       });
 
-      await screen.findByText("Règles de gestion");
+      await screen.findByText("an overview");
     });
   });
 
