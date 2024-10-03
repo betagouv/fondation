@@ -1,3 +1,6 @@
+import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
+import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
+
 export interface NominationCase {
   id: string;
   name: string;
@@ -29,5 +32,18 @@ export interface AppState {
   authentication: {
     authenticated: boolean;
     forbiddenPageAsked: boolean;
+  };
+  router: {
+    hrefs: {
+      login: string;
+    };
+    anchorsAttributes: {
+      nominationCaseOverview: (id: string) => {
+        href: string;
+        onClick: () => void;
+      };
+    };
+    routeToComponent: ReturnType<RouteToComponentFactory>;
+    routeChangedHandler: RouteChangedHandler;
   };
 }

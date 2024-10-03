@@ -22,6 +22,7 @@ describe("Authenticate", () => {
         authenticationGateway,
       },
       { authenticationStorageProvider },
+      {},
       [storeAuthenticationOnLoginSuccess]
     );
     initialState = store.getState();

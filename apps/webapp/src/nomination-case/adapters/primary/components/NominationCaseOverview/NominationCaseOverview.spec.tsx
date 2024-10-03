@@ -7,7 +7,7 @@ import { FakeNominationCaseGateway } from "../../../secondary/gateways/FakeNomin
 import { NominationCase, RuleName } from "../../../../store/appState";
 import { NominationCaseBuilder } from "../../../../core-logic/builders/nominationCase.builder";
 import userEvent from "@testing-library/user-event";
-import { NominationCaseVM } from "../../presenters/selectNominationCase";
+import { NominationCaseVM } from "../../selectors/selectNominationCase";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
@@ -15,9 +15,13 @@ describe("Nomination Case Overview Component", () => {
 
   beforeEach(() => {
     nominationCaseGateway = new FakeNominationCaseGateway();
-    store = initReduxStore({
-      nominationCaseGateway,
-    });
+    store = initReduxStore(
+      {
+        nominationCaseGateway,
+      },
+      {},
+      {}
+    );
   });
 
   it("shows an error message if nomination case is not found", async () => {

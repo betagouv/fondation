@@ -11,7 +11,7 @@ describe("Select Nomination Case", () => {
   let store: ReduxStore;
 
   beforeEach(() => {
-    store = initReduxStore();
+    store = initReduxStore({}, {}, {});
     store.dispatch(retrieveNominationCase.fulfilled(aNominationCase, "", ""));
   });
 

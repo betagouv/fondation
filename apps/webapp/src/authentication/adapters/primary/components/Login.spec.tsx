@@ -16,7 +16,7 @@ describe("Login Component", () => {
 
   beforeEach(() => {
     authenticationGateway = new FakeAuthenticationGateway();
-    store = initReduxStore({ authenticationGateway });
+    store = initReduxStore({ authenticationGateway }, {}, {});
     initialState = store.getState();
   });
 
