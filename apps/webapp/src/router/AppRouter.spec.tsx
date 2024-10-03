@@ -61,7 +61,10 @@ describe("App Router Component", () => {
       store = initReduxStore(
         {},
         { routerProvider },
-        { routeToComponentFactory: useRouteToComponentFactory },
+        {
+          routeToComponentFactory: useRouteToComponentFactory,
+          // routeChangedHandler is omitted here to prevent the redirection
+        },
         [],
         routeToComponentMap
       );
