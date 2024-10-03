@@ -20,7 +20,7 @@ describe("Nomination Case List Component", () => {
     );
   });
 
-  it.only("shows an empty list message", async () => {
+  it("shows an empty list message", async () => {
     renderNominationCaseList();
     await screen.findByText("Aucune nomination.");
   });
