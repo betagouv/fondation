@@ -12,9 +12,13 @@ describe("Nomination Rule Update", () => {
 
   beforeEach(() => {
     nominationCaseGateway = new FakeNominationCaseGateway();
-    store = initReduxStore({
-      nominationCaseGateway,
-    });
+    store = initReduxStore(
+      {
+        nominationCaseGateway,
+      },
+      {},
+      {}
+    );
     initialState = store.getState();
   });
 

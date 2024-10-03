@@ -1,6 +1,6 @@
 import { Checkbox, CheckboxProps } from "@codegouvfr/react-dsfr/Checkbox";
 import { RuleGroup, RuleName } from "../../../../store/appState";
-import { NominationCaseVM } from "../../presenters/selectNominationCase";
+import { NominationCaseVM } from "../../selectors/selectNominationCase";
 
 export type NominationRuleProps = {
   rulesChecked: NominationCaseVM["rulesChecked"];

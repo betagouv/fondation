@@ -11,9 +11,13 @@ describe("Retrieve Nomination Case", () => {
 
   beforeEach(() => {
     nominationCaseGateway = new FakeNominationCaseGateway();
-    store = initReduxStore({
-      nominationCaseGateway,
-    });
+    store = initReduxStore(
+      {
+        nominationCaseGateway,
+      },
+      {},
+      {}
+    );
     initialState = store.getState();
   });
 

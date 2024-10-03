@@ -11,7 +11,7 @@ describe("Select Nomination Case List", () => {
   let store: ReduxStore;
 
   beforeEach(() => {
-    store = initReduxStore();
+    store = initReduxStore({}, {}, {});
   });
 
   it("shows an empty list", () => {
