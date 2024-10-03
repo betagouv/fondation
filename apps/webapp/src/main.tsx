@@ -9,7 +9,13 @@ import { storeAuthenticationOnLoginSuccess } from "./authentication/core-logic/l
 import "./index.css";
 import { FakeNominationCaseGateway } from "./nomination-case/adapters/secondary/gateways/FakeNominationCase.gateway.ts";
 import { initReduxStore } from "./nomination-case/store/reduxStore.ts";
-import { RouteProvider } from "./router/router.ts";
+import {
+  RouteProvider,
+  TypeRouterProvider,
+} from "./router/adapters/type-route/typeRouter.ts";
+import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
+import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
+import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
 
 startReactDsfr({ defaultColorScheme: "system" });
 
@@ -40,9 +46,13 @@ nominationCaseGateway.nominationCases["nomination-case-id"] = {
 const authenticationStorageProvider =
   new AuthenticationSessionStorageProvider();
 
-const store = initReduxStore(
+const store = initReduxStore<false>(
   { nominationCaseGateway, authenticationGateway },
-  { authenticationStorageProvider },
+  { authenticationStorageProvider, routerProvider: new TypeRouterProvider() },
+  {
+    routeToComponentFactory: useRouteToComponentFactory,
+    routeChangedHandler: useRouteChanged,
+  },
   [storeAuthenticationOnLoginSuccess]
 );
 

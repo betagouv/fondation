@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
-import { selectNominationCase } from "../../presenters/selectNominationCase";
+import { selectNominationCase } from "../../selectors/selectNominationCase";
 import { retrieveNominationCase } from "../../../../core-logic/use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
 import { NominationRules } from "./NominationRules";
 import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
