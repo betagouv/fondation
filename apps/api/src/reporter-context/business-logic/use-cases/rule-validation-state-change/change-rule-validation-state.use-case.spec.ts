@@ -1,9 +1,10 @@
-import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/repositories/FakeNominationFileReport.repository';
+import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
+import { ReportBuilder } from '../../models/report.builder';
 import {
   NominationFileReport,
-  NominationFileRule,
-} from '../../models/NominationFileReport';
-import { ChangeRuleValidationStateUseCase } from './changeRuleValidationState.use-case';
+  NominationFileRuleName,
+} from '../../models/nomination-file-report';
+import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-nomination-file-report.repository';
 
 describe('Change Rule Validation State', () => {
   let nominationFileReportRepository: FakeNominationFileReportRepository;
@@ -28,7 +29,7 @@ describe('Change Rule Validation State', () => {
 
       await changeRuleValidationStateUseCase.execute(
         aReport.id,
-        NominationFileRule.OVERSEAS_TO_OVERSEAS,
+        NominationFileRuleName.OVERSEAS_TO_OVERSEAS,
         expectValidated,
       );
 
@@ -39,17 +40,9 @@ describe('Change Rule Validation State', () => {
   const givenSomeReportExistWithTestedRuleAt = (
     initialValidationState: boolean,
   ): NominationFileReport => {
-    const aReport = {
-      id: '1',
-      managementRules: {
-        [NominationFileRule.PROFILED_POSITION]: {
-          validated: true,
-        },
-        [NominationFileRule.OVERSEAS_TO_OVERSEAS]: {
-          validated: initialValidationState,
-        },
-      },
-    };
+    const aReport = new ReportBuilder()
+      .withOverseasToOverseasRuleValidated(initialValidationState)
+      .build();
 
     nominationFileReportRepository.reports = {
       [aReport.id]: aReport,
@@ -68,7 +61,7 @@ describe('Change Rule Validation State', () => {
       ...report,
       managementRules: {
         ...report.managementRules,
-        [NominationFileRule.OVERSEAS_TO_OVERSEAS]: {
+        [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: {
           validated: expectValidated,
         },
       },

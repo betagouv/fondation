@@ -1,7 +1,6 @@
-import { FakeReportListingVMRepository } from 'src/reporter-context/adapters/secondary/repositories/FakeReportListingVM.repository';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/dateOnly';
-import { ReportListItemVM } from '../../models/ReportsListingVM';
-import { ListReportsUseCase } from './listReports.use-case';
+import { FakeReportListingVMRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-listing-vm.repository';
+import { ReportListItemVM } from '../../models/reports-listing-vm';
+import { ListReportsUseCase } from './list-reports.use-case';
 
 describe('List reports', () => {
   let reportListingVMRepository: FakeReportListingVMRepository;
