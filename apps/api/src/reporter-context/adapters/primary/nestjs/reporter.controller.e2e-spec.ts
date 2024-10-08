@@ -4,22 +4,28 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import {
   NominationFileReport,
-  NominationFileRule,
-} from 'src/reporter-context/business-logic/models/NominationFileReport';
-import { ReportListItemVM } from 'src/reporter-context/business-logic/models/ReportsListingVM';
+  NominationFileRuleName,
+} from 'src/reporter-context/business-logic/models/nomination-file-report';
+import { ReportListItemVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
 import * as request from 'supertest';
-import { FakeNominationFileReportRepository } from '../../secondary/repositories/FakeNominationFileReport.repository';
-import { FakeReportListingVMRepository } from '../../secondary/repositories/FakeReportListingVM.repository';
-import { ChangeRuleValidationStateDto } from '../nestia/ChangeRuleValidationState.dto';
+import { FakeNominationFileReportRepository } from '../../secondary/repositories/fake-nomination-file-report.repository';
+import { FakeReportListingVMRepository } from '../../secondary/repositories/fake-report-listing-vm.repository';
+import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 import {
   NOMINATION_FILE_REPORT_REPOSITORY,
-  REPORT_LISTING_REPOSITORY,
+  REPORT_LISTING_QUERY,
+  REPORT_RETRIEVAL_QUERY,
 } from './reporter.module';
+import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
+import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
+import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
+import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 
 describe('Reporter Controller', () => {
   let app: NestApplication;
   let nominationFileReportRepository: FakeNominationFileReportRepository;
   let reportListingRepository: FakeReportListingVMRepository;
+  let reportRetrievalVMQuery: FakeReportRetrievalVMQuery;
 
   beforeEach(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -27,8 +33,8 @@ describe('Reporter Controller', () => {
     }).compile();
     app = moduleFixture.createNestApplication();
 
-    reportListingRepository = app.get(REPORT_LISTING_REPOSITORY);
-
+    reportListingRepository = app.get(REPORT_LISTING_QUERY);
+    reportRetrievalVMQuery = app.get(REPORT_RETRIEVAL_QUERY);
     nominationFileReportRepository = app.get(NOMINATION_FILE_REPORT_REPOSITORY);
 
     await app.init();
@@ -57,6 +63,25 @@ describe('Reporter Controller', () => {
     };
   });
 
+  describe('GET /api/reports/:id', () => {
+    beforeEach(() => {
+      reportRetrievalVMQuery.reports = {
+        [aReportRetrievedVM.id]: aReportRetrievedVM,
+      };
+    });
+
+    it('retrieves a report', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/reports/${aReportRetrievedVM.id}`)
+        .expect(HttpStatus.OK);
+      expect(response.body).toEqual(aReportRetrievedVM);
+    });
+
+    const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
+      .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .build();
+  });
+
   describe('PUT /api/reports', () => {
     beforeEach(() => {
       nominationFileReportRepository.reports = {
@@ -67,7 +92,7 @@ describe('Reporter Controller', () => {
     it('forbids unvalidated report id', async () => {
       const body: ChangeRuleValidationStateDto = {
         validated: false,
-        rule: NominationFileRule.OVERSEAS_TO_OVERSEAS,
+        rule: NominationFileRuleName.OVERSEAS_TO_OVERSEAS,
       };
       await request(app.getHttpServer())
         .put('/api/reports/invalid-id')
@@ -77,7 +102,7 @@ describe('Reporter Controller', () => {
 
     const wrongBodies = [
       { validated: false, rule: 'OVERSEAS_TO_OVERSEASSSS' },
-      { validated: 'false', rule: NominationFileRule.OVERSEAS_TO_OVERSEAS },
+      { validated: 'false', rule: NominationFileRuleName.OVERSEAS_TO_OVERSEAS },
     ];
     it.each(wrongBodies)(
       'forbids unvalidated report id and body',
@@ -94,7 +119,7 @@ describe('Reporter Controller', () => {
         .put(`/api/reports/${nominationFileReport.id}`)
         .send({
           validated: false,
-          rule: NominationFileRule.OVERSEAS_TO_OVERSEAS,
+          rule: NominationFileRuleName.OVERSEAS_TO_OVERSEAS,
         })
         .expect(HttpStatus.OK);
       expect(response.body).toEqual('');
@@ -107,23 +132,15 @@ describe('Reporter Controller', () => {
         ...nominationFileReport,
         managementRules: {
           ...nominationFileReport.managementRules,
-          [NominationFileRule.OVERSEAS_TO_OVERSEAS]: {
+          [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: {
             validated: false,
           },
         },
       });
     });
 
-    const nominationFileReport: NominationFileReport = {
-      id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-      managementRules: {
-        [NominationFileRule.PROFILED_POSITION]: {
-          validated: true,
-        },
-        [NominationFileRule.OVERSEAS_TO_OVERSEAS]: {
-          validated: true,
-        },
-      },
-    };
+    const nominationFileReport: NominationFileReport = new ReportBuilder()
+      .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .build();
   });
 });

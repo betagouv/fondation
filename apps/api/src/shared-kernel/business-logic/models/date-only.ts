@@ -18,7 +18,4 @@ export class DateOnly {
   getMonth(): number {
     return this.value.getMonth() + 1; // Returns 1-indexed month
   }
-  toString(): string {
-    return this.value.toISOString().split('T')[0]; // Returns "yyyy-MM-dd"
-  }
 }
