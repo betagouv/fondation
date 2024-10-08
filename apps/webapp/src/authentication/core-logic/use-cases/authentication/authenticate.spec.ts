@@ -1,9 +1,9 @@
-import { AppState } from "../../../../nomination-case/store/appState";
+import { AppState } from "../../../../nomination-file/store/appState";
 import { storeAuthenticationOnLoginSuccess } from "../../listeners/authentication.listeners";
 import {
   ReduxStore,
   initReduxStore,
-} from "../../../../nomination-case/store/reduxStore";
+} from "../../../../nomination-file/store/reduxStore";
 import { FakeAuthenticationGateway } from "../../../adapters/secondary/gateways/fakeAuthentication.gateway";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
 import { authenticate } from "./authenticate";

@@ -2,13 +2,13 @@ import "@testing-library/jest-dom";
 import { act, render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
-import { NominationCaseBuilder } from "../nomination-case/core-logic/builders/nominationCase.builder";
-import { retrieveNominationCase } from "../nomination-case/core-logic/use-cases/nomination-case-retrieval/retrieveNominationCase.use-case";
-import { NominationCase } from "../nomination-case/store/appState";
+import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
+import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
+import { NominationFile } from "../nomination-file/store/appState";
 import {
   ReduxStore,
   initReduxStore,
-} from "../nomination-case/store/reduxStore";
+} from "../nomination-file/store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,
@@ -24,7 +24,7 @@ describe("App Router Component", () => {
   const routeToComponentMap: RouteToComponentMap = {
     login: () => <div>a login</div>,
     nominationCaseList: () => <div>a list</div>,
-    nominationCaseOverview: () => <div>an overview</div>,
+    nominationFileOverview: () => <div>an overview</div>,
   };
 
   beforeEach(() => {
@@ -48,16 +48,16 @@ describe("App Router Component", () => {
       expect(window.location.pathname).toBe(routerProvider.getLoginHref());
     });
 
-    it("cannot visit the nomination case list page", async () => {
+    it("cannot visit the nomination file list page", async () => {
       act(() => {
         renderAppRouter();
-        routerProvider.goToNominationCaseList();
+        routerProvider.goToNominationFileList();
       });
       await screen.findByText("a login");
       expect(window.location.pathname).toBe(routerProvider.getLoginHref());
     });
 
-    it("cannot show the nomination case list page before the redirection", async () => {
+    it("cannot show the nomination file list page before the redirection", async () => {
       store = initReduxStore(
         {},
         { routerProvider },
@@ -71,7 +71,7 @@ describe("App Router Component", () => {
 
       act(() => {
         renderAppRouter();
-        routerProvider.goToNominationCaseList();
+        routerProvider.goToNominationFileList();
       });
       expect(screen.findByText("a list")).rejects.toThrow();
     });
@@ -87,12 +87,12 @@ describe("App Router Component", () => {
       );
     });
 
-    it("visits the nomination case overview page", async () => {
-      store.dispatch(retrieveNominationCase.fulfilled(aNomination, "", ""));
+    it("visits the nomination file overview page", async () => {
+      store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
       renderAppRouter();
 
       act(() => {
-        routerProvider.gotToNominationCaseOverview(aNomination.id);
+        routerProvider.gotToNominationFileOverview(aNomination.id);
       });
 
       await screen.findByText("an overview");
@@ -110,4 +110,4 @@ describe("App Router Component", () => {
   };
 });
 
-const aNomination: NominationCase = new NominationCaseBuilder().build();
+const aNomination: NominationFile = new NominationFileBuilder().build();

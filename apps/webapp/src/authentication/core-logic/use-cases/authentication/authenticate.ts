@@ -1,4 +1,4 @@
-import { createAppAsyncThunk } from "../../../../nomination-case/store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../nomination-file/store/createAppAsyncThunk";
 
 type AuthenticateParams = { username: string; password: string };
 

@@ -1,3 +1,6 @@
 # used to test locally the build of Scalingo artifacts
 *.tar.gz
 /scalingo
+
+node_modules
+generated

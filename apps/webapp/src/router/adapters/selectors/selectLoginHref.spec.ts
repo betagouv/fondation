@@ -1,7 +1,7 @@
 import {
   initReduxStore,
   ReduxStore,
-} from "../../../nomination-case/store/reduxStore";
+} from "../../../nomination-file/store/reduxStore";
 import { TypeRouterProvider } from "../type-route/typeRouter";
 import { selectLoginHref } from "./selectLoginHref";
 

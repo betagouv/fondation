@@ -51,12 +51,12 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportListingRepository.reportsList = [
           {
             id: 'd3696935-e0c6-40c5-8db0-3c1a395a5ba8',
-            title: 'Report 1',
+            title: 'Marcel Dupont',
             dueDate: '2030-10-05',
           },
           {
             id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-            title: 'Report 2',
+            title: 'Ada Lovelace',
             dueDate: null,
           },
         ];
