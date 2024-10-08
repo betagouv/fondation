@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import { Page } from "../layout/Page";
-import { useAppSelector } from "../nomination-case/adapters/primary/hooks/react-redux";
+import { useAppSelector } from "../nomination-file/adapters/primary/hooks/react-redux";
 import { selectRouteChangedHandler } from "./adapters/selectors/selectRouteChangedHandler";
 import { selectRouteToComponent } from "./adapters/selectors/selectRouteToComponent";
 

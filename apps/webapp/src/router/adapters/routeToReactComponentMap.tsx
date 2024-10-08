@@ -2,14 +2,14 @@ import { FC } from "react";
 import { RouteName } from "../core-logic/models/Routes";
 import {
   LazyLogin,
-  LazyNominationCaseList,
-  LazyNominationCaseOverview,
+  LazyNominationFileList,
+  LazyNominationFileOverview,
 } from "./lazyRouteComponents";
 
 export const routeToReactComponentMap = {
   login: LazyLogin,
-  nominationCaseList: LazyNominationCaseList,
-  nominationCaseOverview: LazyNominationCaseOverview,
+  nominationCaseList: LazyNominationFileList,
+  nominationFileOverview: LazyNominationFileOverview,
 };
 
 export type RouteToComponentMap =

@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Login } from "./Login";
 import userEvent from "@testing-library/user-event";
-import { AppState } from "../../../../nomination-case/store/appState";
+import { AppState } from "../../../../nomination-file/store/appState";
 import {
   ReduxStore,
   initReduxStore,
-} from "../../../../nomination-case/store/reduxStore";
+} from "../../../../nomination-file/store/reduxStore";
 import { Provider } from "react-redux";
 import { FakeAuthenticationGateway } from "../../secondary/gateways/fakeAuthentication.gateway";
 

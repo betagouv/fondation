@@ -1,4 +1,4 @@
-import { Listener } from "../../../nomination-case/store/listeners";
+import { Listener } from "../../../nomination-file/store/listeners";
 import { authenticate } from "../use-cases/authentication/authenticate";
 
 export const storeAuthenticationOnLoginSuccess: Listener = (
