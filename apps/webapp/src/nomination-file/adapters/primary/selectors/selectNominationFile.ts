@@ -27,6 +27,7 @@ export class NominationFileVM {
     public id: string,
     public name: string,
     public biography: string,
+    public dueDate: string | null,
     public rulesChecked: Record<
       RuleGroup,
       Record<RuleName, VMNominationFileRuleValue>
@@ -55,6 +56,7 @@ export const selectNominationFile = createSelector(
       id: nominationFile.id,
       name: nominationFile.title,
       biography: nominationFile.biography,
+      dueDate: nominationFile.dueDate,
       rulesChecked: {
         management: {
           ...createManagementRuleCheckedEntryFromValidatedRules(

@@ -12,7 +12,7 @@ export class NominationFileBuilderVM {
     this.id = "nomination-file-id";
     this.title = "John Doe";
     this.biography = "John Doe's biography";
-    this.dueDate = null;
+    this.dueDate = "2030-10-30";
     this.rules = {
       management: {
         TRANSFER_TIME: true,
@@ -104,6 +104,7 @@ export class NominationFileBuilderVM {
       id: this.id,
       name: this.title,
       biography: this.biography,
+      dueDate: this.dueDate,
       rulesChecked: {
         management: {
           TRANSFER_TIME: {
@@ -143,7 +144,7 @@ export class NominationFileBuilderVM {
                 "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE"
               ],
           },
-          JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT: {
+          JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: {
             checked:
               !this.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
             label:

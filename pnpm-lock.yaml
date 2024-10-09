@@ -145,8 +145,8 @@ importers:
         specifier: ^9.9.0
         version: 9.12.0
       '@ryoppippi/unplugin-typia':
-        specifier: npm:@jsr/ryoppippi__unplugin-typia@^1.0.6
-        version: '@jsr/ryoppippi__unplugin-typia@1.0.6(@types/node@20.16.10)(rollup@4.24.0)(terser@5.34.1)(webpack-sources@3.2.3)'
+        specifier: ^1.0.6
+        version: 1.0.6(@types/node@20.16.10)(rollup@4.24.0)(terser@5.34.1)(webpack-sources@3.2.3)
       '@testing-library/jest-dom':
         specifier: ^6.5.0
         version: 6.5.0
@@ -212,10 +212,10 @@ importers:
     dependencies:
       '@nestia/fetcher':
         specifier: ^3.17.0
-        version: 3.17.0(typescript@5.6.2)
+        version: 3.17.0(typescript@5.6.3)
       typia:
         specifier: ^6.11.1
-        version: 6.11.1(typescript@5.6.2)
+        version: 6.11.1(typescript@5.6.3)
 
 packages:
 
@@ -745,9 +745,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@jsr/ryoppippi__unplugin-typia@1.0.6':
-    resolution: {integrity: sha512-6Jgj8vZ7kui/LsjRUbZWsOR38o9XArrKCkv8sCVflgS11mh+4SiORilPTPKON8hB+rbHW7IJlmy8Sz2g1ppizQ==, tarball: https://npm.jsr.io/~/11/@jsr/ryoppippi__unplugin-typia/1.0.6.tgz}
-
   '@ljharb/through@2.3.13':
     resolution: {integrity: sha512-/gKJun8NNiWGZJkGzI/Ragc53cOdcLNdzjLaIa+GEjguQs0ulsurx8WN0jijdK9yPqDvziX995sMRLyLt1uZMQ==}
     engines: {node: '>= 0.4'}
@@ -977,6 +974,9 @@ packages:
     resolution: {integrity: sha512-fbMkAF7fufku0N2dE5TBXcNlg0pt0cJue4xBRE2Qc5Vqikxr4VCgKj/ht6SMdFcOacVA9rqF70APJ8RN/4vMJw==}
     cpu: [x64]
     os: [win32]
+
+  '@ryoppippi/unplugin-typia@1.0.6':
+    resolution: {integrity: sha512-jG6/uyYb1wl4qUxZaT+qkVVzDhBCIxZOCCqQS9NAECxy6CpOCuYqCvucDgIvYF51+zaQnPix6pCcr98Dl3oodA==}
 
   '@samchon/openapi@1.1.0':
     resolution: {integrity: sha512-BX7Hhi7ZvqXerAml613p3ZP4YPUHRNHZ5tWlbk999SHB1liPB+KHfkEIyGOAooPHUFMpeIS/PRaw88bsUZB3Uw==}
@@ -3837,6 +3837,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typia@6.11.1:
     resolution: {integrity: sha512-Z0yXHzjQSNP1ULs2RzU7h20Q4ibs4er0JuZMW8ZETxUT9GrR/3jBycfpbMoKjheZ//ZDkoVgJY0Uk2ohiDuqWQ==}
     hasBin: true
@@ -4742,33 +4747,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@jsr/ryoppippi__unplugin-typia@1.0.6(@types/node@20.16.10)(rollup@4.24.0)(terser@5.34.1)(webpack-sources@3.2.3)':
-    dependencies:
-      '@rollup/pluginutils': 5.1.2(rollup@4.24.0)
-      consola: 3.2.3
-      defu: 6.1.4
-      diff-match-patch: 1.0.5
-      find-cache-dir: 5.0.0
-      magic-string: 0.30.11
-      pathe: 1.1.2
-      pkg-types: 1.2.1
-      type-fest: 4.26.1
-      typescript: 5.5.4
-      typia: 6.11.1(typescript@5.5.4)
-      unplugin: 1.14.1(webpack-sources@3.2.3)
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.34.1)
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - terser
-      - webpack-sources
-
   '@ljharb/through@2.3.13':
     dependencies:
       call-bind: 1.0.7
@@ -4810,6 +4788,11 @@ snapshots:
     dependencies:
       '@samchon/openapi': 1.1.0
       typescript: 5.6.2
+
+  '@nestia/fetcher@3.17.0(typescript@5.6.3)':
+    dependencies:
+      '@samchon/openapi': 1.1.0
+      typescript: 5.6.3
 
   '@nestia/sdk@3.17.0(@nestia/core@3.17.0(@nestia/fetcher@3.17.0(typescript@5.6.2))(@nestjs/common@10.4.4(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.4(@nestjs/common@10.4.4(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.4)(reflect-metadata@0.2.2)(rxjs@7.8.1))(reflect-metadata@0.2.2)(rxjs@7.8.1)(typia@6.11.1(typescript@5.6.2)))(@nestia/fetcher@3.17.0(typescript@5.6.2))(@nestjs/common@10.4.4(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.4(@nestjs/common@10.4.4(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.4)(reflect-metadata@0.2.2)(rxjs@7.8.1))(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.7.26)(@types/node@20.16.10)(typescript@5.6.2))(typescript@5.6.2)(typia@6.11.1(typescript@5.6.2))':
     dependencies:
@@ -5016,6 +4999,33 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.24.0':
     optional: true
+
+  '@ryoppippi/unplugin-typia@1.0.6(@types/node@20.16.10)(rollup@4.24.0)(terser@5.34.1)(webpack-sources@3.2.3)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.2(rollup@4.24.0)
+      consola: 3.2.3
+      defu: 6.1.4
+      diff-match-patch: 1.0.5
+      find-cache-dir: 5.0.0
+      magic-string: 0.30.11
+      pathe: 1.1.2
+      pkg-types: 1.2.1
+      type-fest: 4.26.1
+      typescript: 5.5.4
+      typia: 6.11.1(typescript@5.5.4)
+      unplugin: 1.14.1(webpack-sources@3.2.3)
+      vite: 5.4.8(@types/node@20.16.10)(terser@5.34.1)
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - lightningcss
+      - rollup
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - terser
+      - webpack-sources
 
   '@samchon/openapi@1.1.0': {}
 
@@ -8247,6 +8257,8 @@ snapshots:
 
   typescript@5.6.2: {}
 
+  typescript@5.6.3: {}
+
   typia@6.11.1(typescript@5.5.4):
     dependencies:
       '@samchon/openapi': 1.1.0
@@ -8266,6 +8278,16 @@ snapshots:
       package-manager-detector: 0.2.1
       randexp: 0.5.3
       typescript: 5.6.2
+
+  typia@6.11.1(typescript@5.6.3):
+    dependencies:
+      '@samchon/openapi': 1.1.0
+      commander: 10.0.1
+      comment-json: 4.2.5
+      inquirer: 8.2.6
+      package-manager-detector: 0.2.1
+      randexp: 0.5.3
+      typescript: 5.6.3
 
   ufo@1.5.4: {}
 

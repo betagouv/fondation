@@ -1,5 +1,4 @@
 import { INestiaConfig } from '@nestia/sdk';
-import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 
@@ -26,6 +25,7 @@ export const NESTIA_CONFIG: INestiaConfig = {
     // })
     return app;
   },
+  clone: true,
 
   /**
    * Building `swagger.json` is also possible.
