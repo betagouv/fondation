@@ -55,7 +55,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
           JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE:
             report.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
               .validated,
-          JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT:
+          JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT:
             report.rules.management
               .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT
               .validated,

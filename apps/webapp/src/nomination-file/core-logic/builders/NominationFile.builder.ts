@@ -22,7 +22,7 @@ export class NominationFileBuilder {
         CASSATION_COURT_NOMINATION: true,
         OVERSEAS_TO_OVERSEAS: true,
         JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: true,
-        JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT: true,
+        JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: true,
       },
     };
   }
@@ -81,7 +81,7 @@ export class NominationFileBuilder {
   withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(
     judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean
   ) {
-    this.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT =
+    this.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT =
       judiciaryRoleAndJuridictionDegreeChangeInSameRessort;
     return this;
   }

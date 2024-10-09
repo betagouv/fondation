@@ -38,6 +38,10 @@ export class ReportBuilder {
     this.id = id;
     return this;
   }
+  withBiography(biography: string) {
+    this.biography = biography;
+    return this;
+  }
   withOverseasToOverseasRuleValidated(validated: boolean): this {
     this.managementRules[NominationFileRuleName.OVERSEAS_TO_OVERSEAS] = {
       validated,

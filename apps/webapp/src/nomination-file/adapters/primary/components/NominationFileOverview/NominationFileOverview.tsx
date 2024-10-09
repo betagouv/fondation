@@ -5,6 +5,10 @@ import { retrieveNominationFile } from "../../../../core-logic/use-cases/nominat
 import { NominationRules } from "./NominationRules";
 import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
 import { RuleGroup, RuleName } from "../../../../store/appState";
+import { Card } from "./Card";
+import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import clsx from "clsx";
+import { Biography } from "./Biography";
 
 export type NominationFileOverviewProps = {
   id: string;
@@ -37,15 +41,22 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
 
   if (!nominationFile) return <div>Nomination case not found</div>;
   return (
-    <div>
-      <h1>{nominationFile.name}</h1>
-      <p>{nominationFile.biography}</p>
-      <div>
+    <div
+      className={clsx(
+        "bg-light-orange flex flex-col place-items-center gap-2",
+        cx("fr-py-5v")
+      )}
+    >
+      <Card>
+        <div className={cx("fr-h1")}>{nominationFile.name}</div>
+      </Card>
+      <Biography biography={nominationFile.biography} />
+      <Card>
         <NominationRules
           rulesChecked={nominationFile.rulesChecked}
           onUpdateNominationRule={onUpdateNominationRule}
         />
-      </div>
+      </Card>
     </div>
   );
 };

@@ -71,10 +71,38 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportRetrievalQuery.reports = {
           'd3696935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportRetrievalVMBuilder()
             .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
+            .withTitle('Marcel Dupont')
+            .withBiography(
+              `
+              - DEA dr priv.
+              - Auditric Just 18 janvier 1991, PF 04 février 1991. 
+              - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
+              - (Chg fonct JAP, 11 janvier 1995). 
+              - J Évry, (Chg Ti Longjumeau), 13 juillet 1995, (Installat. 1er septembre 1995). 
+              - J Créteil, (2ème grade), (Chg Ti Villejuif), 26 juillet 2000. 
+              -  VPTI EVRY,(TI  PALAISEAU) (1er grade),  13/08/2004 (Ins.03/09/2004).. 
+              -  VP MELUN 26/06/2006 (Ins.04/09/2006).. VPTI MARSEILLE,(TI  AUBAGNE) 20/07/2011 (Ins.01/09/2011). 
+              - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
+              `,
+            )
             .withOverseasToOverseasRuleValidated(false)
             .build(),
           'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRetrievalVMBuilder()
             .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+            .withTitle('Ada Lovelace')
+            .withBiography(
+              `
+              - DEA dr priv.
+              - Auditric Just 18 janvier 1991, PF 04 février 1991. 
+              - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
+              - (Chg fonct JAP, 11 janvier 1995). 
+              - J Évry, (Chg Ti Longjumeau), 13 juillet 1995, (Installat. 1er septembre 1995). 
+              - J Créteil, (2ème grade), (Chg Ti Villejuif), 26 juillet 2000. 
+              -  VPTI EVRY,(TI  PALAISEAU) (1er grade),  13/08/2004 (Ins.03/09/2004).. 
+              -  VP MELUN 26/06/2006 (Ins.04/09/2006).. VPTI MARSEILLE,(TI  AUBAGNE) 20/07/2011 (Ins.01/09/2011). 
+              - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
+              `,
+            )
             .withOverseasToOverseasRuleValidated(false)
             .build(),
         };

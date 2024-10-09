@@ -16,7 +16,7 @@ export interface NominationFile {
       CASSATION_COURT_NOMINATION: boolean;
       OVERSEAS_TO_OVERSEAS: boolean;
       JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: boolean;
-      JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT: boolean;
+      JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: boolean;
     };
   };
 }
