@@ -1,8 +1,8 @@
 import React, { PropsWithChildren } from "react";
-import { Page } from "../layout/Page";
 import { useAppSelector } from "../nomination-file/adapters/primary/hooks/react-redux";
 import { selectRouteChangedHandler } from "./adapters/selectors/selectRouteChangedHandler";
 import { selectRouteToComponent } from "./adapters/selectors/selectRouteToComponent";
+import { PageLayout } from "../layout/PageLayout";
 
 export const AppRouter: React.FC<PropsWithChildren> = () => {
   const routeToComponent = useAppSelector(selectRouteToComponent);
@@ -10,5 +10,5 @@ export const AppRouter: React.FC<PropsWithChildren> = () => {
   useRouteChanged();
   const component = routeToComponent();
 
-  return <Page>{component}</Page>;
+  return <PageLayout>{component}</PageLayout>;
 };
