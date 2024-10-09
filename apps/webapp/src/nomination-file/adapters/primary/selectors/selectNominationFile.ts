@@ -10,17 +10,17 @@ export type VMNominationFileRuleValue = { label: string; checked: boolean };
 
 export class NominationFileVM {
   static rulesToLabels: Record<RuleName, string> = {
-    TRANSFER_TIME: "Transfer time",
+    TRANSFER_TIME: "Obtenir une mutation en moins de 3 ans",
     GETTING_FIRST_GRADE: "Getting first grade",
     GETTING_GRADE_HH: "Getting grade HH",
-    GETTING_GRADE_IN_PLACE: "Getting grade in place",
-    PROFILED_POSITION: "Profiled position",
+    GETTING_GRADE_IN_PLACE: "Prendre son grade sur place",
+    PROFILED_POSITION: 'Être nommé sur un poste "profilé"',
     CASSATION_COURT_NOMINATION: "Cassation court nomination",
-    OVERSEAS_TO_OVERSEAS: "Overseas to overseas",
+    OVERSEAS_TO_OVERSEAS: 'Être muté "d\'Outremer sur Outremer"',
     JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE:
-      "Judiciary role and juridiction degree change",
-    JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT:
-      "Judiciary role and juridiction degree change in same ressort",
+      "Passer du siège au parquet tout en passant d'un TJ à une CA (ou l'inverse)",
+    JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT:
+      "Passer du siège au parquet (ou l'inverse) au sein d'un même ressort",
   };
 
   constructor(
@@ -82,7 +82,7 @@ export const selectNominationFile = createSelector(
             "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE"
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT"
+            "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT"
           ),
         },
       },

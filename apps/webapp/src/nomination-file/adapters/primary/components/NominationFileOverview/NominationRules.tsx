@@ -32,5 +32,10 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
     )
     .flat();
 
-  return <Checkbox id="rule" legend="Règles de gestion" options={options} />;
+  return (
+    <div>
+      <div className="fr-h2">Règles de gestion</div>
+      <Checkbox id="rule" options={options} />
+    </div>
+  );
 };

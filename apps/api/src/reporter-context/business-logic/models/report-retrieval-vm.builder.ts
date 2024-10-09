@@ -33,6 +33,14 @@ export class ReportRetrievalVMBuilder {
     this.id = id;
     return this;
   }
+  withTitle(title: string): this {
+    this.title = title;
+    return this;
+  }
+  withBiography(biography: string) {
+    this.biography = biography;
+    return this;
+  }
   withOverseasToOverseasRuleValidated(validated: boolean): this {
     this.managementRules[NominationFileRuleName.OVERSEAS_TO_OVERSEAS] = {
       validated,
