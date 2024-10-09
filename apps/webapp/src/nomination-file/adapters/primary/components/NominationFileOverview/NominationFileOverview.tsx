@@ -43,8 +43,10 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
   return (
     <div
       className={clsx(
-        "bg-light-orange flex flex-col place-items-center gap-2",
-        cx("fr-py-5v")
+        "bg-light-orange",
+        "gap-2",
+        "justify-center",
+        cx("fr-py-5v", "fr-grid-row")
       )}
     >
       <Card>

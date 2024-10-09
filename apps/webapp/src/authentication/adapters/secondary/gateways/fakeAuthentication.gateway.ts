@@ -4,7 +4,7 @@ export class FakeAuthenticationGateway implements AuthenticationGateway {
   private eligibleAuthUsers: Record<string, boolean> = {};
 
   async authenticate(username: string, password: string): Promise<boolean> {
-    return this.eligibleAuthUsers[`${username}-${password}`];
+    return this.eligibleAuthUsers[`${username}-${password}`] ?? false;
   }
 
   setEligibleAuthUser(

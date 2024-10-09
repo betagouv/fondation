@@ -24,8 +24,9 @@ export class ReportRetrievalVMBuilder {
       [NominationFileRuleName.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: {
         validated: true,
       },
-      [NominationFileRuleName.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE_IN_SAME_RESSORT]:
-        { validated: true },
+      [NominationFileRuleName.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]: {
+        validated: true,
+      },
     };
   }
 

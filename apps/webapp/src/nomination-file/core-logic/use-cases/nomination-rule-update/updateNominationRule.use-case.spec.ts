@@ -29,7 +29,7 @@ describe("Nomination Rule Update", () => {
       updateNominationRule({
         id: "nomination-file-id",
         ruleGroup: "management",
-        ruleName: "transferTime",
+        ruleName: "TRANSFER_TIME",
         validated: true,
       })
     );
@@ -43,7 +43,7 @@ describe("Nomination Rule Update", () => {
               ...aNomination.rules,
               management: {
                 ...aNomination.rules.management,
-                transferTime: true,
+                TRANSFER_TIME: true,
               },
             },
           },

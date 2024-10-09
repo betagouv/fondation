@@ -73,8 +73,7 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
             .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
             .withTitle('Marcel Dupont')
             .withBiography(
-              `
-              - DEA dr priv.
+              `- DEA dr priv.
               - Auditric Just 18 janvier 1991, PF 04 février 1991. 
               - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
               - (Chg fonct JAP, 11 janvier 1995). 
@@ -91,8 +90,7 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
             .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
             .withTitle('Ada Lovelace')
             .withBiography(
-              `
-              - DEA dr priv.
+              `- DEA dr priv.
               - Auditric Just 18 janvier 1991, PF 04 février 1991. 
               - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
               - (Chg fonct JAP, 11 janvier 1995). 
