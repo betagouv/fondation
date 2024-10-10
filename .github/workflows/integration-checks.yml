@@ -23,6 +23,9 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
+      - name: Generate SDK, necessary for the types check
+        run: pnpm gen-sdk
+        working-directory: apps/api
       - name: Types check
         run: pnpm types:check
       - name: Lint
