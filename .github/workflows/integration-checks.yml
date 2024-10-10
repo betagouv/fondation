@@ -23,8 +23,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
-      - name: Typecheck
-        run: pnpm type:check
+      - name: Types check
+        run: pnpm types:check
       - name: Lint
         run: pnpm lint:check
       - name: Format
