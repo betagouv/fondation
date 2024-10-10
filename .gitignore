@@ -1,6 +1,7 @@
 # used to test locally the build of Scalingo artifacts
 *.tar.gz
 /scalingo
+.tmp-build
 
 *.tsbuildinfo
 node_modules

@@ -1,1 +1,1 @@
-web: node ./dist/src/main.js
+web: cd apps/api && node ./dist/src/main.js
