@@ -2,5 +2,6 @@
 *.tar.gz
 /scalingo
 
+*.tsbuildinfo
 node_modules
 generated
