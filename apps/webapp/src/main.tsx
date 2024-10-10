@@ -33,7 +33,7 @@ const store = initReduxStore<false>(
     routeToComponentFactory: useRouteToComponentFactory,
     routeChangedHandler: useRouteChanged,
   },
-  [storeAuthenticationOnLoginSuccess]
+  [storeAuthenticationOnLoginSuccess],
 );
 
 createRoot(document.getElementById("root")!).render(
@@ -43,5 +43,5 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </RouteProvider>
     </Provider>
-  </StrictMode>
+  </StrictMode>,
 );

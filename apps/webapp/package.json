@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --ext ts,tsx",
-    "format:check": "pnpm prettier --check src/**/*.{ts,tsx}",
+    "lint:check": "eslint .",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",
     "preview": "vite preview",
     "test": "vitest",
+    "test:all": "vitest run",
     "postinstall": "copy-dsfr-to-public",
     "predev": "react-dsfr update-icons",
     "prebuild": "react-dsfr update-icons"

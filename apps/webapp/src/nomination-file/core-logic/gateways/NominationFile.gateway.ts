@@ -10,7 +10,7 @@ export interface NominationFileGateway {
     nominationCaseId: string,
     ruleGroup: string,
     ruleName: RuleName,
-    validated: boolean
+    validated: boolean,
   ): Promise<void>;
   retrieveNominationFile(id: string): Promise<NominationFile | null>;
 }

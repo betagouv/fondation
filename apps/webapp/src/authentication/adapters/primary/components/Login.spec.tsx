@@ -47,11 +47,11 @@ describe("Login Component", () => {
   const submitLogin = async () => {
     await userEvent.type(
       screen.getByPlaceholderText("Identifiant"),
-      "username"
+      "username",
     );
     await userEvent.type(
       screen.getByPlaceholderText("Mot de passe"),
-      "password"
+      "password",
     );
     await userEvent.click(screen.getByRole("button"));
   };
@@ -60,7 +60,7 @@ describe("Login Component", () => {
     render(
       <Provider store={store}>
         <Login />
-      </Provider>
+      </Provider>,
     );
   };
 });

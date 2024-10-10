@@ -8,8 +8,8 @@ export const listNominationFile = createAppAsyncThunk(
       extra: {
         gateways: { nominationCaseGateway },
       },
-    }
+    },
   ) => {
     return nominationCaseGateway.list();
-  }
+  },
 );

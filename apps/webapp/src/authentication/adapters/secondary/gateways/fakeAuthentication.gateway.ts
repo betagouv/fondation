@@ -10,7 +10,7 @@ export class FakeAuthenticationGateway implements AuthenticationGateway {
   setEligibleAuthUser(
     username: string,
     password: string,
-    authenticated: boolean
+    authenticated: boolean,
   ) {
     this.eligibleAuthUsers[`${username}-${password}`] = authenticated;
   }

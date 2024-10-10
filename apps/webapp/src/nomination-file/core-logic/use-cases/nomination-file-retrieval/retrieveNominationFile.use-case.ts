@@ -8,8 +8,8 @@ export const retrieveNominationFile = createAppAsyncThunk(
       extra: {
         gateways: { nominationCaseGateway },
       },
-    }
+    },
   ) => {
     return nominationCaseGateway.retrieveNominationFile(id);
-  }
+  },
 );

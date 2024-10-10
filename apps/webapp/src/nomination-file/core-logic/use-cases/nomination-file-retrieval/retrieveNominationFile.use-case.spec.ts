@@ -16,7 +16,7 @@ describe("Retrieve Nomination Case", () => {
         nominationCaseGateway,
       },
       {},
-      {}
+      {},
     );
     initialState = store.getState();
   });

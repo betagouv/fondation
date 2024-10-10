@@ -23,7 +23,7 @@ describe("Authenticate", () => {
       },
       { authenticationStorageProvider },
       {},
-      [storeAuthenticationOnLoginSuccess]
+      [storeAuthenticationOnLoginSuccess],
     );
     initialState = store.getState();
   });
@@ -31,7 +31,7 @@ describe("Authenticate", () => {
   it("authenticates a user", async () => {
     authenticationGateway.setEligibleAuthUser("username", "password", true);
     await store.dispatch(
-      authenticate({ username: "username", password: "password" })
+      authenticate({ username: "username", password: "password" }),
     );
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
@@ -49,7 +49,7 @@ describe("Authenticate", () => {
       authenticate.fulfilled(true, "", {
         username: "username",
         password: "password",
-      })
+      }),
     );
 
     expect(authenticationStorageProvider.isAuthenticated()).toBe(true);

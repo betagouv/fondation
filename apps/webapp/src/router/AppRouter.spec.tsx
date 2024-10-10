@@ -37,7 +37,7 @@ describe("App Router Component", () => {
         routeChangedHandler: useRouteChanged,
       },
       [],
-      routeToComponentMap
+      routeToComponentMap,
     );
   });
 
@@ -66,7 +66,7 @@ describe("App Router Component", () => {
           // routeChangedHandler is omitted here to prevent the redirection
         },
         [],
-        routeToComponentMap
+        routeToComponentMap,
       );
 
       act(() => {
@@ -83,7 +83,7 @@ describe("App Router Component", () => {
         authenticate.fulfilled(true, "", {
           username: "username",
           password: "password",
-        })
+        }),
       );
     });
 
@@ -105,7 +105,7 @@ describe("App Router Component", () => {
         <RouteProvider>
           <AppRouter />
         </RouteProvider>
-      </Provider>
+      </Provider>,
     );
   };
 });

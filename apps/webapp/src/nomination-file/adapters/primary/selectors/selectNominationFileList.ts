@@ -29,5 +29,5 @@ export const selectNominationFileList = createAppSelector(
 
         return { id, title, dueDate: dueDateFormatted, href, onClick };
       }) ?? [],
-  })
+  }),
 );

@@ -17,7 +17,7 @@ export const Login = () => {
       authenticate({
         username,
         password,
-      })
+      }),
     );
   };
 

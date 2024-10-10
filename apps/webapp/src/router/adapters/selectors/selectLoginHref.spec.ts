@@ -16,7 +16,7 @@ describe("Select Login Href", () => {
 
   it("selects the login href", () => {
     expect(selectLoginHref(store.getState())).toEqual(
-      routerProvider.getLoginHref()
+      routerProvider.getLoginHref(),
     );
   });
 });

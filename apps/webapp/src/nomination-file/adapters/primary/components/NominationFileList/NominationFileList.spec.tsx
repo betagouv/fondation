@@ -16,7 +16,7 @@ describe("Nomination Case List Component", () => {
         nominationCaseGateway,
       },
       {},
-      {}
+      {},
     );
   });
 
@@ -42,7 +42,7 @@ describe("Nomination Case List Component", () => {
     render(
       <Provider store={store}>
         <NominationFileList />
-      </Provider>
+      </Provider>,
     );
   };
 });

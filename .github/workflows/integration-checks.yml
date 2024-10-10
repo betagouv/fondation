@@ -1,0 +1,35 @@
+name: Integration validation
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    types: [opened, synchronize]
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.6.0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
+      - name: Typecheck
+        run: pnpm type:check
+      - name: Lint
+        run: pnpm lint:check
+      - name: Format
+        run: pnpm format:check
+      - name: Test
+        run: pnpm test:all
+      - name: Build
+        run: pnpm build

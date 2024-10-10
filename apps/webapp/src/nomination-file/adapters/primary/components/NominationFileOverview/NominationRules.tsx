@@ -6,7 +6,7 @@ export type NominationRuleProps = {
   rulesChecked: NominationFileVM["rulesChecked"];
   onUpdateNominationRule: (
     ruleGroup: RuleGroup,
-    ruleName: RuleName
+    ruleName: RuleName,
   ) => () => void;
 };
 
@@ -24,11 +24,11 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
             checked,
             onChange: onUpdateNominationRule(
               ruleGroup as RuleGroup,
-              ruleName as RuleName
+              ruleName as RuleName,
             ),
           },
         };
-      })
+      }),
     )
     .flat();
 

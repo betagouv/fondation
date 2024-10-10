@@ -18,7 +18,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
   id,
 }) => {
   const nominationFile = useAppSelector((state) =>
-    selectNominationFile(state, id)
+    selectNominationFile(state, id),
   );
   const dispatch = useAppDispatch();
 
@@ -31,7 +31,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
           ruleGroup,
           ruleName,
           validated: nominationFile.rulesChecked[ruleGroup][ruleName].checked,
-        })
+        }),
       );
     };
 
@@ -46,7 +46,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         "bg-light-orange",
         "gap-2",
         "justify-center",
-        cx("fr-py-5v", "fr-grid-row")
+        cx("fr-py-5v", "fr-grid-row"),
       )}
     >
       <Card>
