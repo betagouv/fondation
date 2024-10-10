@@ -29,6 +29,8 @@ jobs:
         working-directory: apps/api
       - name: Build webapp
         run: pnpm --filter webapp build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Create Archive
         run: |
