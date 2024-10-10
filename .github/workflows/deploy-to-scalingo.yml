@@ -15,11 +15,15 @@ on:
 
 jobs:
     deploy:
-      name: "Deploy to ${{inputs.environment}}"
-      environment: ${{inputs.environment}}
+      name: "Deploy to ${{ inputs.environment }}"
+      environment: ${{ inputs.environment }}
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
+        - name: Download api artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: api-scalingo-${{ inputs.tag }}
         - name: Download webapp artifact
           uses: actions/download-artifact@v4
           with:
