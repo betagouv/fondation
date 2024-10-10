@@ -1,0 +1,42 @@
+name: Build and upload API artifact
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+
+jobs:
+  build-and-upload-api-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.11.0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.9.0"
+          cache: "pnpm"
+          cache-dependency-path: ./apps/api/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: apps/api
+      - name: Build api
+        run: pnpm build
+        working-directory: apps/api
+      - name: Create Archive
+        run: |
+          # In Scalingo dashboard, we set the PROJECT_DIR environment variable to api
+          mkdir -p scalingo/api
+          cp -r apps/api/dist "$_"
+          cp -r apps/api/scalingo/* "$_"
+          cp apps/api/scalingo/.buildpacks "$_"
+          tar -czf api-scalingo.tar.gz scalingo
+      - name: Archive dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-scalingo-${{ inputs.tag }}
+          path: api-scalingo.tar.gz

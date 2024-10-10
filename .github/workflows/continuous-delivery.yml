@@ -4,8 +4,17 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  # Temporary, to trigger the workflow manually while creating the API CI/CD
+  workflow_dispatch:
 
 jobs:
+  build-and-upload-api-artifact:
+    uses: ./.github/workflows/build-and-upload-api-artifact.yml
+    with:
+      tag: "v${{ github.run_number }}"
   build-and-upload-webapp-artifact:
     uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
     with:
@@ -13,7 +22,7 @@ jobs:
 
   deploy-staging:
     name: Deploy staging
-    needs: [build-and-upload-webapp-artifact]
+    needs: [build-and-upload-api-artifact, build-and-upload-webapp-artifact]
     uses: ./.github/workflows/deploy-to-scalingo.yml
     with:
       environment: staging

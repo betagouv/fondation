@@ -21,12 +21,15 @@ jobs:
           node-version: "20.9.0"
           cache: "pnpm"
           cache-dependency-path: ./apps/webapp/pnpm-lock.yaml
+
       - name: Install dependencies
         run: pnpm install
-        working-directory: apps/webapp
+      - name: Generate api SDK
+        run: pnpm gen-sdk
+        working-directory: apps/api
       - name: Build webapp
-        run: pnpm build
-        working-directory: apps/webapp
+        run: pnpm --filter webapp build
+
       - name: Create Archive
         run: |
           # In Scalingo dashboard, we set the PROJECT_DIR environment variable to webapp
