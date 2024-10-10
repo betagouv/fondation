@@ -1,5 +1,5 @@
 import { RouteToComponentMap } from "../../adapters/routeToReactComponentMap";
 
 export type RouteToComponentFactory = (
-  routeToComponentMap: RouteToComponentMap
+  routeToComponentMap: RouteToComponentMap,
 ) => (isAuthenticated: boolean) => () => JSX.Element | null;

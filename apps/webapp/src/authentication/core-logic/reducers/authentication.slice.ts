@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AppState } from "../../../nomination-case/store/appState";
-import { PartialAppDependencies } from "../../../nomination-case/store/reduxStore";
+import { AppState } from "../../../nomination-file/store/appState";
+import { PartialAppDependencies } from "../../../nomination-file/store/reduxStore";
 import { authenticate } from "../use-cases/authentication/authenticate";
 import { routeChanged } from "../../../router/core-logic/reducers/router.slice";
 
@@ -24,7 +24,7 @@ export const createAuthenticationSlice = ({
       });
       builder.addCase(authenticate.fulfilled, (state, action) => {
         state.authenticated = action.payload;
-        routerProvider?.goToNominationCaseList();
+        routerProvider?.goToNominationFileList();
       });
     },
   });

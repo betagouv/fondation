@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { Login } from "./Login";
 import userEvent from "@testing-library/user-event";
-import { AppState } from "../../../../nomination-case/store/appState";
+import { AppState } from "../../../../nomination-file/store/appState";
 import {
   ReduxStore,
   initReduxStore,
-} from "../../../../nomination-case/store/reduxStore";
+} from "../../../../nomination-file/store/reduxStore";
 import { Provider } from "react-redux";
 import { FakeAuthenticationGateway } from "../../secondary/gateways/fakeAuthentication.gateway";
 
@@ -47,11 +47,11 @@ describe("Login Component", () => {
   const submitLogin = async () => {
     await userEvent.type(
       screen.getByPlaceholderText("Identifiant"),
-      "username"
+      "username",
     );
     await userEvent.type(
       screen.getByPlaceholderText("Mot de passe"),
-      "password"
+      "password",
     );
     await userEvent.click(screen.getByRole("button"));
   };
@@ -60,7 +60,7 @@ describe("Login Component", () => {
     render(
       <Provider store={store}>
         <Login />
-      </Provider>
+      </Provider>,
     );
   };
 });

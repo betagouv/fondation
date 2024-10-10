@@ -1,4 +1,4 @@
-import { createAppAsyncThunk } from "../../../../nomination-case/store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../nomination-file/store/createAppAsyncThunk";
 
 type AuthenticateParams = { username: string; password: string };
 
@@ -10,8 +10,8 @@ export const authenticate = createAppAsyncThunk<boolean, AuthenticateParams>(
       extra: {
         gateways: { authenticationGateway },
       },
-    }
+    },
   ) => {
     return authenticationGateway.authenticate(username, password);
-  }
+  },
 );

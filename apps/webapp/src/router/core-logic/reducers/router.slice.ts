@@ -1,6 +1,6 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { AppState } from "../../../nomination-case/store/appState";
-import { PartialAppDependencies } from "../../../nomination-case/store/reduxStore";
+import { AppState } from "../../../nomination-file/store/appState";
+import { PartialAppDependencies } from "../../../nomination-file/store/reduxStore";
 import { RouteToComponentFactory } from "../components/routeToComponent";
 import { RouteChangedHandler } from "../components/routeChangedHandler";
 
@@ -19,8 +19,8 @@ export const createRouterSlice = ({
         login: routerProvider?.getLoginHref() ?? "login",
       },
       anchorsAttributes: {
-        nominationCaseOverview:
-          routerProvider?.getNominationCaseOverviewAnchorAttributes ??
+        nominationFileOverview:
+          routerProvider?.getNominationFileOverviewAnchorAttributes ??
           (() => ({
             href: "",
             onClick: () => {},

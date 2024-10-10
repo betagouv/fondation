@@ -1,0 +1,15 @@
+{
+  "name": "fondation",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lint:check": "pnpm run -r lint:check",
+    "format:check": "pnpm run -r format:check",
+    "types:check": "pnpm run -r types:check",
+    "test:all": "pnpm run -r test:all",
+    "build": "pnpm run -r build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

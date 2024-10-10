@@ -1,17 +1,17 @@
 import { lazy } from "react";
 
 export const LazyLogin = lazy(
-  () => import("../../authentication/adapters/primary/components/Login")
+  () => import("../../authentication/adapters/primary/components/Login"),
 );
-export const LazyNominationCaseList = lazy(
+export const NominationFileListPage = lazy(
   () =>
     import(
-      "../../nomination-case/adapters/primary/components/NominationCaseList/NominationCaseList"
-    )
+      "../../nomination-file/adapters/primary/components/NominationFileList/NominationFileListPage"
+    ),
 );
-export const LazyNominationCaseOverview = lazy(
+export const LazyNominationFileOverview = lazy(
   () =>
     import(
-      "../../nomination-case/adapters/primary/components/NominationCaseOverview/NominationCaseOverview"
-    )
+      "../../nomination-file/adapters/primary/components/NominationFileOverview/NominationFileOverview"
+    ),
 );

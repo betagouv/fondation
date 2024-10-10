@@ -1,0 +1,16 @@
+{
+  "name": "api-sdk",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "generated/index.ts",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nestia/fetcher": "^3.17.0",
+    "typia": "^6.11.1"
+  },
+  "devDependencies": {}
+}

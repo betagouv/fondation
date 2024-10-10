@@ -1,4 +1,4 @@
-import { useAppDispatch } from "../../../../nomination-case/adapters/primary/hooks/react-redux";
+import { useAppDispatch } from "../../../../nomination-file/adapters/primary/hooks/react-redux";
 import { authenticate } from "../../../core-logic/use-cases/authentication/authenticate";
 
 export const Login = () => {
@@ -17,7 +17,7 @@ export const Login = () => {
       authenticate({
         username,
         password,
-      })
+      }),
     );
   };
 

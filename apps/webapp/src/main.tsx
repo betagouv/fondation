@@ -7,8 +7,8 @@ import { FakeAuthenticationGateway } from "./authentication/adapters/secondary/g
 import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/authenticationSessionStorage.provider.ts";
 import { storeAuthenticationOnLoginSuccess } from "./authentication/core-logic/listeners/authentication.listeners.ts";
 import "./index.css";
-import { FakeNominationCaseGateway } from "./nomination-case/adapters/secondary/gateways/FakeNominationCase.gateway.ts";
-import { initReduxStore } from "./nomination-case/store/reduxStore.ts";
+import { ApiNominationFileGateway } from "./nomination-file/adapters/secondary/gateways/ApiNominationFile.gateway.ts";
+import { initReduxStore } from "./nomination-file/store/reduxStore.ts";
 import {
   RouteProvider,
   TypeRouterProvider,
@@ -16,31 +16,12 @@ import {
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
 
-startReactDsfr({ defaultColorScheme: "system" });
+startReactDsfr({ defaultColorScheme: "light" });
 
 const authenticationGateway = new FakeAuthenticationGateway();
 authenticationGateway.setEligibleAuthUser("username", "password", true);
 
-const nominationCaseGateway = new FakeNominationCaseGateway();
-nominationCaseGateway.nominationCases["nomination-case-id"] = {
-  id: "nomination-case-id",
-  name: "Julien Lavigne",
-  biography:
-    "Procureur général près la cour d'appel de Paris, 1er grade, nommé en 2019.",
-  preValidatedRules: {
-    managementRules: {
-      transferTime: false,
-      gettingFirstGrade: true,
-      gettingGradeHH: true,
-      gettingGradeInPlace: true,
-      profiledPosition: true,
-      cassationCourtNomination: true,
-      overseasToOverseas: true,
-      judiciaryRoleAndJuridictionDegreeChange: true,
-      judiciaryRoleAndJuridictionDegreeChangeInSameRessort: true,
-    },
-  },
-};
+const nominationCaseGateway = new ApiNominationFileGateway();
 
 const authenticationStorageProvider =
   new AuthenticationSessionStorageProvider();
@@ -52,7 +33,7 @@ const store = initReduxStore<false>(
     routeToComponentFactory: useRouteToComponentFactory,
     routeChangedHandler: useRouteChanged,
   },
-  [storeAuthenticationOnLoginSuccess]
+  [storeAuthenticationOnLoginSuccess],
 );
 
 createRoot(document.getElementById("root")!).render(
@@ -62,5 +43,5 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </RouteProvider>
     </Provider>
-  </StrictMode>
+  </StrictMode>,
 );

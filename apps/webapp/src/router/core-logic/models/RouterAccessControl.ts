@@ -4,7 +4,7 @@ export class RouterAccessControl {
   protectedRoutes: Record<RouteName, boolean> = {
     login: false,
     nominationCaseList: true,
-    nominationCaseOverview: true,
+    nominationFileOverview: true,
   };
 
   safeAccess(routeName: RouteName, isAuthenticated: boolean): boolean {

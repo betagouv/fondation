@@ -4,10 +4,10 @@ export class StubRouterProvider implements RouterProvider {
   onClickAttribute = () => null;
 
   goToLogin = () => {};
-  goToNominationCaseList = () => {};
-  gotToNominationCaseOverview = () => {};
+  goToNominationFileList = () => {};
+  gotToNominationFileOverview = () => {};
   getLoginHref = () => "";
-  getNominationCaseOverviewAnchorAttributes = (id: string) => {
+  getNominationFileOverviewAnchorAttributes = (id: string) => {
     return {
       href: "/dossier-de-nomination/" + id,
       onClick: this.onClickAttribute,

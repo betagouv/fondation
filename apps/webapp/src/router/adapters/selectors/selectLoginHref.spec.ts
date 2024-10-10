@@ -1,7 +1,7 @@
 import {
   initReduxStore,
   ReduxStore,
-} from "../../../nomination-case/store/reduxStore";
+} from "../../../nomination-file/store/reduxStore";
 import { TypeRouterProvider } from "../type-route/typeRouter";
 import { selectLoginHref } from "./selectLoginHref";
 
@@ -16,7 +16,7 @@ describe("Select Login Href", () => {
 
   it("selects the login href", () => {
     expect(selectLoginHref(store.getState())).toEqual(
-      routerProvider.getLoginHref()
+      routerProvider.getLoginHref(),
     );
   });
 });

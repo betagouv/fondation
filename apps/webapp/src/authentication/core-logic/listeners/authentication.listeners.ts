@@ -1,8 +1,8 @@
-import { Listener } from "../../../nomination-case/store/listeners";
+import { Listener } from "../../../nomination-file/store/listeners";
 import { authenticate } from "../use-cases/authentication/authenticate";
 
 export const storeAuthenticationOnLoginSuccess: Listener = (
-  startAppListening
+  startAppListening,
 ) =>
   startAppListening({
     actionCreator: authenticate.fulfilled,
@@ -12,7 +12,7 @@ export const storeAuthenticationOnLoginSuccess: Listener = (
         extra: {
           providers: { authenticationStorageProvider },
         },
-      }
+      },
     ) => {
       if (action.payload)
         authenticationStorageProvider?.storeAuthentication(action.payload);
