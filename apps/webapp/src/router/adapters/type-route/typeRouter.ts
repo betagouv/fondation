@@ -13,7 +13,7 @@ const { RouteProvider, useRoute, routes } = createRouter({
     {
       id: param.path.string,
     },
-    (p) => `/${routeSegments.dossierDeNomination}/${p.id}`
+    (p) => `/${routeSegments.dossierDeNomination}/${p.id}`,
   ),
 });
 

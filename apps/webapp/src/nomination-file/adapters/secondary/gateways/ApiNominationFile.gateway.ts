@@ -11,7 +11,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     nominationCaseId: string,
     _: string,
     ruleName: RuleName,
-    validated: boolean
+    validated: boolean,
   ): Promise<void> {
     await apiSdk.functional.api.reports.updateReportRule(
       {
@@ -21,7 +21,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
       {
         rule: ruleName,
         validated,
-      }
+      },
     );
   }
 
@@ -30,7 +30,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
       {
         host: import.meta.env.VITE_API_URL,
       },
-      id
+      id,
     );
 
     if (!report) return null;

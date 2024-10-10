@@ -15,7 +15,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
         id,
         title,
         dueDate,
-      })
+      }),
     );
   }
 
@@ -23,7 +23,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
     nominationCaseId: string,
     ruleGroup: RuleGroup,
     ruleName: RuleName,
-    validated: boolean
+    validated: boolean,
   ): Promise<void> {
     if (this.nominationFiles[nominationCaseId]) {
       // It looks like Redux makes some nested attributes read-only,

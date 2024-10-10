@@ -38,7 +38,7 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
         case "nominationFileOverview": {
           const Component = routeToComponentMap[route.name];
           return suspensed(
-            protectedComponent(<Component id={route.params.id} />)
+            protectedComponent(<Component id={route.params.id} />),
           );
         }
 

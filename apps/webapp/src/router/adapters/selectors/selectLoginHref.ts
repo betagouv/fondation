@@ -2,5 +2,5 @@ import { createAppSelector } from "../../../nomination-file/store/createAppSelec
 
 export const selectLoginHref = createAppSelector(
   [(state) => state.router.hrefs],
-  (hrefs) => hrefs.login
+  (hrefs) => hrefs.login,
 );

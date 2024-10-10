@@ -2,5 +2,5 @@ import { createAppSelector } from "../../../nomination-file/store/createAppSelec
 
 export const selectRouteChangedHandler = createAppSelector(
   [(state) => state.router],
-  (router) => router.routeChangedHandler
+  (router) => router.routeChangedHandler,
 );

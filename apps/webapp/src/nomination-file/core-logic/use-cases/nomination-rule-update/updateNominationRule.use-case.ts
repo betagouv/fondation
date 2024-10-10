@@ -20,10 +20,10 @@ export const updateNominationRule = createAppAsyncThunk<
       extra: {
         gateways: { nominationCaseGateway },
       },
-    }
+    },
   ) => {
     await nominationCaseGateway.updateRule(id, ruleGroup, ruleName, validated);
     // TODO: React to the updateNominationFile.fulfilled action to dispath a retrieve use case with a listener
     return { id, ruleGroup, ruleName, validated };
-  }
+  },
 );

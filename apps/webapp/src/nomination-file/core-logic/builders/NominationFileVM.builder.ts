@@ -73,14 +73,14 @@ export class NominationFileBuilderVM {
     return this;
   }
   withJudiciaryRoleAndJuridictionDegreeChangeValidated(
-    judiciaryRoleAndJuridictionDegreeChange: boolean
+    judiciaryRoleAndJuridictionDegreeChange: boolean,
   ) {
     this.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE =
       judiciaryRoleAndJuridictionDegreeChange;
     return this;
   }
   withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(
-    judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean
+    judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean,
   ) {
     this.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT =
       judiciaryRoleAndJuridictionDegreeChangeInSameRessort;

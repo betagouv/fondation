@@ -17,7 +17,7 @@ describe("Nomination Rule Update", () => {
         nominationCaseGateway,
       },
       {},
-      {}
+      {},
     );
     initialState = store.getState();
   });
@@ -31,7 +31,7 @@ describe("Nomination Rule Update", () => {
         ruleGroup: "management",
         ruleName: "TRANSFER_TIME",
         validated: true,
-      })
+      }),
     );
     expect(store.getState()).toEqual<AppState>({
       ...initialState,

@@ -49,7 +49,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
     ? Partial<NestedPrimaryAdapters>
     : NestedPrimaryAdapters,
   listeners?: Listener[],
-  routeToComponentMap: RouteToComponentMap = routeToReactComponentMap
+  routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
 ) => {
   return configureStore({
     reducer: {
@@ -81,8 +81,8 @@ export const initReduxStore = <IsTest extends boolean = true>(
       }).prepend(
         createAppListenerMiddleware(
           appDependencies as AppDependencies,
-          listeners
-        ).middleware
+          listeners,
+        ).middleware,
       );
     },
     devTools: true,

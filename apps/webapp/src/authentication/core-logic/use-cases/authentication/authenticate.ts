@@ -10,8 +10,8 @@ export const authenticate = createAppAsyncThunk<boolean, AuthenticateParams>(
       extra: {
         gateways: { authenticationGateway },
       },
-    }
+    },
   ) => {
     return authenticationGateway.authenticate(username, password);
-  }
+  },
 );

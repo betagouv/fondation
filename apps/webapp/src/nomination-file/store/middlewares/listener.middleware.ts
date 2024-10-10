@@ -5,7 +5,7 @@ import { AppDependencies, AppDispatch } from "../reduxStore";
 
 export const createAppListenerMiddleware = (
   appDependencies: AppDependencies,
-  listeners?: Listener[]
+  listeners?: Listener[],
 ) => {
   const listenerMiddleware = createListenerMiddleware({
     extra: appDependencies,

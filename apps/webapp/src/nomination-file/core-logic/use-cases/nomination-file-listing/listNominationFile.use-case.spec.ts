@@ -16,7 +16,7 @@ describe("Nomination Files Listing", () => {
         nominationCaseGateway,
       },
       {},
-      {}
+      {},
     );
     initialState = store.getState();
   });

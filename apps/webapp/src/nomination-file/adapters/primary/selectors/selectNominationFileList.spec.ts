@@ -20,13 +20,13 @@ describe("Select Nomination Case List", () => {
       {
         routerProvider: stubRouterProvider,
       },
-      {}
+      {},
     );
   });
 
   it("shows an empty list", () => {
     expect(
-      selectNominationFileList(store.getState())
+      selectNominationFileList(store.getState()),
     ).toEqual<NominationFileListVM>({
       nominationFiles: [],
     });
@@ -38,14 +38,14 @@ describe("Select Nomination Case List", () => {
         listNominationFile.fulfilled(
           [aNominationFile, anotherNominationFile],
           "",
-          undefined
-        )
+          undefined,
+        ),
       );
     });
 
     it("selects the list", () => {
       expect(
-        selectNominationFileList(store.getState())
+        selectNominationFileList(store.getState()),
       ).toEqual<NominationFileListVM>({
         nominationFiles: [aNominationFileVM, anotherNominationFileVM],
       });

@@ -18,7 +18,7 @@ describe("Select Nomination Case", () => {
 
   it("has all rules unchecked", async () => {
     expect(
-      selectNominationFile(store.getState(), "nomination-file-id")
+      selectNominationFile(store.getState(), "nomination-file-id"),
     ).toEqual(aNominationFileVM);
   });
 
@@ -33,12 +33,12 @@ describe("Select Nomination Case", () => {
       updateNominationRule.fulfilled(
         updateNominationRuleParams,
         "",
-        updateNominationRuleParams
-      )
+        updateNominationRuleParams,
+      ),
     );
 
     expect(
-      selectNominationFile(store.getState(), "nomination-file-id")
+      selectNominationFile(store.getState(), "nomination-file-id"),
     ).toEqual<NominationFileVM>({
       ...aNominationFileVM,
       rulesChecked: {

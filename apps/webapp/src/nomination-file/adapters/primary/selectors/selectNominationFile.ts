@@ -31,7 +31,7 @@ export class NominationFileVM {
     public rulesChecked: Record<
       RuleGroup,
       Record<RuleName, VMNominationFileRuleValue>
-    >
+    >,
   ) {}
 }
 
@@ -45,11 +45,11 @@ export const selectNominationFile = createSelector(
     if (!nominationFile) return null;
 
     const createManagementRuleCheckedEntryFromValidatedRules = (
-      ruleName: ManagementRuleName
+      ruleName: ManagementRuleName,
     ) =>
       createRuleCheckedEntryFromValidatedRules(
         nominationFile.rules.management,
-        ruleName
+        ruleName,
       );
 
     return {
@@ -60,41 +60,41 @@ export const selectNominationFile = createSelector(
       rulesChecked: {
         management: {
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "TRANSFER_TIME"
+            "TRANSFER_TIME",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_FIRST_GRADE"
+            "GETTING_FIRST_GRADE",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_GRADE_HH"
+            "GETTING_GRADE_HH",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_GRADE_IN_PLACE"
+            "GETTING_GRADE_IN_PLACE",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "PROFILED_POSITION"
+            "PROFILED_POSITION",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "CASSATION_COURT_NOMINATION"
+            "CASSATION_COURT_NOMINATION",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "OVERSEAS_TO_OVERSEAS"
+            "OVERSEAS_TO_OVERSEAS",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE"
+            "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
           ),
           ...createManagementRuleCheckedEntryFromValidatedRules(
-            "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT"
+            "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
           ),
         },
       },
     };
-  }
+  },
 );
 
 const createRuleCheckedEntryFromValidatedRules = (
   validatedRules: Record<RuleName, boolean>,
-  ruleName: RuleName
+  ruleName: RuleName,
 ) =>
   ({
     [ruleName]: {

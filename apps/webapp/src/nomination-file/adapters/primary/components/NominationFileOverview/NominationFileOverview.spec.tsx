@@ -20,7 +20,7 @@ describe("Nomination Case Overview Component", () => {
         nominationCaseGateway,
       },
       {},
-      {}
+      {},
     );
   });
 
@@ -73,7 +73,7 @@ describe("Nomination Case Overview Component", () => {
           NominationFileVM.rulesToLabels[anotherRuleName],
           {
             initiallyChecked: false,
-          }
+          },
         );
       });
     });
@@ -83,7 +83,7 @@ describe("Nomination Case Overview Component", () => {
     render(
       <Provider store={store}>
         <NominationFileOverview id={id} />
-      </Provider>
+      </Provider>,
     );
   };
 
@@ -93,7 +93,7 @@ describe("Nomination Case Overview Component", () => {
 
   const clickCheckboxAndExpectChange = async (
     label: string,
-    { initiallyChecked }: { initiallyChecked: boolean }
+    { initiallyChecked }: { initiallyChecked: boolean },
   ) => {
     const initialState = store.getState();
 
@@ -101,7 +101,7 @@ describe("Nomination Case Overview Component", () => {
       await screen.findByRole("checkbox", {
         name: label,
         checked: initiallyChecked,
-      })
+      }),
     );
 
     await waitFor(async () => {
