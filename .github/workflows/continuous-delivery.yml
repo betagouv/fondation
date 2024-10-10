@@ -20,6 +20,7 @@ jobs:
     needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
     with:
+      environment: staging
       tag: "v${{ github.run_number }}"
 
   deploy-staging:

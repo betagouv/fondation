@@ -65,6 +65,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
   }
 
   async list(): Promise<NominationFileListItem[]> {
+    console.log("API URL:", import.meta.env.VITE_API_URL);
     const response = await apiSdk.functional.api.reports.getReports({
       host: import.meta.env.VITE_API_URL,
     });
