@@ -1,20 +1,13 @@
-import { ReportRepository } from '../../gateways/repositories/report.repository';
-import { NominationFileRuleName } from '../../models/nomination-file-report';
+import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 
 export class ChangeRuleValidationStateUseCase {
-  constructor(
-    private readonly nominationFileReportRepository: ReportRepository,
-  ) {}
+  constructor(private readonly reportRuleRepository: ReportRuleRepository) {}
 
-  async execute(
-    reportId: string,
-    rule: NominationFileRuleName,
-    validated: boolean,
-  ) {
-    const report = await this.nominationFileReportRepository.byId(reportId);
-    if (report) {
-      report.managementRules[rule] = { validated };
-      await this.nominationFileReportRepository.save(report);
+  async execute(id: string, validated: boolean) {
+    const reportRule = await this.reportRuleRepository.byId(id);
+    if (reportRule) {
+      reportRule.validate(validated);
+      await this.reportRuleRepository.save(reportRule);
     }
   }
 }

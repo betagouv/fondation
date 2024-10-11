@@ -1,38 +1,35 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import {
-  NominationFileReport,
-  NominationFileRuleName,
-} from './nomination-file-report';
+import { Formation } from './enums/formation.enum';
+import { ReportState } from './enums/report-state.enum';
+import { NominationFileReport } from './nomination-file-report';
+import { Grade } from './enums/grade.enum';
+import { Transparency } from './enums/transparency.enum';
 
 export class ReportBuilder {
   private id: string;
-  private firstName: string;
-  private lastName: string;
   private biography: string;
   private dueDate: DateOnly | null;
-  private managementRules: NominationFileReport['managementRules'];
+  private name: string;
+  private birthDate: DateOnly;
+  private state: ReportState;
+  private formation: Formation;
+  private transparency: Transparency;
+  private grade: Grade;
+  private targettedPosition: string;
+  private comments: string;
 
   constructor() {
     this.id = 'report-id';
-    this.firstName = 'John';
-    this.lastName = 'Doe';
+    this.name = 'John Doe';
     this.biography = 'Biography';
     this.dueDate = new DateOnly(2030, 1, 1);
-    this.managementRules = {
-      [NominationFileRuleName.TRANSFER_TIME]: { validated: true },
-      [NominationFileRuleName.GETTING_FIRST_GRADE]: { validated: true },
-      [NominationFileRuleName.GETTING_GRADE_HH]: { validated: true },
-      [NominationFileRuleName.GETTING_GRADE_IN_PLACE]: { validated: true },
-      [NominationFileRuleName.PROFILED_POSITION]: { validated: true },
-      [NominationFileRuleName.CASSATION_COURT_NOMINATION]: { validated: true },
-      [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: { validated: true },
-      [NominationFileRuleName.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: {
-        validated: true,
-      },
-      [NominationFileRuleName.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]: {
-        validated: true,
-      },
-    };
+    this.birthDate = new DateOnly(1980, 1, 1);
+    this.state = ReportState.NEW;
+    this.formation = Formation.SIEGE;
+    this.transparency = Transparency.MARCH_2025;
+    this.grade = Grade.I;
+    this.targettedPosition = 'Juge TJ -Marseille';
+    this.comments = 'my comment';
   }
 
   withId(id: string): this {
@@ -43,21 +40,28 @@ export class ReportBuilder {
     this.biography = biography;
     return this;
   }
-  withOverseasToOverseasRuleValidated(validated: boolean): this {
-    this.managementRules[NominationFileRuleName.OVERSEAS_TO_OVERSEAS] = {
-      validated,
-    };
+  withDueDate(dueDate: DateOnly) {
+    this.dueDate = dueDate;
+    return this;
+  }
+  withBirthDate(birthDate: DateOnly) {
+    this.birthDate = birthDate;
     return this;
   }
 
   build(): NominationFileReport {
     return {
       id: this.id,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      name: this.name,
       biography: this.biography,
       dueDate: this.dueDate,
-      managementRules: this.managementRules,
+      birthDate: this.birthDate,
+      state: this.state,
+      formation: this.formation,
+      transparency: this.transparency,
+      grade: this.grade,
+      targettedPosition: this.targettedPosition,
+      comments: this.comments,
     };
   }
 }

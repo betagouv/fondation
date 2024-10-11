@@ -1,6 +1,10 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { Formation } from './enums/formation.enum';
+import { ReportState } from './enums/report-state.enum';
+import { Grade } from './enums/grade.enum';
+import { Transparency } from './enums/transparency.enum';
 
-export enum NominationFileRuleName {
+export enum NominationFileManagementRule {
   TRANSFER_TIME = 'TRANSFER_TIME',
   GETTING_FIRST_GRADE = 'GETTING_FIRST_GRADE',
   GETTING_GRADE_HH = 'GETTING_GRADE_HH',
@@ -12,18 +16,18 @@ export enum NominationFileRuleName {
   JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT = 'JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT',
 }
 
-export type NominationFileRules = Record<
-  NominationFileRuleName,
-  { validated: boolean }
->;
-
 export class NominationFileReport {
   constructor(
     readonly id: string,
-    readonly firstName: string,
-    readonly lastName: string,
-    readonly dueDate: DateOnly | null,
     readonly biography: string,
-    readonly managementRules: NominationFileRules,
+    readonly dueDate: DateOnly | null,
+    readonly name: string,
+    readonly birthDate: DateOnly,
+    readonly state: ReportState,
+    readonly formation: Formation,
+    readonly transparency: Transparency,
+    readonly grade: Grade,
+    readonly targettedPosition: string,
+    readonly comments: string | null,
   ) {}
 }

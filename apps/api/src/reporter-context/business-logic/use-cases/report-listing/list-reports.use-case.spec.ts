@@ -28,7 +28,7 @@ describe('List reports', () => {
 
   const aReport: ReportListItemVM = {
     id: '1',
-    title: 'a title',
+    name: 'a name',
     dueDate: '2030-10-05',
   };
 });

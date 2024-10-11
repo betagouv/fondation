@@ -1,6 +1,6 @@
 export interface ReportListItemVM {
   id: string;
-  title: string;
+  name: string;
   dueDate: string | null;
 }
 

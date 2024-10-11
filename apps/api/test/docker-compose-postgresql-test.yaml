@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: 'postgres:13.2'
+    ports:
+      - '5435:5432'
+    networks:
+      - app_test
+    user: postgres
+    environment:
+      POSTGRES_USER: fondation
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: fondation
+
+networks:
+  app_test:
+    driver: bridge

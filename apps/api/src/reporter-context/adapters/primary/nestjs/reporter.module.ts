@@ -1,18 +1,22 @@
 import { Module } from '@nestjs/common';
-import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';
-import { FakeReportListingVMRepository } from '../../secondary/repositories/fake-report-listing-vm.repository';
-import { ReporterController } from './reporter.controller';
+import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-listing-vm.query';
+import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
+import { ReportRuleRepository } from 'src/reporter-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRepository } from 'src/reporter-context/business-logic/gateways/repositories/report.repository';
+import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
+import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
+import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
+import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';
+import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reporter-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import { FakeNominationFileReportRepository } from '../../secondary/repositories/fake-nomination-file-report.repository';
-import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
-import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
+import { FakeReportListingVMRepository } from '../../secondary/repositories/fake-report-listing-vm.repository';
 import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
-import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-listing-vm.query';
-import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
+import { FakeReportRuleRepository } from '../../secondary/repositories/fake-report-rule.repository';
+import { ReporterController } from './reporter.controller';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
+export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
 export const REPORT_RETRIEVAL_QUERY = 'REPORT_RETRIEVAL_QUERY';
 export const NOMINATION_FILE_REPORT_REPOSITORY =
   'NOMINATION_FILE_REPORT_REPOSITORY';
@@ -22,12 +26,10 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
   providers: [
     {
       provide: ChangeRuleValidationStateUseCase,
-      useFactory: (nominationFileReportRepository: ReportRepository) => {
-        return new ChangeRuleValidationStateUseCase(
-          nominationFileReportRepository,
-        );
+      useFactory: (reportRuleRepository: ReportRuleRepository) => {
+        return new ChangeRuleValidationStateUseCase(reportRuleRepository);
       },
-      inject: [NOMINATION_FILE_REPORT_REPOSITORY],
+      inject: [REPORT_RULE_REPOSITORY],
     },
     {
       provide: RetrieveReportUseCase,
@@ -51,12 +53,12 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportListingRepository.reportsList = [
           {
             id: 'd3696935-e0c6-40c5-8db0-3c1a395a5ba8',
-            title: 'Marcel Dupont',
+            name: 'Marcel Dupont',
             dueDate: '2030-10-05',
           },
           {
             id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-            title: 'Ada Lovelace',
+            name: 'Ada Lovelace',
             dueDate: null,
           },
         ];
@@ -117,15 +119,32 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         nominationFileReportRepository.reports = {
           'd3696935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportBuilder()
             .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .withOverseasToOverseasRuleValidated(false)
             .build(),
           'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportBuilder()
             .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-            .withOverseasToOverseasRuleValidated(false)
             .build(),
         };
 
         return nominationFileReportRepository;
+      },
+    },
+    {
+      provide: REPORT_RULE_REPOSITORY,
+      useFactory: (): ReportRuleRepository => {
+        const reportRuleRepository = new FakeReportRuleRepository();
+        reportRuleRepository.reportRules = {
+          'd4596935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportRuleBuilder()
+            .withId('d4596935-e0c6-40c5-8db0-3c1a395a5ba8')
+            .withReportId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
+            .withOverseasToOverseasRuleValidated(false)
+            .build(),
+          'f9c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRuleBuilder()
+            .withId('f9c92518-19a1-488d-b518-5c39d3ac26c7')
+            .withReportId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+            .withOverseasToOverseasRuleValidated(false)
+            .build(),
+        };
+        return reportRuleRepository;
       },
     },
   ],

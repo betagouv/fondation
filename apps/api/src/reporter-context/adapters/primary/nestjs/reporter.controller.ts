@@ -33,10 +33,6 @@ export class ReporterController {
     @TypedParam('id') id: string & tags.Format<'uuid'>,
     @TypedBody() dto: ChangeRuleValidationStateDto,
   ): Promise<void> {
-    await this.changeRuleValidationStateUseCase.execute(
-      id,
-      dto.rule,
-      dto.validated,
-    );
+    await this.changeRuleValidationStateUseCase.execute(id, dto.validated);
   }
 }

@@ -1,16 +1,18 @@
-import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
-import { ReportBuilder } from '../../models/report.builder';
+import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-rule.repository';
+import { NominationFileManagementRule } from '../../models/nomination-file-report';
 import {
-  NominationFileReport,
-  NominationFileRuleName,
-} from '../../models/nomination-file-report';
-import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-nomination-file-report.repository';
+  NominationFileRuleGroup,
+  ReportRule,
+  ReportRuleSnapshot,
+} from '../../models/report-rules';
+import { ReportRuleBuilder } from '../../models/report-rules.builder';
+import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
 
 describe('Change Rule Validation State', () => {
-  let nominationFileReportRepository: FakeNominationFileReportRepository;
+  let reportRuleRepository: FakeReportRuleRepository;
 
   beforeEach(() => {
-    nominationFileReportRepository = new FakeNominationFileReportRepository();
+    reportRuleRepository = new FakeReportRuleRepository();
   });
 
   const testData = [
@@ -20,51 +22,56 @@ describe('Change Rule Validation State', () => {
   it.each(testData)(
     'switch an oversea to oversea rule validation state from $initialValidationState to $expectValidated',
     async ({ initialValidationState, expectValidated }) => {
-      const aReport = givenSomeReportExistWithTestedRuleAt(
+      const aReportRule = givenSomeReportRuleExistWithValidatedAt(
         initialValidationState,
       );
+      const aReportRuleSnapshot = aReportRule.toSnapshot();
 
       const changeRuleValidationStateUseCase =
-        new ChangeRuleValidationStateUseCase(nominationFileReportRepository);
+        new ChangeRuleValidationStateUseCase(reportRuleRepository);
 
       await changeRuleValidationStateUseCase.execute(
-        aReport.id,
-        NominationFileRuleName.OVERSEAS_TO_OVERSEAS,
+        aReportRuleSnapshot.id,
         expectValidated,
       );
 
-      await expectChangedRuleValidationState(aReport, expectValidated);
+      await expectChangedRuleValidationState(
+        aReportRuleSnapshot,
+        expectValidated,
+      );
     },
   );
 
-  const givenSomeReportExistWithTestedRuleAt = (
+  const givenSomeReportRuleExistWithValidatedAt = (
     initialValidationState: boolean,
-  ): NominationFileReport => {
-    const aReport = new ReportBuilder()
+  ): ReportRule => {
+    const aReportRule = new ReportRuleBuilder()
       .withOverseasToOverseasRuleValidated(initialValidationState)
       .build();
+    const aReportRuleSnapshot = aReportRule.toSnapshot();
 
-    nominationFileReportRepository.reports = {
-      [aReport.id]: aReport,
+    reportRuleRepository.reportRules = {
+      [aReportRuleSnapshot.id]: aReportRule,
     };
 
-    return aReport;
+    return aReportRule;
   };
 
   const expectChangedRuleValidationState = async (
-    report: NominationFileReport,
+    reportRuleSnapshot: ReportRuleSnapshot,
     expectValidated: boolean,
   ) => {
-    const savedReport = await nominationFileReportRepository.byId(report.id);
-
-    expect(savedReport).toEqual({
-      ...report,
-      managementRules: {
-        ...report.managementRules,
-        [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: {
-          validated: expectValidated,
-        },
-      },
-    });
+    const savedReport = await reportRuleRepository.byId(reportRuleSnapshot.id);
+    expect(savedReport).toEqual(
+      new ReportRule(
+        reportRuleSnapshot.id,
+        reportRuleSnapshot.reportId,
+        NominationFileRuleGroup.MANAGEMENT,
+        NominationFileManagementRule.OVERSEAS_TO_OVERSEAS,
+        reportRuleSnapshot.preValidated,
+        expectValidated,
+        reportRuleSnapshot.comment,
+      ),
+    );
   };
 });
