@@ -1,15 +1,12 @@
 import { DateOnlyVM } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileManagementRule } from './nomination-file-report';
 import { ReportRetrievalVM } from './report-retrieval-vm';
-import {
-  NominationFileRuleGroup,
-  NominationFileRules,
-  NominationFileRuleValue,
-} from './report-rules';
+
 import { Formation } from './enums/formation.enum';
 import { Grade } from './enums/grade.enum';
 import { ReportState } from './enums/report-state.enum';
 import { Transparency } from './enums/transparency.enum';
+import { NominationFile } from '@/shared-models';
 
 export class ReportRetrievalVMBuilder {
   private id: string;
@@ -23,7 +20,7 @@ export class ReportRetrievalVMBuilder {
   private grade: Grade;
   private targettedPosition: string;
   private comment: string | null;
-  private rules: NominationFileRules;
+  private rules: NominationFile.Rules;
 
   constructor() {
     this.id = 'report-id';
@@ -46,13 +43,13 @@ export class ReportRetrievalVMBuilder {
     this.targettedPosition = 'targetted position';
     this.comment = 'comments';
 
-    const defaultValue: NominationFileRuleValue = {
+    const defaultValue: NominationFile.RuleValue = {
       preValidated: true,
       validated: true,
       comment: 'rule comment',
     };
     this.rules = {
-      [NominationFileRuleGroup.MANAGEMENT]: {
+      [NominationFile.RuleGroup.MANAGEMENT]: {
         [NominationFileManagementRule.TRANSFER_TIME]: defaultValue,
         [NominationFileManagementRule.GETTING_FIRST_GRADE]: defaultValue,
         [NominationFileManagementRule.GETTING_GRADE_HH]: defaultValue,
@@ -65,8 +62,8 @@ export class ReportRetrievalVMBuilder {
         [NominationFileManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
           defaultValue,
       },
-      [NominationFileRuleGroup.STATUTORY]: {},
-      [NominationFileRuleGroup.QUALITATIVE]: {},
+      [NominationFile.RuleGroup.STATUTORY]: {},
+      [NominationFile.RuleGroup.QUALITATIVE]: {},
     };
   }
 

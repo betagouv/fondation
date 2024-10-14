@@ -16,6 +16,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "types:check": "tsc --noEmit",
+    "types:check:watch": "tsc --noEmit --watch",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:it": "jest --runInBand --config ./test/jest-integration.config.js",
@@ -37,6 +38,7 @@
     "date-fns": "^4.1.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "@/shared-models": "workspace:*",
     "typeorm": "^0.3.20",
     "typia": "^6.11.1"
   },

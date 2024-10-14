@@ -1,14 +1,14 @@
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
-import { selectNominationFile } from "../../selectors/selectNominationFile";
-import { retrieveNominationFile } from "../../../../core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
-import { NominationRules } from "./NominationRules";
-import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
-import { RuleGroup, RuleName } from "../../../../store/appState";
-import { Card } from "./Card";
+import { NominationFile } from "@/shared-models";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
+import { useEffect } from "react";
+import { retrieveNominationFile } from "../../../../core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
+import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
+import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
+import { selectNominationFile } from "../../selectors/selectNominationFile";
 import { Biography } from "./Biography";
+import { Card } from "./Card";
+import { NominationRules } from "./NominationRules";
 
 export type NominationFileOverviewProps = {
   id: string;
@@ -23,13 +23,23 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
   const dispatch = useAppDispatch();
 
   const onUpdateNominationRule =
-    (ruleGroup: RuleGroup, ruleName: RuleName) => () => {
+    (
+      ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
+      ruleName: NominationFile.RuleName,
+    ) =>
+    () => {
       if (!nominationFile) return;
+      console.log(
+        "ruleGroup",
+        ruleGroup,
+        "ruleName",
+        ruleName,
+        nominationFile.rulesChecked[ruleGroup][ruleName],
+      );
       dispatch(
         updateNominationRule({
-          id,
-          ruleGroup,
-          ruleName,
+          reportId: id,
+          ruleId: nominationFile.rulesChecked[ruleGroup][ruleName].id,
           validated: nominationFile.rulesChecked[ruleGroup][ruleName].checked,
         }),
       );

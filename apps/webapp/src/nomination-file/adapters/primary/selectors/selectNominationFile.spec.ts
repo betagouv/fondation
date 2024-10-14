@@ -1,3 +1,4 @@
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileBuilder } from "../../../core-logic/builders/NominationFile.builder";
 import { NominationFileBuilderVM } from "../../../core-logic/builders/NominationFileVM.builder";
 import { retrieveNominationFile } from "../../../core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
@@ -5,7 +6,7 @@ import {
   updateNominationRule,
   UpdateNominationRuleParams,
 } from "../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
-import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { NominationFileVM, selectNominationFile } from "./selectNominationFile";
 
 describe("Select Nomination Case", () => {
@@ -24,9 +25,8 @@ describe("Select Nomination Case", () => {
 
   it("after checking a validation  rule, it has its rule checked", () => {
     const updateNominationRuleParams: UpdateNominationRuleParams = {
-      id: "nomination-file-id",
-      ruleGroup: "management",
-      ruleName: "TRANSFER_TIME",
+      reportId: aNominationFile.id,
+      ruleId: aNominationFile.rules.management.TRANSFER_TIME.id,
       validated: false,
     };
     store.dispatch(
@@ -57,13 +57,13 @@ describe("Select Nomination Case", () => {
   const aNominationFile = new NominationFileBuilder()
     .withId("nomination-file-id")
     .withTitle("John Doe")
-    .withDueDate("2030-10-30")
+    .withDueDate(new DateOnly(2030, 10, 30))
     .withBiography("The biography.")
     .build();
   const aNominationFileVM: NominationFileVM = new NominationFileBuilderVM()
     .withId("nomination-file-id")
     .withTitle("John Doe")
-    .withDueDate("2030-10-30")
+    .withDueDate(new DateOnly(2030, 10, 30))
     .withBiography("The biography.")
     .build();
 });

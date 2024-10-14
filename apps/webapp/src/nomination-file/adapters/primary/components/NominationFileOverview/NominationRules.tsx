@@ -1,12 +1,12 @@
+import { NominationFile } from "@/shared-models";
 import { Checkbox, CheckboxProps } from "@codegouvfr/react-dsfr/Checkbox";
-import { RuleGroup, RuleName } from "../../../../store/appState";
 import { NominationFileVM } from "../../selectors/selectNominationFile";
 
 export type NominationRuleProps = {
   rulesChecked: NominationFileVM["rulesChecked"];
   onUpdateNominationRule: (
-    ruleGroup: RuleGroup,
-    ruleName: RuleName,
+    ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
+    ruleName: NominationFile.RuleName,
   ) => () => void;
 };
 
@@ -23,8 +23,8 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
             name: ruleName,
             checked,
             onChange: onUpdateNominationRule(
-              ruleGroup as RuleGroup,
-              ruleName as RuleName,
+              ruleGroup as NominationFile.RuleGroup.MANAGEMENT,
+              ruleName as NominationFile.RuleName,
             ),
           },
         };

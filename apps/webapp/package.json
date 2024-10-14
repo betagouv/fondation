@@ -9,6 +9,7 @@
     "lint:check": "eslint .",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",
+    "types:check:watch": "tsc --noEmit -p ./tsconfig.app.json --watch",
     "preview": "vite preview",
     "test": "vitest",
     "test:all": "vitest run",
@@ -19,7 +20,8 @@
   "dependencies": {
     "@codegouvfr/react-dsfr": "^1.13.6",
     "@reduxjs/toolkit": "^2.2.7",
-    "api-sdk": "workspace:*",
+    "@/api-sdk": "workspace:*",
+    "@/shared-models": "workspace:*",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "react": "^18.3.1",

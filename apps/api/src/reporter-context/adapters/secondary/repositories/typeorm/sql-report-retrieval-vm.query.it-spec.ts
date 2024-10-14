@@ -7,12 +7,10 @@ import { ReportBuilder } from 'src/reporter-context/business-logic/models/report
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
 import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
-import {
-  NominationFileRules,
-  ReportRule,
-} from 'src/reporter-context/business-logic/models/report-rules';
+import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportRulePm } from './entities/report-rule-pm';
+import { NominationFile } from '@/shared-models';
 
 describe('SQL Report Retrieval VM Query', () => {
   let dataSource: DataSource;
@@ -65,7 +63,7 @@ describe('SQL Report Retrieval VM Query', () => {
             comment: aReportRuleSnapshot.comment,
           },
         },
-      } as unknown as NominationFileRules;
+      } as unknown as NominationFile.Rules;
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
       ).toEqual<ReportRetrievalVM>({
@@ -120,7 +118,7 @@ describe('SQL Report Retrieval VM Query', () => {
             comment: aReportRuleSnapshot.comment,
           },
         },
-      } as unknown as NominationFileRules;
+      } as unknown as NominationFile.Rules;
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
       ).toEqual<ReportRetrievalVM>({

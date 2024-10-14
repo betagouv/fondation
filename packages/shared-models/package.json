@@ -1,9 +1,9 @@
 {
-  "name": "@/api-sdk",
+  "name": "@/shared-models",
   "private": true,
   "version": "1.0.0",
   "description": "",
-  "main": "generated/index.ts",
+  "main": "src/index.ts",
   "scripts": {},
   "keywords": [],
   "author": "",

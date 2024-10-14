@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../store/createAppSelector";
 
 export type NominationFileListItemVM = {
@@ -20,11 +20,15 @@ export const selectNominationFileList = createAppSelector(
   ],
   (data, getAnchorAttributes) => ({
     nominationFiles:
-      data?.map(({ id, title, dueDate }) => {
+      data?.map(({ id, name: title, dueDate }) => {
         const { href, onClick } = getAnchorAttributes(id);
 
         const dueDateFormatted = dueDate
-          ? format(new Date(dueDate), "dd/MM/yyyy")
+          ? new DateOnly(
+              dueDate.year,
+              dueDate.month,
+              dueDate.day,
+            ).toFormattedString()
           : null;
 
         return { id, title, dueDate: dueDateFormatted, href, onClick };

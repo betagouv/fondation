@@ -1,31 +1,25 @@
-import * as apiSdk from "api-sdk";
+import * as apiSdk from "@/api-sdk";
+import { Magistrat, NominationFile, Transparency } from "@/shared-models";
 import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
 import {
-  NominationFile,
   NominationFileListItem,
-  RuleName,
+  NominationFileSM,
 } from "../../../store/appState";
 
 export class ApiNominationFileGateway implements NominationFileGateway {
-  async updateRule(
-    nominationCaseId: string,
-    _: string,
-    ruleName: RuleName,
-    validated: boolean,
-  ): Promise<void> {
+  async updateRule(ruleId: string, validated: boolean): Promise<void> {
     await apiSdk.functional.api.reports.updateReportRule(
       {
         host: import.meta.env.VITE_API_URL,
       },
-      nominationCaseId,
+      ruleId,
       {
-        rule: ruleName,
         validated,
       },
     );
   }
 
-  async retrieveNominationFile(id: string): Promise<NominationFile | null> {
+  async retrieveNominationFile(id: string): Promise<NominationFileSM | null> {
     const report = await apiSdk.functional.api.reports.retrieveReport(
       {
         host: import.meta.env.VITE_API_URL,
@@ -36,42 +30,42 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     if (!report) return null;
     return {
       id: report.id,
-      title: report.title,
+      name: report.name,
       biography: report.biography,
       dueDate: report.dueDate,
+      state: report.state as NominationFile.ReportState,
+      formation: report.formation as Magistrat.Formation,
+      transparency: report.transparency as Transparency,
+      grade: report.grade as Magistrat.Grade,
+      targettedPosition: report.targettedPosition,
       rules: {
         management: {
-          TRANSFER_TIME: report.rules.management.TRANSFER_TIME.validated,
-          GETTING_FIRST_GRADE:
-            report.rules.management.GETTING_FIRST_GRADE.validated,
-          GETTING_GRADE_HH: report.rules.management.GETTING_GRADE_HH.validated,
+          TRANSFER_TIME: report.rules.management.TRANSFER_TIME,
+          GETTING_FIRST_GRADE: report.rules.management.GETTING_FIRST_GRADE,
+          GETTING_GRADE_HH: report.rules.management.GETTING_GRADE_HH,
           GETTING_GRADE_IN_PLACE:
-            report.rules.management.GETTING_GRADE_IN_PLACE.validated,
-          PROFILED_POSITION:
-            report.rules.management.PROFILED_POSITION.validated,
+            report.rules.management.GETTING_GRADE_IN_PLACE,
+          PROFILED_POSITION: report.rules.management.PROFILED_POSITION,
           CASSATION_COURT_NOMINATION:
-            report.rules.management.CASSATION_COURT_NOMINATION.validated,
-          OVERSEAS_TO_OVERSEAS:
-            report.rules.management.OVERSEAS_TO_OVERSEAS.validated,
+            report.rules.management.CASSATION_COURT_NOMINATION,
+          OVERSEAS_TO_OVERSEAS: report.rules.management.OVERSEAS_TO_OVERSEAS,
           JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE:
-            report.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-              .validated,
+            report.rules.management
+              .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE,
           JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT:
-            report.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-              .validated,
+            report.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
         },
       },
     };
   }
 
   async list(): Promise<NominationFileListItem[]> {
-    console.log("API URL:", import.meta.env.VITE_API_URL);
     const response = await apiSdk.functional.api.reports.getReports({
       host: import.meta.env.VITE_API_URL,
     });
     return response.data.map((item) => ({
       id: item.id,
-      title: item.title,
+      name: item.name,
       dueDate: item.dueDate,
     }));
   }

@@ -1,10 +1,8 @@
 import { NominationFileManagementRule } from '../../../../../business-logic/models/nomination-file-report';
-import {
-  NominationFileRuleGroup,
-  ReportRule,
-} from '../../../../../business-logic/models/report-rules';
+import { ReportRule } from '../../../../../business-logic/models/report-rules';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ReportPm } from './report-pm';
+import { NominationFile } from '@/shared-models';
 
 const ruleNames = [...Object.values(NominationFileManagementRule)];
 type RuleNames = (typeof ruleNames)[number];
@@ -14,8 +12,8 @@ export class ReportRulePm {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('enum', { name: 'rule_group', enum: NominationFileRuleGroup })
-  ruleGroup: NominationFileRuleGroup;
+  @Column('enum', { name: 'rule_group', enum: NominationFile.RuleGroup })
+  ruleGroup: NominationFile.RuleGroup;
 
   @Column('enum', {
     name: 'rule_name',
@@ -40,7 +38,7 @@ export class ReportRulePm {
 
   constructor(
     id: string,
-    ruleGroup: NominationFileRuleGroup,
+    ruleGroup: NominationFile.RuleGroup,
     ruleName: NominationFileManagementRule,
     preValidated: boolean,
     validated: boolean,

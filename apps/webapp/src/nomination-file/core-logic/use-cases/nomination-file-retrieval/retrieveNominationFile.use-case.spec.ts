@@ -1,5 +1,5 @@
 import { FakeNominationFileGateway } from "../../../adapters/secondary/gateways/FakeNominationFile.gateway";
-import { AppState, NominationFile } from "../../../store/appState";
+import { AppState } from "../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { NominationFileBuilder } from "../../builders/NominationFile.builder";
 import { retrieveNominationFile } from "./retrieveNominationFile.use-case";
@@ -48,7 +48,7 @@ describe("Retrieve Nomination Case", () => {
   });
 });
 
-const aNomination: NominationFile = new NominationFileBuilder().build();
+const aNomination = new NominationFileBuilder().build();
 
 const anotherNomination = new NominationFileBuilder()
   .withId("another-nomination-file-id")

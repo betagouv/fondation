@@ -3,7 +3,7 @@ import { Formation } from './enums/formation.enum';
 import { Grade } from './enums/grade.enum';
 import { ReportState } from './enums/report-state.enum';
 import { Transparency } from './enums/transparency.enum';
-import { NominationFileRules } from './report-rules';
+import { NominationFile } from '@/shared-models';
 
 export interface ReportRetrievalVM {
   id: string;
@@ -17,5 +17,5 @@ export interface ReportRetrievalVM {
   grade: Grade;
   targettedPosition: string;
   comments: string | null;
-  rules: NominationFileRules;
+  rules: NominationFile.Rules;
 }

@@ -1,13 +1,14 @@
+import { NominationFile } from "@/shared-models";
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
-import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { NominationFileOverview } from "./NominationFileOverview";
-import { Provider } from "react-redux";
-import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
-import { NominationFile, RuleName } from "../../../../store/appState";
-import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
+import { NominationFileSM } from "../../../../store/appState";
+import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileVM } from "../../selectors/selectNominationFile";
+import { NominationFileOverview } from "./NominationFileOverview";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
@@ -51,7 +52,7 @@ describe("Nomination Case Overview Component", () => {
     describe("Transfer time rule", () => {
       const label = NominationFileVM.rulesToLabels["TRANSFER_TIME"];
 
-      it("checks the rule", async () => {
+      it.only("checks the rule", async () => {
         renderNominationFile("nomination-file-id");
         await clickCheckboxAndExpectChange(label, { initiallyChecked: false });
       });
@@ -63,7 +64,7 @@ describe("Nomination Case Overview Component", () => {
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
 
-      const anotherRuleName: RuleName = "GETTING_FIRST_GRADE";
+      const anotherRuleName: NominationFile.RuleName = "GETTING_FIRST_GRADE";
       it(`when checked, '${NominationFileVM.rulesToLabels[anotherRuleName]}' can also be checked`, async () => {
         nominationCaseGateway.nominationFiles["nomination-file-id"] =
           new NominationFileBuilder().withTransferTimeValidated(false).build();
@@ -114,12 +115,12 @@ describe("Nomination Case Overview Component", () => {
   };
 });
 
-const aValidatedNomination: NominationFile = new NominationFileBuilder()
+const aValidatedNomination: NominationFileSM = new NominationFileBuilder()
   .withId("nomination-file-id")
   .withTitle("John Doe")
   .withBiography("The biography.")
   .build();
 
-const anUnvalidatedNomination: NominationFile = new NominationFileBuilder()
+const anUnvalidatedNomination: NominationFileSM = new NominationFileBuilder()
   .withAllRulesUnvalidated()
   .build();

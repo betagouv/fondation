@@ -1,5 +1,5 @@
 import { FakeNominationFileGateway } from "../../../adapters/secondary/gateways/FakeNominationFile.gateway";
-import { AppState, NominationFile } from "../../../store/appState";
+import { AppState, NominationFileSM } from "../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
 import { NominationFileBuilder } from "../../builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file-retrieval/retrieveNominationFile.use-case";
@@ -24,12 +24,12 @@ describe("Nomination Rule Update", () => {
 
   it("switch the transfer time rule from unvalidated to validated", async () => {
     nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
+    nominationCaseGateway.addNominationFile(aNomination);
     store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
     await store.dispatch(
       updateNominationRule({
-        id: "nomination-file-id",
-        ruleGroup: "management",
-        ruleName: "TRANSFER_TIME",
+        reportId: "nomination-file-id",
+        ruleId: aNomination.rules.management.TRANSFER_TIME.id,
         validated: true,
       }),
     );
@@ -43,7 +43,10 @@ describe("Nomination Rule Update", () => {
               ...aNomination.rules,
               management: {
                 ...aNomination.rules.management,
-                TRANSFER_TIME: true,
+                TRANSFER_TIME: {
+                  ...aNomination.rules.management.TRANSFER_TIME,
+                  validated: true,
+                },
               },
             },
           },
@@ -53,6 +56,6 @@ describe("Nomination Rule Update", () => {
   });
 });
 
-const aNomination: NominationFile = new NominationFileBuilder()
+const aNomination: NominationFileSM = new NominationFileBuilder()
   .withTransferTimeValidated(false)
   .build();

@@ -1,15 +1,22 @@
+import { NominationFile } from "@/shared-models";
 import { createSelector } from "@reduxjs/toolkit";
-import {
-  AppState,
-  ManagementRuleName,
-  RuleGroup,
-  RuleName,
-} from "../../../store/appState";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { AppState } from "../../../store/appState";
 
-export type VMNominationFileRuleValue = { label: string; checked: boolean };
+export type VMNominationFileRuleValue = {
+  id: string;
+  label: string;
+  checked: boolean;
+  highlighted: boolean;
+  comment: string | null;
+};
+type RuleCheckedEntry = Record<
+  NominationFile.RuleName,
+  VMNominationFileRuleValue
+>;
 
 export class NominationFileVM {
-  static rulesToLabels: Record<RuleName, string> = {
+  static rulesToLabels: Record<NominationFile.RuleName, string> = {
     TRANSFER_TIME: "Obtenir une mutation en moins de 3 ans",
     GETTING_FIRST_GRADE: "Getting first grade",
     GETTING_GRADE_HH: "Getting grade HH",
@@ -29,8 +36,8 @@ export class NominationFileVM {
     public biography: string,
     public dueDate: string | null,
     public rulesChecked: Record<
-      RuleGroup,
-      Record<RuleName, VMNominationFileRuleValue>
+      NominationFile.RuleGroup.MANAGEMENT,
+      Record<NominationFile.RuleName, VMNominationFileRuleValue>
     >,
   ) {}
 }
@@ -41,12 +48,13 @@ export const selectNominationFile = createSelector(
     (_, id: string) => id,
   ],
   (byIds, id): NominationFileVM | null => {
+    console.log("byIds", byIds, "id", id);
     const nominationFile = byIds?.[id];
     if (!nominationFile) return null;
 
     const createManagementRuleCheckedEntryFromValidatedRules = (
-      ruleName: ManagementRuleName,
-    ) =>
+      ruleName: NominationFile.ManagementRule,
+    ): RuleCheckedEntry =>
       createRuleCheckedEntryFromValidatedRules(
         nominationFile.rules.management,
         ruleName,
@@ -54,51 +62,37 @@ export const selectNominationFile = createSelector(
 
     return {
       id: nominationFile.id,
-      name: nominationFile.title,
+      name: nominationFile.name,
       biography: nominationFile.biography,
-      dueDate: nominationFile.dueDate,
+      dueDate: nominationFile.dueDate
+        ? DateOnly.fromStoreModel(nominationFile.dueDate).toFormattedString()
+        : null,
       rulesChecked: {
-        management: {
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "TRANSFER_TIME",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_FIRST_GRADE",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_GRADE_HH",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "GETTING_GRADE_IN_PLACE",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "PROFILED_POSITION",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "CASSATION_COURT_NOMINATION",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "OVERSEAS_TO_OVERSEAS",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
-          ),
-          ...createManagementRuleCheckedEntryFromValidatedRules(
-            "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
-          ),
-        },
+        management: Object.values(NominationFile.ManagementRule).reduce(
+          (acc, ruleName) => ({
+            ...acc,
+            ...createManagementRuleCheckedEntryFromValidatedRules(ruleName),
+          }),
+          {} as RuleCheckedEntry,
+        ),
       },
     };
   },
 );
 
 const createRuleCheckedEntryFromValidatedRules = (
-  validatedRules: Record<RuleName, boolean>,
-  ruleName: RuleName,
-) =>
-  ({
-    [ruleName]: {
-      label: NominationFileVM.rulesToLabels[ruleName],
-      checked: !validatedRules[ruleName],
-    },
-  }) as Record<RuleName, VMNominationFileRuleValue>;
+  validatedRules: NominationFile.Rules[NominationFile.RuleGroup],
+  ruleName: NominationFile.RuleName,
+) => {
+  const values: RuleCheckedEntry[NominationFile.RuleName] = {
+    id: validatedRules[ruleName].id,
+    label: NominationFileVM.rulesToLabels[ruleName],
+    checked: !validatedRules[ruleName].validated,
+    highlighted: validatedRules[ruleName].preValidated,
+    comment: validatedRules[ruleName].comment,
+  };
+
+  return {
+    [ruleName]: values,
+  } as RuleCheckedEntry;
+};

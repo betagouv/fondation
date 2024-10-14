@@ -1,14 +1,11 @@
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { NominationFileManagementRule } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
-import {
-  NominationFileRuleGroup,
-  NominationFileRules,
-} from 'src/reporter-context/business-logic/models/report-rules';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
 import { ReportRulePm } from './entities/report-rule-pm';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { NominationFile } from '@/shared-models';
 
 export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
   constructor(private readonly dataSource: DataSource) {}
@@ -29,14 +26,14 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
 
     const reportData = reportWithRules[0];
 
-    const rules: NominationFileRules = reportWithRules.reduce(
-      (acc: NominationFileRules, row: any) => {
-        const ruleGroup = row['rule_rule_group'] as NominationFileRuleGroup;
+    const rules: NominationFile.Rules = reportWithRules.reduce(
+      (acc: NominationFile.Rules, row: any) => {
+        const ruleGroup = row['rule_rule_group'] as NominationFile.RuleGroup;
         const ruleName = row['rule_rule_name'] as NominationFileManagementRule;
 
         if (!acc[ruleGroup]) {
           acc[ruleGroup] =
-            {} as NominationFileRules[NominationFileRuleGroup.MANAGEMENT];
+            {} as NominationFile.Rules[NominationFile.RuleGroup.MANAGEMENT];
         }
 
         acc[ruleGroup][ruleName] = {
@@ -47,7 +44,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
 
         return acc;
       },
-      {} as NominationFileRules,
+      {} as NominationFile.Rules,
     );
 
     const reportRetrievalVM: ReportRetrievalVM = {

@@ -1,10 +1,11 @@
+import { NominationFile } from '@/shared-models';
 import { NominationFileManagementRule } from './nomination-file-report';
-import { NominationFileRuleGroup, ReportRule } from './report-rules';
+import { ReportRule } from './report-rules';
 
 export class ReportRuleBuilder {
   private id: string;
   private reportId: string;
-  private ruleGroup: NominationFileRuleGroup;
+  private ruleGroup: NominationFile.RuleGroup;
   private ruleName: NominationFileManagementRule;
   private preValidated: boolean;
   private validated: boolean;
@@ -13,7 +14,7 @@ export class ReportRuleBuilder {
   constructor() {
     this.id = 'rule-id';
     this.reportId = 'report-id';
-    this.ruleGroup = NominationFileRuleGroup.MANAGEMENT;
+    this.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
     this.ruleName = NominationFileManagementRule.OVERSEAS_TO_OVERSEAS;
     this.preValidated = true;
     this.validated = true;
@@ -29,7 +30,7 @@ export class ReportRuleBuilder {
     return this;
   }
   withOverseasToOverseasRuleValidated(validated: boolean): this {
-    this.ruleGroup = NominationFileRuleGroup.MANAGEMENT;
+    this.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
     this.ruleName = NominationFileManagementRule.OVERSEAS_TO_OVERSEAS;
     this.validated = validated;
     return this;

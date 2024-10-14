@@ -4,6 +4,7 @@ import { NominationFileBuilder } from "../../../../core-logic/builders/Nominatio
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileList } from "./NominationFileList";
+import { DateOnly } from "../../../../../shared-kernel/core-logic/models/date-only";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
@@ -50,5 +51,5 @@ describe("Nomination Case List Component", () => {
 const aNominationFile = new NominationFileBuilder()
   .withId("nomination-file-id")
   .withTitle("Lucien Denan")
-  .withDueDate("2030-10-30")
+  .withDueDate(new DateOnly(2030, 10, 30))
   .build();

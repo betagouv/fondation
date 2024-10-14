@@ -1,12 +1,9 @@
 import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-rule.repository';
 import { NominationFileManagementRule } from '../../models/nomination-file-report';
-import {
-  NominationFileRuleGroup,
-  ReportRule,
-  ReportRuleSnapshot,
-} from '../../models/report-rules';
+import { ReportRule, ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
+import { NominationFile } from '@/shared-models';
 
 describe('Change Rule Validation State', () => {
   let reportRuleRepository: FakeReportRuleRepository;
@@ -66,7 +63,7 @@ describe('Change Rule Validation State', () => {
       new ReportRule(
         reportRuleSnapshot.id,
         reportRuleSnapshot.reportId,
-        NominationFileRuleGroup.MANAGEMENT,
+        NominationFile.RuleGroup.MANAGEMENT,
         NominationFileManagementRule.OVERSEAS_TO_OVERSEAS,
         reportRuleSnapshot.preValidated,
         expectValidated,
