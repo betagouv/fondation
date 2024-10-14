@@ -98,7 +98,7 @@ export class ReportPm {
       report.transparency,
       report.grade,
       report.targettedPosition,
-      report.comments,
+      report.comment,
     );
   }
 
@@ -114,7 +114,7 @@ export class ReportPm {
       transparency: this.transparency,
       grade: this.grade,
       targettedPosition: this.targettedPosition,
-      comments: this.comments,
+      comment: this.comments,
     };
   }
 }

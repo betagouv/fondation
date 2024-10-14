@@ -4,25 +4,35 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
 
-export class SqlReportListingVMRepository implements ReportListingVMQuery {
+export class SqlReportListingVMQuery implements ReportListingVMQuery {
   constructor(private readonly dataSource: DataSource) {}
 
   async listReports(): Promise<ReportListingVM> {
     const reports = await this.dataSource.getRepository(ReportPm).find({
       select: {
         id: true,
-        name: true,
+        state: true,
         dueDate: true,
+        formation: true,
+        name: true,
+        transparency: true,
+        grade: true,
+        targettedPosition: true,
       },
     });
 
     return {
       data: reports.map((report) => ({
         id: report.id,
-        name: report.name,
+        state: report.state,
         dueDate: report.dueDate
-          ? DateOnly.fromDate(report.dueDate).toFormattedString()
+          ? DateOnly.fromDate(report.dueDate).toViewModel()
           : null,
+        formation: report.formation,
+        name: report.name,
+        transparency: report.transparency,
+        grade: report.grade,
+        targettedPosition: report.targettedPosition,
       })),
     };
   }

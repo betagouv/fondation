@@ -1,6 +1,11 @@
 import { differenceInMonths, format } from 'date-fns';
 
-type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type DateOnlyVM = {
+  year: number;
+  month: Month;
+  day: number;
+};
 
 export class DateOnly {
   private readonly value: Date;
@@ -25,12 +30,27 @@ export class DateOnly {
   toFormattedString(): string {
     return format(this.value, 'yyyy-MM-dd');
   }
+  toViewModel(): DateOnlyVM {
+    return {
+      year: this.getYear(),
+      month: this.getMonth() as Month,
+      day: this.value.getDate(),
+    };
+  }
 
   static fromDate(dueDate: Date): DateOnly {
     return new DateOnly(
       dueDate.getFullYear(),
       (dueDate.getMonth() + 1) as Month,
       dueDate.getDate(),
+    );
+  }
+  static fromString(dateString: string): DateOnly {
+    const date = new Date(dateString);
+    return new this(
+      date.getFullYear(),
+      (date.getMonth() + 1) as Month,
+      date.getDate(),
     );
   }
 }

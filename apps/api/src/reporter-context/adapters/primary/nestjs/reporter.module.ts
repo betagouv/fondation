@@ -14,6 +14,10 @@ import { FakeReportListingVMRepository } from '../../secondary/repositories/fake
 import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
 import { FakeReportRuleRepository } from '../../secondary/repositories/fake-report-rule.repository';
 import { ReporterController } from './reporter.controller';
+import { ReportState } from 'src/reporter-context/business-logic/models/enums/report-state.enum';
+import { Formation } from 'src/reporter-context/business-logic/models/enums/formation.enum';
+import { Grade } from 'src/reporter-context/business-logic/models/enums/grade.enum';
+import { Transparency } from 'src/reporter-context/business-logic/models/enums/transparency.enum';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -53,13 +57,27 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportListingRepository.reportsList = [
           {
             id: 'd3696935-e0c6-40c5-8db0-3c1a395a5ba8',
+            state: ReportState.NEW,
+            dueDate: {
+              year: 2030,
+              month: 10,
+              day: 5,
+            },
+            formation: Formation.PARQUET,
             name: 'Marcel Dupont',
-            dueDate: '2030-10-05',
+            transparency: Transparency.MARCH_2025,
+            grade: Grade.I,
+            targettedPosition: 'targetted position',
           },
           {
             id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-            name: 'Ada Lovelace',
+            state: ReportState.NEW,
             dueDate: null,
+            formation: Formation.PARQUET,
+            name: 'Ada Lovelace',
+            transparency: Transparency.MARCH_2025,
+            grade: Grade.I,
+            targettedPosition: 'targetted position',
           },
         ];
         return reportListingRepository;
@@ -73,7 +91,7 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportRetrievalQuery.reports = {
           'd3696935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportRetrievalVMBuilder()
             .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .withTitle('Marcel Dupont')
+            .withName('Marcel Dupont')
             .withBiography(
               `- DEA dr priv.
               - Auditric Just 18 janvier 1991, PF 04 février 1991. 
@@ -90,7 +108,7 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
             .build(),
           'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRetrievalVMBuilder()
             .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-            .withTitle('Ada Lovelace')
+            .withName('Ada Lovelace')
             .withBiography(
               `- DEA dr priv.
               - Auditric Just 18 janvier 1991, PF 04 février 1991. 

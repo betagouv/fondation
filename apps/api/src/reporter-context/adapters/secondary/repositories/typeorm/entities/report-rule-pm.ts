@@ -1,5 +1,8 @@
 import { NominationFileManagementRule } from '../../../../../business-logic/models/nomination-file-report';
-import { NominationFileRuleGroup } from '../../../../../business-logic/models/report-rules';
+import {
+  NominationFileRuleGroup,
+  ReportRule,
+} from '../../../../../business-logic/models/report-rules';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ReportPm } from './report-pm';
 
@@ -32,7 +35,7 @@ export class ReportRulePm {
   @ManyToOne(() => ReportPm)
   report: ReportPm;
 
-  @Column({ name: 'report_id' })
+  @Column('uuid', { name: 'report_id' })
   reportId: string;
 
   constructor(
@@ -51,5 +54,18 @@ export class ReportRulePm {
     this.validated = validated;
     this.comment = comment;
     this.reportId = reportId;
+  }
+
+  static fromDomain(reportRule: ReportRule): any {
+    const reportRuleSnapshot = reportRule.toSnapshot();
+    return new ReportRulePm(
+      reportRuleSnapshot.id,
+      reportRuleSnapshot.ruleGroup,
+      reportRuleSnapshot.ruleName,
+      reportRuleSnapshot.preValidated,
+      reportRuleSnapshot.validated,
+      reportRuleSnapshot.comment,
+      reportRuleSnapshot.reportId,
+    );
   }
 }

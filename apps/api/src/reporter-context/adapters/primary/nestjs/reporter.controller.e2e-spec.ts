@@ -21,6 +21,10 @@ import {
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
 } from './reporter.module';
+import { ReportState } from 'src/reporter-context/business-logic/models/enums/report-state.enum';
+import { Formation } from 'src/reporter-context/business-logic/models/enums/formation.enum';
+import { Transparency } from 'src/reporter-context/business-logic/models/enums/transparency.enum';
+import { Grade } from 'src/reporter-context/business-logic/models/enums/grade.enum';
 
 describe('Reporter Controller', () => {
   let app: NestApplication;
@@ -61,8 +65,17 @@ describe('Reporter Controller', () => {
 
     const aReportListingVM: ReportListItemVM = {
       id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      state: ReportState.NEW,
+      dueDate: {
+        year: 2030,
+        month: 10,
+        day: 5,
+      },
+      formation: Formation.PARQUET,
       name: 'a name',
-      dueDate: '2030-10-05',
+      transparency: Transparency.MARCH_2025,
+      grade: Grade.HH,
+      targettedPosition: 'a position',
     };
   });
 

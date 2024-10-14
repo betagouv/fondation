@@ -1,19 +1,19 @@
+import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
+import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { ormConfigTest } from 'test/orm-config.test';
 import { DataSource } from 'typeorm';
+import { ReportPm } from './entities/report-pm';
 import { ReportRulePm } from './entities/report-rule-pm';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
-import { ReportPm } from './entities/report-pm';
-import { ReportState } from 'src/reporter-context/business-logic/models/enums/report-state.enum';
-import { Formation } from 'src/reporter-context/business-logic/models/enums/formation.enum';
-import { Transparency } from 'src/reporter-context/business-logic/models/enums/transparency.enum';
-import { Grade } from 'src/reporter-context/business-logic/models/enums/grade.enum';
-import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
+import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 
 describe('SQL Report Rule Repository', () => {
   let dataSource: DataSource;
   let sqlReportRuleRepository: SqlReportRuleRepository;
+  let aReport: NominationFileReport;
 
   beforeAll(async () => {
     dataSource = new DataSource(ormConfigTest('src'));
@@ -23,6 +23,12 @@ describe('SQL Report Rule Repository', () => {
   beforeEach(async () => {
     await clearDB(dataSource);
     sqlReportRuleRepository = new SqlReportRuleRepository(dataSource);
+    aReport = new ReportBuilder()
+      .withId('cd1619e2-263d-49b6-b928-6a04ee681133')
+      .withDueDate(new DateOnly(2030, 1, 1))
+      .withBirthDate(new DateOnly(1980, 1, 1))
+      .build();
+    await dataSource.getRepository(ReportPm).save(ReportPm.fromDomain(aReport));
   });
 
   afterAll(async () => {
@@ -30,26 +36,9 @@ describe('SQL Report Rule Repository', () => {
   });
 
   it('saves a report rule', async () => {
-    const report = await dataSource
-      .getRepository(ReportPm)
-      .save(
-        new ReportPm(
-          'cd1619e2-263d-49b6-b928-6a04ee681133',
-          'biography',
-          new Date(2030, 1, 1),
-          'name',
-          new Date(1980, 1, 1),
-          ReportState.NEW,
-          Formation.PARQUET,
-          Transparency.MARCH_2025,
-          Grade.I,
-          'targettedPosition',
-          'comments',
-        ),
-      );
     const aReportRule = new ReportRuleBuilder()
       .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
-      .withReportId(report.id)
+      .withReportId(aReport.id)
       .build();
 
     await sqlReportRuleRepository.save(aReportRule);
@@ -72,6 +61,7 @@ describe('SQL Report Rule Repository', () => {
   it('retrieves a report rule by id', async () => {
     const aReportRule = new ReportRuleBuilder()
       .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
+      .withReportId(aReport.id)
       .build();
     const aReportRuleSnapshot = aReportRule.toSnapshot();
     await dataSource

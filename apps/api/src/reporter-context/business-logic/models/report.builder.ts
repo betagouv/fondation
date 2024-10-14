@@ -16,7 +16,7 @@ export class ReportBuilder {
   private transparency: Transparency;
   private grade: Grade;
   private targettedPosition: string;
-  private comments: string;
+  private comment: string | null;
 
   constructor() {
     this.id = 'report-id';
@@ -29,7 +29,7 @@ export class ReportBuilder {
     this.transparency = Transparency.MARCH_2025;
     this.grade = Grade.I;
     this.targettedPosition = 'Juge TJ -Marseille';
-    this.comments = 'my comment';
+    this.comment = 'my comment';
   }
 
   withId(id: string): this {
@@ -40,12 +40,16 @@ export class ReportBuilder {
     this.biography = biography;
     return this;
   }
-  withDueDate(dueDate: DateOnly) {
+  withDueDate(dueDate: DateOnly | null) {
     this.dueDate = dueDate;
     return this;
   }
   withBirthDate(birthDate: DateOnly) {
     this.birthDate = birthDate;
+    return this;
+  }
+  withComment(comment: string | null) {
+    this.comment = comment;
     return this;
   }
 
@@ -61,7 +65,7 @@ export class ReportBuilder {
       transparency: this.transparency,
       grade: this.grade,
       targettedPosition: this.targettedPosition,
-      comments: this.comments,
+      comment: this.comment,
     };
   }
 }

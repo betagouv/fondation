@@ -28,6 +28,6 @@ export class NominationFileReport {
     readonly transparency: Transparency,
     readonly grade: Grade,
     readonly targettedPosition: string,
-    readonly comments: string | null,
+    readonly comment: string | null,
   ) {}
 }

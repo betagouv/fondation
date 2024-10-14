@@ -6,9 +6,21 @@ export enum NominationFileRuleGroup {
   QUALITATIVE = 'qualitative',
 }
 
+export type NominationFileRuleValue = {
+  preValidated: boolean;
+  validated: boolean;
+  comment: string | null;
+};
+
 export type NominationFileRules = {
-  management: {
-    [key in NominationFileManagementRule]: { validated: boolean };
+  [NominationFileRuleGroup.MANAGEMENT]: {
+    [key in NominationFileManagementRule]: NominationFileRuleValue;
+  };
+  [NominationFileRuleGroup.STATUTORY]: {
+    [key: string]: NominationFileRuleValue;
+  };
+  [NominationFileRuleGroup.QUALITATIVE]: {
+    [key: string]: NominationFileRuleValue;
   };
 };
 

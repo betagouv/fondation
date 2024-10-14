@@ -17,7 +17,7 @@ export class ReportRuleBuilder {
     this.ruleName = NominationFileManagementRule.OVERSEAS_TO_OVERSEAS;
     this.preValidated = true;
     this.validated = true;
-    this.comment = 'comment';
+    this.comment = 'rule comment';
   }
 
   withId(id: string): this {

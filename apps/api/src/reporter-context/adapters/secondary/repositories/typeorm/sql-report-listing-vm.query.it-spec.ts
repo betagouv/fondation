@@ -1,16 +1,16 @@
 import { clearDB } from 'test/docker-postgresql-manager';
 import { ormConfigTest } from 'test/orm-config.test';
 import { DataSource } from 'typeorm';
-import { SqlReportListingVMRepository } from './sql-report-listing-vm.repository';
+import { SqlReportListingVMQuery } from './sql-report-listing-vm.query';
 import { ReportPm } from './entities/report-pm';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportListingVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
 
-describe('SQL Report Listing VM Repository', () => {
+describe('SQL Report Listing VM Query', () => {
   let dataSource: DataSource;
-  let sqlReportListingVMRepository: SqlReportListingVMRepository;
+  let sqlReportListingVMRepository: SqlReportListingVMQuery;
 
   beforeAll(async () => {
     dataSource = new DataSource(ormConfigTest('src'));
@@ -19,7 +19,7 @@ describe('SQL Report Listing VM Repository', () => {
 
   beforeEach(async () => {
     await clearDB(dataSource);
-    sqlReportListingVMRepository = new SqlReportListingVMRepository(dataSource);
+    sqlReportListingVMRepository = new SqlReportListingVMQuery(dataSource);
   });
 
   afterAll(async () => {
@@ -52,8 +52,13 @@ describe('SQL Report Listing VM Repository', () => {
         data: [
           {
             id: aReport.id,
+            state: aReport.state,
+            dueDate: aReport.dueDate?.toViewModel() || null,
+            formation: aReport.formation,
             name: aReport.name,
-            dueDate: '2030-10-01',
+            transparency: aReport.transparency,
+            grade: aReport.grade,
+            targettedPosition: aReport.targettedPosition,
           },
         ],
       });

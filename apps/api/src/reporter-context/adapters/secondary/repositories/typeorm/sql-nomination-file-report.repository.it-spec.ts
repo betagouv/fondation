@@ -41,7 +41,7 @@ describe('SQL Nomination File Report Repository', () => {
         aReport.transparency,
         aReport.grade,
         aReport.targettedPosition,
-        aReport.comments,
+        aReport.comment,
       ),
     ]);
   });

@@ -20,8 +20,5 @@ describe('Report Retrieval', () => {
     expect(await retrieveReport.execute(aReportVM.id)).toEqual(aReportVM);
   });
 
-  const aReportVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
-    .withId('1')
-    .withOverseasToOverseasRuleValidated(true)
-    .build();
+  const aReportVM: ReportRetrievalVM = new ReportRetrievalVMBuilder().build();
 });
