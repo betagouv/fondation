@@ -22,7 +22,7 @@ describe("Retrieve Nomination Case", () => {
   });
 
   it("retrieve a nomination file", async () => {
-    nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
+    nominationCaseGateway.addNominationFile(aNomination);
     await store.dispatch(retrieveNominationFile("nomination-file-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
@@ -31,7 +31,7 @@ describe("Retrieve Nomination Case", () => {
   });
 
   it("has two nomination cases in the store after retrieving a second one", async () => {
-    nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
+    nominationCaseGateway.addNominationFile(aNomination);
     store.dispatch(retrieveNominationFile.fulfilled(anotherNomination, "", ""));
 
     await store.dispatch(retrieveNominationFile("nomination-file-id"));

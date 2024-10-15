@@ -29,13 +29,6 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
     ) =>
     () => {
       if (!nominationFile) return;
-      console.log(
-        "ruleGroup",
-        ruleGroup,
-        "ruleName",
-        ruleName,
-        nominationFile.rulesChecked[ruleGroup][ruleName],
-      );
       dispatch(
         updateNominationRule({
           reportId: id,

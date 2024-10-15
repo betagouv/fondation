@@ -6,8 +6,8 @@ import {
 } from "../../../store/appState";
 
 export class FakeNominationFileGateway implements NominationFileGateway {
-  nominationFiles: Record<string, NominationFileSM> = {};
-  currentNominationFileId: string | null = null;
+  private nominationFiles: Record<string, NominationFileSM> = {};
+  private lastNominationFileId: string | null = null;
 
   async list(): Promise<NominationFileListItem[]> {
     return Object.values(this.nominationFiles).map(
@@ -34,29 +34,21 @@ export class FakeNominationFileGateway implements NominationFileGateway {
   }
 
   async updateRule(ruleId: string, validated: boolean): Promise<void> {
-    if (!this.currentNominationFileId)
+    if (!this.lastNominationFileId)
       throw new Error(
         "You should set the nomination id for the fake to do the update",
       );
-    if (this.nominationFiles[this.currentNominationFileId]) {
+    if (this.nominationFiles[this.lastNominationFileId]) {
       Object.entries(
-        this.nominationFiles[this.currentNominationFileId]!.rules,
+        this.nominationFiles[this.lastNominationFileId]!.rules,
       ).forEach(([ruleGroup, ruleEntry]) => {
         Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
-          console.log(
-            " ruleId",
-            rule.id,
-            ruleId,
-            ruleGroup,
-            ruleName,
-            validated,
-          );
           if (rule.id === ruleId) {
             const nominationFile =
-              this.nominationFiles[this.currentNominationFileId!]!;
+              this.nominationFiles[this.lastNominationFileId!]!;
             // It looks like Redux makes some nested attributes read-only,
             // so we need to create a new object
-            this.nominationFiles[this.currentNominationFileId!] = {
+            this.nominationFiles[this.lastNominationFileId!] = {
               ...nominationFile,
               rules: {
                 ...nominationFile.rules,
@@ -87,6 +79,6 @@ export class FakeNominationFileGateway implements NominationFileGateway {
 
   addNominationFile(aNomination: NominationFileSM) {
     this.nominationFiles[aNomination.id] = aNomination;
-    this.currentNominationFileId = aNomination.id;
+    this.lastNominationFileId = aNomination.id;
   }
 }

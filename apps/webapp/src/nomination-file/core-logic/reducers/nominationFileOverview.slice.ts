@@ -18,11 +18,10 @@ const nominationCaseOverviewSlice = createSlice({
 
     builder.addCase(updateNominationRule.fulfilled, (state, action) => {
       const { reportId, ruleId, validated } = action.payload;
+      const nominationFile = state.byIds?.[reportId];
 
-      if (state.byIds && state.byIds[reportId]) {
-        const nominationFile = state.byIds[reportId]!;
-
-        Object.entries(state.byIds[reportId]!.rules).forEach(
+      if (nominationFile) {
+        Object.entries(nominationFile.rules).forEach(
           ([ruleGroup, ruleEntry]) => {
             Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
               if (rule.id === ruleId) {

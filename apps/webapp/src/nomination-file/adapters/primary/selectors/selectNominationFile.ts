@@ -48,7 +48,6 @@ export const selectNominationFile = createSelector(
     (_, id: string) => id,
   ],
   (byIds, id): NominationFileVM | null => {
-    console.log("byIds", byIds, "id", id);
     const nominationFile = byIds?.[id];
     if (!nominationFile) return null;
 

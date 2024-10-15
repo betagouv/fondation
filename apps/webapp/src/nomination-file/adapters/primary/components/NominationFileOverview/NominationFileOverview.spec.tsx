@@ -32,8 +32,7 @@ describe("Nomination Case Overview Component", () => {
 
   describe("when there is a nomination file", () => {
     beforeEach(() => {
-      nominationCaseGateway.nominationFiles["nomination-file-id"] =
-        aValidatedNomination;
+      nominationCaseGateway.addNominationFile(aValidatedNomination);
     });
 
     it("shows its information", async () => {
@@ -52,22 +51,22 @@ describe("Nomination Case Overview Component", () => {
     describe("Transfer time rule", () => {
       const label = NominationFileVM.rulesToLabels["TRANSFER_TIME"];
 
-      it.only("checks the rule", async () => {
+      it("checks the rule", async () => {
         renderNominationFile("nomination-file-id");
         await clickCheckboxAndExpectChange(label, { initiallyChecked: false });
       });
 
       it("unchecks the rule", async () => {
-        nominationCaseGateway.nominationFiles["nomination-file-id"] =
-          anUnvalidatedNomination;
+        nominationCaseGateway.addNominationFile(anUnvalidatedNomination);
         renderNominationFile("nomination-file-id");
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
 
       const anotherRuleName: NominationFile.RuleName = "GETTING_FIRST_GRADE";
       it(`when checked, '${NominationFileVM.rulesToLabels[anotherRuleName]}' can also be checked`, async () => {
-        nominationCaseGateway.nominationFiles["nomination-file-id"] =
-          new NominationFileBuilder().withTransferTimeValidated(false).build();
+        nominationCaseGateway.addNominationFile(
+          new NominationFileBuilder().withTransferTimeValidated(false).build(),
+        );
         renderNominationFile("nomination-file-id");
 
         await clickCheckboxAndExpectChange(

@@ -75,10 +75,13 @@ export class ReportRetrievalVMBuilder {
     this.biography = biography;
     return this;
   }
-  withOverseasToOverseasRuleValidated(validated: boolean): this {
-    this.rules.management[
-      NominationFileManagementRule.OVERSEAS_TO_OVERSEAS
-    ].validated = validated;
+  withOverseasToOverseasRule(options: Partial<NominationFile.RuleValue>): this {
+    const rule =
+      this.rules.management[NominationFileManagementRule.OVERSEAS_TO_OVERSEAS];
+    this.rules.management[NominationFileManagementRule.OVERSEAS_TO_OVERSEAS] = {
+      ...rule,
+      ...options,
+    };
     return this;
   }
 

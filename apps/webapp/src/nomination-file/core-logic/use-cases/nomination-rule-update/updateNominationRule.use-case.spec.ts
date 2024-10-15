@@ -23,7 +23,6 @@ describe("Nomination Rule Update", () => {
   });
 
   it("switch the transfer time rule from unvalidated to validated", async () => {
-    nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
     nominationCaseGateway.addNominationFile(aNomination);
     store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
     await store.dispatch(

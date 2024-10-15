@@ -101,7 +101,10 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
               - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
               `,
             )
-            .withOverseasToOverseasRuleValidated(false)
+            .withOverseasToOverseasRule({
+              validated: false,
+              id: 'd4596935-e0c6-40c5-8db0-3c1a395a5ba8',
+            })
             .build(),
           'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRetrievalVMBuilder()
             .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
@@ -118,7 +121,10 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
               - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
               `,
             )
-            .withOverseasToOverseasRuleValidated(false)
+            .withOverseasToOverseasRule({
+              validated: false,
+              id: 'a9596935-e0c6-40c5-8db0-3c1a395a5ba8',
+            })
             .build(),
         };
 

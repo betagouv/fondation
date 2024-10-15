@@ -28,8 +28,7 @@ describe("Nomination Files Listing", () => {
       .withTitle("Lucien Denan")
       .withDueDate(new DateOnly(2030, 10, 30))
       .build();
-    nominationCaseGateway.nominationFiles["nomination-file-id"] =
-      nominationFileSM;
+    nominationCaseGateway.addNominationFile(nominationFileSM);
 
     await store.dispatch(listNominationFile());
 

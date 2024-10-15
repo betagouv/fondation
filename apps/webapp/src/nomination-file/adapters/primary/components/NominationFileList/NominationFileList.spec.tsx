@@ -28,8 +28,7 @@ describe("Nomination Case List Component", () => {
 
   describe("when there is a nomination case", () => {
     beforeEach(() => {
-      nominationCaseGateway.nominationFiles[aNominationFile.id] =
-        aNominationFile;
+      nominationCaseGateway.addNominationFile(aNominationFile);
     });
 
     it("shows it in the table", async () => {
