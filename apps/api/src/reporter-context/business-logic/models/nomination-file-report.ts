@@ -1,8 +1,5 @@
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { Formation } from './enums/formation.enum';
-import { ReportState } from './enums/report-state.enum';
-import { Grade } from './enums/grade.enum';
-import { Transparency } from './enums/transparency.enum';
 
 export enum NominationFileManagementRule {
   TRANSFER_TIME = 'TRANSFER_TIME',
@@ -23,10 +20,10 @@ export class NominationFileReport {
     readonly dueDate: DateOnly | null,
     readonly name: string,
     readonly birthDate: DateOnly,
-    readonly state: ReportState,
-    readonly formation: Formation,
+    readonly state: NominationFile.ReportState,
+    readonly formation: Magistrat.Formation,
     readonly transparency: Transparency,
-    readonly grade: Grade,
+    readonly grade: Magistrat.Grade,
     readonly targettedPosition: string,
     readonly comment: string | null,
   ) {}

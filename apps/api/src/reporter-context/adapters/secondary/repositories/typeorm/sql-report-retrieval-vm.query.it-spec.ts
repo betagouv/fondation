@@ -54,16 +54,7 @@ describe('SQL Report Retrieval VM Query', () => {
     });
 
     it('retrieves a report', async () => {
-      const aReportRuleSnapshot = aReportRule.toSnapshot();
-      const expectedRules = {
-        [aReportRuleSnapshot.ruleGroup]: {
-          [aReportRuleSnapshot.ruleName]: {
-            preValidated: aReportRuleSnapshot.preValidated,
-            validated: aReportRuleSnapshot.validated,
-            comment: aReportRuleSnapshot.comment,
-          },
-        },
-      } as unknown as NominationFile.Rules;
+      const expectedRules = prepareExpectedRules(aReportRule);
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
       ).toEqual<ReportRetrievalVM>({
@@ -109,16 +100,7 @@ describe('SQL Report Retrieval VM Query', () => {
     });
 
     it('retrieves with empty values', async () => {
-      const aReportRuleSnapshot = aReportRule.toSnapshot();
-      const expectedRules = {
-        [aReportRuleSnapshot.ruleGroup]: {
-          [aReportRuleSnapshot.ruleName]: {
-            preValidated: aReportRuleSnapshot.preValidated,
-            validated: aReportRuleSnapshot.validated,
-            comment: aReportRuleSnapshot.comment,
-          },
-        },
-      } as unknown as NominationFile.Rules;
+      const expectedRules = prepareExpectedRules(aReportRule);
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
       ).toEqual<ReportRetrievalVM>({
@@ -138,6 +120,20 @@ describe('SQL Report Retrieval VM Query', () => {
     });
   });
 
+  const prepareExpectedRules = (reportRule: ReportRule) => {
+    const reportRuleSnapshot = reportRule.toSnapshot();
+    const ruleValue: NominationFile.RuleValue = {
+      id: reportRuleSnapshot.id,
+      preValidated: reportRuleSnapshot.preValidated,
+      validated: reportRuleSnapshot.validated,
+      comment: reportRuleSnapshot.comment,
+    };
+    return {
+      [reportRuleSnapshot.ruleGroup]: {
+        [reportRuleSnapshot.ruleName]: ruleValue,
+      },
+    } as NominationFile.Rules;
+  };
   const givenSomeRuleExists = async (reportId: string) => {
     const aReportRule = new ReportRuleBuilder()
       .withId('da1619e2-263d-49b6-b928-6a04ee681132')

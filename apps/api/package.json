@@ -7,10 +7,14 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:deps": "pnpm --filter @/shared-models build:cjs",
+    "build:deps:watch": "pnpm --filter @/shared-models build:cjs:watch",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
+    "prestart": "pnpm build:deps",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "predev": "pnpm build:deps",
+    "dev": "concurrently \"pnpm build:deps:watch\" \"nest start --watch\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -30,6 +34,7 @@
     "typeorm:gen": "pnpx typeorm-ts-node-commonjs migration:generate -d src/shared-kernel/adapters/secondary/repositories/orm-data-source.ts"
   },
   "dependencies": {
+    "@/shared-models": "workspace:*",
     "@nestia/core": "^3.17.0",
     "@nestia/sdk": "^3.17.0",
     "@nestjs/common": "^10.0.0",
@@ -38,7 +43,6 @@
     "date-fns": "^4.1.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "@/shared-models": "workspace:*",
     "typeorm": "^0.3.20",
     "typia": "^6.11.1"
   },
@@ -53,6 +57,7 @@
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.0.1",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",

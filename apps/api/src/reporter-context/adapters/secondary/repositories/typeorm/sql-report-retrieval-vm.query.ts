@@ -37,6 +37,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
         }
 
         acc[ruleGroup][ruleName] = {
+          id: row['rule_id'],
           preValidated: row['rule_pre_validated'],
           validated: row['rule_validated'],
           comment: row['rule_comment'],
@@ -65,7 +66,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
       comments: reportData['report_comments']
         ? reportData['report_comments']
         : null,
-      rules: rules, // Processed rules
+      rules,
     };
 
     return reportRetrievalVM;

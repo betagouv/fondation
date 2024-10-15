@@ -1,12 +1,7 @@
 import { DateOnlyVM } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileManagementRule } from './nomination-file-report';
 import { ReportRetrievalVM } from './report-retrieval-vm';
-
-import { Formation } from './enums/formation.enum';
-import { Grade } from './enums/grade.enum';
-import { ReportState } from './enums/report-state.enum';
-import { Transparency } from './enums/transparency.enum';
-import { NominationFile } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 export class ReportRetrievalVMBuilder {
   private id: string;
@@ -14,10 +9,10 @@ export class ReportRetrievalVMBuilder {
   private biography: string;
   private dueDate: DateOnlyVM | null;
   private birthDate: DateOnlyVM;
-  private state: ReportState;
-  private formation: Formation;
+  private state: NominationFile.ReportState;
+  private formation: Magistrat.Formation;
   private transparency: Transparency;
-  private grade: Grade;
+  private grade: Magistrat.Grade;
   private targettedPosition: string;
   private comment: string | null;
   private rules: NominationFile.Rules;
@@ -36,14 +31,15 @@ export class ReportRetrievalVMBuilder {
       month: 12,
       day: 10,
     };
-    this.state = ReportState.NEW;
-    this.formation = Formation.PARQUET;
+    this.state = NominationFile.ReportState.NEW;
+    this.formation = Magistrat.Formation.PARQUET;
     this.transparency = Transparency.MARCH_2025;
-    this.grade = Grade.I;
+    this.grade = Magistrat.Grade.I;
     this.targettedPosition = 'targetted position';
     this.comment = 'comments';
 
     const defaultValue: NominationFile.RuleValue = {
+      id: 'rule-id',
       preValidated: true,
       validated: true,
       comment: 'rule comment',

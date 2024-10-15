@@ -1,9 +1,6 @@
+import { Magistrat, NominationFile } from '@/shared-models';
+import { Transparency } from '@/shared-models';
 import { DateOnlyVM } from 'src/shared-kernel/business-logic/models/date-only';
-import { Formation } from './enums/formation.enum';
-import { Grade } from './enums/grade.enum';
-import { ReportState } from './enums/report-state.enum';
-import { Transparency } from './enums/transparency.enum';
-import { NominationFile } from '@/shared-models';
 
 export interface ReportRetrievalVM {
   id: string;
@@ -11,10 +8,10 @@ export interface ReportRetrievalVM {
   dueDate: DateOnlyVM | null;
   name: string;
   birthDate: DateOnlyVM;
-  state: ReportState;
-  formation: Formation;
+  state: NominationFile.ReportState;
+  formation: Magistrat.Formation;
   transparency: Transparency;
-  grade: Grade;
+  grade: Magistrat.Grade;
   targettedPosition: string;
   comments: string | null;
   rules: NominationFile.Rules;

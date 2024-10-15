@@ -1,11 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { DateTransformer } from '../../../../../../shared-kernel/adapters/secondary/repositories/typeorm/dateTransformers';
-import { Formation } from '../../../../../business-logic/models/enums/formation.enum';
-import { Grade } from '../../../../../business-logic/models/enums/grade.enum';
-import { ReportState } from '../../../../../business-logic/models/enums/report-state.enum';
-import { Transparency } from '../../../../../business-logic/models/enums/transparency.enum';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { DateOnly } from '../../../../../../shared-kernel/business-logic/models/date-only';
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 @Entity({ schema: 'reporter_context', name: 'reports' })
 export class ReportPm {
@@ -36,23 +33,23 @@ export class ReportPm {
   @Column({
     name: 'state',
     type: 'enum',
-    enum: ReportState,
-    default: ReportState.NEW,
+    enum: NominationFile.ReportState,
+    default: NominationFile.ReportState.NEW,
   })
-  state: ReportState;
+  state: NominationFile.ReportState;
 
   @Column({
     name: 'formation',
     type: 'enum',
-    enum: Formation,
+    enum: Magistrat.Formation,
   })
-  formation: Formation;
+  formation: Magistrat.Formation;
 
   @Column({ name: 'transparency', type: 'enum', enum: Transparency })
   transparency: Transparency;
 
-  @Column({ name: 'grade', type: 'enum', enum: Grade })
-  grade: Grade;
+  @Column({ name: 'grade', type: 'enum', enum: Magistrat.Grade })
+  grade: Magistrat.Grade;
 
   @Column({ name: 'targetted_position' })
   targettedPosition: string;
@@ -66,10 +63,10 @@ export class ReportPm {
     dueDate: Date | null,
     name: string,
     birthDate: Date,
-    state: ReportState,
-    formation: Formation,
+    state: NominationFile.ReportState,
+    formation: Magistrat.Formation,
     transparency: Transparency,
-    grade: Grade,
+    grade: Magistrat.Grade,
     targettedPosition: string,
     comments: string | null,
   ) {

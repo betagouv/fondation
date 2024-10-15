@@ -1,9 +1,6 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { Formation } from './enums/formation.enum';
-import { ReportState } from './enums/report-state.enum';
 import { NominationFileReport } from './nomination-file-report';
-import { Grade } from './enums/grade.enum';
-import { Transparency } from './enums/transparency.enum';
+import { NominationFile, Magistrat, Transparency } from '@/shared-models';
 
 export class ReportBuilder {
   private id: string;
@@ -11,10 +8,10 @@ export class ReportBuilder {
   private dueDate: DateOnly | null;
   private name: string;
   private birthDate: DateOnly;
-  private state: ReportState;
-  private formation: Formation;
+  private state: NominationFile.ReportState;
+  private formation: Magistrat.Formation;
   private transparency: Transparency;
-  private grade: Grade;
+  private grade: Magistrat.Grade;
   private targettedPosition: string;
   private comment: string | null;
 
@@ -24,10 +21,10 @@ export class ReportBuilder {
     this.biography = 'Biography';
     this.dueDate = new DateOnly(2030, 1, 1);
     this.birthDate = new DateOnly(1980, 1, 1);
-    this.state = ReportState.NEW;
-    this.formation = Formation.SIEGE;
+    this.state = NominationFile.ReportState.NEW;
+    this.formation = Magistrat.Formation.SIEGE;
     this.transparency = Transparency.MARCH_2025;
-    this.grade = Grade.I;
+    this.grade = Magistrat.Grade.I;
     this.targettedPosition = 'Juge TJ -Marseille';
     this.comment = 'my comment';
   }

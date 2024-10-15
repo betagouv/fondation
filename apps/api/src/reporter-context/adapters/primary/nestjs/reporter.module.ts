@@ -14,10 +14,7 @@ import { FakeReportListingVMRepository } from '../../secondary/repositories/fake
 import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
 import { FakeReportRuleRepository } from '../../secondary/repositories/fake-report-rule.repository';
 import { ReporterController } from './reporter.controller';
-import { ReportState } from 'src/reporter-context/business-logic/models/enums/report-state.enum';
-import { Formation } from 'src/reporter-context/business-logic/models/enums/formation.enum';
-import { Grade } from 'src/reporter-context/business-logic/models/enums/grade.enum';
-import { Transparency } from 'src/reporter-context/business-logic/models/enums/transparency.enum';
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -57,26 +54,26 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         reportListingRepository.reportsList = [
           {
             id: 'd3696935-e0c6-40c5-8db0-3c1a395a5ba8',
-            state: ReportState.NEW,
+            state: NominationFile.ReportState.NEW,
             dueDate: {
               year: 2030,
               month: 10,
               day: 5,
             },
-            formation: Formation.PARQUET,
+            formation: Magistrat.Formation.PARQUET,
             name: 'Marcel Dupont',
             transparency: Transparency.MARCH_2025,
-            grade: Grade.I,
+            grade: Magistrat.Grade.I,
             targettedPosition: 'targetted position',
           },
           {
             id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-            state: ReportState.NEW,
+            state: NominationFile.ReportState.NEW,
             dueDate: null,
-            formation: Formation.PARQUET,
+            formation: Magistrat.Formation.PARQUET,
             name: 'Ada Lovelace',
             transparency: Transparency.MARCH_2025,
-            grade: Grade.I,
+            grade: Magistrat.Grade.I,
             targettedPosition: 'targetted position',
           },
         ];
