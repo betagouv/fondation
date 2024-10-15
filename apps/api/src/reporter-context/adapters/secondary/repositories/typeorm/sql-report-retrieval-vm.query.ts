@@ -52,10 +52,10 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
       id: reportData['report_id'],
       biography: reportData['report_biography'],
       dueDate: reportData['report_due_date']
-        ? DateOnly.fromString(reportData['report_due_date']).toViewModel()
+        ? DateOnly.fromDate(reportData['report_due_date']).toViewModel()
         : null,
       name: reportData['report_name'],
-      birthDate: DateOnly.fromString(
+      birthDate: DateOnly.fromDate(
         reportData['report_birth_date'],
       ).toViewModel(),
       state: reportData['report_state'],
