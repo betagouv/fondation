@@ -53,7 +53,7 @@ describe('SQL Report Listing VM Query', () => {
           {
             id: aReport.id,
             state: aReport.state,
-            dueDate: aReport.dueDate?.toViewModel() || null,
+            dueDate: aReport.dueDate?.toJson() || null,
             formation: aReport.formation,
             name: aReport.name,
             transparency: aReport.transparency,

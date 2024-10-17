@@ -2,7 +2,7 @@ import { differenceInMonths, format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-export type DateOnlyVM = {
+export type DateOnlyJson = {
   year: number;
   month: Month;
   day: number;
@@ -31,7 +31,7 @@ export class DateOnly {
   toFormattedString(): string {
     return format(this.value, 'yyyy-MM-dd');
   }
-  toViewModel(): DateOnlyVM {
+  toJson(): DateOnlyJson {
     return {
       year: this.getYear(),
       month: this.getMonth() as Month,
@@ -48,16 +48,15 @@ export class DateOnly {
   }
   static fromString(
     dateString: string,
-    format: 'dd/MM/yyyy' = 'dd/MM/yyyy',
+    format: 'dd/MM/yyyy' | 'dd/M/yyyy' = 'dd/MM/yyyy',
     locale: 'fr' = 'fr',
   ): DateOnly {
-    if (!isValid(new Date(dateString))) {
-      throw new Error('Invalid date: ' + dateString);
-    }
-
     const date = parse(dateString, format, new Date(), {
       locale: locale === 'fr' ? fr : undefined,
     });
+    if (!isValid(date)) {
+      throw new Error('Invalid date: ' + dateString);
+    }
 
     return new this(
       date.getFullYear(),

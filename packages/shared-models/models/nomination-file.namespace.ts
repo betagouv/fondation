@@ -1,9 +1,9 @@
 export namespace NominationFile {
   export enum ReportState {
-    NEW = 'NEW',
-    IN_PROGRESS = 'IN_PROGRESS',
-    READY_TO_SUPPORT = 'READY_TO_SUPPORT',
-    OPINION_RETURNED = 'OPINION_RETURNED',
+    NEW = "NEW",
+    IN_PROGRESS = "IN_PROGRESS",
+    READY_TO_SUPPORT = "READY_TO_SUPPORT",
+    OPINION_RETURNED = "OPINION_RETURNED",
   }
 
   export enum RuleGroup {
@@ -11,6 +11,7 @@ export namespace NominationFile {
     STATUTORY = "statutory",
     QUALITATIVE = "qualitative",
   }
+
   export enum ManagementRule {
     TRANSFER_TIME = "TRANSFER_TIME",
     GETTING_FIRST_GRADE = "GETTING_FIRST_GRADE",
@@ -22,8 +23,27 @@ export namespace NominationFile {
     JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE = "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
     JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT = "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
   }
+  export enum StatutoryRule {
+    JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION = "JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION",
+    GRADE_ON_SITE_AFTER_7_YEARS = "GRADE_ON_SITE_AFTER_7_YEARS",
+    MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS = "MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS",
+    MINISTER_CABINET = "MINISTER_CABINET",
+    GRADE_REGISTRATION = "GRADE_REGISTRATION",
+    HH_WITHOUT_2_FIRST_GRADE_POSITIONS = "HH_WITHOUT_2_FIRST_GRADE_POSITIONS",
+    LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO = "LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO",
+  }
+  export enum QualitativeRule {
+    CONFLICT_OF_INTEREST_PRE_MAGISTRATURE = "CONFLICT_OF_INTEREST_PRE_MAGISTRATURE",
+    CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION = "CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION",
+    EVALUATIONS = "EVALUATIONS",
+    DISCIPLINARY_ELEMENTS = "DISCIPLINARY_ELEMENTS",
+    HH_NOMINATION_CONDITIONS = "HH_NOMINATION_CONDITIONS",
+  }
 
-  export type RuleName = keyof typeof ManagementRule;
+  export type RuleName =
+    | keyof typeof ManagementRule
+    | keyof typeof StatutoryRule
+    | keyof typeof QualitativeRule;
 
   export type RuleValue = {
     id: string;
@@ -37,10 +57,10 @@ export namespace NominationFile {
       [key in ManagementRule]: RuleValue;
     };
     [RuleGroup.STATUTORY]: {
-      [key: string]: RuleValue;
+      [key in StatutoryRule]: RuleValue;
     };
     [RuleGroup.QUALITATIVE]: {
-      [key: string]: RuleValue;
+      [key in QualitativeRule]: RuleValue;
     };
   };
 }

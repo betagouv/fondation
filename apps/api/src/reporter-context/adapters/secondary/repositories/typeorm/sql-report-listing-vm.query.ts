@@ -26,7 +26,7 @@ export class SqlReportListingVMQuery implements ReportListingVMQuery {
         id: report.id,
         state: report.state,
         dueDate: report.dueDate
-          ? DateOnly.fromDate(report.dueDate).toViewModel()
+          ? DateOnly.fromDate(report.dueDate).toJson()
           : null,
         formation: report.formation,
         name: report.name,

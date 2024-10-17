@@ -1,10 +1,10 @@
 import { NominationFile, Magistrat, Transparency } from '@/shared-models';
-import { DateOnlyVM } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 
 export interface ReportListItemVM {
   id: string;
   state: NominationFile.ReportState;
-  dueDate: DateOnlyVM | null;
+  dueDate: DateOnlyJson | null;
   formation: Magistrat.Formation;
   name: string;
   transparency: Transparency;

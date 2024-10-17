@@ -108,7 +108,7 @@ describe('SQL Report Retrieval VM Query', () => {
         name: aReport.name,
         dueDate: null,
         biography: aReport.biography,
-        birthDate: aReport.birthDate.toViewModel(),
+        birthDate: aReport.birthDate.toJson(),
         state: aReport.state,
         formation: aReport.formation,
         transparency: aReport.transparency,

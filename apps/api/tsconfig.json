@@ -52,6 +52,10 @@
         "transform": "typia/lib/transform"
       }
     ],
+    "paths": {
+      "@/shared-models": ["../../packages/shared-models/models/index.ts"], // During development, point to source
+      "@/shared-models/*": ["../../packages/shared-models/models/*"]
+    },
   },
   "references":[{"path": "../../packages/shared-models"}],
 }

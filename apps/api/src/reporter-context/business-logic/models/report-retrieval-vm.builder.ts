@@ -1,4 +1,4 @@
-import { DateOnlyVM } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileManagementRule } from './nomination-file-report';
 import { ReportRetrievalVM } from './report-retrieval-vm';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
@@ -7,8 +7,8 @@ export class ReportRetrievalVMBuilder {
   private id: string;
   private name: string;
   private biography: string;
-  private dueDate: DateOnlyVM | null;
-  private birthDate: DateOnlyVM;
+  private dueDate: DateOnlyJson | null;
+  private birthDate: DateOnlyJson;
   private state: NominationFile.ReportState;
   private formation: Magistrat.Formation;
   private transparency: Transparency;
