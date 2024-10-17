@@ -24,7 +24,9 @@ export class NominationFileReport {
     readonly formation: Magistrat.Formation,
     readonly transparency: Transparency,
     readonly grade: Magistrat.Grade,
+    readonly currentPosition: string,
     readonly targettedPosition: string,
     readonly comment: string | null,
+    readonly rank: string,
   ) {}
 }

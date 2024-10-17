@@ -58,8 +58,30 @@ export class ReportRetrievalVMBuilder {
         [NominationFileManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
           defaultValue,
       },
-      [NominationFile.RuleGroup.STATUTORY]: {},
-      [NominationFile.RuleGroup.QUALITATIVE]: {},
+      [NominationFile.RuleGroup.STATUTORY]: {
+        [NominationFile.StatutoryRule
+          .JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION]: defaultValue,
+        [NominationFile.StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS]:
+          defaultValue,
+        [NominationFile.StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS]:
+          defaultValue,
+        [NominationFile.StatutoryRule.MINISTER_CABINET]: defaultValue,
+        [NominationFile.StatutoryRule.GRADE_REGISTRATION]: defaultValue,
+        [NominationFile.StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS]:
+          defaultValue,
+        [NominationFile.StatutoryRule
+          .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]:
+          defaultValue,
+      },
+      [NominationFile.RuleGroup.QUALITATIVE]: {
+        [NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]:
+          defaultValue,
+        [NominationFile.QualitativeRule
+          .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION]: defaultValue,
+        [NominationFile.QualitativeRule.EVALUATIONS]: defaultValue,
+        [NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS]: defaultValue,
+        [NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS]: defaultValue,
+      },
     };
   }
 

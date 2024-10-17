@@ -1,11 +1,10 @@
+import { NominationFile } from '@/shared-models';
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
-import { NominationFileManagementRule } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
 import { ReportRulePm } from './entities/report-rule-pm';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { NominationFile } from '@/shared-models';
 
 export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
   constructor(private readonly dataSource: DataSource) {}
@@ -29,14 +28,12 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
     const rules: NominationFile.Rules = reportWithRules.reduce(
       (acc: NominationFile.Rules, row: any) => {
         const ruleGroup = row['rule_rule_group'] as NominationFile.RuleGroup;
-        const ruleName = row['rule_rule_name'] as NominationFileManagementRule;
-
+        const ruleName = row['rule_rule_name'] as NominationFile.RuleName;
         if (!acc[ruleGroup]) {
-          acc[ruleGroup] =
-            {} as NominationFile.Rules[NominationFile.RuleGroup.MANAGEMENT];
+          acc[ruleGroup] = {} as any;
         }
 
-        acc[ruleGroup][ruleName] = {
+        (acc as any)[ruleGroup][ruleName] = {
           id: row['rule_id'],
           preValidated: row['rule_pre_validated'],
           validated: row['rule_validated'],

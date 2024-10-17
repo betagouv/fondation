@@ -1,14 +1,19 @@
 import { ReportRuleRepository } from 'src/reporter-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 export class FakeReportRuleRepository implements ReportRuleRepository {
-  reportRules: Record<string, ReportRule>;
+  reportRules: Record<string, ReportRule> = {};
 
-  async byId(id: string): Promise<ReportRule | null> {
-    const reportRule = this.reportRules[id];
-    return reportRule || null;
+  byId(id: string): TransactionableAsync<ReportRule | null> {
+    return async () => {
+      const reportRule = this.reportRules[id];
+      return reportRule || null;
+    };
   }
-  async save(reportRule: ReportRule): Promise<void> {
-    this.reportRules[reportRule.getId()] = reportRule;
+  save(reportRule: ReportRule): TransactionableAsync<void> {
+    return async () => {
+      this.reportRules[reportRule.getId()] = reportRule;
+    };
   }
 }

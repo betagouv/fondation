@@ -5,10 +5,13 @@ import { ormConfigTest } from 'test/orm-config.test';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
 import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
+import { TypeOrmTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/typeOrmTransactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 describe('SQL Nomination File Report Repository', () => {
   let dataSource: DataSource;
   let sqlNominationFileReportRepository: SqlNominationFileReportRepository;
+  let transactionPerformer: TransactionPerformer;
 
   beforeAll(async () => {
     dataSource = new DataSource(ormConfigTest('src'));
@@ -17,9 +20,8 @@ describe('SQL Nomination File Report Repository', () => {
 
   beforeEach(async () => {
     await clearDB(dataSource);
-    sqlNominationFileReportRepository = new SqlNominationFileReportRepository(
-      dataSource,
-    );
+    sqlNominationFileReportRepository = new SqlNominationFileReportRepository();
+    transactionPerformer = new TypeOrmTransactionPerformer(dataSource);
   });
 
   afterAll(async () => {
@@ -27,7 +29,9 @@ describe('SQL Nomination File Report Repository', () => {
   });
 
   it('saves a report', async () => {
-    await sqlNominationFileReportRepository.save(aReport);
+    await transactionPerformer.perform(
+      sqlNominationFileReportRepository.save(aReport),
+    );
     const existingReports = await dataSource.getRepository(ReportPm).find();
     expect(existingReports).toEqual([
       new ReportPm(

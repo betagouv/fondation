@@ -4,12 +4,16 @@ import { ReportRule, ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
 import { NominationFile } from '@/shared-models';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/nullTransactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 describe('Change Rule Validation State', () => {
   let reportRuleRepository: FakeReportRuleRepository;
+  let transactionPerformer: TransactionPerformer;
 
   beforeEach(() => {
     reportRuleRepository = new FakeReportRuleRepository();
+    transactionPerformer = new NullTransactionPerformer();
   });
 
   const testData = [
@@ -25,17 +29,17 @@ describe('Change Rule Validation State', () => {
       const aReportRuleSnapshot = aReportRule.toSnapshot();
 
       const changeRuleValidationStateUseCase =
-        new ChangeRuleValidationStateUseCase(reportRuleRepository);
+        new ChangeRuleValidationStateUseCase(
+          reportRuleRepository,
+          transactionPerformer,
+        );
 
       await changeRuleValidationStateUseCase.execute(
         aReportRuleSnapshot.id,
         expectValidated,
       );
 
-      await expectChangedRuleValidationState(
-        aReportRuleSnapshot,
-        expectValidated,
-      );
+      expectChangedRuleValidationState(aReportRuleSnapshot, expectValidated);
     },
   );
 
@@ -54,11 +58,11 @@ describe('Change Rule Validation State', () => {
     return aReportRule;
   };
 
-  const expectChangedRuleValidationState = async (
+  const expectChangedRuleValidationState = (
     reportRuleSnapshot: ReportRuleSnapshot,
     expectValidated: boolean,
   ) => {
-    const savedReport = await reportRuleRepository.byId(reportRuleSnapshot.id);
+    const savedReport = reportRuleRepository.reportRules[reportRuleSnapshot.id];
     expect(savedReport).toEqual(
       new ReportRule(
         reportRuleSnapshot.id,

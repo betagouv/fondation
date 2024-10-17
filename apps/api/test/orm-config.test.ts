@@ -14,9 +14,11 @@ export const ormConfigTest = (
   logger: 'simple-console',
   entities: [
     `${rootDirectory}/**/adapters/secondary/repositories/typeorm/entities/*.{ts,js}`,
+    `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/entities/*.{ts,js}`,
   ],
   migrationsRun: true,
   migrations: [
     `${rootDirectory}/**/adapters/secondary/repositories/typeorm/migrations/*.{ts,js}`,
+    `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/migrations/*.{ts,js}`,
   ],
 });

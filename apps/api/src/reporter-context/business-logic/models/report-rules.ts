@@ -1,10 +1,9 @@
 import { NominationFile } from '@/shared-models';
-import { NominationFileManagementRule } from './nomination-file-report';
 
 export class ReportRuleValidation {
   constructor(
     readonly ruleGroup: NominationFile.RuleGroup,
-    readonly ruleName: NominationFileManagementRule,
+    readonly ruleName: NominationFile.RuleName,
     readonly preValidated: boolean,
     readonly validated: boolean,
   ) {}
@@ -14,7 +13,7 @@ export type ReportRuleSnapshot = {
   id: string;
   reportId: string;
   ruleGroup: NominationFile.RuleGroup;
-  ruleName: NominationFileManagementRule;
+  ruleName: NominationFile.RuleName;
   preValidated: boolean;
   validated: boolean;
   comment: string | null;
@@ -25,7 +24,7 @@ export class ReportRule {
     private readonly id: string,
     private readonly reportId: string,
     private readonly ruleGroup: NominationFile.RuleGroup,
-    private readonly ruleName: NominationFileManagementRule,
+    private readonly ruleName: NominationFile.RuleName,
     private readonly preValidated: boolean,
     private validated: boolean,
     private readonly comment: string | null,

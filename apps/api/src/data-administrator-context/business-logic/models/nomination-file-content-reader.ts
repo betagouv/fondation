@@ -1,7 +1,8 @@
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { NominationFileRead } from '../gateways/repositories/nomination-file-repository';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import typia from 'typia';
+import { NominationFilesImportedEvent } from './nomination-file-imported.event';
+import { NominationFileRead } from './nomination-file-read';
 
 export class NominationFileContentReader {
   constructor(
@@ -9,10 +10,13 @@ export class NominationFileContentReader {
     private readonly content: string[],
   ) {}
 
-  read(): NominationFileRead[] {
+  read(
+    nominationFilesImportedEventId: string,
+    currentDate: Date,
+  ): [NominationFileRead[], NominationFilesImportedEvent] {
     const rulesColumnsIndices = this.getRulesColumnsIndices();
 
-    return this.content.map((row, rowIndex) => {
+    const contentRead = this.content.map((row, rowIndex) => {
       const rules = Object.entries(rulesColumnsIndices).reduce(
         (acc, [group, rulesIndices]) => ({
           ...acc,
@@ -35,6 +39,7 @@ export class NominationFileContentReader {
         optional: true,
       });
       const nominationFileRead: NominationFileRead = {
+        rowNumber: rowIndex + 1,
         content: {
           dueDate: dueDate
             ? DateOnly.fromString(dueDate!, 'dd/M/yyyy', 'fr').toJson()
@@ -66,8 +71,27 @@ export class NominationFileContentReader {
         },
       };
 
-      return typia.assertEquals<NominationFileRead>(nominationFileRead);
+      return nominationFileRead;
     });
+
+    const nominationFilesImportedEvent = new NominationFilesImportedEvent(
+      nominationFilesImportedEventId,
+      contentRead.reduce(
+        (acc, content) => {
+          return {
+            ...acc,
+            [content.rowNumber]: content,
+          };
+        },
+        {} as Record<number, NominationFileRead>,
+      ),
+      currentDate,
+    );
+
+    const safeNominationFileRead =
+      typia.assertEquals<NominationFileRead[]>(contentRead);
+
+    return [safeNominationFileRead, nominationFilesImportedEvent];
   }
 
   private normalizeTransparency(transparency: string): Transparency {

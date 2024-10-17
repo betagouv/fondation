@@ -1,11 +1,13 @@
-import { NominationFileManagementRule } from '../../../../../business-logic/models/nomination-file-report';
-import { ReportRule } from '../../../../../business-logic/models/report-rules';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ReportPm } from './report-pm';
 import { NominationFile } from '@/shared-models';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { ReportRule } from '../../../../../business-logic/models/report-rules';
+import { ReportPm } from './report-pm';
 
-const ruleNames = [...Object.values(NominationFileManagementRule)];
-type RuleNames = (typeof ruleNames)[number];
+const ruleNames = [
+  ...Object.values(NominationFile.ManagementRule),
+  ...Object.values(NominationFile.StatutoryRule),
+  ...Object.values(NominationFile.QualitativeRule),
+];
 
 @Entity({ schema: 'reporter_context', name: 'report_rule' })
 export class ReportRulePm {
@@ -19,7 +21,7 @@ export class ReportRulePm {
     name: 'rule_name',
     enum: ruleNames,
   })
-  ruleName: RuleNames;
+  ruleName: NominationFile.RuleName;
 
   @Column('boolean', { name: 'pre_validated' })
   preValidated: boolean;
@@ -39,7 +41,7 @@ export class ReportRulePm {
   constructor(
     id: string,
     ruleGroup: NominationFile.RuleGroup,
-    ruleName: NominationFileManagementRule,
+    ruleName: NominationFile.RuleName,
     preValidated: boolean,
     validated: boolean,
     comment: string | null,
