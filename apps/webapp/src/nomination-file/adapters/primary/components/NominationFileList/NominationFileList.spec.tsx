@@ -14,7 +14,7 @@ describe("Nomination Case List Component", () => {
     nominationCaseGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationCaseGateway,
+        nominationFileGateway: nominationCaseGateway,
       },
       {},
       {},

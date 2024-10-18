@@ -14,7 +14,7 @@ describe("Nomination Rule Update", () => {
     nominationCaseGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationCaseGateway,
+        nominationFileGateway: nominationCaseGateway,
       },
       {},
       {},

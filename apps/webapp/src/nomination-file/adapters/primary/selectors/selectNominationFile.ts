@@ -28,6 +28,25 @@ export class NominationFileVM {
       "Passer du siège au parquet tout en passant d'un TJ à une CA (ou l'inverse)",
     JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT:
       "Passer du siège au parquet (ou l'inverse) au sein d'un même ressort",
+
+    // Statutory
+    JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION: "Changement de juridiction",
+    GRADE_ON_SITE_AFTER_7_YEARS: "Grade sur place après 7 ans",
+    MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS:
+      "Changement de ministère en moins de 3 ans",
+    MINISTER_CABINET: "Cabinet ministériel",
+    GRADE_REGISTRATION: "Inscription au grade",
+    HH_WITHOUT_2_FIRST_GRADE_POSITIONS: "HH sans 2 premiers grades",
+    LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO:
+      "Profession juridique en cour judiciaire il y a moins de 5 ans",
+
+    // Qualitative
+    CONFLICT_OF_INTEREST_PRE_MAGISTRATURE: "Conflit d'intérêt pré magistrature",
+    CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION:
+      "Conflit d'intérêt avec profession parente",
+    EVALUATIONS: "Évaluations",
+    DISCIPLINARY_ELEMENTS: "Éléments disciplinaires",
+    HH_NOMINATION_CONDITIONS: "Conditions de nomination HH",
   };
 
   constructor(
@@ -35,10 +54,20 @@ export class NominationFileVM {
     public name: string,
     public biography: string,
     public dueDate: string | null,
-    public rulesChecked: Record<
-      NominationFile.RuleGroup.MANAGEMENT,
-      Record<NominationFile.RuleName, VMNominationFileRuleValue>
-    >,
+    public rulesChecked: {
+      [NominationFile.RuleGroup.MANAGEMENT]: Record<
+        NominationFile.ManagementRule,
+        VMNominationFileRuleValue
+      >;
+      [NominationFile.RuleGroup.STATUTORY]: Record<
+        NominationFile.StatutoryRule,
+        VMNominationFileRuleValue
+      >;
+      [NominationFile.RuleGroup.QUALITATIVE]: Record<
+        NominationFile.QualitativeRule,
+        VMNominationFileRuleValue
+      >;
+    },
   ) {}
 }
 
@@ -59,6 +88,22 @@ export const selectNominationFile = createSelector(
         ruleName,
       );
 
+    const createStatutoryRuleCheckedEntryFromValidatedRules = (
+      ruleName: NominationFile.StatutoryRule,
+    ): RuleCheckedEntry =>
+      createRuleCheckedEntryFromValidatedRules(
+        nominationFile.rules.statutory,
+        ruleName,
+      );
+
+    const createQualitativeRuleCheckedEntryFromValidatedRules = (
+      ruleName: NominationFile.QualitativeRule,
+    ): RuleCheckedEntry =>
+      createRuleCheckedEntryFromValidatedRules(
+        nominationFile.rules.qualitative,
+        ruleName,
+      );
+
     return {
       id: nominationFile.id,
       name: nominationFile.name,
@@ -74,6 +119,20 @@ export const selectNominationFile = createSelector(
           }),
           {} as RuleCheckedEntry,
         ),
+        statutory: Object.values(NominationFile.StatutoryRule).reduce(
+          (acc, ruleName) => ({
+            ...acc,
+            ...createStatutoryRuleCheckedEntryFromValidatedRules(ruleName),
+          }),
+          {} as RuleCheckedEntry,
+        ),
+        qualitative: Object.values(NominationFile.QualitativeRule).reduce(
+          (acc, ruleName) => ({
+            ...acc,
+            ...createQualitativeRuleCheckedEntryFromValidatedRules(ruleName),
+          }),
+          {} as RuleCheckedEntry,
+        ),
       },
     };
   },
@@ -83,12 +142,16 @@ const createRuleCheckedEntryFromValidatedRules = (
   validatedRules: NominationFile.Rules[NominationFile.RuleGroup],
   ruleName: NominationFile.RuleName,
 ) => {
+  const ruleValue = (
+    validatedRules as Record<NominationFile.RuleName, NominationFile.RuleValue>
+  )[ruleName];
+
   const values: RuleCheckedEntry[NominationFile.RuleName] = {
-    id: validatedRules[ruleName].id,
+    id: ruleValue.id,
     label: NominationFileVM.rulesToLabels[ruleName],
-    checked: !validatedRules[ruleName].validated,
-    highlighted: validatedRules[ruleName].preValidated,
-    comment: validatedRules[ruleName].comment,
+    checked: !ruleValue.validated,
+    highlighted: ruleValue.preValidated,
+    comment: ruleValue.comment,
   };
 
   return {

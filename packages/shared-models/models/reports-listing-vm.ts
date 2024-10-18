@@ -1,5 +1,7 @@
-import { NominationFile, Magistrat, Transparency } from '@/shared-models';
-import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnlyJson } from "./date";
+import { Magistrat } from "./magistrat.namespace";
+import { NominationFile } from "./nomination-file.namespace";
+import { Transparency } from "./transparency.enum";
 
 export interface ReportListItemVM {
   id: string;

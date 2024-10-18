@@ -1,5 +1,5 @@
 import { FakeReportListingVMRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-listing-vm.repository';
-import { ReportListItemVM } from '../../models/reports-listing-vm';
+import { ReportListItemVM } from '@/shared-models';
 import { ListReportsUseCase } from './list-reports.use-case';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 

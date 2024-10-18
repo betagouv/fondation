@@ -54,12 +54,17 @@ export class FakeNominationFileGateway implements NominationFileGateway {
                 ...nominationFile.rules,
                 [ruleGroup]: {
                   ...nominationFile.rules[
-                    ruleGroup as NominationFile.RuleGroup.MANAGEMENT
+                    ruleGroup as NominationFile.RuleGroup
                   ],
                   [ruleName]: {
-                    ...nominationFile.rules[
-                      ruleGroup as NominationFile.RuleGroup.MANAGEMENT
-                    ][ruleName as NominationFile.RuleName],
+                    ...(
+                      nominationFile.rules[
+                        ruleGroup as NominationFile.RuleGroup
+                      ] as Record<
+                        NominationFile.RuleName,
+                        NominationFile.RuleValue
+                      >
+                    )[ruleName as NominationFile.RuleName],
                     validated,
                   },
                 },

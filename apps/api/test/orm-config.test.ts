@@ -1,3 +1,7 @@
+import {
+  getEntitiesFiles,
+  getMigrationFiles,
+} from '../src/shared-kernel/adapters/secondary/repositories/orm-config';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 export const ormConfigTest = (
@@ -12,13 +16,7 @@ export const ormConfigTest = (
   synchronize: true,
   logging: false,
   logger: 'simple-console',
-  entities: [
-    `${rootDirectory}/**/adapters/secondary/repositories/typeorm/entities/*.{ts,js}`,
-    `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/entities/*.{ts,js}`,
-  ],
+  entities: getEntitiesFiles(rootDirectory),
   migrationsRun: true,
-  migrations: [
-    `${rootDirectory}/**/adapters/secondary/repositories/typeorm/migrations/*.{ts,js}`,
-    `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/migrations/*.{ts,js}`,
-  ],
+  migrations: getMigrationFiles(rootDirectory),
 });

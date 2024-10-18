@@ -5,7 +5,10 @@ import { useEffect } from "react";
 import { retrieveNominationFile } from "../../../../core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
 import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
-import { selectNominationFile } from "../../selectors/selectNominationFile";
+import {
+  selectNominationFile,
+  VMNominationFileRuleValue,
+} from "../../selectors/selectNominationFile";
 import { Biography } from "./Biography";
 import { Card } from "./Card";
 import { NominationRules } from "./NominationRules";
@@ -23,17 +26,19 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
   const dispatch = useAppDispatch();
 
   const onUpdateNominationRule =
-    (
-      ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
-      ruleName: NominationFile.RuleName,
-    ) =>
+    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
     () => {
       if (!nominationFile) return;
+
+      const rule = nominationFile.rulesChecked[ruleGroup] as Record<
+        NominationFile.RuleName,
+        VMNominationFileRuleValue
+      >;
       dispatch(
         updateNominationRule({
           reportId: id,
-          ruleId: nominationFile.rulesChecked[ruleGroup][ruleName].id,
-          validated: nominationFile.rulesChecked[ruleGroup][ruleName].checked,
+          ruleId: rule[ruleName].id,
+          validated: rule[ruleName].checked,
         }),
       );
     };

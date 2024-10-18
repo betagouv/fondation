@@ -40,10 +40,7 @@ export namespace NominationFile {
     HH_NOMINATION_CONDITIONS = "HH_NOMINATION_CONDITIONS",
   }
 
-  export type RuleName =
-    | keyof typeof ManagementRule
-    | keyof typeof StatutoryRule
-    | keyof typeof QualitativeRule;
+  export type RuleName = ManagementRule | StatutoryRule | QualitativeRule;
 
   export type RuleValue = {
     id: string;

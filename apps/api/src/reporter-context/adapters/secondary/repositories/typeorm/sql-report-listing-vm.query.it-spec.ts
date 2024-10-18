@@ -6,8 +6,7 @@ import { ReportPm } from './entities/report-pm';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { ReportListingVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
-
+import { ReportListingVM } from '@/shared-models';
 describe('SQL Report Listing VM Query', () => {
   let dataSource: DataSource;
   let sqlReportListingVMRepository: SqlReportListingVMQuery;

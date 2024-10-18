@@ -18,7 +18,7 @@ describe("Nomination Case Overview Component", () => {
     nominationCaseGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationCaseGateway,
+        nominationFileGateway: nominationCaseGateway,
       },
       {},
       {},
@@ -62,7 +62,8 @@ describe("Nomination Case Overview Component", () => {
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
 
-      const anotherRuleName: NominationFile.RuleName = "GETTING_FIRST_GRADE";
+      const anotherRuleName: NominationFile.RuleName =
+        NominationFile.ManagementRule.GETTING_FIRST_GRADE;
       it(`when checked, '${NominationFileVM.rulesToLabels[anotherRuleName]}' can also be checked`, async () => {
         nominationCaseGateway.addNominationFile(
           new NominationFileBuilder().withTransferTimeValidated(false).build(),

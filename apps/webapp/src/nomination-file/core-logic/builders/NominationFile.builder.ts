@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from "@/shared-models";
+import {
+  Magistrat,
+  NominationFile,
+  rulesTuple,
+  Transparency,
+} from "@/shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileSM } from "../../store/appState";
 
@@ -12,76 +17,42 @@ export class NominationFileBuilder {
   private formation: Magistrat.Formation;
   private transparency: Transparency;
   private grade: Magistrat.Grade;
+  private currentPosition: string;
   private targettedPosition: string;
+  private rank: string;
+  private comment: string | null;
 
   constructor() {
     this.id = "nomination-file-id";
     this.title = "John Doe";
     this.biography = "John Doe's biography";
     this.dueDate = new DateOnly(2030, 10, 30);
-    this.rules = {
-      management: {
-        TRANSFER_TIME: {
-          id: "TRANSFER_TIME",
-          preValidated: true,
-          validated: true,
-          comment: "TRANSFER_TIME comment",
-        },
-        GETTING_FIRST_GRADE: {
-          id: "GETTING_FIRST_GRADE",
-          preValidated: true,
-          validated: true,
-          comment: "GETTING_FIRST_GRADE comment",
-        },
-        GETTING_GRADE_HH: {
-          id: "GETTING_GRADE_HH",
-          preValidated: true,
-          validated: true,
-          comment: "GETTING_GRADE_HH comment",
-        },
-        GETTING_GRADE_IN_PLACE: {
-          id: "GETTING_GRADE_IN_PLACE",
-          preValidated: true,
-          validated: true,
-          comment: "GETTING_GRADE_IN_PLACE comment",
-        },
-        PROFILED_POSITION: {
-          id: "PROFILED_POSITION",
-          preValidated: true,
-          validated: true,
-          comment: "PROFILED_POSITION comment",
-        },
-        CASSATION_COURT_NOMINATION: {
-          id: "CASSATION_COURT_NOMINATION",
-          preValidated: true,
-          validated: true,
-          comment: "CASSATION_COURT_NOMINATION comment",
-        },
-        OVERSEAS_TO_OVERSEAS: {
-          id: "OVERSEAS_TO_OVERSEAS",
-          preValidated: true,
-          validated: true,
-          comment: "OVERSEAS_TO_OVERSEAS comment",
-        },
-        JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: {
-          id: "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
-          preValidated: true,
-          validated: true,
-          comment: "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE comment",
-        },
-        JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: {
-          id: "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
-          preValidated: true,
-          validated: true,
-          comment: "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT comment",
-        },
+    this.rules = rulesTuple.reduce(
+      (acc, [ruleGroup, ruleName]) => {
+        return {
+          ...acc,
+          [ruleGroup]: {
+            ...acc[ruleGroup],
+            [ruleName]: {
+              id: ruleName,
+              preValidated: true,
+              validated: true,
+              comment: `${ruleName} comment`,
+            },
+          },
+        };
       },
-    };
+      {} as NominationFileSM["rules"],
+    );
+
     this.state = NominationFile.ReportState.NEW;
     this.formation = Magistrat.Formation.PARQUET;
     this.transparency = Transparency.MARCH_2025;
     this.grade = Magistrat.Grade.I;
+    this.currentPosition = "PG TJ Paris";
     this.targettedPosition = "PG TJ Marseille";
+    this.rank = "(2 sur une liste de 3)";
+    this.comment = "Some comment";
   }
 
   withId(id: string) {
@@ -114,6 +85,10 @@ export class NominationFileBuilder {
   }
   withGrade(grade: Magistrat.Grade) {
     this.grade = grade;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
     return this;
   }
   withTargettedPosition(targettedPosition: string) {
@@ -190,7 +165,10 @@ export class NominationFileBuilder {
       formation: this.formation,
       transparency: this.transparency,
       grade: this.grade,
+      currentPosition: this.currentPosition,
       targettedPosition: this.targettedPosition,
+      rank: this.rank,
+      comment: this.comment,
     };
   }
 }

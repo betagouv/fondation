@@ -12,8 +12,11 @@ export interface NominationFileSM {
   dueDate: DateOnlyStoreModel | null;
   transparency: Transparency;
   grade: Magistrat.Grade;
+  currentPosition: string;
   targettedPosition: string;
-  rules: Pick<NominationFile.Rules, NominationFile.RuleGroup.MANAGEMENT>;
+  rank: string;
+  comment: string | null;
+  rules: NominationFile.Rules;
 }
 export type NominationFileListItem = Pick<
   NominationFileSM,

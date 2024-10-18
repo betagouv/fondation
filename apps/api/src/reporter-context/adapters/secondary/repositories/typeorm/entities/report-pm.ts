@@ -1,8 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { DateTransformer } from '../../../../../../shared-kernel/adapters/secondary/repositories/typeorm/dateTransformers';
-import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
+import { NominationFileReport } from '../../../../../business-logic/models/nomination-file-report';
 import { DateOnly } from '../../../../../../shared-kernel/business-logic/models/date-only';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { ReportRulePm } from './report-rule-pm';
 
 @Entity({ schema: 'reporter_context', name: 'reports' })
 export class ReportPm {
@@ -62,6 +63,11 @@ export class ReportPm {
 
   @Column()
   rank: string;
+
+  @OneToMany(() => ReportRulePm, (rule) => rule.report, {
+    onDelete: 'RESTRICT',
+  })
+  rules: ReportRulePm[];
 
   constructor(
     id: string,

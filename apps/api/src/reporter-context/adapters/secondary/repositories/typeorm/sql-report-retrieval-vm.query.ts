@@ -1,6 +1,5 @@
-import { NominationFile } from '@/shared-models';
+import { NominationFile, ReportRetrievalVM } from '@/shared-models';
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
-import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
@@ -33,7 +32,12 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
           acc[ruleGroup] = {} as any;
         }
 
-        (acc as any)[ruleGroup][ruleName] = {
+        (
+          acc[ruleGroup] as Record<
+            NominationFile.RuleName,
+            NominationFile.RuleValue
+          >
+        )[ruleName] = {
           id: row['rule_id'],
           preValidated: row['rule_pre_validated'],
           validated: row['rule_validated'],

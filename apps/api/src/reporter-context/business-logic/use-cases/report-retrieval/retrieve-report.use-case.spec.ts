@@ -1,5 +1,5 @@
 import { FakeReportRetrievalVMQuery } from 'src/reporter-context/adapters/secondary/repositories/fake-report-retrieval-vm.query';
-import { ReportRetrievalVM } from '../../models/report-retrieval-vm';
+import { ReportRetrievalVM } from '@/shared-models';
 import { ReportRetrievalVMBuilder } from '../../models/report-retrieval-vm.builder';
 import { RetrieveReportUseCase } from './retrieve-report.use-case';
 

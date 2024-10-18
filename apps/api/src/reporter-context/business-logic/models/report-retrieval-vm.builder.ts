@@ -3,7 +3,7 @@ import {
   NominationFileManagementRule,
   NominationFileReport,
 } from './nomination-file-report';
-import { ReportRetrievalVM } from './report-retrieval-vm';
+import { ReportRetrievalVM } from '@/shared-models';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 export class ReportRetrievalVMBuilder {

@@ -18,7 +18,7 @@ import {
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 
 export interface Gateways {
-  nominationCaseGateway: NominationFileGateway;
+  nominationFileGateway: NominationFileGateway;
   authenticationGateway: AuthenticationGateway;
 }
 

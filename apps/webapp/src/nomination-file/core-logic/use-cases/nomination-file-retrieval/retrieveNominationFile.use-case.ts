@@ -6,7 +6,7 @@ export const retrieveNominationFile = createAppAsyncThunk(
     id: string,
     {
       extra: {
-        gateways: { nominationCaseGateway },
+        gateways: { nominationFileGateway: nominationCaseGateway },
       },
     },
   ) => {

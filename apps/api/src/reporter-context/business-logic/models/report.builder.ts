@@ -1,42 +1,10 @@
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from './nomination-file-report';
-import { ReportRetrievalVM } from './report-retrieval-vm';
-import { ReportListItemVM } from './reports-listing-vm';
+import { ReportRetrievalVM } from '@/shared-models';
+import { ReportListItemVM } from '@/shared-models';
 
 export class ReportBuilder {
-  withRank(rank: string) {
-    this.rank = rank;
-    return this;
-  }
-  withTargettedPosition(targettedPosition: string) {
-    this.targettedPosition = targettedPosition;
-    return this;
-  }
-  withCurrentPosition(currentPosition: string) {
-    this.currentPosition = currentPosition;
-    return this;
-  }
-  withGrade(grade: Magistrat.Grade) {
-    this.grade = grade;
-    return this;
-  }
-  withTransparency(transparency: Transparency) {
-    this.transparency = transparency;
-    return this;
-  }
-  withName(name: string) {
-    this.name = name;
-    return this;
-  }
-  withFormation(formation: Magistrat.Formation) {
-    this.formation = formation;
-    return this;
-  }
-  withState(state: NominationFile.ReportState) {
-    this.state = state;
-    return this;
-  }
   private id: string;
   private biography: string;
   private dueDate: DateOnly | null;
@@ -71,6 +39,10 @@ export class ReportBuilder {
     this.id = id;
     return this;
   }
+  withName(name: string) {
+    this.name = name;
+    return this;
+  }
   withBiography(biography: string) {
     this.biography = biography;
     return this;
@@ -83,8 +55,37 @@ export class ReportBuilder {
     this.birthDate = birthDate;
     return this;
   }
+  withFormation(formation: Magistrat.Formation) {
+    this.formation = formation;
+    return this;
+  }
+  withState(state: NominationFile.ReportState) {
+    this.state = state;
+    return this;
+  }
+  withGrade(grade: Magistrat.Grade) {
+    this.grade = grade;
+    return this;
+  }
+  withTransparency(transparency: Transparency) {
+    this.transparency = transparency;
+    return this;
+  }
+  withTargettedPosition(targettedPosition: string) {
+    this.targettedPosition = targettedPosition;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
+    return this;
+  }
+
   withComment(comment: string | null) {
     this.comment = comment;
+    return this;
+  }
+  withRank(rank: string) {
+    this.rank = rank;
     return this;
   }
 

@@ -1,6 +1,8 @@
 import {
   Magistrat,
   NominationFile,
+  ReportListItemVM,
+  ReportRetrievalVM,
   rulesTuple,
   Transparency,
 } from '@/shared-models';
@@ -9,12 +11,10 @@ import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
 import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { ReportListItemVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
 import { DATA_SOURCE } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';

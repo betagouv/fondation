@@ -15,19 +15,23 @@ import {
 } from "./router/adapters/type-route/typeRouter.ts";
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
+import { NestiaNominationFileClient } from "./nomination-file/adapters/secondary/gateways/NestiaNominationFile.client.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
 const authenticationGateway = new FakeAuthenticationGateway();
 authenticationGateway.setEligibleAuthUser("username", "password", true);
 
-const nominationCaseGateway = new ApiNominationFileGateway();
+const nestiaNominationFileClient = new NestiaNominationFileClient();
+const nominationFileGateway = new ApiNominationFileGateway(
+  nestiaNominationFileClient,
+);
 
 const authenticationStorageProvider =
   new AuthenticationSessionStorageProvider();
 
 const store = initReduxStore<false>(
-  { nominationCaseGateway, authenticationGateway },
+  { nominationFileGateway, authenticationGateway },
   { authenticationStorageProvider, routerProvider: new TypeRouterProvider() },
   {
     routeToComponentFactory: useRouteToComponentFactory,

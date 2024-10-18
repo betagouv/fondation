@@ -1,5 +1,5 @@
 import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-listing-vm.query';
-import { ReportListingVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
+import { ReportListingVM } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';

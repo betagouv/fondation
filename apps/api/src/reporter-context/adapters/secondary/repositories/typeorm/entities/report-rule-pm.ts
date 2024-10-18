@@ -32,7 +32,7 @@ export class ReportRulePm {
   @Column('text', { nullable: true })
   comment: string | null;
 
-  @ManyToOne(() => ReportPm)
+  @ManyToOne(() => ReportPm, (report) => report.rules)
   report: ReportPm;
 
   @Column('uuid', { name: 'report_id' })

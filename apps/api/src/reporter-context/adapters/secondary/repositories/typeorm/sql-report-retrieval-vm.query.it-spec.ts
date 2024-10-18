@@ -1,6 +1,5 @@
-import { NominationFile } from '@/shared-models';
+import { NominationFile, ReportRetrievalVM } from '@/shared-models';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
 import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';

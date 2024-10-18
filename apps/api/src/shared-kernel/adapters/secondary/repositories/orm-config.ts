@@ -9,14 +9,19 @@ export const ormConfig = (
   username: 'fondation',
   password: 'secret',
   database: 'fondation',
-  synchronize: false,
+  synchronize: true,
   logging: false,
   logger: 'simple-console',
-  entities: [
-    `${rootDirectory}/**/adapters/secondary/repositories/typeorm/entities/*.{ts,js}`,
-  ],
+  entities: getEntitiesFiles(rootDirectory),
   migrationsRun: true,
-  migrations: [
-    `${rootDirectory}/**/adapters/secondary/repositories/typeorm/migrations/*.{ts,js}`,
-  ],
+  migrations: getMigrationFiles(rootDirectory),
 });
+
+export const getEntitiesFiles = (rootDirectory: string) => [
+  `${rootDirectory}/**/adapters/secondary/repositories/typeorm/entities/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/entities/*.{ts,js}`,
+];
+export const getMigrationFiles = (rootDirectory: string) => [
+  `${rootDirectory}/**/adapters/secondary/repositories/typeorm/migrations/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/migrations/*.{ts,js}`,
+];

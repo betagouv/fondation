@@ -4,11 +4,11 @@ import { DomainEventPublisher } from 'src/shared-kernel/business-logic/gateways/
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
 import { DataSource } from 'typeorm';
+import { NestDomainEventPublisher } from '../../secondary/providers/NestDomainEventPublisher';
 import { TypeOrmTransactionPerformer } from '../../secondary/providers/typeOrmTransactionPerformer';
+import { FakeDomainEventRepository } from '../../secondary/repositories/fakeDomainEventRepository';
 import { ormConfig } from '../../secondary/repositories/orm-config';
 import { DomainEventsPoller } from './domainEventPoller';
-import { NestDomainEventPublisher } from '../../secondary/providers/NestDomainEventPublisher';
-import { FakeDomainEventRepository } from '../../secondary/repositories/fakeDomainEventRepository';
 
 export const DATE_TIME_PROVIDER = 'DATE_TIME_PROVIDER';
 export const UUID_GENERATOR = 'UUID_GENERATOR';

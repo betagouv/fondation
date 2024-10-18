@@ -16,7 +16,7 @@ export const updateNominationRule = createAppAsyncThunk<
     { reportId, ruleId, validated },
     {
       extra: {
-        gateways: { nominationCaseGateway },
+        gateways: { nominationFileGateway: nominationCaseGateway },
       },
     },
   ) => {

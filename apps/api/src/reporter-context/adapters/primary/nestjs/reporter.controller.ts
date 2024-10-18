@@ -1,13 +1,12 @@
 import { TypedBody, TypedParam, TypedRoute } from '@nestia/core';
 import { Controller } from '@nestjs/common';
-import { ReportListingVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
+import { ReportListingVM } from '@/shared-models';
 import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reporter-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 import { tags } from 'typia';
 import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
-import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
-
+import { ReportRetrievalVM } from '@/shared-models';
 @Controller('api/reports')
 export class ReporterController {
   constructor(
