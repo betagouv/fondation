@@ -1,16 +1,17 @@
+import { NominationFile } from '@/shared-models';
+import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
+import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
+import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
+import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
+import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
+import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { ormConfigTest } from 'test/orm-config.test';
 import { DataSource } from 'typeorm';
 import { ReportPm } from './entities/report-pm';
-import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { ReportRetrievalVM } from 'src/reporter-context/business-logic/models/report-retrieval-vm';
-import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
-import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
-import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportRulePm } from './entities/report-rule-pm';
-import { NominationFile } from '@/shared-models';
+import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
 
 describe('SQL Report Retrieval VM Query', () => {
   let dataSource: DataSource;
@@ -57,28 +58,11 @@ describe('SQL Report Retrieval VM Query', () => {
       const expectedRules = prepareExpectedRules(aReportRule);
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
-      ).toEqual<ReportRetrievalVM>({
-        id: aReport.id,
-        name: aReport.name,
-        dueDate: {
-          year: 2030,
-          month: 10,
-          day: 1,
-        },
-        biography: aReport.biography,
-        birthDate: {
-          year: 1980,
-          month: 1,
-          day: 1,
-        },
-        state: aReport.state,
-        formation: aReport.formation,
-        transparency: aReport.transparency,
-        grade: aReport.grade,
-        targettedPosition: aReport.targettedPosition,
-        comments: aReport.comment,
-        rules: expectedRules,
-      });
+      ).toEqual<ReportRetrievalVM>(
+        ReportRetrievalVMBuilder.fromWriteModel(aReport)
+          .withRules(expectedRules)
+          .build(),
+      );
     });
   });
 
@@ -103,20 +87,13 @@ describe('SQL Report Retrieval VM Query', () => {
       const expectedRules = prepareExpectedRules(aReportRule);
       expect(
         await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
-      ).toEqual<ReportRetrievalVM>({
-        id: aReport.id,
-        name: aReport.name,
-        dueDate: null,
-        biography: aReport.biography,
-        birthDate: aReport.birthDate.toJson(),
-        state: aReport.state,
-        formation: aReport.formation,
-        transparency: aReport.transparency,
-        grade: aReport.grade,
-        targettedPosition: aReport.targettedPosition,
-        comments: null,
-        rules: expectedRules,
-      });
+      ).toEqual<ReportRetrievalVM>(
+        ReportRetrievalVMBuilder.fromWriteModel(aReport)
+          .withDueDate(null)
+          .withComment(null)
+          .withRules(expectedRules)
+          .build(),
+      );
     });
   });
 

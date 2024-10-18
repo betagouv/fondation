@@ -25,6 +25,7 @@ describe('Create Report Use Case', () => {
     transactionPerformer = new NullTransactionPerformer();
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [nominationFileReportId];
+    uuidGenerator.genUuids(21);
     reportRuleRepository = new FakeReportRuleRepository();
   });
 

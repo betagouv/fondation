@@ -51,11 +51,17 @@ export class ReportPm {
   @Column({ name: 'grade', type: 'enum', enum: Magistrat.Grade })
   grade: Magistrat.Grade;
 
+  @Column({ name: 'current_position' })
+  currentPosition: string;
+
   @Column({ name: 'targetted_position' })
   targettedPosition: string;
 
   @Column({ name: 'comments', type: 'text', nullable: true })
   comments: string | null;
+
+  @Column()
+  rank: string;
 
   constructor(
     id: string,
@@ -67,8 +73,10 @@ export class ReportPm {
     formation: Magistrat.Formation,
     transparency: Transparency,
     grade: Magistrat.Grade,
+    currentPosition: string,
     targettedPosition: string,
     comments: string | null,
+    rank: string,
   ) {
     this.id = id;
     this.biography = biography;
@@ -79,8 +87,10 @@ export class ReportPm {
     this.formation = formation;
     this.transparency = transparency;
     this.grade = grade;
+    this.currentPosition = currentPosition;
     this.targettedPosition = targettedPosition;
     this.comments = comments;
+    this.rank = rank;
   }
 
   static fromDomain(report: NominationFileReport): ReportPm {
@@ -94,8 +104,10 @@ export class ReportPm {
       report.formation,
       report.transparency,
       report.grade,
+      report.currentPosition,
       report.targettedPosition,
       report.comment,
+      report.rank,
     );
   }
 
@@ -110,8 +122,10 @@ export class ReportPm {
       formation: this.formation,
       transparency: this.transparency,
       grade: this.grade,
+      currentPosition: this.currentPosition,
       targettedPosition: this.targettedPosition,
       comment: this.comments,
+      rank: this.rank,
     };
   }
 }

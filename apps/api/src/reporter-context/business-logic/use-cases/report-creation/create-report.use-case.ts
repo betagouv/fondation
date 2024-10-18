@@ -91,7 +91,7 @@ export class CreateReportUseCase {
           ),
         )
         .flat();
-      console.log(rulesRepositoryPromises.length);
+
       await Promise.all(rulesRepositoryPromises);
     });
   }

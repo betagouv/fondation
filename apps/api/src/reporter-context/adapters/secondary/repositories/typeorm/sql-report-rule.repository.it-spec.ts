@@ -9,11 +9,14 @@ import { ReportPm } from './entities/report-pm';
 import { ReportRulePm } from './entities/report-rule-pm';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
+import { TypeOrmTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/typeOrmTransactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 describe('SQL Report Rule Repository', () => {
   let dataSource: DataSource;
   let sqlReportRuleRepository: SqlReportRuleRepository;
   let aReport: NominationFileReport;
+  let transactionPerformer: TransactionPerformer;
 
   beforeAll(async () => {
     dataSource = new DataSource(ormConfigTest('src'));
@@ -22,7 +25,9 @@ describe('SQL Report Rule Repository', () => {
 
   beforeEach(async () => {
     await clearDB(dataSource);
-    sqlReportRuleRepository = new SqlReportRuleRepository(dataSource);
+    sqlReportRuleRepository = new SqlReportRuleRepository();
+    transactionPerformer = new TypeOrmTransactionPerformer(dataSource);
+
     aReport = new ReportBuilder()
       .withId('cd1619e2-263d-49b6-b928-6a04ee681133')
       .withDueDate(new DateOnly(2030, 1, 1))
@@ -41,7 +46,9 @@ describe('SQL Report Rule Repository', () => {
       .withReportId(aReport.id)
       .build();
 
-    await sqlReportRuleRepository.save(aReportRule);
+    await transactionPerformer.perform(
+      sqlReportRuleRepository.save(aReportRule),
+    );
 
     const existingReports = await dataSource.getRepository(ReportRulePm).find();
     const aReportRuleSnapshot = aReportRule.toSnapshot();
@@ -78,9 +85,10 @@ describe('SQL Report Rule Repository', () => {
         ),
       );
 
-    const savedReport = await sqlReportRuleRepository.byId(
-      aReportRuleSnapshot.id,
+    const savedReport = await transactionPerformer.perform(
+      sqlReportRuleRepository.byId(aReportRuleSnapshot.id),
     );
+
     expect(savedReport).toEqual<ReportRule>(aReportRule);
   });
 });

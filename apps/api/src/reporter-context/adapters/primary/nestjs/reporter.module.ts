@@ -3,18 +3,21 @@ import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gatewa
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { ReportRuleRepository } from 'src/reporter-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRepository } from 'src/reporter-context/business-logic/gateways/repositories/report.repository';
-import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
-import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
-import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reporter-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
-import { FakeNominationFileReportRepository } from '../../secondary/repositories/fake-nomination-file-report.repository';
-import { FakeReportListingVMRepository } from '../../secondary/repositories/fake-report-listing-vm.repository';
-import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
-import { FakeReportRuleRepository } from '../../secondary/repositories/fake-report-rule.repository';
+import {
+  DATA_SOURCE,
+  SharedKernelModule,
+  TRANSACTION_PERFORMER,
+} from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { DataSource } from 'typeorm';
+import { SqlNominationFileReportRepository } from '../../secondary/repositories/typeorm/sql-nomination-file-report.repository';
+import { SqlReportListingVMQuery } from '../../secondary/repositories/typeorm/sql-report-listing-vm.query';
+import { SqlReportRetrievalVMQuery } from '../../secondary/repositories/typeorm/sql-report-retrieval-vm.query';
+import { SqlReportRuleRepository } from '../../secondary/repositories/typeorm/sql-report-rule.repository';
 import { ReporterController } from './reporter.controller';
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -23,14 +26,21 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
   'NOMINATION_FILE_REPORT_REPOSITORY';
 
 @Module({
+  imports: [SharedKernelModule],
   controllers: [ReporterController],
   providers: [
     {
       provide: ChangeRuleValidationStateUseCase,
-      useFactory: (reportRuleRepository: ReportRuleRepository) => {
-        return new ChangeRuleValidationStateUseCase(reportRuleRepository);
+      useFactory: (
+        reportRuleRepository: ReportRuleRepository,
+        transactionPerformer: TransactionPerformer,
+      ) => {
+        return new ChangeRuleValidationStateUseCase(
+          reportRuleRepository,
+          transactionPerformer,
+        );
       },
-      inject: [REPORT_RULE_REPOSITORY],
+      inject: [REPORT_RULE_REPOSITORY, TRANSACTION_PERFORMER],
     },
     {
       provide: RetrieveReportUseCase,
@@ -49,123 +59,28 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
 
     {
       provide: REPORT_LISTING_QUERY,
-      useFactory: (): ReportListingVMQuery => {
-        const reportListingRepository = new FakeReportListingVMRepository();
-        reportListingRepository.reportsList = [
-          {
-            id: 'd3696935-e0c6-40c5-8db0-3c1a395a5ba8',
-            state: NominationFile.ReportState.NEW,
-            dueDate: {
-              year: 2030,
-              month: 10,
-              day: 5,
-            },
-            formation: Magistrat.Formation.PARQUET,
-            name: 'Marcel Dupont',
-            transparency: Transparency.MARCH_2025,
-            grade: Magistrat.Grade.I,
-            targettedPosition: 'targetted position',
-          },
-          {
-            id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-            state: NominationFile.ReportState.NEW,
-            dueDate: null,
-            formation: Magistrat.Formation.PARQUET,
-            name: 'Ada Lovelace',
-            transparency: Transparency.MARCH_2025,
-            grade: Magistrat.Grade.I,
-            targettedPosition: 'targetted position',
-          },
-        ];
-        return reportListingRepository;
+      useFactory: (dataSource: DataSource): ReportListingVMQuery => {
+        return new SqlReportListingVMQuery(dataSource);
       },
+      inject: [DATA_SOURCE],
     },
     {
       provide: REPORT_RETRIEVAL_QUERY,
-      useFactory: (): ReportRetrievalVMQuery => {
-        const reportRetrievalQuery = new FakeReportRetrievalVMQuery();
-
-        reportRetrievalQuery.reports = {
-          'd3696935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportRetrievalVMBuilder()
-            .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .withName('Marcel Dupont')
-            .withBiography(
-              `- DEA dr priv.
-              - Auditric Just 18 janvier 1991, PF 04 février 1991. 
-              - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
-              - (Chg fonct JAP, 11 janvier 1995). 
-              - J Évry, (Chg Ti Longjumeau), 13 juillet 1995, (Installat. 1er septembre 1995). 
-              - J Créteil, (2ème grade), (Chg Ti Villejuif), 26 juillet 2000. 
-              -  VPTI EVRY,(TI  PALAISEAU) (1er grade),  13/08/2004 (Ins.03/09/2004).. 
-              -  VP MELUN 26/06/2006 (Ins.04/09/2006).. VPTI MARSEILLE,(TI  AUBAGNE) 20/07/2011 (Ins.01/09/2011). 
-              - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
-              `,
-            )
-            .withOverseasToOverseasRule({
-              validated: false,
-              id: 'd4596935-e0c6-40c5-8db0-3c1a395a5ba8',
-            })
-            .build(),
-          'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRetrievalVMBuilder()
-            .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-            .withName('Ada Lovelace')
-            .withBiography(
-              `- DEA dr priv.
-              - Auditric Just 18 janvier 1991, PF 04 février 1991. 
-              - J Cambrai, (2ème grade), (Chg Ti Cambrai), 13 août 1993, (Installat. 03 septembre 1993). 
-              - (Chg fonct JAP, 11 janvier 1995). 
-              - J Évry, (Chg Ti Longjumeau), 13 juillet 1995, (Installat. 1er septembre 1995). 
-              - J Créteil, (2ème grade), (Chg Ti Villejuif), 26 juillet 2000. 
-              -  VPTI EVRY,(TI  PALAISEAU) (1er grade),  13/08/2004 (Ins.03/09/2004).. 
-              -  VP MELUN 26/06/2006 (Ins.04/09/2006).. VPTI MARSEILLE,(TI  AUBAGNE) 20/07/2011 (Ins.01/09/2011). 
-              - C AIX EN PROVENCE 08/08/2016 (Ins.29/08/2016).
-              `,
-            )
-            .withOverseasToOverseasRule({
-              validated: false,
-              id: 'a9596935-e0c6-40c5-8db0-3c1a395a5ba8',
-            })
-            .build(),
-        };
-
-        return reportRetrievalQuery;
+      useFactory: (dataSource: DataSource): ReportRetrievalVMQuery => {
+        return new SqlReportRetrievalVMQuery(dataSource);
       },
+      inject: [DATA_SOURCE],
     },
     {
       provide: NOMINATION_FILE_REPORT_REPOSITORY,
       useFactory: (): ReportRepository => {
-        const nominationFileReportRepository =
-          new FakeNominationFileReportRepository();
-
-        nominationFileReportRepository.reports = {
-          'd3696935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportBuilder()
-            .withId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .build(),
-          'f6c92518-19a1-488d-b518-5c39d3ac26c7': new ReportBuilder()
-            .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-            .build(),
-        };
-
-        return nominationFileReportRepository;
+        return new SqlNominationFileReportRepository();
       },
     },
     {
       provide: REPORT_RULE_REPOSITORY,
       useFactory: (): ReportRuleRepository => {
-        const reportRuleRepository = new FakeReportRuleRepository();
-        reportRuleRepository.reportRules = {
-          'd4596935-e0c6-40c5-8db0-3c1a395a5ba8': new ReportRuleBuilder()
-            .withId('d4596935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .withReportId('d3696935-e0c6-40c5-8db0-3c1a395a5ba8')
-            .withOverseasToOverseasRuleValidated(false)
-            .build(),
-          'f9c92518-19a1-488d-b518-5c39d3ac26c7': new ReportRuleBuilder()
-            .withId('f9c92518-19a1-488d-b518-5c39d3ac26c7')
-            .withReportId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-            .withOverseasToOverseasRuleValidated(false)
-            .build(),
-        };
-        return reportRuleRepository;
+        return new SqlReportRuleRepository();
       },
     },
   ],

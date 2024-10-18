@@ -5,7 +5,6 @@ import { QueryRunner } from 'typeorm';
 import { NominationFilePm } from './entities/nomination-file-pm';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
-  byId: (nominationFileId: string) => TransactionableAsync<NominationFileModel>;
   save(nominationFile: NominationFileModel): TransactionableAsync<void> {
     const nominationFileSnapshot = nominationFile.toSnapshot();
 

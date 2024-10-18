@@ -1,15 +1,13 @@
 import { ReportRuleRepository } from 'src/reporter-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
-import { DataSource } from 'typeorm';
-import { ReportRulePm } from './entities/report-rule-pm';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { ReportRulePm } from './entities/report-rule-pm';
+import { QueryRunner } from 'typeorm';
 
 export class SqlReportRuleRepository implements ReportRuleRepository {
-  constructor(private dataSource: DataSource) {}
-
   byId(id: string): TransactionableAsync<ReportRule | null> {
-    return async () => {
-      const reportRulePm = await this.dataSource.manager.findOne(ReportRulePm, {
+    return async (queryRunner: QueryRunner) => {
+      const reportRulePm = await queryRunner.manager.findOne(ReportRulePm, {
         where: { id },
       });
 
@@ -28,9 +26,9 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
   }
 
   save(reportRule: ReportRule): TransactionableAsync<void> {
-    return async () => {
+    return async (queryRunner: QueryRunner) => {
       const reportRuleSnapshot = reportRule.toSnapshot();
-      await this.dataSource.manager.save(
+      await queryRunner.manager.save(
         ReportRulePm,
         new ReportRulePm(
           reportRuleSnapshot.id,

@@ -33,21 +33,7 @@ describe('SQL Nomination File Report Repository', () => {
       sqlNominationFileReportRepository.save(aReport),
     );
     const existingReports = await dataSource.getRepository(ReportPm).find();
-    expect(existingReports).toEqual([
-      new ReportPm(
-        aReport.id,
-        aReport.biography,
-        aReport.dueDate!.toDate(),
-        aReport.name,
-        aReport.birthDate.toDate(),
-        aReport.state,
-        aReport.formation,
-        aReport.transparency,
-        aReport.grade,
-        aReport.targettedPosition,
-        aReport.comment,
-      ),
-    ]);
+    expect(existingReports).toEqual([ReportPm.fromDomain(aReport)]);
   });
 
   const aReport = new ReportBuilder()

@@ -1,3 +1,9 @@
+import {
+  Magistrat,
+  NominationFile,
+  rulesTuple,
+  Transparency,
+} from '@/shared-models';
 import { HttpStatus } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
@@ -9,37 +15,37 @@ import { ReportRule } from 'src/reporter-context/business-logic/models/report-ru
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { ReportListItemVM } from 'src/reporter-context/business-logic/models/reports-listing-vm';
+import { DATA_SOURCE } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import request from 'supertest';
-import { FakeNominationFileReportRepository } from '../../secondary/repositories/fake-nomination-file-report.repository';
-import { FakeReportListingVMRepository } from '../../secondary/repositories/fake-report-listing-vm.repository';
-import { FakeReportRetrievalVMQuery } from '../../secondary/repositories/fake-report-retrieval-vm.query';
-import { FakeReportRuleRepository } from '../../secondary/repositories/fake-report-rule.repository';
+import { clearDB } from 'test/docker-postgresql-manager';
+import { ormConfigTest } from 'test/orm-config.test';
+import { DataSource } from 'typeorm';
+import { ReportPm } from '../../secondary/repositories/typeorm/entities/report-pm';
+import { ReportRulePm } from '../../secondary/repositories/typeorm/entities/report-rule-pm';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
-import {
-  NOMINATION_FILE_REPORT_REPOSITORY,
-  REPORT_LISTING_QUERY,
-  REPORT_RETRIEVAL_QUERY,
-  REPORT_RULE_REPOSITORY,
-} from './reporter.module';
-import { NominationFile, Magistrat, Transparency } from '@/shared-models';
 
 describe('Reporter Controller', () => {
   let app: NestApplication;
-  let nominationFileReportRepository: FakeNominationFileReportRepository;
-  let reportRuleRepository: FakeReportRuleRepository;
-  let reportListingRepository: FakeReportListingVMRepository;
-  let reportRetrievalVMQuery: FakeReportRetrievalVMQuery;
+  let typeormDataSource: DataSource;
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    typeormDataSource = new DataSource(ormConfigTest('src'));
+    await typeormDataSource.initialize();
+  });
 
   beforeEach(async () => {
+    await clearDB(typeormDataSource);
+
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(DATA_SOURCE)
+      .useValue(typeormDataSource)
+      .compile();
     app = moduleFixture.createNestApplication();
 
-    reportListingRepository = app.get(REPORT_LISTING_QUERY);
-    reportRuleRepository = app.get(REPORT_RULE_REPOSITORY);
-    reportRetrievalVMQuery = app.get(REPORT_RETRIEVAL_QUERY);
-    nominationFileReportRepository = app.get(NOMINATION_FILE_REPORT_REPOSITORY);
+    dataSource = app.get(DATA_SOURCE);
 
     await app.init();
   });
@@ -48,9 +54,15 @@ describe('Reporter Controller', () => {
     await app.close();
   });
 
+  afterAll(async () => {
+    await dataSource.destroy();
+  });
+
   describe('GET /api/reports', () => {
-    beforeEach(() => {
-      reportListingRepository.reportsList = [aReportListingVM];
+    beforeEach(async () => {
+      await dataSource
+        .getRepository(ReportPm)
+        .save(ReportPm.fromDomain(aReport));
     });
 
     it('lists reports', async () => {
@@ -74,32 +86,73 @@ describe('Reporter Controller', () => {
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
     };
+    const aReport = ReportBuilder.fromListingVM(aReportListingVM).build();
   });
 
   describe('GET /api/reports/:id', () => {
-    beforeEach(() => {
-      reportRetrievalVMQuery.reports = {
-        [aReportRetrievedVM.id]: aReportRetrievedVM,
-      };
+    let reportRules: (readonly [NominationFile.RuleGroup, ReportRule])[];
+
+    beforeEach(async () => {
+      const reportRulesPromises = rulesTuple.map(
+        async ([ruleGroup, ruleName]) => {
+          const reportRule = new ReportRuleBuilder()
+            .withId(crypto.randomUUID())
+            .withReportId(aReport.id)
+            .withRuleGroup(ruleGroup)
+            .withRuleName(ruleName)
+            .build();
+          await dataSource
+            .getRepository(ReportRulePm)
+            .save(ReportRulePm.fromDomain(reportRule));
+
+          return [ruleGroup, reportRule] as const;
+        },
+      );
+      reportRules = await Promise.all(reportRulesPromises);
+
+      await dataSource
+        .getRepository(ReportPm)
+        .save(ReportPm.fromDomain(aReport));
     });
 
     it('retrieves a report', async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/reports/${aReportRetrievedVM.id}`)
         .expect(HttpStatus.OK);
-      expect(response.body).toEqual(aReportRetrievedVM);
+      expect(response.body).toEqual<ReportRetrievalVM>({
+        ...aReportRetrievedVM,
+        rules: reportRules.reduce(
+          (acc, [ruleGroup, reportRule]) => {
+            const ruleSnapshot = reportRule.toSnapshot();
+            return {
+              ...acc,
+              [ruleGroup]: {
+                ...acc[ruleGroup],
+                [ruleSnapshot.ruleName]: {
+                  id: ruleSnapshot.id,
+                  preValidated: ruleSnapshot.preValidated,
+                  validated: ruleSnapshot.validated,
+                  comment: ruleSnapshot.comment,
+                },
+              },
+            };
+          },
+          {} as ReportRetrievalVM['rules'],
+        ),
+      });
     });
 
     const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
       .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .build();
+    const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM).build();
   });
 
-  describe('PUT /api/reports', () => {
-    beforeEach(() => {
-      nominationFileReportRepository.reports = {
-        [nominationFileReport.id]: nominationFileReport,
-      };
+  describe('PUT /api/reports/:id', () => {
+    beforeEach(async () => {
+      await dataSource
+        .getRepository(ReportPm)
+        .save(ReportPm.fromDomain(nominationFileReport));
     });
 
     it('forbids unvalidated report id', async () => {
@@ -125,11 +178,11 @@ describe('Reporter Controller', () => {
     });
 
     it('unvalidates an overseas to overseas validation rule', async () => {
-      const reportRuleSnapshot = reportRule.toSnapshot();
-      reportRuleRepository.reportRules = {
-        [reportRuleSnapshot.id]: reportRule,
-      };
+      await dataSource
+        .getRepository(ReportRulePm)
+        .save(ReportRulePm.fromDomain(reportRule));
 
+      const reportRuleSnapshot = reportRule.toSnapshot();
       const body: ChangeRuleValidationStateDto = {
         validated: false,
       };
@@ -139,20 +192,14 @@ describe('Reporter Controller', () => {
         .expect(HttpStatus.OK);
       expect(response.body).toEqual('');
 
-      const savedReport = await reportRuleRepository.byId(
-        reportRuleSnapshot.id,
-      );
-      expect(savedReport).toEqual<ReportRule>(
-        new ReportRule(
-          reportRuleSnapshot.id,
-          reportRuleSnapshot.reportId,
-          reportRuleSnapshot.ruleGroup,
-          reportRuleSnapshot.ruleName,
-          reportRuleSnapshot.preValidated,
-          false,
-          reportRuleSnapshot.comment,
+      const savedReportRules = await dataSource
+        .getRepository(ReportRulePm)
+        .find({ where: { id: reportRuleSnapshot.id } });
+      expect(savedReportRules).toEqual<typeof savedReportRules>([
+        ReportRulePm.fromDomain(
+          ReportRule.fromSnapshot({ ...reportRuleSnapshot, validated: false }),
         ),
-      );
+      ]);
     });
 
     const nominationFileReport: NominationFileReport = new ReportBuilder()
@@ -160,6 +207,7 @@ describe('Reporter Controller', () => {
       .build();
     const reportRule = new ReportRuleBuilder()
       .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .withReportId(nominationFileReport.id)
       .build();
   });
 });

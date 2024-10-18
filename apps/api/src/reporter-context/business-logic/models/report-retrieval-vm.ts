@@ -12,7 +12,9 @@ export interface ReportRetrievalVM {
   formation: Magistrat.Formation;
   transparency: Transparency;
   grade: Magistrat.Grade;
+  currentPosition: string;
   targettedPosition: string;
-  comments: string | null;
+  comment: string | null;
+  rank: string;
   rules: NominationFile.Rules;
 }

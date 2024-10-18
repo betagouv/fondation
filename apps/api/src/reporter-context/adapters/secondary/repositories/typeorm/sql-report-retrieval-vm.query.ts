@@ -57,10 +57,12 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
       formation: reportData['report_formation'],
       transparency: reportData['report_transparency'],
       grade: reportData['report_grade'],
+      currentPosition: reportData['report_current_position'],
       targettedPosition: reportData['report_targetted_position'],
-      comments: reportData['report_comments']
+      comment: reportData['report_comments']
         ? reportData['report_comments']
         : null,
+      rank: reportData['report_rank'],
       rules,
     };
 

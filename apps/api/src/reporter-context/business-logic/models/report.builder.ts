@@ -1,8 +1,42 @@
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from './nomination-file-report';
-import { NominationFile, Magistrat, Transparency } from '@/shared-models';
+import { ReportRetrievalVM } from './report-retrieval-vm';
+import { ReportListItemVM } from './reports-listing-vm';
 
 export class ReportBuilder {
+  withRank(rank: string) {
+    this.rank = rank;
+    return this;
+  }
+  withTargettedPosition(targettedPosition: string) {
+    this.targettedPosition = targettedPosition;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
+    return this;
+  }
+  withGrade(grade: Magistrat.Grade) {
+    this.grade = grade;
+    return this;
+  }
+  withTransparency(transparency: Transparency) {
+    this.transparency = transparency;
+    return this;
+  }
+  withName(name: string) {
+    this.name = name;
+    return this;
+  }
+  withFormation(formation: Magistrat.Formation) {
+    this.formation = formation;
+    return this;
+  }
+  withState(state: NominationFile.ReportState) {
+    this.state = state;
+    return this;
+  }
   private id: string;
   private biography: string;
   private dueDate: DateOnly | null;
@@ -12,8 +46,10 @@ export class ReportBuilder {
   private formation: Magistrat.Formation;
   private transparency: Transparency;
   private grade: Magistrat.Grade;
+  private currentPosition: string;
   private targettedPosition: string;
   private comment: string | null;
+  private rank: string;
 
   constructor() {
     this.id = 'report-id';
@@ -25,8 +61,10 @@ export class ReportBuilder {
     this.formation = Magistrat.Formation.SIEGE;
     this.transparency = Transparency.MARCH_2025;
     this.grade = Magistrat.Grade.I;
+    this.currentPosition = 'Procureur TJ -Lyon';
     this.targettedPosition = 'Juge TJ -Marseille';
     this.comment = 'my comment';
+    this.rank = '(2 sur une liste de 100)';
   }
 
   withId(id: string): this {
@@ -61,8 +99,60 @@ export class ReportBuilder {
       formation: this.formation,
       transparency: this.transparency,
       grade: this.grade,
+      currentPosition: this.currentPosition,
       targettedPosition: this.targettedPosition,
       comment: this.comment,
+      rank: this.rank,
     };
+  }
+
+  static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {
+    return new ReportBuilder()
+      .withId(reportListingVM.id)
+      .withState(reportListingVM.state)
+      .withDueDate(
+        reportListingVM.dueDate
+          ? new DateOnly(
+              reportListingVM.dueDate.year,
+              reportListingVM.dueDate.month,
+              reportListingVM.dueDate.day,
+            )
+          : null,
+      )
+      .withFormation(reportListingVM.formation)
+      .withName(reportListingVM.name)
+      .withTransparency(reportListingVM.transparency)
+      .withGrade(reportListingVM.grade)
+      .withTargettedPosition(reportListingVM.targettedPosition);
+  }
+  static fromRetrievalVM(reportRetrievalVM: ReportRetrievalVM): ReportBuilder {
+    return new ReportBuilder()
+      .withId(reportRetrievalVM.id)
+      .withBiography(reportRetrievalVM.biography)
+      .withState(reportRetrievalVM.state)
+      .withDueDate(
+        reportRetrievalVM.dueDate
+          ? new DateOnly(
+              reportRetrievalVM.dueDate.year,
+              reportRetrievalVM.dueDate.month,
+              reportRetrievalVM.dueDate.day,
+            )
+          : null,
+      )
+      .withBirthDate(
+        new DateOnly(
+          reportRetrievalVM.birthDate.year,
+          reportRetrievalVM.birthDate.month,
+          reportRetrievalVM.birthDate.day,
+        ),
+      )
+      .withFormation(reportRetrievalVM.formation)
+      .withName(reportRetrievalVM.name)
+      .withTransparency(reportRetrievalVM.transparency)
+      .withGrade(reportRetrievalVM.grade)
+      .withCurrentPosition(reportRetrievalVM.currentPosition)
+      .withTargettedPosition(reportRetrievalVM.targettedPosition)
+      .withComment(reportRetrievalVM.comment)
+      .withRank(reportRetrievalVM.rank);
   }
 }

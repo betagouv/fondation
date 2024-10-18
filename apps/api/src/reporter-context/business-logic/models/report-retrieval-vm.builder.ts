@@ -1,5 +1,8 @@
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
-import { NominationFileManagementRule } from './nomination-file-report';
+import {
+  NominationFileManagementRule,
+  NominationFileReport,
+} from './nomination-file-report';
 import { ReportRetrievalVM } from './report-retrieval-vm';
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
@@ -13,8 +16,10 @@ export class ReportRetrievalVMBuilder {
   private formation: Magistrat.Formation;
   private transparency: Transparency;
   private grade: Magistrat.Grade;
+  private currentPosition: string;
   private targettedPosition: string;
   private comment: string | null;
+  private rank: string;
   private rules: NominationFile.Rules;
 
   constructor() {
@@ -35,8 +40,10 @@ export class ReportRetrievalVMBuilder {
     this.formation = Magistrat.Formation.PARQUET;
     this.transparency = Transparency.MARCH_2025;
     this.grade = Magistrat.Grade.I;
+    this.currentPosition = 'current position';
     this.targettedPosition = 'targetted position';
     this.comment = 'comments';
+    this.rank = '(2 sur une liste de 100)';
 
     const defaultValue: NominationFile.RuleValue = {
       id: 'rule-id',
@@ -97,6 +104,46 @@ export class ReportRetrievalVMBuilder {
     this.biography = biography;
     return this;
   }
+  withDueDate(dueDate: DateOnlyJson | null) {
+    this.dueDate = dueDate;
+    return this;
+  }
+  withBirthDate(birthDate: DateOnlyJson) {
+    this.birthDate = birthDate;
+    return this;
+  }
+  withState(state: NominationFile.ReportState) {
+    this.state = state;
+    return this;
+  }
+  withFormation(formation: Magistrat.Formation) {
+    this.formation = formation;
+    return this;
+  }
+  withTransparency(transparency: Transparency) {
+    this.transparency = transparency;
+    return this;
+  }
+  withGrade(grade: Magistrat.Grade) {
+    this.grade = grade;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
+    return this;
+  }
+  withTargettedPosition(targettedPosition: string) {
+    this.targettedPosition = targettedPosition;
+    return this;
+  }
+  withComment(comment: string | null) {
+    this.comment = comment;
+    return this;
+  }
+  withRank(rank: string) {
+    this.rank = rank;
+    return this;
+  }
   withOverseasToOverseasRule(options: Partial<NominationFile.RuleValue>): this {
     const rule =
       this.rules.management[NominationFileManagementRule.OVERSEAS_TO_OVERSEAS];
@@ -104,6 +151,10 @@ export class ReportRetrievalVMBuilder {
       ...rule,
       ...options,
     };
+    return this;
+  }
+  withRules(rules: NominationFile.Rules): this {
+    this.rules = rules;
     return this;
   }
 
@@ -118,9 +169,30 @@ export class ReportRetrievalVMBuilder {
       formation: this.formation,
       transparency: this.transparency,
       grade: this.grade,
+      currentPosition: this.currentPosition,
       targettedPosition: this.targettedPosition,
-      comments: this.comment,
+      comment: this.comment,
+      rank: this.rank,
       rules: this.rules,
     };
+  }
+
+  static fromWriteModel(
+    report: NominationFileReport,
+  ): ReportRetrievalVMBuilder {
+    return new ReportRetrievalVMBuilder()
+      .withId(report.id)
+      .withName(report.name)
+      .withBiography(report.biography)
+      .withDueDate(report.dueDate ? report.dueDate.toJson() : null)
+      .withBirthDate(report.birthDate.toJson())
+      .withState(report.state)
+      .withFormation(report.formation)
+      .withTransparency(report.transparency)
+      .withGrade(report.grade)
+      .withCurrentPosition(report.currentPosition)
+      .withTargettedPosition(report.targettedPosition)
+      .withComment(report.comment)
+      .withRank(report.rank);
   }
 }
