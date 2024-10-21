@@ -25,6 +25,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
       name: report.name,
       biography: report.biography,
       dueDate: report.dueDate,
+      birthDate: report.birthDate,
       state: report.state as NominationFile.ReportState,
       formation: report.formation as Magistrat.Formation,
       transparency: report.transparency as Transparency,

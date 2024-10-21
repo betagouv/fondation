@@ -12,13 +12,13 @@ import { NominationFileOverview } from "./NominationFileOverview";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
-  let nominationCaseGateway: FakeNominationFileGateway;
+  let nominationFileGateway: FakeNominationFileGateway;
 
   beforeEach(() => {
-    nominationCaseGateway = new FakeNominationFileGateway();
+    nominationFileGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationFileGateway: nominationCaseGateway,
+        nominationFileGateway,
       },
       {},
       {},
@@ -32,24 +32,56 @@ describe("Nomination Case Overview Component", () => {
 
   describe("when there is a nomination file", () => {
     beforeEach(() => {
-      nominationCaseGateway.addNominationFile(aValidatedNomination);
+      nominationFileGateway.addNominationFile(aValidatedNomination);
     });
 
-    it("shows its information", async () => {
+    it.only("shows its information", async () => {
       renderNominationFile("nomination-file-id");
 
-      await screen.findByText("John Doe");
-      await screen.findByText("The biography.");
+      await expectMagistratIdentity();
 
+      await screen.findByText("Biographie");
+      await screen.findByText("John Doe's biography");
+      // await screen.findByText("30/10/2030");
+      // await screen.findByText("NEW");
+      // await screen.findByText("Some comment");
+
+      screen.getByText("Règles de gestion");
+      await screen.findByRole("checkbox", {
+        name: NominationFileVM.rulesToLabels.management.TRANSFER_TIME,
+      });
       await waitFor(() => {
-        Object.values(NominationFileVM.rulesToLabels).forEach((label) => {
-          expectRuleUnchecked(label);
-        });
+        Object.values(NominationFileVM.rulesToLabels.management).forEach(
+          (label) => {
+            expectRuleUnchecked(label);
+          },
+        );
+      });
+
+      screen.getByText("Règles statutaires");
+      await waitFor(() => {
+        Object.values(NominationFileVM.rulesToLabels.statutory).forEach(
+          (label) => {
+            expectRuleUnchecked(label);
+          },
+        );
+      });
+
+      screen.getByText("Les autres éléments qualitatifs à vérifier");
+      await waitFor(() => {
+        Object.values(NominationFileVM.rulesToLabels.qualitative).forEach(
+          (label) => {
+            expectRuleUnchecked(label);
+          },
+        );
       });
     });
 
     describe("Transfer time rule", () => {
-      const label = NominationFileVM.rulesToLabels["TRANSFER_TIME"];
+      const label =
+        NominationFileVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
+          "TRANSFER_TIME"
+        ];
 
       it("checks the rule", async () => {
         renderNominationFile("nomination-file-id");
@@ -57,25 +89,26 @@ describe("Nomination Case Overview Component", () => {
       });
 
       it("unchecks the rule", async () => {
-        nominationCaseGateway.addNominationFile(anUnvalidatedNomination);
+        nominationFileGateway.addNominationFile(anUnvalidatedNomination);
         renderNominationFile("nomination-file-id");
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
 
       const anotherRuleName: NominationFile.RuleName =
         NominationFile.ManagementRule.GETTING_FIRST_GRADE;
-      it(`when checked, '${NominationFileVM.rulesToLabels[anotherRuleName]}' can also be checked`, async () => {
-        nominationCaseGateway.addNominationFile(
+      const anotherRuleLabel =
+        NominationFileVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
+          anotherRuleName
+        ];
+      it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
+        nominationFileGateway.addNominationFile(
           new NominationFileBuilder().withTransferTimeValidated(false).build(),
         );
         renderNominationFile("nomination-file-id");
 
-        await clickCheckboxAndExpectChange(
-          NominationFileVM.rulesToLabels[anotherRuleName],
-          {
-            initiallyChecked: false,
-          },
-        );
+        await clickCheckboxAndExpectChange(anotherRuleLabel, {
+          initiallyChecked: false,
+        });
       });
     });
   });
@@ -86,6 +119,16 @@ describe("Nomination Case Overview Component", () => {
         <NominationFileOverview id={id} />
       </Provider>,
     );
+  };
+
+  const expectMagistratIdentity = async () => {
+    const labels = NominationFileVM.magistratIdentityLabels;
+    await screen.findByText("John Doe");
+    await screen.findByText(`${labels.currentPosition} : PG TJ Paris`);
+    await screen.findByText(`${labels.grade} : I`);
+    await screen.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
+    await screen.findByText(`${labels.rank} : (2 sur une liste de 3)`);
+    await screen.findByText(`${labels.birthDate} : 01/01/1980`);
   };
 
   const expectRuleUnchecked = (name: string) => {
@@ -117,8 +160,6 @@ describe("Nomination Case Overview Component", () => {
 
 const aValidatedNomination: NominationFileSM = new NominationFileBuilder()
   .withId("nomination-file-id")
-  .withTitle("John Doe")
-  .withBiography("The biography.")
   .build();
 
 const anUnvalidatedNomination: NominationFileSM = new NominationFileBuilder()

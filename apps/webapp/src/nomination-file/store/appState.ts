@@ -10,6 +10,7 @@ export interface NominationFileSM {
   name: string;
   biography: string;
   dueDate: DateOnlyStoreModel | null;
+  birthDate: DateOnlyStoreModel;
   transparency: Transparency;
   grade: Magistrat.Grade;
   currentPosition: string;
@@ -40,6 +41,7 @@ export interface AppState {
   router: {
     hrefs: {
       login: string;
+      nominationFileList: string;
     };
     anchorsAttributes: {
       nominationFileOverview: (id: string) => {

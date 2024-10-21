@@ -22,12 +22,16 @@ describe("Login Component", () => {
 
   it("shows a login form", async () => {
     renderLogin();
-    await screen.findByPlaceholderText("Identifiant");
-    await screen.findByPlaceholderText("Mot de passe");
+    await screen.findByLabelText("Email");
+    await screen.findByLabelText("Mot de passe");
   });
 
   it("authenticates a user", async () => {
-    authenticationGateway.setEligibleAuthUser("username", "password", true);
+    authenticationGateway.setEligibleAuthUser(
+      "username@example.fr",
+      "password",
+      true,
+    );
 
     renderLogin();
     await submitLogin();
@@ -45,14 +49,8 @@ describe("Login Component", () => {
   });
 
   const submitLogin = async () => {
-    await userEvent.type(
-      screen.getByPlaceholderText("Identifiant"),
-      "username",
-    );
-    await userEvent.type(
-      screen.getByPlaceholderText("Mot de passe"),
-      "password",
-    );
+    await userEvent.type(screen.getByLabelText("Email"), "username@example.fr");
+    await userEvent.type(screen.getByLabelText("Mot de passe"), "password");
     await userEvent.click(screen.getByRole("button"));
   };
 

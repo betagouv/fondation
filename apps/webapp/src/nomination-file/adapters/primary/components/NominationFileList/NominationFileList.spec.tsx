@@ -4,7 +4,6 @@ import { NominationFileBuilder } from "../../../../core-logic/builders/Nominatio
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileList } from "./NominationFileList";
-import { DateOnly } from "../../../../../shared-kernel/core-logic/models/date-only";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
@@ -31,10 +30,26 @@ describe("Nomination Case List Component", () => {
       nominationCaseGateway.addNominationFile(aNominationFile);
     });
 
+    it("shows the table header", async () => {
+      renderNominationFileList();
+      await screen.findByText("Etat");
+      await screen.findByText("Echéance");
+      await screen.findByText("Formation");
+      await screen.findByText("Magistrat concerné");
+      await screen.findByText("transparence");
+      await screen.findByText("Grade visé");
+      await screen.findByText("Poste ciblé");
+    });
+
     it("shows it in the table", async () => {
       renderNominationFileList();
-      await screen.findByText("Lucien Denan");
+      await screen.findByText("Nouveau");
       await screen.findByText("30/10/2030");
+      await screen.findByText("Parquet");
+      await screen.findByText("John Doe");
+      await screen.findByText("transparence de mars 2025");
+      await screen.findByText("I");
+      await screen.findByText("PG TJ Marseille");
     });
   });
 
@@ -47,8 +62,4 @@ describe("Nomination Case List Component", () => {
   };
 });
 
-const aNominationFile = new NominationFileBuilder()
-  .withId("nomination-file-id")
-  .withTitle("Lucien Denan")
-  .withDueDate(new DateOnly(2030, 10, 30))
-  .build();
+const aNominationFile = new NominationFileBuilder().build();

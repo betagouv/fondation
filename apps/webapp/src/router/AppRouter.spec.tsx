@@ -95,6 +95,9 @@ describe("App Router Component", () => {
         routerProvider.gotToNominationFileOverview(aNomination.id);
       });
 
+      expect(await screen.findByText("Mes rapports")).toHaveStyle({
+        color: "--text-active-blue-france",
+      });
       await screen.findByText("an overview");
     });
   });

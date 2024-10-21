@@ -1,19 +1,64 @@
-import { rulesTuple } from "@/shared-models";
+import {
+  Magistrat,
+  NominationFile,
+  rulesTuple,
+  Transparency,
+} from "@/shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileVM } from "../../adapters/primary/selectors/selectNominationFile";
+import { NominationFileSM } from "../../store/appState";
 
 export class NominationFileBuilderVM {
+  static fromStoreModel(nominationFileStoreModel: NominationFileSM) {
+    return new NominationFileBuilderVM()
+      .withId(nominationFileStoreModel.id)
+      .withBiography(nominationFileStoreModel.biography)
+      .withBirthDate(
+        DateOnly.fromStoreModel(nominationFileStoreModel.birthDate),
+      )
+      .withComment(nominationFileStoreModel.comment)
+      .withCurrentPosition(nominationFileStoreModel.currentPosition)
+      .withDueDate(
+        nominationFileStoreModel.dueDate
+          ? DateOnly.fromStoreModel(nominationFileStoreModel.dueDate)
+          : null,
+      )
+      .withFormation(nominationFileStoreModel.formation)
+      .withGrade(nominationFileStoreModel.grade)
+      .withRank(nominationFileStoreModel.rank)
+      .withState(nominationFileStoreModel.state)
+      .withTargettedPosition(nominationFileStoreModel.targettedPosition)
+      .withTransparency(nominationFileStoreModel.transparency);
+  }
   private id: string;
   private title: string;
   private biography: string;
   private rulesChecked: NominationFileVM["rulesChecked"];
   private dueDate: DateOnly | null;
+  private birthDate: DateOnly;
+  private state: NominationFileVM["state"];
+  private formation: NominationFileVM["formation"];
+  private transparency: NominationFileVM["transparency"];
+  private grade: NominationFileVM["grade"];
+  private currentPosition: string;
+  private targettedPosition: string;
+  private comment: string | null;
+  private rank: string;
 
   constructor() {
     this.id = "nomination-file-id";
     this.title = "John Doe";
     this.biography = "John Doe's biography";
     this.dueDate = new DateOnly(2030, 10, 30);
+    this.birthDate = new DateOnly(1990, 1, 1);
+    this.state = NominationFile.ReportState.NEW;
+    this.formation = Magistrat.Formation.PARQUET;
+    this.transparency = Transparency.MARCH_2025;
+    this.grade = Magistrat.Grade.I;
+    this.currentPosition = "current position";
+    this.targettedPosition = "targetted position";
+    this.comment = "Some comment";
+    this.rank = "(3 sur une liste de 3)";
     this.rulesChecked = rulesTuple.reduce(
       (acc, [ruleGroup, ruleName]) => {
         return {
@@ -24,7 +69,12 @@ export class NominationFileBuilderVM {
               id: ruleName,
               highlighted: true,
               checked: false,
-              label: NominationFileVM.rulesToLabels[ruleName],
+              label: (
+                NominationFileVM.rulesToLabels[ruleGroup] as Record<
+                  NominationFile.RuleName,
+                  string
+                >
+              )[ruleName],
               comment: `${ruleName} comment`,
             },
           },
@@ -48,6 +98,42 @@ export class NominationFileBuilderVM {
   }
   withDueDate(dueDate: DateOnly | null) {
     this.dueDate = dueDate;
+    return this;
+  }
+  withBirthDate(birthDate: DateOnly) {
+    this.birthDate = birthDate;
+    return this;
+  }
+  withState(state: NominationFileVM["state"]) {
+    this.state = state;
+    return this;
+  }
+  withFormation(formation: NominationFileVM["formation"]) {
+    this.formation = formation;
+    return this;
+  }
+  withTransparency(transparency: NominationFileVM["transparency"]) {
+    this.transparency = transparency;
+    return this;
+  }
+  withGrade(grade: NominationFileVM["grade"]) {
+    this.grade = grade;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
+    return this;
+  }
+  withTargettedPosition(targettedPosition: string) {
+    this.targettedPosition = targettedPosition;
+    return this;
+  }
+  withComment(comment: string | null) {
+    this.comment = comment;
+    return this;
+  }
+  withRank(rank: string) {
+    this.rank = rank;
     return this;
   }
   withTransferTimeChecked(transferTime: boolean) {
@@ -103,6 +189,15 @@ export class NominationFileBuilderVM {
       name: this.title,
       biography: this.biography,
       dueDate: this.dueDate?.toFormattedString() ?? null,
+      birthDate: this.birthDate.toFormattedString(),
+      state: this.state,
+      formation: this.formation,
+      transparency: this.transparency,
+      grade: this.grade,
+      currentPosition: this.currentPosition,
+      targettedPosition: this.targettedPosition,
+      comment: this.comment,
+      rank: this.rank,
       rulesChecked: this.rulesChecked,
     };
   }

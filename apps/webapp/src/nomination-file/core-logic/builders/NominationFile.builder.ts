@@ -9,10 +9,11 @@ import { NominationFileSM } from "../../store/appState";
 
 export class NominationFileBuilder {
   private id: string;
-  private title: string;
+  private name: string;
   private biography: string;
   private rules: NominationFileSM["rules"];
   private dueDate: DateOnly | null;
+  private birthDate: DateOnly;
   private state: NominationFile.ReportState;
   private formation: Magistrat.Formation;
   private transparency: Transparency;
@@ -24,9 +25,10 @@ export class NominationFileBuilder {
 
   constructor() {
     this.id = "nomination-file-id";
-    this.title = "John Doe";
+    this.name = "John Doe";
     this.biography = "John Doe's biography";
     this.dueDate = new DateOnly(2030, 10, 30);
+    this.birthDate = new DateOnly(1980, 1, 1);
     this.rules = rulesTuple.reduce(
       (acc, [ruleGroup, ruleName]) => {
         return {
@@ -59,8 +61,8 @@ export class NominationFileBuilder {
     this.id = id;
     return this;
   }
-  withTitle(title: string) {
-    this.title = title;
+  withName(name: string) {
+    this.name = name;
     return this;
   }
   withBiography(biography: string) {
@@ -69,6 +71,10 @@ export class NominationFileBuilder {
   }
   withDueDate(dueDate: DateOnly | null) {
     this.dueDate = dueDate;
+    return this;
+  }
+  withBirthDate(birthDate: DateOnly) {
+    this.birthDate = birthDate;
     return this;
   }
   withState(state: NominationFile.ReportState) {
@@ -157,10 +163,10 @@ export class NominationFileBuilder {
   build(): NominationFileSM {
     return {
       id: this.id,
-      name: this.title,
+      name: this.name,
       biography: this.biography,
       dueDate: this.dueDate?.toStoreModel() ?? null,
-      rules: this.rules,
+      birthDate: this.birthDate.toStoreModel(),
       state: this.state,
       formation: this.formation,
       transparency: this.transparency,
@@ -169,6 +175,8 @@ export class NominationFileBuilder {
       targettedPosition: this.targettedPosition,
       rank: this.rank,
       comment: this.comment,
+
+      rules: this.rules,
     };
   }
 }

@@ -20,7 +20,11 @@ import { NestiaNominationFileClient } from "./nomination-file/adapters/secondary
 startReactDsfr({ defaultColorScheme: "light" });
 
 const authenticationGateway = new FakeAuthenticationGateway();
-authenticationGateway.setEligibleAuthUser("username", "password", true);
+authenticationGateway.setEligibleAuthUser(
+  "username@example.fr",
+  "password",
+  true,
+);
 
 const nestiaNominationFileClient = new NestiaNominationFileClient();
 const nominationFileGateway = new ApiNominationFileGateway(

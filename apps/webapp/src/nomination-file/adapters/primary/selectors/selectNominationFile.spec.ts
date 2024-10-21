@@ -56,14 +56,10 @@ describe("Select Nomination Case", () => {
 
   const aNominationFile = new NominationFileBuilder()
     .withId("nomination-file-id")
-    .withTitle("John Doe")
+    .withName("John Doe")
     .withDueDate(new DateOnly(2030, 10, 30))
     .withBiography("The biography.")
     .build();
-  const aNominationFileVM: NominationFileVM = new NominationFileBuilderVM()
-    .withId("nomination-file-id")
-    .withTitle("John Doe")
-    .withDueDate(new DateOnly(2030, 10, 30))
-    .withBiography("The biography.")
-    .build();
+  const aNominationFileVM: NominationFileVM =
+    NominationFileBuilderVM.fromStoreModel(aNominationFile).build();
 });

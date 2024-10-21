@@ -7,14 +7,14 @@ import { listNominationFile } from "./listNominationFile.use-case";
 
 describe("Nomination Files Listing", () => {
   let store: ReduxStore;
-  let nominationCaseGateway: FakeNominationFileGateway;
+  let nominationFileGateway: FakeNominationFileGateway;
   let initialState: AppState;
 
   beforeEach(() => {
-    nominationCaseGateway = new FakeNominationFileGateway();
+    nominationFileGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationFileGateway: nominationCaseGateway,
+        nominationFileGateway,
       },
       {},
       {},
@@ -25,10 +25,10 @@ describe("Nomination Files Listing", () => {
   it("lists a nomination file", async () => {
     const nominationFileSM = new NominationFileBuilder()
       .withId("nomination-file-id")
-      .withTitle("Lucien Denan")
+      .withName("Lucien Denan")
       .withDueDate(new DateOnly(2030, 10, 30))
       .build();
-    nominationCaseGateway.addNominationFile(nominationFileSM);
+    nominationFileGateway.addNominationFile(nominationFileSM);
 
     await store.dispatch(listNominationFile());
 

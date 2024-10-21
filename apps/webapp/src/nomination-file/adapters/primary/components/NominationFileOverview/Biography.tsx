@@ -8,6 +8,10 @@ export type BiographyProps = {
 export const Biography: React.FC<BiographyProps> = ({ biography }) => (
   <Card>
     <div className={cx("fr-h2")}>Biographie</div>
-    <p className="whitespace-pre-line leading-10">{biography}</p>
+    <textarea
+      className="whitespace-pre-line leading-10 w-full"
+      value={biography}
+      rows={10}
+    />
   </Card>
 );

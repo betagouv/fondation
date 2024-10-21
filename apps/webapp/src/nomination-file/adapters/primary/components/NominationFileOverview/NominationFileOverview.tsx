@@ -10,7 +10,7 @@ import {
   VMNominationFileRuleValue,
 } from "../../selectors/selectNominationFile";
 import { Biography } from "./Biography";
-import { Card } from "./Card";
+import { MagistratIdentity } from "./MagistratIdentity";
 import { NominationRules } from "./NominationRules";
 
 export type NominationFileOverviewProps = {
@@ -57,16 +57,20 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         cx("fr-py-5v", "fr-grid-row"),
       )}
     >
-      <Card>
-        <div className={cx("fr-h1")}>{nominationFile.name}</div>
-      </Card>
+      <MagistratIdentity
+        name={nominationFile.name}
+        birthDate={nominationFile.birthDate}
+        grade={nominationFile.grade}
+        currentPosition={nominationFile.currentPosition}
+        targettedPosition={nominationFile.targettedPosition}
+        rank={nominationFile.rank}
+      />
       <Biography biography={nominationFile.biography} />
-      <Card>
-        <NominationRules
-          rulesChecked={nominationFile.rulesChecked}
-          onUpdateNominationRule={onUpdateNominationRule}
-        />
-      </Card>
+
+      <NominationRules
+        rulesChecked={nominationFile.rulesChecked}
+        onUpdateNominationRule={onUpdateNominationRule}
+      />
     </div>
   );
 };

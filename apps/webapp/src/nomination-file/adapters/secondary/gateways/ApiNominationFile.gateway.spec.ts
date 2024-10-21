@@ -45,6 +45,7 @@ describe("Api Nomination File Gateway", () => {
       name: aReport.name,
       biography: aReport.biography,
       dueDate: aReport.dueDate,
+      birthDate: aReport.birthDate,
       state: aReport.state,
       formation: aReport.formation,
       transparency: aReport.transparency,
