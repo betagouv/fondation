@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from "@/shared-models";
+import {
+  Magistrat,
+  NominationFile,
+  ruleGroupToRuleNames,
+  Transparency,
+} from "@/shared-models";
 import { createSelector } from "@reduxjs/toolkit";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { AppState } from "../../../store/appState";
@@ -10,10 +15,8 @@ export type VMNominationFileRuleValue = {
   highlighted: boolean;
   comment: string | null;
 };
-type RuleCheckedEntry = Record<
-  NominationFile.RuleName,
-  VMNominationFileRuleValue
->;
+type RuleCheckedEntry =
+  NominationFileVM["rulesChecked"][NominationFile.RuleGroup];
 
 export class NominationFileVM {
   static magistratIdentityLabels = {
@@ -24,16 +27,34 @@ export class NominationFileVM {
     rank: "Rang",
   };
 
+  static commentLabel = "Commentaires généraux du rapporteur";
+  static commentPlaceholder = "Pas de commentaire";
+
+  static ruleGroupToLabel: {
+    [NominationFile.RuleGroup.MANAGEMENT]: string;
+
+    [NominationFile.RuleGroup.STATUTORY]: string;
+
+    [NominationFile.RuleGroup.QUALITATIVE]: string;
+  } = {
+    [NominationFile.RuleGroup.MANAGEMENT]: "Règles de gestion",
+    [NominationFile.RuleGroup.STATUTORY]: "Règles statutaires",
+    [NominationFile.RuleGroup.QUALITATIVE]:
+      "Les autres éléments qualitatifs à vérifier",
+  };
   static rulesToLabels: {
-    [NominationFile.RuleGroup.MANAGEMENT]: {
-      [key in NominationFile.ManagementRule]: string;
-    };
-    [NominationFile.RuleGroup.STATUTORY]: {
-      [key in NominationFile.StatutoryRule]: string;
-    };
-    [NominationFile.RuleGroup.QUALITATIVE]: {
-      [key in NominationFile.QualitativeRule]: string;
-    };
+    [NominationFile.RuleGroup.MANAGEMENT]: Record<
+      NominationFile.ManagementRule,
+      string
+    >;
+    [NominationFile.RuleGroup.STATUTORY]: Record<
+      NominationFile.StatutoryRule,
+      string
+    >;
+    [NominationFile.RuleGroup.QUALITATIVE]: Record<
+      NominationFile.QualitativeRule,
+      string
+    >;
   } = {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       TRANSFER_TIME: "Obtenir une mutation en moins de 3 ans",
@@ -111,31 +132,30 @@ export const selectNominationFile = createSelector(
     const nominationFile = byIds?.[id];
     if (!nominationFile) return null;
 
-    const createManagementRuleCheckedEntryFromValidatedRules = (
-      ruleName: NominationFile.ManagementRule,
-    ): RuleCheckedEntry =>
-      createRuleCheckedEntryFromValidatedRules(
-        nominationFile.rules.management,
-        NominationFile.RuleGroup.MANAGEMENT,
-        ruleName,
-      );
+    const createRulesCheckedEntryFor = <G extends NominationFile.RuleGroup>(
+      ruleGroup: G,
+    ) =>
+      ({
+        [ruleGroup]: createRulesCheckedFor(ruleGroup),
+      }) as Pick<NominationFileVM["rulesChecked"], G>;
 
-    const createStatutoryRuleCheckedEntryFromValidatedRules = (
-      ruleName: NominationFile.StatutoryRule,
-    ): RuleCheckedEntry =>
-      createRuleCheckedEntryFromValidatedRules(
-        nominationFile.rules.statutory,
-        NominationFile.RuleGroup.STATUTORY,
-        ruleName,
-      );
-
-    const createQualitativeRuleCheckedEntryFromValidatedRules = (
-      ruleName: NominationFile.QualitativeRule,
-    ): RuleCheckedEntry =>
-      createRuleCheckedEntryFromValidatedRules(
-        nominationFile.rules.qualitative,
-        NominationFile.RuleGroup.QUALITATIVE,
-        ruleName,
+    const createRulesCheckedFor = <G extends NominationFile.RuleGroup>(
+      ruleGroup: G,
+    ) =>
+      Object.values<
+        | NominationFile.ManagementRule
+        | NominationFile.StatutoryRule
+        | NominationFile.QualitativeRule
+      >(ruleGroupToRuleNames[ruleGroup]).reduce(
+        (acc, ruleName) => ({
+          ...acc,
+          ...createRuleCheckedEntryFromValidatedRules(
+            nominationFile.rules[ruleGroup],
+            ruleGroup,
+            ruleName,
+          ),
+        }),
+        {} as RuleCheckedEntry,
       );
 
     return {
@@ -158,49 +178,33 @@ export const selectNominationFile = createSelector(
       rank: nominationFile.rank,
 
       rulesChecked: {
-        management: Object.values(NominationFile.ManagementRule).reduce(
-          (acc, ruleName) => ({
-            ...acc,
-            ...createManagementRuleCheckedEntryFromValidatedRules(ruleName),
-          }),
-          {} as RuleCheckedEntry,
-        ),
-        statutory: Object.values(NominationFile.StatutoryRule).reduce(
-          (acc, ruleName) => ({
-            ...acc,
-            ...createStatutoryRuleCheckedEntryFromValidatedRules(ruleName),
-          }),
-          {} as RuleCheckedEntry,
-        ),
-        qualitative: Object.values(NominationFile.QualitativeRule).reduce(
-          (acc, ruleName) => ({
-            ...acc,
-            ...createQualitativeRuleCheckedEntryFromValidatedRules(ruleName),
-          }),
-          {} as RuleCheckedEntry,
-        ),
+        ...createRulesCheckedEntryFor(NominationFile.RuleGroup.MANAGEMENT),
+        ...createRulesCheckedEntryFor(NominationFile.RuleGroup.STATUTORY),
+        ...createRulesCheckedEntryFor(NominationFile.RuleGroup.QUALITATIVE),
       },
     };
   },
 );
 
-const createRuleCheckedEntryFromValidatedRules = (
-  validatedRules: NominationFile.Rules[NominationFile.RuleGroup],
-  ruleGroup: NominationFile.RuleGroup,
+const createRuleCheckedEntryFromValidatedRules = <
+  G extends NominationFile.RuleGroup,
+>(
+  validatedRules: NominationFile.Rules[G],
+  ruleGroup: G,
   ruleName: NominationFile.RuleName,
 ) => {
   const ruleValue = (
     validatedRules as Record<NominationFile.RuleName, NominationFile.RuleValue>
   )[ruleName];
 
-  const values: RuleCheckedEntry[NominationFile.RuleName] = {
+  const values: VMNominationFileRuleValue = {
     id: ruleValue.id,
     label: (
       NominationFileVM.rulesToLabels[ruleGroup] as Record<
         NominationFile.RuleName,
         string
       >
-    )[ruleName],
+    )[ruleName as NominationFile.RuleName],
     checked: !ruleValue.validated,
     highlighted: ruleValue.preValidated,
     comment: ruleValue.comment,

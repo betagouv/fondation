@@ -28,7 +28,7 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
       ([ruleName, { label, checked, highlighted }]) => {
         return (
           <Checkbox
-            id={label}
+            id={ruleName}
             key={ruleName}
             options={[
               {

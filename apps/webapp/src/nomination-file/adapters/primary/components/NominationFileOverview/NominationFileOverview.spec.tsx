@@ -4,7 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
-import { NominationFileSM } from "../../../../store/appState";
+import { AppState, NominationFileSM } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileVM } from "../../selectors/selectNominationFile";
@@ -12,6 +12,7 @@ import { NominationFileOverview } from "./NominationFileOverview";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
+  let initialState: AppState;
   let nominationFileGateway: FakeNominationFileGateway;
 
   beforeEach(() => {
@@ -23,6 +24,7 @@ describe("Nomination Case Overview Component", () => {
       {},
       {},
     );
+    initialState = store.getState();
   });
 
   it("shows an error message if nomination file is not found", async () => {
@@ -35,47 +37,116 @@ describe("Nomination Case Overview Component", () => {
       nominationFileGateway.addNominationFile(aValidatedNomination);
     });
 
-    it.only("shows its information", async () => {
-      renderNominationFile("nomination-file-id");
+    it("shows its information", async () => {
+      renderNominationFile(aValidatedNomination.id);
 
       await expectMagistratIdentity();
 
-      await screen.findByText("Biographie");
+      screen.getByText("Biographie");
       await screen.findByText("John Doe's biography");
-      // await screen.findByText("30/10/2030");
-      // await screen.findByText("NEW");
-      // await screen.findByText("Some comment");
 
-      screen.getByText("Règles de gestion");
-      await screen.findByRole("checkbox", {
-        name: NominationFileVM.rulesToLabels.management.TRANSFER_TIME,
-      });
-      await waitFor(() => {
-        Object.values(NominationFileVM.rulesToLabels.management).forEach(
-          (label) => {
-            expectRuleUnchecked(label);
-          },
-        );
-      });
-
-      screen.getByText("Règles statutaires");
-      await waitFor(() => {
-        Object.values(NominationFileVM.rulesToLabels.statutory).forEach(
-          (label) => {
-            expectRuleUnchecked(label);
-          },
-        );
-      });
-
-      screen.getByText("Les autres éléments qualitatifs à vérifier");
-      await waitFor(() => {
-        Object.values(NominationFileVM.rulesToLabels.qualitative).forEach(
-          (label) => {
-            expectRuleUnchecked(label);
-          },
-        );
-      });
+      expectRulesFor(NominationFile.RuleGroup.MANAGEMENT);
+      expectRulesFor(NominationFile.RuleGroup.STATUTORY);
+      expectRulesFor(NominationFile.RuleGroup.QUALITATIVE);
     });
+
+    const textareaTestCases: {
+      label: string;
+      storeKey: string;
+      placeholder?: string;
+    }[] = [
+      { label: "Biographie", storeKey: "biography" },
+      {
+        label: "Commentaires généraux du rapporteur",
+        storeKey: "comment",
+        placeholder: NominationFileVM.commentPlaceholder,
+      },
+    ];
+    describe.each(textareaTestCases)(
+      "$label",
+      ({ label, storeKey, placeholder }) => {
+        let textarea: HTMLTextAreaElement | undefined;
+        const newContent = "New content";
+
+        beforeEach(() => {
+          textarea = undefined;
+        });
+
+        it.skipIf(!placeholder)(
+          "shows the placeholder when there is no content",
+          async () => {
+            const aNomination: NominationFileSM = new NominationFileBuilder()
+              .withId("without-comment")
+              .withComment(null)
+              .build();
+            nominationFileGateway.addNominationFile(aNomination);
+
+            renderNominationFile(aNomination.id);
+            textarea = await givenTheTextArea();
+
+            expect(textarea).toHaveValue("");
+            expect(textarea).toHaveAttribute(
+              "placeholder",
+              NominationFileVM.commentPlaceholder,
+            );
+          },
+        );
+
+        it(`updates the content`, async () => {
+          renderNominationFile(aValidatedNomination.id);
+          textarea = await givenTheTextArea();
+
+          await typeNewBiographyText();
+
+          expect(textarea).toHaveValue(newContent);
+        });
+
+        it("keeps the cursor position after typing", async () => {
+          renderNominationFile(aValidatedNomination.id);
+          textarea = await givenTheTextArea();
+          await typeNewBiographyText();
+          moveToCursorPosition(3);
+          await userEvent.keyboard(":");
+          const newContentAfterCursorTyping =
+            newContent.slice(0, 3) + ":" + newContent.slice(3);
+
+          expectCursorPosition(4);
+          expect(textarea).toHaveValue(newContentAfterCursorTyping);
+          await waitFor(() => {
+            expect(store.getState()).toEqual<AppState>({
+              ...initialState,
+              nominationFileOverview: {
+                byIds: {
+                  [aValidatedNomination.id]: {
+                    ...aValidatedNomination,
+                    [storeKey]: newContentAfterCursorTyping,
+                  },
+                },
+              },
+            });
+          });
+          expectCursorPosition(4);
+        });
+
+        const typeNewBiographyText = async () => {
+          await userEvent.clear(textarea!);
+          await userEvent.type(textarea!, newContent);
+        };
+
+        const givenTheTextArea = async () =>
+          (await screen.findByLabelText(label)) as HTMLTextAreaElement;
+
+        const moveToCursorPosition = (position: number) => {
+          textarea!.focus();
+          textarea!.setSelectionRange(position, position);
+        };
+
+        const expectCursorPosition = (position: number) => {
+          expect(textarea!.selectionStart).toBe(position);
+          expect(textarea!.selectionEnd).toBe(position);
+        };
+      },
+    );
 
     describe("Transfer time rule", () => {
       const label =
@@ -131,6 +202,35 @@ describe("Nomination Case Overview Component", () => {
     await screen.findByText(`${labels.birthDate} : 01/01/1980`);
   };
 
+  const expectRulesFor = async (ruleGroup: NominationFile.RuleGroup) => {
+    screen.getByText(NominationFileVM.ruleGroupToLabel[ruleGroup]);
+    await expectRulesLabelsFor(ruleGroup);
+    await expectRulesUncheckedFor(ruleGroup);
+  };
+
+  const expectRulesLabelsFor = async (
+    ruleGroup: NominationFile.RuleGroup,
+  ): Promise<void> => {
+    await waitFor(() => {
+      Object.values(NominationFileVM.rulesToLabels[ruleGroup]).forEach(
+        (label) => {
+          screen.getByText(label);
+        },
+      );
+    });
+  };
+
+  const expectRulesUncheckedFor = async (
+    ruleGroup: NominationFile.RuleGroup,
+  ): Promise<void> => {
+    await waitFor(() => {
+      Object.values(NominationFileVM.rulesToLabels[ruleGroup]).forEach(
+        (label) => {
+          expectRuleUnchecked(label);
+        },
+      );
+    });
+  };
   const expectRuleUnchecked = (name: string) => {
     expect(screen.queryByRole("checkbox", { name })).not.toBeChecked();
   };

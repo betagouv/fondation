@@ -1,11 +1,10 @@
+import { NominationFile } from '@/shared-models';
 import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-rule.repository';
-import { NominationFileManagementRule } from '../../models/nomination-file-report';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/nullTransactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { ReportRule, ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
-import { NominationFile } from '@/shared-models';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/nullTransactionPerformer';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 describe('Change Rule Validation State', () => {
   let reportRuleRepository: FakeReportRuleRepository;
@@ -68,7 +67,7 @@ describe('Change Rule Validation State', () => {
         reportRuleSnapshot.id,
         reportRuleSnapshot.reportId,
         NominationFile.RuleGroup.MANAGEMENT,
-        NominationFileManagementRule.OVERSEAS_TO_OVERSEAS,
+        NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
         reportRuleSnapshot.preValidated,
         expectValidated,
         reportRuleSnapshot.comment,

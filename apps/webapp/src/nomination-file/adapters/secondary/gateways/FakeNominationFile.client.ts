@@ -5,6 +5,7 @@ import {
   rulesTuple,
 } from "@/shared-models";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
+import { ReportUpdateDto } from "@/api-sdk/generated/structures/ReportUpdateDto";
 
 export class FakeNominationFileApiClient implements NominationFileApiClient {
   nominationFiles: Record<string, ReportRetrievalVM> = {};
@@ -40,6 +41,14 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
         comment: rule.comment,
       },
     );
+  }
+
+  async updateReport(reportId: string, data: ReportUpdateDto): Promise<void> {
+    if (this.nominationFiles[reportId])
+      this.nominationFiles[reportId] = {
+        ...(this.nominationFiles[reportId] || {}),
+        ...(data as ReportRetrievalVM),
+      };
   }
 
   async updateRule(ruleId: string, validated: boolean): Promise<void> {

@@ -101,6 +101,10 @@ export class NominationFileBuilder {
     this.targettedPosition = targettedPosition;
     return this;
   }
+  withComment(comment: string | null) {
+    this.comment = comment;
+    return this;
+  }
 
   withTransferTimeValidated(transferTime: boolean) {
     this.rules.management.TRANSFER_TIME.validated = transferTime;

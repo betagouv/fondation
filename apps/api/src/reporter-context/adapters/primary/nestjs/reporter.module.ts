@@ -18,6 +18,7 @@ import { SqlReportListingVMQuery } from '../../secondary/repositories/typeorm/sq
 import { SqlReportRetrievalVMQuery } from '../../secondary/repositories/typeorm/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/repositories/typeorm/sql-report-rule.repository';
 import { ReporterController } from './reporter.controller';
+import { UpdateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-update/update-report.use-case';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -55,6 +56,16 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
         return new ListReportsUseCase(reportListingRepository);
       },
       inject: [REPORT_LISTING_QUERY],
+    },
+    {
+      provide: UpdateReportUseCase,
+      useFactory: (
+        reportRepository: ReportRepository,
+        transactionPerformer: TransactionPerformer,
+      ) => {
+        return new UpdateReportUseCase(reportRepository, transactionPerformer);
+      },
+      inject: [NOMINATION_FILE_REPORT_REPOSITORY, TRANSACTION_PERFORMER],
     },
 
     {

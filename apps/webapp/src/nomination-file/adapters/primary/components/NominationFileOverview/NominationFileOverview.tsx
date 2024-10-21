@@ -12,6 +12,11 @@ import {
 import { Biography } from "./Biography";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { NominationRules } from "./NominationRules";
+import {
+  updateNominationFile,
+  UpdateNominationFileParams,
+} from "../../../../core-logic/use-cases/nomination-file-update/updateNominationFile.use-case";
+import { Comment } from "./Comment";
 
 export type NominationFileOverviewProps = {
   id: string;
@@ -24,6 +29,25 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
     selectNominationFile(state, id),
   );
   const dispatch = useAppDispatch();
+
+  const onUpdateNomination = <
+    T extends keyof UpdateNominationFileParams["data"],
+  >(data: {
+    [key in keyof UpdateNominationFileParams["data"]]: T extends key
+      ? UpdateNominationFileParams["data"][key]
+      : undefined;
+  }) => {
+    dispatch(
+      updateNominationFile({
+        reportId: id,
+        data,
+      }),
+    );
+  };
+  const onUpdateBiography = (biography: string) =>
+    onUpdateNomination<"biography">({ biography });
+  const onUpdateComment = (comment: string) =>
+    onUpdateNomination<"comment">({ comment });
 
   const onUpdateNominationRule =
     (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
@@ -65,12 +89,17 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         targettedPosition={nominationFile.targettedPosition}
         rank={nominationFile.rank}
       />
-      <Biography biography={nominationFile.biography} />
+      <Biography
+        biography={nominationFile.biography}
+        onUpdate={onUpdateBiography}
+      />
 
       <NominationRules
         rulesChecked={nominationFile.rulesChecked}
         onUpdateNominationRule={onUpdateNominationRule}
       />
+
+      <Comment comment={nominationFile.comment} onUpdate={onUpdateComment} />
     </div>
   );
 };

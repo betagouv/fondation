@@ -1,17 +1,18 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { Card } from "./Card";
+import { TextareaCard } from "./TextareaCard";
 
 export type BiographyProps = {
   biography: string;
+  onUpdate: (biography: string) => void;
 };
 
-export const Biography: React.FC<BiographyProps> = ({ biography }) => (
-  <Card>
-    <div className={cx("fr-h2")}>Biographie</div>
-    <textarea
-      className="whitespace-pre-line leading-10 w-full"
-      value={biography}
-      rows={10}
-    />
-  </Card>
+export const Biography: React.FC<BiographyProps> = ({
+  biography,
+  onUpdate,
+}) => (
+  <TextareaCard
+    id="biography"
+    label="Biographie"
+    content={biography}
+    onContentChange={onUpdate}
+  />
 );

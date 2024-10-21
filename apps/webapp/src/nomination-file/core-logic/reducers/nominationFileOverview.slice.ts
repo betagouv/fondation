@@ -3,6 +3,7 @@ import { AppState } from "../../store/appState";
 import { retrieveNominationFile } from "../use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
 import { updateNominationRule } from "../use-cases/nomination-rule-update/updateNominationRule.use-case";
 import { NominationFile } from "@/shared-models";
+import { updateNominationFile } from "../use-cases/nomination-file-update/updateNominationFile.use-case";
 
 const initialState: AppState["nominationFileOverview"] = { byIds: null };
 
@@ -14,6 +15,15 @@ const nominationCaseOverviewSlice = createSlice({
     builder.addCase(retrieveNominationFile.fulfilled, (state, action) => {
       if (action.payload)
         state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
+    });
+
+    builder.addCase(updateNominationFile.fulfilled, (state, action) => {
+      const { reportId, data } = action.payload;
+      const nominationFile = state.byIds?.[reportId];
+
+      if (nominationFile) {
+        state.byIds![reportId] = { ...nominationFile, ...data };
+      }
     });
 
     builder.addCase(updateNominationRule.fulfilled, (state, action) => {

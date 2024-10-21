@@ -33,6 +33,16 @@ export class FakeNominationFileGateway implements NominationFileGateway {
     );
   }
 
+  async updateNominationFile(
+    reportId: string,
+    data: Partial<Pick<NominationFileSM, "biography" | "comment">>,
+  ): Promise<void> {
+    if (this.nominationFiles[reportId])
+      this.nominationFiles[reportId] = {
+        ...this.nominationFiles[reportId],
+        ...data,
+      };
+  }
   async updateRule(ruleId: string, validated: boolean): Promise<void> {
     if (!this.lastNominationFileId)
       throw new Error(

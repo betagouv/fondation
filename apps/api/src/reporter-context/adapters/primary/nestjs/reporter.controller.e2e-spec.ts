@@ -148,19 +148,19 @@ describe('Reporter Controller', () => {
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM).build();
   });
 
-  describe('PUT /api/reports/:id', () => {
+  describe('PUT /api/reports/rules/:id', () => {
     beforeEach(async () => {
       await dataSource
         .getRepository(ReportPm)
         .save(ReportPm.fromDomain(nominationFileReport));
     });
 
-    it('forbids unvalidated report id', async () => {
+    it('forbids unvalidated rule id', async () => {
       const body: ChangeRuleValidationStateDto = {
         validated: false,
       };
       await request(app.getHttpServer())
-        .put('/api/reports/invalid-id')
+        .put('/api/reports/rules/invalid-id')
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -172,7 +172,7 @@ describe('Reporter Controller', () => {
     ];
     it.each(wrongBodies)('forbids unvalidated body', async (wrongBody) => {
       await request(app.getHttpServer())
-        .put(`/api/reports/${nominationFileReport.id}`)
+        .put(`/api/reports/rules/${nominationFileReport.id}`)
         .send(wrongBody)
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -187,7 +187,7 @@ describe('Reporter Controller', () => {
         validated: false,
       };
       const response = await request(app.getHttpServer())
-        .put(`/api/reports/${reportRuleSnapshot.id}`)
+        .put(`/api/reports/rules/${reportRuleSnapshot.id}`)
         .send(body)
         .expect(HttpStatus.OK);
       expect(response.body).toEqual('');

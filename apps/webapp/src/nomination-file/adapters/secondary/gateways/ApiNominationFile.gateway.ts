@@ -11,6 +11,18 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     private readonly nominationFileApiClient: NominationFileApiClient,
   ) {}
 
+  async updateNominationFile(
+    reportId: string,
+    data: Partial<Pick<NominationFileSM, "biography" | "comment" | "state">>,
+  ): Promise<void> {
+    const updateData = {
+      biography: data.biography ?? undefined,
+      comment: data.comment ?? undefined,
+      state: data.state ?? undefined,
+    };
+    this.nominationFileApiClient.updateReport(reportId, updateData);
+  }
+
   async updateRule(ruleId: string, validated: boolean): Promise<void> {
     await this.nominationFileApiClient.updateRule(ruleId, validated);
   }
