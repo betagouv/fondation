@@ -30,6 +30,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "ts-patch install && typia patch",
+    "pregen-sdk": "pnpm build:deps",
     "gen-sdk": "nestia sdk",
     "typeorm:gen": "pnpx typeorm-ts-node-commonjs migration:generate -d src/shared-kernel/adapters/secondary/repositories/orm-data-source.ts",
     "seed": "ts-node -r tsconfig-paths/register cli/seed.ts",
