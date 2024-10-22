@@ -1,5 +1,5 @@
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzleTransactionPerformer';
+import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
 import {
   DrizzleDb,

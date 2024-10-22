@@ -2,7 +2,7 @@ import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/providers/deterministic-uuid-generator';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/nullTransactionPerformer';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from '../../models/nomination-file-report';

@@ -14,7 +14,12 @@ export class DrizzleTransactionPerformer implements TransactionPerformer {
 
   async perform<T>(useCase: TransactionableAsync<T>): Promise<T> {
     return await this.db.transaction(async (tx) => {
-      return await useCase(tx);
+      try {
+        return await useCase(tx);
+      } catch (err) {
+        tx.rollback();
+        throw err;
+      }
     });
   }
 }

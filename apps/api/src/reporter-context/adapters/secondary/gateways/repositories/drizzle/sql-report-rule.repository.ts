@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { ReportRuleRepository } from 'src/reporter-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
-import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzleTransactionPerformer';
+import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-sql-preparation';
 import { reportRules } from './schema/report-rule-pm';
 

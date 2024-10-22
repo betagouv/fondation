@@ -1,6 +1,6 @@
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ReporterModule } from './reporter-context/adapters/primary/nestjs/reporter.module';
-import { DomainEventsPoller } from './shared-kernel/adapters/primary/nestjs/domainEventPoller';
+import { DomainEventsPoller } from './shared-kernel/adapters/primary/nestjs/domain-event-poller';
 import {
   DOMAIN_EVENTS_POLLER,
   SharedKernelModule,

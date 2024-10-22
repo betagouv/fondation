@@ -3,15 +3,15 @@ import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { DomainEventPublisher } from 'src/shared-kernel/business-logic/gateways/providers/domainEventPublisher';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
-import { DrizzleTransactionPerformer } from '../../secondary/providers/drizzleTransactionPerformer';
-import { NestDomainEventPublisher } from '../../secondary/providers/NestDomainEventPublisher';
+import { DrizzleTransactionPerformer } from '../../secondary/providers/drizzle-transaction-performer';
+import { NestDomainEventPublisher } from '../../secondary/providers/nest-domain-event-publisher';
 import { getDrizzleConfig } from '../../secondary/repositories/drizzle/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from '../../secondary/repositories/drizzle/drizzle-instance';
-import { FakeDomainEventRepository } from '../../secondary/repositories/fakeDomainEventRepository';
-import { DomainEventsPoller } from './domainEventPoller';
+import { FakeDomainEventRepository } from '../../secondary/repositories/fake-domain-event-repository';
+import { DomainEventsPoller } from './domain-event-poller';
 import { validate } from './env.validation';
 import { apiConfig, defaultApiConfig } from './env.';
 import { ApiConfig } from '../nestia/api-config-schema';

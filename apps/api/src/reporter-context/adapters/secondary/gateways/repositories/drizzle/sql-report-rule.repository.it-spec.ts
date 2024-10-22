@@ -11,7 +11,7 @@ import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzleTransactionPerformer';
+import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';

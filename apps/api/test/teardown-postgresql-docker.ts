@@ -6,20 +6,20 @@ const teardown = async (): Promise<void> => {
 };
 
 const endDbConnection = async () => {
-  console.log('closing db connection');
+  console.log('Closing db connection');
   try {
     await db.$client.end();
   } catch (e) {
     console.log('Failing to close db connection', e);
   }
-  console.log('closed db connection');
+  console.log('Closed db connection');
 };
 
 const endDockerCompose = async () => {
   console.log('Shutting dow docker compose containers');
   try {
     await dockerDBInstance?.down();
-    console.log('removed docker containers');
+    console.log('Removed docker containers');
   } catch (e) {
     console.log('Failing to shutdown the docker containers', e);
   }
