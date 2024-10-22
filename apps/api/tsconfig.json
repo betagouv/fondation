@@ -53,5 +53,6 @@
       }
     ],
   },
+  "include": ["src/**/*.ts", "drizzle.config.ts"],
   "references":[{"path": "../../packages/shared-models"}],
 }

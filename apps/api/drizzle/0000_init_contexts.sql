@@ -44,15 +44,9 @@ CREATE TABLE IF NOT EXISTS "reports_context"."reports" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "data_administration_context"."nomination_files" ADD CONSTRAINT "nomination_files_report_id_reports_id_fk" FOREIGN KEY ("report_id") REFERENCES "reports_context"."reports"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "reports_context"."report_rule" ADD CONSTRAINT "report_rule_report_id_reports_id_fk" FOREIGN KEY ("report_id") REFERENCES "reports_context"."reports"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 
-END;
+COMMIT;

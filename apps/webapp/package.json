@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build:deps": "concurrently \"pnpm --filter @/shared-models build:esm\" \"pnpm dsfr:build\"",
+    "build:deps": "concurrently \"pnpm --filter api gen-sdk\" \"pnpm --filter @/shared-models build:esm\" \"pnpm dsfr:build\"",
     "build:deps:watch": "pnpm --filter @/shared-models build:esm:watch",
     "prebuild": "pnpm build:deps",
     "build": "vite build",

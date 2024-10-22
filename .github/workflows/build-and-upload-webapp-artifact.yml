@@ -27,9 +27,7 @@ jobs:
           cache-dependency-path: ./apps/webapp/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install
-      - name: Generate api SDK
-        run: pnpm gen-sdk
+        run: pnpm install --frozen-lockfile
         working-directory: apps/api
       - name: Build webapp
         run: pnpm --filter webapp build

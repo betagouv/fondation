@@ -1,9 +1,6 @@
-name: Integration validation
+name: Integration checks
 
 on:
-  push:
-    branches-ignore:
-      - main
   pull_request:
     types: [opened, synchronize]
   workflow_call:

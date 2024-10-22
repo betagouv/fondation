@@ -1,5 +1,5 @@
 {
-  "id": "f17f2781-0f6e-4954-9f45-10de4db53137",
+  "id": "89b0e74d-e88a-4ad2-ab2d-b852fd611758",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -35,22 +35,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "nomination_files_report_id_reports_id_fk": {
-          "name": "nomination_files_report_id_reports_id_fk",
-          "tableFrom": "nomination_files",
-          "tableTo": "reports",
-          "schemaTo": "reports_context",
-          "columnsFrom": [
-            "report_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

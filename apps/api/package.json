@@ -32,7 +32,10 @@
     "prepare": "ts-patch install && typia patch",
     "gen-sdk": "nestia sdk",
     "typeorm:gen": "pnpx typeorm-ts-node-commonjs migration:generate -d src/shared-kernel/adapters/secondary/repositories/orm-data-source.ts",
-    "seed": "ts-node -r tsconfig-paths/register cli/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register cli/seed.ts",
+    "drizzle:gen": "drizzle-kit generate --name",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js"
   },
   "dependencies": {
     "@/shared-models": "workspace:*",
