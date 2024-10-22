@@ -1,6 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env.';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
   dialect: 'postgresql',
   schema:
@@ -9,13 +11,18 @@ export default defineConfig({
   breakpoints: false,
   strict: true,
   dbCredentials: {
-    host: process.env.DB_HOST ?? defaultApiConfig.database.host,
-    port: process.env.DB_PORT
-      ? Number(process.env.DB_PORT)
-      : defaultApiConfig.database.port,
-    user: process.env.DB_USER ?? defaultApiConfig.database.user,
-    password: process.env.DB_PASSWORD ?? defaultApiConfig.database.password,
-    database: process.env.DB_NAME ?? defaultApiConfig.database.name,
+    host: isProduction ? process.env.DB_HOST! : defaultApiConfig.database.host,
+    port:
+      isProduction && process.env.DB_PORT!
+        ? Number(process.env.DB_PORT!)
+        : defaultApiConfig.database.port,
+    user: isProduction ? process.env.DB_USER! : defaultApiConfig.database.user,
+    password: isProduction
+      ? process.env.DB_PASSWORD!
+      : defaultApiConfig.database.password,
+    database: isProduction
+      ? process.env.DB_NAME!
+      : defaultApiConfig.database.name,
 
     ssl: process.env.NODE_ENV === 'production',
   },
