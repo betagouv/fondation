@@ -9,43 +9,46 @@ import {
 import { HttpStatus } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import crypto from 'crypto';
+import { eq } from 'drizzle-orm';
 import { AppModule } from 'src/app.module';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportRetrievalVMBuilder } from 'src/reporter-context/business-logic/models/report-retrieval-vm.builder';
 import { ReportRule } from 'src/reporter-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { DATA_SOURCE } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { ormConfigTest } from 'test/orm-config.test';
-import { DataSource } from 'typeorm';
-import { ReportPm } from '../../secondary/repositories/typeorm/entities/report-pm';
-import { ReportRulePm } from '../../secondary/repositories/typeorm/entities/report-rule-pm';
+import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
+import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
+import { SqlNominationFileReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
+import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 
 describe('Reporter Controller', () => {
   let app: NestApplication;
-  let typeormDataSource: DataSource;
-  let dataSource: DataSource;
+  let db: DrizzleDb;
 
-  beforeAll(async () => {
-    typeormDataSource = new DataSource(ormConfigTest('src'));
-    await typeormDataSource.initialize();
+  beforeAll(() => {
+    db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
-    await clearDB(typeormDataSource);
+    await clearDB(db);
 
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(DATA_SOURCE)
-      .useValue(typeormDataSource)
+      .overrideProvider(DRIZZLE_DB)
+      .useValue(db)
       .compile();
     app = moduleFixture.createNestApplication();
-
-    dataSource = app.get(DATA_SOURCE);
 
     await app.init();
   });
@@ -55,14 +58,13 @@ describe('Reporter Controller', () => {
   });
 
   afterAll(async () => {
-    await dataSource.destroy();
+    await db.$client.end();
   });
 
   describe('GET /api/reports', () => {
     beforeEach(async () => {
-      await dataSource
-        .getRepository(ReportPm)
-        .save(ReportPm.fromDomain(aReport));
+      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      await db.insert(reports).values(reportRow).execute();
     });
 
     it('lists reports', async () => {
@@ -90,9 +92,12 @@ describe('Reporter Controller', () => {
   });
 
   describe('GET /api/reports/:id', () => {
-    let reportRules: (readonly [NominationFile.RuleGroup, ReportRule])[];
+    let reportRulesSaved: (readonly [NominationFile.RuleGroup, ReportRule])[];
 
     beforeEach(async () => {
+      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      await db.insert(reports).values(reportRow).execute();
+
       const reportRulesPromises = rulesTuple.map(
         async ([ruleGroup, ruleName]) => {
           const reportRule = new ReportRuleBuilder()
@@ -101,18 +106,14 @@ describe('Reporter Controller', () => {
             .withRuleGroup(ruleGroup)
             .withRuleName(ruleName)
             .build();
-          await dataSource
-            .getRepository(ReportRulePm)
-            .save(ReportRulePm.fromDomain(reportRule));
+
+          const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+          await db.insert(reportRules).values(ruleRow).execute();
 
           return [ruleGroup, reportRule] as const;
         },
       );
-      reportRules = await Promise.all(reportRulesPromises);
-
-      await dataSource
-        .getRepository(ReportPm)
-        .save(ReportPm.fromDomain(aReport));
+      reportRulesSaved = await Promise.all(reportRulesPromises);
     });
 
     it('retrieves a report', async () => {
@@ -121,7 +122,7 @@ describe('Reporter Controller', () => {
         .expect(HttpStatus.OK);
       expect(response.body).toEqual<ReportRetrievalVM>({
         ...aReportRetrievedVM,
-        rules: reportRules.reduce(
+        rules: reportRulesSaved.reduce(
           (acc, [ruleGroup, reportRule]) => {
             const ruleSnapshot = reportRule.toSnapshot();
             return {
@@ -150,9 +151,9 @@ describe('Reporter Controller', () => {
 
   describe('PUT /api/reports/rules/:id', () => {
     beforeEach(async () => {
-      await dataSource
-        .getRepository(ReportPm)
-        .save(ReportPm.fromDomain(nominationFileReport));
+      const reportRow =
+        SqlNominationFileReportRepository.mapToDb(nominationFileReport);
+      await db.insert(reports).values(reportRow).execute();
     });
 
     it('forbids unvalidated rule id', async () => {
@@ -178,9 +179,8 @@ describe('Reporter Controller', () => {
     });
 
     it('unvalidates an overseas to overseas validation rule', async () => {
-      await dataSource
-        .getRepository(ReportRulePm)
-        .save(ReportRulePm.fromDomain(reportRule));
+      const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+      await db.insert(reportRules).values(ruleRow).execute();
 
       const reportRuleSnapshot = reportRule.toSnapshot();
       const body: ChangeRuleValidationStateDto = {
@@ -192,11 +192,13 @@ describe('Reporter Controller', () => {
         .expect(HttpStatus.OK);
       expect(response.body).toEqual('');
 
-      const savedReportRules = await dataSource
-        .getRepository(ReportRulePm)
-        .find({ where: { id: reportRuleSnapshot.id } });
-      expect(savedReportRules).toEqual<typeof savedReportRules>([
-        ReportRulePm.fromDomain(
+      const savedReportRules = await db
+        .select()
+        .from(reportRules)
+        .where(eq(reportRules.id, reportRuleSnapshot.id))
+        .execute();
+      expect(savedReportRules).toEqual([
+        SqlReportRuleRepository.mapToDb(
           ReportRule.fromSnapshot({ ...reportRuleSnapshot, validated: false }),
         ),
       ]);

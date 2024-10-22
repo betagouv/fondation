@@ -71,7 +71,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
     dispatch(retrieveNominationFile(id));
   }, [dispatch, id]);
 
-  if (!nominationFile) return <div>Nomination case not found</div>;
+  if (!nominationFile) return <div>Dossier de nomination non trouvé.</div>;
   return (
     <div
       className={clsx(
@@ -93,12 +93,10 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         biography={nominationFile.biography}
         onUpdate={onUpdateBiography}
       />
-
       <NominationRules
         rulesChecked={nominationFile.rulesChecked}
         onUpdateNominationRule={onUpdateNominationRule}
       />
-
       <Comment comment={nominationFile.comment} onUpdate={onUpdateComment} />
     </div>
   );

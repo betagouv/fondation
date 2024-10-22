@@ -29,7 +29,7 @@ describe("Nomination Case Overview Component", () => {
 
   it("shows an error message if nomination file is not found", async () => {
     renderNominationFile("invalid-id");
-    await screen.findByText("Nomination case not found");
+    await screen.findByText("Dossier de nomination non trouvé.");
   });
 
   describe("when there is a nomination file", () => {
@@ -63,7 +63,7 @@ describe("Nomination Case Overview Component", () => {
       },
     ];
     describe.each(textareaTestCases)(
-      "$label",
+      "$label text section",
       ({ label, storeKey, placeholder }) => {
         let textarea: HTMLTextAreaElement | undefined;
         const newContent = "New content";
@@ -92,7 +92,7 @@ describe("Nomination Case Overview Component", () => {
           },
         );
 
-        it(`updates the content`, async () => {
+        it(`writes content`, async () => {
           renderNominationFile(aValidatedNomination.id);
           textarea = await givenTheTextArea();
 
@@ -101,7 +101,7 @@ describe("Nomination Case Overview Component", () => {
           expect(textarea).toHaveValue(newContent);
         });
 
-        it("keeps the cursor position after typing", async () => {
+        it("keeps the cursor position after typing and saves the new content", async () => {
           renderNominationFile(aValidatedNomination.id);
           textarea = await givenTheTextArea();
           await typeNewBiographyText();

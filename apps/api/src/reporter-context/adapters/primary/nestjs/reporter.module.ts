@@ -5,20 +5,20 @@ import { ReportRuleRepository } from 'src/reporter-context/business-logic/gatewa
 import { ReportRepository } from 'src/reporter-context/business-logic/gateways/repositories/report.repository';
 import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
+import { UpdateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-update/update-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reporter-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import {
-  DATA_SOURCE,
+  DRIZZLE_DB,
   SharedKernelModule,
   TRANSACTION_PERFORMER,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
-import { DataSource } from 'typeorm';
-import { SqlNominationFileReportRepository } from '../../secondary/repositories/typeorm/sql-nomination-file-report.repository';
-import { SqlReportListingVMQuery } from '../../secondary/repositories/typeorm/sql-report-listing-vm.query';
-import { SqlReportRetrievalVMQuery } from '../../secondary/repositories/typeorm/sql-report-retrieval-vm.query';
-import { SqlReportRuleRepository } from '../../secondary/repositories/typeorm/sql-report-rule.repository';
+import { SqlNominationFileReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
+import { SqlReportListingVMQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
+import { SqlReportRetrievalVMQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
+import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { ReporterController } from './reporter.controller';
-import { UpdateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-update/update-report.use-case';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -70,17 +70,17 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
 
     {
       provide: REPORT_LISTING_QUERY,
-      useFactory: (dataSource: DataSource): ReportListingVMQuery => {
-        return new SqlReportListingVMQuery(dataSource);
+      useFactory: (db: DrizzleDb): ReportListingVMQuery => {
+        return new SqlReportListingVMQuery(db);
       },
-      inject: [DATA_SOURCE],
+      inject: [DRIZZLE_DB],
     },
     {
       provide: REPORT_RETRIEVAL_QUERY,
-      useFactory: (dataSource: DataSource): ReportRetrievalVMQuery => {
-        return new SqlReportRetrievalVMQuery(dataSource);
+      useFactory: (db: DrizzleDb): ReportRetrievalVMQuery => {
+        return new SqlReportRetrievalVMQuery(db);
       },
-      inject: [DATA_SOURCE],
+      inject: [DRIZZLE_DB],
     },
     {
       provide: NOMINATION_FILE_REPORT_REPOSITORY,

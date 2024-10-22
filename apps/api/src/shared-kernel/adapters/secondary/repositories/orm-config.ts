@@ -18,10 +18,10 @@ export const ormConfig = (
 });
 
 export const getEntitiesFiles = (rootDirectory: string) => [
-  `${rootDirectory}/**/adapters/secondary/repositories/typeorm/entities/*.{ts,js}`,
-  `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/entities/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/repositories/drizzle/entities/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/gateways/repositories/drizzle/entities/*.{ts,js}`,
 ];
 export const getMigrationFiles = (rootDirectory: string) => [
-  `${rootDirectory}/**/adapters/secondary/repositories/typeorm/migrations/*.{ts,js}`,
-  `${rootDirectory}/**/adapters/secondary/gateways/repositories/typeorm/migrations/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/repositories/drizzle/migrations/*.{ts,js}`,
+  `${rootDirectory}/**/adapters/secondary/gateways/repositories/drizzle/migrations/*.{ts,js}`,
 ];

@@ -8,6 +8,8 @@ export type DateOnlyJson = {
   day: number;
 };
 
+const dbDateFormat = 'yyyy-MM-dd';
+
 export class DateOnly {
   private readonly value: Date;
 
@@ -38,6 +40,9 @@ export class DateOnly {
       day: this.value.getDate(),
     };
   }
+  toDbString(): string {
+    return format(this.value, dbDateFormat);
+  }
 
   static fromDate(dueDate: Date): DateOnly {
     return new DateOnly(
@@ -46,9 +51,14 @@ export class DateOnly {
       dueDate.getDate(),
     );
   }
+
+  static fromDbDateOnlyString = (dateString: string): DateOnly => {
+    return this.fromString(dateString, dbDateFormat);
+  };
+
   static fromString(
     dateString: string,
-    format: 'dd/MM/yyyy' | 'dd/M/yyyy' = 'dd/MM/yyyy',
+    format: 'dd/MM/yyyy' | 'dd/M/yyyy' | typeof dbDateFormat = 'dd/MM/yyyy',
     locale: 'fr' = 'fr',
   ): DateOnly {
     const date = parse(dateString, format, new Date(), {

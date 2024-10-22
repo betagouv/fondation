@@ -3,41 +3,46 @@ import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/re
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { ormConfigTest } from 'test/orm-config.test';
-import { DataSource } from 'typeorm';
-import { ReportPm } from './entities/report-pm';
-import { ReportRulePm } from './entities/report-rule-pm';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { reports } from './schema/report-pm';
+import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { TypeOrmTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/typeOrmTransactionPerformer';
+import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzleTransactionPerformer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
 
 describe('SQL Report Rule Repository', () => {
-  let dataSource: DataSource;
+  let db: DrizzleDb;
   let sqlReportRuleRepository: SqlReportRuleRepository;
   let aReport: NominationFileReport;
   let transactionPerformer: TransactionPerformer;
 
-  beforeAll(async () => {
-    dataSource = new DataSource(ormConfigTest('src'));
-    await dataSource.initialize();
+  beforeAll(() => {
+    db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
-    await clearDB(dataSource);
+    await clearDB(db);
     sqlReportRuleRepository = new SqlReportRuleRepository();
-    transactionPerformer = new TypeOrmTransactionPerformer(dataSource);
+    transactionPerformer = new DrizzleTransactionPerformer(db);
 
     aReport = new ReportBuilder()
       .withId('cd1619e2-263d-49b6-b928-6a04ee681133')
       .withDueDate(new DateOnly(2030, 1, 1))
       .withBirthDate(new DateOnly(1980, 1, 1))
       .build();
-    await dataSource.getRepository(ReportPm).save(ReportPm.fromDomain(aReport));
+
+    const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+    await db.insert(reports).values(reportRow).execute();
   });
 
   afterAll(async () => {
-    await dataSource.destroy();
+    await db.$client.end();
   });
 
   it('saves a report rule', async () => {
@@ -50,18 +55,9 @@ describe('SQL Report Rule Repository', () => {
       sqlReportRuleRepository.save(aReportRule),
     );
 
-    const existingReports = await dataSource.getRepository(ReportRulePm).find();
-    const aReportRuleSnapshot = aReportRule.toSnapshot();
-    expect(existingReports).toEqual([
-      new ReportRulePm(
-        aReportRuleSnapshot.id,
-        aReportRuleSnapshot.ruleGroup,
-        aReportRuleSnapshot.ruleName,
-        aReportRuleSnapshot.preValidated,
-        aReportRuleSnapshot.validated,
-        aReportRuleSnapshot.comment,
-        aReportRuleSnapshot.reportId,
-      ),
+    const existingRules = await db.select().from(reportRules).execute();
+    expect(existingRules).toEqual([
+      SqlReportRuleRepository.mapToDb(aReportRule),
     ]);
   });
 
@@ -71,24 +67,14 @@ describe('SQL Report Rule Repository', () => {
       .withReportId(aReport.id)
       .build();
     const aReportRuleSnapshot = aReportRule.toSnapshot();
-    await dataSource
-      .getRepository(ReportRulePm)
-      .save(
-        new ReportRulePm(
-          aReportRuleSnapshot.id,
-          aReportRuleSnapshot.ruleGroup,
-          aReportRuleSnapshot.ruleName,
-          aReportRuleSnapshot.preValidated,
-          aReportRuleSnapshot.validated,
-          aReportRuleSnapshot.comment,
-          aReportRuleSnapshot.reportId,
-        ),
-      );
 
-    const savedReport = await transactionPerformer.perform(
+    const ruleRow = SqlReportRuleRepository.mapToDb(aReportRule);
+    await db.insert(reportRules).values(ruleRow).execute();
+
+    const savedReportRule = await transactionPerformer.perform(
       sqlReportRuleRepository.byId(aReportRuleSnapshot.id),
     );
 
-    expect(savedReport).toEqual<ReportRule>(aReportRule);
+    expect(savedReportRule).toEqual<ReportRule>(aReportRule);
   });
 });

@@ -1,33 +1,35 @@
 import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
 import { getAllRulesPreValidated } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
-import { TypeOrmTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/typeOrmTransactionPerformer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { ormConfigTest } from 'test/orm-config.test';
-import { DataSource } from 'typeorm';
 import { SqlNominationFileRepository } from './sql-nomination-file.repository';
 import { NominationFileModel } from 'src/data-administrator-context/business-logic/models/nomination-file';
-import { NominationFilePm } from './entities/nomination-file-pm';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzleTransactionPerformer';
+import { nominationFiles } from './schema/nomination-file-pm';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
 
 describe('SQL Nomination File Repository', () => {
-  let dataSource: DataSource;
+  let db: DrizzleDb;
   let nominationFileRepository: NominationFileRepository;
   let transactionPerformer: TransactionPerformer;
 
-  beforeAll(async () => {
-    dataSource = new DataSource(ormConfigTest('src'));
-    await dataSource.initialize();
+  beforeAll(() => {
+    db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
-    await clearDB(dataSource);
-    transactionPerformer = new TypeOrmTransactionPerformer(dataSource);
+    await clearDB(db);
+    transactionPerformer = new DrizzleTransactionPerformer(db);
     nominationFileRepository = new SqlNominationFileRepository();
   });
 
   afterAll(async () => {
-    await dataSource.destroy();
+    await db.$client.end();
   });
 
   it('saves a nomination file', async () => {
@@ -35,12 +37,13 @@ describe('SQL Nomination File Repository', () => {
       nominationFileRepository.save(aNominationFile),
     );
 
-    const nominationFiles = await dataSource
-      .getRepository(NominationFilePm)
-      .find();
+    const nominationFilesData = await db
+      .select()
+      .from(nominationFiles)
+      .execute();
 
-    expect(nominationFiles).toEqual<NominationFilePm[]>([
-      NominationFilePm.fromDomain(aNominationFile),
+    expect(nominationFilesData).toEqual([
+      SqlNominationFileRepository.mapToDb(aNominationFile),
     ]);
   });
 

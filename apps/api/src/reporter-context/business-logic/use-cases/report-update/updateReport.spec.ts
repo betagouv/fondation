@@ -1,4 +1,4 @@
-import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-nomination-file-report.repository';
+import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/nullTransactionPerformer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { NominationFileReport } from '../../models/nomination-file-report';

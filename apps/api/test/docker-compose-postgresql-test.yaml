@@ -1,5 +1,6 @@
 services:
   postgres:
+    container_name: fondation
     image: 'postgres:13.2'
     ports:
       - '5435:5432'

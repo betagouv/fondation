@@ -6,33 +6,37 @@ import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/re
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { ormConfigTest } from 'test/orm-config.test';
-import { DataSource } from 'typeorm';
-import { ReportPm } from './entities/report-pm';
-import { ReportRulePm } from './entities/report-rule-pm';
+import { reports } from './schema/report-pm';
+import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
+import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository'; // For mapping functions
+import { SqlReportRuleRepository } from './sql-report-rule.repository'; // For mapping functions
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 
 describe('SQL Report Retrieval VM Query', () => {
-  let dataSource: DataSource;
+  let db: DrizzleDb;
   let sqlReportRetrievalVMQuery: SqlReportRetrievalVMQuery;
 
-  beforeAll(async () => {
-    dataSource = new DataSource(ormConfigTest('src'));
-    await dataSource.initialize();
+  beforeAll(() => {
+    db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
-    await clearDB(dataSource);
-    sqlReportRetrievalVMQuery = new SqlReportRetrievalVMQuery(dataSource);
+    await clearDB(db);
+    sqlReportRetrievalVMQuery = new SqlReportRetrievalVMQuery(db);
   });
 
   afterAll(async () => {
-    await dataSource.destroy();
+    await db.$client.end();
   });
 
   it('throws an error if no report', async () => {
-    expect(
-      sqlReportRetrievalVMQuery.retrieveReport('unkwown-id'),
+    await expect(
+      sqlReportRetrievalVMQuery.retrieveReport('unknown-id'),
     ).rejects.toThrow();
   });
 
@@ -46,18 +50,17 @@ describe('SQL Report Retrieval VM Query', () => {
         .withDueDate(new DateOnly(2030, 10, 1))
         .withBirthDate(new DateOnly(1980, 1, 1))
         .build();
-      await dataSource
-        .getRepository(ReportPm)
-        .save(ReportPm.fromDomain(aReport));
+      // Insert the report into the database
+      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      await db.insert(reports).values(reportRow).execute();
 
       aReportRule = await givenSomeRuleExists(aReport.id);
     });
 
     it('retrieves a report', async () => {
       const expectedRules = prepareExpectedRules(aReportRule);
-      expect(
-        await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
-      ).toEqual<ReportRetrievalVM>(
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
+      expect(result).toEqual<ReportRetrievalVM>(
         ReportRetrievalVMBuilder.fromWriteModel(aReport)
           .withRules(expectedRules)
           .build(),
@@ -75,18 +78,17 @@ describe('SQL Report Retrieval VM Query', () => {
         .withDueDate(null)
         .withComment(null)
         .build();
-      await dataSource
-        .getRepository(ReportPm)
-        .save(ReportPm.fromDomain(aReport));
+      // Insert the report into the database
+      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      await db.insert(reports).values(reportRow).execute();
 
       aReportRule = await givenSomeRuleExists(aReport.id);
     });
 
     it('retrieves with empty values', async () => {
       const expectedRules = prepareExpectedRules(aReportRule);
-      expect(
-        await sqlReportRetrievalVMQuery.retrieveReport(aReport.id),
-      ).toEqual<ReportRetrievalVM>(
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
+      expect(result).toEqual<ReportRetrievalVM>(
         ReportRetrievalVMBuilder.fromWriteModel(aReport)
           .withDueDate(null)
           .withComment(null)
@@ -110,14 +112,17 @@ describe('SQL Report Retrieval VM Query', () => {
       },
     } as NominationFile.Rules;
   };
+
   const givenSomeRuleExists = async (reportId: string) => {
     const aReportRule = new ReportRuleBuilder()
       .withId('da1619e2-263d-49b6-b928-6a04ee681132')
       .withReportId(reportId)
       .build();
-    await dataSource
-      .getRepository(ReportRulePm)
-      .save(ReportRulePm.fromDomain(aReportRule));
+
+    // Insert the report rule into the database
+    const ruleRow = SqlReportRuleRepository.mapToDb(aReportRule);
+    await db.insert(reportRules).values(ruleRow).execute();
+
     return aReportRule;
   };
 });
