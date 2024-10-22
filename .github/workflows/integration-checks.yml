@@ -19,10 +19,9 @@ jobs:
           node-version: "20"
           cache: "pnpm"
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Generate SDK, necessary for the types check
-        run: pnpm gen-sdk
-        working-directory: apps/api
+        run: pnpm --filter api gen-sdk
       - name: Types check
         run: pnpm types:check
       - name: Lint
