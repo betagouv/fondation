@@ -6,9 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
     "build:deps": "pnpm --filter @/shared-models build:cjs",
     "build:deps:watch": "pnpm --filter @/shared-models build:cjs:watch",
+    "prebuild": "pnpm build:deps",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "prestart": "pnpm build:deps",
