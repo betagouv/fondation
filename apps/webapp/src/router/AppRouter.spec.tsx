@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
-import { NominationFile } from "../nomination-file/store/appState";
+import { NominationFileSM } from "../nomination-file/store/appState";
 import {
   ReduxStore,
   initReduxStore,
@@ -95,6 +95,9 @@ describe("App Router Component", () => {
         routerProvider.gotToNominationFileOverview(aNomination.id);
       });
 
+      expect(await screen.findByText("Mes rapports")).toHaveStyle({
+        color: "--text-active-blue-france",
+      });
       await screen.findByText("an overview");
     });
   });
@@ -110,4 +113,4 @@ describe("App Router Component", () => {
   };
 });
 
-const aNomination: NominationFile = new NominationFileBuilder().build();
+const aNomination: NominationFileSM = new NominationFileBuilder().build();

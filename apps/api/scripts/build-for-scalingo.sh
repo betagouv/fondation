@@ -10,17 +10,17 @@ pnpm --filter=api build
 cp -v pnpm-lock.yaml package.json pnpm-workspace.yaml .tmp-build/
 
 # Copy shared packages
-cp -vr packages/ ./.tmp-build/packages/
+mkdir -v .tmp-build/packages/
+cp -rv packages/shared-models/ ./.tmp-build/packages/shared-models/
 
 # Create folder to copy api/ production files
 mkdir -pv .tmp-build/apps/api/dist
 
 # Copy api files needed for production
 cp -v apps/api/package.json .tmp-build/apps/api/
+cp -v apps/api/drizzle.config.ts .tmp-build/apps/api/
+cp -rv apps/api/drizzle .tmp-build/apps/api/
 cp -rv apps/api/dist .tmp-build/apps/api/
-
-# Copy data files needed for seed
-cp -rv apps/api/data .tmp-build/apps/api/dist
 
 # Copy scalingo specific files
 cp -v apps/api/scalingo/.buildpacks apps/api/scalingo/Procfile .tmp-build/

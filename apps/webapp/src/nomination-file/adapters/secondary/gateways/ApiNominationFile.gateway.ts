@@ -1,78 +1,66 @@
-import * as apiSdk from "api-sdk";
+import { Magistrat, NominationFile, Transparency } from "@/shared-models";
 import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
+import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
 import {
-  NominationFile,
   NominationFileListItem,
-  RuleName,
+  NominationFileSM,
 } from "../../../store/appState";
 
 export class ApiNominationFileGateway implements NominationFileGateway {
-  async updateRule(
-    nominationCaseId: string,
-    _: string,
-    ruleName: RuleName,
-    validated: boolean,
+  constructor(
+    private readonly nominationFileApiClient: NominationFileApiClient,
+  ) {}
+
+  async updateNominationFile(
+    reportId: string,
+    data: Partial<Pick<NominationFileSM, "biography" | "comment" | "state">>,
   ): Promise<void> {
-    await apiSdk.functional.api.reports.updateReportRule(
-      {
-        host: import.meta.env.VITE_API_URL,
-      },
-      nominationCaseId,
-      {
-        rule: ruleName,
-        validated,
-      },
-    );
+    const updateData = {
+      biography: data.biography ?? undefined,
+      comment: data.comment ?? undefined,
+      state: data.state ?? undefined,
+    };
+    this.nominationFileApiClient.updateReport(reportId, updateData);
   }
 
-  async retrieveNominationFile(id: string): Promise<NominationFile | null> {
-    const report = await apiSdk.functional.api.reports.retrieveReport(
-      {
-        host: import.meta.env.VITE_API_URL,
-      },
-      id,
-    );
+  async updateRule(ruleId: string, validated: boolean): Promise<void> {
+    await this.nominationFileApiClient.updateRule(ruleId, validated);
+  }
+
+  async retrieveNominationFile(id: string): Promise<NominationFileSM | null> {
+    const report =
+      await this.nominationFileApiClient.retrieveNominationFile(id);
 
     if (!report) return null;
     return {
       id: report.id,
-      title: report.title,
+      name: report.name,
       biography: report.biography,
       dueDate: report.dueDate,
-      rules: {
-        management: {
-          TRANSFER_TIME: report.rules.management.TRANSFER_TIME.validated,
-          GETTING_FIRST_GRADE:
-            report.rules.management.GETTING_FIRST_GRADE.validated,
-          GETTING_GRADE_HH: report.rules.management.GETTING_GRADE_HH.validated,
-          GETTING_GRADE_IN_PLACE:
-            report.rules.management.GETTING_GRADE_IN_PLACE.validated,
-          PROFILED_POSITION:
-            report.rules.management.PROFILED_POSITION.validated,
-          CASSATION_COURT_NOMINATION:
-            report.rules.management.CASSATION_COURT_NOMINATION.validated,
-          OVERSEAS_TO_OVERSEAS:
-            report.rules.management.OVERSEAS_TO_OVERSEAS.validated,
-          JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE:
-            report.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-              .validated,
-          JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT:
-            report.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-              .validated,
-        },
-      },
+      birthDate: report.birthDate,
+      state: report.state as NominationFile.ReportState,
+      formation: report.formation as Magistrat.Formation,
+      transparency: report.transparency as Transparency,
+      grade: report.grade as Magistrat.Grade,
+      currentPosition: report.currentPosition,
+      targettedPosition: report.targettedPosition,
+      comment: report.comment,
+      rank: report.rank,
+      rules: report.rules,
     };
   }
 
   async list(): Promise<NominationFileListItem[]> {
-    console.log("API URL:", import.meta.env.VITE_API_URL);
-    const response = await apiSdk.functional.api.reports.getReports({
-      host: import.meta.env.VITE_API_URL,
-    });
+    const response = await this.nominationFileApiClient.list();
     return response.data.map((item) => ({
       id: item.id,
-      title: item.title,
+      name: item.name,
       dueDate: item.dueDate,
+      state: item.state,
+      formation: item.formation,
+      transparency: item.transparency,
+      grade: item.grade,
+      targettedPosition: item.targettedPosition,
     }));
   }
 }

@@ -7,6 +7,7 @@ export const Card: React.FC<PropsWithChildren> = ({ children }) => {
     <div
       className={clsx(
         "bg-white rounded-lg",
+        "space-y-2",
         cx("fr-col-10", "fr-col-md-7", "fr-px-3w", "fr-py-2w"),
       )}
     >

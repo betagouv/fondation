@@ -1,4 +1,5 @@
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileBuilder } from "../../../core-logic/builders/NominationFile.builder";
 import { listNominationFile } from "../../../core-logic/use-cases/nomination-file-listing/listNominationFile.use-case";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
@@ -54,26 +55,40 @@ describe("Select Nomination Case List", () => {
 
   const aNominationFile = new NominationFileBuilder()
     .withId("nomination-file-id")
-    .withTitle("Lucien Denan")
-    .withDueDate("2030-10-30")
+    .withName("Lucien Denan")
+    .withDueDate(new DateOnly(2030, 10, 30))
     .build();
   const aNominationFileVM: NominationFileListItemVM = {
     id: "nomination-file-id",
-    title: "Lucien Denan",
+    name: "Lucien Denan",
     dueDate: "30/10/2030",
+
+    state: "Nouveau",
+    formation: "Parquet",
+    transparency: "transparence de mars 2025",
+    grade: "I",
+    targettedPosition: "PG TJ Marseille",
+
     href: "/dossier-de-nomination/nomination-file-id",
     onClick,
   };
 
   const anotherNominationFile = new NominationFileBuilder()
     .withId("another-nomination-file-id")
-    .withTitle("Another name")
-    .withDueDate("2030-10-10")
+    .withName("Another name")
+    .withDueDate(new DateOnly(2030, 10, 10))
     .build();
   const anotherNominationFileVM: NominationFileListItemVM = {
     id: "another-nomination-file-id",
-    title: "Another name",
+    name: "Another name",
     dueDate: "10/10/2030",
+
+    state: "Nouveau",
+    formation: "Parquet",
+    transparency: "transparence de mars 2025",
+    grade: "I",
+    targettedPosition: "PG TJ Marseille",
+
     href: "/dossier-de-nomination/another-nomination-file-id",
     onClick,
   };

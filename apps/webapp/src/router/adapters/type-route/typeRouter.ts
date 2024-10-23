@@ -35,6 +35,9 @@ export class TypeRouterProvider implements RouterProvider {
   getLoginHref(): string {
     return routes.login().href;
   }
+  getNominationFileListHref(): string {
+    return routes.nominationCaseList().href;
+  }
 
   getNominationFileOverviewAnchorAttributes(id: string) {
     return routes.nominationFileOverview({ id }).link;

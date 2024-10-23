@@ -1,36 +1,38 @@
+import { Magistrat, NominationFile, Transparency } from "@/shared-models";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
+import { DateOnlyStoreModel } from "../../shared-kernel/core-logic/models/date-only";
 
-export interface NominationFile {
+export interface NominationFileSM {
   id: string;
-  title: string;
+  state: NominationFile.ReportState;
+  formation: Magistrat.Formation;
+  name: string;
   biography: string;
-  dueDate: string | null;
-  rules: {
-    management: {
-      TRANSFER_TIME: boolean;
-      GETTING_FIRST_GRADE: boolean;
-      GETTING_GRADE_HH: boolean;
-      GETTING_GRADE_IN_PLACE: boolean;
-      PROFILED_POSITION: boolean;
-      CASSATION_COURT_NOMINATION: boolean;
-      OVERSEAS_TO_OVERSEAS: boolean;
-      JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: boolean;
-      JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: boolean;
-    };
-  };
+  dueDate: DateOnlyStoreModel | null;
+  birthDate: DateOnlyStoreModel;
+  transparency: Transparency;
+  grade: Magistrat.Grade;
+  currentPosition: string;
+  targettedPosition: string;
+  rank: string;
+  comment: string | null;
+  rules: NominationFile.Rules;
 }
 export type NominationFileListItem = Pick<
-  NominationFile,
-  "id" | "title" | "dueDate"
+  NominationFileSM,
+  | "id"
+  | "state"
+  | "dueDate"
+  | "formation"
+  | "name"
+  | "transparency"
+  | "grade"
+  | "targettedPosition"
 >;
 
-export type RuleGroup = keyof NominationFile["rules"];
-export type ManagementRuleName = keyof NominationFile["rules"]["management"];
-export type RuleName = ManagementRuleName;
-
 export interface AppState {
-  nominationFileOverview: { byIds: Record<string, NominationFile> | null };
+  nominationFileOverview: { byIds: Record<string, NominationFileSM> | null };
   nominationCaseList: { data: NominationFileListItem[] | null };
   authentication: {
     authenticated: boolean;
@@ -39,6 +41,7 @@ export interface AppState {
   router: {
     hrefs: {
       login: string;
+      nominationFileList: string;
     };
     anchorsAttributes: {
       nominationFileOverview: (id: string) => {

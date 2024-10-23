@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "../../store/appState";
 import { retrieveNominationFile } from "../use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
 import { updateNominationRule } from "../use-cases/nomination-rule-update/updateNominationRule.use-case";
+import { NominationFile } from "@/shared-models";
+import { updateNominationFile } from "../use-cases/nomination-file-update/updateNominationFile.use-case";
 
 const initialState: AppState["nominationFileOverview"] = { byIds: null };
 
@@ -15,23 +17,51 @@ const nominationCaseOverviewSlice = createSlice({
         state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
     });
 
-    builder.addCase(updateNominationRule.fulfilled, (state, action) => {
-      const nominationFile = state.byIds?.[action.payload.id];
+    builder.addCase(updateNominationFile.fulfilled, (state, action) => {
+      const { reportId, data } = action.payload;
+      const nominationFile = state.byIds?.[reportId];
 
-      if (nominationFile)
-        state.byIds = {
-          ...state.byIds,
-          [action.payload.id]: {
-            ...nominationFile,
-            rules: {
-              ...nominationFile.rules,
-              [action.payload.ruleGroup]: {
-                ...nominationFile.rules[action.payload.ruleGroup],
-                [action.payload.ruleName]: action.payload.validated,
-              },
-            },
+      if (nominationFile) {
+        state.byIds![reportId] = { ...nominationFile, ...data };
+      }
+    });
+
+    builder.addCase(updateNominationRule.fulfilled, (state, action) => {
+      const { reportId, ruleId, validated } = action.payload;
+      const nominationFile = state.byIds?.[reportId];
+
+      if (nominationFile) {
+        Object.entries(nominationFile.rules).forEach(
+          ([ruleGroup, ruleEntry]) => {
+            Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
+              if (rule.id === ruleId) {
+                state.byIds![reportId] = {
+                  ...nominationFile,
+                  rules: {
+                    ...nominationFile.rules,
+                    [ruleGroup]: {
+                      ...nominationFile.rules[
+                        ruleGroup as NominationFile.RuleGroup
+                      ],
+                      [ruleName]: {
+                        ...(
+                          nominationFile.rules[
+                            ruleGroup as NominationFile.RuleGroup
+                          ] as Record<
+                            NominationFile.RuleName,
+                            NominationFile.RuleValue
+                          >
+                        )[ruleName as NominationFile.RuleName],
+                        validated,
+                      },
+                    },
+                  },
+                };
+              }
+            });
           },
-        };
+        );
+      }
     });
   },
 });

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -18,6 +18,7 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
     "plugins": [
       {
         "transform": "@nestia/core/lib/transform",
@@ -50,6 +51,8 @@
       {
         "transform": "typia/lib/transform"
       }
-    ]
-  }
+    ],
+  },
+  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts"],
+  "references":[{"path": "../../packages/shared-models"}],
 }

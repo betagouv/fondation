@@ -1,20 +1,19 @@
-import { ReportRepository } from '../../gateways/repositories/report.repository';
-import { NominationFileRuleName } from '../../models/nomination-file-report';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 
 export class ChangeRuleValidationStateUseCase {
   constructor(
-    private readonly nominationFileReportRepository: ReportRepository,
+    private readonly reportRuleRepository: ReportRuleRepository,
+    private readonly transactionPerformer: TransactionPerformer,
   ) {}
 
-  async execute(
-    reportId: string,
-    rule: NominationFileRuleName,
-    validated: boolean,
-  ) {
-    const report = await this.nominationFileReportRepository.byId(reportId);
-    if (report) {
-      report.managementRules[rule] = { validated };
-      await this.nominationFileReportRepository.save(report);
-    }
+  async execute(id: string, validated: boolean) {
+    return this.transactionPerformer.perform(async (trx) => {
+      const reportRule = await this.reportRuleRepository.byId(id)(trx);
+      if (reportRule) {
+        reportRule.validate(validated);
+        await this.reportRuleRepository.save(reportRule)(trx);
+      }
+    });
   }
 }

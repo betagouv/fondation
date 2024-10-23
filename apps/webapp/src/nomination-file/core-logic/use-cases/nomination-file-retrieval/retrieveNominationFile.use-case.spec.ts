@@ -1,5 +1,5 @@
 import { FakeNominationFileGateway } from "../../../adapters/secondary/gateways/FakeNominationFile.gateway";
-import { AppState, NominationFile } from "../../../store/appState";
+import { AppState } from "../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { NominationFileBuilder } from "../../builders/NominationFile.builder";
 import { retrieveNominationFile } from "./retrieveNominationFile.use-case";
@@ -13,7 +13,7 @@ describe("Retrieve Nomination Case", () => {
     nominationCaseGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationCaseGateway,
+        nominationFileGateway: nominationCaseGateway,
       },
       {},
       {},
@@ -22,7 +22,7 @@ describe("Retrieve Nomination Case", () => {
   });
 
   it("retrieve a nomination file", async () => {
-    nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
+    nominationCaseGateway.addNominationFile(aNomination);
     await store.dispatch(retrieveNominationFile("nomination-file-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
@@ -31,7 +31,7 @@ describe("Retrieve Nomination Case", () => {
   });
 
   it("has two nomination cases in the store after retrieving a second one", async () => {
-    nominationCaseGateway.nominationFiles["nomination-file-id"] = aNomination;
+    nominationCaseGateway.addNominationFile(aNomination);
     store.dispatch(retrieveNominationFile.fulfilled(anotherNomination, "", ""));
 
     await store.dispatch(retrieveNominationFile("nomination-file-id"));
@@ -48,7 +48,7 @@ describe("Retrieve Nomination Case", () => {
   });
 });
 
-const aNomination: NominationFile = new NominationFileBuilder().build();
+const aNomination = new NominationFileBuilder().build();
 
 const anotherNomination = new NominationFileBuilder()
   .withId("another-nomination-file-id")

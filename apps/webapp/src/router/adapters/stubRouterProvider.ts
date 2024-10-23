@@ -6,7 +6,10 @@ export class StubRouterProvider implements RouterProvider {
   goToLogin = () => {};
   goToNominationFileList = () => {};
   gotToNominationFileOverview = () => {};
+
   getLoginHref = () => "";
+  getNominationFileListHref = () => "stub-nomination-file-list-href";
+
   getNominationFileOverviewAnchorAttributes = (id: string) => {
     return {
       href: "/dossier-de-nomination/" + id,

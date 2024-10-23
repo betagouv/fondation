@@ -1,6 +1,7 @@
-import { FakeReportListingVMRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-report-listing-vm.repository';
-import { ReportListItemVM } from '../../models/reports-listing-vm';
+import { FakeReportListingVMRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-report-listing-vm.repository';
+import { ReportListItemVM } from '@/shared-models';
 import { ListReportsUseCase } from './list-reports.use-case';
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 
 describe('List reports', () => {
   let reportListingVMRepository: FakeReportListingVMRepository;
@@ -28,7 +29,16 @@ describe('List reports', () => {
 
   const aReport: ReportListItemVM = {
     id: '1',
-    title: 'a title',
-    dueDate: '2030-10-05',
+    state: NominationFile.ReportState.NEW,
+    dueDate: {
+      year: 2030,
+      month: 10,
+      day: 5,
+    },
+    formation: Magistrat.Formation.PARQUET,
+    name: 'a name',
+    transparency: Transparency.MARCH_2025,
+    grade: Magistrat.Grade.HH,
+    targettedPosition: 'a position',
   };
 });

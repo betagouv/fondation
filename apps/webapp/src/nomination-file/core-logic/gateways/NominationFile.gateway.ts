@@ -1,16 +1,11 @@
-import {
-  NominationFile,
-  NominationFileListItem,
-  RuleName,
-} from "../../store/appState";
+import { NominationFileListItem, NominationFileSM } from "../../store/appState";
 
 export interface NominationFileGateway {
   list(): Promise<NominationFileListItem[]>;
-  updateRule(
-    nominationCaseId: string,
-    ruleGroup: string,
-    ruleName: RuleName,
-    validated: boolean,
+  updateNominationFile(
+    reportId: string,
+    data: Partial<Pick<NominationFileSM, "biography" | "comment">>,
   ): Promise<void>;
-  retrieveNominationFile(id: string): Promise<NominationFile | null>;
+  updateRule(ruleId: string, validated: boolean): Promise<void>;
+  retrieveNominationFile(id: string): Promise<NominationFileSM | null>;
 }

@@ -17,6 +17,9 @@ export const createRouterSlice = ({
     initialState: (): AppState["router"] => ({
       hrefs: {
         login: routerProvider?.getLoginHref() ?? "login",
+        nominationFileList:
+          routerProvider?.getNominationFileListHref() ??
+          "nomination-file-list-href",
       },
       anchorsAttributes: {
         nominationFileOverview:

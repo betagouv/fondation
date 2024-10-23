@@ -1,63 +1,159 @@
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import {
-  NominationFileReport,
-  NominationFileRuleName,
-} from './nomination-file-report';
+import { NominationFileReport } from './nomination-file-report';
+import { ReportRetrievalVM } from '@/shared-models';
+import { ReportListItemVM } from '@/shared-models';
 
 export class ReportBuilder {
   private id: string;
-  private firstName: string;
-  private lastName: string;
   private biography: string;
   private dueDate: DateOnly | null;
-  private managementRules: NominationFileReport['managementRules'];
+  private name: string;
+  private birthDate: DateOnly;
+  private state: NominationFile.ReportState;
+  private formation: Magistrat.Formation;
+  private transparency: Transparency;
+  private grade: Magistrat.Grade;
+  private currentPosition: string;
+  private targettedPosition: string;
+  private comment: string | null;
+  private rank: string;
 
   constructor() {
     this.id = 'report-id';
-    this.firstName = 'John';
-    this.lastName = 'Doe';
+    this.name = 'John Doe';
     this.biography = 'Biography';
     this.dueDate = new DateOnly(2030, 1, 1);
-    this.managementRules = {
-      [NominationFileRuleName.TRANSFER_TIME]: { validated: true },
-      [NominationFileRuleName.GETTING_FIRST_GRADE]: { validated: true },
-      [NominationFileRuleName.GETTING_GRADE_HH]: { validated: true },
-      [NominationFileRuleName.GETTING_GRADE_IN_PLACE]: { validated: true },
-      [NominationFileRuleName.PROFILED_POSITION]: { validated: true },
-      [NominationFileRuleName.CASSATION_COURT_NOMINATION]: { validated: true },
-      [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: { validated: true },
-      [NominationFileRuleName.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: {
-        validated: true,
-      },
-      [NominationFileRuleName.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]: {
-        validated: true,
-      },
-    };
+    this.birthDate = new DateOnly(1980, 1, 1);
+    this.state = NominationFile.ReportState.NEW;
+    this.formation = Magistrat.Formation.SIEGE;
+    this.transparency = Transparency.MARCH_2025;
+    this.grade = Magistrat.Grade.I;
+    this.currentPosition = 'Procureur TJ -Lyon';
+    this.targettedPosition = 'Juge TJ -Marseille';
+    this.comment = 'my comment';
+    this.rank = '(2 sur une liste de 100)';
   }
 
   withId(id: string): this {
     this.id = id;
     return this;
   }
+  withName(name: string) {
+    this.name = name;
+    return this;
+  }
   withBiography(biography: string) {
     this.biography = biography;
     return this;
   }
-  withOverseasToOverseasRuleValidated(validated: boolean): this {
-    this.managementRules[NominationFileRuleName.OVERSEAS_TO_OVERSEAS] = {
-      validated,
-    };
+  withDueDate(dueDate: DateOnly | null) {
+    this.dueDate = dueDate;
+    return this;
+  }
+  withBirthDate(birthDate: DateOnly) {
+    this.birthDate = birthDate;
+    return this;
+  }
+  withFormation(formation: Magistrat.Formation) {
+    this.formation = formation;
+    return this;
+  }
+  withState(state: NominationFile.ReportState) {
+    this.state = state;
+    return this;
+  }
+  withGrade(grade: Magistrat.Grade) {
+    this.grade = grade;
+    return this;
+  }
+  withTransparency(transparency: Transparency) {
+    this.transparency = transparency;
+    return this;
+  }
+  withTargettedPosition(targettedPosition: string) {
+    this.targettedPosition = targettedPosition;
+    return this;
+  }
+  withCurrentPosition(currentPosition: string) {
+    this.currentPosition = currentPosition;
+    return this;
+  }
+
+  withComment(comment: string | null) {
+    this.comment = comment;
+    return this;
+  }
+  withRank(rank: string) {
+    this.rank = rank;
     return this;
   }
 
   build(): NominationFileReport {
     return {
       id: this.id,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      name: this.name,
       biography: this.biography,
       dueDate: this.dueDate,
-      managementRules: this.managementRules,
+      birthDate: this.birthDate,
+      state: this.state,
+      formation: this.formation,
+      transparency: this.transparency,
+      grade: this.grade,
+      currentPosition: this.currentPosition,
+      targettedPosition: this.targettedPosition,
+      comment: this.comment,
+      rank: this.rank,
     };
+  }
+
+  static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {
+    return new ReportBuilder()
+      .withId(reportListingVM.id)
+      .withState(reportListingVM.state)
+      .withDueDate(
+        reportListingVM.dueDate
+          ? new DateOnly(
+              reportListingVM.dueDate.year,
+              reportListingVM.dueDate.month,
+              reportListingVM.dueDate.day,
+            )
+          : null,
+      )
+      .withFormation(reportListingVM.formation)
+      .withName(reportListingVM.name)
+      .withTransparency(reportListingVM.transparency)
+      .withGrade(reportListingVM.grade)
+      .withTargettedPosition(reportListingVM.targettedPosition);
+  }
+  static fromRetrievalVM(reportRetrievalVM: ReportRetrievalVM): ReportBuilder {
+    return new ReportBuilder()
+      .withId(reportRetrievalVM.id)
+      .withBiography(reportRetrievalVM.biography)
+      .withState(reportRetrievalVM.state)
+      .withDueDate(
+        reportRetrievalVM.dueDate
+          ? new DateOnly(
+              reportRetrievalVM.dueDate.year,
+              reportRetrievalVM.dueDate.month,
+              reportRetrievalVM.dueDate.day,
+            )
+          : null,
+      )
+      .withBirthDate(
+        new DateOnly(
+          reportRetrievalVM.birthDate.year,
+          reportRetrievalVM.birthDate.month,
+          reportRetrievalVM.birthDate.day,
+        ),
+      )
+      .withFormation(reportRetrievalVM.formation)
+      .withName(reportRetrievalVM.name)
+      .withTransparency(reportRetrievalVM.transparency)
+      .withGrade(reportRetrievalVM.grade)
+      .withCurrentPosition(reportRetrievalVM.currentPosition)
+      .withTargettedPosition(reportRetrievalVM.targettedPosition)
+      .withComment(reportRetrievalVM.comment)
+      .withRank(reportRetrievalVM.rank);
   }
 }

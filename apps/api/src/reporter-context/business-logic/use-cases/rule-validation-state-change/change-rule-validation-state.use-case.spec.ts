@@ -1,16 +1,18 @@
+import { NominationFile } from '@/shared-models';
+import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { ReportRule, ReportRuleSnapshot } from '../../models/report-rules';
+import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';
-import { ReportBuilder } from '../../models/report.builder';
-import {
-  NominationFileReport,
-  NominationFileRuleName,
-} from '../../models/nomination-file-report';
-import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/repositories/fake-nomination-file-report.repository';
 
 describe('Change Rule Validation State', () => {
-  let nominationFileReportRepository: FakeNominationFileReportRepository;
+  let reportRuleRepository: FakeReportRuleRepository;
+  let transactionPerformer: TransactionPerformer;
 
   beforeEach(() => {
-    nominationFileReportRepository = new FakeNominationFileReportRepository();
+    reportRuleRepository = new FakeReportRuleRepository();
+    transactionPerformer = new NullTransactionPerformer();
   });
 
   const testData = [
@@ -20,51 +22,56 @@ describe('Change Rule Validation State', () => {
   it.each(testData)(
     'switch an oversea to oversea rule validation state from $initialValidationState to $expectValidated',
     async ({ initialValidationState, expectValidated }) => {
-      const aReport = givenSomeReportExistWithTestedRuleAt(
+      const aReportRule = givenSomeReportRuleExistWithValidatedAt(
         initialValidationState,
       );
+      const aReportRuleSnapshot = aReportRule.toSnapshot();
 
       const changeRuleValidationStateUseCase =
-        new ChangeRuleValidationStateUseCase(nominationFileReportRepository);
+        new ChangeRuleValidationStateUseCase(
+          reportRuleRepository,
+          transactionPerformer,
+        );
 
       await changeRuleValidationStateUseCase.execute(
-        aReport.id,
-        NominationFileRuleName.OVERSEAS_TO_OVERSEAS,
+        aReportRuleSnapshot.id,
         expectValidated,
       );
 
-      await expectChangedRuleValidationState(aReport, expectValidated);
+      expectChangedRuleValidationState(aReportRuleSnapshot, expectValidated);
     },
   );
 
-  const givenSomeReportExistWithTestedRuleAt = (
+  const givenSomeReportRuleExistWithValidatedAt = (
     initialValidationState: boolean,
-  ): NominationFileReport => {
-    const aReport = new ReportBuilder()
+  ): ReportRule => {
+    const aReportRule = new ReportRuleBuilder()
       .withOverseasToOverseasRuleValidated(initialValidationState)
       .build();
+    const aReportRuleSnapshot = aReportRule.toSnapshot();
 
-    nominationFileReportRepository.reports = {
-      [aReport.id]: aReport,
+    reportRuleRepository.reportRules = {
+      [aReportRuleSnapshot.id]: aReportRule,
     };
 
-    return aReport;
+    return aReportRule;
   };
 
-  const expectChangedRuleValidationState = async (
-    report: NominationFileReport,
+  const expectChangedRuleValidationState = (
+    reportRuleSnapshot: ReportRuleSnapshot,
     expectValidated: boolean,
   ) => {
-    const savedReport = await nominationFileReportRepository.byId(report.id);
-
-    expect(savedReport).toEqual({
-      ...report,
-      managementRules: {
-        ...report.managementRules,
-        [NominationFileRuleName.OVERSEAS_TO_OVERSEAS]: {
-          validated: expectValidated,
-        },
-      },
-    });
+    const savedReport = reportRuleRepository.reportRules[reportRuleSnapshot.id];
+    expect(savedReport).toEqual(
+      new ReportRule(
+        reportRuleSnapshot.id,
+        reportRuleSnapshot.reportId,
+        NominationFile.RuleGroup.MANAGEMENT,
+        NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
+        reportRuleSnapshot.preValidated,
+        expectValidated,
+        reportRuleSnapshot.comment,
+      ),
+    );
   };
 });

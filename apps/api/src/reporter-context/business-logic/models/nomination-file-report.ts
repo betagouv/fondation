@@ -1,6 +1,7 @@
+import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
-export enum NominationFileRuleName {
+export enum NominationFileManagementRule {
   TRANSFER_TIME = 'TRANSFER_TIME',
   GETTING_FIRST_GRADE = 'GETTING_FIRST_GRADE',
   GETTING_GRADE_HH = 'GETTING_GRADE_HH',
@@ -12,18 +13,20 @@ export enum NominationFileRuleName {
   JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT = 'JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT',
 }
 
-export type NominationFileRules = Record<
-  NominationFileRuleName,
-  { validated: boolean }
->;
-
 export class NominationFileReport {
   constructor(
     readonly id: string,
-    readonly firstName: string,
-    readonly lastName: string,
-    readonly dueDate: DateOnly | null,
     readonly biography: string,
-    readonly managementRules: NominationFileRules,
+    readonly dueDate: DateOnly | null,
+    readonly name: string,
+    readonly birthDate: DateOnly,
+    readonly state: NominationFile.ReportState,
+    readonly formation: Magistrat.Formation,
+    readonly transparency: Transparency,
+    readonly grade: Magistrat.Grade,
+    readonly currentPosition: string,
+    readonly targettedPosition: string,
+    readonly comment: string | null,
+    readonly rank: string,
   ) {}
 }

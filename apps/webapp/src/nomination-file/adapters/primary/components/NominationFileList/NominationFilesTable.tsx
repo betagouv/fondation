@@ -11,13 +11,26 @@ export const NominationFilesTable: React.FC<NominationFilesTableProps> = ({
 }) => (
   <Table
     id="nomination-files-table"
-    headers={["Echéance", "Magistrat concerné"]}
+    headers={[
+      "Etat",
+      "Echéance",
+      "Formation",
+      "Magistrat concerné",
+      "transparence",
+      "Grade visé",
+      "Poste ciblé",
+    ]}
     bordered
     data={nominationFiles.map((nominationFile) => [
+      <div>{nominationFile.state}</div>,
       <div>{nominationFile.dueDate}</div>,
+      <div>{nominationFile.formation}</div>,
       <a href={nominationFile.href} onClick={nominationFile.onClick}>
-        {nominationFile.title}
+        {nominationFile.name}
       </a>,
+      <div>{nominationFile.transparency}</div>,
+      <div>{nominationFile.grade}</div>,
+      <div>{nominationFile.targettedPosition}</div>,
     ])}
   />
 );
