@@ -7,7 +7,8 @@
     "format:check": "pnpm run -r format:check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
-    "build": "pnpm run -r build"
+    "build": "pnpm run -r build",
+    "dev": "pnpm run -r dev"
   },
   "keywords": [],
   "author": "",

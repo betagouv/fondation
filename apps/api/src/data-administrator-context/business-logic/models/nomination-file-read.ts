@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 
 export type NominationFileRead = {

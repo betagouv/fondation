@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from "@/shared-models";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../../shared-kernel/core-logic/models/date-only";

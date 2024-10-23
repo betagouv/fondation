@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import {

@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
 import { getAllRulesPreValidated } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';

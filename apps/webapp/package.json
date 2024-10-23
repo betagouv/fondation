@@ -4,12 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build:deps": "concurrently \"pnpm --filter api gen-sdk\" \"pnpm --filter @/shared-models build:esm\" \"pnpm dsfr:build\"",
-    "build:deps:watch": "pnpm --filter @/shared-models build:esm:watch",
-    "prebuild": "pnpm build:deps",
     "build": "vite build",
-    "predev": "pnpm build:deps",
-    "dev": "concurrently \"pnpm build:deps:watch\" \"vite\"",
+    "dev": "vite",
     "lint:check": "eslint .",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",
@@ -21,8 +17,8 @@
     "dsfr:build": "react-dsfr update-icons"
   },
   "dependencies": {
-    "@/api-sdk": "workspace:*",
-    "@/shared-models": "workspace:*",
+    "api-sdk": "workspace:*",
+    "shared-models": "workspace:*",
     "@codegouvfr/react-dsfr": "^1.13.6",
     "@reduxjs/toolkit": "^2.2.7",
     "clsx": "^2.1.1",

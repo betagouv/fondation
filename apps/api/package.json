@@ -6,15 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "pnpm build:deps",
     "build": "nest build",
-    "build:deps": "pnpm --filter @/shared-models build:cjs",
-    "build:deps:watch": "pnpm --filter @/shared-models build:cjs:watch",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "start": "nest start",
-    "predev": "pnpm build:deps",
-    "dev": "concurrently \"pnpm build:deps:watch\" \"nest start --watch\"",
+    "predev": "pnpm --filter shared-models build:watch",
+    "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -38,7 +35,7 @@
     "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js"
   },
   "dependencies": {
-    "@/shared-models": "workspace:*",
+    "shared-models": "workspace:*",
     "@nestia/core": "^3.17.0",
     "@nestia/sdk": "^3.17.0",
     "@nestjs/common": "^10.0.0",

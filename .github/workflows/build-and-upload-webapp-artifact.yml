@@ -26,9 +26,9 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --recursive --frozen-lockfile
+        run: pnpm --filter webapp... install --frozen-lockfile
       - name: Build webapp
-        run: pnpm --filter webapp build
+        run: pnpm --filter webapp... build
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
 

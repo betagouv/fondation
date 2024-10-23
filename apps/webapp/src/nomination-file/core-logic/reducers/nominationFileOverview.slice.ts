@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "../../store/appState";
 import { retrieveNominationFile } from "../use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
 import { updateNominationRule } from "../use-cases/nomination-rule-update/updateNominationRule.use-case";
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { updateNominationFile } from "../use-cases/nomination-file-update/updateNominationFile.use-case";
 
 const initialState: AppState["nominationFileOverview"] = { byIds: null };

@@ -1,8 +1,8 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from './nomination-file-report';
-import { ReportRetrievalVM } from '@/shared-models';
-import { ReportListItemVM } from '@/shared-models';
+import { ReportRetrievalVM } from 'shared-models';
+import { ReportListItemVM } from 'shared-models';
 
 export class ReportBuilder {
   private id: string;

@@ -1,4 +1,4 @@
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { FakeNominationFileGateway } from "../../../adapters/secondary/gateways/FakeNominationFile.gateway";
 import { AppState, NominationFileSM } from "../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../store/reduxStore";

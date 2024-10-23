@@ -1,4 +1,4 @@
-import { NominationFile } from '@/shared-models';
+import { NominationFile } from 'shared-models';
 import { ReportRule } from './report-rules';
 
 export class ReportRuleBuilder {

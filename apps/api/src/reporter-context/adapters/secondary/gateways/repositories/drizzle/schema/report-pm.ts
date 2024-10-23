@@ -7,7 +7,7 @@ import {
   transparencyEnum,
 } from './enums.drizzle';
 import { reportsContextSchema } from './reports-context-schema.drizzle';
-import { NominationFile } from '@/shared-models';
+import { NominationFile } from 'shared-models';
 
 export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')

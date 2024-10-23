@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 export const reportStateEnum = pgEnum(

@@ -1,10 +1,12 @@
 {
-  "name": "@/api-sdk",
+  "name": "api-sdk",
   "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "generated/index.ts",
-  "scripts": {},
+  "scripts": {
+    "build": "pnpm --filter api gen-sdk"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

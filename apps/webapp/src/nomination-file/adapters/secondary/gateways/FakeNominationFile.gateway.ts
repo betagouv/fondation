@@ -1,4 +1,4 @@
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
 import {
   NominationFileListItem,

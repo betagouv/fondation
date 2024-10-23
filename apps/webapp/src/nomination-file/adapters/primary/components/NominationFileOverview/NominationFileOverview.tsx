@@ -1,4 +1,4 @@
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { useEffect } from "react";

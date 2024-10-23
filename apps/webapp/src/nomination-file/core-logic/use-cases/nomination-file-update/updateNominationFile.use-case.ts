@@ -1,4 +1,4 @@
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
 
 export type UpdateNominationFileParams = {

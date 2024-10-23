@@ -7,7 +7,7 @@ import {
   ReportUpdateData,
   UpdateReportUseCase,
 } from './update-report.use-case';
-import { NominationFile } from '@/shared-models';
+import { NominationFile } from 'shared-models';
 
 const aReport = new ReportBuilder().build();
 

@@ -1,4 +1,4 @@
-import { NominationFile } from "@/shared-models";
+import { NominationFile } from "shared-models";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import {

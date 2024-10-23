@@ -3,7 +3,7 @@ import {
   NominationFile,
   ruleGroupToRuleNames,
   Transparency,
-} from "@/shared-models";
+} from "shared-models";
 import { createSelector } from "@reduxjs/toolkit";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { AppState } from "../../../store/appState";

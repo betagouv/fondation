@@ -5,7 +5,7 @@ import {
   ReportRetrievalVM,
   rulesTuple,
   Transparency,
-} from '@/shared-models';
+} from 'shared-models';
 import { HttpStatus } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';

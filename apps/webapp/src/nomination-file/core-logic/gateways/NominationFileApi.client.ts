@@ -1,5 +1,5 @@
-import { ReportUpdateDto } from "@/api-sdk/generated/structures/ReportUpdateDto";
-import { ReportListingVM, ReportRetrievalVM } from "@/shared-models";
+import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
+import { ReportListingVM, ReportRetrievalVM } from "shared-models";
 
 export interface NominationFileApiClient {
   list(): Promise<ReportListingVM>;

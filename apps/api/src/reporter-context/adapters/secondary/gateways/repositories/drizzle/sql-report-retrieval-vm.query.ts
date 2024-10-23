@@ -1,4 +1,4 @@
-import { NominationFile, ReportRetrievalVM } from '@/shared-models';
+import { NominationFile, ReportRetrievalVM } from 'shared-models';
 import { eq } from 'drizzle-orm';
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';

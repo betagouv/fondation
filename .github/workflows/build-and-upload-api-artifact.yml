@@ -21,9 +21,9 @@ jobs:
           node-version: "20.9.0"
           cache: "pnpm"
       - name: Install dependencies
-        run: pnpm --filter api install --frozen-lockfile
+        run: pnpm --filter api... install --frozen-lockfile
       - name: Build api
-        run: pnpm --filter api build
+        run: pnpm --filter api... build
       - name: Create Archive
         run: ./apps/api/scripts/build-for-scalingo.sh
       - name: Archive dist

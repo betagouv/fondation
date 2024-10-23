@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from "@/shared-models";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
 import {

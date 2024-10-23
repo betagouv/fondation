@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from "@/shared-models";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../store/createAppSelector";
 

@@ -1,4 +1,4 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 export enum NominationFileManagementRule {

@@ -1,6 +1,6 @@
-import * as apiSdk from "@/api-sdk";
-import { ReportUpdateDto } from "@/api-sdk/generated/structures/ReportUpdateDto";
-import { ReportListingVM, ReportRetrievalVM } from "@/shared-models";
+import * as apiSdk from "api-sdk";
+import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
+import { ReportListingVM, ReportRetrievalVM } from "shared-models";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
 
 const reportsSdk = apiSdk.functional.api.reports;

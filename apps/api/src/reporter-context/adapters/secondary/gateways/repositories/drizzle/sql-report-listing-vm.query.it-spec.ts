@@ -1,4 +1,4 @@
-import { ReportListingVM } from '@/shared-models';
+import { ReportListingVM } from 'shared-models';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';

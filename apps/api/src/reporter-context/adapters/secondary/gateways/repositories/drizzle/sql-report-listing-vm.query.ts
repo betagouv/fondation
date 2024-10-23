@@ -1,4 +1,4 @@
-import { ReportListingVM } from '@/shared-models';
+import { ReportListingVM } from 'shared-models';
 import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-listing-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';

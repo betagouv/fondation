@@ -3,7 +3,7 @@ import {
   NominationFile,
   ReportRetrievalVM,
   Transparency,
-} from "@/shared-models";
+} from "shared-models";
 import { ApiNominationFileGateway } from "./ApiNominationFile.gateway";
 import { FakeNominationFileApiClient } from "./FakeNominationFile.client";
 import { NominationFileListItem } from "../../../store/appState";

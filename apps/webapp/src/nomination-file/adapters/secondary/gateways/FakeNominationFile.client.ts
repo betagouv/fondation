@@ -3,9 +3,9 @@ import {
   ReportListingVM,
   ReportRetrievalVM,
   rulesTuple,
-} from "@/shared-models";
+} from "shared-models";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
-import { ReportUpdateDto } from "@/api-sdk/generated/structures/ReportUpdateDto";
+import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
 
 export class FakeNominationFileApiClient implements NominationFileApiClient {
   nominationFiles: Record<string, ReportRetrievalVM> = {};

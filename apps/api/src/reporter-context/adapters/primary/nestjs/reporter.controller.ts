@@ -1,4 +1,4 @@
-import { ReportListingVM, ReportRetrievalVM } from '@/shared-models';
+import { ReportListingVM, ReportRetrievalVM } from 'shared-models';
 import { TypedBody, TypedParam, TypedRoute } from '@nestia/core';
 import { Controller } from '@nestjs/common';
 import { ListReportsUseCase } from 'src/reporter-context/business-logic/use-cases/report-listing/list-reports.use-case';

@@ -3,7 +3,7 @@ import {
   NominationFile,
   rulesTuple,
   Transparency,
-} from "@/shared-models";
+} from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileSM } from "../../store/appState";
 

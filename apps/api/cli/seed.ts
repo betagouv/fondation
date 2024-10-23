@@ -3,7 +3,7 @@ import {
   NominationFile,
   rulesTuple,
   Transparency,
-} from '@/shared-models';
+} from 'shared-models';
 import { NestFactory } from '@nestjs/core';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import {

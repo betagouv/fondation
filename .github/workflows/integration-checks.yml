@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build the shared models, necessary for the SDK generation
-        run: pnpm --filter @/shared-models build:cjs
+        run: pnpm --filter shared-models build
       - name: Generate SDK, necessary for the types check
         run: pnpm --filter api gen-sdk
       - name: Types check

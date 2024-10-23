@@ -23,5 +23,6 @@
 
     "types": ["vitest/globals"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [{ "path": "../../packages/shared-models" }]
 }
