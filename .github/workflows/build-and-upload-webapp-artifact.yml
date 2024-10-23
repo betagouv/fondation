@@ -26,7 +26,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm --filter webapp... install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build webapp
         run: pnpm --filter webapp... build
         env:
