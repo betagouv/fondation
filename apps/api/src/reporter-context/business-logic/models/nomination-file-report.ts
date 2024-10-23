@@ -16,7 +16,7 @@ export enum NominationFileManagementRule {
 export class NominationFileReport {
   constructor(
     readonly id: string,
-    readonly biography: string,
+    readonly biography: string | null,
     readonly dueDate: DateOnly | null,
     readonly name: string,
     readonly birthDate: DateOnly,

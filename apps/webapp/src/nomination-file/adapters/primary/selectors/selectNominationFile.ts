@@ -94,7 +94,7 @@ export class NominationFileVM {
   constructor(
     public id: string,
     public name: string,
-    public biography: string,
+    public biography: string | null,
     public dueDate: string | null,
     public birthDate: string,
     public state: NominationFile.ReportState,

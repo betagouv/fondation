@@ -8,7 +8,7 @@ export interface NominationFileSM {
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
   name: string;
-  biography: string;
+  biography: string | null;
   dueDate: DateOnlyStoreModel | null;
   birthDate: DateOnlyStoreModel;
   transparency: Transparency;

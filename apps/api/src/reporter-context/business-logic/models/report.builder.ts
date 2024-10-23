@@ -6,7 +6,7 @@ import { ReportListItemVM } from 'shared-models';
 
 export class ReportBuilder {
   private id: string;
-  private biography: string;
+  private biography: string | null;
   private dueDate: DateOnly | null;
   private name: string;
   private birthDate: DateOnly;
@@ -43,7 +43,7 @@ export class ReportBuilder {
     this.name = name;
     return this;
   }
-  withBiography(biography: string) {
+  withBiography(biography: string | null) {
     this.biography = biography;
     return this;
   }

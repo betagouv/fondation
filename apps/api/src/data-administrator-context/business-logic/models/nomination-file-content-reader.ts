@@ -76,15 +76,7 @@ export class NominationFileContentReader {
 
     const nominationFilesImportedEvent = new NominationFilesImportedEvent(
       nominationFilesImportedEventId,
-      contentRead.reduce(
-        (acc, content) => {
-          return {
-            ...acc,
-            [content.rowNumber]: content,
-          };
-        },
-        {} as Record<number, NominationFileRead>,
-      ),
+      { contents: contentRead.map(({ content }) => content) },
       currentDate,
     );
 

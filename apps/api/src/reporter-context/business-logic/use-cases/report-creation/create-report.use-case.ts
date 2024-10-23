@@ -21,7 +21,7 @@ export interface CreateReportPayload {
   targettedPosition: string;
   rank: string;
   birthDate: DateOnlyJson;
-  biography: string;
+  biography: string | null;
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       [key in NominationFile.ManagementRule]: boolean;
@@ -43,6 +43,7 @@ export class CreateReportUseCase {
     private readonly reportRuleRepository: ReportRuleRepository,
   ) {}
   async execute(createReportPayload: CreateReportPayload): Promise<void> {
+    console.log('use case: create report', createReportPayload);
     const reportId = this.uuidGenerator.generate();
 
     return this.transactionPerformer.perform(async (trx) => {
@@ -73,6 +74,7 @@ export class CreateReportUseCase {
           createReportPayload.rank,
         ),
       )(trx);
+      console.log('use case: report saved');
 
       const rulesRepositoryPromises = Object.entries(createReportPayload.rules)
         .map(([ruleGroup, rules]) =>
@@ -93,6 +95,7 @@ export class CreateReportUseCase {
         .flat();
 
       await Promise.all(rulesRepositoryPromises);
+      console.log('use case: rules saved', rulesRepositoryPromises.length);
     });
   }
 }

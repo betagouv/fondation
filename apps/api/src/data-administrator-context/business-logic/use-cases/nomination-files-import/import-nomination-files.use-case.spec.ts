@@ -70,7 +70,7 @@ describe('Import Nomination Files Use Case', () => {
     expectEvent(
       new NominationFilesImportedEvent(
         nominationFilesImportedEventId,
-        { 1: getMarcelDupontRead(1) },
+        { contents: [getMarcelDupontRead(1).content] },
         dateTimeProvider.currentDate,
       ),
     );

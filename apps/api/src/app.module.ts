@@ -5,9 +5,14 @@ import {
   DOMAIN_EVENTS_POLLER,
   SharedKernelModule,
 } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DataAdministrationContextModule } from './data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
 
 @Module({
-  imports: [ReporterModule, SharedKernelModule],
+  imports: [
+    DataAdministrationContextModule,
+    ReporterModule,
+    SharedKernelModule,
+  ],
   controllers: [],
   providers: [],
 })

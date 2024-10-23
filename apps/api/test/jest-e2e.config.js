@@ -6,7 +6,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
-  testMatch: ['**/src/**/*.e2e-spec.(ts)'],
+  testMatch: ['**/{src,cli}/**/*.e2e-spec.(ts)'],
   testEnvironment: 'node',
   modulePaths: ['<rootDir>'],
   collectCoverageFrom: [

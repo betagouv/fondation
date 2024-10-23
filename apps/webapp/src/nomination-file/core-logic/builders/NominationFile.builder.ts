@@ -10,7 +10,7 @@ import { NominationFileSM } from "../../store/appState";
 export class NominationFileBuilder {
   private id: string;
   private name: string;
-  private biography: string;
+  private biography: string | null;
   private rules: NominationFileSM["rules"];
   private dueDate: DateOnly | null;
   private birthDate: DateOnly;
