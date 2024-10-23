@@ -20,9 +20,8 @@ jobs:
         with:
           node-version: "20.9.0"
           cache: "pnpm"
-          cache-dependency-path: ./apps/api/pnpm-lock.yaml
       - name: Install dependencies
-        run: pnpm install --filter api --frozen-lockfile
+        run: pnpm --filter api install --frozen-lockfile
       - name: Build api
         run: pnpm --filter api build
       - name: Create Archive
