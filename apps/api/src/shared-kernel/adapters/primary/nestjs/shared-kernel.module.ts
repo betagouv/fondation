@@ -23,7 +23,7 @@ export const DOMAIN_EVENT_REPOSITORY = 'DOMAIN_EVENT_REPOSITORY';
 export const DOMAIN_EVENT_PUBLISHER = 'DOMAIN_EVENT_PUBLISHER';
 export const DOMAIN_EVENTS_POLLER = 'DOMAIN_EVENTS_POLLER';
 export const DRIZZLE_DB = 'DRIZZLE_DB';
-export const API_CONFIG = 'CONFIG';
+export const API_CONFIG = 'API_CONFIG';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
