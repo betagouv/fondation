@@ -1,16 +1,24 @@
 import { ConnectionConfig } from 'pg';
 import { defaultApiConfig } from '../../../primary/nestjs/env.';
 
-export const getDrizzleConfig = (
-  config: Required<
-    Pick<ConnectionConfig, 'host' | 'port' | 'user' | 'password' | 'database'>
-  >,
-): ConnectionConfig => config;
+export const getDrizzleConfig = <Prod extends boolean>(
+  config: Prod extends true
+    ? { url: Required<ConnectionConfig['connectionString']> }
+    : Required<
+        Pick<ConnectionConfig, 'host' | 'port' | 'user' | 'password'>
+      > & {
+        name: Required<ConnectionConfig['database']>;
+      },
+): ConnectionConfig => ({
+  ...config,
+  connectionTimeoutMillis: 10000,
+  statement_timeout: 1000,
+});
 
 export const drizzleConfigForTest = getDrizzleConfig({
   host: defaultApiConfig.database.host,
   port: 5435,
   user: defaultApiConfig.database.user,
   password: defaultApiConfig.database.password,
-  database: defaultApiConfig.database.name,
+  name: defaultApiConfig.database.name,
 });

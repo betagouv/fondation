@@ -1,5 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
-import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env.';
+import {
+  apiConfig,
+  defaultApiConfig,
+} from 'src/shared-kernel/adapters/primary/nestjs/env.';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -10,20 +13,22 @@ export default defineConfig({
   out: './drizzle',
   breakpoints: false,
   strict: true,
-  dbCredentials: {
-    host: isProduction ? process.env.DB_HOST! : defaultApiConfig.database.host,
-    port:
-      isProduction && process.env.DB_PORT!
-        ? Number(process.env.DB_PORT!)
-        : defaultApiConfig.database.port,
-    user: isProduction ? process.env.DB_USER! : defaultApiConfig.database.user,
-    password: isProduction
-      ? process.env.DB_PASSWORD!
-      : defaultApiConfig.database.password,
-    database: isProduction
-      ? process.env.DB_NAME!
-      : defaultApiConfig.database.name,
-
-    ssl: process.env.NODE_ENV === 'production',
-  },
+  dbCredentials: getDbCredentials(),
 });
+
+function getDbCredentials() {
+  if (isProduction) {
+    if (!apiConfig?.database?.url)
+      throw new Error('Database URL is required in production');
+    return { url: apiConfig.database.url };
+  } else {
+    return {
+      host: defaultApiConfig.database.host,
+      port: defaultApiConfig.database.port,
+      user: defaultApiConfig.database.user,
+      password: defaultApiConfig.database.password,
+      database: defaultApiConfig.database.name,
+      ssl: false,
+    };
+  }
+}

@@ -25,6 +25,8 @@ export const DOMAIN_EVENTS_POLLER = 'DOMAIN_EVENTS_POLLER';
 export const DRIZZLE_DB = 'DRIZZLE_DB';
 export const API_CONFIG = 'CONFIG';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 @Module({
   imports: [EventEmitterModule.forRoot()],
   exports: [
@@ -40,9 +42,9 @@ export const API_CONFIG = 'CONFIG';
     {
       provide: API_CONFIG,
       useFactory: (): ApiConfig =>
-        validate(
-          process.env.NODE_ENV === 'production' ? apiConfig : defaultApiConfig,
-        ),
+        isProduction
+          ? validate<true>(apiConfig)
+          : validate<false>(defaultApiConfig),
     },
     {
       provide: TRANSACTION_PERFORMER,
@@ -55,13 +57,13 @@ export const API_CONFIG = 'CONFIG';
       provide: DRIZZLE_DB,
       useFactory: (config: ApiConfig) => {
         const db = getDrizzleInstance(
-          getDrizzleConfig({
-            host: config.database.host,
-            port: config.database.port,
-            user: config.database.user,
-            password: config.database.password,
-            database: config.database.name,
-          }),
+          isProduction
+            ? getDrizzleConfig<true>(
+                config.database as ApiConfig<true>['database'],
+              )
+            : getDrizzleConfig<false>(
+                config.database as ApiConfig<false>['database'],
+              ),
         );
         return db;
       },

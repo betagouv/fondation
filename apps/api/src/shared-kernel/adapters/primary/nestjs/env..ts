@@ -1,13 +1,9 @@
 import { DeepPartial } from 'typeorm';
 import { ApiConfig } from '../nestia/api-config-schema';
 
-export const apiConfig: DeepPartial<ApiConfig> = {
+export const apiConfig: DeepPartial<ApiConfig<true>> = {
   database: {
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    name: process.env.DB_NAME,
+    url: process.env.DATABASE_URL,
   },
 };
 
@@ -19,4 +15,4 @@ export const defaultApiConfig = {
     password: 'secret',
     name: 'fondation',
   },
-} satisfies ApiConfig;
+} satisfies ApiConfig<false>;
