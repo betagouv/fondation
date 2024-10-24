@@ -9,7 +9,7 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 export class ReportRetrievalVMBuilder {
   private id: string;
   private name: string;
-  private biography: string;
+  private biography: string | null;
   private dueDate: DateOnlyJson | null;
   private birthDate: DateOnlyJson;
   private state: NominationFile.ReportState;
@@ -100,7 +100,7 @@ export class ReportRetrievalVMBuilder {
     this.name = name;
     return this;
   }
-  withBiography(biography: string) {
+  withBiography(biography: string | null) {
     this.biography = biography;
     return this;
   }

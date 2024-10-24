@@ -8,7 +8,7 @@ const teardown = async (): Promise<void> => {
 const endDbConnection = async () => {
   console.log('Closing db connection');
   try {
-    await db.$client.end();
+    if (!db.$client.ended) await db.$client.end();
   } catch (e) {
     console.log('Failing to close db connection', e);
   }

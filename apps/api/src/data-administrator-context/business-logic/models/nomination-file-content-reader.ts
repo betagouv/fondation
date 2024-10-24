@@ -1,7 +1,7 @@
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import typia from 'typia';
-import { NominationFilesImportedEvent } from './nomination-file-imported.event';
+import { InvalidRowValueError } from '../errors/invalid-row-value.error';
 import { NominationFileRead } from './nomination-file-read';
 
 export class NominationFileContentReader {
@@ -10,10 +10,7 @@ export class NominationFileContentReader {
     private readonly content: string[],
   ) {}
 
-  read(
-    nominationFilesImportedEventId: string,
-    currentDate: Date,
-  ): [NominationFileRead[], NominationFilesImportedEvent] {
+  read(): NominationFileRead[] {
     const rulesColumnsIndices = this.getRulesColumnsIndices();
 
     const contentRead = this.content.map((row, rowIndex) => {
@@ -24,6 +21,9 @@ export class NominationFileContentReader {
             rulesIndices,
           ).reduce(
             (rulesAcc, [rule, index]) => {
+              if (!['TRUE', 'FALSE'].includes(row[index]!))
+                throw new InvalidRowValueError(rule, rowIndex);
+
               return {
                 ...rulesAcc,
                 [rule as NominationFile.RuleName]: row[index] === 'TRUE',
@@ -74,24 +74,10 @@ export class NominationFileContentReader {
       return nominationFileRead;
     });
 
-    const nominationFilesImportedEvent = new NominationFilesImportedEvent(
-      nominationFilesImportedEventId,
-      contentRead.reduce(
-        (acc, content) => {
-          return {
-            ...acc,
-            [content.rowNumber]: content,
-          };
-        },
-        {} as Record<number, NominationFileRead>,
-      ),
-      currentDate,
-    );
-
     const safeNominationFileRead =
       typia.assertEquals<NominationFileRead[]>(contentRead);
 
-    return [safeNominationFileRead, nominationFilesImportedEvent];
+    return safeNominationFileRead;
   }
 
   private normalizeTransparency(transparency: string): Transparency {

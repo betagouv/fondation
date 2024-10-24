@@ -10,7 +10,6 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "start": "nest start",
-    "predev": "pnpm --filter shared-models build:watch",
     "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
@@ -20,10 +19,10 @@
     "types:check:watch": "tsc --noEmit --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:it": "jest --runInBand --config ./test/jest-integration.config.js",
-    "test:it:watch": "jest --watch --runInBand --config ./test/jest-integration.config.js",
-    "test:e2e": "jest --runInBand --config ./test/jest-e2e.config.js",
-    "test:all": "jest --runInBand --config ./test/jest-all.config.js",
+    "test:it": "jest --runInBand --config ./test/jest/jest-integration.config.ts",
+    "test:it:watch": "jest --watch --runInBand --config ./test/jest/jest-integration.config.ts",
+    "test:e2e": "jest --runInBand --config ./test/jest/jest-e2e.config.ts",
+    "test:all": "jest --runInBand --config ./test/jest/jest-all.config.ts",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "ts-patch install && typia patch",
@@ -32,10 +31,11 @@
     "seed": "ts-node -r tsconfig-paths/register cli/seed.ts",
     "drizzle:gen": "drizzle-kit generate --name",
     "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js"
+    "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js",
+    "scalingo:upload-nomination-files:staging": "dotenvx run -f .env.scalingo-upload.staging -f .env.scalingo-upload -- ./apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh",
+    "scalingo:upload-nomination-files:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh"
   },
   "dependencies": {
-    "shared-models": "workspace:*",
     "@nestia/core": "^3.17.0",
     "@nestia/sdk": "^3.17.0",
     "@nestjs/common": "^10.0.0",
@@ -49,16 +49,18 @@
     "postgres": "^3.4.4",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "shared-models": "workspace:*",
     "typeorm": "^0.3.20",
     "typia": "^6.11.1"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.20.1",
     "@nestia/benchmark": "^0.2.3",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
     "@types/express": "^4.17.17",
-    "@types/jest": "^29.5.2",
+    "@types/jest": "^29.5.13",
     "@types/node": "^20.3.1",
     "@types/pg": "^8.11.10",
     "@types/supertest": "^6.0.0",
@@ -69,13 +71,15 @@
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "expect": "^29.7.0",
     "jest": "^29.5.0",
+    "jest-extended": "^4.0.2",
     "nestia": "^6.2.0",
     "prettier": "^3.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "testcontainers": "^10.13.2",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.2.5",
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.1",
@@ -94,12 +98,15 @@
     ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(ts)$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(ts)"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./test/jest/custom-expects.ts"
+    ]
   }
 }

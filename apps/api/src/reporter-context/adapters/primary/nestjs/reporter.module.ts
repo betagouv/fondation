@@ -8,9 +8,12 @@ import { RetrieveReportUseCase } from 'src/reporter-context/business-logic/use-c
 import { UpdateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-update/update-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reporter-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import {
+  DATE_TIME_PROVIDER,
+  DOMAIN_EVENT_REPOSITORY,
   DRIZZLE_DB,
   SharedKernelModule,
   TRANSACTION_PERFORMER,
+  UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
@@ -19,6 +22,11 @@ import { SqlReportListingVMQuery } from '../../secondary/gateways/repositories/d
 import { SqlReportRetrievalVMQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { ReporterController } from './reporter.controller';
+import { NominationFileImportedSubscriber } from './event-subscribers/nomination-file-imported.subscriber';
+import { CreateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-creation/create-report.use-case';
+import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
+import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
 
 export const REPORT_LISTING_QUERY = 'REPORT_LISTING_QUERY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';
@@ -30,6 +38,43 @@ export const NOMINATION_FILE_REPORT_REPOSITORY =
   imports: [SharedKernelModule],
   controllers: [ReporterController],
   providers: [
+    {
+      provide: NominationFileImportedSubscriber,
+
+      useFactory: (createReportUseCase: CreateReportUseCase) => {
+        return new NominationFileImportedSubscriber(createReportUseCase);
+      },
+      inject: [CreateReportUseCase],
+    },
+
+    {
+      provide: CreateReportUseCase,
+      useFactory: (
+        reportRepository: ReportRepository,
+        transactionPerformer: TransactionPerformer,
+        uuidGenerator: UuidGenerator,
+        reportRuleRepository: ReportRuleRepository,
+        domainEventRepository: DomainEventRepository,
+        datetimeProvider: DateTimeProvider,
+      ) => {
+        return new CreateReportUseCase(
+          reportRepository,
+          transactionPerformer,
+          uuidGenerator,
+          reportRuleRepository,
+          domainEventRepository,
+          datetimeProvider,
+        );
+      },
+      inject: [
+        NOMINATION_FILE_REPORT_REPOSITORY,
+        TRANSACTION_PERFORMER,
+        UUID_GENERATOR,
+        REPORT_RULE_REPOSITORY,
+        DOMAIN_EVENT_REPOSITORY,
+        DATE_TIME_PROVIDER,
+      ],
+    },
     {
       provide: ChangeRuleValidationStateUseCase,
       useFactory: (

@@ -40,6 +40,9 @@ export class DateOnly {
       day: this.value.getDate(),
     };
   }
+  static fromJson(json: DateOnlyJson): DateOnly {
+    return new DateOnly(json.year, json.month, json.day);
+  }
   toDbString(): string {
     return format(this.value, dbDateFormat);
   }

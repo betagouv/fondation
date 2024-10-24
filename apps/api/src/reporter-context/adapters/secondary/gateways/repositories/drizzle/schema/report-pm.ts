@@ -13,7 +13,7 @@ export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  biography: text('biography').notNull(),
+  biography: text('biography'),
   dueDate: date('due_date'),
   name: varchar('name').notNull(),
   birthDate: date('birth_date').notNull(),

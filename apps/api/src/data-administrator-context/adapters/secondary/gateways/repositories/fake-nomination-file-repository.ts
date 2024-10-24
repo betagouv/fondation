@@ -3,13 +3,24 @@ import { NominationFileModel } from 'src/data-administrator-context/business-log
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 export class FakeNominationFileRepository implements NominationFileRepository {
-  nominationFiles: Record<number, NominationFileModel> = {};
+  nominationFiles: Record<string, NominationFileModel> = {};
 
+  setReportId(
+    nominationFileId: string,
+    reportId: string,
+  ): TransactionableAsync {
+    return async () => {
+      const nominationFile = this.nominationFiles[nominationFileId];
+      this.nominationFiles[nominationFileId] = NominationFileModel.fromSnapshot(
+        { ...nominationFile!.toSnapshot(), reportId },
+      );
+    };
+  }
   save(nominationFile: NominationFileModel): TransactionableAsync<void> {
     const nominationFileSnapshot = nominationFile.toSnapshot();
 
     return async () => {
-      this.nominationFiles[nominationFileSnapshot.rowNumber] = nominationFile;
+      this.nominationFiles[nominationFileSnapshot.id] = nominationFile;
     };
   }
 }

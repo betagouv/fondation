@@ -1,16 +1,16 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import {
-  DateOnly,
-  DateOnlyJson,
-} from 'src/shared-kernel/business-logic/models/date-only';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
+import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
+import { CreateReportValidator } from '../../models/create-report.validator';
 import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
 
-export interface CreateReportPayload {
+export interface ReportToCreate {
   reporterName: string;
   formation: Magistrat.Formation;
   dueDate: DateOnlyJson | null;
@@ -21,7 +21,7 @@ export interface CreateReportPayload {
   targettedPosition: string;
   rank: string;
   birthDate: DateOnlyJson;
-  biography: string;
+  biography: string | null;
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       [key in NominationFile.ManagementRule]: boolean;
@@ -41,38 +41,29 @@ export class CreateReportUseCase {
     private readonly transactionPerformer: TransactionPerformer,
     private readonly uuidGenerator: UuidGenerator,
     private readonly reportRuleRepository: ReportRuleRepository,
+    private readonly domainEventRepository: DomainEventRepository,
+    private readonly datetimeProvider: DateTimeProvider,
   ) {}
-  async execute(createReportPayload: CreateReportPayload): Promise<void> {
+  async execute(
+    importedNominationFileId: string,
+    createReportPayload: ReportToCreate,
+  ): Promise<void> {
+    new CreateReportValidator().validate(createReportPayload);
+
     const reportId = this.uuidGenerator.generate();
 
     return this.transactionPerformer.perform(async (trx) => {
-      await this.reportRepository.save(
-        new NominationFileReport(
+      const [report, reportCreatedEvent] =
+        NominationFileReport.createFromImport(
           reportId,
-          createReportPayload.biography,
-          createReportPayload.dueDate
-            ? new DateOnly(
-                createReportPayload.dueDate.year,
-                createReportPayload.dueDate.month,
-                createReportPayload.dueDate.day,
-              )
-            : null,
-          createReportPayload.reporterName,
-          new DateOnly(
-            createReportPayload.birthDate.year,
-            createReportPayload.birthDate.month,
-            createReportPayload.birthDate.day,
-          ),
-          createReportPayload.state,
-          createReportPayload.formation,
-          createReportPayload.transparency,
-          createReportPayload.grade,
-          createReportPayload.currentPosition,
-          createReportPayload.targettedPosition,
-          null,
-          createReportPayload.rank,
-        ),
-      )(trx);
+          this.uuidGenerator.generate(),
+          importedNominationFileId,
+          createReportPayload,
+          this.datetimeProvider.now(),
+        );
+
+      await this.reportRepository.save(report)(trx);
+      await this.domainEventRepository.save(reportCreatedEvent)(trx);
 
       const rulesRepositoryPromises = Object.entries(createReportPayload.rules)
         .map(([ruleGroup, rules]) =>
