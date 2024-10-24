@@ -3,9 +3,6 @@
 # Create folder to package the API production code
 mkdir .tmp-build/
 
-# Transpile API Typescript code
-pnpm --filter=api build
-
 # Copy monorepo root files
 cp -v pnpm-lock.yaml package.json pnpm-workspace.yaml .tmp-build/
 
