@@ -7,19 +7,23 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
-import {
-  CreateReportPayload,
-  CreateReportUseCase,
-} from './create-report.use-case';
+import { ReportToCreate, CreateReportUseCase } from './create-report.use-case';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
+import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/repositories/fake-domain-event-repository';
+import { ReportCreatedEvent } from '../../models/report-created.event';
+import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
+const reportCreatedEventId = 'mms7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
+const importedNominationFileId = 'imported-nomination-file-id';
 
 describe('Create Report Use Case', () => {
   let nominationFileReportRepository: FakeNominationFileReportRepository;
   let transactionPerformer: TransactionPerformer;
   let uuidGenerator: DeterministicUuidGenerator;
   let reportRuleRepository: FakeReportRuleRepository;
+  let domainEventRepository: FakeDomainEventRepository;
+  let datetimeProvider: DeterministicDateProvider;
 
   beforeEach(() => {
     nominationFileReportRepository = new FakeNominationFileReportRepository();
@@ -28,24 +32,29 @@ describe('Create Report Use Case', () => {
     uuidGenerator.nextUuids = [nominationFileReportId];
     uuidGenerator.genUuids(21);
     reportRuleRepository = new FakeReportRuleRepository();
+    domainEventRepository = new FakeDomainEventRepository();
+    datetimeProvider = new DeterministicDateProvider();
+    datetimeProvider.currentDate = new Date(2021, 8, 22);
   });
 
   it("doesn't create any report if there's a rules count mismatch", () => {
-    const payload = givenSomePayload();
-    payload.rules = {
-      ...payload.rules,
+    const reportToCreate = givenAReportToCreate();
+    reportToCreate.rules = {
+      ...reportToCreate.rules,
       [NominationFile.RuleGroup.MANAGEMENT]: {
         [NominationFile.ManagementRule.TRANSFER_TIME]: true,
-      } as CreateReportPayload['rules'][NominationFile.RuleGroup.MANAGEMENT],
+      } as ReportToCreate['rules'][NominationFile.RuleGroup.MANAGEMENT],
     };
 
-    expect(createAReport(payload)).rejects.toThrow(CreateReportValidationError);
+    expect(createAReport(reportToCreate)).rejects.toThrow(
+      CreateReportValidationError,
+    );
     expectReports();
     expectRules();
   });
 
   it('creates a report', async () => {
-    const payload = givenSomePayload();
+    const payload = givenAReportToCreate();
 
     await createAReport(payload);
 
@@ -69,7 +78,23 @@ describe('Create Report Use Case', () => {
     expectRulesFromPayload(payload.rules);
   });
 
-  const givenSomePayload = (): CreateReportPayload => ({
+  it('informs about a created report', async () => {
+    uuidGenerator.nextUuids = [nominationFileReportId, reportCreatedEventId];
+    const payload = givenAReportToCreate();
+
+    await createAReport(payload);
+
+    expect(domainEventRepository).toHaveDomainEvents(
+      new ReportCreatedEvent(
+        reportCreatedEventId,
+        nominationFileReportId,
+        importedNominationFileId,
+        datetimeProvider.currentDate,
+      ),
+    );
+  });
+
+  const givenAReportToCreate = (): ReportToCreate => ({
     reporterName: 'Lucien Pierre',
     formation: Magistrat.Formation.PARQUET,
     dueDate: {
@@ -92,13 +117,15 @@ describe('Create Report Use Case', () => {
     rules: getAllRulesPreValidated(),
   });
 
-  const createAReport = (payload: CreateReportPayload) =>
+  const createAReport = (payload: ReportToCreate) =>
     new CreateReportUseCase(
       nominationFileReportRepository,
       transactionPerformer,
       uuidGenerator,
       reportRuleRepository,
-    ).execute(payload);
+      domainEventRepository,
+      datetimeProvider,
+    ).execute(importedNominationFileId, payload);
 
   const expectReports = (...reports: NominationFileReport[]) => {
     expect(nominationFileReportRepository.reports).toEqual(
@@ -112,9 +139,7 @@ describe('Create Report Use Case', () => {
     );
   };
 
-  const expectRulesFromPayload = (
-    payloadRules: CreateReportPayload['rules'],
-  ) => {
+  const expectRulesFromPayload = (payloadRules: ReportToCreate['rules']) => {
     expectRules(
       ...Object.entries(payloadRules)
         .map(([ruleGroup, rules]) =>
@@ -144,7 +169,7 @@ describe('Create Report Use Case', () => {
 
 export const getAllRulesPreValidated = (options?: {
   exceptRuleMinisterCabinet: true;
-}): CreateReportPayload['rules'] => ({
+}): ReportToCreate['rules'] => ({
   [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
     NominationFile.ManagementRule,
   ).reduce(
@@ -152,7 +177,7 @@ export const getAllRulesPreValidated = (options?: {
       ...acc,
       [rule]: true,
     }),
-    {} as CreateReportPayload['rules'][NominationFile.RuleGroup.MANAGEMENT],
+    {} as ReportToCreate['rules'][NominationFile.RuleGroup.MANAGEMENT],
   ),
   [NominationFile.RuleGroup.STATUTORY]: Object.values(
     NominationFile.StatutoryRule,
@@ -165,12 +190,12 @@ export const getAllRulesPreValidated = (options?: {
           ? false
           : true,
     }),
-    {} as CreateReportPayload['rules'][NominationFile.RuleGroup.STATUTORY],
+    {} as ReportToCreate['rules'][NominationFile.RuleGroup.STATUTORY],
   ),
   [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
     NominationFile.QualitativeRule,
   ).reduce(
     (acc, rule) => ({ ...acc, [rule]: true }),
-    {} as CreateReportPayload['rules'][NominationFile.RuleGroup.QUALITATIVE],
+    {} as ReportToCreate['rules'][NominationFile.RuleGroup.QUALITATIVE],
   ),
 });

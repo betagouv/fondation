@@ -15,6 +15,7 @@ const jestConfig: JestConfigWithTsJest = {
     '<rootDir>/src/**/*.ts',
     '!<rootDir>/src/**/*.e2e-spec.ts',
   ],
+  setupFilesAfterEnv: ['<rootDir>/test/jest/custom-expects.ts'],
 };
 
 export default jestConfig;

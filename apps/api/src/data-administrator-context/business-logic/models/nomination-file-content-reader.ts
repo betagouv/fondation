@@ -1,9 +1,8 @@
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import typia from 'typia';
-import { NominationFilesImportedEvent } from './nomination-file-imported.event';
-import { NominationFileRead } from './nomination-file-read';
 import { InvalidRowValueError } from '../errors/invalid-row-value.error';
+import { NominationFileRead } from './nomination-file-read';
 
 export class NominationFileContentReader {
   constructor(
@@ -11,10 +10,7 @@ export class NominationFileContentReader {
     private readonly content: string[],
   ) {}
 
-  read(
-    nominationFilesImportedEventId: string,
-    currentDate: Date,
-  ): [NominationFileRead[], NominationFilesImportedEvent] {
+  read(): NominationFileRead[] {
     const rulesColumnsIndices = this.getRulesColumnsIndices();
 
     const contentRead = this.content.map((row, rowIndex) => {
@@ -78,16 +74,10 @@ export class NominationFileContentReader {
       return nominationFileRead;
     });
 
-    const nominationFilesImportedEvent = new NominationFilesImportedEvent(
-      nominationFilesImportedEventId,
-      { contents: contentRead.map(({ content }) => content) },
-      currentDate,
-    );
-
     const safeNominationFileRead =
       typia.assertEquals<NominationFileRead[]>(contentRead);
 
-    return [safeNominationFileRead, nominationFilesImportedEvent];
+    return safeNominationFileRead;
   }
 
   private normalizeTransparency(transparency: string): Transparency {

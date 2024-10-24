@@ -4,19 +4,16 @@ import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { AppModule } from 'src/app.module';
-import { NominationFilesImportedEvent } from 'src/data-administrator-context/business-logic/models/nomination-file-imported.event';
+import { nominationFiles } from 'src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
 import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
-import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
 import {
-  DATE_TIME_PROVIDER,
-  DOMAIN_EVENT_REPOSITORY,
-  DRIZZLE_DB,
-} from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
-import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
-import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
-import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/repositories/fake-domain-event-repository';
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from '../data-administration-context.module';
 import { ImportNominationFileFromLocalFileCli } from './import-nominations-from-local-file.cli';
@@ -27,13 +24,18 @@ const fileToImportPath = path.resolve(
 );
 
 describe('Import Nominations from local file', () => {
-  let domainEventRepository: FakeDomainEventRepository;
-  let dateTimeProvider: DeterministicDateProvider;
   let app: NestApplication;
-  let db: DrizzleDb;
   let importNominationFileFromLocalFileCli: ImportNominationFileFromLocalFileCli;
 
+  let db: DrizzleDb;
+
+  beforeAll(() => {
+    db = getDrizzleInstance(drizzleConfigForTest);
+  });
+
   beforeEach(async () => {
+    await clearDB(db);
+
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -44,11 +46,6 @@ describe('Import Nominations from local file', () => {
 
     await app.init();
 
-    dateTimeProvider = app.get<DeterministicDateProvider>(DATE_TIME_PROVIDER);
-    db = app.get<DrizzleDb>(DRIZZLE_DB);
-    domainEventRepository = app.get<FakeDomainEventRepository>(
-      DOMAIN_EVENT_REPOSITORY,
-    );
     importNominationFileFromLocalFileCli =
       app.get<ImportNominationFileFromLocalFileCli>(
         IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
@@ -56,23 +53,11 @@ describe('Import Nominations from local file', () => {
   });
 
   afterEach(async () => {
-    await clearDB(db);
-    await db.$client.end();
     await app.close();
   });
 
-  it.only('informs about an imported file', async () => {
-    await importNominationFileFromLocalFileCli.execute(fileToImportPath);
-
-    expectEvents(
-      new NominationFilesImportedEvent(
-        expect.any(String),
-        {
-          contents: getExpectedContents(),
-        },
-        expect.any(Date),
-      ),
-    );
+  afterAll(async () => {
+    await db.$client.end();
   });
 
   it('creates reports found in the imported file', async () => {
@@ -80,13 +65,53 @@ describe('Import Nominations from local file', () => {
 
     await setTimeout(1000);
 
-    expect(await db.select().from(reports).execute()).toEqual<
-      NominationFileReport[]
-    >([new ReportBuilder().build()]);
+    expectReports(
+      ...getExpectedContents().map((content) => ({
+        id: expect.any(String),
+        state: content.state,
+        dueDate: content.dueDate
+          ? DateOnly.fromJson(content.dueDate).toDbString()
+          : null,
+        formation: content.formation,
+        name: content.name,
+        transparency: content.transparency,
+        grade: content.grade,
+        currentPosition: content.currentPosition,
+        targettedPosition: content.targettedPosition,
+        rank: content.rank,
+        birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
+        biography: content.biography,
+        comment: null,
+      })),
+    );
+
+    expectNominationFiles(
+      ...getExpectedContents().map((content) => ({
+        id: expect.any(String),
+        reportId: expect.any(String),
+        rowNumber: expect.any(Number),
+        content: content,
+      })),
+    );
   });
 
-  const expectEvents = async (...events: NominationFilesImportedEvent[]) =>
-    expect(domainEventRepository.events).toEqual(events);
+  const expectReports = async (
+    ...expectedReports: (typeof reports.$inferSelect)[]
+  ) => {
+    expect(await db.select().from(reports).execute()).toIncludeAllMembers<
+      typeof reports.$inferSelect
+    >(expectedReports);
+  };
+
+  const expectNominationFiles = async (
+    ...expectedNominationFiles: (typeof nominationFiles.$inferSelect)[]
+  ) => {
+    expect(
+      await db.select().from(nominationFiles).execute(),
+    ).toIncludeAllMembers<typeof nominationFiles.$inferSelect>(
+      expectedNominationFiles,
+    );
+  };
 });
 
 function getExpectedContents(): NominationFileRead['content'][] {

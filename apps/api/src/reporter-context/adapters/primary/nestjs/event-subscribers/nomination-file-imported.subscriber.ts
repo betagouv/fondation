@@ -17,8 +17,8 @@ export class NominationFileImportedSubscriber {
   ) {
     typia.assert<NominationFilesImportedEventPayload>(payload);
 
-    const promises = payload.contents.map((content) =>
-      this.createReportUseCase.execute({
+    const promises = payload.map(({ nominationFileImportedId: id, content }) =>
+      this.createReportUseCase.execute(id, {
         reporterName: content.name,
         formation: content.formation,
         dueDate: content.dueDate,

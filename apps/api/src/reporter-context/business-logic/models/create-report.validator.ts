@@ -1,12 +1,12 @@
 import typia from 'typia';
 import { Maximum, Minimum } from 'typia/lib/tags';
-import { CreateReportPayload } from '../use-cases/report-creation/create-report.use-case';
+import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 import { CreateReportValidationError } from '../errors/create-report-validation.error';
 
 type NumberEquals<T extends number> = number & Minimum<T> & Maximum<T>;
 
 export class CreateReportValidator {
-  validate(report: CreateReportPayload) {
+  validate(report: ReportToCreate) {
     const rulesCount = Object.values(report.rules).reduce(
       (acc, group) => acc + Object.values(group).length,
       0,

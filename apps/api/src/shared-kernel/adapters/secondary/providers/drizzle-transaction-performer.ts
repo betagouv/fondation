@@ -4,7 +4,7 @@ import {
 } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DrizzleDb } from '../repositories/drizzle/drizzle-instance';
 
-export type DrizzleTransactionableAsync<T> = TransactionableAsync<
+export type DrizzleTransactionableAsync<T = void> = TransactionableAsync<
   T,
   Parameters<Parameters<DrizzleDb['transaction']>[0]>[0]
 >;

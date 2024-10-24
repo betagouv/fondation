@@ -28,11 +28,11 @@ export class AppModule implements OnModuleInit, OnModuleDestroy {
     this.publishEvents();
   }
 
-  public onModuleDestroy() {
+  onModuleDestroy() {
     this.stopPublishEvents();
   }
 
-  public publishEvents() {
+  private publishEvents() {
     this.intervalId = setInterval(async () => {
       try {
         await this.domainEventsPoller.execute();

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ImportNominationFilesUseCase } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
+import { SetReportIdUseCase } from 'src/data-administrator-context/business-logic/use-cases/report-id-set/set-report-id.use-case';
 import {
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
@@ -8,8 +9,9 @@ import {
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
-import { FakeNominationFileRepository } from '../../secondary/gateways/repositories/fake-nomination-file-repository';
+import { SqlNominationFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file.repository';
 import { ImportNominationFileFromLocalFileCli } from './cli/import-nominations-from-local-file.cli';
+import { ReportCreatedSubscriber } from './event-subscribers/report-created.subscriber';
 
 export const NOMINATION_FILE_REPOSITORY = 'NOMINATION_FILE_REPOSITORY';
 export const IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI =
@@ -32,6 +34,16 @@ const importNominationFilesUseCaseUseFactory: (
     domainEventRepository,
   );
 
+const setReportIdUseCaseFactory: (
+  ...args: ConstructorParameters<typeof SetReportIdUseCase>
+) => SetReportIdUseCase = (transactionPerformer, nominationFileRepository) =>
+  new SetReportIdUseCase(transactionPerformer, nominationFileRepository);
+
+const setReportCreatedSubscriberFactory: (
+  ...args: ConstructorParameters<typeof ReportCreatedSubscriber>
+) => ReportCreatedSubscriber = (setReportIdUseCase) =>
+  new ReportCreatedSubscriber(setReportIdUseCase);
+
 @Module({
   imports: [SharedKernelModule],
   providers: [
@@ -47,11 +59,21 @@ const importNominationFilesUseCaseUseFactory: (
       ],
     },
     {
+      provide: SetReportIdUseCase,
+      useFactory: setReportIdUseCaseFactory,
+      inject: [TRANSACTION_PERFORMER, NOMINATION_FILE_REPOSITORY],
+    },
+
+    {
+      provide: ReportCreatedSubscriber,
+      useFactory: setReportCreatedSubscriberFactory,
+      inject: [SetReportIdUseCase],
+    },
+
+    {
       provide: NOMINATION_FILE_REPOSITORY,
-      useFactory: (): FakeNominationFileRepository => {
-        const repository = new FakeNominationFileRepository();
-        return repository;
-      },
+      useFactory: (): SqlNominationFileRepository =>
+        new SqlNominationFileRepository(),
     },
     {
       provide: IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,

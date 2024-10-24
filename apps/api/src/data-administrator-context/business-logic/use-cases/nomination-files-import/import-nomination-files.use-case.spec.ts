@@ -32,7 +32,7 @@ ${secondHeader}
 ${allRulesValidatedLine}
 ${optionalFieldsAndOneRuleNotPrevalidated}`;
 
-const nominationFilesImportedEventId = '1';
+const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 
 describe('Import Nomination Files Use Case', () => {
   let nominationFileRepository: FakeNominationFileRepository;
@@ -48,7 +48,10 @@ describe('Import Nomination Files Use Case', () => {
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = new Date(2024, 10, 10);
     uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [nominationFilesImportedEventId];
+    uuidGenerator.nextUuids = [
+      'nomination-file-id',
+      nominationFilesImportedEventId,
+    ];
   });
 
   it.each([
@@ -81,30 +84,37 @@ ${lineWithOneRuleInvalid}`;
     expectEvent(
       new NominationFilesImportedEvent(
         nominationFilesImportedEventId,
-        { contents: [getMarcelDupontRead(1).content] },
+        [
+          {
+            nominationFileImportedId: 'nomination-file-id',
+            content: getMarcelDupontRead(1).content,
+          },
+        ],
         dateTimeProvider.currentDate,
       ),
     );
   });
 
   it('parses a line with all values filled and all rules pre-validated at true', async () => {
-    const [nominationFileUuid] = uuidGenerator.genUuids(1);
     await importAFile(fileToImportWithAllRulesPreValidated);
-    expectNominationFiles(getMarcelDupontModel(nominationFileUuid!, 1));
+    expectNominationFiles(getMarcelDupontModel('nomination-file-id', 1));
   });
 
   it('parses a line with possible empty values unfilled and one rule pre-validated at true', async () => {
-    const [nominationFileUuid] = uuidGenerator.genUuids(1);
     await importAFile(fileToImportWithOptionalsOneRuleNotPrevalidated);
-    expectNominationFiles(getLucienPierreModel(nominationFileUuid!, 1));
+    expectNominationFiles(getLucienPierreModel('nomination-file-id', 1));
   });
 
   it('saves two lines', async () => {
-    const [firstUuid, secondUuid] = uuidGenerator.genUuids(2);
+    uuidGenerator.nextUuids = [
+      'nomination-file-id',
+      'second-nomination-file-id',
+      nominationFilesImportedEventId,
+    ];
     await importAFile(fileToImportWithMultipleLines);
     expectNominationFiles(
-      getMarcelDupontModel(firstUuid!, 1),
-      getLucienPierreModel(secondUuid!, 2),
+      getMarcelDupontModel('nomination-file-id', 1),
+      getLucienPierreModel('second-nomination-file-id', 2),
     );
   });
 
@@ -129,7 +139,7 @@ ${lineWithOneRuleInvalid}`;
       nominationFiles.reduce(
         (acc, nominationFile) => ({
           ...acc,
-          [nominationFile.toSnapshot().rowNumber]: nominationFile,
+          [nominationFile.toSnapshot().id]: nominationFile,
         }),
         {},
       ),

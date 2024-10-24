@@ -1,5 +1,7 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
+import { ReportCreatedEvent } from './report-created.event';
 
 export enum NominationFileManagementRule {
   TRANSFER_TIME = 'TRANSFER_TIME',
@@ -29,4 +31,47 @@ export class NominationFileReport {
     readonly comment: string | null,
     readonly rank: string,
   ) {}
+
+  static createFromImport(
+    reportId: string,
+    eventId: string,
+    importedNominationFileId: string,
+    createReportPayload: ReportToCreate,
+    currentDate: Date,
+  ): [NominationFileReport, ReportCreatedEvent] {
+    const report = new NominationFileReport(
+      reportId,
+      createReportPayload.biography,
+      createReportPayload.dueDate
+        ? new DateOnly(
+            createReportPayload.dueDate.year,
+            createReportPayload.dueDate.month,
+            createReportPayload.dueDate.day,
+          )
+        : null,
+      createReportPayload.reporterName,
+      new DateOnly(
+        createReportPayload.birthDate.year,
+        createReportPayload.birthDate.month,
+        createReportPayload.birthDate.day,
+      ),
+      createReportPayload.state,
+      createReportPayload.formation,
+      createReportPayload.transparency,
+      createReportPayload.grade,
+      createReportPayload.currentPosition,
+      createReportPayload.targettedPosition,
+      null,
+      createReportPayload.rank,
+    );
+
+    const reportCreatedEvent = new ReportCreatedEvent(
+      eventId,
+      reportId,
+      importedNominationFileId,
+      currentDate,
+    );
+
+    return [report, reportCreatedEvent];
+  }
 }
