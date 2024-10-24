@@ -34,7 +34,6 @@ export class ImportNominationFilesUseCase {
       await Promise.all(promises);
 
       await this.domainEventRepository.save(nominationFilesImportedEvent)(trx);
-      console.log('use case: event emitted:', nominationFilesImportedEvent);
     });
   }
 }

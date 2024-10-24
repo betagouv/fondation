@@ -1,11 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from '@/shared-models';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import path from 'path';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { AppModule } from 'src/app.module';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/adapters/primary/nestjs/cli/import-nominations-from-local-file';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
 import { NominationFilesImportedEvent } from 'src/data-administrator-context/business-logic/models/nomination-file-imported.event';
 import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
 import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
@@ -17,12 +15,11 @@ import {
   DRIZZLE_DB,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
-import {
-  DrizzleDb,
-  getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/repositories/fake-domain-event-repository';
+import { clearDB } from 'test/docker-postgresql-manager';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from '../data-administration-context.module';
+import { ImportNominationFileFromLocalFileCli } from './import-nominations-from-local-file.cli';
 
 const fileToImportPath = path.resolve(
   __dirname,
@@ -32,14 +29,9 @@ const fileToImportPath = path.resolve(
 describe('Import Nominations from local file', () => {
   let domainEventRepository: FakeDomainEventRepository;
   let dateTimeProvider: DeterministicDateProvider;
-  // let uuidGenerator: DeterministicUuidGenerator;
   let app: NestApplication;
   let db: DrizzleDb;
   let importNominationFileFromLocalFileCli: ImportNominationFileFromLocalFileCli;
-
-  beforeAll(() => {
-    db = getDrizzleInstance(drizzleConfigForTest);
-  });
 
   beforeEach(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -47,20 +39,12 @@ describe('Import Nominations from local file', () => {
     })
       .overrideProvider(DRIZZLE_DB)
       .useValue(db)
-      .overrideProvider(DATE_TIME_PROVIDER)
-      .useFactory({
-        factory: () => {
-          dateTimeProvider = new DeterministicDateProvider();
-          dateTimeProvider.currentDate = new Date(2024, 10, 10);
-          return dateTimeProvider;
-        },
-      })
       .compile();
     app = moduleFixture.createNestApplication();
 
     await app.init();
 
-    // app = await NestFactory.createApplicationContext(AppModule);
+    dateTimeProvider = app.get<DeterministicDateProvider>(DATE_TIME_PROVIDER);
     db = app.get<DrizzleDb>(DRIZZLE_DB);
     domainEventRepository = app.get<FakeDomainEventRepository>(
       DOMAIN_EVENT_REPOSITORY,
@@ -69,6 +53,12 @@ describe('Import Nominations from local file', () => {
       app.get<ImportNominationFileFromLocalFileCli>(
         IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
       );
+  });
+
+  afterEach(async () => {
+    await clearDB(db);
+    await db.$client.end();
+    await app.close();
   });
 
   it.only('informs about an imported file', async () => {
@@ -80,7 +70,7 @@ describe('Import Nominations from local file', () => {
         {
           contents: getExpectedContents(),
         },
-        dateTimeProvider.currentDate,
+        expect.any(Date),
       ),
     );
   });

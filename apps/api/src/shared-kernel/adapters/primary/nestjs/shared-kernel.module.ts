@@ -25,7 +25,6 @@ export const DOMAIN_EVENT_PUBLISHER = 'DOMAIN_EVENT_PUBLISHER';
 export const DOMAIN_EVENTS_POLLER = 'DOMAIN_EVENTS_POLLER';
 export const DRIZZLE_DB = 'DRIZZLE_DB';
 export const API_CONFIG = 'API_CONFIG';
-export const FILE_READER = 'FILE_READER';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -38,7 +37,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     TRANSACTION_PERFORMER,
     DOMAIN_EVENT_REPOSITORY,
     DOMAIN_EVENTS_POLLER,
-    FILE_READER,
+    FileReaderProvider,
   ],
   controllers: [],
   providers: [
@@ -118,7 +117,7 @@ const isProduction = process.env.NODE_ENV === 'production';
       })(),
     },
 
-    { provide: FILE_READER, useClass: FileReaderProvider },
+    FileReaderProvider,
   ],
 })
 export class SharedKernelModule {}

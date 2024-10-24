@@ -7,9 +7,9 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
-import { FakeNominationFileRepository } from '../../secondary/gateways/repositories/fake-nomination-file-repository';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
-import { ImportNominationFileFromLocalFileCli } from './cli/import-nominations-from-local-file';
+import { FakeNominationFileRepository } from '../../secondary/gateways/repositories/fake-nomination-file-repository';
+import { ImportNominationFileFromLocalFileCli } from './cli/import-nominations-from-local-file.cli';
 
 export const NOMINATION_FILE_REPOSITORY = 'NOMINATION_FILE_REPOSITORY';
 export const IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI =

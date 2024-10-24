@@ -9,6 +9,7 @@ import { ReportRuleRepository } from '../../gateways/repositories/report-rule.re
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
+import { CreateReportValidator } from '../../models/create-report.validator';
 
 export interface CreateReportPayload {
   reporterName: string;
@@ -43,7 +44,8 @@ export class CreateReportUseCase {
     private readonly reportRuleRepository: ReportRuleRepository,
   ) {}
   async execute(createReportPayload: CreateReportPayload): Promise<void> {
-    console.log('use case: create report', createReportPayload);
+    new CreateReportValidator().validate(createReportPayload);
+
     const reportId = this.uuidGenerator.generate();
 
     return this.transactionPerformer.perform(async (trx) => {
@@ -74,7 +76,6 @@ export class CreateReportUseCase {
           createReportPayload.rank,
         ),
       )(trx);
-      console.log('use case: report saved');
 
       const rulesRepositoryPromises = Object.entries(createReportPayload.rules)
         .map(([ruleGroup, rules]) =>
@@ -95,7 +96,6 @@ export class CreateReportUseCase {
         .flat();
 
       await Promise.all(rulesRepositoryPromises);
-      console.log('use case: rules saved', rulesRepositoryPromises.length);
     });
   }
 }

@@ -3,6 +3,7 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import typia from 'typia';
 import { NominationFilesImportedEvent } from './nomination-file-imported.event';
 import { NominationFileRead } from './nomination-file-read';
+import { InvalidRowValueError } from '../errors/invalid-row-value.error';
 
 export class NominationFileContentReader {
   constructor(
@@ -24,6 +25,9 @@ export class NominationFileContentReader {
             rulesIndices,
           ).reduce(
             (rulesAcc, [rule, index]) => {
+              if (!['TRUE', 'FALSE'].includes(row[index]!))
+                throw new InvalidRowValueError(rule, rowIndex);
+
               return {
                 ...rulesAcc,
                 [rule as NominationFile.RuleName]: row[index] === 'TRUE',

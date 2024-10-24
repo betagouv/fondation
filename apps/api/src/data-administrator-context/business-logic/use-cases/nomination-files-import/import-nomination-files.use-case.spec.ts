@@ -11,9 +11,11 @@ import { ImportNominationFilesUseCase } from './import-nomination-files.use-case
 import { NominationFileRead } from '../../models/nomination-file-read';
 import { NominationFileModel } from '../../models/nomination-file';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
+import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
 
 const firstHeader = `								Eléments du dossier								Règles automatisées de gestion (pour débat) et statutaires (bloquantes)													Règles statutaires (bloquantes) et éléments qualitatifs à vérifier dans le dossier`;
 const secondHeader = `Point(s) d'attention(s) repéré(s) dans le dossier	N° dossier                                                   	Magistrat	Formation	Date d'échéance	Etat	Transparence	Rapporteur(s)	Grade actuel	Poste actuel	Poste pressenti	Rang	Date de naissance	Historique	Observants		Mutation en - de 3 ans	Passer au 1er grade	Passe au grade "HH"	Prendre son grade sur place	Poste "profilé"	Nomination à la CC	"Outremer sur Outremer"	Siège <> Parquet et TJ <> CA	Siège <> Parquet du même ressort	Siège <> Parquet d'une même juridiction	Prendre son grade sur place après 7 ans	Ministère de la Justice à - de 3 ans d'exercice		Cabinet du ministre	Inscription au tableau pour prise de grade	Accéder à la HH sans avoir fait 2 postes au 1er grade	Prof. jur. dans le ressort du TJ il y a - de 5 ans	Conflit d'intérêt avec parcours pré magistrature	Conflit d'intérêt avec la prof. d'un proche	Evaluations	Eléments disciplinaires	Conditions de nomination HH 		Point d'attention sur ce dossier ?	Grade actuel	Intitulé du poste actuel	Reformulation du poste actuel	Date de prise du poste actuel	Lieu d'exercice du poste actuel (nom de la juridiction)	Localisation du poste actuel (Métropole ou Outremer)	Cour d'appel de rattachement du poste actuel	Poste au Ministère ?	Grade du poste pressenti	Titre du poste pressenti	Poste profilé ?	Intitulé du poste pressenti	Reformulation du poste pressenti, sans le grade II	Reformulation du poste pressenti, sans les grades II et I	Reformulation du poste pressenti, sans les grades II, I et HH	Lieu d'exercice du poste pressenti (nom de la juridiction)	Localisation du poste pressenti (Métropole ou Outremer)	Cour d'appel de rattachement du poste pressenti	Date pour la prise de poste (si nomination confirmée)	Observations`;
+const lineWithOneRuleInvalid = `TRUE	1 (parq.)	Marcel Dupont Ep. François 	Siège	10/11/2024	Nouveau	Automne 2024	LUC Loïc 	I	Avocat général - service extraordinaire CC  PARIS 	Premier avocat général CC  PARIS - HH 	(2 sur une liste de 2)	1/11/1961	- blablablablabla 	  JEAN PASCAL VPI TJ PARIS (9 sur une liste de 11)		TRUE	TTTRUEE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		TRUE	I	Avocat général - service extraordinaire CC  PARIS	Avocat	mars 2022	PARIS	Métropole	CA PARIS	FALSE	HH	Premier	FALSE	Premier avocat général CC  PARIS - HH	Premier avocat général I  PARIS - HH	Premier avocat général CC  PARIS - I	Premier avocat général CC  PARIS	PARIS	Métropole	CA PARIS	septembre 2024	  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
 const allRulesValidatedLine = `TRUE	1 (parq.)	Marcel Dupont Ep. François 	Siège	10/11/2024	Nouveau	Automne 2024	LUC Loïc 	I	Avocat général - service extraordinaire CC  PARIS 	Premier avocat général CC  PARIS - HH 	(2 sur une liste de 2)	1/11/1961	- blablablablabla 	  JEAN PASCAL VPI TJ PARIS (9 sur une liste de 11)		TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		TRUE	I	Avocat général - service extraordinaire CC  PARIS	Avocat	mars 2022	PARIS	Métropole	CA PARIS	FALSE	HH	Premier	FALSE	Premier avocat général CC  PARIS - HH	Premier avocat général I  PARIS - HH	Premier avocat général CC  PARIS - I	Premier avocat général CC  PARIS	PARIS	Métropole	CA PARIS	septembre 2024	  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
 const optionalFieldsAndOneRuleNotPrevalidated = `TRUE	3 (parq.)	Lucien Pierre 	Parquet		Avis restitué	Automne 2024	VICTOIRE Christian 	HH	Procureur de la République adjoint TJ  NIMES 	Avocat général CC  PARIS - HH 	2 sur une liste de 11)	22/8/1962	- blablablablabla 	   		TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		FALSE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE		TRUE	HH	Procureur de la République adjoint TJ  NIMES	Procureur	septembre 2012	NIMES	Métropole	CA NIMES	FALSE	HH	Avocat	FALSE	Avocat général CC  PARIS - HH	Avocat général CC  PARIS - HH	Avocat général CC  PARIS - HH	Avocat général CC  PARIS	PARIS	Métropole	CA PARIS	septembre 2024`;
 
@@ -64,6 +66,15 @@ describe('Import Nomination Files Use Case', () => {
       expect(importAFile(fileToImport)).rejects.toThrow(expectedError);
     },
   );
+
+  it('rejects all imports if one has note the expected rules count', async () => {
+    const fileToImport = `${firstHeader}
+${secondHeader}
+${allRulesValidatedLine}
+${lineWithOneRuleInvalid}`;
+
+    expect(importAFile(fileToImport)).rejects.toThrow(InvalidRowValueError);
+  });
 
   it('informs about a new file imported', async () => {
     await importAFile(fileToImportWithAllRulesPreValidated);

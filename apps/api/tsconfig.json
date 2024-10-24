@@ -19,6 +19,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true, // Used by ts-jest
     "plugins": [
       {
         "transform": "@nestia/core/lib/transform",

@@ -5,6 +5,7 @@ import {
   NominationFilesImportedEventPayload,
 } from 'src/data-administrator-context/business-logic/models/nomination-file-imported.event';
 import { CreateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-creation/create-report.use-case';
+import typia from 'typia';
 
 @Injectable()
 export class NominationFileImportedSubscriber {
@@ -14,6 +15,8 @@ export class NominationFileImportedSubscriber {
   async handleNominationFilesImportedEvent(
     payload: NominationFilesImportedEventPayload,
   ) {
+    typia.assert<NominationFilesImportedEventPayload>(payload);
+
     const promises = payload.contents.map((content) =>
       this.createReportUseCase.execute({
         reporterName: content.name,

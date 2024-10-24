@@ -11,6 +11,7 @@ import {
   CreateReportPayload,
   CreateReportUseCase,
 } from './create-report.use-case';
+import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
 
@@ -29,15 +30,24 @@ describe('Create Report Use Case', () => {
     reportRuleRepository = new FakeReportRuleRepository();
   });
 
+  it("doesn't create any report if there's a rules count mismatch", () => {
+    const payload = givenSomePayload();
+    payload.rules = {
+      ...payload.rules,
+      [NominationFile.RuleGroup.MANAGEMENT]: {
+        [NominationFile.ManagementRule.TRANSFER_TIME]: true,
+      } as CreateReportPayload['rules'][NominationFile.RuleGroup.MANAGEMENT],
+    };
+
+    expect(createAReport(payload)).rejects.toThrow(CreateReportValidationError);
+    expectReports();
+    expectRules();
+  });
+
   it('creates a report', async () => {
     const payload = givenSomePayload();
 
-    await new CreateReportUseCase(
-      nominationFileReportRepository,
-      transactionPerformer,
-      uuidGenerator,
-      reportRuleRepository,
-    ).execute(payload);
+    await createAReport(payload);
 
     expectReports(
       new NominationFileReport(
@@ -56,24 +66,7 @@ describe('Create Report Use Case', () => {
         payload.rank,
       ),
     );
-    expect(Object.values(reportRuleRepository.reportRules)).toEqual(
-      Object.entries(payload.rules)
-        .map(([ruleGroup, rules]) =>
-          Object.entries(rules).map(
-            ([rule, value]) =>
-              new ReportRule(
-                expect.any(String),
-                nominationFileReportId,
-                ruleGroup as NominationFile.RuleGroup,
-                rule as NominationFile.RuleName,
-                value,
-                false,
-                null,
-              ),
-          ),
-        )
-        .flat(),
-    );
+    expectRulesFromPayload(payload.rules);
   });
 
   const givenSomePayload = (): CreateReportPayload => ({
@@ -99,6 +92,14 @@ describe('Create Report Use Case', () => {
     rules: getAllRulesPreValidated(),
   });
 
+  const createAReport = (payload: CreateReportPayload) =>
+    new CreateReportUseCase(
+      nominationFileReportRepository,
+      transactionPerformer,
+      uuidGenerator,
+      reportRuleRepository,
+    ).execute(payload);
+
   const expectReports = (...reports: NominationFileReport[]) => {
     expect(nominationFileReportRepository.reports).toEqual(
       reports.reduce(
@@ -109,6 +110,35 @@ describe('Create Report Use Case', () => {
         {},
       ),
     );
+  };
+
+  const expectRulesFromPayload = (
+    payloadRules: CreateReportPayload['rules'],
+  ) => {
+    expectRules(
+      ...Object.entries(payloadRules)
+        .map(([ruleGroup, rules]) =>
+          Object.entries(rules).map(
+            ([rule, value]) =>
+              new ReportRule(
+                expect.any(String),
+                nominationFileReportId,
+                ruleGroup as NominationFile.RuleGroup,
+                rule as NominationFile.RuleName,
+                value,
+                false,
+                null,
+              ),
+          ),
+        )
+        .flat(),
+    );
+  };
+
+  const expectRules = (...rules: ReportRule[]) => {
+    expect(Object.values(reportRuleRepository.reportRules)).toEqual<
+      ReportRule[]
+    >(rules);
   };
 });
 

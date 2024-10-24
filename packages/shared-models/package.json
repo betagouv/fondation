@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Shared models between the API and the Web App",
   "main": "./dist/models/index.js",
+  "types": "./models/index.ts",
   "scripts": {
     "build": "rimraf dist/ && tsc",
     "build:watch": "tsc --watch",
