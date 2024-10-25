@@ -2,9 +2,7 @@ import { eq } from 'drizzle-orm';
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
 import { NominationFileModel } from 'src/data-administrator-context/business-logic/models/nomination-file';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
-import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-sql-preparation';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { nominationFiles } from './schema/nomination-file-pm';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
@@ -20,8 +18,8 @@ export class SqlNominationFileRepository implements NominationFileRepository {
         .execute();
     };
   }
-  save(nominationFile: NominationFileModel): TransactionableAsync<void> {
-    return async (db: DrizzleDb) => {
+  save(nominationFile: NominationFileModel): DrizzleTransactionableAsync {
+    return async (db) => {
       const nominationFileRow =
         SqlNominationFileRepository.mapToDb(nominationFile);
 
