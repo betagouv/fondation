@@ -45,7 +45,7 @@ const isProduction = process.env.NODE_ENV === 'production';
       provide: API_CONFIG,
       useFactory: (): ApiConfig =>
         isProduction
-          ? validate<true>(apiConfig)
+          ? (apiConfig as ApiConfig<true>)
           : validate<false>(defaultApiConfig),
     },
     {
