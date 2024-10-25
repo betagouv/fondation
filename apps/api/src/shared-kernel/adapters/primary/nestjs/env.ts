@@ -3,7 +3,7 @@ import { PartialDeep } from 'type-fest';
 
 export const apiConfig: PartialDeep<ApiConfig<true>> = {
   database: {
-    url: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL,
   },
 };
 

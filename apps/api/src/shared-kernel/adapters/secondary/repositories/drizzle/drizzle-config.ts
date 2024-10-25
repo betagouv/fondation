@@ -3,7 +3,7 @@ import { defaultApiConfig } from '../../../primary/nestjs/env';
 
 export const getDrizzleConfig = <Prod extends boolean>(
   config: Prod extends true
-    ? { url: Required<ConnectionConfig['connectionString']> }
+    ? Required<Pick<ConnectionConfig, 'connectionString'>>
     : Required<
         Pick<ConnectionConfig, 'host' | 'port' | 'user' | 'password'>
       > & {
