@@ -13,6 +13,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onUpdate }) => (
     content={comment}
     onContentChange={onUpdate}
     placeholder={NominationFileVM.commentPlaceholder}
-    rowsCount={2}
+    rowsCount={10}
   />
 );

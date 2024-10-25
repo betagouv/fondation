@@ -161,7 +161,9 @@ export const selectNominationFile = createSelector(
     return {
       id: nominationFile.id,
       name: nominationFile.name,
-      biography: nominationFile.biography,
+      biography: nominationFile.biography
+        ? formatBiography(nominationFile.biography)
+        : null,
       dueDate: nominationFile.dueDate
         ? DateOnly.fromStoreModel(nominationFile.dueDate).toFormattedString()
         : null,
@@ -185,6 +187,18 @@ export const selectNominationFile = createSelector(
     };
   },
 );
+
+const formatBiography = (biography: string) => {
+  if (biography.indexOf("- ") === -1) return biography;
+
+  const biographyElements = biography
+    .trim()
+    .split("- ")
+    .map((part) => part.trim());
+  // we skipt the real first element because it is empty
+  const [, firstElement, ...otherElements] = biographyElements;
+  return `- ${firstElement}\n- ${otherElements.join("\n- ")}`;
+};
 
 const createRuleCheckedEntryFromValidatedRules = <
   G extends NominationFile.RuleGroup,

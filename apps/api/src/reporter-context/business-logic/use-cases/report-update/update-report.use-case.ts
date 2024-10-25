@@ -28,7 +28,11 @@ export class UpdateReportUseCase {
         report.grade,
         report.currentPosition,
         report.targettedPosition,
-        newData.comment || report.comment,
+        'comment' in newData
+          ? newData.comment === ''
+            ? null
+            : newData.comment || null
+          : report.comment,
         report.rank,
       );
       await this.reportRepository.save(newReport)(trx);

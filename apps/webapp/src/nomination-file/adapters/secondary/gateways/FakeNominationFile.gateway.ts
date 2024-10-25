@@ -1,5 +1,8 @@
 import { NominationFile } from "shared-models";
-import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
+import {
+  NominationFileGateway,
+  UpdateNominationFileParams,
+} from "../../../core-logic/gateways/NominationFile.gateway";
 import {
   NominationFileListItem,
   NominationFileSM,
@@ -35,7 +38,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
 
   async updateNominationFile(
     reportId: string,
-    data: Partial<Pick<NominationFileSM, "biography" | "comment">>,
+    data: UpdateNominationFileParams,
   ): Promise<void> {
     if (this.nominationFiles[reportId])
       this.nominationFiles[reportId] = {

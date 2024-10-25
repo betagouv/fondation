@@ -1,6 +1,6 @@
 import { NominationFile } from "shared-models";
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
@@ -37,17 +37,27 @@ describe("Nomination Case Overview Component", () => {
       nominationFileGateway.addNominationFile(aValidatedNomination);
     });
 
-    it("shows its information", async () => {
+    it("shows magistrat identity section", async () => {
       renderNominationFile(aValidatedNomination.id);
 
       await expectMagistratIdentity();
+    });
 
-      screen.getByText("Biographie");
-      await screen.findByText("John Doe's biography");
+    it("shows the rules", async () => {
+      act(() => {
+        renderNominationFile(aValidatedNomination.id);
+      });
 
-      expectRulesFor(NominationFile.RuleGroup.MANAGEMENT);
-      expectRulesFor(NominationFile.RuleGroup.STATUTORY);
-      expectRulesFor(NominationFile.RuleGroup.QUALITATIVE);
+      await expectRulesFor(NominationFile.RuleGroup.MANAGEMENT);
+      await expectRulesFor(NominationFile.RuleGroup.STATUTORY);
+      await expectRulesFor(NominationFile.RuleGroup.QUALITATIVE);
+    });
+
+    it("show the biography with line breaks", async () => {
+      renderNominationFile(aValidatedNomination.id);
+      await screen.findByText(
+        /- John Doe's biography\s- second line\s- third line/,
+      );
     });
 
     const textareaTestCases: {
@@ -55,7 +65,6 @@ describe("Nomination Case Overview Component", () => {
       storeKey: string;
       placeholder?: string;
     }[] = [
-      { label: "Biographie", storeKey: "biography" },
       {
         label: "Commentaires généraux du rapporteur",
         storeKey: "comment",
@@ -92,13 +101,34 @@ describe("Nomination Case Overview Component", () => {
           },
         );
 
-        it(`writes content`, async () => {
+        it("writes content", async () => {
           renderNominationFile(aValidatedNomination.id);
           textarea = await givenTheTextArea();
 
           await typeNewBiographyText();
 
           expect(textarea).toHaveValue(newContent);
+        });
+
+        it("removes content", async () => {
+          renderNominationFile(aValidatedNomination.id);
+          textarea = await givenTheTextArea();
+          await userEvent.clear(textarea!);
+
+          expect(textarea).toHaveValue("");
+          await waitFor(() => {
+            expect(store.getState()).toEqual<AppState>({
+              ...initialState,
+              nominationFileOverview: {
+                byIds: {
+                  [aValidatedNomination.id]: {
+                    ...aValidatedNomination,
+                    [storeKey]: null,
+                  },
+                },
+              },
+            });
+          });
         });
 
         it("keeps the cursor position after typing and saves the new content", async () => {
@@ -203,7 +233,7 @@ describe("Nomination Case Overview Component", () => {
   };
 
   const expectRulesFor = async (ruleGroup: NominationFile.RuleGroup) => {
-    screen.getByText(NominationFileVM.ruleGroupToLabel[ruleGroup]);
+    await screen.findByText(NominationFileVM.ruleGroupToLabel[ruleGroup]);
     await expectRulesLabelsFor(ruleGroup);
     await expectRulesUncheckedFor(ruleGroup);
   };
@@ -260,6 +290,7 @@ describe("Nomination Case Overview Component", () => {
 
 const aValidatedNomination: NominationFileSM = new NominationFileBuilder()
   .withId("nomination-file-id")
+  .withBiography("  - John Doe's biography - second line  - third line ")
   .build();
 
 const anUnvalidatedNomination: NominationFileSM = new NominationFileBuilder()

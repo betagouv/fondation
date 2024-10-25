@@ -48,7 +48,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
     };
   }
 
-  static mapToDb(report: NominationFileReport): typeof reports.$inferSelect {
+  static mapToDb(report: NominationFileReport): typeof reports.$inferInsert {
     return {
       id: report.id,
       createdAt: report.createdAt,
