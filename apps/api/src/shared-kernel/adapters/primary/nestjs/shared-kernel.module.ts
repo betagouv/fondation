@@ -13,7 +13,7 @@ import {
 import { FakeDomainEventRepository } from '../../secondary/repositories/fake-domain-event-repository';
 import { DomainEventsPoller } from './domain-event-poller';
 import { validate } from './env.validation';
-import { apiConfig, defaultApiConfig } from './env.';
+import { apiConfig, defaultApiConfig } from './env';
 import { ApiConfig } from '../nestia/api-config-schema';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 

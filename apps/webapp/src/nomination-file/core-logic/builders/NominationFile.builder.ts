@@ -29,6 +29,14 @@ export class NominationFileBuilder {
     this.biography = "John Doe's biography";
     this.dueDate = new DateOnly(2030, 10, 30);
     this.birthDate = new DateOnly(1980, 1, 1);
+    this.state = NominationFile.ReportState.NEW;
+    this.formation = Magistrat.Formation.PARQUET;
+    this.transparency = Transparency.MARCH_2025;
+    this.grade = Magistrat.Grade.I;
+    this.currentPosition = "PG TJ Paris";
+    this.targettedPosition = "PG TJ Marseille";
+    this.rank = "(2 sur une liste de 3)";
+    this.comment = "Some comment";
     this.rules = rulesTuple.reduce(
       (acc, [ruleGroup, ruleName]) => {
         return {
@@ -46,15 +54,6 @@ export class NominationFileBuilder {
       },
       {} as NominationFileSM["rules"],
     );
-
-    this.state = NominationFile.ReportState.NEW;
-    this.formation = Magistrat.Formation.PARQUET;
-    this.transparency = Transparency.MARCH_2025;
-    this.grade = Magistrat.Grade.I;
-    this.currentPosition = "PG TJ Paris";
-    this.targettedPosition = "PG TJ Marseille";
-    this.rank = "(2 sur une liste de 3)";
-    this.comment = "Some comment";
   }
 
   withId(id: string) {

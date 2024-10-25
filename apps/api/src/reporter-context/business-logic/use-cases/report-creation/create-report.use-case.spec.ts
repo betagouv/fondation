@@ -61,6 +61,7 @@ describe('Create Report Use Case', () => {
     expectReports(
       new NominationFileReport(
         nominationFileReportId,
+        datetimeProvider.currentDate,
         payload.biography,
         new DateOnly(2035, 8, 22),
         payload.reporterName,
@@ -147,11 +148,12 @@ describe('Create Report Use Case', () => {
             ([rule, value]) =>
               new ReportRule(
                 expect.any(String),
+                expect.any(Date),
                 nominationFileReportId,
                 ruleGroup as NominationFile.RuleGroup,
                 rule as NominationFile.RuleName,
                 value,
-                false,
+                true,
                 null,
               ),
           ),

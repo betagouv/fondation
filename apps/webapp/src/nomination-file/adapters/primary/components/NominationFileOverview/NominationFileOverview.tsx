@@ -44,10 +44,9 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
       }),
     );
   };
-  const onUpdateBiography = (biography: string) =>
-    onUpdateNomination<"biography">({ biography });
-  const onUpdateComment = (comment: string) =>
-    onUpdateNomination<"comment">({ comment });
+  const onUpdateComment = (comment: string) => {
+    return onUpdateNomination<"comment">({ comment: comment });
+  };
 
   const onUpdateNominationRule =
     (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
@@ -89,10 +88,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         targettedPosition={nominationFile.targettedPosition}
         rank={nominationFile.rank}
       />
-      <Biography
-        biography={nominationFile.biography}
-        onUpdate={onUpdateBiography}
-      />
+      <Biography biography={nominationFile.biography} />
       <NominationRules
         rulesChecked={nominationFile.rulesChecked}
         onUpdateNominationRule={onUpdateNominationRule}

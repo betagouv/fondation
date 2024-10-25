@@ -71,11 +71,12 @@ export class CreateReportUseCase {
             this.reportRuleRepository.save(
               new ReportRule(
                 this.uuidGenerator.generate(),
+                this.datetimeProvider.now(),
                 reportId,
                 ruleGroup as NominationFile.RuleGroup,
                 ruleName as NominationFile.RuleName,
                 preValidated,
-                false,
+                true,
                 null,
               ),
             )(trx),

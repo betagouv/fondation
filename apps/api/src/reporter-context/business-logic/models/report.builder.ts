@@ -1,11 +1,16 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile,
+  ReportListItemVM,
+  ReportRetrievalVM,
+  Transparency,
+} from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFileReport } from './nomination-file-report';
-import { ReportRetrievalVM } from 'shared-models';
-import { ReportListItemVM } from 'shared-models';
 
 export class ReportBuilder {
   private id: string;
+  private createdAt: Date;
   private biography: string | null;
   private dueDate: DateOnly | null;
   private name: string;
@@ -21,6 +26,7 @@ export class ReportBuilder {
 
   constructor() {
     this.id = 'report-id';
+    this.createdAt = new Date(2021, 1, 1);
     this.name = 'John Doe';
     this.biography = 'Biography';
     this.dueDate = new DateOnly(2030, 1, 1);
@@ -37,6 +43,10 @@ export class ReportBuilder {
 
   withId(id: string): this {
     this.id = id;
+    return this;
+  }
+  withCreatedAt(createdAt: Date): this {
+    this.createdAt = createdAt;
     return this;
   }
   withName(name: string) {
@@ -92,6 +102,7 @@ export class ReportBuilder {
   build(): NominationFileReport {
     return {
       id: this.id,
+      createdAt: this.createdAt,
       name: this.name,
       biography: this.biography,
       dueDate: this.dueDate,

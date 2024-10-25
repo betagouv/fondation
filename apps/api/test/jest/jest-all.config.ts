@@ -9,9 +9,9 @@ const jestConfig: JestConfigWithTsJest = {
     '^.+\\.(ts)$': 'ts-jest',
   },
   testMatch: [
-    '<rootDir>**/src/**/*.spec.(ts)',
-    '<rootDir>**/src/**/*.it-spec.(ts)',
-    '<rootDir>**/src/**/*.e2e-spec.(ts)',
+    '<rootDir>**/{src,cli}/**/*.spec.(ts)',
+    '<rootDir>**/{src,cli}/**/*.it-spec.(ts)',
+    '<rootDir>**/{src,cli}/**/*.e2e-spec.(ts)',
   ],
   testEnvironment: 'node',
   modulePaths: ['<rootDir>'],

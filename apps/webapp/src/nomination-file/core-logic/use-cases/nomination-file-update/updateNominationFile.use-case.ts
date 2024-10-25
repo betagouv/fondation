@@ -4,7 +4,6 @@ import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
 export type UpdateNominationFileParams = {
   reportId: string;
   data: {
-    biography?: string;
     comment?: string;
     state?:
       | NominationFile.ReportState.IN_PROGRESS

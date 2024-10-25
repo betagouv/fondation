@@ -5,31 +5,13 @@ import {
   Transparency,
 } from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
-import { NominationFileVM } from "../../adapters/primary/selectors/selectNominationFile";
+import {
+  NominationFileVM,
+  VMNominationFileRuleValue,
+} from "../../adapters/primary/selectors/selectNominationFile";
 import { NominationFileSM } from "../../store/appState";
 
 export class NominationFileBuilderVM {
-  static fromStoreModel(nominationFileStoreModel: NominationFileSM) {
-    return new NominationFileBuilderVM()
-      .withId(nominationFileStoreModel.id)
-      .withBiography(nominationFileStoreModel.biography)
-      .withBirthDate(
-        DateOnly.fromStoreModel(nominationFileStoreModel.birthDate),
-      )
-      .withComment(nominationFileStoreModel.comment)
-      .withCurrentPosition(nominationFileStoreModel.currentPosition)
-      .withDueDate(
-        nominationFileStoreModel.dueDate
-          ? DateOnly.fromStoreModel(nominationFileStoreModel.dueDate)
-          : null,
-      )
-      .withFormation(nominationFileStoreModel.formation)
-      .withGrade(nominationFileStoreModel.grade)
-      .withRank(nominationFileStoreModel.rank)
-      .withState(nominationFileStoreModel.state)
-      .withTargettedPosition(nominationFileStoreModel.targettedPosition)
-      .withTransparency(nominationFileStoreModel.transparency);
-  }
   private id: string;
   private title: string;
   private biography: string | null;
@@ -136,6 +118,7 @@ export class NominationFileBuilderVM {
     this.rank = rank;
     return this;
   }
+
   withTransferTimeChecked(transferTime: boolean) {
     this.rulesChecked.management.TRANSFER_TIME.checked = transferTime;
     return this;
@@ -182,6 +165,24 @@ export class NominationFileBuilderVM {
       judiciaryRoleAndJuridictionDegreeChangeInSameRessort;
     return this;
   }
+  withAllRulesChecked(checked: boolean) {
+    return rulesTuple.reduce((builder, [ruleGroup, ruleName]) => {
+      return builder.withRuleChecked(ruleGroup, ruleName, checked);
+    }, this);
+  }
+  withRuleChecked(
+    ruleGroup: NominationFile.RuleGroup,
+    ruleName: NominationFile.RuleName,
+    checked: boolean,
+  ) {
+    (
+      this.rulesChecked[ruleGroup] as Record<
+        NominationFile.RuleName,
+        VMNominationFileRuleValue
+      >
+    )[ruleName].checked = checked;
+    return this;
+  }
 
   build(): NominationFileVM {
     return {
@@ -200,5 +201,27 @@ export class NominationFileBuilderVM {
       rank: this.rank,
       rulesChecked: this.rulesChecked,
     };
+  }
+
+  static fromStoreModel(nominationFileStoreModel: NominationFileSM) {
+    return new NominationFileBuilderVM()
+      .withId(nominationFileStoreModel.id)
+      .withBiography(nominationFileStoreModel.biography)
+      .withBirthDate(
+        DateOnly.fromStoreModel(nominationFileStoreModel.birthDate),
+      )
+      .withComment(nominationFileStoreModel.comment)
+      .withCurrentPosition(nominationFileStoreModel.currentPosition)
+      .withDueDate(
+        nominationFileStoreModel.dueDate
+          ? DateOnly.fromStoreModel(nominationFileStoreModel.dueDate)
+          : null,
+      )
+      .withFormation(nominationFileStoreModel.formation)
+      .withGrade(nominationFileStoreModel.grade)
+      .withRank(nominationFileStoreModel.rank)
+      .withState(nominationFileStoreModel.state)
+      .withTargettedPosition(nominationFileStoreModel.targettedPosition)
+      .withTransparency(nominationFileStoreModel.transparency);
   }
 }

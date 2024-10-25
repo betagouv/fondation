@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { date, text, uuid, varchar } from 'drizzle-orm/pg-core';
+import { date, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import {
   formationEnum,
   gradeEnum,
@@ -13,6 +13,7 @@ export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
   biography: text('biography'),
   dueDate: date('due_date'),
   name: varchar('name').notNull(),

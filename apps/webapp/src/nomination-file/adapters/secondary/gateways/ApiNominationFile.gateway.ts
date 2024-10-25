@@ -1,5 +1,8 @@
 import { Magistrat, NominationFile, Transparency } from "shared-models";
-import { NominationFileGateway } from "../../../core-logic/gateways/NominationFile.gateway";
+import {
+  NominationFileGateway,
+  UpdateNominationFileParams,
+} from "../../../core-logic/gateways/NominationFile.gateway";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
 import {
   NominationFileListItem,
@@ -13,14 +16,13 @@ export class ApiNominationFileGateway implements NominationFileGateway {
 
   async updateNominationFile(
     reportId: string,
-    data: Partial<Pick<NominationFileSM, "biography" | "comment" | "state">>,
+    data: UpdateNominationFileParams,
   ): Promise<void> {
     const updateData = {
-      biography: data.biography ?? undefined,
-      comment: data.comment ?? undefined,
-      state: data.state ?? undefined,
+      comment: data.comment,
+      state: data.state,
     };
-    this.nominationFileApiClient.updateReport(reportId, updateData);
+    await this.nominationFileApiClient.updateReport(reportId, updateData);
   }
 
   async updateRule(ruleId: string, validated: boolean): Promise<void> {

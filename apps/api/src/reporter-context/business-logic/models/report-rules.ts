@@ -11,6 +11,7 @@ export class ReportRuleValidation {
 
 export type ReportRuleSnapshot = {
   id: string;
+  createdAt: Date;
   reportId: string;
   ruleGroup: NominationFile.RuleGroup;
   ruleName: NominationFile.RuleName;
@@ -22,6 +23,7 @@ export type ReportRuleSnapshot = {
 export class ReportRule {
   constructor(
     private readonly id: string,
+    private readonly createdAt: Date,
     private readonly reportId: string,
     private readonly ruleGroup: NominationFile.RuleGroup,
     private readonly ruleName: NominationFile.RuleName,
@@ -41,6 +43,7 @@ export class ReportRule {
   toSnapshot(): ReportRuleSnapshot {
     return {
       id: this.id,
+      createdAt: this.createdAt,
       reportId: this.reportId,
       ruleGroup: this.ruleGroup,
       ruleName: this.ruleName,
@@ -52,6 +55,7 @@ export class ReportRule {
   static fromSnapshot(reportRuleSnapshot: ReportRuleSnapshot) {
     return new ReportRule(
       reportRuleSnapshot.id,
+      reportRuleSnapshot.createdAt,
       reportRuleSnapshot.reportId,
       reportRuleSnapshot.ruleGroup,
       reportRuleSnapshot.ruleName,

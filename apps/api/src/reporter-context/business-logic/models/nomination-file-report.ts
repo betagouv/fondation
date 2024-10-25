@@ -18,6 +18,7 @@ export enum NominationFileManagementRule {
 export class NominationFileReport {
   constructor(
     readonly id: string,
+    readonly createdAt: Date,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
     readonly name: string,
@@ -41,6 +42,7 @@ export class NominationFileReport {
   ): [NominationFileReport, ReportCreatedEvent] {
     const report = new NominationFileReport(
       reportId,
+      currentDate,
       createReportPayload.biography,
       createReportPayload.dueDate
         ? new DateOnly(

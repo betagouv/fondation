@@ -1,22 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import path from 'path';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/adapters/primary/nestjs/cli/import-nominations-from-local-file.cli';
-import {
-  DataAdministrationContextModule,
-  IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
-} from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
+import { AppModule } from 'src/app.module';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { setTimeout } from 'timers/promises';
 
 const runImportNominationsFromLocalFileCli = async (
   absoluteFilePath: string,
 ) => {
-  const app = await NestFactory.createApplicationContext(
-    DataAdministrationContextModule,
-  );
+  const app = await NestFactory.createApplicationContext(AppModule);
   const importNominationFileFromLocalFileCli = app.get<
     InstanceType<typeof ImportNominationFileFromLocalFileCli>
   >(IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI);
 
   await importNominationFileFromLocalFileCli.execute(absoluteFilePath);
+  await setTimeout(10000);
+  await app.close();
 };
 
 const absoluteFilePath = process.argv[2];

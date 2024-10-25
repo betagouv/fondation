@@ -6,6 +6,7 @@ import { SetReportIdUseCase } from './set-report-id.use-case';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { getAllRulesPreValidated } from '../nomination-files-import/import-nomination-files.use-case.spec';
+import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 
 const reportId = 'report-id';
 const nominationFileId = 'nomination-file-id';
@@ -14,10 +15,12 @@ describe('Set Report Id Use Case', () => {
   let transactionPerformer: TransactionPerformer;
   let fakeNominationFileRepository: FakeNominationFileRepository;
   let nominationFile: NominationFileModel;
+  let dateTimeProvider: DeterministicDateProvider;
 
   beforeEach(() => {
     transactionPerformer = new NullTransactionPerformer();
     fakeNominationFileRepository = new FakeNominationFileRepository();
+    dateTimeProvider = new DeterministicDateProvider();
 
     nominationFile = getLucienPierreModel(nominationFileId);
     fakeNominationFileRepository.nominationFiles = {
@@ -43,6 +46,7 @@ describe('Set Report Id Use Case', () => {
           ...acc,
           [nominationFileSnapshot.id]: new NominationFileModel(
             nominationFileSnapshot.id,
+            dateTimeProvider.currentDate,
             reportId,
             {
               rowNumber: nominationFileSnapshot.rowNumber,
@@ -63,7 +67,12 @@ describe('Set Report Id Use Case', () => {
     uuid: string,
     rowNumber = 1,
   ): NominationFileModel =>
-    new NominationFileModel(uuid, null, getLucienPierreRead(rowNumber));
+    new NominationFileModel(
+      uuid,
+      dateTimeProvider.currentDate,
+      null,
+      getLucienPierreRead(rowNumber),
+    );
 
   const getLucienPierreRead = (rowNumber = 1): NominationFileRead => ({
     rowNumber,

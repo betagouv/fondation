@@ -47,6 +47,7 @@ export class SqlNominationFileRepository implements NominationFileRepository {
 
     return {
       id: snapshot.id,
+      createdAt: snapshot.createdAt,
       rowNumber: snapshot.rowNumber,
       reportId: snapshot.reportId,
       content: snapshot.content,

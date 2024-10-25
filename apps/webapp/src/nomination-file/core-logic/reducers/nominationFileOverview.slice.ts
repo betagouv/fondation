@@ -22,7 +22,16 @@ const nominationCaseOverviewSlice = createSlice({
       const nominationFile = state.byIds?.[reportId];
 
       if (nominationFile) {
-        state.byIds![reportId] = { ...nominationFile, ...data };
+        state.byIds![reportId] = {
+          ...nominationFile,
+          ...data,
+          comment:
+            "comment" in data
+              ? data.comment === ""
+                ? null
+                : data.comment || null
+              : nominationFile.comment,
+        };
       }
     });
 

@@ -31,14 +31,10 @@ describe("Nomination File Update", () => {
       state: NominationFile.ReportState.READY_TO_SUPPORT,
     },
     {
-      biography: "new biography",
-    },
-    {
       comment: "new comment",
     },
     {
       state: NominationFile.ReportState.IN_PROGRESS,
-      biography: "new biography",
       comment: "new comment",
     },
   ];

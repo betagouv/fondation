@@ -10,7 +10,7 @@ import {
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { SqlNominationFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file.repository';
-import { ImportNominationFileFromLocalFileCli } from './cli/import-nominations-from-local-file.cli';
+import { ImportNominationFileFromLocalFileCli } from '../../../business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { ReportCreatedSubscriber } from './event-subscribers/report-created.subscriber';
 
 export const NOMINATION_FILE_REPOSITORY = 'NOMINATION_FILE_REPOSITORY';
