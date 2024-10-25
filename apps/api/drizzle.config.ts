@@ -18,9 +18,9 @@ export default defineConfig({
 
 function getDbCredentials() {
   if (isProduction) {
-    if (!apiConfig?.database?.url)
+    if (!apiConfig?.database?.connectionString)
       throw new Error('Database URL is required in production');
-    return { url: apiConfig.database.url };
+    return { url: apiConfig.database.connectionString };
   } else {
     return {
       host: defaultApiConfig.database.host,
