@@ -5,9 +5,14 @@ import {
   DOMAIN_EVENTS_POLLER,
   SharedKernelModule,
 } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DataAdministrationContextModule } from './data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
 
 @Module({
-  imports: [ReporterModule, SharedKernelModule],
+  imports: [
+    DataAdministrationContextModule,
+    ReporterModule,
+    SharedKernelModule,
+  ],
   controllers: [],
   providers: [],
 })
@@ -23,11 +28,11 @@ export class AppModule implements OnModuleInit, OnModuleDestroy {
     this.publishEvents();
   }
 
-  public onModuleDestroy() {
+  onModuleDestroy() {
     this.stopPublishEvents();
   }
 
-  public publishEvents() {
+  private publishEvents() {
     this.intervalId = setInterval(async () => {
       try {
         await this.domainEventsPoller.execute();

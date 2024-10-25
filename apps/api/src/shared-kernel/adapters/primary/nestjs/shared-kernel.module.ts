@@ -15,6 +15,7 @@ import { DomainEventsPoller } from './domain-event-poller';
 import { validate } from './env.validation';
 import { apiConfig, defaultApiConfig } from './env.';
 import { ApiConfig } from '../nestia/api-config-schema';
+import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 
 export const DATE_TIME_PROVIDER = 'DATE_TIME_PROVIDER';
 export const UUID_GENERATOR = 'UUID_GENERATOR';
@@ -36,6 +37,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     TRANSACTION_PERFORMER,
     DOMAIN_EVENT_REPOSITORY,
     DOMAIN_EVENTS_POLLER,
+    FileReaderProvider,
   ],
   controllers: [],
   providers: [
@@ -114,6 +116,8 @@ const isProduction = process.env.NODE_ENV === 'production';
         }
       })(),
     },
+
+    FileReaderProvider,
   ],
 })
 export class SharedKernelModule {}

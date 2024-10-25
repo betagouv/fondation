@@ -19,17 +19,21 @@ export class ImportNominationFilesUseCase {
     const parsedContent = new TsvParser().parse(fileContentToImport);
     const [, secondHeader, ...content] = parsedContent;
 
-    const [contentRead, nominationFilesImportedEvent] =
-      new NominationFileContentReader(secondHeader, content).read(
-        this.uuidGenerator.generate(),
+    const contentRead = new NominationFileContentReader(
+      secondHeader,
+      content,
+    ).read();
+
+    const [nominationFiles, nominationFilesImportedEvent] =
+      NominationFileModel.fromReadFile(
+        () => this.uuidGenerator.generate(),
+        contentRead,
         this.dateTimeProvider.now(),
       );
 
     return this.transactionPerformer.perform(async (trx) => {
-      const promises = contentRead.map((content) =>
-        this.nominationFileRepository.save(
-          new NominationFileModel(this.uuidGenerator.generate(), null, content),
-        )(trx),
+      const promises = nominationFiles.map((nominationFile) =>
+        this.nominationFileRepository.save(nominationFile)(trx),
       );
       await Promise.all(promises);
 

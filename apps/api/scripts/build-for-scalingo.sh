@@ -3,9 +3,6 @@
 # Create folder to package the API production code
 mkdir .tmp-build/
 
-# Transpile API Typescript code
-pnpm --filter=api build
-
 # Copy monorepo root files
 cp -v pnpm-lock.yaml package.json pnpm-workspace.yaml .tmp-build/
 
@@ -15,13 +12,15 @@ cp -rv packages/shared-models/ ./.tmp-build/packages/shared-models/
 
 # Create folder to copy api/ production files
 mkdir -pv .tmp-build/apps/api/dist
+mkdir -pv .tmp-build/apps/api/scripts
 
 # Copy api files needed for production
 cp -v apps/api/package.json .tmp-build/apps/api/
 cp -v apps/api/drizzle.config.ts .tmp-build/apps/api/
+cp -v apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh .tmp-build/apps/api/scripts/
+chmod +x .tmp-build/apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh
 cp -rv apps/api/drizzle .tmp-build/apps/api/
 cp -rv apps/api/dist .tmp-build/apps/api/
-
 # Copy scalingo specific files
 cp -v apps/api/scalingo/.buildpacks apps/api/scalingo/Procfile .tmp-build/
 

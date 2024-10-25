@@ -32,7 +32,7 @@ export class NominationFileBuilderVM {
   }
   private id: string;
   private title: string;
-  private biography: string;
+  private biography: string | null;
   private rulesChecked: NominationFileVM["rulesChecked"];
   private dueDate: DateOnly | null;
   private birthDate: DateOnly;
@@ -92,7 +92,7 @@ export class NominationFileBuilderVM {
     this.title = title;
     return this;
   }
-  withBiography(biography: string) {
+  withBiography(biography: string | null) {
     this.biography = biography;
     return this;
   }

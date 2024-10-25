@@ -1,7 +1,7 @@
 import { TextareaCard } from "./TextareaCard";
 
 export type BiographyProps = {
-  biography: string;
+  biography: string | null;
   onUpdate: (biography: string) => void;
 };
 
