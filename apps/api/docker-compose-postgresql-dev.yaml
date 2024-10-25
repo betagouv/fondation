@@ -1,16 +1,60 @@
 services:
   postgres:
+    container_name: postgres
     image: 'postgres:13.2'
     ports:
       - '5440:5432'
     networks:
       - app_net
-    user: postgres
     environment:
       POSTGRES_USER: fondation
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: fondation
+    volumes:
+      - fondation_postgres_data:/var/lib/postgresql/data
+
+  initdb:
+    image: node:20.9.0
+    networks:
+      - app_net
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: fondation
+      DATABASE_PASSWORD: secret
+      DATABASE_NAME: fondation
+    volumes:
+      - ../../:/usr/src/fondation/
+      - ./node_modules:/usr/src/fondation/apps/api/node_modules
+      - ../../node_modules:/usr/src/fondation/node_modules
+      - ../../pnpm-lock.yaml:/usr/src/fondation/pnpm-lock.yaml
+      - ~/.pnpm-store:/root/.pnpm-store
+      - ${NOMINATION_FILES_ABSOLUTE_PATH_LOCAL}:${NOMINATION_FILES_ABSOLUTE_PATH_DOCKER}
+    depends_on:
+      - postgres
+    command: |
+      bash -c "
+      echo 'Docker nomination files path: $NOMINATION_FILES_ABSOLUTE_PATH_DOCKER' &&
+
+      until node -e 'require(\"net\").connect(5432, \"postgres\").on(\"error\", () => process.exit(1)).on(\"connect\", () => process.exit(0))'; do
+        echo 'Waiting for postgres...'
+        sleep 1
+      done &&
+
+      echo \"Migration starting\" &&
+      npm run drizzle:migrate &&
+      echo \"Migration done\" &&
+
+      echo \"Seeding with TSV file starting\" &&
+      npm run cli:upload-nomination-files:local -- \"$NOMINATION_FILES_ABSOLUTE_PATH_DOCKER\"
+      echo \"Seeding with TSV file done\"
+      "
+    working_dir: /usr/src/fondation/apps/api
 
 networks:
   app_net:
     driver: bridge
+volumes:
+  fondation_postgres_data:

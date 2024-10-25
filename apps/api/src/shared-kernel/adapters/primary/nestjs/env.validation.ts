@@ -1,9 +1,9 @@
 import typia from 'typia';
 import { ApiConfig } from '../nestia/api-config-schema';
-import { DeepPartial } from 'typeorm';
+import { PartialDeep } from 'type-fest';
 
 export function validate<Prod extends boolean>(
-  apiConfig: DeepPartial<ApiConfig<Prod>>,
+  apiConfig: PartialDeep<ApiConfig<Prod>>,
 ): ApiConfig<Prod> {
   const validationResult = typia.validate<ApiConfig<Prod>>(apiConfig);
 

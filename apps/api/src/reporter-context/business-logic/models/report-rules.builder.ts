@@ -3,6 +3,7 @@ import { ReportRule } from './report-rules';
 
 export class ReportRuleBuilder {
   private id: string;
+  private createdAt: Date;
   private reportId: string;
   private ruleGroup: NominationFile.RuleGroup;
   private ruleName: NominationFile.RuleName;
@@ -12,6 +13,7 @@ export class ReportRuleBuilder {
 
   constructor() {
     this.id = 'rule-id';
+    this.createdAt = new Date(2021, 1, 1);
     this.reportId = 'report-id';
     this.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
     this.ruleName = NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS;
@@ -58,6 +60,7 @@ export class ReportRuleBuilder {
   build(): ReportRule {
     return new ReportRule(
       this.id,
+      this.createdAt,
       this.reportId,
       this.ruleGroup,
       this.ruleName,

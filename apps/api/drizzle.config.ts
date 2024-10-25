@@ -2,7 +2,7 @@ import { defineConfig } from 'drizzle-kit';
 import {
   apiConfig,
   defaultApiConfig,
-} from 'src/shared-kernel/adapters/primary/nestjs/env.';
+} from 'src/shared-kernel/adapters/primary/nestjs/env';
 
 const isProduction = process.env.NODE_ENV === 'production';
 

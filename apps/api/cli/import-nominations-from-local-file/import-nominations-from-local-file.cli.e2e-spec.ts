@@ -15,8 +15,8 @@ import {
 } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from '../data-administration-context.module';
-import { ImportNominationFileFromLocalFileCli } from './import-nominations-from-local-file.cli';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 
 const fileToImportPath = path.resolve(
   __dirname,
@@ -68,6 +68,7 @@ describe('Import Nominations from local file', () => {
     expectReports(
       ...getExpectedContents().map((content) => ({
         id: expect.any(String),
+        createdAt: expect.any(Date),
         state: content.state,
         dueDate: content.dueDate
           ? DateOnly.fromJson(content.dueDate).toDbString()
@@ -88,6 +89,7 @@ describe('Import Nominations from local file', () => {
     expectNominationFiles(
       ...getExpectedContents().map((content) => ({
         id: expect.any(String),
+        createdAt: expect.any(Date),
         reportId: expect.any(String),
         rowNumber: expect.any(Number),
         content: content,

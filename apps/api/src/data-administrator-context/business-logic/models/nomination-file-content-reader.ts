@@ -86,10 +86,13 @@ export class NominationFileContentReader {
         return Transparency.AUTOMNE_2024;
       case 'Mars 2025':
         return Transparency.MARCH_2025;
+      case 'Mars 2026':
+        return Transparency.MARCH_2026;
       default:
         throw new Error('Invalid transparency: ' + transparency);
     }
   }
+
   private findValue(
     column: string,
     rowIndex: number,

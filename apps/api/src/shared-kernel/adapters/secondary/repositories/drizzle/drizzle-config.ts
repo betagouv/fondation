@@ -1,5 +1,5 @@
 import { ConnectionConfig } from 'pg';
-import { defaultApiConfig } from '../../../primary/nestjs/env.';
+import { defaultApiConfig } from '../../../primary/nestjs/env';
 
 export const getDrizzleConfig = <Prod extends boolean>(
   config: Prod extends true

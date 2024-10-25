@@ -31,6 +31,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.createdAt,
         aReport.biography,
         aReport.dueDate,
         aReport.name,
@@ -51,6 +52,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.createdAt,
         'new biography',
         aReport.dueDate,
         aReport.name,
@@ -71,6 +73,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.createdAt,
         aReport.biography,
         aReport.dueDate,
         aReport.name,
@@ -93,6 +96,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.createdAt,
         'new biography',
         aReport.dueDate,
         aReport.name,
@@ -125,6 +129,7 @@ describe('Report Update Use Case', () => {
     expect(savedReport).toEqual(
       new NominationFileReport(
         report.id,
+        aReport.createdAt,
         newData.biography || report.biography,
         report.dueDate,
         report.name,

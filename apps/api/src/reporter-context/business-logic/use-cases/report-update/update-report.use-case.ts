@@ -17,6 +17,7 @@ export class UpdateReportUseCase {
       if (!report) return;
       const newReport = new NominationFileReport(
         id,
+        report.createdAt,
         newData.biography || report.biography,
         report.dueDate,
         report.name,

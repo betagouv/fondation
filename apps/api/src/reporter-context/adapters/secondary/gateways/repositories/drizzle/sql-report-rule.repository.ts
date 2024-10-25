@@ -21,6 +21,7 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
 
       const reportRuleSnapshot = {
         id: row.id,
+        createdAt: row.createdAt,
         ruleGroup: row.ruleGroup,
         ruleName: row.ruleName,
         preValidated: row.preValidated,
@@ -55,6 +56,7 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
 
     return {
       id: ruleSnapshot.id,
+      createdAt: ruleSnapshot.createdAt,
       reportId: ruleSnapshot.reportId,
       ruleGroup: ruleSnapshot.ruleGroup,
       ruleName: ruleSnapshot.ruleName,

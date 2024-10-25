@@ -149,13 +149,23 @@ ${lineWithOneRuleInvalid}`;
     uuid: string,
     rowNumber = 1,
   ): NominationFileModel =>
-    new NominationFileModel(uuid, null, getMarcelDupontRead(rowNumber));
+    new NominationFileModel(
+      uuid,
+      dateTimeProvider.currentDate,
+      null,
+      getMarcelDupontRead(rowNumber),
+    );
 
   const getLucienPierreModel = (
     uuid: string,
     rowNumber = 1,
   ): NominationFileModel =>
-    new NominationFileModel(uuid, null, getLucienPierreRead(rowNumber));
+    new NominationFileModel(
+      uuid,
+      dateTimeProvider.currentDate,
+      null,
+      getLucienPierreRead(rowNumber),
+    );
 
   const getMarcelDupontRead = (rowNumber = 1): NominationFileRead => ({
     rowNumber,

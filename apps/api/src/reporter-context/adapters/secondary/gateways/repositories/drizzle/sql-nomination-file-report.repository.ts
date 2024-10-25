@@ -51,6 +51,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
   static mapToDb(report: NominationFileReport): typeof reports.$inferSelect {
     return {
       id: report.id,
+      createdAt: report.createdAt,
       biography: report.biography,
       dueDate: report.dueDate ? report.dueDate.toDbString() : null,
       name: report.name,
@@ -69,6 +70,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
     return new NominationFileReport(
       row.id,
+      row.createdAt,
       row.biography,
       row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,
       row.name,

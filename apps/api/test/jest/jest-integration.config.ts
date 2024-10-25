@@ -8,7 +8,7 @@ const jestConfig: JestConfigWithTsJest = {
   transform: {
     '^.+\\.(ts)$': 'ts-jest',
   },
-  testMatch: ['**/src/**/*.it-spec.(ts)'],
+  testMatch: ['**/{src,cli}/**/*.it-spec.(ts)'],
   testEnvironment: 'node',
   modulePaths: ['<rootDir>'],
   collectCoverageFrom: [

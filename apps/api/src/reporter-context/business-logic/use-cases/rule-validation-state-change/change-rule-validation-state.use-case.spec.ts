@@ -65,6 +65,7 @@ describe('Change Rule Validation State', () => {
     expect(savedReport).toEqual(
       new ReportRule(
         reportRuleSnapshot.id,
+        reportRuleSnapshot.createdAt,
         reportRuleSnapshot.reportId,
         NominationFile.RuleGroup.MANAGEMENT,
         NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,

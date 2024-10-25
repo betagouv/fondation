@@ -61,5 +61,7 @@ describe("Select Nomination Case", () => {
     .withBiography("The biography.")
     .build();
   const aNominationFileVM: NominationFileVM =
-    NominationFileBuilderVM.fromStoreModel(aNominationFile).build();
+    NominationFileBuilderVM.fromStoreModel(aNominationFile)
+      .withAllRulesChecked(false)
+      .build();
 });

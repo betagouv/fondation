@@ -27,11 +27,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "ts-patch install && typia patch",
     "gen-sdk": "nestia sdk",
-    "typeorm:gen": "pnpx typeorm-ts-node-commonjs migration:generate -d src/shared-kernel/adapters/secondary/repositories/orm-data-source.ts",
-    "seed": "ts-node -r tsconfig-paths/register cli/seed.ts",
     "drizzle:gen": "drizzle-kit generate --name",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js",
+    "cli:seed": "ts-node -r tsconfig-paths/register cli/seed.ts",
+    "cli:upload-nomination-files:local": "ts-node -r tsconfig-paths/register cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.ts",
     "scalingo:upload-nomination-files:staging": "dotenvx run -f .env.scalingo-upload.staging -f .env.scalingo-upload -- ./apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh",
     "scalingo:upload-nomination-files:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./apps/api/scripts/import-nominations-from-local-file-to-scalingo.sh"
   },
@@ -50,7 +50,6 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "shared-models": "workspace:*",
-    "typeorm": "^0.3.20",
     "typia": "^6.11.1"
   },
   "devDependencies": {
@@ -84,6 +83,7 @@
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.1",
     "tsconfig-paths": "^4.2.0",
+    "type-fest": "^4.26.1",
     "typescript": "^5.6.2"
   },
   "jest": {
