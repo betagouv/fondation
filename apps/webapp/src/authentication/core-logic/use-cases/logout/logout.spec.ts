@@ -1,12 +1,12 @@
 import { AppState } from "../../../../nomination-file/store/appState";
-import { storeAuthenticationOnLoginSuccess } from "../../listeners/authentication.listeners";
 import {
   ReduxStore,
   initReduxStore,
 } from "../../../../nomination-file/store/reduxStore";
 import { FakeAuthenticationGateway } from "../../../adapters/secondary/gateways/fakeAuthentication.gateway";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
-import { authenticate } from "./authenticate";
+import { storeDisconnectionAndRedirectOnLogout } from "../../listeners/logout.listeners";
+import { logout } from "./logout";
 
 describe("Authenticate", () => {
   let store: ReduxStore;
@@ -26,32 +26,27 @@ describe("Authenticate", () => {
       },
       { authenticationStorageProvider },
       {},
-      [storeAuthenticationOnLoginSuccess],
+      [storeDisconnectionAndRedirectOnLogout],
     );
     initialState = store.getState();
   });
 
-  it("authenticates a user", async () => {
-    await store.dispatch(
-      authenticate({ username: "username", password: "password" }),
-    );
+  it("disconnects a user", async () => {
+    await store.dispatch(logout());
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       authentication: {
         ...initialState.authentication,
-        authenticated: true,
+        authenticated: false,
       },
     });
   });
 
-  it("persists the authenticated state", async () => {
-    store.dispatch(
-      authenticate.fulfilled(true, "", {
-        username: "username",
-        password: "password",
-      }),
-    );
+  it("persists the disconnection", async () => {
+    authenticationStorageProvider._isAuthenticated = true;
 
-    expect(authenticationStorageProvider.isAuthenticated()).toBe(true);
+    store.dispatch(logout.fulfilled(undefined, "", undefined));
+
+    expect(authenticationStorageProvider.isAuthenticated()).toBe(false);
   });
 });

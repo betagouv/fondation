@@ -19,8 +19,13 @@ export const createAuthenticationSlice = ({
     }),
     reducers: {},
     extraReducers: (builder) => {
-      builder.addCase(routeChanged, (state) => {
-        if (!state.authenticated) routerProvider?.goToLogin();
+      builder.addCase(routeChanged, (state, action) => {
+        if (
+          !state.authenticated &&
+          routerProvider &&
+          action.payload !== routerProvider.getLoginHref()
+        )
+          routerProvider.goToLogin();
       });
       builder.addCase(authenticate.fulfilled, (state, action) => {
         state.authenticated = action.payload;

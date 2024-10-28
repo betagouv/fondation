@@ -79,10 +79,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
         },
         serializableCheck: false,
       }).prepend(
-        createAppListenerMiddleware(
-          appDependencies as AppDependencies,
-          listeners,
-        ).middleware,
+        createAppListenerMiddleware(appDependencies, listeners).middleware,
       );
     },
     devTools: true,

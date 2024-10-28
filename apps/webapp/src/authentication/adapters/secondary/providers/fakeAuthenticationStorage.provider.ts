@@ -8,6 +8,10 @@ export class FakeAuthenticationStorageProvider
   storeAuthentication(payload: boolean): void {
     this._isAuthenticated = payload;
   }
+  storeDisconnection(): void {
+    this.storeAuthentication(false);
+  }
+
   isAuthenticated() {
     return this._isAuthenticated;
   }
