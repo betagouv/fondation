@@ -18,4 +18,6 @@ SCALINGO_FILE_PATH="/tmp/uploads/$FILE_NAME"
 scalingo \
   --region $SCALINGO_APP_REGION \
   --app $SCALINGO_APP_NAME \
-  run --file $FILE_PATH "node ./apps/api/dist/cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.js $SCALINGO_FILE_PATH"
+  run \
+  --file $FILE_PATH \
+  "node ./apps/api/dist/cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.js $SCALINGO_FILE_PATH"
