@@ -6,6 +6,10 @@ export class AuthenticationSessionStorageProvider
   storeAuthentication(payload: boolean): void {
     sessionStorage.setItem("authenticated", payload.toString());
   }
+  storeDisconnection(): void {
+    this.storeAuthentication(false);
+  }
+
   isAuthenticated() {
     return sessionStorage.getItem("authenticated") === "true";
   }

@@ -1,13 +1,23 @@
 import Header from "@codegouvfr/react-dsfr/Header";
-import { useAppSelector } from "../nomination-file/adapters/primary/hooks/react-redux";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../nomination-file/adapters/primary/hooks/react-redux";
 import { selectLoginHref } from "../router/adapters/selectors/selectLoginHref";
 import { selectNominationFileListHref } from "../router/adapters/selectors/selectNominationFileOverviewHref";
+import { logout } from "../authentication/core-logic/use-cases/logout/logout";
 
 export const AppHeader = () => {
+  const dispatch = useAppDispatch();
+
   const loginHref = useAppSelector(selectLoginHref);
   const nominationFileOverviewHref = useAppSelector(
     selectNominationFileListHref,
   );
+
+  const onClickLogout = () => {
+    dispatch(logout());
+  };
 
   return (
     <Header
@@ -36,8 +46,8 @@ export const AppHeader = () => {
       quickAccessItems={[
         {
           iconId: "fr-icon-account-fill",
-          linkProps: {
-            href: loginHref,
+          buttonProps: {
+            onClick: onClickLogout,
           },
           text: "Se déconnecter",
         },
