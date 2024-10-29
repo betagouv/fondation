@@ -1,0 +1,322 @@
+{
+  "id": "f09fc848-095b-4659-8dc3-bbda4cfff625",
+  "prevId": "a31b4ef4-1352-4669-832d-c59548163445",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "data_administration_context.nomination_files": {
+      "name": "nomination_files",
+      "schema": "data_administration_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "row_number": {
+          "name": "row_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "reports_context.report_rule": {
+      "name": "report_rule",
+      "schema": "reports_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "rule_group": {
+          "name": "rule_group",
+          "type": "rule_group",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rule_name": {
+          "name": "rule_name",
+          "type": "rule_name",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pre_validated": {
+          "name": "pre_validated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validated": {
+          "name": "validated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "report_rule_report_id_reports_id_fk": {
+          "name": "report_rule_report_id_reports_id_fk",
+          "tableFrom": "report_rule",
+          "tableTo": "reports",
+          "schemaTo": "reports_context",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "reports_context.reports": {
+      "name": "reports",
+      "schema": "reports_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "biography": {
+          "name": "biography",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "report_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NEW'"
+        },
+        "formation": {
+          "name": "formation",
+          "type": "formation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transparency": {
+          "name": "transparency",
+          "type": "transparency",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grade": {
+          "name": "grade",
+          "type": "grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "current_position": {
+          "name": "current_position",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "targetted_position": {
+          "name": "targetted_position",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_name": {
+          "name": "report_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "enums": {
+    "public.formation": {
+      "name": "formation",
+      "schema": "public",
+      "values": [
+        "PARQUET",
+        "SIEGE"
+      ]
+    },
+    "public.grade": {
+      "name": "grade",
+      "schema": "public",
+      "values": [
+        "I",
+        "II",
+        "HH"
+      ]
+    },
+    "public.report_state": {
+      "name": "report_state",
+      "schema": "public",
+      "values": [
+        "NEW",
+        "IN_PROGRESS",
+        "READY_TO_SUPPORT",
+        "OPINION_RETURNED"
+      ]
+    },
+    "public.rule_group": {
+      "name": "rule_group",
+      "schema": "public",
+      "values": [
+        "management",
+        "statutory",
+        "qualitative"
+      ]
+    },
+    "public.rule_name": {
+      "name": "rule_name",
+      "schema": "public",
+      "values": [
+        "TRANSFER_TIME",
+        "GETTING_FIRST_GRADE",
+        "GETTING_GRADE_HH",
+        "GETTING_GRADE_IN_PLACE",
+        "PROFILED_POSITION",
+        "CASSATION_COURT_NOMINATION",
+        "OVERSEAS_TO_OVERSEAS",
+        "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
+        "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
+        "JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION",
+        "GRADE_ON_SITE_AFTER_7_YEARS",
+        "MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS",
+        "MINISTER_CABINET",
+        "GRADE_REGISTRATION",
+        "HH_WITHOUT_2_FIRST_GRADE_POSITIONS",
+        "LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO",
+        "CONFLICT_OF_INTEREST_PRE_MAGISTRATURE",
+        "CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION",
+        "EVALUATIONS",
+        "DISCIPLINARY_ELEMENTS",
+        "HH_NOMINATION_CONDITIONS"
+      ]
+    },
+    "public.transparency": {
+      "name": "transparency",
+      "schema": "public",
+      "values": [
+        "AUTOMNE_2024",
+        "MARCH_2025",
+        "MARCH_2026"
+      ]
+    }
+  },
+  "schemas": {
+    "data_administration_context": "data_administration_context",
+    "reports_context": "reports_context"
+  },
+  "sequences": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

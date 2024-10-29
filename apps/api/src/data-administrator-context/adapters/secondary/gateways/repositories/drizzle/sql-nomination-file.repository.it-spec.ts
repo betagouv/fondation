@@ -65,7 +65,7 @@ describe('SQL Nomination File Repository', () => {
           dueDate: null,
           state: NominationFile.ReportState.OPINION_RETURNED,
           transparency: Transparency.AUTOMNE_2024,
-          reporter: 'VICTOIRE Christian',
+          reporters: ['VICTOIRE Christian'],
           grade: Magistrat.Grade.HH,
           currentPosition: 'Procureur de la République adjoint TJ  NIMES',
           targettedPosition: 'Avocat général CC  PARIS - HH',

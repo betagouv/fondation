@@ -22,6 +22,7 @@ export class NominationFileReport {
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
     readonly name: string,
+    readonly reporterName: string | null,
     readonly birthDate: DateOnly,
     readonly state: NominationFile.ReportState,
     readonly formation: Magistrat.Formation,
@@ -51,6 +52,7 @@ export class NominationFileReport {
             createReportPayload.dueDate.day,
           )
         : null,
+      createReportPayload.name,
       createReportPayload.reporterName,
       new DateOnly(
         createReportPayload.birthDate.year,

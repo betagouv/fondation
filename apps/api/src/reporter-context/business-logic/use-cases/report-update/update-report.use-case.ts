@@ -21,6 +21,7 @@ export class UpdateReportUseCase {
         newData.biography || report.biography,
         report.dueDate,
         report.name,
+        report.reporterName,
         report.birthDate,
         newData.state || report.state,
         report.formation,

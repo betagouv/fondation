@@ -11,7 +11,8 @@ import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
 
 export interface ReportToCreate {
-  reporterName: string;
+  name: string;
+  reporterName: string | null;
   formation: Magistrat.Formation;
   dueDate: DateOnlyJson | null;
   state: NominationFile.ReportState;
