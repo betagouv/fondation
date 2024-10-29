@@ -11,7 +11,7 @@ export type NominationFileRead = {
       | NominationFile.ReportState.NEW
       | NominationFile.ReportState.OPINION_RETURNED;
     transparency: Transparency;
-    reporter: string;
+    reporters: string[] | null;
     grade: Magistrat.Grade;
     currentPosition: string;
     targettedPosition: string;

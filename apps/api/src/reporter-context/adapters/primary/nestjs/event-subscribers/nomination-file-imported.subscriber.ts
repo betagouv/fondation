@@ -17,22 +17,45 @@ export class NominationFileImportedSubscriber {
   ) {
     typia.assert<NominationFilesImportedEventPayload>(payload);
 
-    const promises = payload.map(({ nominationFileImportedId: id, content }) =>
-      this.createReportUseCase.execute(id, {
-        reporterName: content.name,
-        formation: content.formation,
-        dueDate: content.dueDate,
-        state: content.state,
-        transparency: content.transparency,
-        grade: content.grade,
-        currentPosition: content.currentPosition,
-        targettedPosition: content.targettedPosition,
-        rank: content.rank,
-        birthDate: content.birthDate,
-        biography: content.biography,
-        rules: content.rules,
-      }),
-    );
+    const promises: Promise<void>[] = payload
+      .map(({ nominationFileImportedId: id, content }) =>
+        content.reporters?.length
+          ? content.reporters.map((reporterName) =>
+              this.createReportUseCase.execute(id, {
+                name: content.name,
+                reporterName,
+                formation: content.formation,
+                dueDate: content.dueDate,
+                state: content.state,
+                transparency: content.transparency,
+                grade: content.grade,
+                currentPosition: content.currentPosition,
+                targettedPosition: content.targettedPosition,
+                rank: content.rank,
+                birthDate: content.birthDate,
+                biography: content.biography,
+                rules: content.rules,
+              }),
+            )
+          : [
+              this.createReportUseCase.execute(id, {
+                name: content.name,
+                reporterName: null,
+                formation: content.formation,
+                dueDate: content.dueDate,
+                state: content.state,
+                transparency: content.transparency,
+                grade: content.grade,
+                currentPosition: content.currentPosition,
+                targettedPosition: content.targettedPosition,
+                rank: content.rank,
+                birthDate: content.birthDate,
+                biography: content.biography,
+                rules: content.rules,
+              }),
+            ],
+      )
+      .flat();
 
     await Promise.all(promises);
   }

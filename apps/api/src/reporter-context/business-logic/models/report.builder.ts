@@ -23,6 +23,7 @@ export class ReportBuilder {
   private targettedPosition: string;
   private comment: string | null;
   private rank: string;
+  private reporterName: string | null;
 
   constructor() {
     this.id = 'report-id';
@@ -39,6 +40,7 @@ export class ReportBuilder {
     this.targettedPosition = 'Juge TJ -Marseille';
     this.comment = 'my comment';
     this.rank = '(2 sur une liste de 100)';
+    this.reporterName = 'EMILIEN Denis';
   }
 
   withId(id: string): this {
@@ -51,6 +53,10 @@ export class ReportBuilder {
   }
   withName(name: string) {
     this.name = name;
+    return this;
+  }
+  withReporterName(reporterName: string | null) {
+    this.reporterName = reporterName;
     return this;
   }
   withBiography(biography: string | null) {
@@ -104,6 +110,7 @@ export class ReportBuilder {
       id: this.id,
       createdAt: this.createdAt,
       name: this.name,
+      reporterName: this.reporterName,
       biography: this.biography,
       dueDate: this.dueDate,
       birthDate: this.birthDate,

@@ -64,6 +64,7 @@ describe('Create Report Use Case', () => {
         datetimeProvider.currentDate,
         payload.biography,
         new DateOnly(2035, 8, 22),
+        payload.name,
         payload.reporterName,
         new DateOnly(1962, 8, 22),
         payload.state,
@@ -96,7 +97,8 @@ describe('Create Report Use Case', () => {
   });
 
   const givenAReportToCreate = (): ReportToCreate => ({
-    reporterName: 'Lucien Pierre',
+    name: 'Lucien Pierre',
+    reporterName: 'LUC Loïc',
     formation: Magistrat.Formation.PARQUET,
     dueDate: {
       year: 2035,

@@ -38,6 +38,10 @@ export class NominationFileContentReader {
       const dueDate = this.findValue("Date d'échéance", rowIndex, {
         optional: true,
       });
+      const reportersValue = this.findValue(
+        'Rapporteur(s) (pré-traitement pour import)',
+        rowIndex,
+      );
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
         content: {
@@ -61,7 +65,9 @@ export class NominationFileContentReader {
           transparency: this.normalizeTransparency(
             this.findValue('Transparence', rowIndex)!,
           ),
-          reporter: this.findValue('Rapporteur(s)', rowIndex)!,
+          reporters: reportersValue
+            ? this.normalizeReporters(reportersValue)
+            : null,
           grade: this.gradeToEnum(this.findValue('Grade actuel', rowIndex)!),
           currentPosition: this.findValue('Poste actuel', rowIndex)!,
           targettedPosition: this.findValue('Poste pressenti', rowIndex)!,
@@ -91,6 +97,10 @@ export class NominationFileContentReader {
       default:
         throw new Error('Invalid transparency: ' + transparency);
     }
+  }
+
+  private normalizeReporters(reportersValue: string): string[] {
+    return reportersValue.split('<cell_line_break>');
   }
 
   private findValue(

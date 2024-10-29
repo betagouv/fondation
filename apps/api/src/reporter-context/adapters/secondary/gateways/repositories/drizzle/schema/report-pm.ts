@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { date, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { NominationFile } from 'shared-models';
 import {
   formationEnum,
   gradeEnum,
@@ -7,7 +8,6 @@ import {
   transparencyEnum,
 } from './enums.drizzle';
 import { reportsContextSchema } from './reports-context-schema.drizzle';
-import { NominationFile } from 'shared-models';
 
 export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')
@@ -28,4 +28,5 @@ export const reports = reportsContextSchema.table('reports', {
   targettedPosition: varchar('targetted_position').notNull(),
   comment: text('comment'),
   rank: varchar('rank').notNull(),
+  reporterName: text('reporter_name'),
 });

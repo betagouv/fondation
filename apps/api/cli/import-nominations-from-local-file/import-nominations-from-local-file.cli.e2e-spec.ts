@@ -4,7 +4,9 @@ import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { AppModule } from 'src/app.module';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
 import { nominationFiles } from 'src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
 import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -15,8 +17,6 @@ import {
 } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 
 const fileToImportPath = path.resolve(
   __dirname,
@@ -65,55 +65,68 @@ describe('Import Nominations from local file', () => {
 
     await setTimeout(1000);
 
-    expectReports(
-      ...getExpectedContents().map((content) => ({
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        state: content.state,
-        dueDate: content.dueDate
-          ? DateOnly.fromJson(content.dueDate).toDbString()
-          : null,
-        formation: content.formation,
-        name: content.name,
-        transparency: content.transparency,
-        grade: content.grade,
-        currentPosition: content.currentPosition,
-        targettedPosition: content.targettedPosition,
-        rank: content.rank,
-        birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
-        biography: content.biography,
-        comment: null,
-      })),
-    );
-
-    expectNominationFiles(
+    await expectNominationFiles(
       ...getExpectedContents().map((content) => ({
         id: expect.any(String),
         createdAt: expect.any(Date),
         reportId: expect.any(String),
         rowNumber: expect.any(Number),
-        content: content,
+        content,
       })),
     );
-  });
 
-  const expectReports = async (
-    ...expectedReports: (typeof reports.$inferSelect)[]
-  ) => {
-    expect(await db.select().from(reports).execute()).toIncludeAllMembers<
-      typeof reports.$inferSelect
-    >(expectedReports);
-  };
+    await expectReports(
+      ...getExpectedContents()
+        .map((content) =>
+          content.reporters?.length
+            ? content.reporters.map((reporterName) =>
+                getNominationFile({ ...content, reporterName }),
+              )
+            : [getNominationFile({ ...content, reporterName: null })],
+        )
+        .flat(),
+    );
+  });
 
   const expectNominationFiles = async (
     ...expectedNominationFiles: (typeof nominationFiles.$inferSelect)[]
   ) => {
-    expect(
-      await db.select().from(nominationFiles).execute(),
-    ).toIncludeAllMembers<typeof nominationFiles.$inferSelect>(
-      expectedNominationFiles,
+    const nominationFilesPm = await db.select().from(nominationFiles).execute();
+    expect(nominationFilesPm.length).toBe(expectedNominationFiles.length);
+    expect(nominationFilesPm).toEqual(
+      expect.arrayContaining(expectedNominationFiles),
     );
   };
+
+  const expectReports = async (
+    ...expectedReports: (typeof reports.$inferSelect)[]
+  ) => {
+    const reportsPm = await db.select().from(reports).execute();
+    expect(reportsPm.length).toBe(expectedReports.length);
+    expect(reportsPm).toEqual(expect.arrayContaining(expectedReports));
+  };
+
+  const getNominationFile = (
+    content: NominationFileRead['content'] & { reporterName: string | null },
+  ): typeof reports.$inferSelect => ({
+    id: expect.any(String),
+    createdAt: expect.any(Date),
+    state: content.state,
+    dueDate: content.dueDate
+      ? DateOnly.fromJson(content.dueDate).toDbString()
+      : null,
+    formation: content.formation,
+    name: content.name,
+    reporterName: content.reporterName,
+    transparency: content.transparency,
+    grade: content.grade,
+    currentPosition: content.currentPosition,
+    targettedPosition: content.targettedPosition,
+    rank: content.rank,
+    birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
+    biography: content.biography,
+    comment: null,
+  });
 });
 
 function getExpectedContents(): NominationFileRead['content'][] {
@@ -136,7 +149,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       grade: Magistrat.Grade.I,
       name: 'Julien Pierre',
       rank: '(1 sur une liste de 4)',
-      reporter: 'ROUSSIN Jules',
+      reporters: ['ROUSSIN Jules'],
       rules: {
         management: {
           CASSATION_COURT_NOMINATION: true,
@@ -190,7 +203,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       grade: Magistrat.Grade.I,
       name: 'Dupont Marcel',
       rank: '(1 sur une liste de 1)',
-      reporter: 'ROUSSIN Jules',
+      reporters: ['ROUSSIN Jules'],
       rules: {
         management: {
           CASSATION_COURT_NOMINATION: true,
@@ -238,7 +251,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       grade: Magistrat.Grade.I,
       name: 'Brusse Emilien Ep. François',
       rank: '1 sur une liste de 12)',
-      reporter: 'ROUSSIN Jules JOSSELIN Martin-Luc',
+      reporters: ['ROUSSIN Jules', 'JOSSELIN-MARTEL Martin-Luc'],
       rules: {
         management: {
           CASSATION_COURT_NOMINATION: true,

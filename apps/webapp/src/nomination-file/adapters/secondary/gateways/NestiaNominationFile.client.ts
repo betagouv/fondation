@@ -7,7 +7,6 @@ const reportsSdk = apiSdk.functional.api.reports;
 
 export class NestiaNominationFileClient implements NominationFileApiClient {
   async updateReport(reportId: string, data: ReportUpdateDto): Promise<void> {
-    console.log("update report", data);
     await reportsSdk.updateReport(
       {
         host: import.meta.env.VITE_API_URL,
