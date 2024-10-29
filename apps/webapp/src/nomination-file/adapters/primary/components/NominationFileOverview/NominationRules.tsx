@@ -22,31 +22,28 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
   const createCheckboxes = (
     ruleGroup: NominationFile.RuleGroup,
     rulesChecked: Record<string, VMNominationFileRuleValue>,
-    highlightedClassName: string,
   ) => {
     const checkboxes = Object.entries(rulesChecked).map(
-      ([ruleName, { label, checked, highlighted }]) => {
-        return (
-          <Checkbox
-            id={ruleName}
-            key={ruleName}
-            options={[
-              {
-                label,
-                nativeInputProps: {
-                  name: ruleName,
-                  checked,
-                  onChange: onUpdateNominationRule(
-                    ruleGroup,
-                    ruleName as NominationFile.RuleName,
-                  ),
-                },
+      ([ruleName, { label, checked, highlighted }]) => (
+        <Checkbox
+          id={ruleName}
+          key={ruleName}
+          options={[
+            {
+              label,
+              nativeInputProps: {
+                name: ruleName,
+                checked,
+                onChange: onUpdateNominationRule(
+                  ruleGroup,
+                  ruleName as NominationFile.RuleName,
+                ),
               },
-            ]}
-            className={highlighted ? highlightedClassName : undefined}
-          />
-        );
-      },
+            },
+          ]}
+          className={highlighted ? cx("fr-fieldset--error") : undefined}
+        />
+      ),
     );
     return checkboxes;
   };
@@ -58,7 +55,6 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
         {createCheckboxes(
           NominationFile.RuleGroup.MANAGEMENT,
           rulesChecked.management,
-          cx("fr-fieldset--valid"),
         )}
       </Card>
 
@@ -67,7 +63,6 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
         {createCheckboxes(
           NominationFile.RuleGroup.STATUTORY,
           rulesChecked.statutory,
-          cx("fr-fieldset--error"),
         )}
       </Card>
 
@@ -76,7 +71,6 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
         {createCheckboxes(
           NominationFile.RuleGroup.QUALITATIVE,
           rulesChecked.qualitative,
-          "fr-fieldset--info",
         )}
       </Card>
     </>

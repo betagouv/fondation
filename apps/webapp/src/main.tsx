@@ -21,11 +21,20 @@ import { storeDisconnectionAndRedirectOnLogout } from "./authentication/core-log
 startReactDsfr({ defaultColorScheme: "light" });
 
 const authenticationGateway = new FakeAuthenticationGateway();
-authenticationGateway.setEligibleAuthUser(
-  "username@example.fr",
-  "password",
-  true,
-);
+
+const fakeUsersString = import.meta.env.VITE_FAKE_USERS;
+const fakeUsers: { username: string; password: string }[] = fakeUsersString
+  ? JSON.parse(fakeUsersString)
+  : [];
+fakeUsers.forEach(({ username, password }) => {
+  if (!username) {
+    throw new Error("Missing username in fake user");
+  }
+  if (!password) {
+    throw new Error("Missing password in fake user");
+  }
+  authenticationGateway.setEligibleAuthUser(username, password, true);
+});
 
 const nestiaNominationFileClient = new NestiaNominationFileClient();
 const nominationFileGateway = new ApiNominationFileGateway(
