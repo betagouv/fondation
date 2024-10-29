@@ -4,9 +4,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  integration-checks:
+    uses: ./.github/workflows/integration-checks.yml
+
+  build-and-upload-api-artifact:
+    # jobs are run in parallel by default, we want them to run sequentially
+    needs: [integration-checks]
+    uses: ./.github/workflows/build-and-upload-api-artifact.yml
+    with:
+      tag: "v${{ github.run_number }}"
+
   build-and-upload-webapp-artifact:
     uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
     with:
+      environment: production
       tag: "v${{ github.run_number }}"
 
   deploy-production:
@@ -14,6 +25,6 @@ jobs:
     needs: [build-and-upload-webapp-artifact]
     uses: ./.github/workflows/deploy-to-scalingo.yml
     with:
-      tag: "v${{ github.run_number }}"
       environment: production
+      tag: "v${{ github.run_number }}"
     secrets: inherit
