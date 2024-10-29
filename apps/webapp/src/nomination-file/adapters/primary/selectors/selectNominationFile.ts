@@ -58,11 +58,11 @@ export class NominationFileVM {
   } = {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       TRANSFER_TIME: "Obtenir une mutation en moins de 3 ans",
-      GETTING_FIRST_GRADE: "Getting first grade",
-      GETTING_GRADE_HH: "Getting grade HH",
+      GETTING_FIRST_GRADE: "Passer au 1er grade",
+      GETTING_GRADE_HH: "Passer au grade HH",
       GETTING_GRADE_IN_PLACE: "Prendre son grade sur place",
-      PROFILED_POSITION: 'Être nommé sur un poste "profilé"',
-      CASSATION_COURT_NOMINATION: "Cassation court nomination",
+      PROFILED_POSITION: 'Poste "profilé"',
+      CASSATION_COURT_NOMINATION: "Nomination à la court de cassation",
       OVERSEAS_TO_OVERSEAS: 'Être muté "d\'Outremer sur Outremer"',
       JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE:
         "Passer du siège au parquet tout en passant d'un TJ à une CA (ou l'inverse)",
@@ -71,12 +71,13 @@ export class NominationFileVM {
     },
     [NominationFile.RuleGroup.STATUTORY]: {
       JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION: "Changement de juridiction",
-      GRADE_ON_SITE_AFTER_7_YEARS: "Grade sur place après 7 ans",
+      GRADE_ON_SITE_AFTER_7_YEARS: "Prendre son grade sur place après 7 ans",
       MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS:
         "Changement de ministère en moins de 3 ans",
-      MINISTER_CABINET: "Cabinet ministériel",
-      GRADE_REGISTRATION: "Inscription au grade",
-      HH_WITHOUT_2_FIRST_GRADE_POSITIONS: "HH sans 2 premiers grades",
+      MINISTER_CABINET: "Cabinet du ministre",
+      GRADE_REGISTRATION: "Inscription au tableau pour prise de grade",
+      HH_WITHOUT_2_FIRST_GRADE_POSITIONS:
+        "Accéder à la HH sans avoir fait 2 postes au 1er grade",
       LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO:
         "Profession juridique en cour judiciaire il y a moins de 5 ans",
     },

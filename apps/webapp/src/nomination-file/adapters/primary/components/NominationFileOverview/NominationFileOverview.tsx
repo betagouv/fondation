@@ -1,22 +1,23 @@
-import { NominationFile } from "shared-models";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { useEffect } from "react";
+import { NominationFile } from "shared-models";
 import { retrieveNominationFile } from "../../../../core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
+import {
+  updateNominationFile,
+  UpdateNominationFileParams,
+} from "../../../../core-logic/use-cases/nomination-file-update/updateNominationFile.use-case";
 import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
 import {
   selectNominationFile,
   VMNominationFileRuleValue,
 } from "../../selectors/selectNominationFile";
+import { AutoSaveNotice } from "./AutoSaveNotice";
 import { Biography } from "./Biography";
+import { Comment } from "./Comment";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { NominationRules } from "./NominationRules";
-import {
-  updateNominationFile,
-  UpdateNominationFileParams,
-} from "../../../../core-logic/use-cases/nomination-file-update/updateNominationFile.use-case";
-import { Comment } from "./Comment";
 
 export type NominationFileOverviewProps = {
   id: string;
@@ -80,6 +81,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         cx("fr-py-5v", "fr-grid-row"),
       )}
     >
+      <AutoSaveNotice />
       <MagistratIdentity
         name={nominationFile.name}
         birthDate={nominationFile.birthDate}

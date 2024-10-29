@@ -6,6 +6,7 @@ import {
   VMNominationFileRuleValue,
 } from "../../selectors/selectNominationFile";
 import { Card } from "./Card";
+import { RuleCheckNotice } from "./RuleCheckNotice";
 
 export type NominationRuleProps = {
   rulesChecked: NominationFileVM["rulesChecked"];
@@ -52,6 +53,7 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
     <>
       <Card>
         <div className="fr-h2">Règles de gestion</div>
+        <RuleCheckNotice />
         {createCheckboxes(
           NominationFile.RuleGroup.MANAGEMENT,
           rulesChecked.management,
@@ -60,6 +62,7 @@ export const NominationRules: React.FC<NominationRuleProps> = ({
 
       <Card>
         <div className="fr-h2">Règles statutaires</div>
+        <RuleCheckNotice />
         {createCheckboxes(
           NominationFile.RuleGroup.STATUTORY,
           rulesChecked.statutory,

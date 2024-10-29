@@ -27,7 +27,7 @@ describe("Nomination Case Overview Component", () => {
     initialState = store.getState();
   });
 
-  it("shows an error message if nomination file is not found", async () => {
+  it("shows a message if no nomination file found", async () => {
     renderNominationFile("invalid-id");
     await screen.findByText("Dossier de nomination non trouvé.");
   });
@@ -37,9 +37,23 @@ describe("Nomination Case Overview Component", () => {
       nominationFileGateway.addNominationFile(aValidatedNomination);
     });
 
+    it("shows a message to explain autosave feature", async () => {
+      renderNominationFile(aValidatedNomination.id);
+      await screen.findByText(
+        "L'enregistrement des modifications est automatique.",
+      );
+    });
+
+    it("shows a message to explain rules checked and red meaning", async () => {
+      renderNominationFile(aValidatedNomination.id);
+      const messages = await screen.findAllByText(
+        "Case cochée = la règle n'est pas respectée. Si le texte est rouge, cela signifie que notre outil de pré-analyse a détecté un risque de non-respect de la règle.",
+      );
+      expect(messages).toHaveLength(2);
+    });
+
     it("shows magistrat identity section", async () => {
       renderNominationFile(aValidatedNomination.id);
-
       await expectMagistratIdentity();
     });
 
