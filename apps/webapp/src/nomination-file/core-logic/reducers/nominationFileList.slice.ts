@@ -10,7 +10,7 @@ const nominationCaseListSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(listNominationFile.fulfilled, (state, action) => {
-      state.data = action.payload;
+      if (action.payload) state.data = action.payload;
     });
   },
 });

@@ -4,19 +4,35 @@ import { NominationFileBuilder } from "../../../../core-logic/builders/Nominatio
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileList } from "./NominationFileList";
+import { FakeAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
+import { AuthenticatedUser } from "../../../../../authentication/core-logic/gateways/authentication.gateway";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
-  let nominationCaseGateway: FakeNominationFileGateway;
+  let nominationFileGateway: FakeNominationFileGateway;
+  let authenticationGateway: FakeAuthenticationGateway;
 
   beforeEach(() => {
-    nominationCaseGateway = new FakeNominationFileGateway();
+    nominationFileGateway = new FakeNominationFileGateway();
+    authenticationGateway = new FakeAuthenticationGateway();
+    authenticationGateway.setEligibleAuthUser(
+      "user@example.fr",
+      "password",
+      true,
+      {
+        reporterName: user.reporterName,
+      },
+    );
+
     store = initReduxStore(
       {
-        nominationFileGateway: nominationCaseGateway,
+        nominationFileGateway,
+        authenticationGateway,
       },
       {},
       {},
+      [],
+      undefined,
     );
   });
 
@@ -25,9 +41,9 @@ describe("Nomination Case List Component", () => {
     await screen.findByText("Aucune nomination.");
   });
 
-  describe("when there is a nomination case", () => {
+  describe("when there is a report", () => {
     beforeEach(() => {
-      nominationCaseGateway.addNominationFile(aNominationFile);
+      nominationFileGateway.addNominationFile(aNominationFile);
     });
 
     it("shows the table header", async () => {
@@ -62,4 +78,10 @@ describe("Nomination Case List Component", () => {
   };
 });
 
-const aNominationFile = new NominationFileBuilder().build();
+const user: AuthenticatedUser = {
+  reporterName: "CURRENT User",
+};
+
+const aNominationFile = new NominationFileBuilder()
+  .withReporterName(user.reporterName)
+  .build();

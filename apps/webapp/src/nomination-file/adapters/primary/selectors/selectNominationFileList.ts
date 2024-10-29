@@ -8,6 +8,7 @@ export type NominationFileListItemVM = {
   dueDate: string | null;
   formation: ReturnType<typeof formationToLabel>;
   name: string;
+  reporterName: string | null;
   transparency: ReturnType<typeof transparencyToLabel>;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
@@ -31,6 +32,7 @@ export const selectNominationFileList = createAppSelector(
         ({
           id,
           name,
+          reporterName,
           dueDate,
           state,
           formation,
@@ -50,7 +52,7 @@ export const selectNominationFileList = createAppSelector(
 
           return {
             id,
-
+            reporterName,
             state: stateToLabel(state),
             dueDate: dueDateFormatted,
             formation: formationToLabel(formation),
@@ -58,7 +60,6 @@ export const selectNominationFileList = createAppSelector(
             transparency: transparencyToLabel(transparency),
             grade: gradeToLabel(grade),
             targettedPosition,
-
             href,
             onClick,
           };

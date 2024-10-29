@@ -84,6 +84,7 @@ describe('Reporter Controller', () => {
       },
       formation: Magistrat.Formation.PARQUET,
       name: 'a name',
+      reporterName: 'REPORTER Name',
       transparency: Transparency.MARCH_2025,
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',

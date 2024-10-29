@@ -1,7 +1,7 @@
 import { NominationFile } from "shared-models";
 import { FakeNominationFileGateway } from "../../../adapters/secondary/gateways/FakeNominationFile.gateway";
-import { AppState, NominationFileSM } from "../../../store/appState";
-import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
+import { AppState } from "../../../store/appState";
+import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { NominationFileBuilder } from "../../builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file-retrieval/retrieveNominationFile.use-case";
 import {
@@ -62,7 +62,7 @@ describe("Nomination File Update", () => {
   });
 });
 
-const aNomination: NominationFileSM = new NominationFileBuilder()
+const aNomination = new NominationFileBuilder()
   .withTransferTimeValidated(false)
   .withState(NominationFile.ReportState.NEW)
   .withBiography("John Doe's biography")

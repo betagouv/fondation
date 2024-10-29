@@ -29,7 +29,7 @@ export type NominationFileListItem = Pick<
   | "transparency"
   | "grade"
   | "targettedPosition"
->;
+> & { reporterName: string | null };
 
 export interface AppState {
   nominationFileOverview: { byIds: Record<string, NominationFileSM> | null };

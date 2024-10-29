@@ -9,6 +9,7 @@ export interface ReportListItemVM {
   dueDate: DateOnlyJson | null;
   formation: Magistrat.Formation;
   name: string;
+  reporterName: string | null;
   transparency: Transparency;
   grade: Magistrat.Grade;
   targettedPosition: string;

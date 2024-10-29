@@ -57,6 +57,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     return response.data.map((item) => ({
       id: item.id,
       name: item.name,
+      reporterName: item.reporterName,
       dueDate: item.dueDate,
       state: item.state,
       formation: item.formation,

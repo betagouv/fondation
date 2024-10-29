@@ -59,37 +59,37 @@ describe("Select Nomination Case List", () => {
     .withDueDate(new DateOnly(2030, 10, 30))
     .build();
   const aNominationFileVM: NominationFileListItemVM = {
-    id: "nomination-file-id",
-    name: "Lucien Denan",
+    id: aNominationFile.id,
+    name: aNominationFile.name,
+    reporterName: aNominationFile.reporterName,
     dueDate: "30/10/2030",
-
     state: "Nouveau",
     formation: "Parquet",
     transparency: "transparence de mars 2025",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
-
-    href: "/dossier-de-nomination/nomination-file-id",
+    href: `/dossier-de-nomination/${aNominationFile.id}`,
     onClick,
   };
 
   const anotherNominationFile = new NominationFileBuilder()
     .withId("another-nomination-file-id")
     .withName("Another name")
+    .withReporterName("ANOTHER REPORTER Name")
     .withDueDate(new DateOnly(2030, 10, 10))
     .build();
   const anotherNominationFileVM: NominationFileListItemVM = {
-    id: "another-nomination-file-id",
-    name: "Another name",
+    id: anotherNominationFile.id,
+    name: anotherNominationFile.name,
+    reporterName: anotherNominationFile.reporterName,
     dueDate: "10/10/2030",
-
     state: "Nouveau",
     formation: "Parquet",
     transparency: "transparence de mars 2025",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
 
-    href: "/dossier-de-nomination/another-nomination-file-id",
+    href: `/dossier-de-nomination/${anotherNominationFile.id}`,
     onClick,
   };
 });

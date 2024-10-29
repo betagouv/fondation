@@ -23,17 +23,24 @@ startReactDsfr({ defaultColorScheme: "light" });
 const authenticationGateway = new FakeAuthenticationGateway();
 
 const fakeUsersString = import.meta.env.VITE_FAKE_USERS;
-const fakeUsers: { username: string; password: string }[] = fakeUsersString
-  ? JSON.parse(fakeUsersString)
-  : [];
-fakeUsers.forEach(({ username, password }) => {
+const fakeUsers: {
+  username: string;
+  password: string;
+  reporterName: string;
+}[] = fakeUsersString ? JSON.parse(fakeUsersString) : [];
+fakeUsers.forEach(({ username, password, reporterName }) => {
   if (!username) {
     throw new Error("Missing username in fake user");
   }
   if (!password) {
     throw new Error("Missing password in fake user");
   }
-  authenticationGateway.setEligibleAuthUser(username, password, true);
+  authenticationGateway.setEligibleAuthUser(
+    username,
+    password,
+    true,
+    reporterName ? { reporterName } : undefined,
+  );
 });
 
 const nestiaNominationFileClient = new NestiaNominationFileClient();

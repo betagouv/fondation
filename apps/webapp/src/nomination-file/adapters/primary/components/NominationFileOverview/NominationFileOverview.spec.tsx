@@ -1,10 +1,10 @@
-import { NominationFile } from "shared-models";
 import "@testing-library/jest-dom";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
+import { NominationFile } from "shared-models";
 import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
-import { AppState, NominationFileSM } from "../../../../store/appState";
+import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileVM } from "../../selectors/selectNominationFile";
@@ -84,7 +84,7 @@ describe("Nomination Case Overview Component", () => {
         it.skipIf(!placeholder)(
           "shows the placeholder when there is no content",
           async () => {
-            const aNomination: NominationFileSM = new NominationFileBuilder()
+            const aNomination = new NominationFileBuilder()
               .withId("without-comment")
               .withComment(null)
               .build();
@@ -288,11 +288,11 @@ describe("Nomination Case Overview Component", () => {
   };
 });
 
-const aValidatedNomination: NominationFileSM = new NominationFileBuilder()
+const aValidatedNomination = new NominationFileBuilder()
   .withId("nomination-file-id")
   .withBiography("  - John Doe's biography - second line  - third line ")
   .build();
 
-const anUnvalidatedNomination: NominationFileSM = new NominationFileBuilder()
+const anUnvalidatedNomination = new NominationFileBuilder()
   .withAllRulesUnvalidated()
   .build();

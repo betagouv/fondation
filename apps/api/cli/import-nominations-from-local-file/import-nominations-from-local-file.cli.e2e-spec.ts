@@ -63,7 +63,7 @@ describe('Import Nominations from local file', () => {
   it('creates reports found in the imported file', async () => {
     await importNominationFileFromLocalFileCli.execute(fileToImportPath);
 
-    await setTimeout(1000);
+    await setTimeout(1500);
 
     await expectNominationFiles(
       ...getExpectedContents().map((content) => ({

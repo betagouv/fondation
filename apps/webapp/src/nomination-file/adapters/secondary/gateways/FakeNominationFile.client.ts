@@ -1,3 +1,4 @@
+import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
 import {
   NominationFile,
   ReportListingVM,
@@ -5,16 +6,16 @@ import {
   rulesTuple,
 } from "shared-models";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
-import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
+import { FakeNominationFileFromApi } from "./FakeNominationFile.gateway";
 
 export class FakeNominationFileApiClient implements NominationFileApiClient {
-  nominationFiles: Record<string, ReportRetrievalVM> = {};
+  nominationFiles: Record<string, FakeNominationFileFromApi> = {};
   currentNominationFileId: string | null = null;
   currentRuleGroup: NominationFile.RuleGroup | null = null;
   currentRuleName: NominationFile.RuleName | null = null;
 
   addNominationFile(
-    nominationFile: Omit<ReportRetrievalVM, "rules">,
+    nominationFile: Omit<FakeNominationFileFromApi, "rules">,
     rule: {
       id: string;
       group: NominationFile.RuleGroup;
@@ -47,7 +48,7 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
     if (this.nominationFiles[reportId])
       this.nominationFiles[reportId] = {
         ...(this.nominationFiles[reportId] || {}),
-        ...(data as ReportRetrievalVM),
+        ...(data as FakeNominationFileFromApi),
       };
   }
 
@@ -72,12 +73,25 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
   }
 
   async retrieveNominationFile(id: string): Promise<ReportRetrievalVM | null> {
-    const report = this.nominationFiles[id];
-    return report || null;
+    const fullReport = this.nominationFiles[id];
+    if (!fullReport) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { reporterName, ...report } = fullReport;
+    return report;
   }
 
   async list(): Promise<ReportListingVM> {
-    const reports = Object.values(this.nominationFiles);
+    const reports = Object.values(this.nominationFiles).map((report) => ({
+      id: report.id,
+      state: report.state,
+      dueDate: report.dueDate,
+      formation: report.formation,
+      name: report.name,
+      reporterName: report.reporterName,
+      transparency: report.transparency,
+      grade: report.grade,
+      targettedPosition: report.targettedPosition,
+    }));
 
     return {
       data: reports,

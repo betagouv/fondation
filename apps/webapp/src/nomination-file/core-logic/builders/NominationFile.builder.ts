@@ -6,10 +6,12 @@ import {
 } from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileSM } from "../../store/appState";
+import { FakeNominationFileFromApi } from "../../adapters/secondary/gateways/FakeNominationFile.gateway";
 
 export class NominationFileBuilder {
   private id: string;
   private name: string;
+  private reporterName: string | null;
   private biography: string | null;
   private rules: NominationFileSM["rules"];
   private dueDate: DateOnly | null;
@@ -26,6 +28,7 @@ export class NominationFileBuilder {
   constructor() {
     this.id = "nomination-file-id";
     this.name = "John Doe";
+    this.reporterName = "REPORTER Name";
     this.biography = "John Doe's biography";
     this.dueDate = new DateOnly(2030, 10, 30);
     this.birthDate = new DateOnly(1980, 1, 1);
@@ -62,6 +65,10 @@ export class NominationFileBuilder {
   }
   withName(name: string) {
     this.name = name;
+    return this;
+  }
+  withReporterName(reporterName: string | null) {
+    this.reporterName = reporterName;
     return this;
   }
   withBiography(biography: string) {
@@ -163,10 +170,11 @@ export class NominationFileBuilder {
     return this;
   }
 
-  build(): NominationFileSM {
+  build(): FakeNominationFileFromApi {
     return {
       id: this.id,
       name: this.name,
+      reporterName: this.reporterName,
       biography: this.biography,
       dueDate: this.dueDate?.toStoreModel() ?? null,
       birthDate: this.birthDate.toStoreModel(),

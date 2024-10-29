@@ -1,12 +1,8 @@
-import {
-  Magistrat,
-  NominationFile,
-  ReportRetrievalVM,
-  Transparency,
-} from "shared-models";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
+import { NominationFileListItem } from "../../../store/appState";
 import { ApiNominationFileGateway } from "./ApiNominationFile.gateway";
 import { FakeNominationFileApiClient } from "./FakeNominationFile.client";
-import { NominationFileListItem } from "../../../store/appState";
+import { FakeNominationFileFromApi } from "./FakeNominationFile.gateway";
 
 describe("Api Nomination File Gateway", () => {
   let nominationFileApiClient: FakeNominationFileApiClient;
@@ -23,6 +19,7 @@ describe("Api Nomination File Gateway", () => {
       {
         id: aReport.id,
         name: aReport.name,
+        reporterName: aReport.reporterName,
         state: aReport.state,
         dueDate: aReport.dueDate,
         formation: aReport.formation,
@@ -90,9 +87,10 @@ describe("Api Nomination File Gateway", () => {
   });
 });
 
-const aReport: Omit<ReportRetrievalVM, "rules"> = {
+const aReport: Omit<FakeNominationFileFromApi, "rules"> = {
   id: "report-id",
   name: "name",
+  reporterName: "REPORTER Name",
   biography: "biography",
   dueDate: {
     year: 2030,

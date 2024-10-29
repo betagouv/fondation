@@ -1,15 +1,19 @@
-import { NominationFile } from "shared-models";
+import {
+  NominationFile,
+  ReportListItemVM,
+  ReportRetrievalVM,
+} from "shared-models";
 import {
   NominationFileGateway,
   UpdateNominationFileParams,
 } from "../../../core-logic/gateways/NominationFile.gateway";
-import {
-  NominationFileListItem,
-  NominationFileSM,
-} from "../../../store/appState";
+import { NominationFileListItem } from "../../../store/appState";
+
+export type FakeNominationFileFromApi = ReportRetrievalVM &
+  Pick<ReportListItemVM, "reporterName">;
 
 export class FakeNominationFileGateway implements NominationFileGateway {
-  private nominationFiles: Record<string, NominationFileSM> = {};
+  private nominationFiles: Record<string, FakeNominationFileFromApi> = {};
   private lastNominationFileId: string | null = null;
 
   async list(): Promise<NominationFileListItem[]> {
@@ -17,6 +21,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
       ({
         id,
         name,
+        reporterName,
         dueDate,
         state,
         formation,
@@ -26,6 +31,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
       }) => ({
         id,
         name,
+        reporterName,
         dueDate,
         state,
         formation,
@@ -95,7 +101,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
     return nominationFile;
   }
 
-  addNominationFile(aNomination: NominationFileSM) {
+  addNominationFile(aNomination: FakeNominationFileFromApi) {
     this.nominationFiles[aNomination.id] = aNomination;
     this.lastNominationFileId = aNomination.id;
   }

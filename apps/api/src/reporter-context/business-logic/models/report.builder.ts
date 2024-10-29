@@ -140,6 +140,7 @@ export class ReportBuilder {
       )
       .withFormation(reportListingVM.formation)
       .withName(reportListingVM.name)
+      .withReporterName(reportListingVM.reporterName)
       .withTransparency(reportListingVM.transparency)
       .withGrade(reportListingVM.grade)
       .withTargettedPosition(reportListingVM.targettedPosition);

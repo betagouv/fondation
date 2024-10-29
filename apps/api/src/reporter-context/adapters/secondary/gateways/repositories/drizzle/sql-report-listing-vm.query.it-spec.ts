@@ -45,7 +45,6 @@ describe('SQL Report Listing VM Query', () => {
         .withDueDate(new DateOnly(2030, 10, 1))
         .build();
 
-      // Insert the report into the database
       const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
     });
@@ -60,6 +59,7 @@ describe('SQL Report Listing VM Query', () => {
             dueDate: aReport.dueDate?.toJson() || null,
             formation: aReport.formation,
             name: aReport.name,
+            reporterName: aReport.reporterName,
             transparency: aReport.transparency,
             grade: aReport.grade,
             targettedPosition: aReport.targettedPosition,
