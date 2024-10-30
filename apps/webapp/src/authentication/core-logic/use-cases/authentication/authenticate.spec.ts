@@ -31,7 +31,7 @@ describe("Authenticate", () => {
     initialState = store.getState();
   });
 
-  it.only("authenticates a user", async () => {
+  it("authenticates a user", async () => {
     await store.dispatch(
       authenticate({ email: "username", password: "password" }),
     );

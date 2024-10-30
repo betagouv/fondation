@@ -14,7 +14,6 @@ export const storeAuthenticationOnLoginSuccess: Listener = (
         },
       },
     ) => {
-      if (action.payload)
-        authenticationStorageProvider?.storeAuthentication(action.payload);
+      authenticationStorageProvider?.storeAuthentication(action.payload);
     },
   });

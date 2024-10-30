@@ -14,10 +14,10 @@ export class FakeAuthenticationStorageProvider
     this._isAuthenticated = false;
     this._user = null;
   }
-
   isAuthenticated() {
     return this._isAuthenticated;
   }
+
   getUser(): { reporterName: string } | null {
     return this._user;
   }
