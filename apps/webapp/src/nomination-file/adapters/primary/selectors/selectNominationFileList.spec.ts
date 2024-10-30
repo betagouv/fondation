@@ -57,25 +57,25 @@ describe("Select Nomination Case List", () => {
       );
       store.dispatch(
         listNominationFile.fulfilled(
-          [aNominationFile, anotherNominationFile],
+          [anotherNominationFile, aNominationFile, anotherUserNominationFile],
           "",
           undefined,
         ),
       );
     });
 
-    it("selects the list", () => {
+    it("selects the sorted list for the auth user", () => {
       expect(
         selectNominationFileList(store.getState()),
       ).toEqual<NominationFileListVM>({
-        nominationFiles: [aNominationFileVM],
+        nominationFiles: [aNominationFileVM, anotherNominationFileVM],
       });
     });
   });
 
   const aNominationFile = new NominationFileBuilder()
     .withId("nomination-file-id")
-    .withName("Lucien Denan")
+    .withName("Banneau Louise")
     .withReporterName(user.reporterName)
     .withDueDate(new DateOnly(2030, 10, 30))
     .build();
@@ -94,6 +94,26 @@ describe("Select Nomination Case List", () => {
   };
 
   const anotherNominationFile = new NominationFileBuilder()
+    .withId("nomination-file-id")
+    .withName("Denan Lucien")
+    .withReporterName(user.reporterName)
+    .withDueDate(new DateOnly(2030, 10, 30))
+    .build();
+  const anotherNominationFileVM: NominationFileListItemVM = {
+    id: anotherNominationFile.id,
+    name: anotherNominationFile.name,
+    reporterName: anotherNominationFile.reporterName,
+    dueDate: "30/10/2030",
+    state: "Nouveau",
+    formation: "Parquet",
+    transparency: "Mars 2025",
+    grade: "I",
+    targettedPosition: "PG TJ Marseille",
+    href: `/dossier-de-nomination/${anotherNominationFile.id}`,
+    onClick,
+  };
+
+  const anotherUserNominationFile = new NominationFileBuilder()
     .withId("another-nomination-file-id")
     .withName("Another name")
     .withReporterName("ANOTHER REPORTER Name")

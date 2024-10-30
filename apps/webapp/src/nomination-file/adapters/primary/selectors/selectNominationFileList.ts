@@ -27,50 +27,54 @@ export const selectNominationFileList = createAppSelector(
     (state) => state.router.anchorsAttributes.nominationFileOverview,
     (state) => state.authentication.user,
   ],
-  (data, getAnchorAttributes, user): NominationFileListVM => ({
-    nominationFiles:
-      data
-        ?.filter(({ reporterName }) =>
-          user ? reporterName === user.reporterName : false,
-        )
-        .map(
-          ({
+  (data, getAnchorAttributes, user): NominationFileListVM => {
+    const nominationFiles = [...(data ?? [])]
+      .filter(({ reporterName }) =>
+        user ? reporterName === user.reporterName : false,
+      )
+      .map(
+        ({
+          id,
+          name,
+          reporterName,
+          dueDate,
+          state,
+          formation,
+          transparency,
+          grade,
+          targettedPosition,
+        }) => {
+          const { href, onClick } = getAnchorAttributes(id);
+
+          const dueDateFormatted = dueDate
+            ? new DateOnly(
+                dueDate.year,
+                dueDate.month,
+                dueDate.day,
+              ).toFormattedString()
+            : null;
+
+          return {
             id,
-            name,
             reporterName,
-            dueDate,
-            state,
-            formation,
-            transparency,
-            grade,
+            state: stateToLabel(state),
+            dueDate: dueDateFormatted,
+            formation: formationToLabel(formation),
+            name,
+            transparency: transparencyToLabel(transparency),
+            grade: gradeToLabel(grade),
             targettedPosition,
-          }) => {
-            const { href, onClick } = getAnchorAttributes(id);
+            href,
+            onClick,
+          } as const;
+        },
+      );
+    nominationFiles.sort((a, b) => a.name.localeCompare(b.name));
 
-            const dueDateFormatted = dueDate
-              ? new DateOnly(
-                  dueDate.year,
-                  dueDate.month,
-                  dueDate.day,
-                ).toFormattedString()
-              : null;
-
-            return {
-              id,
-              reporterName,
-              state: stateToLabel(state),
-              dueDate: dueDateFormatted,
-              formation: formationToLabel(formation),
-              name,
-              transparency: transparencyToLabel(transparency),
-              grade: gradeToLabel(grade),
-              targettedPosition,
-              href,
-              onClick,
-            };
-          },
-        ) ?? [],
-  }),
+    return {
+      nominationFiles,
+    };
+  },
 );
 
 export const transparencyToLabel = (transparency: Transparency) => {
