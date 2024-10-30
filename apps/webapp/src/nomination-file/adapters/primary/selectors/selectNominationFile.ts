@@ -79,7 +79,7 @@ export class NominationFileVM {
       HH_WITHOUT_2_FIRST_GRADE_POSITIONS:
         "Accéder à la HH sans avoir fait 2 postes au 1er grade",
       LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO:
-        "Profession juridique en cour judiciaire il y a moins de 5 ans",
+        "Profession juridique dans le ressort du TJ il y a moins de 5 ans",
     },
     [NominationFile.RuleGroup.QUALITATIVE]: {
       CONFLICT_OF_INTEREST_PRE_MAGISTRATURE:
