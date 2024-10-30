@@ -15,7 +15,7 @@ export const createAuthenticationSlice = ({
     name: "authentication",
     initialState: (): AppState["authentication"] => ({
       authenticated: !!authenticationStorageProvider?.isAuthenticated(),
-      forbiddenPageAsked: false,
+      user: authenticationStorageProvider?.getUser() || null,
     }),
     reducers: {},
     extraReducers: (builder) => {
@@ -28,7 +28,8 @@ export const createAuthenticationSlice = ({
           routerProvider.goToLogin();
       });
       builder.addCase(authenticate.fulfilled, (state, action) => {
-        state.authenticated = action.payload;
+        state.authenticated = true;
+        state.user = action.payload;
         routerProvider?.goToNominationFileList();
       });
     },

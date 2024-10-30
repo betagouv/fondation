@@ -92,8 +92,8 @@ describe("App Router Component", () => {
   describe("Authenticated user", () => {
     beforeEach(() => {
       store.dispatch(
-        authenticate.fulfilled(true, "", {
-          username: "username",
+        authenticate.fulfilled(null, "", {
+          email: "username",
           password: "password",
         }),
       );
@@ -126,8 +126,8 @@ describe("App Router Component", () => {
         renderAppRouter();
         act(() => {
           store.dispatch(
-            authenticate.fulfilled(true, "", {
-              username: "username",
+            authenticate.fulfilled(null, "", {
+              email: "username",
               password: "password",
             }),
           );

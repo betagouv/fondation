@@ -36,7 +36,7 @@ export interface AppState {
   nominationCaseList: { data: NominationFileListItem[] | null };
   authentication: {
     authenticated: boolean;
-    forbiddenPageAsked: boolean;
+    user: { reporterName: string } | null;
   };
   router: {
     hrefs: {

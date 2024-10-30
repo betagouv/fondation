@@ -4,15 +4,21 @@ export class FakeAuthenticationStorageProvider
   implements AuthenticationStorageProvider
 {
   _isAuthenticated: boolean = false;
+  _user: { reporterName: string } | null = null;
 
-  storeAuthentication(payload: boolean): void {
-    this._isAuthenticated = payload;
+  storeAuthentication(payload: { reporterName: string } | null): void {
+    this._isAuthenticated = true;
+    this._user = payload;
   }
   storeDisconnection(): void {
-    this.storeAuthentication(false);
+    this._isAuthenticated = false;
+    this._user = null;
   }
 
   isAuthenticated() {
     return this._isAuthenticated;
+  }
+  getUser(): { reporterName: string } | null {
+    return this._user;
   }
 }

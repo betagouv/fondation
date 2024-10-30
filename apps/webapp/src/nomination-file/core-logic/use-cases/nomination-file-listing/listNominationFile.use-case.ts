@@ -6,17 +6,10 @@ export const listNominationFile = createAppAsyncThunk(
     _,
     {
       extra: {
-        gateways: { nominationFileGateway, authenticationGateway },
+        gateways: { nominationFileGateway },
       },
     },
   ) => {
-    const nominationFiles = await nominationFileGateway.list();
-    const currentUser = authenticationGateway.getCurrentUser();
-
-    if (currentUser)
-      return nominationFiles.filter(
-        (nominationFile) =>
-          nominationFile.reporterName === currentUser.reporterName,
-      );
+    return nominationFileGateway.list();
   },
 );

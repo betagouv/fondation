@@ -30,7 +30,6 @@ describe("Login Component", () => {
     authenticationGateway.setEligibleAuthUser(
       "username@example.fr",
       "password",
-      true,
     );
 
     renderLogin();

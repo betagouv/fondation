@@ -3,7 +3,9 @@ export type AuthenticatedUser = {
 };
 
 export interface AuthenticationGateway {
-  getCurrentUser(): AuthenticatedUser | null;
   logout(): Promise<void>;
-  authenticate(username: string, password: string): Promise<boolean>;
+  authenticate(
+    username: string,
+    password: string,
+  ): Promise<{ reporterName: string } | null>;
 }

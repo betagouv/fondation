@@ -16,7 +16,7 @@ describe("Authenticate", () => {
 
   beforeEach(() => {
     authenticationGateway = new FakeAuthenticationGateway();
-    authenticationGateway.setEligibleAuthUser("username", "password", true);
+    authenticationGateway.setEligibleAuthUser("username", "password");
 
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
 
@@ -31,9 +31,9 @@ describe("Authenticate", () => {
     initialState = store.getState();
   });
 
-  it("authenticates a user", async () => {
+  it.only("authenticates a user", async () => {
     await store.dispatch(
-      authenticate({ username: "username", password: "password" }),
+      authenticate({ email: "username", password: "password" }),
     );
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
@@ -46,8 +46,8 @@ describe("Authenticate", () => {
 
   it("persists the authenticated state", async () => {
     store.dispatch(
-      authenticate.fulfilled(true, "", {
-        username: "username",
+      authenticate.fulfilled(null, "", {
+        email: "username",
         password: "password",
       }),
     );

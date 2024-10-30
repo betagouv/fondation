@@ -17,7 +17,7 @@ export const Login = () => {
 
     dispatch(
       authenticate({
-        username,
+        email: username,
         password,
       }),
     );

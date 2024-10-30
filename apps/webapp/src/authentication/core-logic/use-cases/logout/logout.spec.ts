@@ -16,7 +16,7 @@ describe("Authenticate", () => {
 
   beforeEach(() => {
     authenticationGateway = new FakeAuthenticationGateway();
-    authenticationGateway.setEligibleAuthUser("username", "password", true);
+    authenticationGateway.setEligibleAuthUser("username", "password");
 
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
 

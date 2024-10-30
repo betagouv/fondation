@@ -1,5 +1,6 @@
 export interface AuthenticationStorageProvider {
-  storeAuthentication(payload: boolean): void;
+  storeAuthentication(payload: { reporterName: string } | null): void;
   storeDisconnection(): void;
   isAuthenticated: () => boolean;
+  getUser: () => { reporterName: string } | null;
 }

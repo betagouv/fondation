@@ -25,46 +25,51 @@ export const selectNominationFileList = createAppSelector(
   [
     (state) => state.nominationCaseList.data,
     (state) => state.router.anchorsAttributes.nominationFileOverview,
+    (state) => state.authentication.user,
   ],
-  (data, getAnchorAttributes): NominationFileListVM => ({
+  (data, getAnchorAttributes, user): NominationFileListVM => ({
     nominationFiles:
-      data?.map(
-        ({
-          id,
-          name,
-          reporterName,
-          dueDate,
-          state,
-          formation,
-          transparency,
-          grade,
-          targettedPosition,
-        }) => {
-          const { href, onClick } = getAnchorAttributes(id);
-
-          const dueDateFormatted = dueDate
-            ? new DateOnly(
-                dueDate.year,
-                dueDate.month,
-                dueDate.day,
-              ).toFormattedString()
-            : null;
-
-          return {
+      data
+        ?.filter(({ reporterName }) =>
+          user ? reporterName === user.reporterName : false,
+        )
+        .map(
+          ({
             id,
-            reporterName,
-            state: stateToLabel(state),
-            dueDate: dueDateFormatted,
-            formation: formationToLabel(formation),
             name,
-            transparency: transparencyToLabel(transparency),
-            grade: gradeToLabel(grade),
+            reporterName,
+            dueDate,
+            state,
+            formation,
+            transparency,
+            grade,
             targettedPosition,
-            href,
-            onClick,
-          };
-        },
-      ) ?? [],
+          }) => {
+            const { href, onClick } = getAnchorAttributes(id);
+
+            const dueDateFormatted = dueDate
+              ? new DateOnly(
+                  dueDate.year,
+                  dueDate.month,
+                  dueDate.day,
+                ).toFormattedString()
+              : null;
+
+            return {
+              id,
+              reporterName,
+              state: stateToLabel(state),
+              dueDate: dueDateFormatted,
+              formation: formationToLabel(formation),
+              name,
+              transparency: transparencyToLabel(transparency),
+              grade: gradeToLabel(grade),
+              targettedPosition,
+              href,
+              onClick,
+            };
+          },
+        ) ?? [],
   }),
 );
 

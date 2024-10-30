@@ -6,6 +6,7 @@ import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNomin
 import { NominationFileList } from "./NominationFileList";
 import { FakeAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { AuthenticatedUser } from "../../../../../authentication/core-logic/gateways/authentication.gateway";
+import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
@@ -18,10 +19,7 @@ describe("Nomination Case List Component", () => {
     authenticationGateway.setEligibleAuthUser(
       "user@example.fr",
       "password",
-      true,
-      {
-        reporterName: user.reporterName,
-      },
+      user,
     );
 
     store = initReduxStore(
@@ -43,6 +41,12 @@ describe("Nomination Case List Component", () => {
 
   describe("when there is a report", () => {
     beforeEach(() => {
+      store.dispatch(
+        authenticate.fulfilled(user, "", {
+          email: "user@example.fr",
+          password: "password",
+        }),
+      );
       nominationFileGateway.addNominationFile(aNominationFile);
     });
 

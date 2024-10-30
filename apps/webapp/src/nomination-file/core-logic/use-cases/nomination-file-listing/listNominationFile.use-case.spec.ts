@@ -32,17 +32,11 @@ describe("Nomination Files Listing", () => {
       nominationFileGateway.addNominationFile(aNominationFile);
     });
 
-    it("doesn't show reports if there is no user authenticated", async () => {
-      await store.dispatch(listNominationFile());
-      expect(store.getState()).toBe<AppState>(initialState);
-    });
-
     describe("Authenticated user", () => {
       beforeEach(() => {
         authenticationGateway.setEligibleAuthUser(
           "user@example.fr",
           "password",
-          true,
           { reporterName: "REPORTER Name" },
         );
       });
@@ -68,34 +62,6 @@ describe("Nomination Files Listing", () => {
           },
         });
       });
-
-      describe("when there is another report", () => {
-        beforeEach(() => {
-          nominationFileGateway.addNominationFile(anotherUserNominationFile);
-        });
-
-        it("shows only the report of the authenticated user", async () => {
-          await store.dispatch(listNominationFile());
-          expect(store.getState()).toEqual<AppState>({
-            ...initialState,
-            nominationCaseList: {
-              data: [
-                {
-                  id: aNominationFile.id,
-                  name: aNominationFile.name,
-                  reporterName: user.reporterName,
-                  dueDate: aNominationFile.dueDate,
-                  state: aNominationFile.state,
-                  formation: aNominationFile.formation,
-                  transparency: aNominationFile.transparency,
-                  grade: aNominationFile.grade,
-                  targettedPosition: aNominationFile.targettedPosition,
-                },
-              ],
-            },
-          });
-        });
-      });
     });
   });
 });
@@ -109,8 +75,4 @@ const aNominationFile = new NominationFileBuilder()
   .withName("Lucien Denan")
   .withReporterName(user.reporterName)
   .withDueDate(new DateOnly(2030, 10, 30))
-  .build();
-const anotherUserNominationFile = new NominationFileBuilder()
-  .withId("another-nomination-file-id")
-  .withReporterName("SOMEONE Else")
   .build();

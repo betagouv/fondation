@@ -38,7 +38,6 @@ fakeUsers.forEach(({ username, password, reporterName }) => {
   authenticationGateway.setEligibleAuthUser(
     username,
     password,
-    true,
     reporterName ? { reporterName } : undefined,
   );
 });
