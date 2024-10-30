@@ -23,7 +23,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   const [textareaContent, setTextareaContent] = useState(content);
 
   const debouncedOnContentChange = useMemo(
-    () => debounce(onContentChange, 500),
+    () => debounce(onContentChange, 400),
     [onContentChange],
   );
 
@@ -34,10 +34,6 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
     },
     [debouncedOnContentChange],
   );
-
-  useEffect(() => {
-    setTextareaContent(content);
-  }, [content]);
 
   useEffect(() => {
     return () => {
