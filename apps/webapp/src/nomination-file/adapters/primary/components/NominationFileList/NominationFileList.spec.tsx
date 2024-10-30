@@ -56,7 +56,7 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("Echéance");
       await screen.findByText("Formation");
       await screen.findByText("Magistrat concerné");
-      await screen.findByText("transparence");
+      await screen.findByText("Transparence");
       await screen.findByText("Grade visé");
       await screen.findByText("Poste ciblé");
     });
@@ -67,7 +67,7 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("30/10/2030");
       await screen.findByText("Parquet");
       await screen.findByText("John Doe");
-      await screen.findByText("transparence de mars 2025");
+      await screen.findByText("Mars 2025");
       await screen.findByText("I");
       await screen.findByText("PG TJ Marseille");
     });

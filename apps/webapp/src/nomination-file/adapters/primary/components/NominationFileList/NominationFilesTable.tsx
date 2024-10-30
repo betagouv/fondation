@@ -16,7 +16,7 @@ export const NominationFilesTable: React.FC<NominationFilesTableProps> = ({
       "Echéance",
       "Formation",
       "Magistrat concerné",
-      "transparence",
+      "Transparence",
       "Grade visé",
       "Poste ciblé",
     ]}

@@ -76,11 +76,11 @@ export const selectNominationFileList = createAppSelector(
 export const transparencyToLabel = (transparency: Transparency) => {
   switch (transparency) {
     case Transparency.AUTOMNE_2024:
-      return "transparence d'octobre 2024";
+      return "Octobre 2024";
     case Transparency.MARCH_2025:
-      return "transparence de mars 2025";
+      return "Mars 2025";
     case Transparency.MARCH_2026:
-      return "transparence de mars 2026";
+      return "Mars 2026";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

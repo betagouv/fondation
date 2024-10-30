@@ -86,7 +86,7 @@ describe("Select Nomination Case List", () => {
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
-    transparency: "transparence de mars 2025",
+    transparency: "Mars 2025",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     href: `/dossier-de-nomination/${aNominationFile.id}`,
