@@ -46,7 +46,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
     );
   };
   const onUpdateComment = (comment: string) => {
-    return onUpdateNomination<"comment">({ comment: comment });
+    return onUpdateNomination<"comment">({ comment });
   };
 
   const onUpdateNominationRule =

@@ -1,6 +1,7 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "./Card";
+import { debounce } from "lodash";
 
 export type TextareaCardProps = {
   id: string;
@@ -21,17 +22,28 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
 }) => {
   const [textareaContent, setTextareaContent] = useState(content);
 
+  const debouncedOnContentChange = useMemo(
+    () => debounce(onContentChange, 500),
+    [onContentChange],
+  );
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setTextareaContent(e.target.value);
-      onContentChange(e.target.value);
+      debouncedOnContentChange(e.target.value);
     },
-    [onContentChange],
+    [debouncedOnContentChange],
   );
 
   useEffect(() => {
     setTextareaContent(content);
   }, [content]);
+
+  useEffect(() => {
+    return () => {
+      debouncedOnContentChange.cancel();
+    };
+  }, [debouncedOnContentChange]);
 
   return (
     <Card>
