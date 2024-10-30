@@ -1,6 +1,8 @@
+import { AuthenticatedUser } from "../gateways/authentication.gateway";
+
 export interface AuthenticationStorageProvider {
-  storeAuthentication(payload: { reporterName: string } | null): void;
+  storeAuthentication(payload: AuthenticatedUser): void;
   storeDisconnection(): void;
   isAuthenticated: () => boolean;
-  getUser: () => { reporterName: string } | null;
+  getUser: () => AuthenticatedUser;
 }

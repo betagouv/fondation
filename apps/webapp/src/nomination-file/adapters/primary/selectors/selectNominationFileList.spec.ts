@@ -1,4 +1,5 @@
 import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
+import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
 import { authenticate } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
@@ -10,12 +11,6 @@ import {
   NominationFileListVM,
   selectNominationFileList,
 } from "./selectNominationFileList";
-
-const user = {
-  email: "username@example.fr",
-  password: "password",
-  reporterName: "REPORTER Name",
-};
 
 describe("Select Nomination Case List", () => {
   let store: ReduxStore;
@@ -120,3 +115,9 @@ describe("Select Nomination Case List", () => {
     .withDueDate(new DateOnly(2030, 10, 10))
     .build();
 });
+
+const user = {
+  email: "username@example.fr",
+  password: "password",
+  reporterName: "REPORTER Name",
+} satisfies AuthenticatedUser & { email: string; password: string };

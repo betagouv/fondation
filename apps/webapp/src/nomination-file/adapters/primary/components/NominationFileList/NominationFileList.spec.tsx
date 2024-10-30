@@ -82,9 +82,9 @@ describe("Nomination Case List Component", () => {
   };
 });
 
-const user: AuthenticatedUser = {
+const user = {
   reporterName: "CURRENT User",
-};
+} satisfies AuthenticatedUser;
 
 const aNominationFile = new NominationFileBuilder()
   .withReporterName(user.reporterName)

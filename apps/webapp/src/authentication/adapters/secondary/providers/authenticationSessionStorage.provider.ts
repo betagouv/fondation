@@ -1,9 +1,10 @@
+import { AuthenticatedUser } from "../../../core-logic/gateways/authentication.gateway";
 import { AuthenticationStorageProvider } from "../../../core-logic/providers/authenticationStorage.provider";
 
 export class AuthenticationSessionStorageProvider
   implements AuthenticationStorageProvider
 {
-  storeAuthentication(payload: { reporterName: string } | null): void {
+  storeAuthentication(payload: AuthenticatedUser): void {
     sessionStorage.setItem("authenticated", "true");
     if (payload) sessionStorage.setItem("user", JSON.stringify(payload));
   }
@@ -14,7 +15,7 @@ export class AuthenticationSessionStorageProvider
     return sessionStorage.getItem("authenticated") === "true";
   }
 
-  getUser(): { reporterName: string } | null {
+  getUser(): AuthenticatedUser {
     return JSON.parse(sessionStorage.getItem("user") || "null");
   }
 }

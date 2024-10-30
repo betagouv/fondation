@@ -37,7 +37,7 @@ describe("Nomination Files Listing", () => {
         authenticationGateway.setEligibleAuthUser(
           "user@example.fr",
           "password",
-          { reporterName: "REPORTER Name" },
+          user,
         );
       });
 
@@ -66,9 +66,9 @@ describe("Nomination Files Listing", () => {
   });
 });
 
-const user: AuthenticatedUser = {
+const user = {
   reporterName: "REPORTER Name",
-};
+} satisfies AuthenticatedUser;
 
 const aNominationFile = new NominationFileBuilder()
   .withId("user-nomination-file-id")

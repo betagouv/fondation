@@ -1,14 +1,16 @@
-import { AuthenticationGateway } from "../../../core-logic/gateways/authentication.gateway";
+import {
+  AuthenticatedUser,
+  AuthenticationGateway,
+} from "../../../core-logic/gateways/authentication.gateway";
 
 export class FakeAuthenticationGateway implements AuthenticationGateway {
-  private eligibleAuthUsers: Record<string, { reporterName: string } | null> =
-    {};
+  private eligibleAuthUsers: Record<string, AuthenticatedUser> = {};
   private currentUser: string | null = null;
 
   async authenticate(
     email: string,
     password: string,
-  ): Promise<{ reporterName: string } | null> {
+  ): Promise<AuthenticatedUser> {
     const isAuthUser = `${email}-${password}` in this.eligibleAuthUsers;
 
     if (!isAuthUser) throw new Error("Invalid credentials");
@@ -23,8 +25,8 @@ export class FakeAuthenticationGateway implements AuthenticationGateway {
   setEligibleAuthUser(
     email: string,
     password: string,
-    options?: { reporterName: string },
+    user?: AuthenticatedUser,
   ) {
-    this.eligibleAuthUsers[`${email}-${password}`] = options || null;
+    this.eligibleAuthUsers[`${email}-${password}`] = user || null;
   }
 }

@@ -2,6 +2,7 @@ import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../../shared-kernel/core-logic/models/date-only";
+import { AuthenticatedUser } from "../../authentication/core-logic/gateways/authentication.gateway";
 
 export interface NominationFileSM {
   id: string;
@@ -36,7 +37,7 @@ export interface AppState {
   nominationCaseList: { data: NominationFileListItem[] | null };
   authentication: {
     authenticated: boolean;
-    user: { reporterName: string } | null;
+    user: AuthenticatedUser;
   };
   router: {
     hrefs: {

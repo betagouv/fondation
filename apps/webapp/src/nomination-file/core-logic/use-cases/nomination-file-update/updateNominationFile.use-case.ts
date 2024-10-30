@@ -26,7 +26,6 @@ export const updateNominationFile = createAppAsyncThunk<
     },
   ) => {
     await nominationFileGateway.updateNominationFile(reportId, data);
-    // TODO: React to the updateNominationFile.fulfilled action to dispath a retrieve use case with a listener
     return { reportId, data };
   },
 );
