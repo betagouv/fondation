@@ -57,7 +57,7 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("Formation");
       await screen.findByText("Magistrat concerné");
       await screen.findByText("Transparence");
-      await screen.findByText("Grade visé");
+      await screen.findByText("Grade actuel");
       await screen.findByText("Poste ciblé");
     });
 
