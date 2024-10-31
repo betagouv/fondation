@@ -22,6 +22,7 @@ jobs:
     with:
       environment: staging
       tag: "v${{ github.run_number }}"
+    secrets: inherit
 
   deploy-staging:
     name: Deploy staging

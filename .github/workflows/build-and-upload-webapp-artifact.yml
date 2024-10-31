@@ -9,6 +9,9 @@ on:
       tag:
         type: string
         required: true
+    secrets:
+      VITE_FAKE_USERS:
+        required: true
 
 jobs:
   build-and-deploy-webapp-artifact:
@@ -31,7 +34,7 @@ jobs:
         run: pnpm --filter webapp... build
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
-          VITE_FAKE_USERS: ${{ vars.VITE_FAKE_USERS }}
+          VITE_FAKE_USERS: ${{ secrets.VITE_FAKE_USERS }}
 
       - name: Create Archive
         run: |
