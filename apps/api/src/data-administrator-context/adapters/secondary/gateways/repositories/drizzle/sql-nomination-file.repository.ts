@@ -4,8 +4,16 @@ import { NominationFileModel } from 'src/data-administrator-context/business-log
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-sql-preparation';
 import { nominationFiles } from './schema/nomination-file-pm';
+import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
+import typia from 'typia';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
+  findAll(): DrizzleTransactionableAsync<NominationFileModel[]> {
+    return async (db) => {
+      const rows = await db.select().from(nominationFiles).execute();
+      return rows.map((row) => this.mapToDomain(row));
+    };
+  }
   setReportId(
     nominationFileId: string,
     reportId: string,
@@ -36,6 +44,20 @@ export class SqlNominationFileRepository implements NominationFileRepository {
         })
         .execute();
     };
+  }
+
+  mapToDomain(row: typeof nominationFiles.$inferSelect): NominationFileModel {
+    return NominationFileModel.fromSnapshot({
+      id: row.id,
+      createdAt: row.createdAt,
+      rowNumber: row.rowNumber,
+      reportId: row.reportId,
+      content: this.safeContent(row.content),
+    });
+  }
+
+  private safeContent(content: unknown): NominationFileRead['content'] {
+    return typia.assert<NominationFileRead['content']>(content);
   }
 
   static mapToDb(

@@ -1,6 +1,9 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
-import { NominationFileModel } from 'src/data-administrator-context/business-logic/models/nomination-file';
+import {
+  NominationFileModel,
+  NominationFileSnapshot,
+} from 'src/data-administrator-context/business-logic/models/nomination-file';
 import { getAllRulesPreValidated } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
@@ -50,6 +53,54 @@ describe('SQL Nomination File Repository', () => {
     expect(nominationFilesData).toEqual([
       SqlNominationFileRepository.mapToDb(aNominationFile),
     ]);
+  });
+
+  describe("when there's already a nomination file", () => {
+    let aNominationFile: NominationFileModel;
+    let aNominationFileSnapshot: NominationFileSnapshot;
+
+    beforeEach(async () => {
+      aNominationFile = givenSomeNominationFile();
+      aNominationFileSnapshot = aNominationFile.toSnapshot();
+      await db.insert(nominationFiles).values({
+        id: aNominationFileSnapshot.id,
+        createdAt: aNominationFileSnapshot.createdAt,
+        rowNumber: aNominationFileSnapshot.rowNumber,
+        content: aNominationFileSnapshot.content,
+      });
+    });
+
+    it('finds all nomination files', async () => {
+      const nominationFiles = await transactionPerformer.perform(
+        nominationFileRepository.findAll(),
+      );
+      expect(nominationFiles).toEqual([aNominationFile]);
+    });
+
+    it('sets the report id', async () => {
+      const reportId = 'f6c92518-19a1-488d-b518-5c39d3ac26c7';
+      await transactionPerformer.perform(
+        nominationFileRepository.setReportId(
+          aNominationFileSnapshot.id,
+          reportId,
+        ),
+      );
+
+      const nominationFilesData = await db
+        .select()
+        .from(nominationFiles)
+        .execute();
+
+      expect(nominationFilesData).toEqual([
+        {
+          id: aNominationFileSnapshot.id,
+          createdAt: aNominationFileSnapshot.createdAt,
+          rowNumber: aNominationFileSnapshot.rowNumber,
+          content: aNominationFileSnapshot.content,
+          reportId,
+        },
+      ]);
+    });
   });
 
   const givenSomeNominationFile = () =>

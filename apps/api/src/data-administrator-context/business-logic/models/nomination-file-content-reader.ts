@@ -3,6 +3,9 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import typia from 'typia';
 import { InvalidRowValueError } from '../errors/invalid-row-value.error';
 import { NominationFileRead } from './nomination-file-read';
+import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
+
+export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 
 export class NominationFileContentReader {
   constructor(
@@ -10,7 +13,7 @@ export class NominationFileContentReader {
     private readonly content: string[],
   ) {}
 
-  read(): NominationFileRead[] {
+  read(): NominationFilesContentReadCollection {
     const rulesColumnsIndices = this.getRulesColumnsIndices();
 
     const contentRead = this.content.map((row, rowIndex) => {
@@ -46,7 +49,7 @@ export class NominationFileContentReader {
         rowNumber: rowIndex + 1,
         content: {
           dueDate: dueDate
-            ? DateOnly.fromString(dueDate!, 'dd/M/yyyy', 'fr').toJson()
+            ? DateOnly.fromString(dueDate, 'dd/M/yyyy', 'fr').toJson()
             : null,
           birthDate: DateOnly.fromString(
             this.findValue('Date de naissance', rowIndex)!,
@@ -83,7 +86,7 @@ export class NominationFileContentReader {
     const safeNominationFileRead =
       typia.assertEquals<NominationFileRead[]>(contentRead);
 
-    return safeNominationFileRead;
+    return new NominationFilesContentReadCollection(safeNominationFileRead);
   }
 
   private normalizeTransparency(transparency: string): Transparency {
@@ -100,7 +103,7 @@ export class NominationFileContentReader {
   }
 
   private normalizeReporters(reportersValue: string): string[] {
-    return reportersValue.split('<cell_line_break>');
+    return reportersValue.split(GSHEET_CELL_LINE_BREAK_TOKEN);
   }
 
   private findValue(

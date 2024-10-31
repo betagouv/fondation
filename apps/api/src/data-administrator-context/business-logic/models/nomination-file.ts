@@ -1,7 +1,3 @@
-import {
-  NominationFilesImportedEvent,
-  NominationFilesImportedEventPayload,
-} from './nomination-file-imported.event';
 import { NominationFileRead } from './nomination-file-read';
 
 export type NominationFileSnapshot = {
@@ -20,6 +16,9 @@ export class NominationFileModel {
     private readonly nominationFileRead: NominationFileRead,
   ) {}
 
+  hasSameRowNumberAs(nominationFileRead: NominationFileRead): boolean {
+    return this.nominationFileRead.rowNumber === nominationFileRead.rowNumber;
+  }
   toSnapshot(): NominationFileSnapshot {
     return {
       id: this.id,
@@ -40,34 +39,5 @@ export class NominationFileModel {
         content: snapshot.content,
       },
     );
-  }
-
-  static fromReadFile(
-    generatedUuid: () => string,
-    contentRead: NominationFileRead[],
-    currentDate: Date,
-  ): [NominationFileModel[], NominationFilesImportedEvent] {
-    const nominationFiles = contentRead.map(
-      (content) =>
-        new NominationFileModel(generatedUuid(), currentDate, null, content),
-    );
-
-    const payload: NominationFilesImportedEventPayload = nominationFiles.map(
-      (nominationFile) => {
-        const nominationFileSnapshot = nominationFile.toSnapshot();
-        return {
-          nominationFileImportedId: nominationFileSnapshot.id,
-          content: nominationFileSnapshot.content,
-        };
-      },
-    );
-
-    const nominationFilesImportedEvent = new NominationFilesImportedEvent(
-      generatedUuid(),
-      payload,
-      currentDate,
-    );
-
-    return [nominationFiles, nominationFilesImportedEvent];
   }
 }

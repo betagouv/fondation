@@ -5,6 +5,11 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeNominationFileRepository implements NominationFileRepository {
   nominationFiles: Record<string, NominationFileModel> = {};
 
+  findAll(): TransactionableAsync<NominationFileModel[]> {
+    return async () => {
+      return Object.values(this.nominationFiles);
+    };
+  }
   setReportId(
     nominationFileId: string,
     reportId: string,

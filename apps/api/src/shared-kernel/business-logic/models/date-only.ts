@@ -9,6 +9,7 @@ export type DateOnlyJson = {
 };
 
 const dbDateFormat = 'yyyy-MM-dd';
+export const gsheetDateFormat = 'dd/MM/yyyy';
 
 export class DateOnly {
   private readonly value: Date;
@@ -30,8 +31,10 @@ export class DateOnly {
   toDate(): Date {
     return this.value;
   }
-  toFormattedString(): string {
-    return format(this.value, 'yyyy-MM-dd');
+  toFormattedString(
+    formatTemplate: 'yyyy-MM-dd' | typeof gsheetDateFormat = 'yyyy-MM-dd',
+  ): string {
+    return format(this.value, formatTemplate);
   }
   toJson(): DateOnlyJson {
     return {
