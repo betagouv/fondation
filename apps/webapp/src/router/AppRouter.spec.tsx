@@ -3,7 +3,6 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
-import { storeDisconnectionOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
@@ -21,6 +20,7 @@ import {
 import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
 import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponent";
 import { AppRouter } from "./AppRouter";
+import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 
@@ -47,7 +47,7 @@ describe("App Router Component", () => {
         routeChangedHandler: useRouteChanged,
       },
 
-      [redirectOnRouteChange, redirectOnLogout],
+      { redirectOnRouteChange, redirectOnLogin, redirectOnLogout },
       routeToComponentMap,
     );
   });
@@ -77,7 +77,7 @@ describe("App Router Component", () => {
         routeToComponentFactory: useRouteToComponentFactory,
         // routeChangedHandler is omitted here to prevent the redirection
       },
-      [storeDisconnectionOnLogout],
+      {},
       routeToComponentMap,
     );
     renderAppRouter();
@@ -98,6 +98,22 @@ describe("App Router Component", () => {
 
       act(() => {
         sessionForTestingPurpose.push("/");
+      });
+
+      await screen.findByText("a list");
+      expect(window.location.pathname).toBe(
+        routerProvider.getNominationFileListHref(),
+      );
+    });
+
+    it("redirects from login to the reports list page", async () => {
+      renderAppRouter();
+      act(() => {
+        givenAnAuthenticatedUser();
+      });
+
+      act(() => {
+        routerProvider.goToLogin();
       });
 
       await screen.findByText("a list");

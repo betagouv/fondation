@@ -1,9 +1,9 @@
-import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
+import { authenticate } from "../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { Listener } from "../../../nomination-file/store/listeners";
 
-export const redirectOnLogout: Listener = (startAppListening) =>
+export const redirectOnLogin: Listener = (startAppListening) =>
   startAppListening({
-    actionCreator: logout.fulfilled,
+    actionCreator: authenticate.fulfilled,
     effect: (
       _,
       {
@@ -13,6 +13,6 @@ export const redirectOnLogout: Listener = (startAppListening) =>
       },
     ) => {
       if (!routerProvider) throw new Error("routerProvider is not defined");
-      routerProvider.goToLogin();
+      routerProvider.goToNominationFileList();
     },
   });

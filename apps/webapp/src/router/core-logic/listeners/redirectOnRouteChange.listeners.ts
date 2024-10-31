@@ -21,6 +21,11 @@ export const redirectOnRouteChange: Listener = (startAppListening) =>
           if (authenticated) routerProvider.goToNominationFileList();
           else routerProvider.goToLogin();
           break;
+        case routerProvider.getLoginHref():
+          if (authenticated) routerProvider.goToNominationFileList();
+          break;
+        default:
+          if (!authenticated) routerProvider.goToLogin();
       }
     },
   });

@@ -2,14 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppState } from "../../../nomination-file/store/appState";
 import { PartialAppDependencies } from "../../../nomination-file/store/reduxStore";
 import { authenticate } from "../use-cases/authentication/authenticate";
-import { routeChanged } from "../../../router/core-logic/reducers/router.slice";
+import { logout } from "../use-cases/logout/logout";
 
 export const createAuthenticationSlice = ({
   authenticationStorageProvider,
-  routerProvider,
 }: Pick<
   PartialAppDependencies["providers"],
-  "authenticationStorageProvider" | "routerProvider"
+  "authenticationStorageProvider"
 >) =>
   createSlice({
     name: "authentication",
@@ -19,18 +18,13 @@ export const createAuthenticationSlice = ({
     }),
     reducers: {},
     extraReducers: (builder) => {
-      builder.addCase(routeChanged, (state, action) => {
-        if (
-          !state.authenticated &&
-          routerProvider &&
-          action.payload !== routerProvider.getLoginHref()
-        )
-          routerProvider.goToLogin();
-      });
       builder.addCase(authenticate.fulfilled, (state, action) => {
         state.authenticated = true;
         state.user = action.payload;
-        routerProvider?.goToNominationFileList();
+      });
+      builder.addCase(logout.fulfilled, (state) => {
+        state.authenticated = false;
+        state.user = null;
       });
     },
   });

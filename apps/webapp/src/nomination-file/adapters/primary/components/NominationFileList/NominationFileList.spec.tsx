@@ -29,7 +29,7 @@ describe("Nomination Case List Component", () => {
       },
       {},
       {},
-      [],
+      {},
       undefined,
     );
   });

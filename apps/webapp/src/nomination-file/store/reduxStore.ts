@@ -2,20 +2,20 @@ import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { AuthenticationGateway } from "../../authentication/core-logic/gateways/authentication.gateway";
 import { AuthenticationStorageProvider } from "../../authentication/core-logic/providers/authenticationStorage.provider";
 import { createAuthenticationSlice } from "../../authentication/core-logic/reducers/authentication.slice";
-import { RouterProvider } from "../../router/core-logic/providers/router";
-import { NominationFileGateway } from "../core-logic/gateways/NominationFile.gateway";
-import { nominationCaseListReducer as nominationCaseList } from "../core-logic/reducers/nominationFileList.slice";
-import { nominationCaseRetrievalReducer as nominationFileOverview } from "../core-logic/reducers/nominationFileOverview.slice";
-import { AppState } from "./appState";
-import { Listener } from "./listeners";
-import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { createRouterSlice } from "../../router/core-logic/reducers/router.slice";
-import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
 import {
   RouteToComponentMap,
   routeToReactComponentMap,
 } from "../../router/adapters/routeToReactComponentMap";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
+import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
+import { RouterProvider } from "../../router/core-logic/providers/router";
+import { createRouterSlice } from "../../router/core-logic/reducers/router.slice";
+import { NominationFileGateway } from "../core-logic/gateways/NominationFile.gateway";
+import { nominationCaseListReducer as nominationCaseList } from "../core-logic/reducers/nominationFileList.slice";
+import { nominationCaseRetrievalReducer as nominationFileOverview } from "../core-logic/reducers/nominationFileOverview.slice";
+import { AppState } from "./appState";
+import { AppListeners } from "./listeners";
+import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
 
 export interface Gateways {
   nominationFileGateway: NominationFileGateway;
@@ -48,7 +48,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
   nestedPrimaryAdapters: IsTest extends true
     ? Partial<NestedPrimaryAdapters>
     : NestedPrimaryAdapters,
-  listeners?: Listener[],
+  listeners?: IsTest extends true ? Partial<AppListeners> : AppListeners,
   routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
 ) => {
   return configureStore({
@@ -57,7 +57,6 @@ export const initReduxStore = <IsTest extends boolean = true>(
       nominationCaseList,
       authentication: createAuthenticationSlice({
         authenticationStorageProvider: providers?.authenticationStorageProvider,
-        routerProvider: providers?.routerProvider,
       }).reducer,
       router: createRouterSlice({
         routerProvider: providers.routerProvider,
@@ -73,14 +72,20 @@ export const initReduxStore = <IsTest extends boolean = true>(
         nestedPrimaryAdapters: nestedPrimaryAdapters ?? {},
       };
 
-      return getDefaultMiddleware({
+      const middleware = getDefaultMiddleware({
         thunk: {
           extraArgument: appDependencies,
         },
         serializableCheck: false,
-      }).prepend(
-        createAppListenerMiddleware(appDependencies, listeners).middleware,
+      });
+      if (!listeners) {
+        return middleware;
+      }
+      const middlewareWithListeners = middleware.prepend(
+        createAppListenerMiddleware(appDependencies, Object.values(listeners))
+          .middleware,
       );
+      return middlewareWithListeners;
     },
     devTools: true,
   });
