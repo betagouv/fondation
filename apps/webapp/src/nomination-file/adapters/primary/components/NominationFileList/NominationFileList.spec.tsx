@@ -41,12 +41,7 @@ describe("Nomination Case List Component", () => {
 
   describe("when there is a report", () => {
     beforeEach(() => {
-      store.dispatch(
-        authenticate.fulfilled(user, "", {
-          email: "user@example.fr",
-          password: "password",
-        }),
-      );
+      givenAnAuthenticatedUser();
       nominationFileGateway.addNominationFile(aNominationFile);
     });
 
@@ -72,6 +67,15 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("PG TJ Marseille");
     });
   });
+
+  const givenAnAuthenticatedUser = () => {
+    store.dispatch(
+      authenticate.fulfilled(user, "", {
+        email: "user@example.fr",
+        password: "password",
+      }),
+    );
+  };
 
   const renderNominationFileList = () => {
     render(

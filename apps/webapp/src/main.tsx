@@ -16,7 +16,9 @@ import {
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
 import { NestiaNominationFileClient } from "./nomination-file/adapters/secondary/gateways/NestiaNominationFile.client.ts";
-import { storeDisconnectionAndRedirectOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
+import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
+import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
+import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -57,7 +59,12 @@ const store = initReduxStore<false>(
     routeToComponentFactory: useRouteToComponentFactory,
     routeChangedHandler: useRouteChanged,
   },
-  [storeAuthenticationOnLoginSuccess, storeDisconnectionAndRedirectOnLogout],
+  [
+    storeAuthenticationOnLoginSuccess,
+    storeDisconnectionOnLogout,
+    redirectOnRouteChange,
+    redirectOnLogout,
+  ],
 );
 
 createRoot(document.getElementById("root")!).render(

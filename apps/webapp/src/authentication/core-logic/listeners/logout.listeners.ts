@@ -1,20 +1,17 @@
 import { Listener } from "../../../nomination-file/store/listeners";
 import { logout } from "../use-cases/logout/logout";
 
-export const storeDisconnectionAndRedirectOnLogout: Listener = (
-  startAppListening,
-) =>
+export const storeDisconnectionOnLogout: Listener = (startAppListening) =>
   startAppListening({
     actionCreator: logout.fulfilled,
     effect: (
       _,
       {
         extra: {
-          providers: { authenticationStorageProvider, routerProvider },
+          providers: { authenticationStorageProvider },
         },
       },
     ) => {
       authenticationStorageProvider?.storeDisconnection();
-      routerProvider?.goToLogin();
     },
   });

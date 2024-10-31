@@ -5,7 +5,7 @@ import {
 } from "../../../../nomination-file/store/reduxStore";
 import { FakeAuthenticationGateway } from "../../../adapters/secondary/gateways/fakeAuthentication.gateway";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
-import { storeDisconnectionAndRedirectOnLogout } from "../../listeners/logout.listeners";
+import { storeDisconnectionOnLogout } from "../../listeners/logout.listeners";
 import { logout } from "./logout";
 
 describe("Authenticate", () => {
@@ -26,7 +26,7 @@ describe("Authenticate", () => {
       },
       { authenticationStorageProvider },
       {},
-      [storeDisconnectionAndRedirectOnLogout],
+      [storeDisconnectionOnLogout],
     );
     initialState = store.getState();
   });

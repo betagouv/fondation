@@ -1,8 +1,8 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 import { AppState } from "../../../nomination-file/store/appState";
 import { PartialAppDependencies } from "../../../nomination-file/store/reduxStore";
-import { RouteToComponentFactory } from "../components/routeToComponent";
 import { RouteChangedHandler } from "../components/routeChangedHandler";
+import { RouteToComponentFactory } from "../components/routeToComponent";
 
 export const createRouterSlice = ({
   routerProvider,
@@ -16,6 +16,7 @@ export const createRouterSlice = ({
     name: "router",
     initialState: (): AppState["router"] => ({
       hrefs: {
+        current: window.location.href,
         login: routerProvider?.getLoginHref() ?? "login",
         nominationFileList:
           routerProvider?.getNominationFileListHref() ??
@@ -33,6 +34,11 @@ export const createRouterSlice = ({
       routeChangedHandler: routeChangedHandler ?? (() => {}),
     }),
     reducers: {},
+    extraReducers: (builder) => {
+      builder.addCase(routeChanged, (state, action) => {
+        state.hrefs.current = action.payload;
+      });
+    },
   });
 
 export const routeChanged = createAction<string>("ROUTE_CHANGED");

@@ -3,23 +3,26 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
-import { storeDisconnectionAndRedirectOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
+import { storeDisconnectionOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
 import { NominationFileSM } from "../nomination-file/store/appState";
 import {
-  ReduxStore,
   initReduxStore,
+  ReduxStore,
 } from "../nomination-file/store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,
+  sessionForTestingPurpose,
   TypeRouterProvider,
 } from "./adapters/type-route/typeRouter";
 import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
 import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponent";
 import { AppRouter } from "./AppRouter";
+import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
+import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
@@ -44,24 +47,21 @@ describe("App Router Component", () => {
         routeChangedHandler: useRouteChanged,
       },
 
-      [storeDisconnectionAndRedirectOnLogout],
+      [redirectOnRouteChange, redirectOnLogout],
       routeToComponentMap,
     );
   });
 
   it("visits the login page by default", async () => {
-    act(() => {
-      renderAppRouter();
-      routerProvider.goToNominationFileList();
-    });
-
+    renderAppRouter();
     await screen.findByText("a login");
     expect(window.location.pathname).toBe(routerProvider.getLoginHref());
   });
 
   it("cannot visit the nomination file list page", async () => {
+    renderAppRouter();
+
     act(() => {
-      renderAppRouter();
       routerProvider.goToNominationFileList();
     });
 
@@ -77,11 +77,11 @@ describe("App Router Component", () => {
         routeToComponentFactory: useRouteToComponentFactory,
         // routeChangedHandler is omitted here to prevent the redirection
       },
-      [storeDisconnectionAndRedirectOnLogout],
+      [storeDisconnectionOnLogout],
       routeToComponentMap,
     );
-
     renderAppRouter();
+
     act(() => {
       routerProvider.goToNominationFileList();
     });
@@ -90,20 +90,30 @@ describe("App Router Component", () => {
   });
 
   describe("Authenticated user", () => {
-    beforeEach(() => {
-      store.dispatch(
-        authenticate.fulfilled(null, "", {
-          email: "username",
-          password: "password",
-        }),
+    it("visits the reports list page by default", async () => {
+      renderAppRouter();
+      act(() => {
+        givenAnAuthenticatedUser();
+      });
+
+      act(() => {
+        sessionForTestingPurpose.push("/");
+      });
+
+      await screen.findByText("a list");
+      expect(window.location.pathname).toBe(
+        routerProvider.getNominationFileListHref(),
       );
     });
 
     it("visits the nomination file overview page", async () => {
       renderAppRouter();
+      act(() => {
+        givenAnAuthenticatedUser();
+        store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
+      });
 
       act(() => {
-        store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
         routerProvider.gotToNominationFileOverview(aNomination.id);
       });
 
@@ -125,12 +135,7 @@ describe("App Router Component", () => {
       async ({ elementIndex }) => {
         renderAppRouter();
         act(() => {
-          store.dispatch(
-            authenticate.fulfilled(null, "", {
-              email: "username",
-              password: "password",
-            }),
-          );
+          givenAnAuthenticatedUser();
           routerProvider.goToNominationFileList();
         });
         await screen.findByText("a list");
@@ -143,6 +148,15 @@ describe("App Router Component", () => {
       },
     );
   });
+
+  const givenAnAuthenticatedUser = () => {
+    store.dispatch(
+      authenticate.fulfilled(null, "", {
+        email: "username@example.fr",
+        password: "password",
+      }),
+    );
+  };
 
   function renderAppRouter() {
     return render(

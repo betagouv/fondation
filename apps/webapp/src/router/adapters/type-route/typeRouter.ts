@@ -6,8 +6,8 @@ const routeSegments = {
   dossierDeNomination: "dossiers-de-nomination",
 };
 
-const { RouteProvider, useRoute, routes } = createRouter({
-  login: defineRoute(["/login", "/"]),
+const { RouteProvider, useRoute, routes, session } = createRouter({
+  login: defineRoute("/login"),
   nominationCaseList: defineRoute(`/${routeSegments.dossierDeNomination}`),
   nominationFileOverview: defineRoute(
     {
@@ -18,7 +18,7 @@ const { RouteProvider, useRoute, routes } = createRouter({
 });
 
 // React adapter
-export { RouteProvider, useRoute };
+export { RouteProvider, useRoute, session as sessionForTestingPurpose };
 
 // Navigation adapter
 export class TypeRouterProvider implements RouterProvider {

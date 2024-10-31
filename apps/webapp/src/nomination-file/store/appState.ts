@@ -41,6 +41,7 @@ export interface AppState {
   };
   router: {
     hrefs: {
+      current: string;
       login: string;
       nominationFileList: string;
     };
