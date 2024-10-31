@@ -35,7 +35,6 @@ export interface NestedPrimaryAdapters {
 export type AppDependencies = {
   gateways: Gateways;
   providers: Providers;
-  nestedPrimaryAdapters: NestedPrimaryAdapters;
 };
 
 export type PartialAppDependencies = {
@@ -69,7 +68,6 @@ export const initReduxStore = <IsTest extends boolean = true>(
       const appDependencies: PartialAppDependencies = {
         gateways: gateways ?? {},
         providers: providers ?? {},
-        nestedPrimaryAdapters: nestedPrimaryAdapters ?? {},
       };
 
       const middleware = getDefaultMiddleware({
