@@ -1,4 +1,4 @@
-import { NominationFileVM } from "../../selectors/selectNominationFile";
+import { NominationFileVM } from "../../../../core-logic/view-models/NominationFileVM";
 import { TextareaCard } from "./TextareaCard";
 
 export type CommentProps = {

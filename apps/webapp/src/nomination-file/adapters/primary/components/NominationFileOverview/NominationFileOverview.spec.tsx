@@ -7,8 +7,8 @@ import { NominationFileBuilder } from "../../../../core-logic/builders/Nominatio
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
-import { NominationFileVM } from "../../selectors/selectNominationFile";
 import { NominationFileOverview } from "./NominationFileOverview";
+import { NominationFileVM } from "../../../../core-logic/view-models/NominationFileVM";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;

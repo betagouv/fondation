@@ -9,15 +9,13 @@ import {
 } from "../../../../core-logic/use-cases/nomination-file-update/updateNominationFile.use-case";
 import { updateNominationRule } from "../../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
-import {
-  selectNominationFile,
-  VMNominationFileRuleValue,
-} from "../../selectors/selectNominationFile";
+import { selectNominationFile } from "../../selectors/selectNominationFile";
 import { AutoSaveNotice } from "./AutoSaveNotice";
 import { Biography } from "./Biography";
 import { Comment } from "./Comment";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { NominationRules } from "./NominationRules";
+import { VMNominationFileRuleValue } from "../../../../core-logic/view-models/NominationFileVM";
 
 export type NominationFileOverviewProps = {
   id: string;

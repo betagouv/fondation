@@ -6,8 +6,9 @@ import {
   updateNominationRule,
   UpdateNominationRuleParams,
 } from "../../../core-logic/use-cases/nomination-rule-update/updateNominationRule.use-case";
+import { NominationFileVM } from "../../../core-logic/view-models/NominationFileVM";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
-import { NominationFileVM, selectNominationFile } from "./selectNominationFile";
+import { selectNominationFile } from "./selectNominationFile";
 
 describe("Select Nomination Case", () => {
   let store: ReduxStore;

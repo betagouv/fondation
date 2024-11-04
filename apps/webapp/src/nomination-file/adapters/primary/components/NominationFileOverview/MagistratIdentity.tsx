@@ -1,7 +1,7 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { FC } from "react";
-import { NominationFileVM } from "../../selectors/selectNominationFile";
 import { Card } from "./Card";
+import { NominationFileVM } from "../../../../core-logic/view-models/NominationFileVM";
 
 export type MagistratIdentityProps = Pick<
   NominationFileVM,

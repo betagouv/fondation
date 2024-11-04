@@ -5,11 +5,11 @@ import {
   Transparency,
 } from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
+import { NominationFileSM } from "../../store/appState";
 import {
   NominationFileVM,
   VMNominationFileRuleValue,
-} from "../../adapters/primary/selectors/selectNominationFile";
-import { NominationFileSM } from "../../store/appState";
+} from "../view-models/NominationFileVM";
 
 export class NominationFileBuilderVM {
   private id: string;

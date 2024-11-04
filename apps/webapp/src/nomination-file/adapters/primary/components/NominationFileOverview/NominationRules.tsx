@@ -1,12 +1,12 @@
 import { NominationFile } from "shared-models";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { Card } from "./Card";
+import { RuleCheckNotice } from "./RuleCheckNotice";
 import {
   NominationFileVM,
   VMNominationFileRuleValue,
-} from "../../selectors/selectNominationFile";
-import { Card } from "./Card";
-import { RuleCheckNotice } from "./RuleCheckNotice";
+} from "../../../../core-logic/view-models/NominationFileVM";
 
 export type NominationRuleProps = {
   rulesChecked: NominationFileVM["rulesChecked"];
