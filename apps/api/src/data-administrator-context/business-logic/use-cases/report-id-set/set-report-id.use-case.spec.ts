@@ -5,7 +5,7 @@ import { NominationFileRead } from '../../models/nomination-file-read';
 import { SetReportIdUseCase } from './set-report-id.use-case';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
-import { getAllRulesPreValidated } from '../nomination-files-import/import-nomination-files.use-case.spec';
+import { getReadRules } from '../nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 
 const reportId = 'report-id';
@@ -93,7 +93,11 @@ describe('Set Report Id Use Case', () => {
         day: 22,
       },
       biography: '- blablablablabla',
-      rules: getAllRulesPreValidated({ exceptRuleMinisterCabinet: true }),
+      rules: getReadRules({
+        [NominationFile.RuleGroup.STATUTORY]: {
+          [NominationFile.StatutoryRule.MINISTER_CABINET]: true,
+        },
+      }),
     },
   });
 });

@@ -25,10 +25,14 @@ export class NominationFilesContentReadCollection {
     );
   }
 
-  toDomainModels(
+  toModelsWithEvent(
     generatedUuid: () => string,
     currentDate: Date,
-  ): [NominationFileModel[], NominationFilesImportedEvent] {
+  ): [NominationFileModel[], NominationFilesImportedEvent | null] {
+    if (this._nominationFileReadList.length === 0) {
+      return [[], null];
+    }
+
     const nominationFiles = this._nominationFileReadList.map(
       (content) =>
         new NominationFileModel(generatedUuid(), currentDate, null, content),
@@ -51,5 +55,9 @@ export class NominationFilesContentReadCollection {
     );
 
     return [nominationFiles, nominationFilesImportedEvent];
+  }
+
+  getNominationFilesRead() {
+    return this._nominationFileReadList;
   }
 }

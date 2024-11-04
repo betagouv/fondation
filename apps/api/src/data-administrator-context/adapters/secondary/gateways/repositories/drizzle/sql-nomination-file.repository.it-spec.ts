@@ -4,7 +4,7 @@ import {
   NominationFileModel,
   NominationFileSnapshot,
 } from 'src/data-administrator-context/business-logic/models/nomination-file';
-import { getAllRulesPreValidated } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
+import { getReadRules } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
@@ -127,7 +127,7 @@ describe('SQL Nomination File Repository', () => {
             day: 22,
           },
           biography: '- blablablablabla',
-          rules: getAllRulesPreValidated({ exceptRuleMinisterCabinet: true }),
+          rules: getReadRules({ exceptRuleMinisterCabinet: true }),
         },
       },
     );

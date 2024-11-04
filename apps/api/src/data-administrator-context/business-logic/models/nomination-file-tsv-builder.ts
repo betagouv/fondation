@@ -53,6 +53,16 @@ export class NominationFileTsvBuilder {
     return this;
   }
 
+  withRuleTransferTime(validatedString: string) {
+    if (!this._currentLine) throw new Error('No current line');
+
+    this._currentLine['rules'][NominationFile.RuleGroup.MANAGEMENT][
+      NominationFile.ManagementRule.TRANSFER_TIME
+    ] = validatedString;
+
+    return this;
+  }
+
   withRuleMinisterCabinet(validatedString: string) {
     if (!this._currentLine) throw new Error('No current line');
 
@@ -63,13 +73,13 @@ export class NominationFileTsvBuilder {
     return this;
   }
 
-  withLineContent(lineContent: Line) {
-    this._currentLine = lineContent;
-    return this;
-  }
-
   get header() {
     return this._header;
+  }
+
+  private withLineContent(lineContent: Line) {
+    this._currentLine = lineContent;
+    return this;
   }
 
   private buildLine({

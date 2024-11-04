@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { NominationFileRead } from './nomination-file-read';
 
 export type NominationFileSnapshot = {
@@ -8,17 +9,44 @@ export type NominationFileSnapshot = {
   content: NominationFileRead['content'];
 };
 
+export type NominationFileUpdatedContent = Pick<
+  NominationFileRead['content'],
+  'reporters' | 'rules'
+>;
 export class NominationFileModel {
   constructor(
     private readonly id: string,
     private readonly createdAt: Date,
     private readonly reportId: string | null,
-    private readonly nominationFileRead: NominationFileRead,
+    private nominationFileRead: NominationFileRead,
   ) {}
+
+  updateContent(updatedContent: NominationFileUpdatedContent) {
+    this.nominationFileRead.content = {
+      ...this.nominationFileRead.content,
+      reporters: updatedContent.reporters,
+      rules: updatedContent.rules,
+    };
+  }
 
   hasSameRowNumberAs(nominationFileRead: NominationFileRead): boolean {
     return this.nominationFileRead.rowNumber === nominationFileRead.rowNumber;
   }
+
+  hasSameReportersAs(nominationFileRead: NominationFileRead) {
+    return _.isEqual(
+      this.nominationFileRead.content.reporters,
+      nominationFileRead.content.reporters,
+    );
+  }
+
+  hasSameRulesAs(nominationFileRead: NominationFileRead): boolean {
+    return _.isEqual(
+      this.nominationFileRead.content.rules,
+      nominationFileRead.content.rules,
+    );
+  }
+
   toSnapshot(): NominationFileSnapshot {
     return {
       id: this.id,
