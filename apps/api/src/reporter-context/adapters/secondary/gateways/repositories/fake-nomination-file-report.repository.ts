@@ -5,15 +5,27 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeNominationFileReportRepository implements ReportRepository {
   reports: Record<string, NominationFileReport> = {};
 
+  save(report: NominationFileReport): TransactionableAsync<void> {
+    return async () => {
+      this.reports[report.id] = report;
+    };
+  }
+
   byId(id: string): TransactionableAsync<NominationFileReport | null> {
     return async () => {
       const report = this.reports[id];
       return report || null;
     };
   }
-  save(report: NominationFileReport): TransactionableAsync<void> {
+  byNominationFileId(
+    nominationFileId: string,
+  ): TransactionableAsync<NominationFileReport | null> {
     return async () => {
-      this.reports[report.id] = report;
+      return (
+        Object.values(this.reports).find(
+          (report) => report.nominationFileId === nominationFileId,
+        ) || null
+      );
     };
   }
 }

@@ -10,7 +10,6 @@ export const nominationFiles = dataAdministrationContextSchema.table(
       .default(sql`gen_random_uuid()`),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     rowNumber: integer('row_number').notNull(),
-    reportId: uuid('report_id'),
     content: jsonb('content').notNull(),
   },
 );

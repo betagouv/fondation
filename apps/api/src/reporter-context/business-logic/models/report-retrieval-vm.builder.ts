@@ -1,10 +1,11 @@
-import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import {
-  NominationFileManagementRule,
-  NominationFileReport,
-} from './nomination-file-report';
-import { ReportRetrievalVM } from 'shared-models';
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+  Magistrat,
+  NominationFile,
+  ReportRetrievalVM,
+  Transparency,
+} from 'shared-models';
+import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
+import { NominationFileReport } from './nomination-file-report';
 
 export class ReportRetrievalVMBuilder {
   private id: string;
@@ -53,16 +54,17 @@ export class ReportRetrievalVMBuilder {
     };
     this.rules = {
       [NominationFile.RuleGroup.MANAGEMENT]: {
-        [NominationFileManagementRule.TRANSFER_TIME]: defaultValue,
-        [NominationFileManagementRule.GETTING_FIRST_GRADE]: defaultValue,
-        [NominationFileManagementRule.GETTING_GRADE_HH]: defaultValue,
-        [NominationFileManagementRule.GETTING_GRADE_IN_PLACE]: defaultValue,
-        [NominationFileManagementRule.PROFILED_POSITION]: defaultValue,
-        [NominationFileManagementRule.CASSATION_COURT_NOMINATION]: defaultValue,
-        [NominationFileManagementRule.OVERSEAS_TO_OVERSEAS]: defaultValue,
-        [NominationFileManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]:
+        [NominationFile.ManagementRule.TRANSFER_TIME]: defaultValue,
+        [NominationFile.ManagementRule.GETTING_FIRST_GRADE]: defaultValue,
+        [NominationFile.ManagementRule.GETTING_GRADE_HH]: defaultValue,
+        [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]: defaultValue,
+        [NominationFile.ManagementRule.PROFILED_POSITION]: defaultValue,
+        [NominationFile.ManagementRule.CASSATION_COURT_NOMINATION]:
           defaultValue,
-        [NominationFileManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
+        [NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS]: defaultValue,
+        [NominationFile.ManagementRule
+          .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: defaultValue,
+        [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
           defaultValue,
       },
       [NominationFile.RuleGroup.STATUTORY]: {
@@ -146,11 +148,12 @@ export class ReportRetrievalVMBuilder {
   }
   withOverseasToOverseasRule(options: Partial<NominationFile.RuleValue>): this {
     const rule =
-      this.rules.management[NominationFileManagementRule.OVERSEAS_TO_OVERSEAS];
-    this.rules.management[NominationFileManagementRule.OVERSEAS_TO_OVERSEAS] = {
-      ...rule,
-      ...options,
-    };
+      this.rules.management[NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS];
+    this.rules.management[NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS] =
+      {
+        ...rule,
+        ...options,
+      };
     return this;
   }
   withRules(rules: NominationFile.Rules): this {

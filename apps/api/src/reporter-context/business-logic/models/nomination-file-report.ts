@@ -1,23 +1,11 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
-import { ReportCreatedEvent } from './report-created.event';
-
-export enum NominationFileManagementRule {
-  TRANSFER_TIME = 'TRANSFER_TIME',
-  GETTING_FIRST_GRADE = 'GETTING_FIRST_GRADE',
-  GETTING_GRADE_HH = 'GETTING_GRADE_HH',
-  GETTING_GRADE_IN_PLACE = 'GETTING_GRADE_IN_PLACE',
-  PROFILED_POSITION = 'PROFILED_POSITION',
-  CASSATION_COURT_NOMINATION = 'CASSATION_COURT_NOMINATION',
-  OVERSEAS_TO_OVERSEAS = 'OVERSEAS_TO_OVERSEAS',
-  JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE = 'JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE',
-  JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT = 'JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT',
-}
 
 export class NominationFileReport {
   constructor(
     readonly id: string,
+    readonly nominationFileId: string | null,
     readonly createdAt: Date,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
@@ -36,13 +24,13 @@ export class NominationFileReport {
 
   static createFromImport(
     reportId: string,
-    eventId: string,
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
     currentDate: Date,
-  ): [NominationFileReport, ReportCreatedEvent] {
+  ): NominationFileReport {
     const report = new NominationFileReport(
       reportId,
+      importedNominationFileId,
       currentDate,
       createReportPayload.biography,
       createReportPayload.dueDate
@@ -69,13 +57,6 @@ export class NominationFileReport {
       createReportPayload.rank,
     );
 
-    const reportCreatedEvent = new ReportCreatedEvent(
-      eventId,
-      reportId,
-      importedNominationFileId,
-      currentDate,
-    );
-
-    return [report, reportCreatedEvent];
+    return report;
   }
 }

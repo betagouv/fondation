@@ -35,7 +35,7 @@ export class NominationFilesContentReadCollection {
 
     const nominationFiles = this._nominationFileReadList.map(
       (content) =>
-        new NominationFileModel(generatedUuid(), currentDate, null, content),
+        new NominationFileModel(generatedUuid(), currentDate, content),
     );
 
     const payload: NominationFilesImportedEventPayload = nominationFiles.map(

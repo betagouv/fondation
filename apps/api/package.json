@@ -94,9 +94,9 @@
       "json",
       "ts"
     ],
-    "rootDir": "./",
+    "rootDir": "src",
     "modulePaths": [
-      "<rootDir>"
+      "<rootDir>/../"
     ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
@@ -108,7 +108,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "setupFilesAfterEnv": [
-      "./test/jest/custom-expects.ts"
+      "<rootDir>/../test/jest/custom-expects.ts"
     ]
   }
 }

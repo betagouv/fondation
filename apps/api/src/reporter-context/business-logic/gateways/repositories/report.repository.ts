@@ -2,6 +2,9 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 import { NominationFileReport } from '../../models/nomination-file-report';
 
 export interface ReportRepository {
-  byId(id: string): TransactionableAsync<NominationFileReport | null>;
   save(report: NominationFileReport): TransactionableAsync<void>;
+  byId(id: string): TransactionableAsync<NominationFileReport | null>;
+  byNominationFileId(
+    nominationFileId: string,
+  ): TransactionableAsync<NominationFileReport | null>;
 }

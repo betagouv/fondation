@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import path from 'node:path';
@@ -8,7 +9,10 @@ import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrat
 import { nominationFiles } from 'src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
-import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import {
+  reportRules,
+  reports,
+} from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
 import {
@@ -69,7 +73,6 @@ describe('Import Nominations from local file', () => {
       ...getExpectedContents().map((content) => ({
         id: expect.any(String),
         createdAt: expect.any(Date),
-        reportId: expect.any(String),
         rowNumber: expect.any(Number),
         content,
       })),
@@ -80,12 +83,105 @@ describe('Import Nominations from local file', () => {
         .map((content) =>
           content.reporters?.length
             ? content.reporters.map((reporterName) =>
-                getNominationFile({ ...content, reporterName }),
+                getReportPm({ ...content, reporterName }),
               )
-            : [getNominationFile({ ...content, reporterName: null })],
+            : [getReportPm({ ...content, reporterName: null })],
         )
         .flat(),
     );
+  });
+
+  describe('when a nomination file is already imported', () => {
+    const nominationFileId = 'a725b384-f07a-4b19-814e-3610f055ea5c';
+    const reportId = '8d9fc5f2-7254-4d04-b99a-e4d15fefee29';
+    const transferTimeRuleId = 'b820be91-343f-478a-9e7e-58fe178e3ed1';
+
+    it.only('updates the transfer time rule', async () => {
+      const firstTsvContent = getExpectedContents()[0]!;
+      const previousTransferTimePreValidated = false;
+      await db.insert(nominationFiles).values({
+        id: nominationFileId,
+        rowNumber: 1,
+        content: {
+          ...firstTsvContent,
+          rules: {
+            ...firstTsvContent.rules,
+            management: {
+              ...firstTsvContent.rules.management,
+              TRANSFER_TIME: previousTransferTimePreValidated,
+            },
+          },
+        },
+      });
+      await db.insert(reports).values({
+        id: reportId,
+        nominationFileId: nominationFileId,
+        createdAt: new Date(),
+        state: NominationFile.ReportState.NEW,
+        dueDate: DateOnly.fromJson(firstTsvContent.dueDate!).toDbString(),
+        formation: firstTsvContent.formation,
+        name: firstTsvContent.name,
+        reporterName: firstTsvContent.reporters![0]!,
+        transparency: firstTsvContent.transparency,
+        grade: firstTsvContent.grade,
+        currentPosition: firstTsvContent.currentPosition,
+        targettedPosition: firstTsvContent.targettedPosition,
+        rank: firstTsvContent.rank,
+        birthDate: DateOnly.fromJson(firstTsvContent.birthDate).toDbString(),
+        biography: firstTsvContent.biography,
+        comment: null,
+      });
+      await db.insert(reportRules).values({
+        id: transferTimeRuleId,
+        reportId,
+        ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
+        ruleName: NominationFile.ManagementRule.TRANSFER_TIME,
+        preValidated: previousTransferTimePreValidated,
+        validated: false,
+        comment: 'some comment',
+      });
+
+      await importNominationFileFromLocalFileCli.execute(fileToImportPath);
+      await setTimeout(1500);
+
+      await expectNominationFiles(
+        ...getExpectedContents().map((content, index) =>
+          index === 0
+            ? {
+                id: nominationFileId,
+                createdAt: expect.any(Date),
+                rowNumber: 1,
+                content: {
+                  ...content,
+                  rules: {
+                    ...content.rules,
+                    management: {
+                      ...content.rules.management,
+                      TRANSFER_TIME: !previousTransferTimePreValidated,
+                    },
+                  },
+                },
+              }
+            : {
+                id: expect.any(String),
+                createdAt: expect.any(Date),
+                rowNumber: expect.any(Number),
+                content,
+              },
+        ),
+      );
+
+      await expectReportRule({
+        id: transferTimeRuleId,
+        createdAt: expect.any(Date),
+        reportId,
+        ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
+        ruleName: NominationFile.ManagementRule.TRANSFER_TIME,
+        preValidated: !previousTransferTimePreValidated,
+        validated: false,
+        comment: 'some comment',
+      });
+    });
   });
 
   const expectNominationFiles = async (
@@ -98,6 +194,17 @@ describe('Import Nominations from local file', () => {
     );
   };
 
+  const expectReportRule = async (
+    expectedReportRule: typeof reportRules.$inferSelect,
+  ) => {
+    const reportRulesPm = await db
+      .select()
+      .from(reportRules)
+      .where(eq(reportRules.id, expectedReportRule.id))
+      .execute();
+    expect(reportRulesPm).toEqual([expectedReportRule]);
+  };
+
   const expectReports = async (
     ...expectedReports: (typeof reports.$inferSelect)[]
   ) => {
@@ -106,10 +213,11 @@ describe('Import Nominations from local file', () => {
     expect(reportsPm).toEqual(expect.arrayContaining(expectedReports));
   };
 
-  const getNominationFile = (
+  const getReportPm = (
     content: NominationFileRead['content'] & { reporterName: string | null },
   ): typeof reports.$inferSelect => ({
     id: expect.any(String),
+    nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
     state: content.state,
     dueDate: content.dueDate
@@ -152,7 +260,8 @@ function getExpectedContents(): NominationFileRead['content'][] {
       reporters: ['ROUSSIN Jules'],
       rules: {
         management: {
-          CASSATION_COURT_NOMINATION: true,
+          TRANSFER_TIME: true,
+          CASSATION_COURT_NOMINATION: false,
           GETTING_FIRST_GRADE: false,
           GETTING_GRADE_HH: false,
           GETTING_GRADE_IN_PLACE: false,
@@ -160,23 +269,22 @@ function getExpectedContents(): NominationFileRead['content'][] {
           JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: false,
           OVERSEAS_TO_OVERSEAS: false,
           PROFILED_POSITION: false,
-          TRANSFER_TIME: false,
-        },
-        qualitative: {
-          CONFLICT_OF_INTEREST_PRE_MAGISTRATURE: true,
-          CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION: true,
-          DISCIPLINARY_ELEMENTS: true,
-          EVALUATIONS: true,
-          HH_NOMINATION_CONDITIONS: true,
         },
         statutory: {
-          GRADE_ON_SITE_AFTER_7_YEARS: false,
-          GRADE_REGISTRATION: false,
-          HH_WITHOUT_2_FIRST_GRADE_POSITIONS: false,
-          JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION: false,
-          LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO: false,
-          MINISTER_CABINET: false,
-          MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS: false,
+          GRADE_ON_SITE_AFTER_7_YEARS: true,
+          GRADE_REGISTRATION: true,
+          HH_WITHOUT_2_FIRST_GRADE_POSITIONS: true,
+          JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION: true,
+          LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO: true,
+          MINISTER_CABINET: true,
+          MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS: true,
+        },
+        qualitative: {
+          CONFLICT_OF_INTEREST_PRE_MAGISTRATURE: false,
+          CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION: false,
+          DISCIPLINARY_ELEMENTS: false,
+          EVALUATIONS: false,
+          HH_NOMINATION_CONDITIONS: false,
         },
       },
       state: NominationFile.ReportState.NEW,

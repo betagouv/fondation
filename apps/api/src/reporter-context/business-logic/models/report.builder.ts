@@ -10,6 +10,7 @@ import { NominationFileReport } from './nomination-file-report';
 
 export class ReportBuilder {
   private id: string;
+  private nominationFileId: string;
   private createdAt: Date;
   private biography: string | null;
   private dueDate: DateOnly | null;
@@ -27,6 +28,7 @@ export class ReportBuilder {
 
   constructor() {
     this.id = 'report-id';
+    this.nominationFileId = 'nomination-file-id';
     this.createdAt = new Date(2021, 1, 1);
     this.name = 'John Doe';
     this.biography = 'Biography';
@@ -45,6 +47,10 @@ export class ReportBuilder {
 
   withId(id: string): this {
     this.id = id;
+    return this;
+  }
+  withNominationFileId(nominationFileId: string): this {
+    this.nominationFileId = nominationFileId;
     return this;
   }
   withCreatedAt(createdAt: Date): this {
@@ -108,6 +114,7 @@ export class ReportBuilder {
   build(): NominationFileReport {
     return {
       id: this.id,
+      nominationFileId: this.nominationFileId,
       createdAt: this.createdAt,
       name: this.name,
       reporterName: this.reporterName,

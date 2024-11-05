@@ -3,7 +3,7 @@ import { ReportRepository } from '../../gateways/repositories/report.repository'
 import { NominationFileReport } from '../../models/nomination-file-report';
 
 export type ReportUpdateData = Partial<
-  Pick<NominationFileReport, 'biography' | 'comment' | 'state'>
+  Pick<NominationFileReport, 'biography' | 'comment' | 'state' | 'reporterName'>
 >;
 export class UpdateReportUseCase {
   constructor(
@@ -17,11 +17,12 @@ export class UpdateReportUseCase {
       if (!report) return;
       const newReport = new NominationFileReport(
         id,
+        report.nominationFileId,
         report.createdAt,
         newData.biography || report.biography,
         report.dueDate,
         report.name,
-        report.reporterName,
+        newData.reporterName || report.reporterName,
         report.birthDate,
         newData.state || report.state,
         report.formation,

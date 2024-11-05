@@ -1,11 +1,10 @@
-import { eq } from 'drizzle-orm';
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
 import { NominationFileModel } from 'src/data-administrator-context/business-logic/models/nomination-file';
+import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-sql-preparation';
-import { nominationFiles } from './schema/nomination-file-pm';
-import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
 import typia from 'typia';
+import { nominationFiles } from './schema/nomination-file-pm';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
   findAll(): DrizzleTransactionableAsync<NominationFileModel[]> {
@@ -14,18 +13,7 @@ export class SqlNominationFileRepository implements NominationFileRepository {
       return rows.map((row) => this.mapToDomain(row));
     };
   }
-  setReportId(
-    nominationFileId: string,
-    reportId: string,
-  ): DrizzleTransactionableAsync {
-    return async (db) => {
-      await db
-        .update(nominationFiles)
-        .set({ reportId })
-        .where(eq(nominationFiles.id, nominationFileId))
-        .execute();
-    };
-  }
+
   save(nominationFile: NominationFileModel): DrizzleTransactionableAsync {
     return async (db) => {
       const nominationFileRow =
@@ -38,7 +26,6 @@ export class SqlNominationFileRepository implements NominationFileRepository {
           target: nominationFiles.id,
           set: buildConflictUpdateColumns(nominationFiles, [
             'rowNumber',
-            'reportId',
             'content',
           ]),
         })
@@ -51,7 +38,6 @@ export class SqlNominationFileRepository implements NominationFileRepository {
       id: row.id,
       createdAt: row.createdAt,
       rowNumber: row.rowNumber,
-      reportId: row.reportId,
       content: this.safeContent(row.content),
     });
   }
@@ -69,7 +55,6 @@ export class SqlNominationFileRepository implements NominationFileRepository {
       id: snapshot.id,
       createdAt: snapshot.createdAt,
       rowNumber: snapshot.rowNumber,
-      reportId: snapshot.reportId,
       content: snapshot.content,
     };
   }

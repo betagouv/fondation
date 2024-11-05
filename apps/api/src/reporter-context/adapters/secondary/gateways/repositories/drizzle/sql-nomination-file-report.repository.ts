@@ -48,9 +48,27 @@ export class SqlNominationFileReportRepository implements ReportRepository {
     };
   }
 
+  byNominationFileId(
+    nominationFileId: string,
+  ): DrizzleTransactionableAsync<NominationFileReport | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(reports)
+        .where(eq(reports.nominationFileId, nominationFileId))
+        .limit(1);
+
+      if (result.length === 0) return null;
+
+      const reportRow = result[0]!;
+      return SqlNominationFileReportRepository.mapToDomain(reportRow);
+    };
+  }
+
   static mapToDb(report: NominationFileReport): typeof reports.$inferInsert {
     return {
       id: report.id,
+      nominationFileId: report.nominationFileId,
       createdAt: report.createdAt,
       biography: report.biography,
       dueDate: report.dueDate ? report.dueDate.toDbString() : null,
@@ -71,6 +89,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
     return new NominationFileReport(
       row.id,
+      row.nominationFileId,
       row.createdAt,
       row.biography,
       row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,

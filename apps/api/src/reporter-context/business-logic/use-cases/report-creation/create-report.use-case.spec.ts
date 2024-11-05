@@ -1,20 +1,17 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
+import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
-import { ReportToCreate, CreateReportUseCase } from './create-report.use-case';
-import { CreateReportValidationError } from '../../errors/create-report-validation.error';
-import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/repositories/fake-domain-event-repository';
-import { ReportCreatedEvent } from '../../models/report-created.event';
-import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
+import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
-const reportCreatedEventId = 'mms7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
 const importedNominationFileId = 'imported-nomination-file-id';
 
 describe('Create Report Use Case', () => {
@@ -22,7 +19,6 @@ describe('Create Report Use Case', () => {
   let transactionPerformer: TransactionPerformer;
   let uuidGenerator: DeterministicUuidGenerator;
   let reportRuleRepository: FakeReportRuleRepository;
-  let domainEventRepository: FakeDomainEventRepository;
   let datetimeProvider: DeterministicDateProvider;
 
   beforeEach(() => {
@@ -32,7 +28,6 @@ describe('Create Report Use Case', () => {
     uuidGenerator.nextUuids = [nominationFileReportId];
     uuidGenerator.genUuids(21);
     reportRuleRepository = new FakeReportRuleRepository();
-    domainEventRepository = new FakeDomainEventRepository();
     datetimeProvider = new DeterministicDateProvider();
     datetimeProvider.currentDate = new Date(2021, 8, 22);
   });
@@ -61,6 +56,7 @@ describe('Create Report Use Case', () => {
     expectReports(
       new NominationFileReport(
         nominationFileReportId,
+        importedNominationFileId,
         datetimeProvider.currentDate,
         payload.biography,
         new DateOnly(2035, 8, 22),
@@ -80,23 +76,9 @@ describe('Create Report Use Case', () => {
     expectRulesFromPayload(payload.rules);
   });
 
-  it('informs about a created report', async () => {
-    uuidGenerator.nextUuids = [nominationFileReportId, reportCreatedEventId];
-    const payload = givenAReportToCreate();
-
-    await createAReport(payload);
-
-    expect(domainEventRepository).toHaveDomainEvents(
-      new ReportCreatedEvent(
-        reportCreatedEventId,
-        nominationFileReportId,
-        importedNominationFileId,
-        datetimeProvider.currentDate,
-      ),
-    );
-  });
-
-  const givenAReportToCreate = (): ReportToCreate => ({
+  const givenAReportToCreate = (
+    moreData?: Partial<ReportToCreate>,
+  ): ReportToCreate => ({
     name: 'Lucien Pierre',
     reporterName: 'LUC Loïc',
     formation: Magistrat.Formation.PARQUET,
@@ -118,6 +100,7 @@ describe('Create Report Use Case', () => {
     },
     biography: '- blablablablabla',
     rules: getAllRulesPreValidated(),
+    ...moreData,
   });
 
   const createAReport = (payload: ReportToCreate) =>
@@ -126,7 +109,6 @@ describe('Create Report Use Case', () => {
       transactionPerformer,
       uuidGenerator,
       reportRuleRepository,
-      domainEventRepository,
       datetimeProvider,
     ).execute(importedNominationFileId, payload);
 

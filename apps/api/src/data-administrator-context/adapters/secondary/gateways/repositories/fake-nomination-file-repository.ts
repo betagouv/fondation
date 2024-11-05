@@ -10,17 +10,7 @@ export class FakeNominationFileRepository implements NominationFileRepository {
       return Object.values(this.nominationFiles);
     };
   }
-  setReportId(
-    nominationFileId: string,
-    reportId: string,
-  ): TransactionableAsync {
-    return async () => {
-      const nominationFile = this.nominationFiles[nominationFileId];
-      this.nominationFiles[nominationFileId] = NominationFileModel.fromSnapshot(
-        { ...nominationFile!.toSnapshot(), reportId },
-      );
-    };
-  }
+
   save(nominationFile: NominationFileModel): TransactionableAsync<void> {
     const nominationFileSnapshot = nominationFile.toSnapshot();
 

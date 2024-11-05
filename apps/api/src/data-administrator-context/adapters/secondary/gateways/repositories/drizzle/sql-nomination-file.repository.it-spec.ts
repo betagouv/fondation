@@ -76,38 +76,12 @@ describe('SQL Nomination File Repository', () => {
       );
       expect(nominationFiles).toEqual([aNominationFile]);
     });
-
-    it('sets the report id', async () => {
-      const reportId = 'f6c92518-19a1-488d-b518-5c39d3ac26c7';
-      await transactionPerformer.perform(
-        nominationFileRepository.setReportId(
-          aNominationFileSnapshot.id,
-          reportId,
-        ),
-      );
-
-      const nominationFilesData = await db
-        .select()
-        .from(nominationFiles)
-        .execute();
-
-      expect(nominationFilesData).toEqual([
-        {
-          id: aNominationFileSnapshot.id,
-          createdAt: aNominationFileSnapshot.createdAt,
-          rowNumber: aNominationFileSnapshot.rowNumber,
-          content: aNominationFileSnapshot.content,
-          reportId,
-        },
-      ]);
-    });
   });
 
   const givenSomeNominationFile = () =>
     new NominationFileModel(
       'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
       datetimeProvider.currentDate,
-      null,
       {
         rowNumber: 1,
         content: {
@@ -127,7 +101,11 @@ describe('SQL Nomination File Repository', () => {
             day: 22,
           },
           biography: '- blablablablabla',
-          rules: getReadRules({ exceptRuleMinisterCabinet: true }),
+          rules: getReadRules({
+            [NominationFile.RuleGroup.STATUTORY]: {
+              [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
+            },
+          }),
         },
       },
     );

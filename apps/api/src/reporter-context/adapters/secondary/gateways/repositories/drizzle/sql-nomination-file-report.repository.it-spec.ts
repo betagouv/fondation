@@ -43,6 +43,7 @@ describe('SQL Nomination File Report Repository', () => {
 
   const aReport = new ReportBuilder()
     .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
+    .withNominationFileId('a725b384-f07a-4b19-814e-3610f055ea5c')
     .withDueDate(new DateOnly(2030, 10, 1))
     .withBirthDate(new DateOnly(1980, 10, 1))
     .build();

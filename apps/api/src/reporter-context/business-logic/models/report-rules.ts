@@ -27,13 +27,32 @@ export class ReportRule {
     private readonly reportId: string,
     private readonly ruleGroup: NominationFile.RuleGroup,
     private readonly ruleName: NominationFile.RuleName,
-    private readonly preValidated: boolean,
+    private preValidated: boolean,
     private validated: boolean,
     private readonly comment: string | null,
   ) {}
 
   validate(validated: boolean) {
     this.validated = validated;
+  }
+
+  preValidate(preValidated: boolean) {
+    this.preValidated = preValidated;
+  }
+
+  preValidationChanged(preValidated: boolean) {
+    return this.preValidated !== preValidated;
+  }
+
+  isRuleOfReportId(reportId: string): boolean {
+    return this.reportId === reportId;
+  }
+
+  isRuleName(
+    ruleGroup: NominationFile.RuleGroup,
+    ruleName: NominationFile.RuleName,
+  ): boolean {
+    return this.ruleGroup === ruleGroup && this.ruleName === ruleName;
   }
 
   getId() {

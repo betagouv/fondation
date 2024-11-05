@@ -30,6 +30,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.nominationFileId,
         aReport.createdAt,
         aReport.biography,
         aReport.dueDate,
@@ -52,6 +53,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.nominationFileId,
         aReport.createdAt,
         aReport.biography,
         aReport.dueDate,
@@ -74,6 +76,7 @@ describe('Report Update Use Case', () => {
       },
       new NominationFileReport(
         aReport.id,
+        aReport.nominationFileId,
         aReport.createdAt,
         aReport.biography,
         aReport.dueDate,
@@ -98,11 +101,11 @@ describe('Report Update Use Case', () => {
         reportRepository,
         transactionPerformer,
       ).execute(aReport.id, newData);
-      expectChangedReportValidationState(report);
+      expectChangedReport(report);
     },
   );
 
-  const expectChangedReportValidationState = (report: NominationFileReport) => {
+  const expectChangedReport = (report: NominationFileReport) => {
     const savedReport = reportRepository.reports[report.id];
     expect(savedReport).toEqual(report);
   };

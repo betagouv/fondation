@@ -2,7 +2,6 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
@@ -42,11 +41,11 @@ export class CreateReportUseCase {
     private readonly transactionPerformer: TransactionPerformer,
     private readonly uuidGenerator: UuidGenerator,
     private readonly reportRuleRepository: ReportRuleRepository,
-    private readonly domainEventRepository: DomainEventRepository,
     private readonly datetimeProvider: DateTimeProvider,
   ) {}
   async execute(
     importedNominationFileId: string,
+
     createReportPayload: ReportToCreate,
   ): Promise<void> {
     new CreateReportValidator().validate(createReportPayload);
@@ -54,17 +53,14 @@ export class CreateReportUseCase {
     const reportId = this.uuidGenerator.generate();
 
     return this.transactionPerformer.perform(async (trx) => {
-      const [report, reportCreatedEvent] =
-        NominationFileReport.createFromImport(
-          reportId,
-          this.uuidGenerator.generate(),
-          importedNominationFileId,
-          createReportPayload,
-          this.datetimeProvider.now(),
-        );
+      const report = NominationFileReport.createFromImport(
+        reportId,
+        importedNominationFileId,
+        createReportPayload,
+        this.datetimeProvider.now(),
+      );
 
       await this.reportRepository.save(report)(trx);
-      await this.domainEventRepository.save(reportCreatedEvent)(trx);
 
       const rulesRepositoryPromises = Object.entries(createReportPayload.rules)
         .map(([ruleGroup, rules]) =>

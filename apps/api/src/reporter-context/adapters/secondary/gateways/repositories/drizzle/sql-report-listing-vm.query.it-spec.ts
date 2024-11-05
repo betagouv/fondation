@@ -42,6 +42,7 @@ describe('SQL Report Listing VM Query', () => {
     beforeEach(async () => {
       aReport = new ReportBuilder()
         .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
+        .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
         .withDueDate(new DateOnly(2030, 10, 1))
         .build();
 

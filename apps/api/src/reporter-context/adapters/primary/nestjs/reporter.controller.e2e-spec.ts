@@ -89,7 +89,9 @@ describe('Reporter Controller', () => {
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
     };
-    const aReport = ReportBuilder.fromListingVM(aReportListingVM).build();
+    const aReport = ReportBuilder.fromListingVM(aReportListingVM)
+      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
+      .build();
   });
 
   describe('GET /api/reports/:id', () => {
@@ -147,7 +149,9 @@ describe('Reporter Controller', () => {
     const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
       .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .build();
-    const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM).build();
+    const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
+      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
+      .build();
   });
 
   describe('PUT /api/reports/rules/:id', () => {
@@ -207,6 +211,7 @@ describe('Reporter Controller', () => {
 
     const nominationFileReport: NominationFileReport = new ReportBuilder()
       .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
     const reportRule = new ReportRuleBuilder()
       .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')

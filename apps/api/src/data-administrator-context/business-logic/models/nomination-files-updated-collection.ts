@@ -8,10 +8,9 @@ import {
 
 export class NominationFilesUpdatedCollection {
   private _nominationFileModels: NominationFileModel[];
-  private _nominationFileModelsChangedFieldsMap: Record<
+  private _changedFieldsMap: Record<
     string,
     {
-      reporters: boolean;
       rules: boolean;
     }
   > = {};
@@ -40,7 +39,7 @@ export class NominationFilesUpdatedCollection {
     return this.toModelsWithEvent(updatedNominationFiles, eventId, currentDate);
   }
 
-  toModelsWithEvent(
+  private toModelsWithEvent(
     updatedNominationFiles: NominationFileModel[],
     eventId: string,
     currentDate: Date,
@@ -51,17 +50,12 @@ export class NominationFilesUpdatedCollection {
 
     const payload: NominationFilesUpdatedEventPayload =
       updatedNominationFiles.map((nominationFile) => {
-        const { id, reportId, content } = nominationFile.toSnapshot();
-        if (reportId === null) throw new Error('Report ID is missing');
+        const { id, content } = nominationFile.toSnapshot();
 
-        const changedFieldsMap = this._nominationFileModelsChangedFieldsMap[id];
+        const changedFieldsMap = this._changedFieldsMap[id];
         return {
-          reportId,
+          nominationFileId: id,
           content: {
-            ...(changedFieldsMap?.reporters && {
-              reporters: content.reporters,
-            }),
-
             ...(changedFieldsMap?.rules && {
               rules: content.rules,
             }),
@@ -85,19 +79,14 @@ export class NominationFilesUpdatedCollection {
     return this._nominationFileModels.filter((nominationFile) =>
       nominationFileReadList.some((nominationFileRead) => {
         const rulesChanged = !nominationFile.hasSameRulesAs(nominationFileRead);
-        const reportersChanged =
-          !nominationFile.hasSameReportersAs(nominationFileRead);
 
         const nominationFileSnapshot = nominationFile.toSnapshot();
-        this._nominationFileModelsChangedFieldsMap[nominationFileSnapshot.id] =
-          {
-            reporters: reportersChanged,
-            rules: rulesChanged,
-          };
+        this._changedFieldsMap[nominationFileSnapshot.id] = {
+          rules: rulesChanged,
+        };
 
         return (
-          nominationFile.hasSameRowNumberAs(nominationFileRead) &&
-          (rulesChanged || reportersChanged)
+          nominationFile.hasSameRowNumberAs(nominationFileRead) && rulesChanged
         );
       }),
     );
