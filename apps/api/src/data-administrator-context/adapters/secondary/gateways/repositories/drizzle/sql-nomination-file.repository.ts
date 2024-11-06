@@ -1,8 +1,8 @@
 import { NominationFileRepository } from 'src/data-administrator-context/business-logic/gateways/repositories/nomination-file-repository';
 import { NominationFileModel } from 'src/data-administrator-context/business-logic/models/nomination-file';
 import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
-import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
-import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-sql-preparation';
+import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import typia from 'typia';
 import { nominationFiles } from './schema/nomination-file-pm';
 

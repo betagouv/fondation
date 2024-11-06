@@ -1,7 +1,7 @@
 import { ReportListingVM } from 'shared-models';
 import { NominationFileReport } from 'src/reporter-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
@@ -10,7 +10,7 @@ import { SqlReportListingVMQuery } from './sql-report-listing-vm.query';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 
 describe('SQL Report Listing VM Query', () => {
   let sqlReportListingVMRepository: SqlReportListingVMQuery;

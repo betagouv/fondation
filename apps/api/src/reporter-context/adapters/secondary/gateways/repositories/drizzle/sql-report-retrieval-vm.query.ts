@@ -1,7 +1,7 @@
 import { NominationFile, ReportRetrievalVM } from 'shared-models';
 import { eq } from 'drizzle-orm';
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
-import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm'; // Drizzle ORM table definition
 import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition

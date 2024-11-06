@@ -3,6 +3,6 @@ import { TransactionableAsync } from '../providers/transactionPerformer';
 
 export interface DomainEventRepository {
   save(domainEvent: DomainEvent): TransactionableAsync;
-  retrieveNewEvents(): Promise<DomainEvent[]>;
+  retrieveNewEvents(): TransactionableAsync<DomainEvent[]>;
   markEventAsConsumed(id: string): TransactionableAsync;
 }

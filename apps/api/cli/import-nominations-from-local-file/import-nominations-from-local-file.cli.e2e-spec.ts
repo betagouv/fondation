@@ -14,11 +14,11 @@ import {
   reports,
 } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 

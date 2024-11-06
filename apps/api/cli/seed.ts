@@ -11,7 +11,7 @@ import {
   SharedKernelModule,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';

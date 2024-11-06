@@ -1,6 +1,6 @@
 import { NominationFile } from 'shared-models';
 import { FakeReportRuleRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/null-transaction-performer';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { ReportRule } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';

@@ -15,7 +15,7 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
-import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';

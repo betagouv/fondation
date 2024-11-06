@@ -18,11 +18,11 @@ import { ReportRule } from 'src/reporter-context/business-logic/models/report-ru
 import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';

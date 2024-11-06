@@ -1,15 +1,19 @@
-export type DomainEventStatus = 'NEW' | 'PENDING' | 'CONSUMED';
+export enum DomainEventStatus {
+  NEW = 'NEW',
+  PENDING = 'PENDING',
+  CONSUMED = 'CONSUMED',
+}
 
-export abstract class DomainEvent<T = unknown> {
+export class DomainEvent<T = unknown> {
   constructor(
     public readonly id: string,
     public readonly type: string,
     public readonly payload: T,
     public readonly occurredOn: Date,
-    public status: DomainEventStatus = 'NEW',
+    public status: DomainEventStatus = DomainEventStatus.NEW,
   ) {}
 
   markAsConsumed() {
-    this.status = 'CONSUMED';
+    this.status = DomainEventStatus.CONSUMED;
   }
 }

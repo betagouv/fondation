@@ -11,11 +11,11 @@ import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
 import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository'; // For mapping functions
 import { SqlReportRuleRepository } from './sql-report-rule.repository'; // For mapping functions
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;

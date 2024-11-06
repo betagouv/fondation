@@ -1,5 +1,5 @@
 import type { MatcherFunction } from 'expect';
-import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/repositories/fake-domain-event-repository';
+import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domainEvent';
 import * as jestExtendedMatchers from 'jest-extended';
 

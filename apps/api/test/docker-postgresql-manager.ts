@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import * as path from 'path';
+import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
   DockerComposeEnvironment,
   StartedDockerComposeEnvironment,
@@ -11,12 +12,12 @@ import {
   reportRules,
   reports,
 } from '../src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/index';
-import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from '../src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
-import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-migrate';
+} from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -48,7 +49,7 @@ export const startDockerPostgresql = async (): Promise<void> => {
 };
 
 export async function clearDB(dbToClear: DrizzleDb) {
-  const tables = [reports, reportRules, nominationFiles];
+  const tables = [reports, reportRules, nominationFiles, domainEvents];
 
   // Disable foreign key constraints
   await dbToClear.execute(sql`SET session_replication_role = 'replica'` as any);

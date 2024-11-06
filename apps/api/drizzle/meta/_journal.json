@@ -43,6 +43,13 @@
       "when": 1730798492792,
       "tag": "0005_nomination_file_id_in_report_pm",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1730895302129,
+      "tag": "0006_shared_kernel_context_add_domain_events_table",
+      "breakpoints": true
     }
   ]
 }

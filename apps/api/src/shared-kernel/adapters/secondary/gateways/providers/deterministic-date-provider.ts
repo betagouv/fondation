@@ -1,4 +1,4 @@
-import { DateTimeProvider } from '../../../business-logic/gateways/providers/date-time-provider';
+import { DateTimeProvider } from '../../../../business-logic/gateways/providers/date-time-provider';
 
 export class DeterministicDateProvider implements DateTimeProvider {
   currentDate: Date;

@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { DomainEventPublisher } from 'src/shared-kernel/business-logic/gateways/providers/domainEventPublisher';
+import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
-import { DrizzleTransactionPerformer } from '../../secondary/providers/drizzle-transaction-performer';
-import { NestDomainEventPublisher } from '../../secondary/providers/nest-domain-event-publisher';
-import { getDrizzleConfig } from '../../secondary/repositories/drizzle/drizzle-config';
+import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
+import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
+import { getDrizzleConfig } from '../../secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from '../../secondary/repositories/drizzle/drizzle-instance';
-import { FakeDomainEventRepository } from '../../secondary/repositories/fake-domain-event-repository';
-import { DomainEventsPoller } from './domain-event-poller';
-import { validate } from './env.validation';
-import { apiConfig, defaultApiConfig } from './env';
+} from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { SqlDomainEventRepository } from '../../secondary/gateways/repositories/drizzle/sql-domain-event-repository';
 import { ApiConfig } from '../nestia/api-config-schema';
-import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
+import { DomainEventsPoller } from './domain-event-poller';
+import { apiConfig, defaultApiConfig } from './env';
+import { validate } from './env.validation';
 
 export const DATE_TIME_PROVIDER = 'DATE_TIME_PROVIDER';
 export const UUID_GENERATOR = 'UUID_GENERATOR';
@@ -99,7 +99,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     },
     {
       provide: DOMAIN_EVENT_REPOSITORY,
-      useClass: FakeDomainEventRepository,
+      useClass: SqlDomainEventRepository,
     },
 
     {

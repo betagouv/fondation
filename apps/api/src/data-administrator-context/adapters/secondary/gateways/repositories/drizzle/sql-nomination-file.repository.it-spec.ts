@@ -5,13 +5,13 @@ import {
   NominationFileSnapshot,
 } from 'src/data-administrator-context/business-logic/models/nomination-file';
 import { getReadRules } from 'src/data-administrator-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
-import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/providers/deterministic-date-provider';
-import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/providers/drizzle-transaction-performer';
-import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-config';
+import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
+import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/repositories/drizzle/drizzle-instance';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { nominationFiles } from './schema/nomination-file-pm';

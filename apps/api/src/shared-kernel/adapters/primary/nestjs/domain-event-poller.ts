@@ -15,7 +15,7 @@ export class DomainEventsPoller {
 
   private async pollEvents() {
     return this.transactionPerformer.perform(async (trx) => {
-      const events = await this.domainEventRepository.retrieveNewEvents();
+      const events = await this.domainEventRepository.retrieveNewEvents()(trx);
       await Promise.all(
         events.map(async (event) => {
           await this.domainEventPublisher.publish(event);

@@ -2,7 +2,7 @@ import {
   TransactionPerformer,
   TransactionableAsync,
 } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
-import { DrizzleDb } from '../repositories/drizzle/drizzle-instance';
+import { DrizzleDb } from '../repositories/drizzle/config/drizzle-instance';
 
 export type DrizzleTransactionableAsync<T = void> = TransactionableAsync<
   T,
@@ -17,6 +17,7 @@ export class DrizzleTransactionPerformer implements TransactionPerformer {
       try {
         return await useCase(tx);
       } catch (err) {
+        console.error(err);
         tx.rollback();
         throw err;
       }

@@ -1,6 +1,9 @@
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
-import { DomainEvent } from 'src/shared-kernel/business-logic/models/domainEvent';
+import {
+  DomainEvent,
+  DomainEventStatus,
+} from 'src/shared-kernel/business-logic/models/domainEvent';
 
 export class FakeDomainEventRepository implements DomainEventRepository {
   events: DomainEvent[] = [];
@@ -11,8 +14,9 @@ export class FakeDomainEventRepository implements DomainEventRepository {
     };
   }
 
-  async retrieveNewEvents(): Promise<DomainEvent[]> {
-    return this.events.filter((e) => e.status === 'NEW');
+  retrieveNewEvents(): TransactionableAsync<DomainEvent[]> {
+    return async () =>
+      this.events.filter((e) => e.status === DomainEventStatus.NEW);
   }
 
   markEventAsConsumed(id: string): TransactionableAsync {
