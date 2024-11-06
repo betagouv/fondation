@@ -22,6 +22,7 @@ export interface ReportToCreate {
   rank: string;
   birthDate: DateOnlyJson;
   biography: string | null;
+  observers: string[] | null;
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       [key in NominationFile.ManagementRule]: boolean;
@@ -45,7 +46,6 @@ export class CreateReportUseCase {
   ) {}
   async execute(
     importedNominationFileId: string,
-
     createReportPayload: ReportToCreate,
   ): Promise<void> {
     new CreateReportValidator().validate(createReportPayload);

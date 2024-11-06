@@ -13,8 +13,7 @@ export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  // TODO! Add not nullable constraint after a manual fix in production
-  nominationFileId: uuid('nomination_file_id'),
+  nominationFileId: uuid('nomination_file_id').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   biography: text('biography'),
   dueDate: date('due_date'),
@@ -31,4 +30,5 @@ export const reports = reportsContextSchema.table('reports', {
   comment: text('comment'),
   rank: varchar('rank').notNull(),
   reporterName: text('reporter_name'),
+  observers: text().array(),
 });

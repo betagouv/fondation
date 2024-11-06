@@ -11,6 +11,7 @@ import {
   UpdateReportOnImportChangeUseCase,
 } from './update-report-on-import-change.use-case';
 import { FakeNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
+import { NominationFileReport } from '../../models/nomination-file-report';
 
 const nominationFileId = 'nomination-file-id';
 
@@ -34,6 +35,38 @@ describe('Update Report On Import Change Use Case', () => {
     transactionPerformer = new NullTransactionPerformer();
   });
 
+  it('should update the observers', async () => {
+    const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
+      {
+        observers: ['New observer'],
+      };
+
+    await updateReport(updateReportOnImportChangePayload);
+
+    expectReports(
+      new NominationFileReport(
+        aFirstReport.id,
+        aFirstReport.nominationFileId,
+        aFirstReport.createdAt,
+        aFirstReport.biography,
+        aFirstReport.dueDate,
+        aFirstReport.name,
+        aFirstReport.reporterName,
+        aFirstReport.birthDate,
+        aFirstReport.state,
+        aFirstReport.formation,
+        aFirstReport.transparency,
+        aFirstReport.grade,
+        aFirstReport.currentPosition,
+        aFirstReport.targettedPosition,
+        aFirstReport.comment,
+        aFirstReport.rank,
+        ['New observer'],
+      ),
+      aSecondReport,
+    );
+  });
+
   it('should update two reports when a transfer time rule changes', async () => {
     const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
       {
@@ -46,11 +79,7 @@ describe('Update Report On Import Change Use Case', () => {
         },
       };
 
-    await new UpdateReportOnImportChangeUseCase(
-      reportRepository,
-      reportRuleRepository,
-      transactionPerformer,
-    ).execute(nominationFileId, updateReportOnImportChangePayload);
+    await updateReport(updateReportOnImportChangePayload);
 
     const aFirstTransferTimeRuleSnapshot =
       aFirstReportTransferTimeRule.toSnapshot();
@@ -81,6 +110,18 @@ describe('Update Report On Import Change Use Case', () => {
     expect(reportRuleRepository.save).toHaveBeenCalledTimes(2);
   });
 
+  const updateReport = async (
+    updateReportOnImportChangePayload: UpdateReportOnImportChangePayload,
+  ) => {
+    await new UpdateReportOnImportChangeUseCase(
+      reportRepository,
+      reportRuleRepository,
+      transactionPerformer,
+    ).execute(nominationFileId, updateReportOnImportChangePayload);
+  };
+  const expectReports = (...report: NominationFileReport[]) => {
+    expect(Object.values(reportRepository.reports)).toEqual(report);
+  };
   const expectReportRules = (...reportRules: ReportRule[]) => {
     expect(Object.values(reportRuleRepository.reportRules)).toEqual(
       reportRules,

@@ -11,6 +11,7 @@ export class NominationFilesUpdatedCollection {
   private _changedFieldsMap: Record<
     string,
     {
+      observers: boolean;
       rules: boolean;
     }
   > = {};
@@ -56,6 +57,9 @@ export class NominationFilesUpdatedCollection {
         return {
           nominationFileId: id,
           content: {
+            ...(changedFieldsMap?.observers && {
+              observers: content.observers,
+            }),
             ...(changedFieldsMap?.rules && {
               rules: content.rules,
             }),
@@ -79,14 +83,18 @@ export class NominationFilesUpdatedCollection {
     return this._nominationFileModels.filter((nominationFile) =>
       nominationFileReadList.some((nominationFileRead) => {
         const rulesChanged = !nominationFile.hasSameRulesAs(nominationFileRead);
+        const observersChanged =
+          !nominationFile.hasSameObserversAs(nominationFileRead);
 
         const nominationFileSnapshot = nominationFile.toSnapshot();
         this._changedFieldsMap[nominationFileSnapshot.id] = {
           rules: rulesChanged,
+          observers: observersChanged,
         };
 
         return (
-          nominationFile.hasSameRowNumberAs(nominationFileRead) && rulesChanged
+          nominationFile.hasSameRowNumberAs(nominationFileRead) &&
+          (rulesChanged || observersChanged)
         );
       }),
     );

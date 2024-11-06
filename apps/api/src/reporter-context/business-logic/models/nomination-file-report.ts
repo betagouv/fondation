@@ -5,7 +5,7 @@ import { ReportToCreate } from '../use-cases/report-creation/create-report.use-c
 export class NominationFileReport {
   constructor(
     readonly id: string,
-    readonly nominationFileId: string | null,
+    readonly nominationFileId: string,
     readonly createdAt: Date,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
@@ -20,7 +20,12 @@ export class NominationFileReport {
     readonly targettedPosition: string,
     readonly comment: string | null,
     readonly rank: string,
+    public observers: string[] | null,
   ) {}
+
+  replaceObservers(observers: string[]) {
+    this.observers = observers;
+  }
 
   static createFromImport(
     reportId: string,
@@ -55,6 +60,7 @@ export class NominationFileReport {
       createReportPayload.targettedPosition,
       null,
       createReportPayload.rank,
+      createReportPayload.observers,
     );
 
     return report;

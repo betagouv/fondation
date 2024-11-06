@@ -66,7 +66,6 @@ describe('Import Nominations from local file', () => {
 
   it('creates reports found in the imported file', async () => {
     await importNominationFileFromLocalFileCli.execute(fileToImportPath);
-
     await setTimeout(1500);
 
     await expectNominationFiles(
@@ -78,17 +77,7 @@ describe('Import Nominations from local file', () => {
       })),
     );
 
-    await expectReports(
-      ...getExpectedContents()
-        .map((content) =>
-          content.reporters?.length
-            ? content.reporters.map((reporterName) =>
-                getReportPm({ ...content, reporterName }),
-              )
-            : [getReportPm({ ...content, reporterName: null })],
-        )
-        .flat(),
-    );
+    await expectAllReports();
   });
 
   describe('when a nomination file is already imported', () => {
@@ -96,7 +85,30 @@ describe('Import Nominations from local file', () => {
     const reportId = '8d9fc5f2-7254-4d04-b99a-e4d15fefee29';
     const transferTimeRuleId = 'b820be91-343f-478a-9e7e-58fe178e3ed1';
 
-    it.only('updates the transfer time rule', async () => {
+    it('updates the observers', async () => {
+      const firstTsvContent = getExpectedContents()[0]!;
+      await db.insert(nominationFiles).values({
+        id: nominationFileId,
+        rowNumber: 1,
+        content: { ...firstTsvContent, observers: ['Different Observer'] },
+      });
+      await givenAReportPm({
+        ...firstTsvContent,
+        observers: ['Different Observer'],
+      });
+
+      await importNominationFileFromLocalFileCli.execute(fileToImportPath);
+      await setTimeout(1500);
+
+      await expectNominationFilesWithFirstOneChanged(() => ({
+        observers: firstTsvContent.observers,
+      }));
+      await expectAllReports({
+        observers: firstTsvContent.observers,
+      });
+    });
+
+    it('updates the transfer time rule', async () => {
       const firstTsvContent = getExpectedContents()[0]!;
       const previousTransferTimePreValidated = false;
       await db.insert(nominationFiles).values({
@@ -113,24 +125,8 @@ describe('Import Nominations from local file', () => {
           },
         },
       });
-      await db.insert(reports).values({
-        id: reportId,
-        nominationFileId: nominationFileId,
-        createdAt: new Date(),
-        state: NominationFile.ReportState.NEW,
-        dueDate: DateOnly.fromJson(firstTsvContent.dueDate!).toDbString(),
-        formation: firstTsvContent.formation,
-        name: firstTsvContent.name,
-        reporterName: firstTsvContent.reporters![0]!,
-        transparency: firstTsvContent.transparency,
-        grade: firstTsvContent.grade,
-        currentPosition: firstTsvContent.currentPosition,
-        targettedPosition: firstTsvContent.targettedPosition,
-        rank: firstTsvContent.rank,
-        birthDate: DateOnly.fromJson(firstTsvContent.birthDate).toDbString(),
-        biography: firstTsvContent.biography,
-        comment: null,
-      });
+      await givenAReportPm(firstTsvContent);
+
       await db.insert(reportRules).values({
         id: transferTimeRuleId,
         reportId,
@@ -144,32 +140,15 @@ describe('Import Nominations from local file', () => {
       await importNominationFileFromLocalFileCli.execute(fileToImportPath);
       await setTimeout(1500);
 
-      await expectNominationFiles(
-        ...getExpectedContents().map((content, index) =>
-          index === 0
-            ? {
-                id: nominationFileId,
-                createdAt: expect.any(Date),
-                rowNumber: 1,
-                content: {
-                  ...content,
-                  rules: {
-                    ...content.rules,
-                    management: {
-                      ...content.rules.management,
-                      TRANSFER_TIME: !previousTransferTimePreValidated,
-                    },
-                  },
-                },
-              }
-            : {
-                id: expect.any(String),
-                createdAt: expect.any(Date),
-                rowNumber: expect.any(Number),
-                content,
-              },
-        ),
-      );
+      await expectNominationFilesWithFirstOneChanged((firstContent) => ({
+        rules: {
+          ...firstContent.rules,
+          management: {
+            ...firstContent.rules.management,
+            TRANSFER_TIME: !previousTransferTimePreValidated,
+          },
+        },
+      }));
 
       await expectReportRule({
         id: transferTimeRuleId,
@@ -182,6 +161,54 @@ describe('Import Nominations from local file', () => {
         comment: 'some comment',
       });
     });
+
+    const givenAReportPm = async (content: NominationFileRead['content']) => {
+      await db.insert(reports).values({
+        id: reportId,
+        nominationFileId: nominationFileId,
+        createdAt: new Date(),
+        state: NominationFile.ReportState.NEW,
+        dueDate: DateOnly.fromJson(content.dueDate!).toDbString(),
+        formation: content.formation,
+        name: content.name,
+        reporterName: content.reporters![0]!,
+        transparency: content.transparency,
+        grade: content.grade,
+        currentPosition: content.currentPosition,
+        targettedPosition: content.targettedPosition,
+        rank: content.rank,
+        birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
+        biography: content.biography,
+        comment: null,
+      });
+    };
+
+    const expectNominationFilesWithFirstOneChanged = async (
+      overrideFirstContent: (
+        firstContent: NominationFileRead['content'],
+      ) => Partial<NominationFileRead['content']>,
+    ) => {
+      await expectNominationFiles(
+        ...getExpectedContents().map((content, index) =>
+          index === 0
+            ? {
+                id: nominationFileId,
+                createdAt: expect.any(Date),
+                rowNumber: 1,
+                content: {
+                  ...content,
+                  ...overrideFirstContent(content),
+                },
+              }
+            : {
+                id: expect.any(String),
+                createdAt: expect.any(Date),
+                rowNumber: index + 1,
+                content,
+              },
+        ),
+      );
+    };
   });
 
   const expectNominationFiles = async (
@@ -205,12 +232,31 @@ describe('Import Nominations from local file', () => {
     expect(reportRulesPm).toEqual([expectedReportRule]);
   };
 
-  const expectReports = async (
-    ...expectedReports: (typeof reports.$inferSelect)[]
+  const expectAllReports = async (
+    moreFirstContent?: Partial<NominationFileRead['content']>,
   ) => {
+    const allReports = getExpectedContents()
+      .map((content, index) =>
+        content.reporters?.length
+          ? content.reporters.map((reporterName) =>
+              getReportPm({
+                ...content,
+                reporterName,
+                ...(index === 0 && moreFirstContent),
+              }),
+            )
+          : [
+              getReportPm({
+                ...content,
+                reporterName: null,
+                ...(index === 0 && moreFirstContent),
+              }),
+            ],
+      )
+      .flat();
     const reportsPm = await db.select().from(reports).execute();
-    expect(reportsPm.length).toBe(expectedReports.length);
-    expect(reportsPm).toEqual(expect.arrayContaining(expectedReports));
+    expect(reportsPm.length).toBe(allReports.length);
+    expect(reportsPm).toEqual(expect.arrayContaining(allReports));
   };
 
   const getReportPm = (
@@ -234,6 +280,7 @@ describe('Import Nominations from local file', () => {
     birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
     biography: content.biography,
     comment: null,
+    observers: content.observers,
   });
 });
 
@@ -258,6 +305,10 @@ function getExpectedContents(): NominationFileRead['content'][] {
       name: 'Julien Pierre',
       rank: '(1 sur une liste de 4)',
       reporters: ['ROUSSIN Jules'],
+      observers: [
+        'LUCIEN MARC VPI TJ NANTES\n(2 sur une liste de 4)',
+        'DAMIEN JEAN\n(2 sur une liste de 100)\nProcureur TJ de Marseilles',
+      ],
       rules: {
         management: {
           TRANSFER_TIME: true,
@@ -312,6 +363,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       name: 'Dupont Marcel',
       rank: '(1 sur une liste de 1)',
       reporters: ['ROUSSIN Jules'],
+      observers: null,
       rules: {
         management: {
           CASSATION_COURT_NOMINATION: true,
@@ -360,6 +412,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       name: 'Brusse Emilien Ep. François',
       rank: '1 sur une liste de 12)',
       reporters: ['ROUSSIN Jules', 'JOSSELIN-MARTEL Martin-Luc'],
+      observers: ['LUDIVINE Jeanne'],
       rules: {
         management: {
           CASSATION_COURT_NOMINATION: true,

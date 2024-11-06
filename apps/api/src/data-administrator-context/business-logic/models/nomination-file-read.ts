@@ -18,6 +18,7 @@ export type NominationFileRead = {
     rank: string;
     birthDate: DateOnlyJson;
     biography: string | null;
+    observers: string[] | null;
     rules: {
       [NominationFile.RuleGroup.MANAGEMENT]: {
         [key in NominationFile.ManagementRule]: boolean;

@@ -25,6 +25,7 @@ export class ReportBuilder {
   private comment: string | null;
   private rank: string;
   private reporterName: string | null;
+  private observers: string[];
 
   constructor() {
     this.id = 'report-id';
@@ -43,6 +44,7 @@ export class ReportBuilder {
     this.comment = 'my comment';
     this.rank = '(2 sur une liste de 100)';
     this.reporterName = 'EMILIEN Denis';
+    this.observers = ['default observer'];
   }
 
   withId(id: string): this {
@@ -112,24 +114,25 @@ export class ReportBuilder {
   }
 
   build(): NominationFileReport {
-    return {
-      id: this.id,
-      nominationFileId: this.nominationFileId,
-      createdAt: this.createdAt,
-      name: this.name,
-      reporterName: this.reporterName,
-      biography: this.biography,
-      dueDate: this.dueDate,
-      birthDate: this.birthDate,
-      state: this.state,
-      formation: this.formation,
-      transparency: this.transparency,
-      grade: this.grade,
-      currentPosition: this.currentPosition,
-      targettedPosition: this.targettedPosition,
-      comment: this.comment,
-      rank: this.rank,
-    };
+    return new NominationFileReport(
+      this.id,
+      this.nominationFileId,
+      this.createdAt,
+      this.biography,
+      this.dueDate,
+      this.name,
+      this.reporterName,
+      this.birthDate,
+      this.state,
+      this.formation,
+      this.transparency,
+      this.grade,
+      this.currentPosition,
+      this.targettedPosition,
+      this.comment,
+      this.rank,
+      this.observers,
+    );
   }
 
   static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {

@@ -71,6 +71,7 @@ describe('Create Report Use Case', () => {
         payload.targettedPosition,
         null,
         payload.rank,
+        payload.observers,
       ),
     );
     expectRulesFromPayload(payload.rules);
@@ -99,6 +100,7 @@ describe('Create Report Use Case', () => {
       day: 22,
     },
     biography: '- blablablablabla',
+    observers: ['New observer'],
     rules: getAllRulesPreValidated(),
     ...moreData,
   });

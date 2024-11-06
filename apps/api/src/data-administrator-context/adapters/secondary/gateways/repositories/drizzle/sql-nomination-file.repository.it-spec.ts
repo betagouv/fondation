@@ -101,6 +101,7 @@ describe('SQL Nomination File Repository', () => {
             day: 22,
           },
           biography: '- blablablablabla',
+          observers: ['Some observer'],
           rules: getReadRules({
             [NominationFile.RuleGroup.STATUTORY]: {
               [NominationFile.StatutoryRule.MINISTER_CABINET]: false,

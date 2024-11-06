@@ -18,9 +18,12 @@ import {
   NominationFilesUpdatedEvent,
   NominationFilesUpdatedEventPayload,
 } from '../../models/nomination-files-updated.event';
+import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
+const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN}(1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;
+const anObserverExpected = 'FIRST OBSERVER\n(1 sur 2)\nTJ de Rennes';
 
 describe('Import Nomination Files Use Case', () => {
   let nominationFileRepository: FakeNominationFileRepository;
@@ -89,11 +92,30 @@ describe('Import Nomination Files Use Case', () => {
   });
 
   it('parses a line with all values filled and all rules pre-validated at true', async () => {
-    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1);
+    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1, {
+      reporters: ['   FIRST Reporter  ', '   SECOND Reporter  '],
+      observers: [anObserverString, '  SECOND OBSERVER  '],
+    });
+
     await importAFile(
       new NominationFileTsvBuilder().fromModel(marcelDupontModel).build(),
     );
-    expectNominationFiles(marcelDupontModel);
+
+    const marcelDupontSnapshot = marcelDupontModel.toSnapshot();
+    expectNominationFiles(
+      new NominationFileModel(
+        'nomination-file-id',
+        dateTimeProvider.currentDate,
+        {
+          rowNumber: marcelDupontSnapshot.rowNumber,
+          content: {
+            ...marcelDupontSnapshot.content,
+            reporters: ['FIRST Reporter', 'SECOND Reporter'],
+            observers: [anObserverExpected, 'SECOND OBSERVER'],
+          },
+        },
+      ),
+    );
   });
 
   it('parses a line with possible empty values unfilled and one rule pre-validated at true', async () => {
@@ -151,6 +173,27 @@ describe('Import Nomination Files Use Case', () => {
       getTsvValue: () => string;
       getEventPayload: () => NominationFilesUpdatedEventPayload;
     }>([
+      {
+        changedEntry: 'observers',
+        getTsvValue: () =>
+          new NominationFileTsvBuilder()
+            .fromModel(
+              getMarcelDupontModel('nomination-file-id', 1, {
+                observers: [anObserverString],
+              }),
+            )
+            .build(),
+        getEventPayload: () => [
+          {
+            nominationFileId: 'nomination-file-id',
+            content: {
+              observers: getMarcelDupontRead(1, {
+                observers: [anObserverExpected],
+              }).content.observers,
+            },
+          },
+        ],
+      },
       {
         changedEntry: 'rules',
         getTsvValue: () =>
@@ -379,6 +422,7 @@ describe('Import Nomination Files Use Case', () => {
         day: 1,
       },
       biography: '- blablablablabla',
+      observers: ['DEFAULT Observer'],
 
       ...moreContent,
       rules: getReadRules(moreContent?.rules),
@@ -404,6 +448,7 @@ describe('Import Nomination Files Use Case', () => {
         day: 22,
       },
       biography: '- blablablablabla',
+      observers: null,
       rules: getReadRules({
         [NominationFile.RuleGroup.STATUTORY]: {
           [NominationFile.StatutoryRule.MINISTER_CABINET]: true,

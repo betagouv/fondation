@@ -36,6 +36,7 @@ export class UpdateReportUseCase {
             : newData.comment || null
           : report.comment,
         report.rank,
+        report.observers,
       );
       await this.reportRepository.save(newReport)(trx);
     });

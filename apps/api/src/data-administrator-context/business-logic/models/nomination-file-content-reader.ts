@@ -6,6 +6,7 @@ import { NominationFileRead } from './nomination-file-read';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
+export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
 
 export class NominationFileContentReader {
   constructor(
@@ -45,6 +46,11 @@ export class NominationFileContentReader {
         'Rapporteur(s) (pré-traitement pour import)',
         rowIndex,
       );
+      const observersValue = this.findValue(
+        'Observants (pré-traitement pour import)',
+        rowIndex,
+      );
+
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
         content: {
@@ -76,6 +82,9 @@ export class NominationFileContentReader {
           targettedPosition: this.findValue('Poste pressenti', rowIndex)!,
           rank: this.findValue('Rang', rowIndex)!,
           biography: this.findValue('Historique', rowIndex, { optional: true }),
+          observers: observersValue
+            ? this.normalizeObservers(observersValue)
+            : null,
           rules,
         },
       };
@@ -103,7 +112,17 @@ export class NominationFileContentReader {
   }
 
   private normalizeReporters(reportersValue: string): string[] {
-    return reportersValue.split(GSHEET_CELL_LINE_BREAK_TOKEN);
+    return reportersValue
+      .split(GSHEET_CELL_LINE_BREAK_TOKEN)
+      .map((value) => value.trim());
+  }
+
+  private normalizeObservers(reportersValue: string): string[] {
+    return reportersValue
+      .split(GSHEET_BLOCK_LINE_BREAK_TOKEN)
+      .map((value) =>
+        value.replaceAll(GSHEET_CELL_LINE_BREAK_TOKEN, '\n').trim(),
+      );
   }
 
   private findValue(

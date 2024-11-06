@@ -28,6 +28,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
             'targettedPosition',
             'comment',
             'rank',
+            'observers',
           ]),
         });
     };
@@ -82,6 +83,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       targettedPosition: report.targettedPosition,
       comment: report.comment,
       rank: report.rank,
+      observers: report.observers,
     };
   }
 
@@ -103,6 +105,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       row.targettedPosition,
       row.comment,
       row.rank,
+      row.observers,
     );
   }
 }

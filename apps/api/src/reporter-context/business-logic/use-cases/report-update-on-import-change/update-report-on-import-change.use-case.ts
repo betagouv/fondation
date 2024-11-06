@@ -4,6 +4,7 @@ import { ReportRuleRepository } from '../../gateways/repositories/report-rule.re
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 
 export interface UpdateReportOnImportChangePayload {
+  observers?: string[];
   rules?: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
       [key in NominationFile.ManagementRule]: boolean;
@@ -29,12 +30,20 @@ export class UpdateReportOnImportChangeUseCase {
     payload: UpdateReportOnImportChangePayload,
   ): Promise<void> {
     return this.transactionPerformer.perform(async (trx) => {
+      const reports =
+        await this.reportRepository.byNominationFileId(nominationFileId)(trx);
+      if (!reports?.length) throw new Error('Report not found');
+
+      if (payload.observers) {
+        if (!reports?.length) throw new Error('Report not found');
+        for (const report of reports) {
+          report.replaceObservers(payload.observers);
+          await this.reportRepository.save(report)(trx);
+        }
+      }
+
       if (payload.rules) {
         const rulesTuple = this.genRulesTuples(payload.rules);
-
-        const reports =
-          await this.reportRepository.byNominationFileId(nominationFileId)(trx);
-        if (!reports?.length) throw new Error('Report not found');
 
         for (const report of reports) {
           for (const [ruleGroup, ruleName, preValidated] of rulesTuple) {

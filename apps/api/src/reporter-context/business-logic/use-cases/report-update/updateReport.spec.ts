@@ -45,6 +45,7 @@ describe('Report Update Use Case', () => {
         aReport.targettedPosition,
         'new comment',
         aReport.rank,
+        aReport.observers,
       ),
     ],
     [
@@ -68,6 +69,7 @@ describe('Report Update Use Case', () => {
         aReport.targettedPosition,
         null,
         aReport.rank,
+        aReport.observers,
       ),
     ],
     [
@@ -91,6 +93,7 @@ describe('Report Update Use Case', () => {
         aReport.targettedPosition,
         null,
         aReport.rank,
+        aReport.observers,
       ),
     ],
   ];

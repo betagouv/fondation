@@ -3,7 +3,7 @@ import { NominationFileRead } from './nomination-file-read';
 
 export type NominationFilesUpdatedEventPayload = {
   nominationFileId: string;
-  content: Partial<Pick<NominationFileRead['content'], 'rules'>>;
+  content: Partial<Pick<NominationFileRead['content'], 'observers' | 'rules'>>;
 }[];
 
 export class NominationFilesUpdatedEvent extends DomainEvent<NominationFilesUpdatedEventPayload> {

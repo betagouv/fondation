@@ -34,6 +34,7 @@ export class NominationFileImportedSubscriber {
                 rank: content.rank,
                 birthDate: content.birthDate,
                 biography: content.biography,
+                observers: content.observers,
                 rules: content.rules,
               }),
             )
@@ -51,6 +52,7 @@ export class NominationFileImportedSubscriber {
                 rank: content.rank,
                 birthDate: content.birthDate,
                 biography: content.biography,
+                observers: content.observers,
                 rules: content.rules,
               }),
             ],
