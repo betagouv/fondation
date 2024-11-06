@@ -22,17 +22,19 @@ describe('Update Report On Import Change Use Case', () => {
   beforeEach(() => {
     reportRepository = new FakeNominationFileReportRepository();
     reportRepository.reports = {
-      [aReport.id]: aReport,
+      [aFirstReport.id]: aFirstReport,
+      [aSecondReport.id]: aSecondReport,
     };
     reportRuleRepository = new FakeReportRuleRepository();
     reportRuleRepository.reportRules = {
-      [transferTimeRule.getId()]: transferTimeRule,
+      [aFirstReportTransferTimeRule.getId()]: aFirstReportTransferTimeRule,
+      [aSecondReportTransferTimeRule.getId()]: aSecondReportTransferTimeRule,
     };
     jest.spyOn(reportRuleRepository, 'save');
     transactionPerformer = new NullTransactionPerformer();
   });
 
-  it('should update a report on rules change', async () => {
+  it('should update two reports when a transfer time rule changes', async () => {
     const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
       {
         rules: {
@@ -50,20 +52,33 @@ describe('Update Report On Import Change Use Case', () => {
       transactionPerformer,
     ).execute(nominationFileId, updateReportOnImportChangePayload);
 
-    const transferTimeRuleSnapshot = transferTimeRule.toSnapshot();
+    const aFirstTransferTimeRuleSnapshot =
+      aFirstReportTransferTimeRule.toSnapshot();
+    const aSecondTransferTimeRuleSnapshot =
+      aSecondReportTransferTimeRule.toSnapshot();
     expectReportRules(
       new ReportRule(
-        transferTimeRuleSnapshot.id,
-        transferTimeRuleSnapshot.createdAt,
-        aReport.id,
-        transferTimeRuleSnapshot.ruleGroup,
-        transferTimeRuleSnapshot.ruleName,
+        aFirstTransferTimeRuleSnapshot.id,
+        aFirstTransferTimeRuleSnapshot.createdAt,
+        aFirstReport.id,
+        aFirstTransferTimeRuleSnapshot.ruleGroup,
+        aFirstTransferTimeRuleSnapshot.ruleName,
         false,
-        transferTimeRuleSnapshot.validated,
-        transferTimeRuleSnapshot.comment,
+        aFirstTransferTimeRuleSnapshot.validated,
+        aFirstTransferTimeRuleSnapshot.comment,
+      ),
+      new ReportRule(
+        aSecondTransferTimeRuleSnapshot.id,
+        aSecondTransferTimeRuleSnapshot.createdAt,
+        aSecondReport.id,
+        aSecondTransferTimeRuleSnapshot.ruleGroup,
+        aSecondTransferTimeRuleSnapshot.ruleName,
+        false,
+        aSecondTransferTimeRuleSnapshot.validated,
+        aSecondTransferTimeRuleSnapshot.comment,
       ),
     );
-    expect(reportRuleRepository.save).toHaveBeenCalledTimes(1);
+    expect(reportRuleRepository.save).toHaveBeenCalledTimes(2);
   });
 
   const expectReportRules = (...reportRules: ReportRule[]) => {
@@ -73,11 +88,25 @@ describe('Update Report On Import Change Use Case', () => {
   };
 });
 
-const aReport = new ReportBuilder()
+const aFirstReport = new ReportBuilder()
+  .withId('first-report-id')
   .withNominationFileId(nominationFileId)
   .build();
-const transferTimeRule = new ReportRuleBuilder()
-  .withReportId(aReport.id)
+const aFirstReportTransferTimeRule = new ReportRuleBuilder()
+  .withId('first-rule-id')
+  .withReportId(aFirstReport.id)
+  .withRuleGroup(NominationFile.RuleGroup.MANAGEMENT)
+  .withRuleName(NominationFile.ManagementRule.TRANSFER_TIME)
+  .withPreValidated(true)
+  .build();
+
+const aSecondReport = new ReportBuilder()
+  .withId('second-report-id')
+  .withNominationFileId(nominationFileId)
+  .build();
+const aSecondReportTransferTimeRule = new ReportRuleBuilder()
+  .withId('second-rule-id')
+  .withReportId(aSecondReport.id)
   .withRuleGroup(NominationFile.RuleGroup.MANAGEMENT)
   .withRuleName(NominationFile.ManagementRule.TRANSFER_TIME)
   .withPreValidated(true)

@@ -6,5 +6,5 @@ export interface ReportRepository {
   byId(id: string): TransactionableAsync<NominationFileReport | null>;
   byNominationFileId(
     nominationFileId: string,
-  ): TransactionableAsync<NominationFileReport | null>;
+  ): TransactionableAsync<NominationFileReport[] | null>;
 }

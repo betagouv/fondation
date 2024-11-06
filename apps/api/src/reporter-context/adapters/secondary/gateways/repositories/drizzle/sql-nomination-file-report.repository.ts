@@ -50,18 +50,17 @@ export class SqlNominationFileReportRepository implements ReportRepository {
 
   byNominationFileId(
     nominationFileId: string,
-  ): DrizzleTransactionableAsync<NominationFileReport | null> {
+  ): DrizzleTransactionableAsync<NominationFileReport[] | null> {
     return async (db) => {
-      const result = await db
+      const results = await db
         .select()
         .from(reports)
-        .where(eq(reports.nominationFileId, nominationFileId))
-        .limit(1);
+        .where(eq(reports.nominationFileId, nominationFileId));
+      if (results.length === 0) return null;
 
-      if (result.length === 0) return null;
-
-      const reportRow = result[0]!;
-      return SqlNominationFileReportRepository.mapToDomain(reportRow);
+      return results.map((reportRow) =>
+        SqlNominationFileReportRepository.mapToDomain(reportRow),
+      );
     };
   }
 

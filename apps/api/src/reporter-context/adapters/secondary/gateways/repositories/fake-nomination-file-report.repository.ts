@@ -12,20 +12,15 @@ export class FakeNominationFileReportRepository implements ReportRepository {
   }
 
   byId(id: string): TransactionableAsync<NominationFileReport | null> {
-    return async () => {
-      const report = this.reports[id];
-      return report || null;
-    };
+    return async () => this.reports[id] || null;
   }
+
   byNominationFileId(
     nominationFileId: string,
-  ): TransactionableAsync<NominationFileReport | null> {
-    return async () => {
-      return (
-        Object.values(this.reports).find(
-          (report) => report.nominationFileId === nominationFileId,
-        ) || null
-      );
-    };
+  ): TransactionableAsync<NominationFileReport[] | null> {
+    return async () =>
+      Object.values(this.reports).filter(
+        (report) => report.nominationFileId === nominationFileId,
+      ) || null;
   }
 }

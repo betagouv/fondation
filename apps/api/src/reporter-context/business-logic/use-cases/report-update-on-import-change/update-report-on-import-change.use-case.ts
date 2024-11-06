@@ -32,19 +32,21 @@ export class UpdateReportOnImportChangeUseCase {
       if (payload.rules) {
         const rulesTuple = this.genRulesTuples(payload.rules);
 
-        const report =
+        const reports =
           await this.reportRepository.byNominationFileId(nominationFileId)(trx);
-        if (!report) throw new Error('Report not found');
+        if (!reports?.length) throw new Error('Report not found');
 
-        for (const [ruleGroup, ruleName, preValidated] of rulesTuple) {
-          const rule = await this.reportRuleRepository.byName(
-            report.id,
-            ruleGroup as NominationFile.RuleGroup,
-            ruleName as NominationFile.RuleName,
-          )(trx);
-          if (rule && rule.preValidationChanged(preValidated)) {
-            rule.preValidate(preValidated);
-            await this.reportRuleRepository.save(rule)(trx);
+        for (const report of reports) {
+          for (const [ruleGroup, ruleName, preValidated] of rulesTuple) {
+            const rule = await this.reportRuleRepository.byName(
+              report.id,
+              ruleGroup as NominationFile.RuleGroup,
+              ruleName as NominationFile.RuleName,
+            )(trx);
+            if (rule && rule.preValidationChanged(preValidated)) {
+              rule.preValidate(preValidated);
+              await this.reportRuleRepository.save(rule)(trx);
+            }
           }
         }
       }

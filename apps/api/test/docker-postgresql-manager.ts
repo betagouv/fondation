@@ -4,6 +4,7 @@ import * as path from 'path';
 import {
   DockerComposeEnvironment,
   StartedDockerComposeEnvironment,
+  Wait,
 } from 'testcontainers';
 import { nominationFiles } from '../src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
@@ -28,7 +29,12 @@ export const startDockerPostgresql = async (): Promise<void> => {
     dockerDBInstance = await new DockerComposeEnvironment(
       composeFilePath,
       composeFile,
-    ).up();
+    )
+      .withWaitStrategy(
+        'postgres',
+        Wait.forLogMessage('database system is ready to accept connections'),
+      )
+      .up();
 
     db = getDrizzleInstance(drizzleConfigForTest);
 
