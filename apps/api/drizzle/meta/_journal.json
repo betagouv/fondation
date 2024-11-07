@@ -64,6 +64,20 @@
       "when": 1730915219733,
       "tag": "0008_reporters_context_nomination_file_id_not_nullable",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1730977698745,
+      "tag": "0009_data_administration_context__null_observers_by_default",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1730984587224,
+      "tag": "0010_shared_kernel_context__fix_snake_case",
+      "breakpoints": true
     }
   ]
 }

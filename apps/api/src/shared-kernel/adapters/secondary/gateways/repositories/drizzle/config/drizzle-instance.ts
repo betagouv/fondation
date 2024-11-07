@@ -9,13 +9,11 @@ export const getDrizzleInstance = (connectionConfig: ConnectionConfig) => {
   return drizzle({
     client: pool,
     schema: {
-      schema: {
-        ...sharedKernelContextSchema,
-        ...reportsContextSchema,
-        ...dataAdministrationContextSchema,
-      },
-      casing: 'snake_case',
+      ...sharedKernelContextSchema,
+      ...reportsContextSchema,
+      ...dataAdministrationContextSchema,
     },
+    casing: 'snake_case',
   });
 };
 

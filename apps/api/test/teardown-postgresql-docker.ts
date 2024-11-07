@@ -1,12 +1,13 @@
 import { db, dockerDBInstance } from './docker-postgresql-manager';
 
 const teardown = async (): Promise<void> => {
-  await endDbConnection();
+  if (db) {
+    await endDbConnection();
+  }
   await endDockerCompose();
 };
 
 const endDbConnection = async () => {
-  console.log('Closing db connection');
   try {
     if (!db.$client.ended) await db.$client.end();
   } catch (e) {
@@ -15,7 +16,7 @@ const endDbConnection = async () => {
   console.log('Closed db connection');
 };
 
-const endDockerCompose = async () => {
+export const endDockerCompose = async () => {
   console.log('Shutting dow docker compose containers');
   try {
     await dockerDBInstance?.down();

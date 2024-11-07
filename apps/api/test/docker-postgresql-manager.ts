@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { getTableConfig } from 'drizzle-orm/pg-core';
+import { getTableConfig, PgTableWithColumns } from 'drizzle-orm/pg-core';
 import * as path from 'path';
 import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
@@ -18,6 +18,7 @@ import {
   getDrizzleInstance,
 } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -37,20 +38,34 @@ export const startDockerPostgresql = async (): Promise<void> => {
       )
       .up();
 
-    db = getDrizzleInstance(drizzleConfigForTest);
-
-    await migrateDrizzle(db);
-
-    console.log('Database started and Drizzle ORM initialized');
+    console.log('Database started');
   } catch (e) {
     console.error(e);
     throw new Error('Failed to start the database: ' + e);
   }
 };
 
-export async function clearDB(dbToClear: DrizzleDb) {
-  const tables = [reports, reportRules, nominationFiles, domainEvents];
+export const migrateDockerPostgresql = async (): Promise<DrizzleDb> => {
+  try {
+    db = getDrizzleInstance(drizzleConfigForTest);
+    await migrateDrizzle(db);
+    console.log('Drizzle ORM initialized');
+    return db;
+  } catch (e) {
+    console.error(e);
+    throw new Error('Failed to migrate: ' + e);
+  }
+};
 
+export async function clearDB(
+  dbToClear: NodePgDatabase | DrizzleDb,
+  tables: PgTableWithColumns<any>[] = [
+    reports,
+    reportRules,
+    nominationFiles,
+    domainEvents,
+  ],
+) {
   // Disable foreign key constraints
   await dbToClear.execute(sql`SET session_replication_role = 'replica'` as any);
 
