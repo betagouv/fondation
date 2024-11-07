@@ -21,10 +21,7 @@ const schema = {
 
 describe('Shared Kernel Context - migration 0010', () => {
   const pool = new Pool(drizzleConfigForTest);
-  const db = drizzle({
-    client: pool,
-    schema: schema,
-  });
+  const db = drizzle({ client: pool, schema });
 
   beforeAll(async () => {
     await db.execute(sql`CREATE SCHEMA shared_kernel_context;`);
@@ -44,9 +41,9 @@ describe('Shared Kernel Context - migration 0010', () => {
   });
 
   it('rename occuredOn column by occurred_on', async () => {
-    expectColumnName('occurredOn');
+    await expectColumnName('occurredOn');
     await db.execute(getDrizzleMigrationSql(10));
-    expectColumnName('occurred_on');
+    await expectColumnName('occurred_on');
   });
 
   const expectColumnName = async (columnName: string) => {

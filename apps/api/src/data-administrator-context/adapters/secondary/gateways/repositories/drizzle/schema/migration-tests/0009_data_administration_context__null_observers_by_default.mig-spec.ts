@@ -8,7 +8,7 @@ import { getDrizzleMigrationSql } from 'src/shared-kernel/adapters/secondary/gat
 import { clearDB } from 'test/docker-postgresql-manager';
 import { dataAdministrationContextSchema } from '../nomination-file-schema.drizzle';
 
-const previousNominationFiles = dataAdministrationContextSchema.table(
+const nominationFiles = dataAdministrationContextSchema.table(
   'nomination_files',
   {
     id: uuid('id')
@@ -17,12 +17,12 @@ const previousNominationFiles = dataAdministrationContextSchema.table(
     content: jsonb('content').notNull(),
   },
 );
-const nominationFileRow: typeof previousNominationFiles.$inferInsert = {
+const nominationFileRow: typeof nominationFiles.$inferInsert = {
   id: 'ca1619e2-263d-49b6-b928-6a04ee681138',
   content: {},
 };
 const schema = {
-  nominationFiles: previousNominationFiles,
+  nominationFiles: nominationFiles,
 };
 
 describe('Data administration context - migration 0009', () => {
@@ -40,11 +40,10 @@ describe('Data administration context - migration 0009', () => {
   beforeEach(async () => {
     const { apply } = await pushSchema(schema, db as unknown as NodePgDatabase);
     await apply();
-    await givenANominationFile();
   });
 
   afterEach(async () => {
-    await clearDB(db as unknown as NodePgDatabase, [previousNominationFiles]);
+    await clearDB(db as unknown as NodePgDatabase, [nominationFiles]);
   });
 
   afterAll(async () => {
@@ -52,19 +51,23 @@ describe('Data administration context - migration 0009', () => {
   });
 
   it('adds a null value to content observers', async () => {
+    await givenANominationFile();
     await db.execute(getDrizzleMigrationSql(9));
-    expect(await db.select().from(previousNominationFiles).execute()).toEqual([
-      {
-        id: nominationFileRow.id,
-        content: { observers: null },
-      },
-    ]);
+    await expectNominationFileWithContent({ observers: null });
   });
 
   const givenANominationFile = async () => {
-    await db
-      .insert(previousNominationFiles)
-      .values(nominationFileRow)
-      .execute();
+    await db.insert(nominationFiles).values(nominationFileRow).execute();
+  };
+
+  const expectNominationFileWithContent = async (
+    content: (typeof nominationFileRow)['content'],
+  ) => {
+    expect(await db.select().from(nominationFiles).execute()).toEqual([
+      {
+        id: nominationFileRow.id,
+        content,
+      },
+    ]);
   };
 });
