@@ -88,6 +88,7 @@ describe('Reporter Controller', () => {
       transparency: Transparency.MARCH_2025,
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
+      observersCount: 1,
     };
     const aReport = ReportBuilder.fromListingVM(aReportListingVM)
       .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')

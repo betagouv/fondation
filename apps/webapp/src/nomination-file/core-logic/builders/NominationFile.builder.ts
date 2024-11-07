@@ -5,8 +5,7 @@ import {
   Transparency,
 } from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
-import { NominationFileSM } from "../../store/appState";
-import { FakeNominationFileFromApi } from "../../adapters/secondary/gateways/FakeNominationFile.gateway";
+import { NominationFileListItem, NominationFileSM } from "../../store/appState";
 
 export class NominationFileBuilder {
   private id: string;
@@ -24,6 +23,7 @@ export class NominationFileBuilder {
   private targettedPosition: string;
   private rank: string;
   private comment: string | null;
+  private observers: string[] | null;
 
   constructor() {
     this.id = "nomination-file-id";
@@ -40,6 +40,7 @@ export class NominationFileBuilder {
     this.targettedPosition = "PG TJ Marseille";
     this.rank = "(2 sur une liste de 3)";
     this.comment = "Some comment";
+    this.observers = ["observer 1", "observer 2"];
     this.rules = rulesTuple.reduce(
       (acc, [ruleGroup, ruleName]) => {
         return {
@@ -111,6 +112,10 @@ export class NominationFileBuilder {
     this.comment = comment;
     return this;
   }
+  withObservers(observers: string[] | null) {
+    this.observers = observers;
+    return this;
+  }
 
   withTransferTimeValidated(transferTime: boolean) {
     this.rules.management.TRANSFER_TIME.validated = transferTime;
@@ -170,11 +175,24 @@ export class NominationFileBuilder {
     return this;
   }
 
-  build(): FakeNominationFileFromApi {
+  buildListVM(): NominationFileListItem {
     return {
       id: this.id,
       name: this.name,
       reporterName: this.reporterName,
+      dueDate: this.dueDate?.toStoreModel() ?? null,
+      state: this.state,
+      formation: this.formation,
+      transparency: this.transparency,
+      grade: this.grade,
+      targettedPosition: this.targettedPosition,
+      observersCount: this.observers?.length ?? 0,
+    };
+  }
+  buildRetrieveVM(): NominationFileSM {
+    return {
+      id: this.id,
+      name: this.name,
       biography: this.biography,
       dueDate: this.dueDate?.toStoreModel() ?? null,
       birthDate: this.birthDate.toStoreModel(),
@@ -186,7 +204,7 @@ export class NominationFileBuilder {
       targettedPosition: this.targettedPosition,
       rank: this.rank,
       comment: this.comment,
-
+      observers: this.observers,
       rules: this.rules,
     };
   }

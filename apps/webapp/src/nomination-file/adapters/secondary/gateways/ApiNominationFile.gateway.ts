@@ -48,6 +48,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
       targettedPosition: report.targettedPosition,
       comment: report.comment,
       rank: report.rank,
+      observers: report.observers,
       rules: report.rules,
     };
   }
@@ -64,6 +65,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
       transparency: item.transparency,
       grade: item.grade,
       targettedPosition: item.targettedPosition,
+      observersCount: item.observersCount,
     }));
   }
 }

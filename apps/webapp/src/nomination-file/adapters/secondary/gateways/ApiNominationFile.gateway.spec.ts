@@ -1,8 +1,8 @@
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import { NominationFile } from "shared-models";
+import { NominationFileBuilder } from "../../../core-logic/builders/NominationFile.builder";
 import { NominationFileListItem } from "../../../store/appState";
 import { ApiNominationFileGateway } from "./ApiNominationFile.gateway";
 import { FakeNominationFileApiClient } from "./FakeNominationFile.client";
-import { FakeNominationFileFromApi } from "./FakeNominationFile.gateway";
 
 describe("Api Nomination File Gateway", () => {
   let nominationFileApiClient: FakeNominationFileApiClient;
@@ -26,6 +26,7 @@ describe("Api Nomination File Gateway", () => {
         transparency: aReport.transparency,
         grade: aReport.grade,
         targettedPosition: aReport.targettedPosition,
+        observersCount: aReport.observersCount,
       },
     ]);
   });
@@ -51,6 +52,7 @@ describe("Api Nomination File Gateway", () => {
       targettedPosition: aReport.targettedPosition,
       comment: aReport.comment,
       rank: aReport.rank,
+      observers: aReport.observers,
       rules: {
         ...rules,
         [aRule.group]: {
@@ -87,29 +89,9 @@ describe("Api Nomination File Gateway", () => {
   });
 });
 
-const aReport: Omit<FakeNominationFileFromApi, "rules"> = {
-  id: "report-id",
-  name: "name",
-  reporterName: "REPORTER Name",
-  biography: "biography",
-  dueDate: {
-    year: 2030,
-    month: 10,
-    day: 5,
-  },
-  birthDate: {
-    year: 2030,
-    month: 10,
-    day: 5,
-  },
-  state: NominationFile.ReportState.NEW,
-  formation: Magistrat.Formation.PARQUET,
-  transparency: Transparency.MARCH_2025,
-  grade: Magistrat.Grade.I,
-  currentPosition: "current position",
-  targettedPosition: "targetted position",
-  comment: "some comment",
-  rank: "some rank",
+const aReport = {
+  ...new NominationFileBuilder().buildRetrieveVM(),
+  ...new NominationFileBuilder().buildListVM(),
 };
 const aRule = {
   id: "1",

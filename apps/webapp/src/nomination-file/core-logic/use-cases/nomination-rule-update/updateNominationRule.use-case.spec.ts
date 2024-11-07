@@ -7,14 +7,14 @@ import { updateNominationRule } from "./updateNominationRule.use-case";
 
 describe("Nomination Rule Update", () => {
   let store: ReduxStore;
-  let nominationCaseGateway: FakeNominationFileGateway;
+  let nominationFileGateway: FakeNominationFileGateway;
   let initialState: AppState;
 
   beforeEach(() => {
-    nominationCaseGateway = new FakeNominationFileGateway();
+    nominationFileGateway = new FakeNominationFileGateway();
     store = initReduxStore(
       {
-        nominationFileGateway: nominationCaseGateway,
+        nominationFileGateway,
       },
       {},
       {},
@@ -23,7 +23,7 @@ describe("Nomination Rule Update", () => {
   });
 
   it("switch the transfer time rule from unvalidated to validated", async () => {
-    nominationCaseGateway.addNominationFile(aNomination);
+    nominationFileGateway.addNominationFile(aNomination);
     store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
     await store.dispatch(
       updateNominationRule({
@@ -57,4 +57,4 @@ describe("Nomination Rule Update", () => {
 
 const aNomination = new NominationFileBuilder()
   .withTransferTimeValidated(false)
-  .build();
+  .buildRetrieveVM();

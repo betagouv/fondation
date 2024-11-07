@@ -1,23 +1,27 @@
 import {
+  Magistrat,
   NominationFile,
   ReportListItemVM,
   ReportRetrievalVM,
+  Transparency,
 } from "shared-models";
 import {
   NominationFileGateway,
   UpdateNominationFileParams,
 } from "../../../core-logic/gateways/NominationFile.gateway";
-import { NominationFileListItem } from "../../../store/appState";
+import {
+  NominationFileListItem,
+  NominationFileSM,
+} from "../../../store/appState";
 
-export type FakeNominationFileFromApi = ReportRetrievalVM &
-  Pick<ReportListItemVM, "reporterName">;
+export type FakeNominationFileFromApi = ReportRetrievalVM | ReportListItemVM;
 
 export class FakeNominationFileGateway implements NominationFileGateway {
   private nominationFiles: Record<string, FakeNominationFileFromApi> = {};
   private lastNominationFileId: string | null = null;
 
   async list(): Promise<NominationFileListItem[]> {
-    return Object.values(this.nominationFiles).map(
+    return (Object.values(this.nominationFiles) as ReportListItemVM[]).map(
       ({
         id,
         name,
@@ -28,6 +32,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
         transparency,
         grade,
         targettedPosition,
+        observersCount,
       }) => ({
         id,
         name,
@@ -38,6 +43,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
         transparency,
         grade,
         targettedPosition,
+        observersCount,
       }),
     );
   }
@@ -57,14 +63,15 @@ export class FakeNominationFileGateway implements NominationFileGateway {
       throw new Error(
         "You should set the nomination id for the fake to do the update",
       );
-    if (this.nominationFiles[this.lastNominationFileId]) {
-      Object.entries(
-        this.nominationFiles[this.lastNominationFileId]!.rules,
-      ).forEach(([ruleGroup, ruleEntry]) => {
+    const nominationFile = this.nominationFiles[this.lastNominationFileId];
+
+    if (nominationFile) {
+      if (!("comment" in nominationFile))
+        throw new Error("Fake nomination file should be a of type retrieval");
+
+      Object.entries(nominationFile.rules).forEach(([ruleGroup, ruleEntry]) => {
         Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
           if (rule.id === ruleId) {
-            const nominationFile =
-              this.nominationFiles[this.lastNominationFileId!]!;
             // It looks like Redux makes some nested attributes read-only,
             // so we need to create a new object
             this.nominationFiles[this.lastNominationFileId!] = {
@@ -95,10 +102,29 @@ export class FakeNominationFileGateway implements NominationFileGateway {
     }
   }
 
-  async retrieveNominationFile(id: string) {
+  async retrieveNominationFile(id: string): Promise<NominationFileSM | null> {
     const nominationFile = this.nominationFiles[id];
     if (!nominationFile) throw new Error("Nomination case not found");
-    return nominationFile;
+    if (!("comment" in nominationFile))
+      throw new Error("Fake nomination file should be a of type retrieval");
+
+    return {
+      id: nominationFile.id,
+      name: nominationFile.name,
+      biography: nominationFile.biography,
+      dueDate: nominationFile.dueDate,
+      birthDate: nominationFile.birthDate,
+      state: nominationFile.state as NominationFile.ReportState,
+      formation: nominationFile.formation as Magistrat.Formation,
+      transparency: nominationFile.transparency as Transparency,
+      grade: nominationFile.grade as Magistrat.Grade,
+      currentPosition: nominationFile.currentPosition,
+      targettedPosition: nominationFile.targettedPosition,
+      comment: nominationFile.comment,
+      rank: nominationFile.rank,
+      observers: nominationFile.observers,
+      rules: nominationFile.rules,
+    };
   }
 
   addNominationFile(aNomination: FakeNominationFileFromApi) {

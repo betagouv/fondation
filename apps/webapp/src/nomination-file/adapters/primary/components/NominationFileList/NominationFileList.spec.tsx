@@ -54,6 +54,7 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("Transparence");
       await screen.findByText("Grade actuel");
       await screen.findByText("Poste ciblé");
+      await screen.findByText("Observants");
     });
 
     it("shows it in the table", async () => {
@@ -65,6 +66,7 @@ describe("Nomination Case List Component", () => {
       await screen.findByText("Mars 2025");
       await screen.findByText("I");
       await screen.findByText("PG TJ Marseille");
+      await screen.findByText("2");
     });
   });
 
@@ -92,4 +94,4 @@ const user = {
 
 const aNominationFile = new NominationFileBuilder()
   .withReporterName(user.reporterName)
-  .build();
+  .buildListVM();

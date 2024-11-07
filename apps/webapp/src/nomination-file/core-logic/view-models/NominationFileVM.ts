@@ -96,6 +96,7 @@ export class NominationFileVM {
     public targettedPosition: string,
     public comment: string | null,
     public rank: string,
+    public observers: [string, ...string[]][] | null,
 
     public rulesChecked: {
       [NominationFile.RuleGroup.MANAGEMENT]: Record<

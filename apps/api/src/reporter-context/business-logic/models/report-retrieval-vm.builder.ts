@@ -22,6 +22,8 @@ export class ReportRetrievalVMBuilder {
   private comment: string | null;
   private rank: string;
   private rules: NominationFile.Rules;
+  private observers: string[] | null;
+  private observersCount: number;
 
   constructor() {
     this.id = 'report-id';
@@ -45,6 +47,7 @@ export class ReportRetrievalVMBuilder {
     this.targettedPosition = 'targetted position';
     this.comment = 'comments';
     this.rank = '(2 sur une liste de 100)';
+    this.observers = ['observer 1', 'observer 2'];
 
     const defaultValue: NominationFile.RuleValue = {
       id: 'rule-id',
@@ -94,11 +97,11 @@ export class ReportRetrievalVMBuilder {
     };
   }
 
-  withId(id: string): this {
+  withId(id: string) {
     this.id = id;
     return this;
   }
-  withName(name: string): this {
+  withName(name: string) {
     this.name = name;
     return this;
   }
@@ -146,6 +149,11 @@ export class ReportRetrievalVMBuilder {
     this.rank = rank;
     return this;
   }
+  withObservers(observers: string[] | null) {
+    this.observers = observers;
+    this.observersCount = observers?.length || 0;
+    return this;
+  }
   withOverseasToOverseasRule(options: Partial<NominationFile.RuleValue>): this {
     const rule =
       this.rules.management[NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS];
@@ -156,7 +164,7 @@ export class ReportRetrievalVMBuilder {
       };
     return this;
   }
-  withRules(rules: NominationFile.Rules): this {
+  withRules(rules: NominationFile.Rules) {
     this.rules = rules;
     return this;
   }
@@ -176,6 +184,7 @@ export class ReportRetrievalVMBuilder {
       targettedPosition: this.targettedPosition,
       comment: this.comment,
       rank: this.rank,
+      observers: this.observers,
       rules: this.rules,
     };
   }
@@ -196,6 +205,7 @@ export class ReportRetrievalVMBuilder {
       .withCurrentPosition(report.currentPosition)
       .withTargettedPosition(report.targettedPosition)
       .withComment(report.comment)
-      .withRank(report.rank);
+      .withRank(report.rank)
+      .withObservers(report.observers);
   }
 }

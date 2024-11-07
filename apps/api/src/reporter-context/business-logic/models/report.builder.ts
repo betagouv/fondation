@@ -25,7 +25,7 @@ export class ReportBuilder {
   private comment: string | null;
   private rank: string;
   private reporterName: string | null;
-  private observers: string[];
+  private observers: string[] | null;
 
   constructor() {
     this.id = 'report-id';
@@ -112,6 +112,10 @@ export class ReportBuilder {
     this.rank = rank;
     return this;
   }
+  withObservers(observers: string[] | null): ReportBuilder {
+    this.observers = observers;
+    return this;
+  }
 
   build(): NominationFileReport {
     return new NominationFileReport(
@@ -183,6 +187,7 @@ export class ReportBuilder {
       .withCurrentPosition(reportRetrievalVM.currentPosition)
       .withTargettedPosition(reportRetrievalVM.targettedPosition)
       .withComment(reportRetrievalVM.comment)
-      .withRank(reportRetrievalVM.rank);
+      .withRank(reportRetrievalVM.rank)
+      .withObservers(reportRetrievalVM.observers);
   }
 }

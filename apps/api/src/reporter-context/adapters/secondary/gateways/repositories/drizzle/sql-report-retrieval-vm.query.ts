@@ -1,5 +1,5 @@
 import { NominationFile, ReportRetrievalVM } from 'shared-models';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { ReportRetrievalVMQuery } from 'src/reporter-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
@@ -25,6 +25,8 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
         targettedPosition: reports.targettedPosition,
         comment: reports.comment,
         rank: reports.rank,
+        observers: reports.observers,
+        observersCount: sql<number>`COALESCE(array_length(${reports.observers}, 1), 0)`,
         // Rule fields
         ruleId: reportRules.id,
         ruleGroup: reportRules.ruleGroup,
@@ -93,6 +95,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
       targettedPosition: reportData.targettedPosition,
       comment: reportData.comment ? reportData.comment : null,
       rank: reportData.rank,
+      observers: reportData.observers,
       rules,
     };
 

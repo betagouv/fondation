@@ -73,7 +73,7 @@ describe("Select Nomination Case List", () => {
     .withName("Banneau Louise")
     .withReporterName(user.reporterName)
     .withDueDate(new DateOnly(2030, 10, 30))
-    .build();
+    .buildListVM();
   const aNominationFileVM: NominationFileListItemVM = {
     id: aNominationFile.id,
     name: aNominationFile.name,
@@ -84,6 +84,7 @@ describe("Select Nomination Case List", () => {
     transparency: "Mars 2025",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
+    observersCount: aNominationFile.observersCount,
     href: `/dossier-de-nomination/${aNominationFile.id}`,
     onClick,
   };
@@ -93,7 +94,7 @@ describe("Select Nomination Case List", () => {
     .withName("Denan Lucien")
     .withReporterName(user.reporterName)
     .withDueDate(new DateOnly(2030, 10, 30))
-    .build();
+    .buildListVM();
   const anotherNominationFileVM: NominationFileListItemVM = {
     id: anotherNominationFile.id,
     name: anotherNominationFile.name,
@@ -104,6 +105,7 @@ describe("Select Nomination Case List", () => {
     transparency: "Mars 2025",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
+    observersCount: aNominationFile.observersCount,
     href: `/dossier-de-nomination/${anotherNominationFile.id}`,
     onClick,
   };
@@ -113,7 +115,7 @@ describe("Select Nomination Case List", () => {
     .withName("Another name")
     .withReporterName("ANOTHER REPORTER Name")
     .withDueDate(new DateOnly(2030, 10, 10))
-    .build();
+    .buildListVM();
 });
 
 const user = {

@@ -16,6 +16,7 @@ import { Comment } from "./Comment";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { NominationRules } from "./NominationRules";
 import { VMNominationFileRuleValue } from "../../../../core-logic/view-models/NominationFileVM";
+import { Observers } from "./Observers";
 
 export type NominationFileOverviewProps = {
   id: string;
@@ -89,6 +90,7 @@ export const NominationFileOverview: React.FC<NominationFileOverviewProps> = ({
         rank={nominationFile.rank}
       />
       <Biography biography={nominationFile.biography} />
+      <Observers observers={nominationFile.observers} />
       <NominationRules
         rulesChecked={nominationFile.rulesChecked}
         onUpdateNominationRule={onUpdateNominationRule}

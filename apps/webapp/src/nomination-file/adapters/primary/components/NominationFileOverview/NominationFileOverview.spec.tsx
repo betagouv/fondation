@@ -1,14 +1,13 @@
-import "@testing-library/jest-dom";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { NominationFile } from "shared-models";
 import { NominationFileBuilder } from "../../../../core-logic/builders/NominationFile.builder";
+import { NominationFileVM } from "../../../../core-logic/view-models/NominationFileVM";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeNominationFileGateway } from "../../../secondary/gateways/FakeNominationFile.gateway";
 import { NominationFileOverview } from "./NominationFileOverview";
-import { NominationFileVM } from "../../../../core-logic/view-models/NominationFileVM";
 
 describe("Nomination Case Overview Component", () => {
   let store: ReduxStore;
@@ -57,6 +56,24 @@ describe("Nomination Case Overview Component", () => {
       await expectMagistratIdentity();
     });
 
+    it("shows the observers", async () => {
+      renderNominationFile(aValidatedNomination.id);
+      await screen.findByText("Observants");
+      for (const [
+        index,
+        observer,
+      ] of aValidatedNomination.observers!.entries()) {
+        if (index === 0) {
+          await screen.findByText(observer);
+        } else {
+          const observer2Name = await screen.findByText("observer 2");
+          expect(observer2Name).toHaveClass("fr-text--bold");
+          await screen.findByText("VPI TJ Rennes");
+          await screen.findByText("(1 sur une liste de 2)");
+        }
+      }
+    });
+
     it("shows the rules", async () => {
       act(() => {
         renderNominationFile(aValidatedNomination.id);
@@ -101,7 +118,7 @@ describe("Nomination Case Overview Component", () => {
             const aNomination = new NominationFileBuilder()
               .withId("without-comment")
               .withComment(null)
-              .build();
+              .buildRetrieveVM();
             nominationFileGateway.addNominationFile(aNomination);
 
             renderNominationFile(aNomination.id);
@@ -217,7 +234,9 @@ describe("Nomination Case Overview Component", () => {
         ];
       it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
         nominationFileGateway.addNominationFile(
-          new NominationFileBuilder().withTransferTimeValidated(false).build(),
+          new NominationFileBuilder()
+            .withTransferTimeValidated(false)
+            .buildRetrieveVM(),
         );
         renderNominationFile("nomination-file-id");
 
@@ -305,8 +324,12 @@ describe("Nomination Case Overview Component", () => {
 const aValidatedNomination = new NominationFileBuilder()
   .withId("nomination-file-id")
   .withBiography("  - John Doe's biography - second line  - third line ")
-  .build();
+  .withObservers([
+    "observer 1",
+    "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
+  ])
+  .buildRetrieveVM();
 
 const anUnvalidatedNomination = new NominationFileBuilder()
   .withAllRulesUnvalidated()
-  .build();
+  .buildRetrieveVM();

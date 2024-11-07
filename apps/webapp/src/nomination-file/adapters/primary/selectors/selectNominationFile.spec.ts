@@ -60,9 +60,18 @@ describe("Select Nomination Case", () => {
     .withName("John Doe")
     .withDueDate(new DateOnly(2030, 10, 30))
     .withBiography("The biography.")
+    .withObservers([
+      "observer 1",
+      "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
+    ])
+    .buildRetrieveVM();
+  const aNominationFileVM = NominationFileBuilderVM.fromStoreModel(
+    aNominationFile,
+  )
+    .withAllRulesChecked(false)
+    .withObservers([
+      ["observer 1"],
+      ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],
+    ])
     .build();
-  const aNominationFileVM: NominationFileVM =
-    NominationFileBuilderVM.fromStoreModel(aNominationFile)
-      .withAllRulesChecked(false)
-      .build();
 });

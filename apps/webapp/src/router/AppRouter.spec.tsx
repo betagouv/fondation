@@ -1,4 +1,3 @@
-import "@testing-library/jest-dom";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
@@ -6,7 +5,6 @@ import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
 import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
-import { NominationFileSM } from "../nomination-file/store/appState";
 import {
   initReduxStore,
   ReduxStore,
@@ -126,11 +124,13 @@ describe("App Router Component", () => {
       renderAppRouter();
       act(() => {
         givenAnAuthenticatedUser();
-        store.dispatch(retrieveNominationFile.fulfilled(aNomination, "", ""));
+        store.dispatch(
+          retrieveNominationFile.fulfilled(aNominationRetrieved, "", ""),
+        );
       });
 
       act(() => {
-        routerProvider.gotToNominationFileOverview(aNomination.id);
+        routerProvider.gotToNominationFileOverview(aNominationRetrieved.id);
       });
 
       expect(await screen.findByText("Mes rapports")).toHaveStyle({
@@ -185,4 +185,4 @@ describe("App Router Component", () => {
   }
 });
 
-const aNomination: NominationFileSM = new NominationFileBuilder().build();
+const aNominationRetrieved = new NominationFileBuilder().buildRetrieveVM();

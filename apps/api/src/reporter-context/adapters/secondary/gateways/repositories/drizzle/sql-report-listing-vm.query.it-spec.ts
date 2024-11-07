@@ -64,6 +64,7 @@ describe('SQL Report Listing VM Query', () => {
             transparency: aReport.transparency,
             grade: aReport.grade,
             targettedPosition: aReport.targettedPosition,
+            observersCount: aReport.observers?.length || 0,
           },
         ],
       });

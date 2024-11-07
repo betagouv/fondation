@@ -26,6 +26,7 @@ export class NominationFileBuilderVM {
   private targettedPosition: string;
   private comment: string | null;
   private rank: string;
+  private observers: NominationFileVM["observers"];
 
   constructor() {
     this.id = "nomination-file-id";
@@ -41,6 +42,10 @@ export class NominationFileBuilderVM {
     this.targettedPosition = "targetted position";
     this.comment = "Some comment";
     this.rank = "(3 sur une liste de 3)";
+    this.observers = [
+      ["observer 1"],
+      ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
+    ];
     this.rulesChecked = rulesTuple.reduce(
       (acc, [ruleGroup, ruleName]) => {
         return {
@@ -116,6 +121,10 @@ export class NominationFileBuilderVM {
   }
   withRank(rank: string) {
     this.rank = rank;
+    return this;
+  }
+  withObservers(observers: NominationFileVM["observers"]) {
+    this.observers = observers;
     return this;
   }
 
@@ -199,6 +208,7 @@ export class NominationFileBuilderVM {
       targettedPosition: this.targettedPosition,
       comment: this.comment,
       rank: this.rank,
+      observers: this.observers,
       rulesChecked: this.rulesChecked,
     };
   }
@@ -222,6 +232,11 @@ export class NominationFileBuilderVM {
       .withRank(nominationFileStoreModel.rank)
       .withState(nominationFileStoreModel.state)
       .withTargettedPosition(nominationFileStoreModel.targettedPosition)
-      .withTransparency(nominationFileStoreModel.transparency);
+      .withTransparency(nominationFileStoreModel.transparency)
+      .withObservers(
+        nominationFileStoreModel.observers?.map(
+          (o) => o.split("\n") as [string, ...string[]],
+        ) || null,
+      );
   }
 }

@@ -57,6 +57,7 @@ describe("Nomination Files Listing", () => {
                 transparency: aNominationFile.transparency,
                 grade: aNominationFile.grade,
                 targettedPosition: aNominationFile.targettedPosition,
+                observersCount: aNominationFile.observersCount,
               },
             ],
           },
@@ -75,4 +76,4 @@ const aNominationFile = new NominationFileBuilder()
   .withName("Lucien Denan")
   .withReporterName(user.reporterName)
   .withDueDate(new DateOnly(2030, 10, 30))
-  .build();
+  .buildListVM();

@@ -13,6 +13,7 @@ export interface ReportListItemVM {
   transparency: Transparency;
   grade: Magistrat.Grade;
   targettedPosition: string;
+  observersCount: number;
 }
 
 export interface ReportListingVM {

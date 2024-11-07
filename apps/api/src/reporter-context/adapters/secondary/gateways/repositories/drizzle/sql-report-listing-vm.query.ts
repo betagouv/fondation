@@ -3,6 +3,7 @@ import { ReportListingVMQuery } from 'src/reporter-context/business-logic/gatewa
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
+import { sql } from 'drizzle-orm';
 
 export class SqlReportListingVMQuery implements ReportListingVMQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -19,6 +20,7 @@ export class SqlReportListingVMQuery implements ReportListingVMQuery {
         transparency: reports.transparency,
         grade: reports.grade,
         targettedPosition: reports.targettedPosition,
+        observersCount: sql<number>`COALESCE(array_length(${reports.observers}, 1), 0)`,
       })
       .from(reports)
       .execute();
@@ -36,6 +38,7 @@ export class SqlReportListingVMQuery implements ReportListingVMQuery {
         transparency: report.transparency,
         grade: report.grade,
         targettedPosition: report.targettedPosition,
+        observersCount: report.observersCount,
       })),
     };
   }

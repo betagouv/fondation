@@ -19,6 +19,7 @@ export const NominationFilesTable: React.FC<NominationFilesTableProps> = ({
       "Transparence",
       "Grade actuel",
       "Poste ciblé",
+      "Observants",
     ]}
     bordered
     data={nominationFiles.map((nominationFile) => [
@@ -29,8 +30,9 @@ export const NominationFilesTable: React.FC<NominationFilesTableProps> = ({
         {nominationFile.name}
       </a>,
       <div>{nominationFile.transparency}</div>,
-      <div>{nominationFile.grade}</div>,
+      <div className="text-center">{nominationFile.grade}</div>,
       <div>{nominationFile.targettedPosition}</div>,
+      <div className="text-center">{nominationFile.observersCount}</div>,
     ])}
   />
 );

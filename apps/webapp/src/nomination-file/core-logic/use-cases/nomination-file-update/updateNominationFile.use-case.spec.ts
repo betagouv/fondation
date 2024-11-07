@@ -67,4 +67,4 @@ const aNomination = new NominationFileBuilder()
   .withState(NominationFile.ReportState.NEW)
   .withBiography("John Doe's biography")
   .withComment("Some comment")
-  .build();
+  .buildRetrieveVM();

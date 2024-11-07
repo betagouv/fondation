@@ -90,7 +90,7 @@ describe('SQL Report Retrieval VM Query', () => {
     it('retrieves with empty values', async () => {
       const expectedRules = prepareExpectedRules(aReportRule);
       const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
-      expect(result).toEqual<ReportRetrievalVM>(
+      expect(result).toEqual(
         ReportRetrievalVMBuilder.fromWriteModel(aReport)
           .withDueDate(null)
           .withComment(null)

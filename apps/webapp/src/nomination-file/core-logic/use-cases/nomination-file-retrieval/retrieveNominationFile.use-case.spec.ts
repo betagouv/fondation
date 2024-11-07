@@ -48,8 +48,8 @@ describe("Retrieve Nomination Case", () => {
   });
 });
 
-const aNomination = new NominationFileBuilder().build();
+const aNomination = new NominationFileBuilder().buildRetrieveVM();
 
 const anotherNomination = new NominationFileBuilder()
   .withId("another-nomination-file-id")
-  .build();
+  .buildRetrieveVM();

@@ -41,5 +41,6 @@ describe('List reports', () => {
     transparency: Transparency.MARCH_2025,
     grade: Magistrat.Grade.HH,
     targettedPosition: 'a position',
+    observersCount: 1,
   };
 });

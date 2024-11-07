@@ -17,5 +17,6 @@ export interface ReportRetrievalVM {
   targettedPosition: string;
   comment: string | null;
   rank: string;
+  observers: string[] | null;
   rules: NominationFile.Rules;
 }

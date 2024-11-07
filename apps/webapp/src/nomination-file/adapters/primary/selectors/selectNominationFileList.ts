@@ -12,7 +12,7 @@ export type NominationFileListItemVM = {
   transparency: ReturnType<typeof transparencyToLabel>;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
-
+  observersCount: number;
   href: string;
   onClick: () => void;
 };
@@ -43,6 +43,7 @@ export const selectNominationFileList = createAppSelector(
           transparency,
           grade,
           targettedPosition,
+          observersCount,
         }) => {
           const { href, onClick } = getAnchorAttributes(id);
 
@@ -64,6 +65,7 @@ export const selectNominationFileList = createAppSelector(
             transparency: transparencyToLabel(transparency),
             grade: gradeToLabel(grade),
             targettedPosition,
+            observersCount,
             href,
             onClick,
           } as const;

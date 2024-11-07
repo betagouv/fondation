@@ -5,7 +5,7 @@ import {
   NominationFileVM,
   VMNominationFileRuleValue,
 } from "../../../core-logic/view-models/NominationFileVM";
-import { AppState } from "../../../store/appState";
+import { AppState, NominationFileSM } from "../../../store/appState";
 
 type RuleCheckedEntry =
   NominationFileVM["rulesChecked"][NominationFile.RuleGroup];
@@ -65,7 +65,7 @@ export const selectNominationFile = createSelector(
       targettedPosition: nominationFile.targettedPosition,
       comment: nominationFile.comment,
       rank: nominationFile.rank,
-
+      observers: formatObservers(nominationFile.observers),
       rulesChecked: {
         ...createRulesCheckedEntryFor(NominationFile.RuleGroup.MANAGEMENT),
         ...createRulesCheckedEntryFor(NominationFile.RuleGroup.STATUTORY),
@@ -86,6 +86,12 @@ const formatBiography = (biography: string) => {
   const [, firstElement, ...otherElements] = biographyElements;
   return `- ${firstElement}\n- ${otherElements.join("\n- ")}`;
 };
+
+const formatObservers = (
+  observers: NominationFileSM["observers"],
+): NominationFileVM["observers"] =>
+  observers?.map((observer) => observer.split("\n") as [string, ...string[]]) ||
+  null;
 
 const createRuleCheckedEntryFromValidatedRules = <
   G extends NominationFile.RuleGroup,

@@ -16,8 +16,9 @@ export interface NominationFileSM {
   grade: Magistrat.Grade;
   currentPosition: string;
   targettedPosition: string;
-  rank: string;
   comment: string | null;
+  rank: string;
+  observers: string[] | null;
   rules: NominationFile.Rules;
 }
 export type NominationFileListItem = Pick<
@@ -30,7 +31,7 @@ export type NominationFileListItem = Pick<
   | "transparency"
   | "grade"
   | "targettedPosition"
-> & { reporterName: string | null };
+> & { reporterName: string | null; observersCount: number };
 
 export interface AppState {
   nominationFileOverview: { byIds: Record<string, NominationFileSM> | null };

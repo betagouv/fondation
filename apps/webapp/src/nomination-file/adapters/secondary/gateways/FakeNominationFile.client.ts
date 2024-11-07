@@ -2,11 +2,13 @@ import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
 import {
   NominationFile,
   ReportListingVM,
+  ReportListItemVM,
   ReportRetrievalVM,
   rulesTuple,
 } from "shared-models";
 import { NominationFileApiClient } from "../../../core-logic/gateways/NominationFileApi.client";
-import { FakeNominationFileFromApi } from "./FakeNominationFile.gateway";
+
+export type FakeNominationFileFromApi = ReportRetrievalVM & ReportListItemVM;
 
 export class FakeNominationFileApiClient implements NominationFileApiClient {
   nominationFiles: Record<string, FakeNominationFileFromApi> = {};
@@ -74,6 +76,7 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
 
   async retrieveNominationFile(id: string): Promise<ReportRetrievalVM | null> {
     const fullReport = this.nominationFiles[id];
+
     if (!fullReport) return null;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { reporterName, ...report } = fullReport;
@@ -91,6 +94,7 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
       transparency: report.transparency,
       grade: report.grade,
       targettedPosition: report.targettedPosition,
+      observersCount: report.observersCount,
     }));
 
     return {
