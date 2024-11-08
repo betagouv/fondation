@@ -1,15 +1,18 @@
+import _ from 'lodash';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import {
   DateOnly,
   gsheetDateFormat,
 } from 'src/shared-kernel/business-logic/models/date-only';
+import { Get, Paths } from 'type-fest';
 import { NominationFileModel } from './nomination-file';
 import {
   GSHEET_BLOCK_LINE_BREAK_TOKEN,
   GSHEET_CELL_LINE_BREAK_TOKEN,
 } from './nomination-file-content-reader';
 
-type Line = {
+export type Line = {
+  folderNumber: number | null;
   name: string;
   formation: string;
   dueDate: string | null;
@@ -49,11 +52,24 @@ export class NominationFileTsvBuilder {
     this._header = `${firstHeader}\n${secondHeader}`;
   }
 
-  withNewLine() {
-    if (this._currentLine) {
-      this._lines.push(this._currentLine);
-      this._currentLine = null;
-    }
+  with<K extends Paths<Line>, V extends Get<Line, K> = Get<Line, K>>(
+    property: K,
+    value: V,
+  ) {
+    if (!this._currentLine) throw new Error('No current line');
+    this._currentLine = _.set(this._currentLine, property, value);
+    return this;
+  }
+
+  withState(state: string) {
+    if (!this._currentLine) throw new Error('No current line');
+    this._currentLine.state = state;
+    return this;
+  }
+
+  withFormation(formation: string) {
+    if (!this._currentLine) throw new Error('No current line');
+    this._currentLine.formation = formation;
     return this;
   }
 
@@ -81,12 +97,21 @@ export class NominationFileTsvBuilder {
     return this._header;
   }
 
+  private withNewLine() {
+    if (this._currentLine) {
+      this._lines.push(this._currentLine);
+      this._currentLine = null;
+    }
+    return this;
+  }
+
   private withLineContent(lineContent: Line) {
     this._currentLine = lineContent;
     return this;
   }
 
   private buildLine({
+    folderNumber,
     name,
     formation,
     dueDate,
@@ -188,7 +213,8 @@ export class NominationFileTsvBuilder {
       observers?.join(GSHEET_BLOCK_LINE_BREAK_TOKEN) || '';
     const observersForDisplay = observers?.join('     ') || '';
 
-    return `TRUE\t1 (Parquet)\t${name}\t${formation}\t${dueDate || ''}\t${state}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t ${grade}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
+    const folderNumberString = `${folderNumber || 'profilé'} (${formation.trim()})`;
+    return `TRUE\t${folderNumberString}\t${name}\t${formation}\t${dueDate || ''}\t${state}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t${grade}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
   }
 
   build() {
@@ -211,7 +237,7 @@ export class NominationFileTsvBuilder {
 
     const stateMap = {
       [NominationFile.ReportState.NEW]: 'Nouveau',
-      [NominationFile.ReportState.OPINION_RETURNED]: 'Avis rendu',
+      [NominationFile.ReportState.OPINION_RETURNED]: 'Avis restitué',
     };
 
     const gradeMap = {
@@ -226,6 +252,7 @@ export class NominationFileTsvBuilder {
     };
 
     return this.withNewLine().withLineContent({
+      folderNumber: content.folderNumber,
       name: content.name,
       formation: formationMap[content.formation],
       dueDate: content.dueDate

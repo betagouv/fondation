@@ -26,11 +26,13 @@ export class ReportBuilder {
   private rank: string;
   private reporterName: string | null;
   private observers: string[] | null;
+  private folderNumber: number | null;
 
   constructor() {
     this.id = 'report-id';
     this.nominationFileId = 'nomination-file-id';
     this.createdAt = new Date(2021, 1, 1);
+    this.folderNumber = 1;
     this.name = 'John Doe';
     this.biography = 'Biography';
     this.dueDate = new DateOnly(2030, 1, 1);
@@ -57,6 +59,10 @@ export class ReportBuilder {
   }
   withCreatedAt(createdAt: Date): this {
     this.createdAt = createdAt;
+    return this;
+  }
+  withFolderNumber(folderNumber: number | null): this {
+    this.folderNumber = folderNumber;
     return this;
   }
   withName(name: string) {
@@ -122,6 +128,7 @@ export class ReportBuilder {
       this.id,
       this.nominationFileId,
       this.createdAt,
+      this.folderNumber,
       this.biography,
       this.dueDate,
       this.name,

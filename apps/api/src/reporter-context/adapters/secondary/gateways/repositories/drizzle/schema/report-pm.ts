@@ -1,5 +1,12 @@
 import { sql } from 'drizzle-orm';
-import { date, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  date,
+  integer,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { NominationFile } from 'shared-models';
 import {
   formationEnum,
@@ -15,6 +22,7 @@ export const reports = reportsContextSchema.table('reports', {
     .default(sql`gen_random_uuid()`),
   nominationFileId: uuid('nomination_file_id').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  folderNumber: integer('folder_number'),
   biography: text('biography'),
   dueDate: date('due_date'),
   name: varchar('name').notNull(),

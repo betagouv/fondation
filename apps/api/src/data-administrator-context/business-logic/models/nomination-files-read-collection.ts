@@ -2,7 +2,7 @@ import { NominationFileModel } from './nomination-file';
 import {
   NominationFilesImportedEvent,
   NominationFilesImportedEventPayload,
-} from './nomination-file-imported.event';
+} from './events/nomination-file-imported.event';
 import { NominationFileRead } from './nomination-file-read';
 
 export class NominationFilesContentReadCollection {

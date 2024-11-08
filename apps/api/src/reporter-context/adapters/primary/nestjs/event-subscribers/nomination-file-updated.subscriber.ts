@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   NominationFilesUpdatedEvent,
   NominationFilesUpdatedEventPayload,
-} from 'src/data-administrator-context/business-logic/models/nomination-files-updated.event';
+} from 'src/data-administrator-context/business-logic/models/events/nomination-files-updated.event';
 import { UpdateReportOnImportChangeUseCase } from 'src/reporter-context/business-logic/use-cases/report-update-on-import-change/update-report-on-import-change.use-case';
 import typia from 'typia';
 

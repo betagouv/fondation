@@ -167,6 +167,7 @@ describe('Import Nominations from local file', () => {
         id: reportId,
         nominationFileId: nominationFileId,
         createdAt: new Date(),
+        folderNumber: content.folderNumber,
         state: NominationFile.ReportState.NEW,
         dueDate: DateOnly.fromJson(content.dueDate!).toDbString(),
         formation: content.formation,
@@ -265,6 +266,7 @@ describe('Import Nominations from local file', () => {
     id: expect.any(String),
     nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
+    folderNumber: content.folderNumber,
     state: content.state,
     dueDate: content.dueDate
       ? DateOnly.fromJson(content.dueDate).toDbString()
@@ -287,6 +289,7 @@ describe('Import Nominations from local file', () => {
 function getExpectedContents(): NominationFileRead['content'][] {
   return [
     {
+      folderNumber: 1,
       biography:
         '- blabla julien pierre   - blabla.   - blabla BEAUVAIS (1er grade), 11/10/2013 (Ins.11/10/2013).   - VPLILLES 25/06/2014 (Ins.03/09/2018).',
       birthDate: {
@@ -344,6 +347,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       transparency: Transparency.AUTOMNE_2024,
     },
     {
+      folderNumber: 2,
       biography:
         '- blabla dupont marcel   - blabla.   - blabla BEAUVAIS (1er grade), 11/10/2013 (Ins.11/10/2013).   - VPLILLES 25/06/2014 (Ins.03/09/2018).',
       birthDate: {
@@ -398,6 +402,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       transparency: Transparency.AUTOMNE_2024,
     },
     {
+      folderNumber: 5,
       biography:
         '- blabla brusse émilien   - blabla.   - blabla BEAUVAIS (1er grade), 11/10/2013 (Ins.11/10/2013).   - VPLILLES 25/06/2014 (Ins.03/09/2018).',
       birthDate: {

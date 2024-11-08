@@ -5,20 +5,23 @@ import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { Get, PartialDeep, Paths } from 'type-fest';
 import { EmptyFileError } from '../../errors/empty-file.error';
 import { FileLengthTooShortError } from '../../errors/file-length-too-short.error';
 import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
 import { NominationFileModel } from '../../models/nomination-file';
-import { NominationFilesImportedEvent } from '../../models/nomination-file-imported.event';
+import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
+import { NominationFilesImportedEvent } from '../../models/events/nomination-file-imported.event';
 import { NominationFileRead } from '../../models/nomination-file-read';
-import { NominationFileTsvBuilder } from '../../models/nomination-file-tsv-builder';
-import { ImportNominationFilesUseCase } from './import-nomination-files.use-case';
-import { PartialDeep } from 'type-fest';
+import {
+  Line,
+  NominationFileTsvBuilder,
+} from '../../models/nomination-file-tsv-builder';
 import {
   NominationFilesUpdatedEvent,
   NominationFilesUpdatedEventPayload,
-} from '../../models/nomination-files-updated.event';
-import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
+} from '../../models/events/nomination-files-updated.event';
+import { ImportNominationFilesUseCase } from './import-nomination-files.use-case';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
@@ -60,16 +63,54 @@ describe('Import Nomination Files Use Case', () => {
     },
   );
 
-  it('rejects all imports if one has note the expected rules count', async () => {
-    await expect(
-      importAFile(
-        new NominationFileTsvBuilder()
-          .fromModel(getMarcelDupontModel('nomination-file-id', 1))
-          .withRuleMinisterCabinet('FFALSE')
-          .build(),
-      ),
-    ).rejects.toThrow(InvalidRowValueError);
-  });
+  it.each<{
+    testName: string;
+    column: Paths<Line>;
+    value: Get<Line, Paths<Line>>;
+  }>([
+    {
+      testName: 'folder number',
+      column: 'folderNumber',
+      value: '1 (Siège) (Parquet)',
+    },
+    {
+      testName: 'existing state "ready to support" value forbidden in gsheet',
+      column: 'state',
+      value: 'Prêt à soutenir',
+    },
+    {
+      testName: 'existing state "in progress" value forbidden in gsheet',
+      column: 'state',
+      value: 'En cours',
+    },
+    {
+      testName: 'formation',
+      column: 'formation',
+      value: 'Sièège',
+    },
+    {
+      testName: 'transparency',
+      column: 'transparency',
+      value: 'Mars 1970',
+    },
+    {
+      testName: 'rules count',
+      column: `rules.${NominationFile.RuleGroup.STATUTORY}.${NominationFile.StatutoryRule.MINISTER_CABINET}`,
+      value: 'FFALSE',
+    },
+  ])(
+    'rejects all imports if one has an unexpected $testName',
+    async ({ column, value }) => {
+      await expect(
+        importAFile(
+          new NominationFileTsvBuilder()
+            .fromModel(getMarcelDupontModel('nomination-file-id', 1))
+            .with(column, value)
+            .build(),
+        ),
+      ).rejects.toThrow(InvalidRowValueError);
+    },
+  );
 
   it('informs about a new file imported', async () => {
     await importAFile(
@@ -93,12 +134,24 @@ describe('Import Nomination Files Use Case', () => {
 
   it('parses a line with all values filled and all rules pre-validated at true', async () => {
     const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1, {
+      folderNumber: 1,
       reporters: ['   FIRST Reporter  ', '   SECOND Reporter  '],
       observers: [anObserverString, '  SECOND OBSERVER  '],
+      transparency: Transparency.AUTOMNE_2024,
+      biography: ' - blabla ',
+      formation: Magistrat.Formation.SIEGE,
     });
 
     await importAFile(
-      new NominationFileTsvBuilder().fromModel(marcelDupontModel).build(),
+      new NominationFileTsvBuilder()
+        .fromModel(marcelDupontModel)
+        .with('folderNumber', ' 1  ' as unknown as number)
+        .with('transparency', ' Automne 2024 ')
+        .with('biography', ' - blabla ')
+        .withFormation(' Siège ')
+        .with('dueDate', ' 10/11/2024 ')
+        .with('birthDate', ' 01/11/1961 ')
+        .build(),
     );
 
     const marcelDupontSnapshot = marcelDupontModel.toSnapshot();
@@ -110,8 +163,22 @@ describe('Import Nomination Files Use Case', () => {
           rowNumber: marcelDupontSnapshot.rowNumber,
           content: {
             ...marcelDupontSnapshot.content,
+            folderNumber: 1,
             reporters: ['FIRST Reporter', 'SECOND Reporter'],
             observers: [anObserverExpected, 'SECOND OBSERVER'],
+            transparency: Transparency.AUTOMNE_2024,
+            biography: '- blabla',
+            formation: Magistrat.Formation.SIEGE,
+            dueDate: {
+              year: 2024,
+              month: 11,
+              day: 10,
+            },
+            birthDate: {
+              year: 1961,
+              month: 11,
+              day: 1,
+            },
           },
         },
       ),
@@ -119,11 +186,16 @@ describe('Import Nomination Files Use Case', () => {
   });
 
   it('parses a line with possible empty values unfilled and one rule pre-validated at true', async () => {
-    const lucienPierreModel = getLucienPierreModel('nomination-file-id', 1);
+    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1, {
+      folderNumber: null,
+      reporters: null,
+      observers: null,
+      biography: null,
+    });
     await importAFile(
-      new NominationFileTsvBuilder().fromModel(lucienPierreModel).build(),
+      new NominationFileTsvBuilder().fromModel(marcelDupontModel).build(),
     );
-    expectNominationFiles(lucienPierreModel);
+    expectNominationFiles(marcelDupontModel);
   });
 
   it('saves two lines', async () => {
@@ -398,6 +470,7 @@ describe('Import Nomination Files Use Case', () => {
   ): NominationFileRead => ({
     rowNumber,
     content: {
+      folderNumber: 1,
       name: 'Marcel Dupont Ep. François',
       formation: Magistrat.Formation.SIEGE,
       dueDate: {
@@ -432,6 +505,7 @@ describe('Import Nomination Files Use Case', () => {
   const getLucienPierreRead = (rowNumber = 1): NominationFileRead => ({
     rowNumber,
     content: {
+      folderNumber: 2,
       name: 'Lucien Pierre',
       formation: Magistrat.Formation.PARQUET,
       dueDate: null,

@@ -1,9 +1,16 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { NominationFile } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import typia from 'typia';
 import { InvalidRowValueError } from '../errors/invalid-row-value.error';
+import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
+import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normalizer';
+import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { NominationFileRead } from './nomination-file-read';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
+import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
+import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
+import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
+import { StateTsvNormalizer } from './tsv-normalizers/state-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -26,7 +33,7 @@ export class NominationFileContentReader {
           ).reduce(
             (rulesAcc, [rule, index]) => {
               if (!['TRUE', 'FALSE'].includes(row[index]!))
-                throw new InvalidRowValueError(rule, rowIndex);
+                throw new InvalidRowValueError('rule', rule, rowIndex);
 
               return {
                 ...rulesAcc,
@@ -54,6 +61,10 @@ export class NominationFileContentReader {
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
         content: {
+          folderNumber: FolderNumberTsvNormalizer.normalize(
+            this.findValue('N° dossier', rowIndex)!,
+            rowIndex,
+          ),
           dueDate: dueDate
             ? DateOnly.fromString(dueDate, 'dd/M/yyyy', 'fr').toJson()
             : null,
@@ -63,27 +74,30 @@ export class NominationFileContentReader {
             'fr',
           ).toJson(),
           name: this.findValue('Magistrat', rowIndex)!,
-          formation:
-            this.findValue('Formation', rowIndex) === 'Parquet'
-              ? Magistrat.Formation.PARQUET
-              : Magistrat.Formation.SIEGE,
-          state:
-            this.findValue('Etat', rowIndex) === 'Nouveau'
-              ? NominationFile.ReportState.NEW
-              : NominationFile.ReportState.OPINION_RETURNED,
-          transparency: this.normalizeTransparency(
+          formation: FormationTsvNormalizer.normalize(
+            this.findValue('Formation', rowIndex)!,
+            rowIndex,
+          ),
+          state: StateTsvNormalizer.normalize(
+            this.findValue('Etat', rowIndex)!,
+            rowIndex,
+          ),
+          transparency: TransparencyTsvNormalizer.normalize(
             this.findValue('Transparence', rowIndex)!,
+            rowIndex,
           ),
           reporters: reportersValue
-            ? this.normalizeReporters(reportersValue)
+            ? ReportersTsvNormalizer.normalize(reportersValue)
             : null,
-          grade: this.gradeToEnum(this.findValue('Grade actuel', rowIndex)!),
+          grade: GradeTsvNormalizer.normalize(
+            this.findValue('Grade actuel', rowIndex)!,
+          ),
           currentPosition: this.findValue('Poste actuel', rowIndex)!,
           targettedPosition: this.findValue('Poste pressenti', rowIndex)!,
           rank: this.findValue('Rang', rowIndex)!,
           biography: this.findValue('Historique', rowIndex, { optional: true }),
           observers: observersValue
-            ? this.normalizeObservers(observersValue)
+            ? ObserversTsvNormalizer.normalize(observersValue)
             : null,
           rules,
         },
@@ -98,33 +112,6 @@ export class NominationFileContentReader {
     return new NominationFilesContentReadCollection(safeNominationFileRead);
   }
 
-  private normalizeTransparency(transparency: string): Transparency {
-    switch (transparency) {
-      case 'Automne 2024':
-        return Transparency.AUTOMNE_2024;
-      case 'Mars 2025':
-        return Transparency.MARCH_2025;
-      case 'Mars 2026':
-        return Transparency.MARCH_2026;
-      default:
-        throw new Error('Invalid transparency: ' + transparency);
-    }
-  }
-
-  private normalizeReporters(reportersValue: string): string[] {
-    return reportersValue
-      .split(GSHEET_CELL_LINE_BREAK_TOKEN)
-      .map((value) => value.trim());
-  }
-
-  private normalizeObservers(reportersValue: string): string[] {
-    return reportersValue
-      .split(GSHEET_BLOCK_LINE_BREAK_TOKEN)
-      .map((value) =>
-        value.replaceAll(GSHEET_CELL_LINE_BREAK_TOKEN, '\n').trim(),
-      );
-  }
-
   private findValue(
     column: string,
     rowIndex: number,
@@ -135,7 +122,7 @@ export class NominationFileContentReader {
     if (!row) throw new Error(`Row ${rowIndex} not found`);
     const value = row[columnIndex];
 
-    if (options?.optional) return value ?? null;
+    if (options?.optional) return value || null;
     if (value === undefined)
       throw new Error(`Column ${column} not found in row ${rowIndex}`);
     return value;
@@ -236,18 +223,5 @@ export class NominationFileContentReader {
           ),
       },
     };
-  }
-
-  private gradeToEnum(grade: string): Magistrat.Grade {
-    switch (grade) {
-      case 'I':
-        return Magistrat.Grade.I;
-      case 'II':
-        return Magistrat.Grade.II;
-      case 'HH':
-        return Magistrat.Grade.HH;
-      default:
-        throw new Error('Invalid grade: ' + grade);
-    }
   }
 }

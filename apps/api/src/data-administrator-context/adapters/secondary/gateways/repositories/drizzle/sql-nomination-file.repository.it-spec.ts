@@ -85,6 +85,7 @@ describe('SQL Nomination File Repository', () => {
       {
         rowNumber: 1,
         content: {
+          folderNumber: 2,
           name: 'Lucien Pierre',
           formation: Magistrat.Formation.PARQUET,
           dueDate: null,

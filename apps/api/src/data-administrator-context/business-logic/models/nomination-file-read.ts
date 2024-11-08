@@ -4,6 +4,7 @@ import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only'
 export type NominationFileRead = {
   rowNumber: number;
   content: {
+    folderNumber: number | null;
     name: string;
     formation: Magistrat.Formation;
     dueDate: DateOnlyJson | null;

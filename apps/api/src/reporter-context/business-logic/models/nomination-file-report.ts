@@ -7,6 +7,7 @@ export class NominationFileReport {
     readonly id: string,
     readonly nominationFileId: string,
     readonly createdAt: Date,
+    readonly folderNumber: number | null,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
     readonly name: string,
@@ -37,6 +38,7 @@ export class NominationFileReport {
       reportId,
       importedNominationFileId,
       currentDate,
+      createReportPayload.folderNumber,
       createReportPayload.biography,
       createReportPayload.dueDate
         ? new DateOnly(

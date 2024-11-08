@@ -35,6 +35,10 @@ describe('Update Report On Import Change Use Case', () => {
     transactionPerformer = new NullTransactionPerformer();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should update the observers', async () => {
     const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
       {
@@ -48,6 +52,7 @@ describe('Update Report On Import Change Use Case', () => {
         aFirstReport.id,
         aFirstReport.nominationFileId,
         aFirstReport.createdAt,
+        aFirstReport.folderNumber,
         aFirstReport.biography,
         aFirstReport.dueDate,
         aFirstReport.name,

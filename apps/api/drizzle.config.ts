@@ -14,6 +14,7 @@ export default defineConfig({
   breakpoints: false,
   strict: true,
   dbCredentials: getDbCredentials(),
+  casing: 'snake_case',
 });
 
 function getDbCredentials() {

@@ -16,6 +16,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
         .onConflictDoUpdate({
           target: reports.id,
           set: buildConflictUpdateColumns(reports, [
+            'folderNumber',
             'biography',
             'dueDate',
             'name',
@@ -70,6 +71,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       id: report.id,
       nominationFileId: report.nominationFileId,
       createdAt: report.createdAt,
+      folderNumber: report.folderNumber,
       biography: report.biography,
       dueDate: report.dueDate ? report.dueDate.toDbString() : null,
       name: report.name,
@@ -92,6 +94,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       row.id,
       row.nominationFileId,
       row.createdAt,
+      row.folderNumber,
       row.biography,
       row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,
       row.name,

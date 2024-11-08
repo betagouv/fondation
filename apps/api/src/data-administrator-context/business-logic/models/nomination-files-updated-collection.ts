@@ -4,7 +4,7 @@ import { NominationFileRead } from './nomination-file-read';
 import {
   NominationFilesUpdatedEvent,
   NominationFilesUpdatedEventPayload,
-} from './nomination-files-updated.event';
+} from './events/nomination-files-updated.event';
 
 export class NominationFilesUpdatedCollection {
   private _nominationFileModels: NominationFileModel[];

@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   NominationFilesImportedEvent,
   NominationFilesImportedEventPayload,
-} from 'src/data-administrator-context/business-logic/models/nomination-file-imported.event';
+} from 'src/data-administrator-context/business-logic/models/events/nomination-file-imported.event';
 import { CreateReportUseCase } from 'src/reporter-context/business-logic/use-cases/report-creation/create-report.use-case';
 import typia from 'typia';
 
@@ -22,6 +22,7 @@ export class NominationFileImportedSubscriber {
         content.reporters?.length
           ? content.reporters.map((reporterName) =>
               this.createReportUseCase.execute(id, {
+                folderNumber: content.folderNumber,
                 name: content.name,
                 reporterName,
                 formation: content.formation,
@@ -40,6 +41,7 @@ export class NominationFileImportedSubscriber {
             )
           : [
               this.createReportUseCase.execute(id, {
+                folderNumber: content.folderNumber,
                 name: content.name,
                 reporterName: null,
                 formation: content.formation,

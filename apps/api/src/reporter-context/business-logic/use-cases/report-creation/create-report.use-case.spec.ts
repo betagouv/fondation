@@ -58,6 +58,7 @@ describe('Create Report Use Case', () => {
         nominationFileReportId,
         importedNominationFileId,
         datetimeProvider.currentDate,
+        payload.folderNumber,
         payload.biography,
         new DateOnly(2035, 8, 22),
         payload.name,
@@ -80,6 +81,7 @@ describe('Create Report Use Case', () => {
   const givenAReportToCreate = (
     moreData?: Partial<ReportToCreate>,
   ): ReportToCreate => ({
+    folderNumber: 1,
     name: 'Lucien Pierre',
     reporterName: 'LUC Loïc',
     formation: Magistrat.Formation.PARQUET,

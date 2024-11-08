@@ -10,6 +10,7 @@ import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
 
 export interface ReportToCreate {
+  folderNumber: number | null;
   name: string;
   reporterName: string | null;
   formation: Magistrat.Formation;
