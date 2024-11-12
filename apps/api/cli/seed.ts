@@ -5,19 +5,19 @@ import {
   Transparency,
 } from 'shared-models';
 import { NestFactory } from '@nestjs/core';
-import { ReportBuilder } from 'src/reporter-context/business-logic/models/report.builder';
+import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import {
   DRIZZLE_DB,
   SharedKernelModule,
 } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { reports } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
-import { reportRules } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
-import { SqlNominationFileReportRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
-import { SqlReportRuleRepository } from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';
+import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
+import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
+import { SqlNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
+import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import crypto from 'crypto';
-import { ReportRuleBuilder } from 'src/reporter-context/business-logic/models/report-rules.builder';
+import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(SharedKernelModule);

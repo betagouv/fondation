@@ -7,11 +7,11 @@ import {
   StartedDockerComposeEnvironment,
   Wait,
 } from 'testcontainers';
-import { nominationFiles } from '../src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { nominationFiles } from '../src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
   reportRules,
   reports,
-} from '../src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema/index';
+} from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/index';
 import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,

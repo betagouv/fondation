@@ -5,14 +5,14 @@ import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { AppModule } from 'src/app.module';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
-import { nominationFiles } from 'src/data-administrator-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
-import { NominationFileRead } from 'src/data-administrator-context/business-logic/models/nomination-file-read';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/data-administration-context.module';
+import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import {
   reportRules,
   reports,
-} from 'src/reporter-context/adapters/secondary/gateways/repositories/drizzle/schema';
+} from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {

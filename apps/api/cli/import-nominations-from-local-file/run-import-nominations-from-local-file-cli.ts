@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import path from 'path';
 import { AppModule } from 'src/app.module';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administrator-context/adapters/primary/nestjs/data-administration-context.module';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administrator-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/data-administration-context.module';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { setTimeout } from 'timers/promises';
 
 const runImportNominationsFromLocalFileCli = async (
