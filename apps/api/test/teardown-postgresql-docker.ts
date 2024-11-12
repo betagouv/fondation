@@ -19,7 +19,7 @@ const endDbConnection = async () => {
 export const endDockerCompose = async () => {
   console.log('Shutting dow docker compose containers');
   try {
-    await dockerDBInstance?.down();
+    await dockerDBInstance?.down({ removeVolumes: true });
     console.log('Removed docker containers');
   } catch (e) {
     console.log('Failing to shutdown the docker containers', e);

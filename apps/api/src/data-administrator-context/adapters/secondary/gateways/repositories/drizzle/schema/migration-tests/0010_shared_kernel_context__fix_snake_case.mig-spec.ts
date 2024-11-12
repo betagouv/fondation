@@ -23,10 +23,6 @@ describe('Shared Kernel Context - migration 0010', () => {
   const pool = new Pool(drizzleConfigForTest);
   const db = drizzle({ client: pool, schema });
 
-  beforeAll(async () => {
-    await db.execute(sql`CREATE SCHEMA shared_kernel_context;`);
-  });
-
   beforeEach(async () => {
     const { apply } = await pushSchema(schema, db as unknown as NodePgDatabase);
     await apply();

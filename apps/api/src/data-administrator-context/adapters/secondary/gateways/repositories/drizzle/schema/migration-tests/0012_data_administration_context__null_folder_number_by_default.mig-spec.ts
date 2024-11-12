@@ -19,13 +19,17 @@ const nominationFiles = dataAdministrationContextSchema.table(
 );
 const nominationFileRow: typeof nominationFiles.$inferInsert = {
   id: 'ca1619e2-263d-49b6-b928-6a04ee681138',
-  content: {},
+  content: {
+    someField: 'some value',
+  },
 };
 const schema = {
   nominationFiles: nominationFiles,
 };
 
-describe('Data administration context - migration 0009', () => {
+const migrationNumber = 12;
+
+describe(`Data administration context - migration 00${migrationNumber}`, () => {
   const pool = new Pool(drizzleConfigForTest);
   const db = drizzle({
     client: pool,
@@ -46,10 +50,13 @@ describe('Data administration context - migration 0009', () => {
     await db.$client.end();
   });
 
-  it('adds a null value to content observers', async () => {
+  it("adds a null value to content's folder number", async () => {
     await givenANominationFile();
-    await db.execute(getDrizzleMigrationSql(9));
-    await expectNominationFileWithContent({ observers: null });
+    await db.execute(getDrizzleMigrationSql(migrationNumber));
+    await expectNominationFileWithContent({
+      folderNumber: null,
+      someField: 'some value',
+    });
   });
 
   const givenANominationFile = async () => {

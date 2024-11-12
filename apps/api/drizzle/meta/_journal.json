@@ -85,6 +85,13 @@
       "when": 1731097915700,
       "tag": "0011_reports_context__add_folder_number",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1731410441962,
+      "tag": "0012_data_administration_context__null_folder_number_by_default",
+      "breakpoints": true
     }
   ]
 }
