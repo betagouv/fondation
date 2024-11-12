@@ -1,72 +1,50 @@
 import { NominationFile } from 'shared-models';
-import { ReportRule } from './report-rules';
+import { ReportRule, ReportRuleSnapshot } from './report-rules';
+import _ from 'lodash';
+import { Paths, Get } from 'type-fest';
 
 export class ReportRuleBuilder {
-  private id: string;
-  private createdAt: Date;
-  private reportId: string;
-  private ruleGroup: NominationFile.RuleGroup;
-  private ruleName: NominationFile.RuleName;
-  private preValidated: boolean;
-  private validated: boolean;
-  private comment: string | null;
+  private _snapshot: ReportRuleSnapshot;
 
   constructor() {
-    this.id = 'rule-id';
-    this.createdAt = new Date(2021, 1, 1);
-    this.reportId = 'report-id';
-    this.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
-    this.ruleName = NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS;
-    this.preValidated = true;
-    this.validated = true;
-    this.comment = 'rule comment';
+    this._snapshot = {
+      id: 'rule-id',
+      createdAt: new Date(2021, 1, 1),
+      reportId: 'report-id',
+      ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
+      ruleName: NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
+      preValidated: true,
+      validated: true,
+      comment: 'rule comment',
+    };
   }
 
-  withId(id: string): this {
-    this.id = id;
+  with<
+    K extends Paths<ReportRuleSnapshot>,
+    V extends Get<ReportRuleSnapshot, K> = Get<ReportRuleSnapshot, K>,
+  >(property: K, value: V) {
+    this._snapshot = _.set(this._snapshot, property, value);
     return this;
   }
-  withReportId(id: string) {
-    this.reportId = id;
-    return this;
-  }
-  withRuleGroup(ruleGroup: NominationFile.RuleGroup): this {
-    this.ruleGroup = ruleGroup;
-    return this;
-  }
-  withRuleName(ruleName: NominationFile.RuleName): this {
-    this.ruleName = ruleName;
-    return this;
-  }
-  withPreValidated(preValidated: boolean): this {
-    this.preValidated = preValidated;
-    return this;
-  }
-  withValidated(validated: boolean): this {
-    this.validated = validated;
-    return this;
-  }
+
   withOverseasToOverseasRuleValidated(validated: boolean): this {
-    this.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
-    this.ruleName = NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS;
-    this.validated = validated;
-    return this;
-  }
-  withComment(comment: string | null): this {
-    this.comment = comment;
+    this._snapshot.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
+    this._snapshot.ruleName =
+      NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS;
+    this._snapshot.validated = validated;
     return this;
   }
 
   build(): ReportRule {
     return new ReportRule(
-      this.id,
-      this.createdAt,
-      this.reportId,
-      this.ruleGroup,
-      this.ruleName,
-      this.preValidated,
-      this.validated,
-      this.comment,
+      this._snapshot.id,
+      this._snapshot.createdAt,
+      this._snapshot.reportId,
+      this._snapshot.ruleGroup,
+      this._snapshot.ruleName,
+      this._snapshot.preValidated,
+      this._snapshot.validated,
+      this._snapshot.comment,
     );
   }
 }

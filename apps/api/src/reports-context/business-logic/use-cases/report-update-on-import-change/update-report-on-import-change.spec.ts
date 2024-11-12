@@ -168,25 +168,25 @@ describe('Update Report On Import Change Use Case', () => {
 });
 
 const aFirstReport = new ReportBuilder()
-  .withId('first-report-id')
-  .withNominationFileId(nominationFileId)
+  .with('id', 'first-report-id')
+  .with('nominationFileId', nominationFileId)
   .build();
 const aFirstReportTransferTimeRule = new ReportRuleBuilder()
-  .withId('first-rule-id')
-  .withReportId(aFirstReport.id)
-  .withRuleGroup(NominationFile.RuleGroup.MANAGEMENT)
-  .withRuleName(NominationFile.ManagementRule.TRANSFER_TIME)
-  .withPreValidated(true)
+  .with('id', 'first-rule-id')
+  .with('reportId', aFirstReport.id)
+  .with('ruleGroup', NominationFile.RuleGroup.MANAGEMENT)
+  .with('ruleName', NominationFile.ManagementRule.TRANSFER_TIME)
+  .with('preValidated', true)
   .build();
 
 const aSecondReport = new ReportBuilder()
-  .withId('second-report-id')
-  .withNominationFileId(nominationFileId)
+  .with('id', 'second-report-id')
+  .with('nominationFileId', nominationFileId)
   .build();
 const aSecondReportTransferTimeRule = new ReportRuleBuilder()
-  .withId('second-rule-id')
-  .withReportId(aSecondReport.id)
-  .withRuleGroup(NominationFile.RuleGroup.MANAGEMENT)
-  .withRuleName(NominationFile.ManagementRule.TRANSFER_TIME)
-  .withPreValidated(true)
+  .with('id', 'second-rule-id')
+  .with('reportId', aSecondReport.id)
+  .with('ruleGroup', NominationFile.RuleGroup.MANAGEMENT)
+  .with('ruleName', NominationFile.ManagementRule.TRANSFER_TIME)
+  .with('preValidated', true)
   .build();

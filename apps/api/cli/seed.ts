@@ -26,8 +26,8 @@ async function seed() {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
 
     const report1 = new ReportBuilder()
-      .withId(crypto.randomUUID())
-      .withName('John Doe')
+      .with('id', crypto.randomUUID())
+      .with('name', 'John Doe')
       .build();
 
     const reportRow1 = SqlNominationFileReportRepository.mapToDb(report1);
@@ -36,13 +36,13 @@ async function seed() {
     const report1RulesPromises = rulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
-          .withId(crypto.randomUUID())
-          .withReportId(report1.id)
-          .withRuleGroup(ruleGroup)
-          .withRuleName(ruleName)
-          .withPreValidated(false)
-          .withValidated(false)
-          .withComment(null)
+          .with('id', crypto.randomUUID())
+          .with('reportId', report1.id)
+          .with('ruleGroup', ruleGroup)
+          .with('ruleName', ruleName)
+          .with('preValidated', false)
+          .with('validated', false)
+          .with('comment', null)
           .build();
 
         const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
@@ -52,19 +52,19 @@ async function seed() {
     await Promise.all(report1RulesPromises);
 
     const report2 = new ReportBuilder()
-      .withId(crypto.randomUUID())
-      .withName('Ada Lovelace')
-      .withBiography('- Tribunal de grande instance de Paris')
-      .withBirthDate(new DateOnly(1990, 1, 1))
-      .withDueDate(new DateOnly(2025, 10, 1))
-      .withFormation(Magistrat.Formation.PARQUET)
-      .withGrade(Magistrat.Grade.HH)
-      .withState(NominationFile.ReportState.OPINION_RETURNED)
-      .withTransparency(Transparency.AUTOMNE_2024)
-      .withCurrentPosition('Juge')
-      .withTargettedPosition('Procureur')
-      .withComment('Commentaire')
-      .withRank('(1 sur une liste de 100)')
+      .with('id', crypto.randomUUID())
+      .with('name', 'Ada Lovelace')
+      .with('biography', '- Tribunal de grande instance de Paris')
+      .with('birthDate', new DateOnly(1990, 1, 1))
+      .with('dueDate', new DateOnly(2025, 10, 1))
+      .with('formation', Magistrat.Formation.PARQUET)
+      .with('grade', Magistrat.Grade.HH)
+      .with('state', NominationFile.ReportState.OPINION_RETURNED)
+      .with('transparency', Transparency.AUTOMNE_2024)
+      .with('currentPosition', 'Juge')
+      .with('targettedPosition', 'Procureur')
+      .with('comment', 'Commentaire')
+      .with('rank', '(1 sur une liste de 100)')
       .build();
 
     const reportRow2 = SqlNominationFileReportRepository.mapToDb(report2);
@@ -73,13 +73,13 @@ async function seed() {
     const report2RulesPromises = rulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
-          .withId(crypto.randomUUID())
-          .withReportId(report2.id)
-          .withRuleGroup(ruleGroup)
-          .withRuleName(ruleName)
-          .withPreValidated(true)
-          .withValidated(true)
-          .withComment(null)
+          .with('id', crypto.randomUUID())
+          .with('reportId', report2.id)
+          .with('ruleGroup', ruleGroup)
+          .with('ruleName', ruleName)
+          .with('preValidated', true)
+          .with('validated', true)
+          .with('comment', null)
           .build();
 
         const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);

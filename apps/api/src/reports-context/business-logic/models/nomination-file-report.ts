@@ -2,6 +2,27 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 
+export type NominationFileReportSnapshot = {
+  id: string;
+  nominationFileId: string;
+  createdAt: Date;
+  folderNumber: number | null;
+  biography: string | null;
+  dueDate: DateOnly | null;
+  name: string;
+  reporterName: string | null;
+  birthDate: DateOnly;
+  state: NominationFile.ReportState;
+  formation: Magistrat.Formation;
+  transparency: Transparency;
+  grade: Magistrat.Grade;
+  currentPosition: string;
+  targettedPosition: string;
+  comment: string | null;
+  rank: string;
+  observers: string[] | null;
+};
+
 export class NominationFileReport {
   constructor(
     readonly id: string,

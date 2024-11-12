@@ -76,6 +76,7 @@ describe('Reporter Controller', () => {
 
     const aReportListingVM: ReportListItemVM = {
       id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      folderNumber: 1,
       state: NominationFile.ReportState.NEW,
       dueDate: {
         year: 2030,
@@ -91,7 +92,7 @@ describe('Reporter Controller', () => {
       observersCount: 1,
     };
     const aReport = ReportBuilder.fromListingVM(aReportListingVM)
-      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
   });
 
@@ -105,10 +106,10 @@ describe('Reporter Controller', () => {
       const reportRulesPromises = rulesTuple.map(
         async ([ruleGroup, ruleName]) => {
           const reportRule = new ReportRuleBuilder()
-            .withId(crypto.randomUUID())
-            .withReportId(aReport.id)
-            .withRuleGroup(ruleGroup)
-            .withRuleName(ruleName)
+            .with('id', crypto.randomUUID())
+            .with('reportId', aReport.id)
+            .with('ruleGroup', ruleGroup)
+            .with('ruleName', ruleName)
             .build();
 
           const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
@@ -148,10 +149,10 @@ describe('Reporter Controller', () => {
     });
 
     const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
-      .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .build();
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
-      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
   });
 
@@ -211,12 +212,12 @@ describe('Reporter Controller', () => {
     });
 
     const nominationFileReport: NominationFileReport = new ReportBuilder()
-      .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
     const reportRule = new ReportRuleBuilder()
-      .withId('f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .withReportId(nominationFileReport.id)
+      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
+      .with('reportId', nominationFileReport.id)
       .build();
   });
 });

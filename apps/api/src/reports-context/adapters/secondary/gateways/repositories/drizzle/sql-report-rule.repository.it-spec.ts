@@ -32,10 +32,10 @@ describe('SQL Report Rule Repository', () => {
     transactionPerformer = new DrizzleTransactionPerformer(db);
 
     aReport = new ReportBuilder()
-      .withId('cd1619e2-263d-49b6-b928-6a04ee681133')
-      .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
-      .withDueDate(new DateOnly(2030, 1, 1))
-      .withBirthDate(new DateOnly(1980, 1, 1))
+      .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
+      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('dueDate', new DateOnly(2030, 1, 1))
+      .with('birthDate', new DateOnly(1980, 1, 1))
       .build();
 
     const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
@@ -48,8 +48,8 @@ describe('SQL Report Rule Repository', () => {
 
   it('saves a report rule', async () => {
     const aReportRule = new ReportRuleBuilder()
-      .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
-      .withReportId(aReport.id)
+      .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
+      .with('reportId', aReport.id)
       .build();
 
     await transactionPerformer.perform(
@@ -64,8 +64,8 @@ describe('SQL Report Rule Repository', () => {
 
   it('retrieves a report rule by id', async () => {
     const aReportRule = new ReportRuleBuilder()
-      .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
-      .withReportId(aReport.id)
+      .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
+      .with('reportId', aReport.id)
       .build();
     const aReportRuleSnapshot = aReportRule.toSnapshot();
 

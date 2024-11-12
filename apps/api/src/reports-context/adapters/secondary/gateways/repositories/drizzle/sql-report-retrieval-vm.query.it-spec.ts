@@ -46,10 +46,10 @@ describe('SQL Report Retrieval VM Query', () => {
 
     beforeEach(async () => {
       aReport = new ReportBuilder()
-        .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
-        .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
-        .withDueDate(new DateOnly(2030, 10, 1))
-        .withBirthDate(new DateOnly(1980, 1, 1))
+        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
+        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+        .with('dueDate', new DateOnly(2030, 10, 1))
+        .with('birthDate', new DateOnly(1980, 1, 1))
         .build();
       // Insert the report into the database
       const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
@@ -63,7 +63,7 @@ describe('SQL Report Retrieval VM Query', () => {
       const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
       expect(result).toEqual<ReportRetrievalVM>(
         ReportRetrievalVMBuilder.fromWriteModel(aReport)
-          .withRules(expectedRules)
+          .with('rules', expectedRules)
           .build(),
       );
     });
@@ -75,10 +75,10 @@ describe('SQL Report Retrieval VM Query', () => {
 
     beforeEach(async () => {
       aReport = new ReportBuilder()
-        .withId('cd1619e2-263d-49b6-b928-6a04ee681132')
-        .withNominationFileId('ca1619e2-263d-49b6-b928-6a04ee681138')
-        .withDueDate(null)
-        .withComment(null)
+        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
+        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+        .with('dueDate', null)
+        .with('comment', null)
         .build();
       // Insert the report into the database
       const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
@@ -92,9 +92,9 @@ describe('SQL Report Retrieval VM Query', () => {
       const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
       expect(result).toEqual(
         ReportRetrievalVMBuilder.fromWriteModel(aReport)
-          .withDueDate(null)
-          .withComment(null)
-          .withRules(expectedRules)
+          .with('dueDate', null)
+          .with('comment', null)
+          .with('rules', expectedRules)
           .build(),
       );
     });
@@ -117,8 +117,8 @@ describe('SQL Report Retrieval VM Query', () => {
 
   const givenSomeRuleExists = async (reportId: string) => {
     const aReportRule = new ReportRuleBuilder()
-      .withId('da1619e2-263d-49b6-b928-6a04ee681132')
-      .withReportId(reportId)
+      .with('id', 'da1619e2-263d-49b6-b928-6a04ee681132')
+      .with('reportId', reportId)
       .build();
 
     // Insert the report rule into the database
