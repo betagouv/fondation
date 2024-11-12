@@ -69,10 +69,10 @@ describe("Select Nomination Case List", () => {
   });
 
   const aNominationFile = new NominationFileBuilder()
-    .withId("nomination-file-id")
-    .withName("Banneau Louise")
-    .withReporterName(user.reporterName)
-    .withDueDate(new DateOnly(2030, 10, 30))
+    .with("id", "nomination-file-id")
+    .with("name", "Banneau Louise")
+    .with("reporterName", user.reporterName)
+    .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListVM();
   const aNominationFileVM: NominationFileListItemVM = {
     id: aNominationFile.id,
@@ -90,10 +90,10 @@ describe("Select Nomination Case List", () => {
   };
 
   const anotherNominationFile = new NominationFileBuilder()
-    .withId("nomination-file-id")
-    .withName("Denan Lucien")
-    .withReporterName(user.reporterName)
-    .withDueDate(new DateOnly(2030, 10, 30))
+    .with("id", "nomination-file-id")
+    .with("name", "Denan Lucien")
+    .with("reporterName", user.reporterName)
+    .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListVM();
   const anotherNominationFileVM: NominationFileListItemVM = {
     id: anotherNominationFile.id,
@@ -111,10 +111,10 @@ describe("Select Nomination Case List", () => {
   };
 
   const anotherUserNominationFile = new NominationFileBuilder()
-    .withId("another-nomination-file-id")
-    .withName("Another name")
-    .withReporterName("ANOTHER REPORTER Name")
-    .withDueDate(new DateOnly(2030, 10, 10))
+    .with("id", "another-nomination-file-id")
+    .with("name", "Another name")
+    .with("reporterName", "ANOTHER REPORTER Name")
+    .with("dueDate", new DateOnly(2030, 10, 10))
     .buildListVM();
 });
 

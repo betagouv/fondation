@@ -93,5 +93,5 @@ const user = {
 } satisfies AuthenticatedUser;
 
 const aNominationFile = new NominationFileBuilder()
-  .withReporterName(user.reporterName)
+  .with("reporterName", user.reporterName)
   .buildListVM();

@@ -6,206 +6,148 @@ import {
 } from "shared-models";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileListItem, NominationFileSM } from "../../store/appState";
+import _ from "lodash";
+import { Get, Paths } from "type-fest";
+
+type InternalNominationFile = Omit<
+  NominationFileSM & NominationFileListItem,
+  "dueDate" | "birthDate" | "observersCount"
+> & {
+  dueDate: DateOnly | null;
+  birthDate: DateOnly;
+};
 
 export class NominationFileBuilder {
-  private id: string;
-  private name: string;
-  private reporterName: string | null;
-  private biography: string | null;
-  private rules: NominationFileSM["rules"];
-  private dueDate: DateOnly | null;
-  private birthDate: DateOnly;
-  private state: NominationFile.ReportState;
-  private formation: Magistrat.Formation;
-  private transparency: Transparency;
-  private grade: Magistrat.Grade;
-  private currentPosition: string;
-  private targettedPosition: string;
-  private rank: string;
-  private comment: string | null;
-  private observers: string[] | null;
+  private _nominationFile: InternalNominationFile;
 
   constructor() {
-    this.id = "nomination-file-id";
-    this.name = "John Doe";
-    this.reporterName = "REPORTER Name";
-    this.biography = "John Doe's biography";
-    this.dueDate = new DateOnly(2030, 10, 30);
-    this.birthDate = new DateOnly(1980, 1, 1);
-    this.state = NominationFile.ReportState.NEW;
-    this.formation = Magistrat.Formation.PARQUET;
-    this.transparency = Transparency.MARCH_2025;
-    this.grade = Magistrat.Grade.I;
-    this.currentPosition = "PG TJ Paris";
-    this.targettedPosition = "PG TJ Marseille";
-    this.rank = "(2 sur une liste de 3)";
-    this.comment = "Some comment";
-    this.observers = ["observer 1", "observer 2"];
-    this.rules = rulesTuple.reduce(
-      (acc, [ruleGroup, ruleName]) => {
-        return {
-          ...acc,
-          [ruleGroup]: {
-            ...acc[ruleGroup],
-            [ruleName]: {
-              id: ruleName,
-              preValidated: true,
-              validated: true,
-              comment: `${ruleName} comment`,
+    this._nominationFile = {
+      id: "nomination-file-id",
+      name: "John Doe",
+      reporterName: "REPORTER Name",
+      biography: "John Doe's biography",
+      dueDate: new DateOnly(2030, 10, 30),
+      birthDate: new DateOnly(1980, 1, 1),
+      state: NominationFile.ReportState.NEW,
+      formation: Magistrat.Formation.PARQUET,
+      transparency: Transparency.MARCH_2025,
+      grade: Magistrat.Grade.I,
+      currentPosition: "PG TJ Paris",
+      targettedPosition: "PG TJ Marseille",
+      rank: "(2 sur une liste de 3)",
+      comment: "Some comment",
+      observers: ["observer 1", "observer 2"],
+      rules: rulesTuple.reduce(
+        (acc, [ruleGroup, ruleName]) => {
+          return {
+            ...acc,
+            [ruleGroup]: {
+              ...acc[ruleGroup],
+              [ruleName]: {
+                id: ruleName,
+                preValidated: true,
+                validated: true,
+                comment: `${ruleName} comment`,
+              },
             },
-          },
-        };
-      },
-      {} as NominationFileSM["rules"],
-    );
+          };
+        },
+        {} as NominationFileSM["rules"],
+      ),
+    };
   }
 
-  withId(id: string) {
-    this.id = id;
-    return this;
-  }
-  withName(name: string) {
-    this.name = name;
-    return this;
-  }
-  withReporterName(reporterName: string | null) {
-    this.reporterName = reporterName;
-    return this;
-  }
-  withBiography(biography: string) {
-    this.biography = biography;
-    return this;
-  }
-  withDueDate(dueDate: DateOnly | null) {
-    this.dueDate = dueDate;
-    return this;
-  }
-  withBirthDate(birthDate: DateOnly) {
-    this.birthDate = birthDate;
-    return this;
-  }
-  withState(state: NominationFile.ReportState) {
-    this.state = state;
-    return this;
-  }
-  withFormation(formation: Magistrat.Formation) {
-    this.formation = formation;
-    return this;
-  }
-  withTransparency(transparency: Transparency) {
-    this.transparency = transparency;
-    return this;
-  }
-  withGrade(grade: Magistrat.Grade) {
-    this.grade = grade;
-    return this;
-  }
-  withCurrentPosition(currentPosition: string) {
-    this.currentPosition = currentPosition;
-    return this;
-  }
-  withTargettedPosition(targettedPosition: string) {
-    this.targettedPosition = targettedPosition;
-    return this;
-  }
-  withComment(comment: string | null) {
-    this.comment = comment;
-    return this;
-  }
-  withObservers(observers: string[] | null) {
-    this.observers = observers;
+  with<
+    K extends Paths<InternalNominationFile>,
+    V extends Get<InternalNominationFile, K> = Get<InternalNominationFile, K>,
+  >(property: K, value: V) {
+    if (!this._nominationFile) throw new Error("No nomination file");
+    this._nominationFile = _.set(this._nominationFile, property, value);
     return this;
   }
 
   withTransferTimeValidated(transferTime: boolean) {
-    this.rules.management.TRANSFER_TIME.validated = transferTime;
-    return this;
-  }
-  withGettingFirstGradeValidated(gettingFirstGrade: boolean) {
-    this.rules.management.GETTING_FIRST_GRADE.validated = gettingFirstGrade;
-    return this;
-  }
-  withGettingGradeHHValidated(gettingGradeHH: boolean) {
-    this.rules.management.GETTING_GRADE_HH.validated = gettingGradeHH;
-    return this;
-  }
-  withGettingGradeInPlaceValidated(gettingGradeInPlace: boolean) {
-    this.rules.management.GETTING_GRADE_IN_PLACE.validated =
-      gettingGradeInPlace;
-    return this;
-  }
-  withProfiledPositionValidated(profiledPosition: boolean) {
-    this.rules.management.PROFILED_POSITION.validated = profiledPosition;
-    return this;
-  }
-  withCassationCourtNominationValidated(cassationCourtNomination: boolean) {
-    this.rules.management.CASSATION_COURT_NOMINATION.validated =
-      cassationCourtNomination;
-    return this;
-  }
-  withOverseasToOverseasValidated(overseasToOverseas: boolean) {
-    this.rules.management.OVERSEAS_TO_OVERSEAS.validated = overseasToOverseas;
-    return this;
-  }
-  withJudiciaryRoleAndJuridictionDegreeChangeValidated(
-    judiciaryRoleAndJuridictionDegreeChange: boolean,
-  ) {
-    this.rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated =
-      judiciaryRoleAndJuridictionDegreeChange;
-    return this;
-  }
-  withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(
-    judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean,
-  ) {
-    this.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated =
-      judiciaryRoleAndJuridictionDegreeChangeInSameRessort;
+    this._nominationFile.rules.management.TRANSFER_TIME.validated =
+      transferTime;
     return this;
   }
 
   withAllRulesUnvalidated() {
     this.withTransferTimeValidated(false)
-      .withGettingFirstGradeValidated(false)
-      .withGettingGradeHHValidated(false)
-      .withGettingGradeInPlaceValidated(false)
-      .withProfiledPositionValidated(false)
-      .withCassationCourtNominationValidated(false)
-      .withOverseasToOverseasValidated(false)
-      .withJudiciaryRoleAndJuridictionDegreeChangeValidated(false)
-      .withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortValidated(false);
+      .with("rules.management.GETTING_FIRST_GRADE.validated", false)
+      .with("rules.management.GETTING_GRADE_HH.validated", false)
+      .with("rules.management.GETTING_GRADE_IN_PLACE.validated", false)
+      .with("rules.management.PROFILED_POSITION.validated", false)
+      .with("rules.management.CASSATION_COURT_NOMINATION.validated", false)
+      .with("rules.management.OVERSEAS_TO_OVERSEAS.validated", false)
+      .with(
+        "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated",
+        false,
+      )
+      .with(
+        "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated",
+        false,
+      )
+      .with("rules.statutory.GRADE_ON_SITE_AFTER_7_YEARS.validated", false)
+      .with("rules.statutory.GRADE_REGISTRATION.validated", false)
+      .with(
+        "rules.statutory.HH_WITHOUT_2_FIRST_GRADE_POSITIONS.validated",
+        false,
+      )
+      .with(
+        "rules.statutory.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION.validated",
+        false,
+      )
+      .with("rules.statutory.MINISTER_CABINET.validated", false)
+      .with(
+        "rules.statutory.LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO.validated",
+        false,
+      )
+      .with(
+        "rules.qualitative.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE.validated",
+        false,
+      )
+      .with(
+        "rules.qualitative.CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION.validated",
+        false,
+      )
+      .with("rules.qualitative.DISCIPLINARY_ELEMENTS.validated", false)
+      .with("rules.qualitative.EVALUATIONS.validated", false)
+      .with("rules.qualitative.HH_NOMINATION_CONDITIONS.validated", false);
     return this;
   }
 
   buildListVM(): NominationFileListItem {
     return {
-      id: this.id,
-      name: this.name,
-      reporterName: this.reporterName,
-      dueDate: this.dueDate?.toStoreModel() ?? null,
-      state: this.state,
-      formation: this.formation,
-      transparency: this.transparency,
-      grade: this.grade,
-      targettedPosition: this.targettedPosition,
-      observersCount: this.observers?.length ?? 0,
+      id: this._nominationFile.id,
+      name: this._nominationFile.name,
+      reporterName: this._nominationFile.reporterName,
+      dueDate: this._nominationFile.dueDate?.toStoreModel() ?? null,
+      state: this._nominationFile.state,
+      formation: this._nominationFile.formation,
+      transparency: this._nominationFile.transparency,
+      grade: this._nominationFile.grade,
+      targettedPosition: this._nominationFile.targettedPosition,
+      observersCount: this._nominationFile.observers?.length ?? 0,
     };
   }
   buildRetrieveVM(): NominationFileSM {
     return {
-      id: this.id,
-      name: this.name,
-      biography: this.biography,
-      dueDate: this.dueDate?.toStoreModel() ?? null,
-      birthDate: this.birthDate.toStoreModel(),
-      state: this.state,
-      formation: this.formation,
-      transparency: this.transparency,
-      grade: this.grade,
-      currentPosition: this.currentPosition,
-      targettedPosition: this.targettedPosition,
-      rank: this.rank,
-      comment: this.comment,
-      observers: this.observers,
-      rules: this.rules,
+      id: this._nominationFile.id,
+      name: this._nominationFile.name,
+      biography: this._nominationFile.biography,
+      dueDate: this._nominationFile.dueDate?.toStoreModel() ?? null,
+      birthDate: this._nominationFile.birthDate.toStoreModel(),
+      state: this._nominationFile.state,
+      formation: this._nominationFile.formation,
+      transparency: this._nominationFile.transparency,
+      grade: this._nominationFile.grade,
+      currentPosition: this._nominationFile.currentPosition,
+      targettedPosition: this._nominationFile.targettedPosition,
+      rank: this._nominationFile.rank,
+      comment: this._nominationFile.comment,
+      observers: this._nominationFile.observers,
+      rules: this._nominationFile.rules,
     };
   }
 }

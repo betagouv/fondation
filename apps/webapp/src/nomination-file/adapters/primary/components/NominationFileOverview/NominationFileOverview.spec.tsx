@@ -116,8 +116,8 @@ describe("Nomination Case Overview Component", () => {
           "shows the placeholder when there is no content",
           async () => {
             const aNomination = new NominationFileBuilder()
-              .withId("without-comment")
-              .withComment(null)
+              .with("id", "without-comment")
+              .with("comment", null)
               .buildRetrieveVM();
             nominationFileGateway.addNominationFile(aNomination);
 
@@ -322,9 +322,9 @@ describe("Nomination Case Overview Component", () => {
 });
 
 const aValidatedNomination = new NominationFileBuilder()
-  .withId("nomination-file-id")
-  .withBiography("  - John Doe's biography - second line  - third line ")
-  .withObservers([
+  .with("id", "nomination-file-id")
+  .with("biography", "  - John Doe's biography - second line  - third line ")
+  .with("observers", [
     "observer 1",
     "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
   ])

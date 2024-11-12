@@ -1,9 +1,11 @@
+import _ from "lodash";
 import {
   Magistrat,
   NominationFile,
   rulesTuple,
   Transparency,
 } from "shared-models";
+import { Get, Paths } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { NominationFileSM } from "../../store/appState";
 import {
@@ -11,181 +13,94 @@ import {
   VMNominationFileRuleValue,
 } from "../view-models/NominationFileVM";
 
+type InternalNominationFileVM = Omit<
+  NominationFileVM,
+  "dueDate" | "birthDate"
+> & {
+  dueDate: DateOnly | null;
+  birthDate: DateOnly;
+};
+
 export class NominationFileBuilderVM {
-  private id: string;
-  private title: string;
-  private biography: string | null;
-  private rulesChecked: NominationFileVM["rulesChecked"];
-  private dueDate: DateOnly | null;
-  private birthDate: DateOnly;
-  private state: NominationFileVM["state"];
-  private formation: NominationFileVM["formation"];
-  private transparency: NominationFileVM["transparency"];
-  private grade: NominationFileVM["grade"];
-  private currentPosition: string;
-  private targettedPosition: string;
-  private comment: string | null;
-  private rank: string;
-  private observers: NominationFileVM["observers"];
+  private _nominationFileVM: InternalNominationFileVM;
 
   constructor() {
-    this.id = "nomination-file-id";
-    this.title = "John Doe";
-    this.biography = "John Doe's biography";
-    this.dueDate = new DateOnly(2030, 10, 30);
-    this.birthDate = new DateOnly(1990, 1, 1);
-    this.state = NominationFile.ReportState.NEW;
-    this.formation = Magistrat.Formation.PARQUET;
-    this.transparency = Transparency.MARCH_2025;
-    this.grade = Magistrat.Grade.I;
-    this.currentPosition = "current position";
-    this.targettedPosition = "targetted position";
-    this.comment = "Some comment";
-    this.rank = "(3 sur une liste de 3)";
-    this.observers = [
-      ["observer 1"],
-      ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
-    ];
-    this.rulesChecked = rulesTuple.reduce(
-      (acc, [ruleGroup, ruleName]) => {
-        return {
-          ...acc,
-          [ruleGroup]: {
-            ...acc[ruleGroup],
-            [ruleName]: {
-              id: ruleName,
-              highlighted: true,
-              checked: false,
-              label: (
-                NominationFileVM.rulesToLabels[ruleGroup] as Record<
-                  NominationFile.RuleName,
-                  string
-                >
-              )[ruleName],
-              comment: `${ruleName} comment`,
+    this._nominationFileVM = {
+      id: "nomination-file-id",
+
+      name: "John Doe",
+      biography: "John Doe's biography",
+      dueDate: new DateOnly(2030, 10, 30),
+      birthDate: new DateOnly(1990, 1, 1),
+      state: NominationFile.ReportState.NEW,
+      formation: Magistrat.Formation.PARQUET,
+      transparency: Transparency.MARCH_2025,
+      grade: Magistrat.Grade.I,
+      currentPosition: "current position",
+      targettedPosition: "targetted position",
+      comment: "Some comment",
+      rank: "(3 sur une liste de 3)",
+      observers: [
+        ["observer 1"],
+        ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
+      ],
+      rulesChecked: rulesTuple.reduce(
+        (acc, [ruleGroup, ruleName]) => {
+          return {
+            ...acc,
+            [ruleGroup]: {
+              ...acc[ruleGroup],
+              [ruleName]: {
+                id: ruleName,
+                highlighted: true,
+                checked: false,
+                label: (
+                  NominationFileVM.rulesToLabels[ruleGroup] as Record<
+                    NominationFile.RuleName,
+                    string
+                  >
+                )[ruleName],
+                comment: `${ruleName} comment`,
+              },
             },
-          },
-        };
-      },
-      {} as NominationFileVM["rulesChecked"],
-    );
+          };
+        },
+        {} as NominationFileVM["rulesChecked"],
+      ),
+    };
   }
 
-  withId(id: string) {
-    this.id = id;
+  with<
+    K extends Paths<NominationFileVM>,
+    V extends Get<NominationFileVM, K> = Get<NominationFileVM, K>,
+  >(property: K, value: V) {
+    if (!this._nominationFileVM) throw new Error("No nomination file");
+    this._nominationFileVM = _.set(this._nominationFileVM, property, value);
     return this;
   }
-  withTitle(title: string) {
-    this.title = title;
-    return this;
-  }
-  withBiography(biography: string | null) {
-    this.biography = biography;
-    return this;
-  }
+
   withDueDate(dueDate: DateOnly | null) {
-    this.dueDate = dueDate;
+    this._nominationFileVM.dueDate = dueDate;
     return this;
   }
   withBirthDate(birthDate: DateOnly) {
-    this.birthDate = birthDate;
-    return this;
-  }
-  withState(state: NominationFileVM["state"]) {
-    this.state = state;
-    return this;
-  }
-  withFormation(formation: NominationFileVM["formation"]) {
-    this.formation = formation;
-    return this;
-  }
-  withTransparency(transparency: NominationFileVM["transparency"]) {
-    this.transparency = transparency;
-    return this;
-  }
-  withGrade(grade: NominationFileVM["grade"]) {
-    this.grade = grade;
-    return this;
-  }
-  withCurrentPosition(currentPosition: string) {
-    this.currentPosition = currentPosition;
-    return this;
-  }
-  withTargettedPosition(targettedPosition: string) {
-    this.targettedPosition = targettedPosition;
-    return this;
-  }
-  withComment(comment: string | null) {
-    this.comment = comment;
-    return this;
-  }
-  withRank(rank: string) {
-    this.rank = rank;
-    return this;
-  }
-  withObservers(observers: NominationFileVM["observers"]) {
-    this.observers = observers;
+    this._nominationFileVM.birthDate = birthDate;
     return this;
   }
 
-  withTransferTimeChecked(transferTime: boolean) {
-    this.rulesChecked.management.TRANSFER_TIME.checked = transferTime;
-    return this;
-  }
-  withGettingFirstGradeChecked(gettingFirstGrade: boolean) {
-    this.rulesChecked.management.GETTING_FIRST_GRADE.checked =
-      gettingFirstGrade;
-    return this;
-  }
-  withGettingGradeHHChecked(gettingGradeHH: boolean) {
-    this.rulesChecked.management.GETTING_GRADE_HH.checked = gettingGradeHH;
-    return this;
-  }
-  withGettingGradeInPlaceChecked(gettingGradeInPlace: boolean) {
-    this.rulesChecked.management.GETTING_GRADE_IN_PLACE.checked =
-      gettingGradeInPlace;
-    return this;
-  }
-  withProfiledPositionChecked(profiledPosition: boolean) {
-    this.rulesChecked.management.PROFILED_POSITION.checked = profiledPosition;
-    return this;
-  }
-  withCassationCourtNominationChecked(cassationCourtNomination: boolean) {
-    this.rulesChecked.management.CASSATION_COURT_NOMINATION.checked =
-      cassationCourtNomination;
-    return this;
-  }
-  withOverseasToOverseasChecked(overseasToOverseas: boolean) {
-    this.rulesChecked.management.OVERSEAS_TO_OVERSEAS.checked =
-      overseasToOverseas;
-    return this;
-  }
-  withJudiciaryRoleAndJuridictionDegreeChangeChecked(
-    judiciaryRoleAndJuridictionDegreeChange: boolean,
-  ) {
-    this.rulesChecked.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.checked =
-      judiciaryRoleAndJuridictionDegreeChange;
-    return this;
-  }
-  withJudiciaryRoleAndJuridictionDegreeChangeInSameRessortChecked(
-    judiciaryRoleAndJuridictionDegreeChangeInSameRessort: boolean,
-  ) {
-    this.rulesChecked.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.checked =
-      judiciaryRoleAndJuridictionDegreeChangeInSameRessort;
-    return this;
-  }
   withAllRulesChecked(checked: boolean) {
     return rulesTuple.reduce((builder, [ruleGroup, ruleName]) => {
       return builder.withRuleChecked(ruleGroup, ruleName, checked);
     }, this);
   }
-  withRuleChecked(
+
+  private withRuleChecked(
     ruleGroup: NominationFile.RuleGroup,
     ruleName: NominationFile.RuleName,
     checked: boolean,
   ) {
     (
-      this.rulesChecked[ruleGroup] as Record<
+      this._nominationFileVM.rulesChecked[ruleGroup] as Record<
         NominationFile.RuleName,
         VMNominationFileRuleValue
       >
@@ -195,45 +110,34 @@ export class NominationFileBuilderVM {
 
   build(): NominationFileVM {
     return {
-      id: this.id,
-      name: this.title,
-      biography: this.biography,
-      dueDate: this.dueDate?.toFormattedString() ?? null,
-      birthDate: this.birthDate.toFormattedString(),
-      state: this.state,
-      formation: this.formation,
-      transparency: this.transparency,
-      grade: this.grade,
-      currentPosition: this.currentPosition,
-      targettedPosition: this.targettedPosition,
-      comment: this.comment,
-      rank: this.rank,
-      observers: this.observers,
-      rulesChecked: this.rulesChecked,
+      ...this._nominationFileVM,
+      dueDate: this._nominationFileVM.dueDate?.toFormattedString() ?? null,
+      birthDate: this._nominationFileVM.birthDate.toFormattedString(),
     };
   }
 
   static fromStoreModel(nominationFileStoreModel: NominationFileSM) {
     return new NominationFileBuilderVM()
-      .withId(nominationFileStoreModel.id)
-      .withBiography(nominationFileStoreModel.biography)
+      .with("id", nominationFileStoreModel.id)
+      .with("biography", nominationFileStoreModel.biography)
       .withBirthDate(
         DateOnly.fromStoreModel(nominationFileStoreModel.birthDate),
       )
-      .withComment(nominationFileStoreModel.comment)
-      .withCurrentPosition(nominationFileStoreModel.currentPosition)
+      .with("comment", nominationFileStoreModel.comment)
+      .with("currentPosition", nominationFileStoreModel.currentPosition)
       .withDueDate(
         nominationFileStoreModel.dueDate
           ? DateOnly.fromStoreModel(nominationFileStoreModel.dueDate)
           : null,
       )
-      .withFormation(nominationFileStoreModel.formation)
-      .withGrade(nominationFileStoreModel.grade)
-      .withRank(nominationFileStoreModel.rank)
-      .withState(nominationFileStoreModel.state)
-      .withTargettedPosition(nominationFileStoreModel.targettedPosition)
-      .withTransparency(nominationFileStoreModel.transparency)
-      .withObservers(
+      .with("formation", nominationFileStoreModel.formation)
+      .with("grade", nominationFileStoreModel.grade)
+      .with("rank", nominationFileStoreModel.rank)
+      .with("state", nominationFileStoreModel.state)
+      .with("targettedPosition", nominationFileStoreModel.targettedPosition)
+      .with("transparency", nominationFileStoreModel.transparency)
+      .with(
+        "observers",
         nominationFileStoreModel.observers?.map(
           (o) => o.split("\n") as [string, ...string[]],
         ) || null,

@@ -64,7 +64,7 @@ describe("Nomination File Update", () => {
 
 const aNomination = new NominationFileBuilder()
   .withTransferTimeValidated(false)
-  .withState(NominationFile.ReportState.NEW)
-  .withBiography("John Doe's biography")
-  .withComment("Some comment")
+  .with("state", NominationFile.ReportState.NEW)
+  .with("biography", "John Doe's biography")
+  .with("comment", "Some comment")
   .buildRetrieveVM();

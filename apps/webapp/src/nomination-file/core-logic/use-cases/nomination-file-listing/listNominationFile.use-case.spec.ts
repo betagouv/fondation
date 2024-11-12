@@ -72,8 +72,8 @@ const user = {
 } satisfies AuthenticatedUser;
 
 const aNominationFile = new NominationFileBuilder()
-  .withId("user-nomination-file-id")
-  .withName("Lucien Denan")
-  .withReporterName(user.reporterName)
-  .withDueDate(new DateOnly(2030, 10, 30))
+  .with("id", "user-nomination-file-id")
+  .with("name", "Lucien Denan")
+  .with("reporterName", user.reporterName)
+  .with("dueDate", new DateOnly(2030, 10, 30))
   .buildListVM();
