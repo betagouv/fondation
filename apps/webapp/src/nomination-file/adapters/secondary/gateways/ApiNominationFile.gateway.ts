@@ -36,6 +36,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     if (!report) return null;
     return {
       id: report.id,
+      folderNumber: report.folderNumber,
       name: report.name,
       biography: report.biography,
       dueDate: report.dueDate,
@@ -57,6 +58,7 @@ export class ApiNominationFileGateway implements NominationFileGateway {
     const response = await this.nominationFileApiClient.list();
     return response.data.map((item) => ({
       id: item.id,
+      folderNumber: item.folderNumber,
       name: item.name,
       reporterName: item.reporterName,
       dueDate: item.dueDate,

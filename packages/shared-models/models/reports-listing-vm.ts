@@ -5,6 +5,7 @@ import { Transparency } from "./transparency.enum";
 
 export interface ReportListItemVM {
   id: string;
+  folderNumber: number | null;
   state: NominationFile.ReportState;
   dueDate: DateOnlyJson | null;
   formation: Magistrat.Formation;

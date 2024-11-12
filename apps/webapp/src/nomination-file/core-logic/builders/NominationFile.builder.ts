@@ -25,6 +25,7 @@ export class NominationFileBuilder {
       id: "nomination-file-id",
       name: "John Doe",
       reporterName: "REPORTER Name",
+      folderNumber: 1,
       biography: "John Doe's biography",
       dueDate: new DateOnly(2030, 10, 30),
       birthDate: new DateOnly(1980, 1, 1),
@@ -120,6 +121,7 @@ export class NominationFileBuilder {
   buildListVM(): NominationFileListItem {
     return {
       id: this._nominationFile.id,
+      folderNumber: this._nominationFile.folderNumber,
       name: this._nominationFile.name,
       reporterName: this._nominationFile.reporterName,
       dueDate: this._nominationFile.dueDate?.toStoreModel() ?? null,
@@ -134,6 +136,7 @@ export class NominationFileBuilder {
   buildRetrieveVM(): NominationFileSM {
     return {
       id: this._nominationFile.id,
+      folderNumber: this._nominationFile.folderNumber,
       name: this._nominationFile.name,
       biography: this._nominationFile.biography,
       dueDate: this._nominationFile.dueDate?.toStoreModel() ?? null,

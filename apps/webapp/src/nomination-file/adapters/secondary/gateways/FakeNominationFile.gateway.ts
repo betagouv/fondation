@@ -24,6 +24,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
     return (Object.values(this.nominationFiles) as ReportListItemVM[]).map(
       ({
         id,
+        folderNumber,
         name,
         reporterName,
         dueDate,
@@ -35,6 +36,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
         observersCount,
       }) => ({
         id,
+        folderNumber,
         name,
         reporterName,
         dueDate,
@@ -110,6 +112,7 @@ export class FakeNominationFileGateway implements NominationFileGateway {
 
     return {
       id: nominationFile.id,
+      folderNumber: nominationFile.folderNumber,
       name: nominationFile.name,
       biography: nominationFile.biography,
       dueDate: nominationFile.dueDate,

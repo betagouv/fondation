@@ -23,6 +23,7 @@ export class NominationFileUpdatedSubscriber {
       await this.updateReportOnImportChangeUseCase.execute(
         payload.nominationFileId,
         {
+          folderNumber: payload.content.folderNumber,
           observers: payload.content.observers || undefined,
           rules: payload.content.rules,
         },

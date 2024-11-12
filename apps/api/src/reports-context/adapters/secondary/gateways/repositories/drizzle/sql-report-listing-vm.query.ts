@@ -12,6 +12,7 @@ export class SqlReportListingVMQuery implements ReportListingVMQuery {
     const reportsData = await this.db
       .select({
         id: reports.id,
+        folderNumber: reports.folderNumber,
         state: reports.state,
         dueDate: reports.dueDate,
         formation: reports.formation,
@@ -28,6 +29,7 @@ export class SqlReportListingVMQuery implements ReportListingVMQuery {
     return {
       data: reportsData.map((report) => ({
         id: report.id,
+        folderNumber: report.folderNumber,
         state: report.state,
         dueDate: report.dueDate
           ? DateOnly.fromDbDateOnlyString(report.dueDate).toJson()

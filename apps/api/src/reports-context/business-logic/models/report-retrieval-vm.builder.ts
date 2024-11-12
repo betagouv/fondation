@@ -23,10 +23,11 @@ export class ReportRetrievalVMBuilder {
   private rank: string;
   private rules: NominationFile.Rules;
   private observers: string[] | null;
-  private observersCount: number;
+  private folderNumber: number | null;
 
   constructor() {
     this.id = 'report-id';
+    this.folderNumber = 1;
     this.name = 'Ada Lovelace';
     this.biography = 'The biography';
     this.dueDate = {
@@ -151,7 +152,6 @@ export class ReportRetrievalVMBuilder {
   }
   withObservers(observers: string[] | null) {
     this.observers = observers;
-    this.observersCount = observers?.length || 0;
     return this;
   }
   withOverseasToOverseasRule(options: Partial<NominationFile.RuleValue>): this {
@@ -172,6 +172,7 @@ export class ReportRetrievalVMBuilder {
   build(): ReportRetrievalVM {
     return {
       id: this.id,
+      folderNumber: this.folderNumber,
       name: this.name,
       dueDate: this.dueDate,
       birthDate: this.birthDate,

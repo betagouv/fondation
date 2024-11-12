@@ -1,6 +1,9 @@
 import { NominationFile } from "shared-models";
 import { NominationFileBuilder } from "../../../core-logic/builders/NominationFile.builder";
-import { NominationFileListItem } from "../../../store/appState";
+import {
+  NominationFileListItem,
+  NominationFileSM,
+} from "../../../store/appState";
 import { ApiNominationFileGateway } from "./ApiNominationFile.gateway";
 import { FakeNominationFileApiClient } from "./FakeNominationFile.client";
 
@@ -18,6 +21,7 @@ describe("Api Nomination File Gateway", () => {
     ).toEqual<NominationFileListItem[]>([
       {
         id: aReport.id,
+        folderNumber: aReport.folderNumber,
         name: aReport.name,
         reporterName: aReport.reporterName,
         state: aReport.state,
@@ -38,8 +42,9 @@ describe("Api Nomination File Gateway", () => {
       await new ApiNominationFileGateway(
         nominationFileApiClient,
       ).retrieveNominationFile(aReport.id),
-    ).toEqual({
+    ).toEqual<NominationFileSM>({
       id: aReport.id,
+      folderNumber: aReport.folderNumber,
       name: aReport.name,
       biography: aReport.biography,
       dueDate: aReport.dueDate,

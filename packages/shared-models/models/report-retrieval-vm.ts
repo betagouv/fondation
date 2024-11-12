@@ -5,6 +5,7 @@ import { Transparency } from "./transparency.enum";
 
 export interface ReportRetrievalVM {
   id: string;
+  folderNumber: number | null;
   biography: string | null;
   dueDate: DateOnlyJson | null;
   name: string;

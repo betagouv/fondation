@@ -86,6 +86,7 @@ export class FakeNominationFileApiClient implements NominationFileApiClient {
   async list(): Promise<ReportListingVM> {
     const reports = Object.values(this.nominationFiles).map((report) => ({
       id: report.id,
+      folderNumber: report.folderNumber,
       state: report.state,
       dueDate: report.dueDate,
       formation: report.formation,

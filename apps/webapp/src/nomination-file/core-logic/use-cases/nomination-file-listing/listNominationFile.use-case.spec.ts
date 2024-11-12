@@ -49,6 +49,7 @@ describe("Nomination Files Listing", () => {
             data: [
               {
                 id: aNominationFile.id,
+                folderNumber: aNominationFile.folderNumber,
                 name: aNominationFile.name,
                 reporterName: user.reporterName,
                 dueDate: aNominationFile.dueDate,

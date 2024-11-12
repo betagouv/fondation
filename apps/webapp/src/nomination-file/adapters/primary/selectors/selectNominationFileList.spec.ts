@@ -42,7 +42,7 @@ describe("Select Nomination Case List", () => {
     });
   });
 
-  describe("when there are two nomination cases", () => {
+  describe("when there are three nomination cases", () => {
     beforeEach(() => {
       store.dispatch(
         authenticate.fulfilled(user, "", {
@@ -52,30 +52,41 @@ describe("Select Nomination Case List", () => {
       );
       store.dispatch(
         listNominationFile.fulfilled(
-          [anotherNominationFile, aNominationFile, anotherUserNominationFile],
+          [
+            aNominationFile,
+            aSecondNominationFile,
+            aThirdNominationFile,
+            anotherUserNominationFile,
+          ],
           "",
           undefined,
         ),
       );
     });
 
-    it("selects the sorted list for the auth user", () => {
+    it("selects the sorted list by folder number for the auth user", () => {
       expect(
         selectNominationFileList(store.getState()),
       ).toEqual<NominationFileListVM>({
-        nominationFiles: [aNominationFileVM, anotherNominationFileVM],
+        nominationFiles: [
+          aNominationFileVM,
+          aThirdNominationFileVM,
+          aSecondNominationFileVM,
+        ],
       });
     });
   });
 
   const aNominationFile = new NominationFileBuilder()
     .with("id", "nomination-file-id")
+    .with("folderNumber", 1)
     .with("name", "Banneau Louise")
     .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListVM();
   const aNominationFileVM: NominationFileListItemVM = {
     id: aNominationFile.id,
+    folderNumber: 1,
     name: aNominationFile.name,
     reporterName: aNominationFile.reporterName,
     dueDate: "30/10/2030",
@@ -89,16 +100,18 @@ describe("Select Nomination Case List", () => {
     onClick,
   };
 
-  const anotherNominationFile = new NominationFileBuilder()
+  const aSecondNominationFile = new NominationFileBuilder()
     .with("id", "nomination-file-id")
+    .with("folderNumber", null)
     .with("name", "Denan Lucien")
     .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListVM();
-  const anotherNominationFileVM: NominationFileListItemVM = {
-    id: anotherNominationFile.id,
-    name: anotherNominationFile.name,
-    reporterName: anotherNominationFile.reporterName,
+  const aSecondNominationFileVM: NominationFileListItemVM = {
+    id: aSecondNominationFile.id,
+    folderNumber: "Profilé",
+    name: aSecondNominationFile.name,
+    reporterName: aSecondNominationFile.reporterName,
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
@@ -106,7 +119,26 @@ describe("Select Nomination Case List", () => {
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aNominationFile.observersCount,
-    href: `/dossier-de-nomination/${anotherNominationFile.id}`,
+    href: `/dossier-de-nomination/${aSecondNominationFile.id}`,
+    onClick,
+  };
+
+  const aThirdNominationFile = new NominationFileBuilder()
+    .with("folderNumber", 2)
+    .buildListVM();
+  const aThirdNominationFileVM: NominationFileListItemVM = {
+    id: aThirdNominationFile.id,
+    folderNumber: 2,
+    name: aThirdNominationFile.name,
+    reporterName: aThirdNominationFile.reporterName,
+    dueDate: "30/10/2030",
+    state: "Nouveau",
+    formation: "Parquet",
+    transparency: "Mars 2025",
+    grade: "I",
+    targettedPosition: "PG TJ Marseille",
+    observersCount: aNominationFile.observersCount,
+    href: `/dossier-de-nomination/${aThirdNominationFile.id}`,
     onClick,
   };
 

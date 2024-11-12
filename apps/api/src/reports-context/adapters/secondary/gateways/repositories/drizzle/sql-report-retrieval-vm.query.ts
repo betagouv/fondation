@@ -13,6 +13,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
     const reportWithRules = await this.db
       .select({
         reportId: reports.id,
+        folderNumber: reports.folderNumber,
         biography: reports.biography,
         dueDate: reports.dueDate,
         name: reports.name,
@@ -81,6 +82,7 @@ export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
 
     const reportRetrievalVM: ReportRetrievalVM = {
       id: reportData.reportId,
+      folderNumber: reportData.folderNumber,
       biography: reportData.biography,
       dueDate: reportData.dueDate
         ? DateOnly.fromDbDateOnlyString(reportData.dueDate).toJson()

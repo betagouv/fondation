@@ -56,6 +56,7 @@ describe('SQL Report Listing VM Query', () => {
         data: [
           {
             id: aReport.id,
+            folderNumber: aReport.folderNumber,
             state: aReport.state,
             dueDate: aReport.dueDate?.toJson() || null,
             formation: aReport.formation,

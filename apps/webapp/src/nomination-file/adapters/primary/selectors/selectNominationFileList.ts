@@ -4,6 +4,7 @@ import { createAppSelector } from "../../../store/createAppSelector";
 
 export type NominationFileListItemVM = {
   id: string;
+  folderNumber: number | "Profilé";
   state: ReturnType<typeof stateToLabel>;
   dueDate: string | null;
   formation: ReturnType<typeof formationToLabel>;
@@ -28,13 +29,22 @@ export const selectNominationFileList = createAppSelector(
     (state) => state.authentication.user,
   ],
   (data, getAnchorAttributes, user): NominationFileListVM => {
-    const nominationFiles = [...(data ?? [])]
+    const sortedData = [...(data || [])].sort(
+      ({ folderNumber: a }, { folderNumber: b }) => {
+        if (a === null) return 1;
+        if (b === null) return -1;
+        return a - b;
+      },
+    );
+
+    const nominationFiles = sortedData
       .filter(({ reporterName }) =>
         user ? reporterName === user.reporterName : false,
       )
       .map(
         ({
           id,
+          folderNumber,
           name,
           reporterName,
           dueDate,
@@ -57,6 +67,7 @@ export const selectNominationFileList = createAppSelector(
 
           return {
             id,
+            folderNumber: folderNumber ?? "Profilé",
             reporterName,
             state: stateToLabel(state),
             dueDate: dueDateFormatted,
@@ -71,7 +82,6 @@ export const selectNominationFileList = createAppSelector(
           } as const;
         },
       );
-    nominationFiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return {
       nominationFiles,

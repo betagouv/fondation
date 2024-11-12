@@ -47,6 +47,7 @@ describe("Nomination Case List Component", () => {
 
     it("shows the table header", async () => {
       renderNominationFileList();
+      await screen.findByText("N° dossier");
       await screen.findByText("Etat");
       await screen.findByText("Echéance");
       await screen.findByText("Formation");
@@ -59,6 +60,7 @@ describe("Nomination Case List Component", () => {
 
     it("shows it in the table", async () => {
       renderNominationFileList();
+      await screen.findByText("1");
       await screen.findByText("Nouveau");
       await screen.findByText("30/10/2030");
       await screen.findByText("Parquet");

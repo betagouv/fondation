@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import { asc, eq } from 'drizzle-orm';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
@@ -85,26 +85,43 @@ describe('Import Nominations from local file', () => {
     const reportId = '8d9fc5f2-7254-4d04-b99a-e4d15fefee29';
     const transferTimeRuleId = 'b820be91-343f-478a-9e7e-58fe178e3ed1';
 
-    it('updates the observers', async () => {
+    it.each<{
+      testName: string;
+      newContentKey: keyof NominationFileRead['content'];
+      oldContentValue: NominationFileRead['content'][keyof NominationFileRead['content']];
+    }>([
+      {
+        testName: 'the folder number',
+        newContentKey: 'folderNumber',
+        oldContentValue: 100,
+      },
+      {
+        testName: 'the observers',
+        newContentKey: 'observers',
+        oldContentValue: ['Different Observer'],
+      },
+    ])(`updates $testName`, async ({ newContentKey, oldContentValue }) => {
       const firstTsvContent = getExpectedContents()[0]!;
+      const oldContent = { [newContentKey]: oldContentValue };
       await db.insert(nominationFiles).values({
         id: nominationFileId,
         rowNumber: 1,
-        content: { ...firstTsvContent, observers: ['Different Observer'] },
+        content: { ...firstTsvContent, ...oldContent },
       });
       await givenAReportPm({
         ...firstTsvContent,
-        observers: ['Different Observer'],
+        reporterName: firstTsvContent.reporters![0]!,
+        ...oldContent,
       });
 
       await importNominationFileFromLocalFileCli.execute(fileToImportPath);
       await setTimeout(1500);
 
       await expectNominationFilesWithFirstOneChanged(() => ({
-        observers: firstTsvContent.observers,
+        [newContentKey]: firstTsvContent[newContentKey],
       }));
       await expectAllReports({
-        observers: firstTsvContent.observers,
+        [newContentKey]: firstTsvContent[newContentKey],
       });
     });
 
@@ -125,7 +142,10 @@ describe('Import Nominations from local file', () => {
           },
         },
       });
-      await givenAReportPm(firstTsvContent);
+      await givenAReportPm({
+        ...firstTsvContent,
+        reporterName: firstTsvContent.reporters![0]!,
+      });
 
       await db.insert(reportRules).values({
         id: transferTimeRuleId,
@@ -162,24 +182,18 @@ describe('Import Nominations from local file', () => {
       });
     });
 
-    const givenAReportPm = async (content: NominationFileRead['content']) => {
+    const givenAReportPm = async (
+      content: Omit<NominationFileRead['content'], 'reporters'> & {
+        reporterName: string | null;
+      },
+    ) => {
       await db.insert(reports).values({
+        ...content,
         id: reportId,
-        nominationFileId: nominationFileId,
+        nominationFileId,
         createdAt: new Date(),
-        folderNumber: content.folderNumber,
-        state: NominationFile.ReportState.NEW,
         dueDate: DateOnly.fromJson(content.dueDate!).toDbString(),
-        formation: content.formation,
-        name: content.name,
-        reporterName: content.reporters![0]!,
-        transparency: content.transparency,
-        grade: content.grade,
-        currentPosition: content.currentPosition,
-        targettedPosition: content.targettedPosition,
-        rank: content.rank,
         birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
-        biography: content.biography,
         comment: null,
       });
     };
@@ -255,9 +269,19 @@ describe('Import Nominations from local file', () => {
             ],
       )
       .flat();
-    const reportsPm = await db.select().from(reports).execute();
+    const reportsPm = await db
+      .select()
+      .from(reports)
+      .orderBy(asc(reports.name), asc(reports.reporterName))
+      .execute();
+
     expect(reportsPm.length).toBe(allReports.length);
-    expect(reportsPm).toEqual(expect.arrayContaining(allReports));
+    expect(reportsPm).toEqual([
+      allReports[3],
+      allReports[2],
+      allReports[1],
+      allReports[0],
+    ]);
   };
 
   const getReportPm = (

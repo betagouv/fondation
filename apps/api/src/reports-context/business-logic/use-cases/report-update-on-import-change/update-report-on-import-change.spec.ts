@@ -39,6 +39,39 @@ describe('Update Report On Import Change Use Case', () => {
     jest.clearAllMocks();
   });
 
+  it('should update the folder number', async () => {
+    const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
+      {
+        folderNumber: 10,
+      };
+
+    await updateReport(updateReportOnImportChangePayload);
+
+    expectReports(
+      new NominationFileReport(
+        aFirstReport.id,
+        aFirstReport.nominationFileId,
+        aFirstReport.createdAt,
+        10,
+        aFirstReport.biography,
+        aFirstReport.dueDate,
+        aFirstReport.name,
+        aFirstReport.reporterName,
+        aFirstReport.birthDate,
+        aFirstReport.state,
+        aFirstReport.formation,
+        aFirstReport.transparency,
+        aFirstReport.grade,
+        aFirstReport.currentPosition,
+        aFirstReport.targettedPosition,
+        aFirstReport.comment,
+        aFirstReport.rank,
+        aFirstReport.observers,
+      ),
+      aSecondReport,
+    );
+  });
+
   it('should update the observers', async () => {
     const updateReportOnImportChangePayload: UpdateReportOnImportChangePayload =
       {

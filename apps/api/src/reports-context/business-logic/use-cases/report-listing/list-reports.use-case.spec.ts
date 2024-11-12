@@ -29,6 +29,7 @@ describe('List reports', () => {
 
   const aReport: ReportListItemVM = {
     id: '1',
+    folderNumber: 15,
     state: NominationFile.ReportState.NEW,
     dueDate: {
       year: 2030,

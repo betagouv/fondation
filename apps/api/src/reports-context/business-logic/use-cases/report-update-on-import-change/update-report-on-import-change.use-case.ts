@@ -4,6 +4,7 @@ import { ReportRuleRepository } from '../../gateways/repositories/report-rule.re
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 
 export interface UpdateReportOnImportChangePayload {
+  folderNumber?: number | null;
   observers?: string[];
   rules?: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
@@ -34,8 +35,14 @@ export class UpdateReportOnImportChangeUseCase {
         await this.reportRepository.byNominationFileId(nominationFileId)(trx);
       if (!reports?.length) throw new Error('Report not found');
 
+      if (payload.folderNumber !== undefined) {
+        for (const report of reports) {
+          report.replaceFolderNumber(payload.folderNumber);
+          await this.reportRepository.save(report)(trx);
+        }
+      }
+
       if (payload.observers) {
-        if (!reports?.length) throw new Error('Report not found');
         for (const report of reports) {
           report.replaceObservers(payload.observers);
           await this.reportRepository.save(report)(trx);

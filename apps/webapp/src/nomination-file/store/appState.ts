@@ -6,6 +6,7 @@ import { AuthenticatedUser } from "../../authentication/core-logic/gateways/auth
 
 export interface NominationFileSM {
   id: string;
+  folderNumber: number | null;
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
   name: string;
@@ -24,6 +25,7 @@ export interface NominationFileSM {
 export type NominationFileListItem = Pick<
   NominationFileSM,
   | "id"
+  | "folderNumber"
   | "state"
   | "dueDate"
   | "formation"
