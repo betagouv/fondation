@@ -10,7 +10,7 @@ export type NominationFileSnapshot = {
 
 export type NominationFileUpdatedContent = Pick<
   NominationFileRead['content'],
-  'reporters' | 'observers' | 'rules'
+  'folderNumber' | 'observers' | 'rules'
 >;
 export class NominationFileModel {
   constructor(
@@ -22,7 +22,7 @@ export class NominationFileModel {
   updateContent(updatedContent: NominationFileUpdatedContent) {
     this.nominationFileRead.content = {
       ...this.nominationFileRead.content,
-      reporters: updatedContent.reporters,
+      folderNumber: updatedContent.folderNumber,
       observers: updatedContent.observers,
       rules: updatedContent.rules,
     };
@@ -30,6 +30,13 @@ export class NominationFileModel {
 
   hasSameRowNumberAs(nominationFileRead: NominationFileRead): boolean {
     return this.nominationFileRead.rowNumber === nominationFileRead.rowNumber;
+  }
+
+  hasSameFolderNumberAs(nominationFileRead: NominationFileRead) {
+    return (
+      this.nominationFileRead.content.folderNumber ===
+      nominationFileRead.content.folderNumber
+    );
   }
 
   hasSameObserversAs(nominationFileRead: NominationFileRead) {

@@ -241,12 +241,31 @@ describe('Import Nomination Files Use Case', () => {
     });
 
     it.each<{
-      changedEntry: string;
+      testName: string;
       getTsvValue: () => string;
       getEventPayload: () => NominationFilesUpdatedEventPayload;
     }>([
       {
-        changedEntry: 'observers',
+        testName: 'folder number',
+        getTsvValue: () =>
+          new NominationFileTsvBuilder()
+            .fromModel(
+              getMarcelDupontModel('nomination-file-id', 1, {
+                folderNumber: 10,
+              }),
+            )
+            .build(),
+        getEventPayload: () => [
+          {
+            nominationFileId: 'nomination-file-id',
+            content: {
+              folderNumber: 10,
+            },
+          },
+        ],
+      },
+      {
+        testName: 'observers',
         getTsvValue: () =>
           new NominationFileTsvBuilder()
             .fromModel(
@@ -259,15 +278,13 @@ describe('Import Nomination Files Use Case', () => {
           {
             nominationFileId: 'nomination-file-id',
             content: {
-              observers: getMarcelDupontRead(1, {
-                observers: [anObserverExpected],
-              }).content.observers,
+              observers: [anObserverExpected],
             },
           },
         ],
       },
       {
-        changedEntry: 'rules',
+        testName: 'rules',
         getTsvValue: () =>
           new NominationFileTsvBuilder()
             .fromModel(
@@ -296,7 +313,7 @@ describe('Import Nomination Files Use Case', () => {
         ],
       },
     ])(
-      'informs about an update on $changedEntry',
+      'informs about an update on $testName',
       async ({ getTsvValue, getEventPayload }) => {
         uuidGenerator.nextUuids = [nominationFilesUpdatedEventId];
 
