@@ -1,4 +1,4 @@
-import { useAppDispatch } from "../../../../nomination-file/adapters/primary/hooks/react-redux";
+import { useAppDispatch } from "../../../../reports/adapters/primary/hooks/react-redux";
 import { authenticate } from "../../../core-logic/use-cases/authentication/authenticate";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Button } from "@codegouvfr/react-dsfr/Button";

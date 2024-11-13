@@ -3,15 +3,15 @@ import { lazy } from "react";
 export const LazyLogin = lazy(
   () => import("../../authentication/adapters/primary/components/Login"),
 );
-export const NominationFileListPage = lazy(
+export const ReportListPage = lazy(
   () =>
     import(
-      "../../nomination-file/adapters/primary/components/NominationFileList/NominationFileListPage"
+      "../../reports/adapters/primary/components/ReportList/ReportListPage"
     ),
 );
-export const LazyNominationFileOverview = lazy(
+export const LazyReportOverview = lazy(
   () =>
     import(
-      "../../nomination-file/adapters/primary/components/NominationFileOverview/NominationFileOverview"
+      "../../reports/adapters/primary/components/ReportOverview/ReportOverview"
     ),
 );

@@ -31,11 +31,11 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
           const Component = routeToComponentMap[route.name];
           return suspensed(<Component />);
         }
-        case "nominationCaseList": {
+        case "reportList": {
           const Component = routeToComponentMap[route.name];
           return suspensed(protectedComponent(<Component />));
         }
-        case "nominationFileOverview": {
+        case "reportOverview": {
           const Component = routeToComponentMap[route.name];
           return suspensed(
             protectedComponent(<Component id={route.params.id} />),

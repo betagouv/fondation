@@ -7,15 +7,15 @@ import { FakeAuthenticationGateway } from "./authentication/adapters/secondary/g
 import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/authenticationSessionStorage.provider.ts";
 import { storeAuthenticationOnLoginSuccess } from "./authentication/core-logic/listeners/authentication.listeners.ts";
 import "./index.css";
-import { ApiNominationFileGateway } from "./nomination-file/adapters/secondary/gateways/ApiNominationFile.gateway.ts";
-import { initReduxStore } from "./nomination-file/store/reduxStore.ts";
+import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
+import { initReduxStore } from "./reports/store/reduxStore.ts";
 import {
   RouteProvider,
   TypeRouterProvider,
 } from "./router/adapters/type-route/typeRouter.ts";
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
-import { NestiaNominationFileClient } from "./nomination-file/adapters/secondary/gateways/NestiaNominationFile.client.ts";
+import { NestiaReportClient } from "./reports/adapters/secondary/gateways/NestiaReport.client.ts";
 import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
@@ -45,16 +45,14 @@ fakeUsers.forEach(({ username, password, reporterName }) => {
   );
 });
 
-const nestiaNominationFileClient = new NestiaNominationFileClient();
-const nominationFileGateway = new ApiNominationFileGateway(
-  nestiaNominationFileClient,
-);
+const nestiaReportClient = new NestiaReportClient();
+const reportGateway = new ApiReportGateway(nestiaReportClient);
 
 const authenticationStorageProvider =
   new AuthenticationSessionStorageProvider();
 
 const store = initReduxStore<false>(
-  { nominationFileGateway, authenticationGateway },
+  { reportGateway, authenticationGateway },
   { authenticationStorageProvider, routerProvider: new TypeRouterProvider() },
   {
     routeToComponentFactory: useRouteToComponentFactory,

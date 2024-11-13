@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AppState } from "../../../nomination-file/store/appState";
-import { PartialAppDependencies } from "../../../nomination-file/store/reduxStore";
+import { AppState } from "../../../reports/store/appState";
+import { PartialAppDependencies } from "../../../reports/store/reduxStore";
 import { authenticate } from "../use-cases/authentication/authenticate";
 import { logout } from "../use-cases/logout/logout";
 

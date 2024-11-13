@@ -1,4 +1,4 @@
-import { createAppAsyncThunk } from "../../../../nomination-file/store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../reports/store/createAppAsyncThunk";
 
 export const logout = createAppAsyncThunk(
   "authentication/logout",

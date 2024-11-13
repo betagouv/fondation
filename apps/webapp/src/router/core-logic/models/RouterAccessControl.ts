@@ -3,8 +3,8 @@ import { RouteName } from "./Routes";
 export class RouterAccessControl {
   protectedRoutes: Record<RouteName, boolean> = {
     login: false,
-    nominationCaseList: true,
-    nominationFileOverview: true,
+    reportList: true,
+    reportOverview: true,
   };
 
   safeAccess(routeName: RouteName, isAuthenticated: boolean): boolean {

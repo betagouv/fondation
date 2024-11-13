@@ -1,5 +1,5 @@
 import { authenticate } from "../../../authentication/core-logic/use-cases/authentication/authenticate";
-import { Listener } from "../../../nomination-file/store/listeners";
+import { Listener } from "../../../reports/store/listeners";
 
 export const redirectOnLogin: Listener = (startAppListening) =>
   startAppListening({
@@ -13,6 +13,6 @@ export const redirectOnLogin: Listener = (startAppListening) =>
       },
     ) => {
       if (!routerProvider) throw new Error("routerProvider is not defined");
-      routerProvider.goToNominationFileList();
+      routerProvider.goToReportList();
     },
   });

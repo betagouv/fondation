@@ -1,7 +1,4 @@
-import {
-  initReduxStore,
-  ReduxStore,
-} from "../../../nomination-file/store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../reports/store/reduxStore";
 import { TypeRouterProvider } from "../type-route/typeRouter";
 import { selectLoginHref } from "./selectLoginHref";
 

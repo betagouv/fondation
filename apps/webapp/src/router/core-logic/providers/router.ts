@@ -1,10 +1,10 @@
 export interface RouterProvider {
   goToLogin(): void;
-  goToNominationFileList(): void;
-  gotToNominationFileOverview(id: string): void;
+  goToReportList(): void;
+  gotToReportOverview(id: string): void;
   getLoginHref(): string;
-  getNominationFileListHref(): string;
-  getNominationFileOverviewAnchorAttributes: (id: string) => {
+  getReportListHref(): string;
+  getReportOverviewAnchorAttributes: (id: string) => {
     href: string;
     onClick: () => void;
   };

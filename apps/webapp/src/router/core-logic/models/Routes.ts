@@ -1,4 +1,1 @@
-export type RouteName =
-  | "login"
-  | "nominationCaseList"
-  | "nominationFileOverview";
+export type RouteName = "login" | "reportList" | "reportOverview";

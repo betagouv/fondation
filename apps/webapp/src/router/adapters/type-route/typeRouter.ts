@@ -8,8 +8,8 @@ const routeSegments = {
 
 const { RouteProvider, useRoute, routes, session } = createRouter({
   login: defineRoute("/login"),
-  nominationCaseList: defineRoute(`/${routeSegments.dossierDeNomination}`),
-  nominationFileOverview: defineRoute(
+  reportList: defineRoute(`/${routeSegments.dossierDeNomination}`),
+  reportOverview: defineRoute(
     {
       id: param.path.string,
     },
@@ -25,21 +25,21 @@ export class TypeRouterProvider implements RouterProvider {
   goToLogin() {
     routes.login().push();
   }
-  goToNominationFileList() {
-    routes.nominationCaseList().push();
+  goToReportList() {
+    routes.reportList().push();
   }
-  gotToNominationFileOverview(id: string) {
-    routes.nominationFileOverview({ id }).push();
+  gotToReportOverview(id: string) {
+    routes.reportOverview({ id }).push();
   }
 
   getLoginHref(): string {
     return routes.login().href;
   }
-  getNominationFileListHref(): string {
-    return routes.nominationCaseList().href;
+  getReportListHref(): string {
+    return routes.reportList().href;
   }
 
-  getNominationFileOverviewAnchorAttributes(id: string) {
-    return routes.nominationFileOverview({ id }).link;
+  getReportOverviewAnchorAttributes(id: string) {
+    return routes.reportOverview({ id }).link;
   }
 }

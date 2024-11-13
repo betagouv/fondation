@@ -3,12 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
-import { NominationFileBuilder } from "../nomination-file/core-logic/builders/NominationFile.builder";
-import { retrieveNominationFile } from "../nomination-file/core-logic/use-cases/nomination-file-retrieval/retrieveNominationFile.use-case";
-import {
-  initReduxStore,
-  ReduxStore,
-} from "../nomination-file/store/reduxStore";
+import { ReportBuilder } from "../reports/core-logic/builders/Report.builder";
+import { retrieveReport } from "../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
+import { initReduxStore, ReduxStore } from "../reports/store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,
@@ -24,8 +21,8 @@ import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteCha
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
-  nominationCaseList: () => <div>a list</div>,
-  nominationFileOverview: () => <div>an overview</div>,
+  reportList: () => <div>a list</div>,
+  reportOverview: () => <div>an overview</div>,
 };
 
 describe("App Router Component", () => {
@@ -60,7 +57,7 @@ describe("App Router Component", () => {
     renderAppRouter();
 
     act(() => {
-      routerProvider.goToNominationFileList();
+      routerProvider.goToReportList();
     });
 
     await screen.findByText("a login");
@@ -81,7 +78,7 @@ describe("App Router Component", () => {
     renderAppRouter();
 
     act(() => {
-      routerProvider.goToNominationFileList();
+      routerProvider.goToReportList();
     });
 
     expect(screen.findByText("a list")).rejects.toThrow();
@@ -99,9 +96,7 @@ describe("App Router Component", () => {
       });
 
       await screen.findByText("a list");
-      expect(window.location.pathname).toBe(
-        routerProvider.getNominationFileListHref(),
-      );
+      expect(window.location.pathname).toBe(routerProvider.getReportListHref());
     });
 
     it("redirects from login to the reports list page", async () => {
@@ -115,22 +110,18 @@ describe("App Router Component", () => {
       });
 
       await screen.findByText("a list");
-      expect(window.location.pathname).toBe(
-        routerProvider.getNominationFileListHref(),
-      );
+      expect(window.location.pathname).toBe(routerProvider.getReportListHref());
     });
 
     it("visits the nomination file overview page", async () => {
       renderAppRouter();
       act(() => {
         givenAnAuthenticatedUser();
-        store.dispatch(
-          retrieveNominationFile.fulfilled(aNominationRetrieved, "", ""),
-        );
+        store.dispatch(retrieveReport.fulfilled(aNominationRetrieved, "", ""));
       });
 
       act(() => {
-        routerProvider.gotToNominationFileOverview(aNominationRetrieved.id);
+        routerProvider.gotToReportOverview(aNominationRetrieved.id);
       });
 
       expect(await screen.findByText("Mes rapports")).toHaveStyle({
@@ -152,7 +143,7 @@ describe("App Router Component", () => {
         renderAppRouter();
         act(() => {
           givenAnAuthenticatedUser();
-          routerProvider.goToNominationFileList();
+          routerProvider.goToReportList();
         });
         await screen.findByText("a list");
 
@@ -185,4 +176,4 @@ describe("App Router Component", () => {
   }
 });
 
-const aNominationRetrieved = new NominationFileBuilder().buildRetrieveVM();
+const aNominationRetrieved = new ReportBuilder().buildRetrieveVM();

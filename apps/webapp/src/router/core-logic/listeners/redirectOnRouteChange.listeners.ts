@@ -1,4 +1,4 @@
-import { Listener } from "../../../nomination-file/store/listeners";
+import { Listener } from "../../../reports/store/listeners";
 import { routeChanged } from "../reducers/router.slice";
 
 export const redirectOnRouteChange: Listener = (startAppListening) =>
@@ -18,11 +18,11 @@ export const redirectOnRouteChange: Listener = (startAppListening) =>
 
       switch (action.payload) {
         case "/":
-          if (authenticated) routerProvider.goToNominationFileList();
+          if (authenticated) routerProvider.goToReportList();
           else routerProvider.goToLogin();
           break;
         case routerProvider.getLoginHref():
-          if (authenticated) routerProvider.goToNominationFileList();
+          if (authenticated) routerProvider.goToReportList();
           break;
         default:
           if (!authenticated) routerProvider.goToLogin();
