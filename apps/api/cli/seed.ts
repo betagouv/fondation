@@ -18,6 +18,8 @@ import { SqlNominationFileReportRepository } from 'src/reports-context/adapters/
 import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import crypto from 'crypto';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
+import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
+import { ReportRule } from 'src/reports-context/business-logic/models/report-rules';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(SharedKernelModule);
@@ -25,19 +27,21 @@ async function seed() {
   try {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
 
-    const report1 = new ReportBuilder()
+    const reportSnapshot1 = new ReportBuilder()
       .with('id', crypto.randomUUID())
       .with('name', 'John Doe')
       .build();
 
-    const reportRow1 = SqlNominationFileReportRepository.mapToDb(report1);
+    const reportRow1 = SqlNominationFileReportRepository.mapToDb(
+      NominationFileReport.fromSnapshot(reportSnapshot1),
+    );
     await db.insert(reports).values(reportRow1).execute();
 
     const report1RulesPromises = rulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
           .with('id', crypto.randomUUID())
-          .with('reportId', report1.id)
+          .with('reportId', reportSnapshot1.id)
           .with('ruleGroup', ruleGroup)
           .with('ruleName', ruleName)
           .with('preValidated', false)
@@ -45,13 +49,13 @@ async function seed() {
           .with('comment', null)
           .build();
 
-        const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+        const ruleRow = SqlReportRuleRepository.mapSnapshotToDb(reportRule);
         await db.insert(reportRules).values(ruleRow).execute();
       },
     );
     await Promise.all(report1RulesPromises);
 
-    const report2 = new ReportBuilder()
+    const reportSnapshot2 = new ReportBuilder()
       .with('id', crypto.randomUUID())
       .with('name', 'Ada Lovelace')
       .with('biography', '- Tribunal de grande instance de Paris')
@@ -67,14 +71,15 @@ async function seed() {
       .with('rank', '(1 sur une liste de 100)')
       .build();
 
-    const reportRow2 = SqlNominationFileReportRepository.mapToDb(report2);
+    const reportRow2 =
+      SqlNominationFileReportRepository.mapSnapshotToDb(reportSnapshot2);
     await db.insert(reports).values(reportRow2).execute();
 
     const report2RulesPromises = rulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
           .with('id', crypto.randomUUID())
-          .with('reportId', report2.id)
+          .with('reportId', reportSnapshot2.id)
           .with('ruleGroup', ruleGroup)
           .with('ruleName', ruleName)
           .with('preValidated', true)
@@ -82,7 +87,9 @@ async function seed() {
           .with('comment', null)
           .build();
 
-        const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+        const ruleRow = SqlReportRuleRepository.mapToDb(
+          ReportRule.fromSnapshot(reportRule),
+        );
         await db.insert(reportRules).values(ruleRow).execute();
       },
     );

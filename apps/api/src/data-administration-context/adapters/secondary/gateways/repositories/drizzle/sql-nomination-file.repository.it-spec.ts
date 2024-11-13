@@ -2,7 +2,7 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { NominationFileRepository } from 'src/data-administration-context/business-logic/gateways/repositories/nomination-file-repository';
 import {
   NominationFileModel,
-  NominationFileSnapshot,
+  NominationFileModelSnapshot,
 } from 'src/data-administration-context/business-logic/models/nomination-file';
 import { getReadRules } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
@@ -57,7 +57,7 @@ describe('SQL Nomination File Repository', () => {
 
   describe("when there's already a nomination file", () => {
     let aNominationFile: NominationFileModel;
-    let aNominationFileSnapshot: NominationFileSnapshot;
+    let aNominationFileSnapshot: NominationFileModelSnapshot;
 
     beforeEach(async () => {
       aNominationFile = givenSomeNominationFile();

@@ -1,10 +1,13 @@
 import { NominationFile } from 'shared-models';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
-import { ReportRule } from 'src/reports-context/business-logic/models/report-rules';
+import {
+  ReportRule,
+  ReportRuleSnapshot,
+} from 'src/reports-context/business-logic/models/report-rules';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 
 export class FakeReportRuleRepository implements ReportRuleRepository {
-  reportRules: Record<string, ReportRule> = {};
+  reportRules: Record<string, ReportRuleSnapshot> = {};
 
   byName(
     reportId: string,
@@ -12,11 +15,13 @@ export class FakeReportRuleRepository implements ReportRuleRepository {
     ruleName: NominationFile.RuleName,
   ): TransactionableAsync<ReportRule | null> {
     return async () => {
-      const reportRule = Object.values(this.reportRules).find(
-        (reportRule) =>
-          reportRule.isRuleOfReportId(reportId) &&
-          reportRule.isRuleName(ruleGroup, ruleName),
-      );
+      const reportRule = Object.values(this.reportRules)
+        .map(ReportRule.fromSnapshot)
+        .find(
+          (reportRule) =>
+            reportRule.isRuleOfReportId(reportId) &&
+            reportRule.isRuleName(ruleGroup, ruleName),
+        );
       return reportRule || null;
     };
   }
@@ -24,12 +29,12 @@ export class FakeReportRuleRepository implements ReportRuleRepository {
   byId(id: string): TransactionableAsync<ReportRule | null> {
     return async () => {
       const reportRule = this.reportRules[id];
-      return reportRule || null;
+      return reportRule ? ReportRule.fromSnapshot(reportRule) : null;
     };
   }
   save(reportRule: ReportRule): TransactionableAsync<void> {
     return async () => {
-      this.reportRules[reportRule.getId()] = reportRule;
+      this.reportRules[reportRule.getId()] = reportRule.toSnapshot();
     };
   }
 }

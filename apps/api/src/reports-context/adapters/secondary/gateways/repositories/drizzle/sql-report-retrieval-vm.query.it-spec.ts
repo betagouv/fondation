@@ -1,21 +1,24 @@
 import { NominationFile, ReportRetrievalVM } from 'shared-models';
-import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
+import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportRetrievalVMBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
-import { ReportRule } from 'src/reports-context/business-logic/models/report-rules';
+import {
+  ReportRule,
+  ReportRuleSnapshot,
+} from 'src/reports-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { clearDB } from 'test/docker-postgresql-manager';
-import { reports } from './schema/report-pm';
-import { reportRules } from './schema/report-rule-pm';
-import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
-import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository'; // For mapping functions
-import { SqlReportRuleRepository } from './sql-report-rule.repository'; // For mapping functions
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { clearDB } from 'test/docker-postgresql-manager';
+import { reports } from './schema/report-pm';
+import { reportRules } from './schema/report-rule-pm';
+import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository'; // For mapping functions
+import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
+import { SqlReportRuleRepository } from './sql-report-rule.repository'; // For mapping functions
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
@@ -41,8 +44,8 @@ describe('SQL Report Retrieval VM Query', () => {
   });
 
   describe('when there is a report', () => {
-    let aReport: NominationFileReport;
-    let aReportRule: ReportRule;
+    let aReport: NominationFileReportSnapshot;
+    let aReportRuleSnapshot: ReportRuleSnapshot;
 
     beforeEach(async () => {
       aReport = new ReportBuilder()
@@ -52,17 +55,18 @@ describe('SQL Report Retrieval VM Query', () => {
         .with('birthDate', new DateOnly(1980, 1, 1))
         .build();
       // Insert the report into the database
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
-      aReportRule = await givenSomeRuleExists(aReport.id);
+      aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
     });
 
     it('retrieves a report', async () => {
-      const expectedRules = prepareExpectedRules(aReportRule);
+      const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
       const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
       expect(result).toEqual<ReportRetrievalVM>(
-        ReportRetrievalVMBuilder.fromWriteModel(aReport)
+        ReportRetrievalVMBuilder.fromWriteSnapshot(aReport)
           .with('rules', expectedRules)
           .build(),
       );
@@ -70,8 +74,8 @@ describe('SQL Report Retrieval VM Query', () => {
   });
 
   describe('when there is a report with empty information', () => {
-    let aReport: NominationFileReport;
-    let aReportRule: ReportRule;
+    let aReport: NominationFileReportSnapshot;
+    let aReportRuleSnapshot: ReportRuleSnapshot;
 
     beforeEach(async () => {
       aReport = new ReportBuilder()
@@ -81,17 +85,18 @@ describe('SQL Report Retrieval VM Query', () => {
         .with('comment', null)
         .build();
       // Insert the report into the database
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
-      aReportRule = await givenSomeRuleExists(aReport.id);
+      aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
     });
 
     it('retrieves with empty values', async () => {
-      const expectedRules = prepareExpectedRules(aReportRule);
+      const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
       const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
       expect(result).toEqual(
-        ReportRetrievalVMBuilder.fromWriteModel(aReport)
+        ReportRetrievalVMBuilder.fromWriteSnapshot(aReport)
           .with('dueDate', null)
           .with('comment', null)
           .with('rules', expectedRules)
@@ -100,8 +105,7 @@ describe('SQL Report Retrieval VM Query', () => {
     });
   });
 
-  const prepareExpectedRules = (reportRule: ReportRule) => {
-    const reportRuleSnapshot = reportRule.toSnapshot();
+  const prepareExpectedRules = (reportRuleSnapshot: ReportRuleSnapshot) => {
     const ruleValue: NominationFile.RuleValue = {
       id: reportRuleSnapshot.id,
       preValidated: reportRuleSnapshot.preValidated,
@@ -116,15 +120,17 @@ describe('SQL Report Retrieval VM Query', () => {
   };
 
   const givenSomeRuleExists = async (reportId: string) => {
-    const aReportRule = new ReportRuleBuilder()
+    const aReportRuleSnapshot = new ReportRuleBuilder()
       .with('id', 'da1619e2-263d-49b6-b928-6a04ee681132')
       .with('reportId', reportId)
       .build();
 
     // Insert the report rule into the database
-    const ruleRow = SqlReportRuleRepository.mapToDb(aReportRule);
+    const ruleRow = SqlReportRuleRepository.mapToDb(
+      ReportRule.fromSnapshot(aReportRuleSnapshot),
+    );
     await db.insert(reportRules).values(ruleRow).execute();
 
-    return aReportRule;
+    return aReportRuleSnapshot;
   };
 });

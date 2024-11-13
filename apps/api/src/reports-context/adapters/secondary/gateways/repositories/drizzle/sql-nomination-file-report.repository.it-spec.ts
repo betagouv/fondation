@@ -11,6 +11,7 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
+import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
 
 const aReport = new ReportBuilder()
   .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
@@ -83,33 +84,38 @@ describe('SQL Nomination File Report Repository', () => {
 
   it('saves a report', async () => {
     await transactionPerformer.perform(
-      sqlNominationFileReportRepository.save(aReport),
+      sqlNominationFileReportRepository.save(
+        NominationFileReport.fromSnapshot(aReport),
+      ),
     );
 
     const existingReports = await db.select().from(reports).execute();
     expect(existingReports).toEqual([
-      SqlNominationFileReportRepository.mapToDb(aReport),
+      SqlNominationFileReportRepository.mapSnapshotToDb(aReport),
     ]);
   });
 
   describe('when there is a report', () => {
     beforeEach(async () => {
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
     });
 
     it.each`
-      testName                 | updatedReport
+      testName                 | updatedReportSnapshot
       ${'all values'}          | ${aReportUpdated}
       ${'some values removed'} | ${aReportUpdatedWithNullValues}
-    `('updates a report with $testName', async ({ updatedReport }) => {
+    `('updates a report with $testName', async ({ updatedReportSnapshot }) => {
       await transactionPerformer.perform(
-        sqlNominationFileReportRepository.save(updatedReport),
+        sqlNominationFileReportRepository.save(updatedReportSnapshot),
       );
 
       const existingReports = await db.select().from(reports).execute();
       expect(existingReports).toEqual([
-        SqlNominationFileReportRepository.mapToDb(updatedReport),
+        SqlNominationFileReportRepository.mapSnapshotToDb(
+          updatedReportSnapshot,
+        ),
       ]);
     });
 

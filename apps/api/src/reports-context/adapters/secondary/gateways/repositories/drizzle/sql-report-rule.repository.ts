@@ -1,7 +1,10 @@
 import { and, eq } from 'drizzle-orm';
 import { NominationFile } from 'shared-models';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
-import { ReportRule } from 'src/reports-context/business-logic/models/report-rules';
+import {
+  ReportRule,
+  ReportRuleSnapshot,
+} from 'src/reports-context/business-logic/models/report-rules';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { reportRules } from './schema/report-rule-pm';
@@ -91,6 +94,13 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
       validated: ruleSnapshot.validated,
       comment: ruleSnapshot.comment,
     };
+  }
+
+  static mapSnapshotToDb(
+    reportSnapshot: ReportRuleSnapshot,
+  ): typeof reportRules.$inferInsert {
+    const report = ReportRule.fromSnapshot(reportSnapshot);
+    return this.mapToDb(report);
   }
 
   toDomain(reportRule: typeof reportRules.$inferSelect): ReportRule {

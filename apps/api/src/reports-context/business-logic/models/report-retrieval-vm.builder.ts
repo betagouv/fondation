@@ -6,7 +6,7 @@ import {
   Transparency,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
-import { NominationFileReport } from './nomination-file-report';
+import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalVMBuilder {
   private _viewModel: ReportRetrievalVM;
@@ -99,8 +99,8 @@ export class ReportRetrievalVMBuilder {
     return this._viewModel;
   }
 
-  static fromWriteModel(
-    report: NominationFileReport,
+  static fromWriteSnapshot(
+    report: NominationFileReportSnapshot,
   ): ReportRetrievalVMBuilder {
     return new ReportRetrievalVMBuilder()
       .with('id', report.id)

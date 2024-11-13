@@ -53,6 +53,54 @@ export class NominationFileReport {
     this.observers = observers;
   }
 
+  toSnapshot(): NominationFileReportSnapshot {
+    return {
+      id: this.id,
+      nominationFileId: this.nominationFileId,
+      createdAt: this.createdAt,
+      folderNumber: this.folderNumber,
+      biography: this.biography,
+      dueDate: this.dueDate,
+      name: this.name,
+      reporterName: this.reporterName,
+      birthDate: this.birthDate,
+      state: this.state,
+      formation: this.formation,
+      transparency: this.transparency,
+      grade: this.grade,
+      currentPosition: this.currentPosition,
+      targettedPosition: this.targettedPosition,
+      comment: this.comment,
+      rank: this.rank,
+      observers: this.observers,
+    };
+  }
+
+  static fromSnapshot(
+    snapshot: NominationFileReportSnapshot,
+  ): NominationFileReport {
+    return new NominationFileReport(
+      snapshot.id,
+      snapshot.nominationFileId,
+      snapshot.createdAt,
+      snapshot.folderNumber,
+      snapshot.biography,
+      snapshot.dueDate,
+      snapshot.name,
+      snapshot.reporterName,
+      snapshot.birthDate,
+      snapshot.state,
+      snapshot.formation,
+      snapshot.transparency,
+      snapshot.grade,
+      snapshot.currentPosition,
+      snapshot.targettedPosition,
+      snapshot.comment,
+      snapshot.rank,
+      snapshot.observers,
+    );
+  }
+
   static createFromImport(
     reportId: string,
     importedNominationFileId: string,

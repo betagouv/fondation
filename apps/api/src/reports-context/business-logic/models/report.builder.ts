@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
   Magistrat,
   NominationFile,
@@ -6,12 +7,8 @@ import {
   Transparency,
 } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import {
-  NominationFileReport,
-  NominationFileReportSnapshot,
-} from './nomination-file-report';
 import { Get, Paths } from 'type-fest';
-import _ from 'lodash';
+import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportBuilder {
   private _snapshot: NominationFileReportSnapshot;
@@ -50,27 +47,8 @@ export class ReportBuilder {
     return this;
   }
 
-  build(): NominationFileReport {
-    return new NominationFileReport(
-      this._snapshot.id,
-      this._snapshot.nominationFileId,
-      this._snapshot.createdAt,
-      this._snapshot.folderNumber,
-      this._snapshot.biography,
-      this._snapshot.dueDate,
-      this._snapshot.name,
-      this._snapshot.reporterName,
-      this._snapshot.birthDate,
-      this._snapshot.state,
-      this._snapshot.formation,
-      this._snapshot.transparency,
-      this._snapshot.grade,
-      this._snapshot.currentPosition,
-      this._snapshot.targettedPosition,
-      this._snapshot.comment,
-      this._snapshot.rank,
-      this._snapshot.observers,
-    );
+  build(): NominationFileReportSnapshot {
+    return this._snapshot;
   }
 
   static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {

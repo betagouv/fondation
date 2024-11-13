@@ -1,16 +1,16 @@
 import { ReportListingVM } from 'shared-models';
-import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
+import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
 import { SqlReportListingVMQuery } from './sql-report-listing-vm.query';
-import {
-  DrizzleDb,
-  getDrizzleInstance,
-} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 
 describe('SQL Report Listing VM Query', () => {
   let sqlReportListingVMRepository: SqlReportListingVMQuery;
@@ -37,7 +37,7 @@ describe('SQL Report Listing VM Query', () => {
   });
 
   describe('when there is a report', () => {
-    let aReport: NominationFileReport;
+    let aReport: NominationFileReportSnapshot;
 
     beforeEach(async () => {
       aReport = new ReportBuilder()
@@ -46,7 +46,8 @@ describe('SQL Report Listing VM Query', () => {
         .with('dueDate', new DateOnly(2030, 10, 1))
         .build();
 
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
     });
 

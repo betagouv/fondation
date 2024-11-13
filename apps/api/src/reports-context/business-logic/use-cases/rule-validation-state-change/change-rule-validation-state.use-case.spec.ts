@@ -22,10 +22,9 @@ describe('Change Rule Validation State', () => {
   it.each(testData)(
     'switch an oversea to oversea rule validation state from $initialValidationState to $expectValidated',
     async ({ initialValidationState, expectValidated }) => {
-      const aReportRule = givenSomeReportRuleExistWithValidatedAt(
+      const aReportRuleSnapshot = givenSomeReportRuleExistWithValidatedAt(
         initialValidationState,
       );
-      const aReportRuleSnapshot = aReportRule.toSnapshot();
 
       const changeRuleValidationStateUseCase =
         new ChangeRuleValidationStateUseCase(
@@ -44,17 +43,16 @@ describe('Change Rule Validation State', () => {
 
   const givenSomeReportRuleExistWithValidatedAt = (
     initialValidationState: boolean,
-  ): ReportRule => {
-    const aReportRule = new ReportRuleBuilder()
+  ): ReportRuleSnapshot => {
+    const aReportRuleSnapshot = new ReportRuleBuilder()
       .withOverseasToOverseasRuleValidated(initialValidationState)
       .build();
-    const aReportRuleSnapshot = aReportRule.toSnapshot();
 
     reportRuleRepository.reportRules = {
-      [aReportRuleSnapshot.id]: aReportRule,
+      [aReportRuleSnapshot.id]: aReportRuleSnapshot,
     };
 
-    return aReportRule;
+    return aReportRuleSnapshot;
   };
 
   const expectChangedRuleValidationState = (

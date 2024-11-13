@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { NominationFileRead } from './nomination-file-read';
 
-export type NominationFileSnapshot = {
+export type NominationFileModelSnapshot = {
   id: string;
   createdAt: Date;
   rowNumber: NominationFileRead['rowNumber'];
@@ -53,7 +53,7 @@ export class NominationFileModel {
     );
   }
 
-  toSnapshot(): NominationFileSnapshot {
+  toSnapshot(): NominationFileModelSnapshot {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -62,7 +62,9 @@ export class NominationFileModel {
     };
   }
 
-  static fromSnapshot(snapshot: NominationFileSnapshot): NominationFileModel {
+  static fromSnapshot(
+    snapshot: NominationFileModelSnapshot,
+  ): NominationFileModel {
     return new NominationFileModel(snapshot.id, snapshot.createdAt, {
       rowNumber: snapshot.rowNumber,
       content: snapshot.content,

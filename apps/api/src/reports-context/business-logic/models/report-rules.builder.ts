@@ -1,7 +1,7 @@
-import { NominationFile } from 'shared-models';
-import { ReportRule, ReportRuleSnapshot } from './report-rules';
 import _ from 'lodash';
-import { Paths, Get } from 'type-fest';
+import { NominationFile } from 'shared-models';
+import { Get, Paths } from 'type-fest';
+import { ReportRuleSnapshot } from './report-rules';
 
 export class ReportRuleBuilder {
   private _snapshot: ReportRuleSnapshot;
@@ -35,16 +35,7 @@ export class ReportRuleBuilder {
     return this;
   }
 
-  build(): ReportRule {
-    return new ReportRule(
-      this._snapshot.id,
-      this._snapshot.createdAt,
-      this._snapshot.reportId,
-      this._snapshot.ruleGroup,
-      this._snapshot.ruleName,
-      this._snapshot.preValidated,
-      this._snapshot.validated,
-      this._snapshot.comment,
-    );
+  build(): ReportRuleSnapshot {
+    return this._snapshot;
   }
 }

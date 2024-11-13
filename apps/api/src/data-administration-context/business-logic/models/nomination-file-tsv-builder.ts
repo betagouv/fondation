@@ -5,7 +5,7 @@ import {
   gsheetDateFormat,
 } from 'src/shared-kernel/business-logic/models/date-only';
 import { Get, Paths } from 'type-fest';
-import { NominationFileModel } from './nomination-file';
+import { NominationFileModelSnapshot } from './nomination-file';
 import {
   GSHEET_BLOCK_LINE_BREAK_TOKEN,
   GSHEET_CELL_LINE_BREAK_TOKEN,
@@ -226,8 +226,8 @@ export class NominationFileTsvBuilder {
     );
   }
 
-  fromModel(nominationFile: NominationFileModel) {
-    const content = nominationFile.toSnapshot().content;
+  fromModelSnapshot(nominationFileSnapshot: NominationFileModelSnapshot) {
+    const content = nominationFileSnapshot.content;
 
     const transparencyMap = {
       [Transparency.AUTOMNE_2024]: 'Automne 2024',

@@ -9,18 +9,18 @@ import { Get, PartialDeep, Paths } from 'type-fest';
 import { EmptyFileError } from '../../errors/empty-file.error';
 import { FileLengthTooShortError } from '../../errors/file-length-too-short.error';
 import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
-import { NominationFileModel } from '../../models/nomination-file';
-import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 import { NominationFilesImportedEvent } from '../../models/events/nomination-file-imported.event';
+import {
+  NominationFilesUpdatedEvent,
+  NominationFilesUpdatedEventPayload,
+} from '../../models/events/nomination-files-updated.event';
+import { NominationFileModelSnapshot } from '../../models/nomination-file';
+import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 import { NominationFileRead } from '../../models/nomination-file-read';
 import {
   Line,
   NominationFileTsvBuilder,
 } from '../../models/nomination-file-tsv-builder';
-import {
-  NominationFilesUpdatedEvent,
-  NominationFilesUpdatedEventPayload,
-} from '../../models/events/nomination-files-updated.event';
 import { ImportNominationFilesUseCase } from './import-nomination-files.use-case';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
@@ -104,7 +104,9 @@ describe('Import Nomination Files Use Case', () => {
       await expect(
         importAFile(
           new NominationFileTsvBuilder()
-            .fromModel(getMarcelDupontModel('nomination-file-id', 1))
+            .fromModelSnapshot(
+              getMarcelDupontModelSnapshot('nomination-file-id', 1),
+            )
             .with(column, value)
             .build(),
         ),
@@ -115,7 +117,9 @@ describe('Import Nomination Files Use Case', () => {
   it('informs about a new file imported', async () => {
     await importAFile(
       new NominationFileTsvBuilder()
-        .fromModel(getMarcelDupontModel('nomination-file-id', 1))
+        .fromModelSnapshot(
+          getMarcelDupontModelSnapshot('nomination-file-id', 1),
+        )
         .build(),
     );
     expect(domainEventRepository).toHaveDomainEvents(
@@ -133,18 +137,22 @@ describe('Import Nomination Files Use Case', () => {
   });
 
   it('parses a line with all values filled and all rules pre-validated at true', async () => {
-    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1, {
-      folderNumber: 1,
-      reporters: ['   FIRST Reporter  ', '   SECOND Reporter  '],
-      observers: [anObserverString, '  SECOND OBSERVER  '],
-      transparency: Transparency.AUTOMNE_2024,
-      biography: ' - blabla ',
-      formation: Magistrat.Formation.SIEGE,
-    });
+    const marcelDupontSnapshot = getMarcelDupontModelSnapshot(
+      'nomination-file-id',
+      1,
+      {
+        folderNumber: 1,
+        reporters: ['   FIRST Reporter  ', '   SECOND Reporter  '],
+        observers: [anObserverString, '  SECOND OBSERVER  '],
+        transparency: Transparency.AUTOMNE_2024,
+        biography: ' - blabla ',
+        formation: Magistrat.Formation.SIEGE,
+      },
+    );
 
     await importAFile(
       new NominationFileTsvBuilder()
-        .fromModel(marcelDupontModel)
+        .fromModelSnapshot(marcelDupontSnapshot)
         .with('folderNumber', ' 1  ' as unknown as number)
         .with('transparency', ' Automne 2024 ')
         .with('biography', ' - blabla ')
@@ -154,53 +162,57 @@ describe('Import Nomination Files Use Case', () => {
         .build(),
     );
 
-    const marcelDupontSnapshot = marcelDupontModel.toSnapshot();
-    expectNominationFiles(
-      new NominationFileModel(
-        'nomination-file-id',
-        dateTimeProvider.currentDate,
-        {
-          rowNumber: marcelDupontSnapshot.rowNumber,
-          content: {
-            ...marcelDupontSnapshot.content,
-            folderNumber: 1,
-            reporters: ['FIRST Reporter', 'SECOND Reporter'],
-            observers: [anObserverExpected, 'SECOND OBSERVER'],
-            transparency: Transparency.AUTOMNE_2024,
-            biography: '- blabla',
-            formation: Magistrat.Formation.SIEGE,
-            dueDate: {
-              year: 2024,
-              month: 11,
-              day: 10,
-            },
-            birthDate: {
-              year: 1961,
-              month: 11,
-              day: 1,
-            },
-          },
+    expectNominationFiles({
+      id: 'nomination-file-id',
+      createdAt: dateTimeProvider.currentDate,
+      rowNumber: marcelDupontSnapshot.rowNumber,
+      content: {
+        ...marcelDupontSnapshot.content,
+        folderNumber: 1,
+        reporters: ['FIRST Reporter', 'SECOND Reporter'],
+        observers: [anObserverExpected, 'SECOND OBSERVER'],
+        transparency: Transparency.AUTOMNE_2024,
+        biography: '- blabla',
+        formation: Magistrat.Formation.SIEGE,
+        dueDate: {
+          year: 2024,
+          month: 11,
+          day: 10,
         },
-      ),
-    );
+        birthDate: {
+          year: 1961,
+          month: 11,
+          day: 1,
+        },
+      },
+    });
   });
 
   it('parses a line with possible empty values unfilled and one rule pre-validated at true', async () => {
-    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1, {
-      folderNumber: null,
-      reporters: null,
-      observers: null,
-      biography: null,
-    });
-    await importAFile(
-      new NominationFileTsvBuilder().fromModel(marcelDupontModel).build(),
+    const marcelDupontModelSnapshot = getMarcelDupontModelSnapshot(
+      'nomination-file-id',
+      1,
+      {
+        folderNumber: null,
+        reporters: null,
+        observers: null,
+        biography: null,
+      },
     );
-    expectNominationFiles(marcelDupontModel);
+    await importAFile(
+      new NominationFileTsvBuilder()
+        .fromModelSnapshot(marcelDupontModelSnapshot)
+        .build(),
+    );
+    expectNominationFiles(marcelDupontModelSnapshot);
   });
 
   it('saves two lines', async () => {
-    const marcelDupontModel = getMarcelDupontModel('nomination-file-id', 1);
-    const lucienPierreModel = getLucienPierreModel(
+    const marcelDupontModel = getMarcelDupontModelSnapshot(
+      'nomination-file-id',
+      1,
+    );
+    const lucienPierreModel = getLucienPierreModelSnapshot(
       'second-nomination-file-id',
       2,
     );
@@ -212,8 +224,8 @@ describe('Import Nomination Files Use Case', () => {
 
     await importAFile(
       new NominationFileTsvBuilder()
-        .fromModel(marcelDupontModel)
-        .fromModel(lucienPierreModel)
+        .fromModelSnapshot(marcelDupontModel)
+        .fromModelSnapshot(lucienPierreModel)
         .build(),
     );
 
@@ -224,7 +236,7 @@ describe('Import Nomination Files Use Case', () => {
     beforeEach(() => {
       nominationFileRepository.nominationFiles = {
         'nomination-file-id': getFirstRow(),
-        'another-id': getMarcelDupontModel('another-id', 2),
+        'another-id': getMarcelDupontModelSnapshot('another-id', 2),
       };
       uuidGenerator.nextUuids = [
         'lucien-nomination-file-id',
@@ -235,7 +247,7 @@ describe('Import Nomination Files Use Case', () => {
 
     it("doesn't inform about a new file imported if no new line", async () => {
       await importAFile(
-        new NominationFileTsvBuilder().fromModel(getFirstRow()).build(),
+        new NominationFileTsvBuilder().fromModelSnapshot(getFirstRow()).build(),
       );
       expect(domainEventRepository).toHaveDomainEvents();
     });
@@ -249,8 +261,8 @@ describe('Import Nomination Files Use Case', () => {
         testName: 'folder number',
         getTsvValue: () =>
           new NominationFileTsvBuilder()
-            .fromModel(
-              getMarcelDupontModel('nomination-file-id', 1, {
+            .fromModelSnapshot(
+              getMarcelDupontModelSnapshot('nomination-file-id', 1, {
                 folderNumber: 10,
               }),
             )
@@ -268,8 +280,8 @@ describe('Import Nomination Files Use Case', () => {
         testName: 'observers',
         getTsvValue: () =>
           new NominationFileTsvBuilder()
-            .fromModel(
-              getMarcelDupontModel('nomination-file-id', 1, {
+            .fromModelSnapshot(
+              getMarcelDupontModelSnapshot('nomination-file-id', 1, {
                 observers: [anObserverString],
               }),
             )
@@ -287,8 +299,8 @@ describe('Import Nomination Files Use Case', () => {
         testName: 'rules',
         getTsvValue: () =>
           new NominationFileTsvBuilder()
-            .fromModel(
-              getMarcelDupontModel('nomination-file-id', 1, {
+            .fromModelSnapshot(
+              getMarcelDupontModelSnapshot('nomination-file-id', 1, {
                 rules: {
                   [NominationFile.RuleGroup.MANAGEMENT]: {
                     [NominationFile.ManagementRule.TRANSFER_TIME]: false,
@@ -333,9 +345,9 @@ describe('Import Nomination Files Use Case', () => {
       jest.spyOn(nominationFileRepository, 'save');
       await importAFile(
         new NominationFileTsvBuilder()
-          .fromModel(getFirstRow())
+          .fromModelSnapshot(getFirstRow())
           .withRuleTransferTime('FALSE')
-          .fromModel(getMarcelDupontModel('another-id', 2))
+          .fromModelSnapshot(getMarcelDupontModelSnapshot('another-id', 2))
           .build(),
       );
       expect(nominationFileRepository.save).toHaveBeenCalledTimes(1);
@@ -344,17 +356,17 @@ describe('Import Nomination Files Use Case', () => {
     const udatedRulesTestData: Array<{
       ruleName: string;
       genTsvValue: () => string;
-      getExpectedNominationFile: () => NominationFileModel;
+      getExpectedNominationFile: () => NominationFileModelSnapshot;
     }> = [
       {
         ruleName: 'Transfer Time',
         genTsvValue: () =>
           new NominationFileTsvBuilder()
-            .fromModel(getFirstRow())
+            .fromModelSnapshot(getFirstRow())
             .withRuleTransferTime('FALSE')
             .build(),
         getExpectedNominationFile: () =>
-          getMarcelDupontModel('nomination-file-id', 1, {
+          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
             rules: {
               [NominationFile.RuleGroup.MANAGEMENT]: {
                 [NominationFile.ManagementRule.TRANSFER_TIME]: false,
@@ -366,11 +378,11 @@ describe('Import Nomination Files Use Case', () => {
         ruleName: 'Minister Cabinet',
         genTsvValue: () =>
           new NominationFileTsvBuilder()
-            .fromModel(getFirstRow())
+            .fromModelSnapshot(getFirstRow())
             .withRuleMinisterCabinet('FALSE')
             .build(),
         getExpectedNominationFile: () =>
-          getMarcelDupontModel('nomination-file-id', 1, {
+          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
             rules: {
               [NominationFile.RuleGroup.STATUTORY]: {
                 [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
@@ -386,7 +398,7 @@ describe('Import Nomination Files Use Case', () => {
         await importAFile(genTsvValue());
         expectNominationFiles(
           getExpectedNominationFile(),
-          getMarcelDupontModel('another-id', 2),
+          getMarcelDupontModelSnapshot('another-id', 2),
         );
       },
     );
@@ -406,33 +418,40 @@ describe('Import Nomination Files Use Case', () => {
     `('cannot update the $field', async ({ updatedContent }) => {
       await importAFile(
         new NominationFileTsvBuilder()
-          .fromModel(
-            getMarcelDupontModel('nomination-file-id', 1, updatedContent),
+          .fromModelSnapshot(
+            getMarcelDupontModelSnapshot(
+              'nomination-file-id',
+              1,
+              updatedContent,
+            ),
           )
           .build(),
       );
       expectNominationFiles(
         getFirstRow(),
-        getMarcelDupontModel('another-id', 2),
+        getMarcelDupontModelSnapshot('another-id', 2),
       );
     });
 
     it('imports only the new line', async () => {
       await importAFile(
         new NominationFileTsvBuilder()
-          .fromModel(getFirstRow())
-          .fromModel(getMarcelDupontModel('another-id', 2))
-          .fromModel(getLucienPierreModel('lucien-nomination-file-id', 3))
+          .fromModelSnapshot(getFirstRow())
+          .fromModelSnapshot(getMarcelDupontModelSnapshot('another-id', 2))
+          .fromModelSnapshot(
+            getLucienPierreModelSnapshot('lucien-nomination-file-id', 3),
+          )
           .build(),
       );
       expectNominationFiles(
         getFirstRow(),
-        getMarcelDupontModel('another-id', 2),
-        getLucienPierreModel('lucien-nomination-file-id', 3),
+        getMarcelDupontModelSnapshot('another-id', 2),
+        getLucienPierreModelSnapshot('lucien-nomination-file-id', 3),
       );
     });
 
-    const getFirstRow = () => getMarcelDupontModel('nomination-file-id', 1);
+    const getFirstRow = () =>
+      getMarcelDupontModelSnapshot('nomination-file-id', 1);
   });
 
   const importAFile = (fileToImport: string) =>
@@ -444,40 +463,42 @@ describe('Import Nomination Files Use Case', () => {
       domainEventRepository,
     ).execute(fileToImport);
 
-  const expectNominationFiles = (...nominationFiles: NominationFileModel[]) => {
+  const expectNominationFiles = (
+    ...nominationFileSnapshots: NominationFileModelSnapshot[]
+  ) => {
     expect(nominationFileRepository.nominationFiles).toEqual<
       FakeNominationFileRepository['nominationFiles']
     >(
-      nominationFiles.reduce(
-        (acc, nominationFile) => ({
+      nominationFileSnapshots.reduce(
+        (acc, nominationFileSnapshot) => ({
           ...acc,
-          [nominationFile.toSnapshot().id]: nominationFile,
+          [nominationFileSnapshot.id]: nominationFileSnapshot,
         }),
         {},
       ),
     );
   };
 
-  const getMarcelDupontModel = (
+  const getMarcelDupontModelSnapshot = (
     uuid: string,
     rowNumber = 1,
     moreContent?: PartialDeep<NominationFileRead['content']>,
-  ): NominationFileModel =>
-    new NominationFileModel(
-      uuid,
-      dateTimeProvider.currentDate,
-      getMarcelDupontRead(rowNumber, moreContent),
-    );
+  ): NominationFileModelSnapshot => ({
+    id: uuid,
+    createdAt: dateTimeProvider.currentDate,
+    rowNumber: rowNumber,
+    content: getMarcelDupontRead(rowNumber, moreContent).content,
+  });
 
-  const getLucienPierreModel = (
+  const getLucienPierreModelSnapshot = (
     uuid: string,
     rowNumber = 1,
-  ): NominationFileModel =>
-    new NominationFileModel(
-      uuid,
-      dateTimeProvider.currentDate,
-      getLucienPierreRead(rowNumber),
-    );
+  ): NominationFileModelSnapshot => ({
+    id: uuid,
+    createdAt: dateTimeProvider.currentDate,
+    rowNumber: rowNumber,
+    content: getLucienPierreRead(rowNumber).content,
+  });
 
   const getMarcelDupontRead = (
     rowNumber = 1,

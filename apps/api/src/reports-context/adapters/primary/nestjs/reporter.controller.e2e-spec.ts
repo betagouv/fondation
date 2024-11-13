@@ -1,3 +1,8 @@
+import { HttpStatus } from '@nestjs/common';
+import { NestApplication } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
+import crypto from 'crypto';
+import { eq } from 'drizzle-orm';
 import {
   Magistrat,
   NominationFile,
@@ -6,15 +11,12 @@ import {
   rulesTuple,
   Transparency,
 } from 'shared-models';
-import { HttpStatus } from '@nestjs/common';
-import { NestApplication } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
-import crypto from 'crypto';
-import { eq } from 'drizzle-orm';
 import { AppModule } from 'src/app.module';
-import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportRetrievalVMBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
-import { ReportRule } from 'src/reports-context/business-logic/models/report-rules';
+import {
+  ReportRule,
+  ReportRuleSnapshot,
+} from 'src/reports-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -63,7 +65,8 @@ describe('Reporter Controller', () => {
 
   describe('GET /api/reports', () => {
     beforeEach(async () => {
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -91,31 +94,36 @@ describe('Reporter Controller', () => {
       targettedPosition: 'a position',
       observersCount: 1,
     };
-    const aReport = ReportBuilder.fromListingVM(aReportListingVM)
+    const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
   });
 
   describe('GET /api/reports/:id', () => {
-    let reportRulesSaved: (readonly [NominationFile.RuleGroup, ReportRule])[];
+    let reportRulesSaved: (readonly [
+      NominationFile.RuleGroup,
+      ReportRuleSnapshot,
+    ])[];
 
     beforeEach(async () => {
-      const reportRow = SqlNominationFileReportRepository.mapToDb(aReport);
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
       const reportRulesPromises = rulesTuple.map(
         async ([ruleGroup, ruleName]) => {
-          const reportRule = new ReportRuleBuilder()
+          const reportRuleSnapshot = new ReportRuleBuilder()
             .with('id', crypto.randomUUID())
             .with('reportId', aReport.id)
             .with('ruleGroup', ruleGroup)
             .with('ruleName', ruleName)
             .build();
 
-          const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+          const ruleRow =
+            SqlReportRuleRepository.mapSnapshotToDb(reportRuleSnapshot);
           await db.insert(reportRules).values(ruleRow).execute();
 
-          return [ruleGroup, reportRule] as const;
+          return [ruleGroup, reportRuleSnapshot] as const;
         },
       );
       reportRulesSaved = await Promise.all(reportRulesPromises);
@@ -128,21 +136,18 @@ describe('Reporter Controller', () => {
       expect(response.body).toEqual<ReportRetrievalVM>({
         ...aReportRetrievedVM,
         rules: reportRulesSaved.reduce(
-          (acc, [ruleGroup, reportRule]) => {
-            const ruleSnapshot = reportRule.toSnapshot();
-            return {
-              ...acc,
-              [ruleGroup]: {
-                ...acc[ruleGroup],
-                [ruleSnapshot.ruleName]: {
-                  id: ruleSnapshot.id,
-                  preValidated: ruleSnapshot.preValidated,
-                  validated: ruleSnapshot.validated,
-                  comment: ruleSnapshot.comment,
-                },
+          (acc, [ruleGroup, reportRuleSnapshot]) => ({
+            ...acc,
+            [ruleGroup]: {
+              ...acc[ruleGroup],
+              [reportRuleSnapshot.ruleName]: {
+                id: reportRuleSnapshot.id,
+                preValidated: reportRuleSnapshot.preValidated,
+                validated: reportRuleSnapshot.validated,
+                comment: reportRuleSnapshot.comment,
               },
-            };
-          },
+            },
+          }),
           {} as ReportRetrievalVM['rules'],
         ),
       });
@@ -159,7 +164,7 @@ describe('Reporter Controller', () => {
   describe('PUT /api/reports/rules/:id', () => {
     beforeEach(async () => {
       const reportRow =
-        SqlNominationFileReportRepository.mapToDb(nominationFileReport);
+        SqlNominationFileReportRepository.mapSnapshotToDb(nominationFileReport);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -186,10 +191,10 @@ describe('Reporter Controller', () => {
     });
 
     it('unvalidates an overseas to overseas validation rule', async () => {
-      const ruleRow = SqlReportRuleRepository.mapToDb(reportRule);
+      const ruleRow =
+        SqlReportRuleRepository.mapSnapshotToDb(reportRuleSnapshot);
       await db.insert(reportRules).values(ruleRow).execute();
 
-      const reportRuleSnapshot = reportRule.toSnapshot();
       const body: ChangeRuleValidationStateDto = {
         validated: false,
       };
@@ -211,11 +216,11 @@ describe('Reporter Controller', () => {
       ]);
     });
 
-    const nominationFileReport: NominationFileReport = new ReportBuilder()
+    const nominationFileReport = new ReportBuilder()
       .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
-    const reportRule = new ReportRuleBuilder()
+    const reportRuleSnapshot = new ReportRuleBuilder()
       .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .with('reportId', nominationFileReport.id)
       .build();

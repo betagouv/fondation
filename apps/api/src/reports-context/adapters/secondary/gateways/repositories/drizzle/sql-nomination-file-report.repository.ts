@@ -1,6 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { ReportRepository } from 'src/reports-context/business-logic/gateways/repositories/report.repository';
-import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
+import {
+  NominationFileReport,
+  NominationFileReportSnapshot,
+} from 'src/reports-context/business-logic/models/nomination-file-report';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
@@ -87,6 +90,13 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       rank: report.rank,
       observers: report.observers,
     };
+  }
+
+  static mapSnapshotToDb(
+    reportSnapshot: NominationFileReportSnapshot,
+  ): typeof reports.$inferInsert {
+    const report = NominationFileReport.fromSnapshot(reportSnapshot);
+    return this.mapToDb(report);
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
