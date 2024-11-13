@@ -1,13 +1,9 @@
-import {
-  Magistrat,
-  NominationFile,
-  rulesTuple,
-  Transparency,
-} from "shared-models";
+import _ from "lodash";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
+import { Get, Paths } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../store/appState";
-import _ from "lodash";
-import { Get, Paths } from "type-fest";
+import { ReportSMRulesBuilder } from "./ReportSMRules.builder";
 
 type InternalReport = Omit<
   ReportSM & ReportListItem,
@@ -38,23 +34,7 @@ export class ReportBuilder {
       rank: "(2 sur une liste de 3)",
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
-      rules: rulesTuple.reduce(
-        (acc, [ruleGroup, ruleName]) => {
-          return {
-            ...acc,
-            [ruleGroup]: {
-              ...acc[ruleGroup],
-              [ruleName]: {
-                id: ruleName,
-                preValidated: true,
-                validated: true,
-                comment: `${ruleName} comment`,
-              },
-            },
-          };
-        },
-        {} as ReportSM["rules"],
-      ),
+      rules: new ReportSMRulesBuilder().build(),
     };
   }
 

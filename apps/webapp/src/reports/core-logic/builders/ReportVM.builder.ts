@@ -9,6 +9,7 @@ import { Get, Paths } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../store/appState";
 import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
+import { ReportVMRulesBuilder } from "./ReportVMRules.builder";
 
 type InternalReportVM = Omit<ReportVM, "dueDate" | "birthDate"> & {
   dueDate: DateOnly | null;
@@ -38,29 +39,18 @@ export class ReportBuilderVM {
         ["observer 1"],
         ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
       ],
-      rulesChecked: rulesTuple.reduce(
-        (acc, [ruleGroup, ruleName]) => {
-          return {
-            ...acc,
-            [ruleGroup]: {
-              ...acc[ruleGroup],
-              [ruleName]: {
-                id: ruleName,
-                highlighted: true,
-                checked: false,
-                label: (
-                  ReportVM.rulesToLabels[ruleGroup] as Record<
-                    NominationFile.RuleName,
-                    string
-                  >
-                )[ruleName],
-                comment: `${ruleName} comment`,
-              },
-            },
-          };
-        },
-        {} as ReportVM["rulesChecked"],
-      ),
+      rulesChecked: new ReportVMRulesBuilder(({ ruleGroup, ruleName }) => ({
+        id: ruleName,
+        highlighted: true,
+        checked: false,
+        label: (
+          ReportVM.rulesToLabels[ruleGroup] as Record<
+            NominationFile.RuleName,
+            string
+          >
+        )[ruleName],
+        comment: `${ruleName} comment`,
+      })).build(),
     };
   }
 

@@ -1,5 +1,10 @@
 import _ from 'lodash';
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile,
+  RulesBuilder,
+  Transparency,
+} from 'shared-models';
 import {
   DateOnly,
   gsheetDateFormat,
@@ -10,6 +15,7 @@ import {
   GSHEET_BLOCK_LINE_BREAK_TOKEN,
   GSHEET_CELL_LINE_BREAK_TOKEN,
 } from './nomination-file-content-reader';
+import { NominationFileRead } from './nomination-file-read';
 
 export type Line = {
   folderNumber: number | null;
@@ -270,22 +276,21 @@ export class NominationFileTsvBuilder {
       ),
       biography: content.biography ?? '',
       observers: content.observers,
-      rules: Object.entries(content.rules).reduce(
-        (acc, [ruleGroup, rules]) => ({
-          ...acc,
-          [ruleGroup]: {
-            ...acc[ruleGroup as NominationFile.RuleGroup],
-            ...Object.entries(rules).reduce(
-              (acc, [ruleName, ruleValue]) => ({
-                ...acc,
-                [ruleName]: ruleValue ? 'TRUE' : 'FALSE',
-              }),
-              {} as Line['rules'][keyof Line['rules']],
-            ),
-          },
-        }),
-        {} as Line['rules'],
-      ),
+      rules: NominationFileTsvRulesBuilder.fromRead(content.rules).build(),
+    });
+  }
+}
+
+class NominationFileTsvRulesBuilder extends RulesBuilder<string> {
+  static fromRead(
+    rules: NominationFileRead['content']['rules'],
+  ): NominationFileTsvRulesBuilder {
+    return new NominationFileTsvRulesBuilder(({ ruleGroup, ruleName }) => {
+      const ruleValue = (
+        rules[ruleGroup] as Record<NominationFile.RuleName, boolean>
+      )[ruleName];
+
+      return ruleValue ? 'TRUE' : 'FALSE';
     });
   }
 }

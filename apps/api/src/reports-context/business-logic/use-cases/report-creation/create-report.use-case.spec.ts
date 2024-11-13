@@ -7,6 +7,7 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
+import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
 import { NominationFileReport } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
 import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
@@ -159,33 +160,10 @@ describe('Create Report Use Case', () => {
 
 export const getAllRulesPreValidated = (options?: {
   exceptRuleMinisterCabinet: true;
-}): ReportToCreate['rules'] => ({
-  [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
-    NominationFile.ManagementRule,
-  ).reduce(
-    (acc, rule) => ({
-      ...acc,
-      [rule]: true,
-    }),
-    {} as ReportToCreate['rules'][NominationFile.RuleGroup.MANAGEMENT],
-  ),
-  [NominationFile.RuleGroup.STATUTORY]: Object.values(
-    NominationFile.StatutoryRule,
-  ).reduce(
-    (acc, rule) => ({
-      ...acc,
-      [rule]:
-        options?.exceptRuleMinisterCabinet &&
-        rule === NominationFile.StatutoryRule.MINISTER_CABINET
-          ? false
-          : true,
-    }),
-    {} as ReportToCreate['rules'][NominationFile.RuleGroup.STATUTORY],
-  ),
-  [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
-    NominationFile.QualitativeRule,
-  ).reduce(
-    (acc, rule) => ({ ...acc, [rule]: true }),
-    {} as ReportToCreate['rules'][NominationFile.RuleGroup.QUALITATIVE],
-  ),
-});
+}): ReportToCreate['rules'] => {
+  const builder = new BooleanReportRulesBuilder();
+  if (options?.exceptRuleMinisterCabinet) {
+    builder.with('statutory.MINISTER_CABINET', false);
+  }
+  return builder.build();
+};

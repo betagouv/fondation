@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile,
+  RulesBuilder,
+  Transparency,
+} from 'shared-models';
 import { FakeNominationFileRepository } from 'src/data-administration-context/adapters/secondary/gateways/repositories/fake-nomination-file-repository';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -300,26 +305,27 @@ describe('Import Nomination Files Use Case', () => {
         getTsvValue: () =>
           new NominationFileTsvBuilder()
             .fromModelSnapshot(
-              getMarcelDupontModelSnapshot('nomination-file-id', 1, {
-                rules: {
-                  [NominationFile.RuleGroup.MANAGEMENT]: {
-                    [NominationFile.ManagementRule.TRANSFER_TIME]: false,
-                  },
-                },
-              }),
+              getMarcelDupontModelSnapshot(
+                'nomination-file-id',
+                1,
+                undefined,
+                new NominationFileReadRulesBuilder()
+                  .with('management.TRANSFER_TIME', false)
+                  .build(),
+              ),
             )
             .build(),
         getEventPayload: () => [
           {
             nominationFileId: 'nomination-file-id',
             content: {
-              rules: getMarcelDupontRead(1, {
-                rules: {
-                  [NominationFile.RuleGroup.MANAGEMENT]: {
-                    [NominationFile.ManagementRule.TRANSFER_TIME]: false,
-                  },
-                },
-              }).content.rules,
+              rules: getMarcelDupontRead(
+                1,
+                undefined,
+                new NominationFileReadRulesBuilder()
+                  .with('management.TRANSFER_TIME', false)
+                  .build(),
+              ).content.rules,
             },
           },
         ],
@@ -353,7 +359,7 @@ describe('Import Nomination Files Use Case', () => {
       expect(nominationFileRepository.save).toHaveBeenCalledTimes(1);
     });
 
-    const udatedRulesTestData: Array<{
+    const updatedRulesTestData: Array<{
       ruleName: string;
       genTsvValue: () => string;
       getExpectedNominationFile: () => NominationFileModelSnapshot;
@@ -366,13 +372,14 @@ describe('Import Nomination Files Use Case', () => {
             .withRuleTransferTime('FALSE')
             .build(),
         getExpectedNominationFile: () =>
-          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
-            rules: {
-              [NominationFile.RuleGroup.MANAGEMENT]: {
-                [NominationFile.ManagementRule.TRANSFER_TIME]: false,
-              },
-            },
-          }),
+          getMarcelDupontModelSnapshot(
+            'nomination-file-id',
+            1,
+            undefined,
+            new NominationFileReadRulesBuilder()
+              .with('management.TRANSFER_TIME', false)
+              .build(),
+          ),
       },
       {
         ruleName: 'Minister Cabinet',
@@ -382,17 +389,18 @@ describe('Import Nomination Files Use Case', () => {
             .withRuleMinisterCabinet('FALSE')
             .build(),
         getExpectedNominationFile: () =>
-          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
-            rules: {
-              [NominationFile.RuleGroup.STATUTORY]: {
-                [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
-              },
-            },
-          }),
+          getMarcelDupontModelSnapshot(
+            'nomination-file-id',
+            1,
+            undefined,
+            new NominationFileReadRulesBuilder()
+              .with('statutory.MINISTER_CABINET', false)
+              .build(),
+          ),
       },
     ];
 
-    it.each(udatedRulesTestData)(
+    it.each(updatedRulesTestData)(
       'updates the $ruleName rule',
       async ({ genTsvValue, getExpectedNominationFile }) => {
         await importAFile(genTsvValue());
@@ -466,28 +474,23 @@ describe('Import Nomination Files Use Case', () => {
   const expectNominationFiles = (
     ...nominationFileSnapshots: NominationFileModelSnapshot[]
   ) => {
-    expect(nominationFileRepository.nominationFiles).toEqual<
-      FakeNominationFileRepository['nominationFiles']
-    >(
-      nominationFileSnapshots.reduce(
-        (acc, nominationFileSnapshot) => ({
-          ...acc,
-          [nominationFileSnapshot.id]: nominationFileSnapshot,
-        }),
-        {},
-      ),
+    expect(Object.values(nominationFileRepository.nominationFiles)).toEqual(
+      nominationFileSnapshots,
     );
   };
 
   const getMarcelDupontModelSnapshot = (
     uuid: string,
     rowNumber = 1,
-    moreContent?: PartialDeep<NominationFileRead['content']>,
+    moreContent?: PartialDeep<
+      Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
+    >,
+    rules = new NominationFileReadRulesBuilder().build(),
   ): NominationFileModelSnapshot => ({
     id: uuid,
     createdAt: dateTimeProvider.currentDate,
     rowNumber: rowNumber,
-    content: getMarcelDupontRead(rowNumber, moreContent).content,
+    content: getMarcelDupontRead(rowNumber, moreContent, rules).content,
   });
 
   const getLucienPierreModelSnapshot = (
@@ -503,8 +506,9 @@ describe('Import Nomination Files Use Case', () => {
   const getMarcelDupontRead = (
     rowNumber = 1,
     moreContent?: PartialDeep<
-      Omit<NominationFileRead['content'], 'dueDate' | 'birthDate'>
+      Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
     >,
+    rules = new NominationFileReadRulesBuilder().build(),
   ): NominationFileRead => ({
     rowNumber,
     content: {
@@ -536,7 +540,7 @@ describe('Import Nomination Files Use Case', () => {
       observers: ['DEFAULT Observer'],
 
       ...moreContent,
-      rules: getReadRules(moreContent?.rules),
+      rules,
     },
   });
 
@@ -601,3 +605,9 @@ export const getReadRules = (
     {} as NominationFileRead['content']['rules'][NominationFile.RuleGroup.QUALITATIVE],
   ),
 });
+
+export class NominationFileReadRulesBuilder extends RulesBuilder<boolean> {
+  constructor() {
+    super(true);
+  }
+}

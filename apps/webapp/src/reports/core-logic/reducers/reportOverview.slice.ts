@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { NominationFile } from "shared-models";
 import { AppState } from "../../store/appState";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
-import { NominationFile } from "shared-models";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
 
 const initialState: AppState["reportOverview"] = { byIds: null };

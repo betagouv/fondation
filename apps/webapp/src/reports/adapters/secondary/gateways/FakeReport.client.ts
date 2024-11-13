@@ -4,7 +4,7 @@ import {
   ReportListingVM,
   ReportListItemVM,
   ReportRetrievalVM,
-  rulesTuple,
+  RulesBuilder,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
 
@@ -31,9 +31,10 @@ export class FakeReportApiClient implements ReportApiClient {
     this.currentRuleGroup = rule.group;
     this.currentRuleName = rule.name;
 
+    const allRulesPreValidated = new FakeReportRulesBuilder().build();
     this.reports[report.id] = {
       ...report,
-      rules: getAllRulesPreValidated(),
+      rules: allRulesPreValidated,
     };
     this.reports[report.id]!.rules = this.genRules(report.id, {
       id: rule.id,
@@ -119,11 +120,41 @@ export class FakeReportApiClient implements ReportApiClient {
     const report = this.reports[reportId];
     if (!report) throw new Error("No nomination file in fake client");
 
+    return FakeReportRulesBuilder.fromCurrentRule(
+      report.rules,
+      this.currentRuleGroup,
+      this.currentRuleName,
+      rule,
+    );
+  }
+}
+
+class FakeReportRulesBuilder extends RulesBuilder {
+  constructor() {
+    super({
+      id: "some-id",
+      preValidated: true,
+      validated: false,
+      comment: null,
+    });
+  }
+
+  static fromCurrentRule(
+    rules: NominationFile.Rules<NominationFile.RuleValue>,
+    currentRuleGroup: NominationFile.RuleGroup,
+    currentRuleName: NominationFile.RuleName,
+    rule: {
+      id: string;
+      preValidated: boolean;
+      validated: boolean;
+      comment: string | null;
+    },
+  ) {
     return {
-      ...report.rules,
-      [this.currentRuleGroup]: {
-        ...report.rules[this.currentRuleGroup],
-        [this.currentRuleName]: {
+      ...rules,
+      [currentRuleGroup]: {
+        ...rules[currentRuleGroup],
+        [currentRuleName]: {
           id: rule.id,
           preValidated: rule.preValidated,
           validated: rule.validated,
@@ -133,23 +164,3 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 }
-
-export const getAllRulesPreValidated = (): NominationFile.Rules =>
-  rulesTuple.reduce(
-    (acc, [group, name]) => {
-      return {
-        ...acc,
-        [group]: {
-          ...acc[group],
-          [name]: {
-            id: "some-id",
-            preValidated: true,
-            validated: false,
-            comment: null,
-          },
-        },
-      };
-    },
-
-    {} as NominationFile.Rules,
-  );

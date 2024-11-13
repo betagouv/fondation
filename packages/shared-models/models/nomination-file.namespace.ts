@@ -49,15 +49,15 @@ export namespace NominationFile {
     comment: string | null;
   };
 
-  export type Rules = {
+  export type Rules<T = RuleValue> = {
     [RuleGroup.MANAGEMENT]: {
-      [key in ManagementRule]: RuleValue;
+      [key in ManagementRule]: T;
     };
     [RuleGroup.STATUTORY]: {
-      [key in StatutoryRule]: RuleValue;
+      [key in StatutoryRule]: T;
     };
     [RuleGroup.QUALITATIVE]: {
-      [key in QualitativeRule]: RuleValue;
+      [key in QualitativeRule]: T;
     };
   };
 }

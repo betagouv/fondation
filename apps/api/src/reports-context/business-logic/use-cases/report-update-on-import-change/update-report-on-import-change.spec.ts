@@ -3,11 +3,11 @@ import { FakeNominationFileReportRepository } from 'src/reports-context/adapters
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ReportBuilder } from '../../models/report.builder';
-import { getAllRulesPreValidated } from '../report-creation/create-report.use-case.spec';
 import {
   UpdateReportOnImportChangePayload,
   UpdateReportOnImportChangeUseCase,
@@ -63,13 +63,9 @@ describe('Update Report On Import Change Use Case', () => {
 
   it('should update two reports when a transfer time rule changes', async () => {
     const payload: UpdateReportOnImportChangePayload = {
-      rules: {
-        ...getAllRulesPreValidated(),
-        [NominationFile.RuleGroup.MANAGEMENT]: {
-          ...getAllRulesPreValidated()[NominationFile.RuleGroup.MANAGEMENT],
-          [NominationFile.ManagementRule.TRANSFER_TIME]: false,
-        },
-      },
+      rules: new BooleanReportRulesBuilder()
+        .with('management.TRANSFER_TIME', false)
+        .build(),
     };
     await updateReport(payload);
     expectReportRules(
