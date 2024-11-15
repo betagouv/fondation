@@ -6,9 +6,11 @@ import {
   SharedKernelModule,
 } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DataAdministrationContextModule } from './data-administration-context/adapters/primary/nestjs/data-administration-context.module';
+import { FilesContextModule } from './files-context/adapters/primary/nestjs/files-context.module';
 
 @Module({
   imports: [
+    FilesContextModule,
     DataAdministrationContextModule,
     ReporterModule,
     SharedKernelModule,

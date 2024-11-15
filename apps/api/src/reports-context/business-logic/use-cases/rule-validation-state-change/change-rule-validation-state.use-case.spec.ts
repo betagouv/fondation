@@ -1,7 +1,7 @@
 import { NominationFile } from 'shared-models';
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRule, ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
 import { ChangeRuleValidationStateUseCase } from './change-rule-validation-state.use-case';

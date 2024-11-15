@@ -1,4 +1,4 @@
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { NominationFileReport } from '../../models/nomination-file-report';
 

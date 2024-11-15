@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import {
   DomainEvent,
   DomainEventStatus,
-} from 'src/shared-kernel/business-logic/models/domainEvent';
+} from 'src/shared-kernel/business-logic/models/domain-event';
 import { DrizzleTransactionableAsync } from '../../providers/drizzle-transaction-performer';
 import { domainEvents } from './schema';
 

@@ -4,7 +4,7 @@ import {
   ReportRule,
   ReportRuleSnapshot,
 } from 'src/reports-context/business-logic/models/report-rules';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeReportRuleRepository implements ReportRuleRepository {
   reportRules: Record<string, ReportRuleSnapshot> = {};

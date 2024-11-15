@@ -1,8 +1,8 @@
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import {
   DomainEvent,
   DomainEventStatus,
-} from 'src/shared-kernel/business-logic/models/domainEvent';
+} from 'src/shared-kernel/business-logic/models/domain-event';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { DrizzleTransactionPerformer } from '../../providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from './config/drizzle-config';

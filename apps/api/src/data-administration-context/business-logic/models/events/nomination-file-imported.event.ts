@@ -1,4 +1,4 @@
-import { DomainEvent } from 'src/shared-kernel/business-logic/models/domainEvent';
+import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { NominationFileRead } from '../nomination-file-read';
 
 export type NominationFilesImportedEventPayload = ({

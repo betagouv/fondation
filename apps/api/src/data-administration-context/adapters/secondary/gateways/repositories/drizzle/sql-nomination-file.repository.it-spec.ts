@@ -12,7 +12,7 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { nominationFiles } from './schema/nomination-file-pm';
 import { SqlNominationFileRepository } from './sql-nomination-file.repository';

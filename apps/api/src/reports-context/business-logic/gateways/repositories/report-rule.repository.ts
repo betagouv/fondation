@@ -1,4 +1,4 @@
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRule } from '../../models/report-rules';
 import { NominationFile } from 'shared-models';
 

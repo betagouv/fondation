@@ -1,4 +1,4 @@
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 
 export class ChangeRuleValidationStateUseCase {

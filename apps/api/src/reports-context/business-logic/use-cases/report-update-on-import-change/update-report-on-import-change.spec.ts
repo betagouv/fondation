@@ -2,7 +2,7 @@ import { NominationFile } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportRuleSnapshot } from '../../models/report-rules';

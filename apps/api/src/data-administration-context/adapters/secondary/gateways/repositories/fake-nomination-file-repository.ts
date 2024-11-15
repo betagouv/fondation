@@ -3,7 +3,7 @@ import {
   NominationFileModel,
   NominationFileModelSnapshot,
 } from 'src/data-administration-context/business-logic/models/nomination-file';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeNominationFileRepository implements NominationFileRepository {
   nominationFiles: Record<string, NominationFileModelSnapshot> = {};

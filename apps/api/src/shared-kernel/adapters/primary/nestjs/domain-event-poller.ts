@@ -1,6 +1,6 @@
-import { TransactionPerformer } from '../../../business-logic/gateways/providers/transactionPerformer';
-import { DomainEventRepository } from '../../../business-logic/gateways/repositories/domainEventRepository';
-import { DomainEventPublisher } from '../../../business-logic/gateways/providers/domainEventPublisher';
+import { TransactionPerformer } from '../../../business-logic/gateways/providers/transaction-performer';
+import { DomainEventRepository } from '../../../business-logic/gateways/repositories/domain-event.repository';
+import { DomainEventPublisher } from '../../../business-logic/gateways/providers/domain-event-publisher';
 
 export class DomainEventsPoller {
   public constructor(

@@ -1,6 +1,6 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';

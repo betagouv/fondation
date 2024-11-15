@@ -1,5 +1,5 @@
 import { NominationFile } from 'shared-models';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 

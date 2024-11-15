@@ -3,7 +3,7 @@ import {
   NominationFileReport,
   NominationFileReportSnapshot,
 } from 'src/reports-context/business-logic/models/nomination-file-report';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeNominationFileReportRepository implements ReportRepository {
   reports: Record<string, NominationFileReportSnapshot> = {};

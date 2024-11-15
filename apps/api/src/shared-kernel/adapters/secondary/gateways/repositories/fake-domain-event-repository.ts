@@ -1,9 +1,9 @@
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domainEventRepository';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import {
   DomainEvent,
   DomainEventStatus,
-} from 'src/shared-kernel/business-logic/models/domainEvent';
+} from 'src/shared-kernel/business-logic/models/domain-event';
 
 export class FakeDomainEventRepository implements DomainEventRepository {
   events: DomainEvent[] = [];

@@ -4,7 +4,7 @@ import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';

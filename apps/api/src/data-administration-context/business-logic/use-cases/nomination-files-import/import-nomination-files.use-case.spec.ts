@@ -9,7 +9,7 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transactionPerformer';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { Get, PartialDeep, Paths } from 'type-fest';
 import { EmptyFileError } from '../../errors/empty-file.error';
 import { FileLengthTooShortError } from '../../errors/file-length-too-short.error';
