@@ -1,4 +1,4 @@
-export type ApiConfig<Prod extends boolean = boolean> = {
+export interface ApiConfig<Prod extends boolean = boolean> {
   port: number;
   database: Prod extends true
     ? { connectionString: string }
@@ -15,4 +15,4 @@ export type ApiConfig<Prod extends boolean = boolean> = {
       port: number;
     };
   };
-};
+}

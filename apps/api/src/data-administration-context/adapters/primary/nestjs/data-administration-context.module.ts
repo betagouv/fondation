@@ -3,10 +3,10 @@ import { ImportNominationFilesUseCase } from 'src/data-administration-context/bu
 import {
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
-  SharedKernelModule,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
-} from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+} from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { ImportNominationFileFromLocalFileCli } from '../../../business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { SqlNominationFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file.repository';

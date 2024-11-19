@@ -9,10 +9,10 @@ import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
 
-export class SqlNominationFileReportRepository implements ReportRepository {
+export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
     return async (db) => {
-      const reportRow = SqlNominationFileReportRepository.mapToDb(report);
+      const reportRow = SqlReportRepository.mapToDb(report);
       await db
         .insert(reports)
         .values(reportRow)
@@ -49,7 +49,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       if (result.length === 0) return null;
 
       const reportRow = result[0]!;
-      return SqlNominationFileReportRepository.mapToDomain(reportRow);
+      return SqlReportRepository.mapToDomain(reportRow);
     };
   }
 
@@ -64,7 +64,7 @@ export class SqlNominationFileReportRepository implements ReportRepository {
       if (results.length === 0) return null;
 
       return results.map((reportRow) =>
-        SqlNominationFileReportRepository.mapToDomain(reportRow),
+        SqlReportRepository.mapToDomain(reportRow),
       );
     };
   }

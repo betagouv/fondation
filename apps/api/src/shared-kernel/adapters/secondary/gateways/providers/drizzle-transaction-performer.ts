@@ -12,12 +12,18 @@ export type DrizzleTransactionableAsync<T = void> = TransactionableAsync<
 export class DrizzleTransactionPerformer implements TransactionPerformer {
   constructor(private readonly db: DrizzleDb) {}
 
-  async perform<T>(useCase: TransactionableAsync<T>): Promise<T> {
+  async perform<T>(
+    useCase: TransactionableAsync<T>,
+    cleanup?: () => Promise<void>,
+  ): Promise<T> {
     return await this.db.transaction(async (tx) => {
       try {
         return await useCase(tx);
       } catch (err) {
         console.error(err);
+        if (cleanup) {
+          await cleanup();
+        }
         tx.rollback();
         throw err;
       }

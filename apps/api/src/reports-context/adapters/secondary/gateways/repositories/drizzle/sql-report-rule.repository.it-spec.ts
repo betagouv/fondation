@@ -13,7 +13,7 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
-import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
+import { SqlReportRepository } from './sql-report.repository';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 
 describe('SQL Report Rule Repository', () => {
@@ -38,8 +38,7 @@ describe('SQL Report Rule Repository', () => {
       .with('birthDate', new DateOnly(1980, 1, 1))
       .build();
 
-    const reportRow =
-      SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+    const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
     await db.insert(reports).values(reportRow).execute();
   });
 

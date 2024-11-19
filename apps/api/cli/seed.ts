@@ -6,15 +6,13 @@ import {
 } from 'shared-models';
 import { NestFactory } from '@nestjs/core';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
-import {
-  DRIZZLE_DB,
-  SharedKernelModule,
-} from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
-import { SqlNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
+import { SqlReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report.repository';
 import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import crypto from 'crypto';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
@@ -32,7 +30,7 @@ async function seed() {
       .with('name', 'John Doe')
       .build();
 
-    const reportRow1 = SqlNominationFileReportRepository.mapToDb(
+    const reportRow1 = SqlReportRepository.mapToDb(
       NominationFileReport.fromSnapshot(reportSnapshot1),
     );
     await db.insert(reports).values(reportRow1).execute();
@@ -71,8 +69,7 @@ async function seed() {
       .with('rank', '(1 sur une liste de 100)')
       .build();
 
-    const reportRow2 =
-      SqlNominationFileReportRepository.mapSnapshotToDb(reportSnapshot2);
+    const reportRow2 = SqlReportRepository.mapSnapshotToDb(reportSnapshot2);
     await db.insert(reports).values(reportRow2).execute();
 
     const report2RulesPromises = rulesTuple.map(

@@ -13,7 +13,7 @@ import {
   reportRules,
   reports,
 } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,

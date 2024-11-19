@@ -10,7 +10,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
-import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
+import { SqlReportRepository } from './sql-report.repository';
 import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
 
 const aReport = new ReportBuilder()
@@ -63,8 +63,8 @@ const aReportUpdatedWithNullValues = new ReportBuilder()
   .with('biography', null)
   .build();
 
-describe('SQL Nomination File Report Repository', () => {
-  let sqlNominationFileReportRepository: SqlNominationFileReportRepository;
+describe('SQL Report Repository', () => {
+  let sqlNominationFileReportRepository: SqlReportRepository;
   let transactionPerformer: TransactionPerformer;
   let db: DrizzleDb;
 
@@ -74,7 +74,7 @@ describe('SQL Nomination File Report Repository', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-    sqlNominationFileReportRepository = new SqlNominationFileReportRepository();
+    sqlNominationFileReportRepository = new SqlReportRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
   });
 
@@ -91,14 +91,13 @@ describe('SQL Nomination File Report Repository', () => {
 
     const existingReports = await db.select().from(reports).execute();
     expect(existingReports).toEqual([
-      SqlNominationFileReportRepository.mapSnapshotToDb(aReport),
+      SqlReportRepository.mapSnapshotToDb(aReport),
     ]);
   });
 
   describe('when there is a report', () => {
     beforeEach(async () => {
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -113,9 +112,7 @@ describe('SQL Nomination File Report Repository', () => {
 
       const existingReports = await db.select().from(reports).execute();
       expect(existingReports).toEqual([
-        SqlNominationFileReportRepository.mapSnapshotToDb(
-          updatedReportSnapshot,
-        ),
+        SqlReportRepository.mapSnapshotToDb(updatedReportSnapshot),
       ]);
     });
 

@@ -16,13 +16,13 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
-import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository'; // For mapping functions
-import { SqlReportRetrievalVMQuery } from './sql-report-retrieval-vm.query';
+import { SqlReportRepository } from './sql-report.repository'; // For mapping functions
+import { SqlReportRetrievalQuery } from './sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from './sql-report-rule.repository'; // For mapping functions
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
-  let sqlReportRetrievalVMQuery: SqlReportRetrievalVMQuery;
+  let sqlReportRetrievalVMQuery: SqlReportRetrievalQuery;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
@@ -30,7 +30,7 @@ describe('SQL Report Retrieval VM Query', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-    sqlReportRetrievalVMQuery = new SqlReportRetrievalVMQuery(db);
+    sqlReportRetrievalVMQuery = new SqlReportRetrievalQuery(db);
   });
 
   afterAll(async () => {
@@ -55,8 +55,7 @@ describe('SQL Report Retrieval VM Query', () => {
         .with('birthDate', new DateOnly(1980, 1, 1))
         .build();
       // Insert the report into the database
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
       aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
@@ -85,8 +84,7 @@ describe('SQL Report Retrieval VM Query', () => {
         .with('comment', null)
         .build();
       // Insert the report into the database
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
       aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);

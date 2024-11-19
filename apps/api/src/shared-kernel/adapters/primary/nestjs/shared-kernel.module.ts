@@ -1,30 +1,26 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { DomainEventPublisher } from 'src/shared-kernel/business-logic/gateways/providers/domain-event-publisher';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
 import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
 import { getDrizzleConfig } from '../../secondary/gateways/repositories/drizzle/config/drizzle-config';
-import {
-  DrizzleDb,
-  getDrizzleInstance,
-} from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { getDrizzleInstance } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { SqlDomainEventRepository } from '../../secondary/gateways/repositories/drizzle/sql-domain-event-repository';
 import { ApiConfig } from '../nestia/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
 import { apiConfig, defaultApiConfig } from './env';
 import { validate } from './env.validation';
-
-export const DATE_TIME_PROVIDER = 'DATE_TIME_PROVIDER';
-export const UUID_GENERATOR = 'UUID_GENERATOR';
-export const TRANSACTION_PERFORMER = 'TRANSACTION_PERFORMER';
-export const DOMAIN_EVENT_REPOSITORY = 'DOMAIN_EVENT_REPOSITORY';
-export const DOMAIN_EVENT_PUBLISHER = 'DOMAIN_EVENT_PUBLISHER';
-export const DOMAIN_EVENTS_POLLER = 'DOMAIN_EVENTS_POLLER';
-export const DRIZZLE_DB = 'DRIZZLE_DB';
-export const API_CONFIG = 'API_CONFIG';
+import {
+  API_CONFIG,
+  DATE_TIME_PROVIDER,
+  DOMAIN_EVENT_PUBLISHER,
+  DOMAIN_EVENT_REPOSITORY,
+  DOMAIN_EVENTS_POLLER,
+  DRIZZLE_DB,
+  TRANSACTION_PERFORMER,
+  UUID_GENERATOR,
+} from './tokens';
+import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -49,13 +45,11 @@ const isProduction = process.env.NODE_ENV === 'production';
           ? validate<true>(apiConfig)
           : validate<false>(defaultApiConfig),
     },
-    {
-      provide: TRANSACTION_PERFORMER,
-      useFactory: (db: DrizzleDb) => {
-        return new DrizzleTransactionPerformer(db);
-      },
-      inject: [DRIZZLE_DB],
-    },
+    generateProvider(
+      DrizzleTransactionPerformer,
+      [DRIZZLE_DB],
+      TRANSACTION_PERFORMER,
+    ),
     {
       provide: DRIZZLE_DB,
       useFactory: (config: ApiConfig) => {
@@ -73,24 +67,11 @@ const isProduction = process.env.NODE_ENV === 'production';
       inject: [API_CONFIG],
     },
 
-    {
-      provide: DOMAIN_EVENTS_POLLER,
-      useFactory: (
-        domainEventRepository: DomainEventRepository,
-        domainEventPublisher: DomainEventPublisher,
-        transactionPerformer: TransactionPerformer,
-      ) =>
-        new DomainEventsPoller(
-          domainEventRepository,
-          domainEventPublisher,
-          transactionPerformer,
-        ),
-      inject: [
-        DOMAIN_EVENT_REPOSITORY,
-        DOMAIN_EVENT_PUBLISHER,
-        TRANSACTION_PERFORMER,
-      ],
-    },
+    generateProvider(
+      DomainEventsPoller,
+      [DOMAIN_EVENT_REPOSITORY, DOMAIN_EVENT_PUBLISHER, TRANSACTION_PERFORMER],
+      DOMAIN_EVENTS_POLLER,
+    ),
     {
       provide: DOMAIN_EVENT_PUBLISHER,
       useFactory: (eventEmitter: EventEmitter2) => {

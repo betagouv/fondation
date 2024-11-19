@@ -1,9 +1,7 @@
-import { ReportListingVMQuery } from '../../gateways/queries/report-listing-vm.query';
+import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
 
 export class ListReportsUseCase {
-  constructor(
-    private readonly reportListingVMRepository: ReportListingVMQuery,
-  ) {}
+  constructor(private readonly reportListingVMRepository: ReportListingQuery) {}
 
   async execute() {
     return this.reportListingVMRepository.listReports();

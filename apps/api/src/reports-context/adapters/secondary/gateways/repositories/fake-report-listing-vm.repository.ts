@@ -1,7 +1,7 @@
 import { ReportListingVM, ReportListItemVM } from 'shared-models';
-import { ReportListingVMQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
+import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 
-export class FakeReportListingVMRepository implements ReportListingVMQuery {
+export class FakeReportListingVMRepository implements ReportListingQuery {
   reportsList: ReportListItemVM[] = [];
 
   async listReports(): Promise<ReportListingVM> {

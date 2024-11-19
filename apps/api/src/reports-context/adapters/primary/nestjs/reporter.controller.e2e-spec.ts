@@ -20,7 +20,7 @@ import {
 } from 'src/reports-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -30,7 +30,7 @@ import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
-import { SqlNominationFileReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
+import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
@@ -67,8 +67,7 @@ describe('Reporter Controller', () => {
 
   describe('GET /api/reports', () => {
     beforeEach(async () => {
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReportSnapshot);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -108,8 +107,7 @@ describe('Reporter Controller', () => {
     ])[];
 
     beforeEach(async () => {
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
       const reportRulesPromises = rulesTuple.map(
@@ -166,7 +164,7 @@ describe('Reporter Controller', () => {
   describe('PUT /api/reports/rules/:id', () => {
     beforeEach(async () => {
       const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(nominationFileReport);
+        SqlReportRepository.mapSnapshotToDb(nominationFileReport);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -230,8 +228,7 @@ describe('Reporter Controller', () => {
 
   describe('POST /api/reports/:id/files/upload-one', () => {
     beforeEach(async () => {
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReportSnapshot);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
 
       await app.listen(3000); // Run server to contact other contexts over REST

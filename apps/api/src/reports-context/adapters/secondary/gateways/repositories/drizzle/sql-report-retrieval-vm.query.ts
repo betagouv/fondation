@@ -1,12 +1,12 @@
 import { NominationFile, ReportRetrievalVM } from 'shared-models';
 import { eq, sql } from 'drizzle-orm';
-import { ReportRetrievalVMQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
+import { ReportRetrievalQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm'; // Drizzle ORM table definition
 import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition
 
-export class SqlReportRetrievalVMQuery implements ReportRetrievalVMQuery {
+export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
 
   async retrieveReport(id: string): Promise<ReportRetrievalVM | null> {

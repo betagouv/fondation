@@ -9,11 +9,11 @@ import {
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
-import { SqlNominationFileReportRepository } from './sql-nomination-file-report.repository';
-import { SqlReportListingVMQuery } from './sql-report-listing-vm.query';
+import { SqlReportRepository } from './sql-report.repository';
+import { SqlReportListingQuery } from './sql-report-listing-vm.query';
 
 describe('SQL Report Listing VM Query', () => {
-  let sqlReportListingVMRepository: SqlReportListingVMQuery;
+  let sqlReportListingVMRepository: SqlReportListingQuery;
   let db: DrizzleDb;
 
   beforeAll(() => {
@@ -22,7 +22,7 @@ describe('SQL Report Listing VM Query', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-    sqlReportListingVMRepository = new SqlReportListingVMQuery(db);
+    sqlReportListingVMRepository = new SqlReportListingQuery(db);
   });
 
   afterAll(async () => {
@@ -46,8 +46,7 @@ describe('SQL Report Listing VM Query', () => {
         .with('dueDate', new DateOnly(2030, 10, 1))
         .build();
 
-      const reportRow =
-        SqlNominationFileReportRepository.mapSnapshotToDb(aReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
     });
 

@@ -1,19 +1,14 @@
 import { sql } from 'drizzle-orm';
 import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
-import {
-  DrizzleDb,
-  getDrizzleInstance,
-} from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { getDrizzleInstance } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { startDockerPostgresql } from './docker-postgresql-manager';
 import teardown from './teardown-postgresql-docker';
-
-let db: DrizzleDb;
 
 const setup = async (): Promise<void> => {
   try {
     await startDockerPostgresql();
 
-    db = getDrizzleInstance(drizzleConfigForTest);
+    const db = getDrizzleInstance(drizzleConfigForTest);
     await db.transaction(async (trx) => {
       await trx.execute(sql`CREATE SCHEMA data_administration_context;`);
       await trx.execute(sql`CREATE SCHEMA reports_context;`);

@@ -1,11 +1,9 @@
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { FilesContextModule } from 'src/files-context/adapters/primary/nestjs/files-context.module';
-import {
-  REPORT_FILE_SERVICE,
-  ReporterModule,
-} from 'src/reports-context/adapters/primary/nestjs/reporter.module';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { REPORT_FILE_SERVICE } from 'src/reports-context/adapters/primary/nestjs/tokens';
+import { ReporterModule } from 'src/reports-context/adapters/primary/nestjs/reporter.module';
+import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,

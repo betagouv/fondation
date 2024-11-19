@@ -1,11 +1,11 @@
 import { ReportListingVM } from 'shared-models';
-import { ReportListingVMQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
+import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
 import { sql } from 'drizzle-orm';
 
-export class SqlReportListingVMQuery implements ReportListingVMQuery {
+export class SqlReportListingQuery implements ReportListingQuery {
   constructor(private readonly db: DrizzleDb) {}
 
   async listReports(): Promise<ReportListingVM> {
