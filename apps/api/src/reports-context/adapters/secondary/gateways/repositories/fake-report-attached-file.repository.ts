@@ -3,22 +3,17 @@ import {
   ReportAttachedFile,
   ReportAttachedFileSnapshot,
 } from 'src/reports-context/business-logic/models/report-attached-file';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeReportAttachedFileRepository
   implements ReportAttachedFileRepository
 {
-  readonly files: Record<string, ReportAttachedFileSnapshot> = {};
+  files: Record<string, ReportAttachedFileSnapshot> = {};
 
-  async save(
-    id: string,
-    reportId: string,
-    fileId: string,
-  ): Promise<ReportAttachedFile> {
-    this.files[id] = {
-      id,
-      reportId,
-      fileId,
+  save(reportAttachedFile: ReportAttachedFile): TransactionableAsync {
+    const reportAttachedFileSnapshot = reportAttachedFile.toSnapshot();
+    return async () => {
+      this.files[reportAttachedFileSnapshot.id] = reportAttachedFileSnapshot;
     };
-    return ReportAttachedFile.fromSnapshot(this.files[id]);
   }
 }

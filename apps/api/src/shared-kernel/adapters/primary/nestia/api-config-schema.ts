@@ -1,4 +1,5 @@
 export type ApiConfig<Prod extends boolean = boolean> = {
+  port: number;
   database: Prod extends true
     ? { connectionString: string }
     : {
@@ -8,4 +9,10 @@ export type ApiConfig<Prod extends boolean = boolean> = {
         password: string;
         name: string;
       };
+  contextServices: {
+    filesContext: {
+      baseUrl: string;
+      port: number;
+    };
+  };
 };

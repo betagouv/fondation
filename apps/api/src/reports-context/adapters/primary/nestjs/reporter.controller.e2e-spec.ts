@@ -3,6 +3,7 @@ import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
+import PDF from 'pdfkit';
 import {
   Magistrat,
   NominationFile,
@@ -32,6 +33,7 @@ import { reportRules } from '../../secondary/gateways/repositories/drizzle/schem
 import { SqlNominationFileReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file-report.repository';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
+import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 
 describe('Reporter Controller', () => {
   let app: NestApplication;
@@ -224,5 +226,46 @@ describe('Reporter Controller', () => {
       .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .with('reportId', nominationFileReport.id)
       .build();
+  });
+
+  describe('POST /api/reports/:id/files/upload-one', () => {
+    beforeEach(async () => {
+      const reportRow =
+        SqlNominationFileReportRepository.mapSnapshotToDb(aReportSnapshot);
+      await db.insert(reports).values(reportRow).execute();
+
+      await app.listen(3000); // Run server to contact other contexts over REST
+    });
+
+    it('uploads a file', async () => {
+      const pdfBuffer = givenAPdfBuffer();
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
+        .attach('file', pdfBuffer, 'test-file.pdf')
+        .expect(201);
+
+      expect(response.body).toBe('');
+      expect(
+        await db.select().from(reportAttachedFiles).execute(),
+      ).toHaveLength(1);
+      expect(await db.select().from(reportAttachedFiles).execute()).toEqual([
+        {
+          id: expect.any(String),
+          createdAt: expect.any(Date),
+          reportId: aReportSnapshot.id,
+          fileId: expect.any(String),
+        },
+      ]);
+    });
+
+    const givenAPdfBuffer = () => {
+      const pdfDoc = new PDF();
+      pdfDoc.text('This is a test PDF file generated dynamically.');
+      pdfDoc.end();
+      return pdfDoc.read();
+    };
+
+    const aReportSnapshot = new ReportBuilder('uuid').build();
   });
 });

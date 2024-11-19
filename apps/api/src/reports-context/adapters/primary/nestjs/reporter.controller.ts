@@ -1,6 +1,8 @@
-import { ReportListingVM, ReportRetrievalVM } from 'shared-models';
 import { TypedBody, TypedParam, TypedRoute } from '@nestia/core';
-import { Controller } from '@nestjs/common';
+import { Controller, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ReportListingVM, ReportRetrievalVM } from 'shared-models';
+import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-update/update-report.use-case';
@@ -16,6 +18,7 @@ export class ReporterController {
     private readonly retrieveReportUseCase: RetrieveReportUseCase,
     private readonly changeRuleValidationStateUseCase: ChangeRuleValidationStateUseCase,
     private readonly updateReportUseCase: UpdateReportUseCase,
+    private readonly attachReportFileUseCase: AttachReportFileUseCase,
   ) {}
 
   @TypedRoute.Get()
@@ -36,6 +39,19 @@ export class ReporterController {
     @TypedBody() dto: ReportUpdateDto,
   ): Promise<void> {
     await this.updateReportUseCase.execute(id, dto);
+  }
+
+  @TypedRoute.Post(':id/files/upload-one')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @TypedParam('id') id: string & tags.Format<'uuid'>,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    return this.attachReportFileUseCase.execute(
+      id,
+      file.originalname,
+      file.buffer,
+    );
   }
 
   @TypedRoute.Put('rules/:ruleId')

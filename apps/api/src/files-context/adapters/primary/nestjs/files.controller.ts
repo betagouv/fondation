@@ -9,6 +9,6 @@ export class FilesController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     console.log('uploadFile', file);
-    return 'fileId';
+    return '8060de42-f8e3-4780-af46-1f14d6b116ea';
   }
 }

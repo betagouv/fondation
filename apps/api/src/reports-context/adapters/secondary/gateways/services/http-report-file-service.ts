@@ -1,21 +1,24 @@
-import { ReportFileService } from 'src/reports-context/business-logic/gateways/services/report-file-service';
-import { Readable } from 'stream';
-import typia from 'typia';
-import FormData from 'form-data';
 import axios from 'axios';
+import FormData from 'form-data';
+import { ReportFileService } from 'src/reports-context/business-logic/gateways/services/report-file-service';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import typia from 'typia';
 
 export class HttpReportFileService implements ReportFileService {
-  async uploadFile(name: string, stream: Readable): Promise<string> {
-    const formData = new FormData();
-    formData.append('file', stream, name);
+  constructor(private readonly apiConfig: ApiConfig) {}
 
-    const response = await axios.post(
-      'http://localhost:3000/api/files/upload',
-      formData,
-      {
-        headers: formData.getHeaders(),
-      },
-    );
+  async uploadFile(name: string, fileBuffer: Buffer): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', fileBuffer, name);
+
+    const url = new URL(this.apiConfig.contextServices.filesContext.baseUrl);
+    url.port = this.apiConfig.contextServices.filesContext.port.toString();
+    url.pathname = '/api/files/upload';
+
+    const response = await axios.post(url.href, formData, {
+      timeout: 5000,
+      headers: formData.getHeaders(),
+    });
 
     if (!(response.status === 201)) {
       throw new Error(

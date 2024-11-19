@@ -8,10 +8,6 @@ import {
   Wait,
 } from 'testcontainers';
 import { nominationFiles } from '../src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import {
-  reportRules,
-  reports,
-} from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/index';
 import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -19,6 +15,7 @@ import {
 } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -60,8 +57,7 @@ export const migrateDockerPostgresql = async (): Promise<DrizzleDb> => {
 export async function clearDB(
   dbToClear: NodePgDatabase | DrizzleDb,
   tables: PgTableWithColumns<any>[] = [
-    reports,
-    reportRules,
+    ...Object.values(reportsContextTables),
     nominationFiles,
     domainEvents,
   ],

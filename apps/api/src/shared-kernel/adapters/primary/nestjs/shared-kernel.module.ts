@@ -31,6 +31,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 @Module({
   imports: [EventEmitterModule.forRoot()],
   exports: [
+    API_CONFIG,
     DRIZZLE_DB,
     DATE_TIME_PROVIDER,
     UUID_GENERATOR,

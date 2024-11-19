@@ -13,10 +13,14 @@ import { NominationFileReportSnapshot } from './nomination-file-report';
 export class ReportBuilder {
   private _snapshot: NominationFileReportSnapshot;
 
-  constructor() {
+  constructor(idMode: 'fake' | 'uuid' = 'fake') {
+    const isFakeId = idMode === 'fake';
+
     this._snapshot = {
-      id: 'report-id',
-      nominationFileId: 'nomination-file-id',
+      id: isFakeId ? 'report-id' : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      nominationFileId: isFakeId
+        ? 'nomination-file-id'
+        : 'ca1619e2-263d-49b6-b928-6a04ee681138',
       createdAt: new Date(2021, 1, 1),
       folderNumber: 1,
       name: 'John Doe',
