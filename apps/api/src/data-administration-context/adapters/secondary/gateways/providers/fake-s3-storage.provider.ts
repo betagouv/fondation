@@ -16,7 +16,6 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     return Promise.resolve(this.fileUri);
   }
   deleteFile(fileUri: string): Promise<void> {
-    console.log('deleteFile', fileUri);
     delete this.storedFiles[fileUri];
     return Promise.resolve();
   }

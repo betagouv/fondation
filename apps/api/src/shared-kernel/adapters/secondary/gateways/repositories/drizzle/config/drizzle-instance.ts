@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { ConnectionConfig, Pool } from 'pg';
 import * as dataAdministrationContextSchema from '../../../../../../../data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import * as reportsContextSchema from '../../../../../../../reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import * as filesContextSchema from '../../../../../../../files-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { sharedKernelContextSchema } from '../schema/shared-kernel-context-schema.drizzle';
 
 export const getDrizzleInstance = (connectionConfig: ConnectionConfig) => {
@@ -12,6 +13,7 @@ export const getDrizzleInstance = (connectionConfig: ConnectionConfig) => {
       ...sharedKernelContextSchema,
       ...reportsContextSchema,
       ...dataAdministrationContextSchema,
+      ...filesContextSchema,
     },
     casing: 'snake_case',
   });

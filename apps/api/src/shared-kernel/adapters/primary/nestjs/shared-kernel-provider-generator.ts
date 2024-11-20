@@ -9,11 +9,7 @@ export function generateSharedKernelProvider<
   Tokens extends typeof sharedKernelTokens,
 >(
   targetClass: T,
-  injectedTokens: InjectedTokens<
-    TokenMap,
-    Tokens,
-    ConstructorParameters<T>[number]
-  >[],
+  injectedTokens: InjectedTokens<TokenMap, Tokens, T>,
 ): FactoryProvider<T>;
 export function generateSharedKernelProvider<
   T extends Class<any>,
@@ -21,11 +17,7 @@ export function generateSharedKernelProvider<
   Tokens extends typeof sharedKernelTokens,
 >(
   targetClass: T,
-  injectedTokens: InjectedTokens<
-    TokenMap,
-    Tokens,
-    ConstructorParameters<T>[number]
-  >[],
+  injectedTokens: InjectedTokens<TokenMap, Tokens, T>,
   providedToken?: string,
 ): FactoryProvider<T>;
 export function generateSharedKernelProvider<
@@ -34,11 +26,7 @@ export function generateSharedKernelProvider<
   Tokens extends typeof sharedKernelTokens,
 >(
   targetClass: T,
-  injectedTokens: InjectedTokens<
-    TokenMap,
-    Tokens,
-    ConstructorParameters<T>[number]
-  >[],
+  injectedTokens: InjectedTokens<TokenMap, Tokens, T>,
   providedToken?: string,
 ) {
   return generateProvider<T, TokenMap, Tokens>(

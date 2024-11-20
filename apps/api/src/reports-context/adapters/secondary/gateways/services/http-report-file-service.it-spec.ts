@@ -1,8 +1,9 @@
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { FilesContextModule } from 'src/files-context/adapters/primary/nestjs/files-context.module';
+import { AppModule } from 'src/app.module';
 import { REPORT_FILE_SERVICE } from 'src/reports-context/adapters/primary/nestjs/tokens';
-import { ReporterModule } from 'src/reports-context/adapters/primary/nestjs/reporter.module';
+import { ReportFileService } from 'src/reports-context/business-logic/gateways/services/report-file-service';
+import { apiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -10,13 +11,11 @@ import {
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { HttpReportFileService } from './http-report-file-service';
-import { apiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 
 describe('Http Report File Service', () => {
   let app: NestApplication;
   let db: DrizzleDb;
-  let httpReportFileService: HttpReportFileService;
+  let httpReportFileService: ReportFileService;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
@@ -26,7 +25,7 @@ describe('Http Report File Service', () => {
     await clearDB(db);
 
     const moduleFixture = await Test.createTestingModule({
-      imports: [FilesContextModule, ReporterModule],
+      imports: [AppModule],
     })
       .overrideProvider(DRIZZLE_DB)
       .useValue(db)
@@ -37,13 +36,8 @@ describe('Http Report File Service', () => {
     await app.listen(apiConfig.port);
   });
 
-  afterEach(async () => {
-    await app.close();
-  });
-
-  afterAll(async () => {
-    await db.$client.end();
-  });
+  afterEach(() => app.close());
+  afterAll(() => db.$client.end());
 
   describe('should receive a file id', () => {
     it('on file upload', async () => {

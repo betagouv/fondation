@@ -3,6 +3,32 @@ import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import * as jestExtendedMatchers from 'jest-extended';
 
+import { validate as validateUUID, version as getUUIDVersion } from 'uuid';
+
+const toBeUuidV4: MatcherFunction = (received: unknown) => {
+  if (typeof received !== 'string') {
+    return {
+      message: () => `expected ${received} to be a string`,
+      pass: false,
+    };
+  }
+
+  const isValidUUID = validateUUID(received);
+  const isVersion4 = isValidUUID && getUUIDVersion(received) === 4;
+
+  if (isVersion4) {
+    return {
+      message: () => `expected ${received} not to be a valid UUID v4`,
+      pass: true,
+    };
+  } else {
+    return {
+      message: () => `expected ${received} to be a valid UUID v4`,
+      pass: false,
+    };
+  }
+};
+
 const toHaveDomainEvents: MatcherFunction = function (
   this: jest.MatcherContext,
   domainEventRepository: FakeDomainEventRepository,
@@ -34,6 +60,7 @@ const toHaveDomainEvents: MatcherFunction = function (
 };
 expect.extend({
   ...jestExtendedMatchers,
+  toBeUuidV4,
   toHaveDomainEvents,
 });
 
@@ -41,6 +68,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
+      toBeUuidV4(): R;
       toHaveDomainEvents<D extends DomainEvent = DomainEvent>(
         ...expectedEvents: D[]
       ): R;

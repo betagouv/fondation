@@ -6,6 +6,7 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { FileDocumentSnapshot } from '../../models/file-document';
 import { UploadFileUseCase } from './upload-file';
+import { FilesStorageProvider } from '../../models/files-provider.enum';
 
 const fileId = 'file-id';
 const currentDate = new Date(2025, 5, 5);
@@ -25,6 +26,11 @@ describe('Upload file', () => {
     dateTimeProvider.currentDate = currentDate;
     transactionPerformer = new NullTransactionPerformer();
     fakeS3StorageProvider = new FakeS3StorageProvider();
+  });
+
+  it('returns the saved file id', async () => {
+    const file = getFile();
+    expect(await uploadFile(file)).toEqual(fileId);
   });
 
   it("uploads a file to a provider's storage", async () => {
@@ -64,7 +70,7 @@ describe('Upload file', () => {
     expect(fakeS3StorageProvider.storedFiles).toEqual({});
   });
 
-  const uploadFile = async (file: FileDocumentSnapshot) => {
+  const uploadFile = async (file: FileDocumentSnapshot) =>
     await new UploadFileUseCase(
       fileRepository,
       transactionPerformer,
@@ -72,7 +78,6 @@ describe('Upload file', () => {
       dateTimeProvider,
       fakeS3StorageProvider,
     ).execute(Buffer.from('file content'), file.name);
-  };
 });
 
 const getFile = (
@@ -81,7 +86,7 @@ const getFile = (
   id: 'file-id',
   createdAt: currentDate,
   name: 'file-name.txt',
-  provider: 'outscale',
+  storageProvider: FilesStorageProvider.OUTSCALE,
   uri: 'https://example.fr/file-name.txt',
   ...override,
 });

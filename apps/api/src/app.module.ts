@@ -1,5 +1,5 @@
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { ReporterModule } from './reports-context/adapters/primary/nestjs/reporter.module';
+import { ReportsModule } from './reports-context/adapters/primary/nestjs/reports.module';
 import { DomainEventsPoller } from './shared-kernel/adapters/primary/nestjs/domain-event-poller';
 import { SharedKernelModule } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DOMAIN_EVENTS_POLLER } from './shared-kernel/adapters/primary/nestjs/tokens';
@@ -10,7 +10,7 @@ import { FilesContextModule } from './files-context/adapters/primary/nestjs/file
   imports: [
     FilesContextModule,
     DataAdministrationContextModule,
-    ReporterModule,
+    ReportsModule,
     SharedKernelModule,
   ],
   controllers: [],

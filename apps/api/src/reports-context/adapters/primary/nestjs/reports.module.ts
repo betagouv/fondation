@@ -23,7 +23,7 @@ import { HttpReportFileService } from '../../secondary/gateways/services/http-re
 import { NominationFileImportedSubscriber } from './event-subscribers/nomination-file-imported.subscriber';
 import { NominationFileUpdatedSubscriber } from './event-subscribers/nomination-file-updated.subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
-import { ReporterController } from './reporter.controller';
+import { ReportsController } from './reports.controller';
 import {
   REPORT_ATTACHED_FILE_REPOSITORY,
   REPORT_FILE_SERVICE,
@@ -35,7 +35,7 @@ import {
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [ReporterController],
+  controllers: [ReportsController],
   providers: [
     generateProvider(NominationFileImportedSubscriber, [CreateReportUseCase]),
     generateProvider(NominationFileUpdatedSubscriber, [
@@ -89,4 +89,4 @@ import {
     ),
   ],
 })
-export class ReporterModule {}
+export class ReportsModule {}

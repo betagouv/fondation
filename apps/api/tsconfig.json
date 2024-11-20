@@ -54,6 +54,6 @@
       }
     ],
   },
-  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts", "nestia.config.ts"],
+  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts", "nestia.config.ts", "src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/q"],
   "references":[{"path": "../../packages/shared-models"}],
 }

@@ -56,13 +56,8 @@ describe('Import Nominations from local file', () => {
       );
   });
 
-  afterEach(async () => {
-    await app.close();
-  });
-
-  afterAll(async () => {
-    await db.$client.end();
-  });
+  afterEach(() => app.close());
+  afterAll(() => db.$client.end());
 
   it('creates reports found in the imported file', async () => {
     await importNominationFileFromLocalFileCli.execute(fileToImportPath);

@@ -1,29 +1,43 @@
-export type FileS3ProviderName = 'outscale';
+import { FilesStorageProvider } from './files-provider.enum';
 
 export type FileDocumentSnapshot = {
   id: string;
   createdAt: Date;
   name: string;
-  provider: FileS3ProviderName;
+  storageProvider: FilesStorageProvider;
   uri: string;
 };
 
 export class FileDocument {
   constructor(
-    private readonly id: string,
+    private readonly _id: string,
     private readonly createdAt: Date,
     private readonly name: string,
-    private readonly provider: FileS3ProviderName,
+    private readonly storageProvider: FilesStorageProvider,
     private readonly uri: string,
   ) {}
+
+  public get id(): string {
+    return this._id;
+  }
 
   toSnapshot(): FileDocumentSnapshot {
     return {
       id: this.id,
       createdAt: this.createdAt,
       name: this.name,
-      provider: this.provider,
+      storageProvider: this.storageProvider,
       uri: this.uri,
     };
+  }
+
+  static fromSnapshot(reportSnapshot: FileDocumentSnapshot) {
+    return new FileDocument(
+      reportSnapshot.id,
+      reportSnapshot.createdAt,
+      reportSnapshot.name,
+      reportSnapshot.storageProvider,
+      reportSnapshot.uri,
+    );
   }
 }

@@ -4,7 +4,10 @@ import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/pr
 import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
 import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
 import { getDrizzleConfig } from '../../secondary/gateways/repositories/drizzle/config/drizzle-config';
-import { getDrizzleInstance } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import {
+  DrizzleDb,
+  getDrizzleInstance,
+} from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { SqlDomainEventRepository } from '../../secondary/gateways/repositories/drizzle/sql-domain-event-repository';
 import { ApiConfig } from '../nestia/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
@@ -29,11 +32,11 @@ const isProduction = process.env.NODE_ENV === 'production';
   exports: [
     API_CONFIG,
     DRIZZLE_DB,
-    DATE_TIME_PROVIDER,
     UUID_GENERATOR,
+    DATE_TIME_PROVIDER,
+    DOMAIN_EVENTS_POLLER,
     TRANSACTION_PERFORMER,
     DOMAIN_EVENT_REPOSITORY,
-    DOMAIN_EVENTS_POLLER,
     FileReaderProvider,
   ],
   controllers: [],
@@ -45,11 +48,13 @@ const isProduction = process.env.NODE_ENV === 'production';
           ? validate<true>(apiConfig)
           : validate<false>(defaultApiConfig),
     },
-    generateProvider(
-      DrizzleTransactionPerformer,
-      [DRIZZLE_DB],
-      TRANSACTION_PERFORMER,
-    ),
+    {
+      provide: TRANSACTION_PERFORMER,
+      useFactory: (db: DrizzleDb) => {
+        return new DrizzleTransactionPerformer(db);
+      },
+      inject: [DRIZZLE_DB],
+    },
     {
       provide: DRIZZLE_DB,
       useFactory: (config: ApiConfig) => {

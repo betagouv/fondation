@@ -12,7 +12,7 @@ import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-s
 import { ReportUpdateDto } from '../nestia/report-update.dto';
 
 @Controller('api/reports')
-export class ReporterController {
+export class ReportsController {
   constructor(
     private readonly listReportsUseCase: ListReportsUseCase,
     private readonly retrieveReportUseCase: RetrieveReportUseCase,

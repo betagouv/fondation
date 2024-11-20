@@ -35,7 +35,7 @@ import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/d
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 
-describe('Reporter Controller', () => {
+describe('Reports Controller', () => {
   let app: NestApplication;
   let db: DrizzleDb;
 
@@ -57,13 +57,8 @@ describe('Reporter Controller', () => {
     await app.init();
   });
 
-  afterEach(async () => {
-    await app.close();
-  });
-
-  afterAll(async () => {
-    await db.$client.end();
-  });
+  afterEach(() => app.close());
+  afterAll(() => db.$client.end());
 
   describe('GET /api/reports', () => {
     beforeEach(async () => {

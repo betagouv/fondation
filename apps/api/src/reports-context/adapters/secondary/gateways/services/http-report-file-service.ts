@@ -3,6 +3,7 @@ import FormData from 'form-data';
 import { ReportFileService } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
 import typia from 'typia';
+import { Format } from 'typia/lib/tags';
 
 export class HttpReportFileService implements ReportFileService {
   constructor(private readonly apiConfig: ApiConfig) {}
@@ -13,7 +14,7 @@ export class HttpReportFileService implements ReportFileService {
 
     const url = new URL(this.apiConfig.contextServices.filesContext.baseUrl);
     url.port = this.apiConfig.contextServices.filesContext.port.toString();
-    url.pathname = '/api/files/upload';
+    url.pathname = '/api/files/upload-one';
 
     const response = await axios.post(url.href, formData, {
       timeout: 5000,
@@ -27,7 +28,7 @@ export class HttpReportFileService implements ReportFileService {
     }
 
     const fileId = await response.data;
-    typia.assertGuardEquals<string>(fileId);
+    typia.assertGuardEquals<string & Format<'uuid'>>(fileId);
     return fileId;
   }
 }

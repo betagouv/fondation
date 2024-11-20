@@ -16,6 +16,7 @@ import {
 import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import * as filesContextTables from '../src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -58,6 +59,7 @@ export async function clearDB(
   dbToClear: NodePgDatabase | DrizzleDb,
   tables: PgTableWithColumns<any>[] = [
     ...Object.values(reportsContextTables),
+    ...Object.values(filesContextTables),
     nominationFiles,
     domainEvents,
   ],
