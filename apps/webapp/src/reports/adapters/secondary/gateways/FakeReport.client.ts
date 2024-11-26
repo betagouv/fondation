@@ -1,9 +1,9 @@
-import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
 import {
   NominationFile,
   ReportListingVM,
   ReportListItemVM,
   ReportRetrievalVM,
+  ReportUpdateDto,
   RulesBuilder,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";

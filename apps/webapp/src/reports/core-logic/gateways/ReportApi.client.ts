@@ -1,5 +1,8 @@
-import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
-import { ReportListingVM, ReportRetrievalVM } from "shared-models";
+import {
+  ReportListingVM,
+  ReportRetrievalVM,
+  ReportUpdateDto,
+} from "shared-models";
 
 export interface ReportApiClient {
   attachFile(reportId: string, file: File): Promise<void>;
