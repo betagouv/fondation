@@ -48,7 +48,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
       </label>
       <textarea
         id={id}
-        className="whitespace-pre-line leading-10 w-full"
+        className="whitespace-pre-line w-full"
         value={textareaContent ?? undefined}
         rows={rowsCount || 10}
         onChange={handleChange}

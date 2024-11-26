@@ -91,13 +91,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         targettedPosition={report.targettedPosition}
         rank={report.rank}
       />
+      <Comment comment={report.comment} onUpdate={onUpdateComment} />
       <Biography biography={report.biography} />
       <Observers observers={report.observers} />
       <ReportRules
         rulesChecked={report.rulesChecked}
         onUpdateReportRule={onUpdateReportRule}
       />
-      <Comment comment={report.comment} onUpdate={onUpdateComment} />
       {import.meta.env.DEV && (
         <AttachedFileUpload
           attachedFiles={report.attachedFiles}
