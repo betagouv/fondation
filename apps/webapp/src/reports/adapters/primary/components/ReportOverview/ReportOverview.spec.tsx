@@ -11,7 +11,7 @@ import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeReportGateway } from "../../../secondary/gateways/FakeReport.gateway";
 import { ReportOverview } from "./ReportOverview";
 
-describe("Nomination Case Overview Component", () => {
+describe("Report Overview Component", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let reportGateway: FakeReportGateway;
@@ -295,7 +295,7 @@ describe("Nomination Case Overview Component", () => {
         });
       });
 
-      it.only("lists attached files urls", async () => {
+      it("lists attached files urls", async () => {
         reportGateway.addReport({
           ...aValidatedReport,
           attachedFiles: [

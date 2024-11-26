@@ -65,7 +65,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     };
 
   const onFileAttached = (file: File) => {
-    console.log("on file");
     dispatch(attachReportFile({ reportId: id, file }));
   };
 
