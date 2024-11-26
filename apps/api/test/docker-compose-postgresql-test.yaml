@@ -17,7 +17,7 @@ services:
     image: 'minio/minio:latest'
     command: server /data
     ports:
-      - '9000' # API
+      - '9000:9000' # API
     networks:
       - app_test
     environment:
