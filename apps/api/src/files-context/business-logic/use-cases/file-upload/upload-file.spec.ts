@@ -1,4 +1,4 @@
-import { FakeS3StorageProvider } from 'src/data-administration-context/adapters/secondary/gateways/providers/fake-s3-storage.provider';
+import { FakeS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/fake-s3-storage.provider';
 import { FakeFileRepository } from 'src/files-context/adapters/secondary/gateways/repositories/fake-file-repository';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -28,37 +28,38 @@ describe('Upload file', () => {
     fakeS3StorageProvider = new FakeS3StorageProvider();
   });
 
-  it('returns the saved file id', async () => {
-    const file = getFile();
-    expect(await uploadFile(file)).toEqual(fileId);
-  });
-
-  it("uploads a file to a provider's storage", async () => {
-    const file = getFile();
-    fakeS3StorageProvider.fileUri = file.uri;
-
-    await uploadFile(file);
-
-    expect(Object.values(fakeS3StorageProvider.storedFiles)).toEqual([
-      {
-        file: Buffer.from('file content'),
-        fileName: file.name,
-      },
-    ]);
-  });
+  it.each`
+    mimeType             | filePath
+    ${'text/plain'}      | ${null}
+    ${'application/pdf'} | ${['Jules Bresse']}
+  `(
+    "uploads a file to a provider's storage",
+    async ({ mimeType, filePath }) => {
+      const file = getFile({ path: filePath });
+      await uploadFile(file, mimeType);
+      expect(Object.values(fakeS3StorageProvider.storedFiles)).toEqual([
+        {
+          file: Buffer.from('file content'),
+          fileName: file.name,
+          filePath: file.path,
+          mimeType,
+        },
+      ]);
+    },
+  );
 
   it.each`
-    fileUri
-    ${'https://example.fr/file-name.txt'}
-    ${'https://example.com/file-name.pdf'}
-  `('saves a file metadata: $fileUri', async ({ fileUri }) => {
-    fakeS3StorageProvider.fileUri = fileUri;
-    const file = getFile({ uri: fileUri });
-
-    await uploadFile(file);
-
-    expect(Object.values(fileRepository.files)).toEqual([file]);
-  });
+    fileName           | filePath
+    ${'file-name.pdf'} | ${null}
+    ${'file-name.txt'} | ${['Jules Bresse']}
+  `(
+    'saves a file $fileName with its metadata',
+    async ({ fileName, filePath }) => {
+      const file = getFile({ name: fileName, path: filePath });
+      await uploadFile(file);
+      expect(Object.values(fileRepository.files)).toEqual([file]);
+    },
+  );
 
   it('delete the file if the metadata saving fails', async () => {
     fileRepository.saveError = new Error('Failed to save file metadata');
@@ -70,14 +71,17 @@ describe('Upload file', () => {
     expect(fakeS3StorageProvider.storedFiles).toEqual({});
   });
 
-  const uploadFile = async (file: FileDocumentSnapshot) =>
+  const uploadFile = async (
+    file: FileDocumentSnapshot,
+    mimeType: string = 'text/plain',
+  ) =>
     await new UploadFileUseCase(
       fileRepository,
       transactionPerformer,
       uuidGenerator,
       dateTimeProvider,
       fakeS3StorageProvider,
-    ).execute(Buffer.from('file content'), file.name);
+    ).execute(Buffer.from('file content'), file.name, mimeType, file.path);
 });
 
 const getFile = (
@@ -86,7 +90,8 @@ const getFile = (
   id: 'file-id',
   createdAt: currentDate,
   name: 'file-name.txt',
+  path: null,
   storageProvider: FilesStorageProvider.OUTSCALE,
-  uri: 'https://example.fr/file-name.txt',
+  signedUrl: undefined,
   ...override,
 });

@@ -14,8 +14,43 @@ import { ReportListItem, ReportSM } from "../../../store/appState";
 export type FakeReportFromApi = ReportRetrievalVM | ReportListItemVM;
 
 export class FakeReportGateway implements ReportGateway {
-  private reports: Record<string, FakeReportFromApi> = {};
+  static BASE_URI = "https://example.fr";
+
+  // Readonly because Redux makes it immutable
+  private reports: Record<string, Readonly<FakeReportFromApi>> = {};
   private lastReportId: string | null = null;
+
+  async attachFile(reportId: string, file: File): Promise<void> {
+    const signedUrl = `${FakeReportGateway.BASE_URI}/${file.name}`;
+    const report = this.reports[reportId];
+    if (!report) throw new Error("Nomination case not found");
+    if (!("comment" in report))
+      throw new Error("Fake report should be a of type retrieval");
+
+    if (!report.attachedFiles)
+      this.reports[reportId] = {
+        ...report,
+        attachedFiles: [
+          ...(report.attachedFiles || []),
+          {
+            name: file.name,
+            signedUrl,
+          },
+        ],
+      };
+  }
+
+  generateFileUrl(reportId: string, fileName: string): Promise<string> {
+    const report = this.reports[reportId];
+    if (!report) throw new Error("Nomination case not found");
+    if (!("comment" in report))
+      throw new Error("Fake report should be a of type retrieval");
+
+    const file = report.attachedFiles?.find((f) => f.name === fileName);
+    if (!file) throw new Error("File not found");
+
+    return Promise.resolve(file.signedUrl);
+  }
 
   async list(): Promise<ReportListItem[]> {
     return (Object.values(this.reports) as ReportListItemVM[]).map(
@@ -66,7 +101,7 @@ export class FakeReportGateway implements ReportGateway {
 
     if (report) {
       if (!("comment" in report))
-        throw new Error("Fake nomination file should be a of type retrieval");
+        throw new Error("Fake report should be a of type retrieval");
 
       Object.entries(report.rules).forEach(([ruleGroup, ruleEntry]) => {
         Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
@@ -103,7 +138,7 @@ export class FakeReportGateway implements ReportGateway {
     const report = this.reports[id];
     if (!report) throw new Error("Nomination case not found");
     if (!("comment" in report))
-      throw new Error("Fake nomination file should be a of type retrieval");
+      throw new Error("Fake report should be a of type retrieval");
 
     return {
       id: report.id,
@@ -122,11 +157,12 @@ export class FakeReportGateway implements ReportGateway {
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
+      attachedFiles: report.attachedFiles,
     };
   }
 
-  addReport(aNomination: FakeReportFromApi) {
-    this.reports[aNomination.id] = aNomination;
-    this.lastReportId = aNomination.id;
+  addReport(aReport: FakeReportFromApi) {
+    this.reports[aReport.id] = aReport;
+    this.lastReportId = aReport.id;
   }
 }

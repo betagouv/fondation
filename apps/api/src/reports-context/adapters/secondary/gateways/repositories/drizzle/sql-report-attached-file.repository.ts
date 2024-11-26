@@ -5,6 +5,7 @@ import {
 } from 'src/reports-context/business-logic/models/report-attached-file';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { reportAttachedFiles } from './schema/report-attached-file-pm';
+import { and, eq } from 'drizzle-orm';
 
 export class SqlReportAttachedFileRepository
   implements ReportAttachedFileRepository
@@ -22,6 +23,30 @@ export class SqlReportAttachedFileRepository
     };
   }
 
+  byFileName(
+    reportId: string,
+    fileName: string,
+  ): DrizzleTransactionableAsync<ReportAttachedFile | null> {
+    return async (trx) => {
+      const reportAttachedFile = await trx
+        .select()
+        .from(reportAttachedFiles)
+        .where(
+          and(
+            eq(reportAttachedFiles.reportId, reportId),
+            eq(reportAttachedFiles.name, fileName),
+          ),
+        )
+        .limit(1)
+        .execute();
+      if (reportAttachedFile.length === 0) {
+        return null;
+      }
+
+      return this.toDomain(reportAttachedFile[0]!);
+    };
+  }
+
   static mapToDb(
     reportAttachedFile: ReportAttachedFile,
   ): typeof reportAttachedFiles.$inferInsert {
@@ -30,7 +55,7 @@ export class SqlReportAttachedFileRepository
     return {
       id: reportAttachedFileSnapshot.id,
       createdAt: reportAttachedFileSnapshot.createdAt,
-      fileId: reportAttachedFileSnapshot.fileId,
+      name: reportAttachedFileSnapshot.name,
       reportId: reportAttachedFileSnapshot.reportId,
     };
   }
@@ -48,7 +73,7 @@ export class SqlReportAttachedFileRepository
     return ReportAttachedFile.fromSnapshot({
       id: reportAttachedFile.id,
       createdAt: reportAttachedFile.createdAt,
-      fileId: reportAttachedFile.fileId,
+      name: reportAttachedFile.name,
       reportId: reportAttachedFile.reportId,
     });
   }

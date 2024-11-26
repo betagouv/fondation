@@ -1,11 +1,14 @@
 import { FilesStorageProvider } from './files-provider.enum';
 
+export type FileVM = { name: string; signedUrl: string };
+
 export type FileDocumentSnapshot = {
   id: string;
   createdAt: Date;
   name: string;
+  path: string[] | null;
   storageProvider: FilesStorageProvider;
-  uri: string;
+  signedUrl?: string | null;
 };
 
 export class FileDocument {
@@ -13,9 +16,22 @@ export class FileDocument {
     private readonly _id: string,
     private readonly createdAt: Date,
     private readonly name: string,
+    private readonly path: string[] | null,
     private readonly storageProvider: FilesStorageProvider,
-    private readonly uri: string,
+    private signedUrl?: string | null,
   ) {}
+
+  addSignedUrl(signedUrl: string) {
+    this.signedUrl = signedUrl;
+  }
+
+  getFileVM(): FileVM {
+    if (!this.signedUrl) throw new Error('Signed URL is not set');
+    return {
+      name: this.name,
+      signedUrl: this.signedUrl,
+    };
+  }
 
   public get id(): string {
     return this._id;
@@ -26,8 +42,9 @@ export class FileDocument {
       id: this.id,
       createdAt: this.createdAt,
       name: this.name,
+      path: this.path,
       storageProvider: this.storageProvider,
-      uri: this.uri,
+      signedUrl: this.signedUrl,
     };
   }
 
@@ -36,8 +53,8 @@ export class FileDocument {
       reportSnapshot.id,
       reportSnapshot.createdAt,
       reportSnapshot.name,
+      reportSnapshot.path,
       reportSnapshot.storageProvider,
-      reportSnapshot.uri,
     );
   }
 }

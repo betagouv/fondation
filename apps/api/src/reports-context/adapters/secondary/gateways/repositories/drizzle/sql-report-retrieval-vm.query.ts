@@ -1,15 +1,19 @@
-import { NominationFile, ReportRetrievalVM } from 'shared-models';
 import { eq, sql } from 'drizzle-orm';
-import { ReportRetrievalQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
+import { NominationFile } from 'shared-models';
+import {
+  ReportRetrievalQueried,
+  ReportRetrievalQuery,
+} from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { reportAttachedFiles } from './schema';
 import { reports } from './schema/report-pm'; // Drizzle ORM table definition
 import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition
 
 export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
 
-  async retrieveReport(id: string): Promise<ReportRetrievalVM | null> {
+  async retrieveReport(id: string): Promise<ReportRetrievalQueried | null> {
     const reportWithRules = await this.db
       .select({
         reportId: reports.id,
@@ -49,7 +53,6 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     if (!reportData) {
       return null;
     }
-
     const rules: NominationFile.Rules = reportWithRules.reduce(
       (acc: NominationFile.Rules, row) => {
         const ruleGroup = row.ruleGroup as NominationFile.RuleGroup;
@@ -80,7 +83,13 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       {} as NominationFile.Rules,
     );
 
-    const reportRetrievalVM: ReportRetrievalVM = {
+    const storedAttachedFiles = await this.db
+      .select({ fileName: reportAttachedFiles.name })
+      .from(reportAttachedFiles)
+      .where(eq(reportAttachedFiles.reportId, id))
+      .execute();
+
+    const reportRetrieval: ReportRetrievalQueried = {
       id: reportData.reportId,
       folderNumber: reportData.folderNumber,
       biography: reportData.biography,
@@ -99,8 +108,9 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       rank: reportData.rank,
       observers: reportData.observers,
       rules,
+      attachedFileNames: storedAttachedFiles.map((file) => file.fileName),
     };
 
-    return reportRetrievalVM;
+    return reportRetrieval;
   }
 }

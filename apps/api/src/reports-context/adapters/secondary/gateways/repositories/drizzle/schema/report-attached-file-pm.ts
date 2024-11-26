@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { timestamp, uuid } from 'drizzle-orm/pg-core';
+import { timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { reportsContextSchema } from './reports-context-schema.drizzle';
 
 export const reportAttachedFiles = reportsContextSchema.table(
@@ -10,6 +10,6 @@ export const reportAttachedFiles = reportsContextSchema.table(
       .default(sql`gen_random_uuid()`),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     reportId: uuid('report_id').notNull(),
-    fileId: uuid('file_id').notNull(),
+    name: varchar('name').notNull(),
   },
 );

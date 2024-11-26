@@ -10,6 +10,8 @@ export class TransparencyTsvNormalizer {
         return Transparency.MARCH_2025;
       case 'Mars 2026':
         return Transparency.MARCH_2026;
+      case 'Transparence PG 08/11':
+        return Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
       default:
         throw new InvalidRowValueError('transparency', transparency, rowIndex);
     }

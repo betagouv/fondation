@@ -24,6 +24,14 @@ export class ApiReportGateway implements ReportGateway {
     await this.reportApiClient.updateRule(ruleId, validated);
   }
 
+  attachFile(reportId: string, file: File): Promise<void> {
+    return this.reportApiClient.attachFile(reportId, file);
+  }
+
+  generateFileUrl(reportId: string, fileName: string): Promise<string> {
+    return this.reportApiClient.generateFileUrl(reportId, fileName);
+  }
+
   async retrieveReport(id: string): Promise<ReportSM | null> {
     const report = await this.reportApiClient.retrieveReport(id);
 
@@ -45,6 +53,7 @@ export class ApiReportGateway implements ReportGateway {
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
+      attachedFiles: report.attachedFiles,
     };
   }
 

@@ -7,9 +7,12 @@ import {
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { NominationFileReportSnapshot } from './nomination-file-report';
+import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
 
-export class ReportRetrievalVMBuilder {
-  private _viewModel: ReportRetrievalVM;
+export class ReportRetrievalBuilder<
+  T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
+> {
+  private _report: ReportRetrievalVM & ReportRetrievalQueried;
 
   constructor() {
     const defaultValue: NominationFile.RuleValue = {
@@ -19,7 +22,7 @@ export class ReportRetrievalVMBuilder {
       comment: 'rule comment',
     };
 
-    this._viewModel = {
+    this._report = {
       id: 'report-id',
       folderNumber: 1,
       name: 'Ada Lovelace',
@@ -84,25 +87,95 @@ export class ReportRetrievalVMBuilder {
             defaultValue,
         },
       },
+      attachedFiles: null,
+      attachedFileNames: [],
     };
   }
 
-  with<
-    K extends Paths<ReportRetrievalVM>,
-    V extends Get<ReportRetrievalVM, K> = Get<ReportRetrievalVM, K>,
-  >(property: K, value: V) {
-    this._viewModel = _.set(this._viewModel, property, value);
+  with<K extends Paths<T>, V extends Get<T, K> = Get<T, K>>(
+    property: K,
+    value: V,
+  ) {
+    this._report = _.set(this._report, property, value);
     return this;
   }
 
-  build(): ReportRetrievalVM {
-    return this._viewModel;
+  buildVM(): T extends ReportRetrievalVM ? ReportRetrievalVM : unknown {
+    const report = this._report;
+    return {
+      id: report.id,
+      folderNumber: report.folderNumber,
+      biography: report.biography,
+      dueDate: report.dueDate,
+      name: report.name,
+      birthDate: report.birthDate,
+      state: report.state,
+      formation: report.formation,
+      transparency: report.transparency,
+      grade: report.grade,
+      currentPosition: report.currentPosition,
+      targettedPosition: report.targettedPosition,
+      comment: report.comment,
+      rank: report.rank,
+      observers: report.observers,
+      rules: report.rules,
+      attachedFiles: report.attachedFiles,
+    };
   }
 
-  static fromWriteSnapshot(
-    report: NominationFileReportSnapshot,
-  ): ReportRetrievalVMBuilder {
-    return new ReportRetrievalVMBuilder()
+  buildQueried(): T extends ReportRetrievalQueried
+    ? ReportRetrievalQueried
+    : unknown {
+    const report = this._report;
+    return {
+      id: report.id,
+      folderNumber: report.folderNumber,
+      biography: report.biography,
+      dueDate: report.dueDate,
+      name: report.name,
+      birthDate: report.birthDate,
+      state: report.state,
+      formation: report.formation,
+      transparency: report.transparency,
+      grade: report.grade,
+      currentPosition: report.currentPosition,
+      targettedPosition: report.targettedPosition,
+      comment: report.comment,
+      rank: report.rank,
+      observers: report.observers,
+      rules: report.rules,
+      attachedFileNames: report.attachedFileNames,
+    };
+  }
+
+  static fromQueriedToVM(
+    report: ReportRetrievalQueried,
+  ): ReportRetrievalBuilder {
+    return new ReportRetrievalBuilder()
+      .with('id', report.id)
+      .with('folderNumber', report.folderNumber)
+      .with('biography', report.biography)
+      .with('dueDate', report.dueDate)
+      .with('name', report.name)
+      .with('birthDate', report.birthDate)
+      .with('state', report.state)
+      .with('formation', report.formation)
+      .with('transparency', report.transparency)
+      .with('grade', report.grade)
+      .with('currentPosition', report.currentPosition)
+      .with('targettedPosition', report.targettedPosition)
+      .with('comment', report.comment)
+      .with('rank', report.rank)
+      .with('observers', report.observers)
+      .with('rules', report.rules);
+  }
+
+  static fromWriteSnapshot<
+    D extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
+  >(report: NominationFileReportSnapshot): ReportRetrievalBuilder<D> {
+    return new ReportRetrievalBuilder<
+      ReportRetrievalVM | ReportRetrievalQueried
+    >()
       .with('id', report.id)
       .with('name', report.name)
       .with('biography', report.biography)

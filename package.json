@@ -8,7 +8,8 @@
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
     "build": "pnpm run -r build",
-    "dev": "pnpm run -r dev",
+    "manual-deps": "pnpm --filter shared-models build && pnpm --filter api gen-sdk",
+    "preci:local-check": "pnpm manual-deps",
     "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build"
   },
   "keywords": [],

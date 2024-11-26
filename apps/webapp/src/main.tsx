@@ -6,8 +6,10 @@ import App from "./App.tsx";
 import { FakeAuthenticationGateway } from "./authentication/adapters/secondary/gateways/fakeAuthentication.gateway.ts";
 import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/authenticationSessionStorage.provider.ts";
 import { storeAuthenticationOnLoginSuccess } from "./authentication/core-logic/listeners/authentication.listeners.ts";
+import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
 import "./index.css";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
+import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
 import { initReduxStore } from "./reports/store/reduxStore.ts";
 import {
   RouteProvider,
@@ -15,11 +17,10 @@ import {
 } from "./router/adapters/type-route/typeRouter.ts";
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
 import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
-import { NestiaReportClient } from "./reports/adapters/secondary/gateways/NestiaReport.client.ts";
-import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
-import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
-import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.listeners.ts";
+import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
+import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
+import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -45,8 +46,8 @@ fakeUsers.forEach(({ username, password, reporterName }) => {
   );
 });
 
-const nestiaReportClient = new NestiaReportClient();
-const reportGateway = new ApiReportGateway(nestiaReportClient);
+const reportApiClient = new FetchReportApiClient(import.meta.env.VITE_API_URL);
+const reportGateway = new ApiReportGateway(reportApiClient);
 
 const authenticationStorageProvider =
   new AuthenticationSessionStorageProvider();
@@ -65,6 +66,7 @@ const store = initReduxStore<false>(
     redirectOnRouteChange,
     redirectOnLogout,
     redirectOnLogin,
+    reportFileAttached,
   },
 );
 

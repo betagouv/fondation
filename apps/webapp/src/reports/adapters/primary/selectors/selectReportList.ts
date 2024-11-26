@@ -1,6 +1,8 @@
 import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../store/createAppSelector";
+import { UnionToTuple } from "type-fest";
+import _ from "lodash";
 
 export type ReportListItemVM = {
   id: string;
@@ -29,15 +31,22 @@ export const selectReportList = createAppSelector(
     (state) => state.authentication.user,
   ],
   (data, getAnchorAttributes, user): ReportListVM => {
-    const sortedData = [...(data || [])].sort(
-      ({ folderNumber: a }, { folderNumber: b }) => {
-        if (a === null) return 1;
-        if (b === null) return -1;
-        return a - b;
-      },
+    const transparencyOrder: UnionToTuple<Transparency> = [
+      Transparency.AUTOMNE_2024,
+      Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
+      Transparency.MARCH_2025,
+      Transparency.MARCH_2026,
+    ];
+
+    const sortedReports = _.orderBy(
+      [...(data || [])],
+      [
+        (item) => transparencyOrder.indexOf(item.transparency),
+        (item) => item.folderNumber,
+      ],
     );
 
-    const reports = sortedData
+    const reports = sortedReports
       .filter(({ reporterName }) =>
         user ? reporterName === user.reporterName : false,
       )
@@ -97,6 +106,8 @@ export const transparencyToLabel = (transparency: Transparency) => {
       return "Mars 2025";
     case Transparency.MARCH_2026:
       return "Mars 2026";
+    case Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024:
+      return "PG 8/11/2024";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

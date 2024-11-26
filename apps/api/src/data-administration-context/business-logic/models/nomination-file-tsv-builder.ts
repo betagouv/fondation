@@ -239,6 +239,8 @@ export class NominationFileTsvBuilder {
       [Transparency.AUTOMNE_2024]: 'Automne 2024',
       [Transparency.MARCH_2025]: 'Mars 2025',
       [Transparency.MARCH_2026]: 'Mars 2026',
+      [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
+        'Transparence PG 08/11',
     };
 
     const stateMap = {

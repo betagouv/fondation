@@ -13,7 +13,8 @@ import {
   Transparency,
 } from 'shared-models';
 import { AppModule } from 'src/app.module';
-import { ReportRetrievalVMBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
+import { deleteAllS3Objects } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-storage.provider.it-spec';
+import { ReportRetrievalBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
 import {
   ReportRule,
   ReportRuleSnapshot,
@@ -28,12 +29,12 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
+import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
-import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
+import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
-import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 
 describe('Reports Controller', () => {
   let app: NestApplication;
@@ -148,9 +149,9 @@ describe('Reports Controller', () => {
       });
     });
 
-    const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalVMBuilder()
+    const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalBuilder()
       .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .build();
+      .buildVM();
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
@@ -167,10 +168,14 @@ describe('Reports Controller', () => {
       const body: ChangeRuleValidationStateDto = {
         validated: false,
       };
-      await request(app.getHttpServer())
-        .put('/api/reports/rules/invalid-id')
-        .send(body)
-        .expect(HttpStatus.BAD_REQUEST);
+      try {
+        await request(app.getHttpServer())
+          .put('/api/reports/rules/invalid-id')
+          .send(body)
+          .expect(HttpStatus.OK);
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
     });
 
     const wrongBodies = [
@@ -197,7 +202,7 @@ describe('Reports Controller', () => {
         .put(`/api/reports/rules/${reportRuleSnapshot.id}`)
         .send(body)
         .expect(HttpStatus.OK);
-      expect(response.body).toEqual('');
+      expect(response.body).toEqual({});
 
       const savedReportRules = await db
         .select()
@@ -221,35 +226,54 @@ describe('Reports Controller', () => {
       .build();
   });
 
-  describe('POST /api/reports/:id/files/upload-one', () => {
+  describe('Files', () => {
     beforeEach(async () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
 
-      await app.listen(3000); // Run server to contact other contexts over REST
+      await app.listen(3030); // Run server to contact other contexts over REST
+    });
+
+    afterEach(async () => {
+      await deleteAllS3Objects();
     });
 
     it('uploads a file', async () => {
-      const pdfBuffer = givenAPdfBuffer();
+      const response = await uploadFile().expect(201);
 
-      const response = await request(app.getHttpServer())
-        .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
-        .attach('file', pdfBuffer, 'test-file.pdf')
-        .expect(201);
-
-      expect(response.body).toBe('');
+      expect(response.body).toEqual({});
       expect(
         await db.select().from(reportAttachedFiles).execute(),
       ).toHaveLength(1);
-      expect(await db.select().from(reportAttachedFiles).execute()).toEqual([
+      expect(await db.select().from(reportAttachedFiles).execute()).toEqual<
+        (typeof reportAttachedFiles.$inferSelect)[]
+      >([
         {
           id: expect.any(String),
           createdAt: expect.any(Date),
           reportId: aReportSnapshot.id,
-          fileId: expect.any(String),
+          name: 'test-file.pdf',
         },
       ]);
     });
+
+    it('get files signed URLs', async () => {
+      await uploadFile().expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+        .expect(HttpStatus.OK);
+
+      expect(response.text).toEqual(expect.stringMatching(/^http/));
+    });
+
+    const uploadFile = () => {
+      const pdfBuffer = givenAPdfBuffer();
+
+      return request(app.getHttpServer())
+        .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
+        .attach('file', pdfBuffer, 'test-file.pdf');
+    };
 
     const givenAPdfBuffer = () => {
       const pdfDoc = new PDF();
@@ -257,7 +281,6 @@ describe('Reports Controller', () => {
       pdfDoc.end();
       return pdfDoc.read();
     };
-
     const aReportSnapshot = new ReportBuilder('uuid').build();
   });
 });

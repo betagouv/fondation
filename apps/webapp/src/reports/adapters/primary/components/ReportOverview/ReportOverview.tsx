@@ -17,6 +17,8 @@ import { MagistratIdentity } from "./MagistratIdentity";
 import { ReportRules } from "./ReportRules";
 import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
 import { Observers } from "./Observers";
+import { AttachedFileUpload } from "./AttachedFileUpload";
+import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
 
 export type ReportOverviewProps = {
   id: string;
@@ -62,6 +64,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       );
     };
 
+  const onFileAttached = (file: File) => {
+    console.log("on file");
+    dispatch(attachReportFile({ reportId: id, file }));
+  };
+
   useEffect(() => {
     dispatch(retrieveReport(id));
   }, [dispatch, id]);
@@ -92,7 +99,14 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         onUpdateReportRule={onUpdateReportRule}
       />
       <Comment comment={report.comment} onUpdate={onUpdateComment} />
+      {import.meta.env.DEV && (
+        <AttachedFileUpload
+          attachedFiles={report.attachedFiles}
+          onFileAttached={onFileAttached}
+        />
+      )}
     </div>
   );
 };
+
 export default ReportOverview;

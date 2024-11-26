@@ -11,7 +11,10 @@ import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
 export type FakeReportFromApi = ReportRetrievalVM & ReportListItemVM;
 
 export class FakeReportApiClient implements ReportApiClient {
-  reports: Record<string, FakeReportFromApi> = {};
+  BASE_URI = "https://example.fr";
+
+  // Readonly because Redux makes it immutable
+  reports: Record<string, Readonly<FakeReportFromApi>> = {};
   currentReportId: string | null = null;
   currentRuleGroup: NominationFile.RuleGroup | null = null;
   currentRuleName: NominationFile.RuleName | null = null;
@@ -34,14 +37,16 @@ export class FakeReportApiClient implements ReportApiClient {
     const allRulesPreValidated = new FakeReportRulesBuilder().build();
     this.reports[report.id] = {
       ...report,
-      rules: allRulesPreValidated,
+      rules: this.genRules(
+        {
+          id: rule.id,
+          preValidated: rule.preValidated,
+          validated: rule.validated,
+          comment: rule.comment,
+        },
+        allRulesPreValidated,
+      ),
     };
-    this.reports[report.id]!.rules = this.genRules(report.id, {
-      id: rule.id,
-      preValidated: rule.preValidated,
-      validated: rule.validated,
-      comment: rule.comment,
-    });
   }
 
   async updateReport(reportId: string, data: ReportUpdateDto): Promise<void> {
@@ -61,15 +66,46 @@ export class FakeReportApiClient implements ReportApiClient {
       ] as Record<NominationFile.RuleName, NominationFile.RuleValue>
     )[this.currentRuleName!] as NominationFile.RuleValue;
 
-    this.reports[this.currentReportId]!.rules = this.genRules(
-      this.currentReportId,
-      {
-        id: ruleId,
-        validated,
-        preValidated: rule.preValidated,
-        comment: rule.comment,
+    const report = this.reports[this.currentReportId]!;
+    this.reports = {
+      ...this.reports,
+      [this.currentReportId]: {
+        ...report,
+        rules: this.genRules(
+          {
+            id: ruleId,
+            validated,
+            preValidated: rule.preValidated,
+            comment: rule.comment,
+          },
+          report.rules,
+        ),
       },
-    );
+    };
+  }
+
+  async attachFile(reportId: string, file: File): Promise<void> {
+    const uri = `${this.BASE_URI}/${file.name}`;
+    const report = this.reports[reportId];
+    if (!report) throw new Error("Nomination case not found");
+    if (!("comment" in report))
+      throw new Error("Fake report should be a of type retrieval");
+
+    if (!report.attachedFiles)
+      this.reports[reportId] = {
+        ...report,
+        attachedFiles: [
+          ...(report.attachedFiles || []),
+          {
+            name: file.name,
+            signedUrl: uri,
+          },
+        ],
+      };
+  }
+
+  async generateFileUrl(_: string, fileName: string): Promise<string> {
+    return `${this.BASE_URI}/${fileName}`;
   }
 
   async retrieveReport(id: string): Promise<ReportRetrievalVM | null> {
@@ -102,26 +138,20 @@ export class FakeReportApiClient implements ReportApiClient {
   }
 
   private genRules(
-    reportId: string,
     rule: {
       id: string;
       preValidated: boolean;
       validated: boolean;
       comment: string | null;
     },
+    rules: NominationFile.Rules,
   ): NominationFile.Rules {
-    if (!this.currentReportId)
-      throw new Error("No nomination file id in fake client");
-
     if (!this.currentRuleGroup || !this.currentRuleName) {
       throw new Error("No current rule group or name in fake client");
     }
 
-    const report = this.reports[reportId];
-    if (!report) throw new Error("No nomination file in fake client");
-
     return FakeReportRulesBuilder.fromCurrentRule(
-      report.rules,
+      rules,
       this.currentRuleGroup,
       this.currentRuleName,
       rule,

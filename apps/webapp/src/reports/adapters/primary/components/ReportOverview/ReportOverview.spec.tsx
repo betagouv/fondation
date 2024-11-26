@@ -2,7 +2,9 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { NominationFile } from "shared-models";
+import sharp from "sharp";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
+import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
@@ -22,6 +24,7 @@ describe("Nomination Case Overview Component", () => {
       },
       {},
       {},
+      { reportFileAttached },
     );
     initialState = store.getState();
   });
@@ -32,19 +35,18 @@ describe("Nomination Case Overview Component", () => {
   });
 
   describe("when there is a nomination file", () => {
-    beforeEach(() => {
-      reportGateway.addReport(aValidatedNomination);
-    });
-
     it("shows a message to explain autosave feature", async () => {
-      renderReport(aValidatedNomination.id);
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
       await screen.findByText(
         "L'enregistrement des modifications est automatique.",
       );
     });
 
     it("shows a message to explain rules checked and red meaning", async () => {
-      renderReport(aValidatedNomination.id);
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
+
       const messages = await screen.findAllByText(
         "Case cochée = la règle n'est pas respectée. Si le texte est rouge, cela signifie que notre outil de pré-analyse a détecté un risque de non-respect de la règle.",
       );
@@ -52,17 +54,19 @@ describe("Nomination Case Overview Component", () => {
     });
 
     it("shows magistrat identity section", async () => {
-      renderReport(aValidatedNomination.id);
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
+
       await expectMagistratIdentity();
     });
 
     it("shows the observers", async () => {
-      renderReport(aValidatedNomination.id);
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
+
       await screen.findByText("Observants");
-      for (const [
-        index,
-        observer,
-      ] of aValidatedNomination.observers!.entries()) {
+
+      for (const [index, observer] of aValidatedReport.observers!.entries()) {
         if (index === 0) {
           await screen.findByText(observer);
         } else {
@@ -75,9 +79,8 @@ describe("Nomination Case Overview Component", () => {
     });
 
     it("shows the rules", async () => {
-      act(() => {
-        renderReport(aValidatedNomination.id);
-      });
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
 
       await expectRulesFor(NominationFile.RuleGroup.MANAGEMENT);
       await expectRulesFor(NominationFile.RuleGroup.STATUTORY);
@@ -85,7 +88,9 @@ describe("Nomination Case Overview Component", () => {
     });
 
     it("show the biography with line breaks", async () => {
-      renderReport(aValidatedNomination.id);
+      givenAValidatedReport();
+      renderReport(aValidatedReport.id);
+
       await screen.findByText(
         /- John Doe's biography\s- second line\s- third line/,
       );
@@ -133,7 +138,9 @@ describe("Nomination Case Overview Component", () => {
         );
 
         it("writes content", async () => {
-          renderReport(aValidatedNomination.id);
+          givenAValidatedReport();
+          renderReport(aValidatedReport.id);
+
           textarea = await givenTheTextArea();
 
           await typeNewBiographyText();
@@ -142,7 +149,9 @@ describe("Nomination Case Overview Component", () => {
         });
 
         it("removes content", async () => {
-          renderReport(aValidatedNomination.id);
+          givenAValidatedReport();
+          renderReport(aValidatedReport.id);
+
           textarea = await givenTheTextArea();
           await userEvent.clear(textarea!);
 
@@ -152,8 +161,8 @@ describe("Nomination Case Overview Component", () => {
               ...initialState,
               reportOverview: {
                 byIds: {
-                  [aValidatedNomination.id]: {
-                    ...aValidatedNomination,
+                  [aValidatedReport.id]: {
+                    ...aValidatedReport,
                     [storeKey]: null,
                   },
                 },
@@ -163,7 +172,9 @@ describe("Nomination Case Overview Component", () => {
         });
 
         it("keeps the cursor position after typing and saves the new content", async () => {
-          renderReport(aValidatedNomination.id);
+          givenAValidatedReport();
+          renderReport(aValidatedReport.id);
+
           textarea = await givenTheTextArea();
           await typeNewBiographyText();
           moveToCursorPosition(3);
@@ -178,8 +189,8 @@ describe("Nomination Case Overview Component", () => {
               ...initialState,
               reportOverview: {
                 byIds: {
-                  [aValidatedNomination.id]: {
-                    ...aValidatedNomination,
+                  [aValidatedReport.id]: {
+                    ...aValidatedReport,
                     [storeKey]: newContentAfterCursorTyping,
                   },
                 },
@@ -216,13 +227,16 @@ describe("Nomination Case Overview Component", () => {
         ];
 
       it("checks the rule", async () => {
+        givenAValidatedReport();
         renderReport("report-id");
         await clickCheckboxAndExpectChange(label, { initiallyChecked: false });
       });
 
       it("unchecks the rule", async () => {
-        reportGateway.addReport(anUnvalidatedNomination);
-        renderReport("report-id");
+        act(() => {
+          renderReport("report-id");
+          reportGateway.addReport(anUnvalidatedNomination);
+        });
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
 
@@ -233,27 +247,98 @@ describe("Nomination Case Overview Component", () => {
           anotherRuleName
         ];
       it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
-        reportGateway.addReport(
-          new ReportBuilder()
-            .withTransferTimeValidated(false)
-            .buildRetrieveVM(),
-        );
-        renderReport("report-id");
+        act(() => {
+          renderReport("report-id");
+          reportGateway.addReport(
+            new ReportBuilder()
+              .withTransferTimeValidated(false)
+              .buildRetrieveVM(),
+          );
+        });
 
         await clickCheckboxAndExpectChange(anotherRuleLabel, {
           initiallyChecked: false,
         });
       });
     });
+
+    describe("Files", () => {
+      it("uploads a file", async () => {
+        givenAValidatedReport();
+        renderReport(aValidatedReport.id);
+
+        const fileBuffer = await givenAPngBuffer();
+
+        const file = new File([fileBuffer], "image.png", {
+          type: "image/png",
+        });
+
+        await screen.findByText(aValidatedReport.name);
+        const input = await screen.findByLabelText(
+          /^Ajouter des pièces jointes/,
+        );
+        await userEvent.upload(input, file);
+        // screen.logTestingPlaygroundURL();
+
+        await waitFor(() => {
+          expect(store.getState().reportOverview.byIds).toEqual({
+            [aValidatedReport.id]: {
+              ...aValidatedReport,
+              attachedFiles: [
+                {
+                  name: "image.png",
+                  signedUrl: `${FakeReportGateway.BASE_URI}/image.png`,
+                },
+              ],
+            },
+          });
+        });
+      });
+
+      it.only("lists attached files urls", async () => {
+        reportGateway.addReport({
+          ...aValidatedReport,
+          attachedFiles: [
+            {
+              name: "file1.png",
+              signedUrl: `${FakeReportGateway.BASE_URI}/file1.png`,
+            },
+            {
+              name: "file2.png",
+              signedUrl: `${FakeReportGateway.BASE_URI}/file2.png`,
+            },
+          ],
+        });
+        renderReport(aValidatedReport.id);
+
+        await screen.findByText("file1.png");
+        await screen.findByText("file2.png");
+      });
+    });
+
+    const givenAPngBuffer = () =>
+      sharp({
+        create: {
+          width: 256,
+          height: 256,
+          channels: 3,
+          background: { r: 128, g: 0, b: 0 },
+        },
+      })
+        .png()
+        .toBuffer();
+
+    const givenAValidatedReport = () => {
+      reportGateway.addReport(aValidatedReport);
+    };
   });
 
-  const renderReport = (id: string) => {
+  const renderReport = (id: string) =>
     render(
       <Provider store={store}>
         <ReportOverview id={id} />
       </Provider>,
     );
-  };
 
   const expectMagistratIdentity = async () => {
     const labels = ReportVM.magistratIdentityLabels;
@@ -317,7 +402,7 @@ describe("Nomination Case Overview Component", () => {
   };
 });
 
-const aValidatedNomination = new ReportBuilder()
+const aValidatedReport = new ReportBuilder()
   .with("id", "report-id")
   .with("biography", "  - John Doe's biography - second line  - third line ")
   .with("observers", [

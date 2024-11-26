@@ -26,13 +26,13 @@ export class AttachReportFileUseCase {
       const report = await this.reportRepository.byId(reportId)(trx);
       if (!report) throw new NonExistingReportError();
 
-      const fileId = await this.reportFileService.uploadFile(name, fileBuffer);
+      await this.reportFileService.uploadFile(name, fileBuffer);
 
       const attachedFile = new ReportAttachedFile(
         this.uuidGenerator.generate(),
         this.dateTimeProvider.now(),
         reportId,
-        fileId,
+        name,
       );
       await this.reportAttachedFileRepository.save(attachedFile)(trx);
     });

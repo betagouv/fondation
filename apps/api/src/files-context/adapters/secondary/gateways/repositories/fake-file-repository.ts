@@ -5,8 +5,10 @@ import {
 } from 'src/files-context/business-logic/models/file-document';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
+type FileId = string;
+
 export class FakeFileRepository implements FileRepository {
-  readonly files: Record<string, FileDocumentSnapshot> = {};
+  files: Record<FileId, FileDocumentSnapshot> = {};
   saveError: Error;
 
   save(file: FileDocument): TransactionableAsync {
@@ -16,5 +18,14 @@ export class FakeFileRepository implements FileRepository {
       const fileSnapshot = file.toSnapshot();
       this.files[fileSnapshot.id] = fileSnapshot;
     };
+  }
+
+  getByNames(fileNames: string[]): TransactionableAsync<FileDocument[]> {
+    return async () =>
+      fileNames.map((name) =>
+        FileDocument.fromSnapshot(
+          Object.values(this.files).find((file) => file.name === name)!,
+        ),
+      );
   }
 }

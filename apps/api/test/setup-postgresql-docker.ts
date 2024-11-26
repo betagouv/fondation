@@ -1,7 +1,10 @@
 import { sql } from 'drizzle-orm';
 import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import { getDrizzleInstance } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { startDockerPostgresql } from './docker-postgresql-manager';
+import {
+  createMinioBucket,
+  startDockerPostgresql,
+} from './docker-postgresql-manager';
 import teardown from './teardown-postgresql-docker';
 
 const setup = async (): Promise<void> => {
@@ -15,6 +18,8 @@ const setup = async (): Promise<void> => {
       await trx.execute(sql`CREATE SCHEMA shared_kernel_context;`);
     });
     await db.$client.end();
+
+    await createMinioBucket();
   } catch {
     await teardown();
   }

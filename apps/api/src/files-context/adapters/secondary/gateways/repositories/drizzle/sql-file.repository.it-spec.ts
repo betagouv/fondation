@@ -1,8 +1,8 @@
+import { FileDocumentBuilder } from 'src/files-context/business-logic/builders/file-document.builder';
 import {
   FileDocument,
   FileDocumentSnapshot,
 } from 'src/files-context/business-logic/models/file-document';
-import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -41,12 +41,36 @@ describe('SQL Files Repository', () => {
     const existingFiless = await db.select().from(filesPm).execute();
     expect(existingFiless).toEqual([SqlFileRepository.mapSnapshotToDb(aFile)]);
   });
+
+  describe('when there is already one file', () => {
+    beforeEach(async () => {
+      await givenSomeFiles(aFile, anotherFile);
+    });
+
+    it('gets files by ids', async () => {
+      const files = await transactionPerformer.perform(
+        filesRepository.getByNames([aFile.name, anotherFile.name]),
+      );
+      expect(files).toEqual<FileDocument[]>(
+        [aFile, anotherFile].map(FileDocument.fromSnapshot),
+      );
+    });
+  });
+
+  const givenSomeFiles = async (...files: FileDocumentSnapshot[]) =>
+    db
+      .insert(filesPm)
+      .values(files.map(SqlFileRepository.mapSnapshotToDb))
+      .execute();
 });
 
-const aFile: FileDocumentSnapshot = {
-  id: 'd86d9949-ad4c-4316-9e0e-b34e352045f8',
-  createdAt: new Date(2026, 10, 10),
-  name: 'file-name.txt',
-  storageProvider: FilesStorageProvider.OUTSCALE,
-  uri: 'https://example.fr/file-name.txt',
-};
+const aFile = new FileDocumentBuilder()
+  .with('id', 'd86d9949-ad4c-4316-9e0e-b34e352045f8')
+  .with('name', 'file-name.txt')
+  .with('path', ['main-folder', 'sub-folder'])
+  .build();
+
+const anotherFile = new FileDocumentBuilder()
+  .with('id', 'd86d9949-ad4c-4316-9e0e-b34e352045f9')
+  .with('name', 'file-name2.txt')
+  .build();

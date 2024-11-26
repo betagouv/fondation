@@ -1,4 +1,5 @@
 import {
+  createMinioBucket,
   migrateDockerPostgresql,
   startDockerPostgresql,
 } from './docker-postgresql-manager';
@@ -8,6 +9,7 @@ const setup = async (): Promise<void> => {
   try {
     await startDockerPostgresql();
     await migrateDockerPostgresql();
+    await createMinioBucket();
   } catch {
     await teardown();
   }

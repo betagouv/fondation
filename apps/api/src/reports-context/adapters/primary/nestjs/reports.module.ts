@@ -32,6 +32,7 @@ import {
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
 } from './tokens';
+import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 
 @Module({
   imports: [SharedKernelModule],
@@ -66,12 +67,29 @@ import {
       REPORT_RULE_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
-    generateProvider(RetrieveReportUseCase, [REPORT_RETRIEVAL_QUERY]),
+    generateProvider(RetrieveReportUseCase, [
+      REPORT_RETRIEVAL_QUERY,
+      REPORT_FILE_SERVICE,
+    ]),
     generateProvider(ListReportsUseCase, [REPORT_LISTING_QUERY]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
+    generateProvider(AttachReportFileUseCase, [
+      REPORT_ATTACHED_FILE_REPOSITORY,
+      UUID_GENERATOR,
+      REPORT_FILE_SERVICE,
+      DATE_TIME_PROVIDER,
+      TRANSACTION_PERFORMER,
+      REPORT_REPOSITORY,
+    ]),
+    generateProvider(GenerateReportFileUrlUseCase, [
+      TRANSACTION_PERFORMER,
+      REPORT_ATTACHED_FILE_REPOSITORY,
+      REPORT_FILE_SERVICE,
+    ]),
+
     generateProvider(HttpReportFileService, [API_CONFIG], REPORT_FILE_SERVICE),
 
     generateProvider(SqlReportListingQuery, [DRIZZLE_DB], REPORT_LISTING_QUERY),

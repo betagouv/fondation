@@ -2,6 +2,8 @@ import { ReportUpdateDto } from "api-sdk/generated/structures/ReportUpdateDto";
 import { ReportListingVM, ReportRetrievalVM } from "shared-models";
 
 export interface ReportApiClient {
+  attachFile(reportId: string, file: File): Promise<void>;
+  generateFileUrl(reportId: string, fileName: string): Promise<string>;
   list(): Promise<ReportListingVM>;
   updateReport(reportId: string, data: ReportUpdateDto): Promise<void>;
   updateRule(ruleId: string, validated: boolean): Promise<void>;

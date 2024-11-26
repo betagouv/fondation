@@ -38,6 +38,8 @@
     "scalingo:upload-nomination-files:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/import-nominations-from-local-file-to-scalingo.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.697.0",
+    "@aws-sdk/s3-request-presigner": "^3.697.0",
     "@nestia/core": "^3.17.0",
     "@nestia/sdk": "^3.17.0",
     "@nestjs/common": "^10.0.0",
@@ -49,13 +51,15 @@
     "drizzle-orm": "^0.35.2",
     "form-data": "^4.0.1",
     "lodash": "^4.17.21",
+    "nestjs-zod": "^4.2.0",
     "pg": "^8.13.0",
     "pg-native": "^3.2.0",
     "postgres": "^3.4.4",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "shared-models": "workspace:*",
-    "typia": "^6.11.3"
+    "typia": "^6.11.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.20.1",

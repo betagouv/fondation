@@ -1,4 +1,7 @@
-import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
+import {
+  ReportAttachedFile,
+  ReportAttachedFileSnapshot,
+} from 'src/reports-context/business-logic/models/report-attached-file';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -33,20 +36,44 @@ describe('SQL Report Attached File Repository', () => {
     const id = 'cce3c259-c259-45ea-8f88-1414d7bdbbd8';
     const currentDate = new Date();
     const reportId = 'cd1619e2-263d-49b6-b928-6a04ee681133';
-    const fileId = '8060de42-f8e3-4780-af46-1f14d6b116ea';
+    const fileName = 'file-name';
     const reportAttachedFile = new ReportAttachedFile(
       id,
       currentDate,
       reportId,
-      fileId,
+      fileName,
     );
 
     await transactionPerformer.perform(
       sqlReportRuleRepository.save(reportAttachedFile),
     );
 
-    expect(await db.select().from(reportAttachedFiles).execute()).toEqual([
-      reportAttachedFile.toSnapshot(),
-    ]);
+    expect(await db.select().from(reportAttachedFiles).execute()).toEqual<
+      (typeof reportAttachedFiles.$inferSelect)[]
+    >([reportAttachedFile.toSnapshot()]);
+  });
+
+  it("finds an attached file by report's id and file name", async () => {
+    const reportAttachedFile: ReportAttachedFileSnapshot = {
+      id: 'cce3c259-c259-45ea-8f88-1414d7bdbbd8',
+      createdAt: new Date(),
+      reportId: 'cd1619e2-263d-49b6-b928-6a04ee681133',
+      name: 'file-name',
+    };
+    await db
+      .insert(reportAttachedFiles)
+      .values(
+        SqlReportAttachedFileRepository.mapSnapshotToDb(reportAttachedFile),
+      )
+      .execute();
+
+    const result = await transactionPerformer.perform(
+      sqlReportRuleRepository.byFileName(
+        reportAttachedFile.reportId,
+        reportAttachedFile.name,
+      ),
+    );
+
+    expect(result).toEqual(ReportAttachedFile.fromSnapshot(reportAttachedFile));
   });
 });

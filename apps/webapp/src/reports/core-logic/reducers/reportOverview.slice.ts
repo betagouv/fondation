@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { NominationFile } from "shared-models";
 import { AppState } from "../../store/appState";
+import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
@@ -12,11 +13,6 @@ const reportOverviewSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(retrieveReport.fulfilled, (state, action) => {
-      if (action.payload)
-        state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
-    });
-
     builder.addCase(updateReport.fulfilled, (state, action) => {
       const { reportId, data } = action.payload;
       const report = state.byIds?.[reportId];
@@ -67,6 +63,35 @@ const reportOverviewSlice = createSlice({
           });
         });
       }
+    });
+
+    builder.addCase(generateReportFileUrl.fulfilled, (state, action) => {
+      const { reportId, fileName } = action.meta.arg;
+      const fileUri = action.payload;
+      const report = state.byIds?.[reportId];
+
+      if (report) {
+        const attachedFiles = report.attachedFiles || [];
+        const existingFile = attachedFiles.findIndex(
+          (file) => file.name === fileName,
+        );
+        const otherAttachedFiles =
+          existingFile === -1
+            ? attachedFiles
+            : attachedFiles.filter((file) => file.name !== fileName);
+        report.attachedFiles = [
+          ...otherAttachedFiles,
+          {
+            signedUrl: fileUri,
+            name: fileName,
+          },
+        ];
+      }
+    });
+
+    builder.addCase(retrieveReport.fulfilled, (state, action) => {
+      if (action.payload)
+        state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
     });
   },
 });

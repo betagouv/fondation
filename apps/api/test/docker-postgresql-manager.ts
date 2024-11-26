@@ -17,6 +17,9 @@ import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
 import * as filesContextTables from '../src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import { CreateBucketCommand } from '@aws-sdk/client-s3';
+import { minioS3StorageClient } from '../src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
+import { defaultApiConfig } from '../src/shared-kernel/adapters/primary/nestjs/env';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -33,6 +36,10 @@ export const startDockerPostgresql = async (): Promise<void> => {
       .withWaitStrategy(
         'postgres',
         Wait.forLogMessage('database system is ready to accept connections'),
+      )
+      .withWaitStrategy(
+        'minio',
+        Wait.forLogMessage('MinIO Object Storage Server'),
       )
       .up();
 
@@ -83,3 +90,11 @@ export async function clearDB(
     );
   }
 }
+
+export const createMinioBucket = async () => {
+  await minioS3StorageClient.send(
+    new CreateBucketCommand({
+      Bucket: defaultApiConfig.s3.bucketName,
+    }),
+  );
+};

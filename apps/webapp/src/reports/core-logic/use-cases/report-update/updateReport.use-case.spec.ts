@@ -6,7 +6,7 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { updateReport, UpdateReportParams } from "./updateReport.use-case";
 
-describe("Nomination File Update", () => {
+describe("Report Update", () => {
   let store: ReduxStore;
   let reportGateway: FakeReportGateway;
   let initialState: AppState;

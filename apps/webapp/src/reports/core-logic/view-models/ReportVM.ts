@@ -1,4 +1,9 @@
-import { NominationFile, Magistrat, Transparency } from "shared-models";
+import {
+  NominationFile,
+  Magistrat,
+  Transparency,
+  AttachedFileVM,
+} from "shared-models";
 
 export type VMReportRuleValue = {
   id: string;
@@ -97,6 +102,7 @@ export class ReportVM {
     public comment: string | null,
     public rank: string,
     public observers: [string, ...string[]][] | null,
+    public attachedFiles: AttachedFileVM[] | null,
 
     public rulesChecked: {
       [NominationFile.RuleGroup.MANAGEMENT]: Record<

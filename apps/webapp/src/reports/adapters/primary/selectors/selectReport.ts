@@ -28,6 +28,7 @@ export const selectReport = createSelector(
       rank: report.rank,
       observers: formatObservers(report.observers),
       rulesChecked: ReportVMRulesBuilder.fromStoreModel(report.rules).build(),
+      attachedFiles: report.attachedFiles,
     };
   },
 );

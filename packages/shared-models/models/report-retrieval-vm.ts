@@ -3,6 +3,11 @@ import { Magistrat } from "./magistrat.namespace";
 import { NominationFile } from "./nomination-file.namespace";
 import { Transparency } from "./transparency.enum";
 
+export type AttachedFileVM = {
+  name: string;
+  signedUrl: string;
+};
+
 export interface ReportRetrievalVM {
   id: string;
   folderNumber: number | null;
@@ -20,4 +25,5 @@ export interface ReportRetrievalVM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
+  attachedFiles: AttachedFileVM[] | null;
 }

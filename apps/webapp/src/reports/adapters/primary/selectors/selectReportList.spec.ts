@@ -1,3 +1,4 @@
+import { Transparency } from "shared-models";
 import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
 import { authenticate } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
@@ -40,7 +41,7 @@ describe("Select Nomination Case List", () => {
     });
   });
 
-  describe("when there are three nomination cases", () => {
+  describe("when there are three reports", () => {
     beforeEach(() => {
       store.dispatch(
         authenticate.fulfilled(user, "", {
@@ -50,22 +51,34 @@ describe("Select Nomination Case List", () => {
       );
       store.dispatch(
         listReport.fulfilled(
-          [aReport, aSecondReport, aThirdReport, anotherUserReport],
+          [
+            aReport,
+            aDifferentTransparencyReport,
+            aSecondReport,
+            aThirdReport,
+            anotherUserReport,
+          ],
           "",
           undefined,
         ),
       );
     });
 
-    it("selects the sorted list by folder number for the auth user", () => {
+    it("selects the sorted list by transparency then folder number for the auth user", () => {
       expect(selectReportList(store.getState())).toEqual<ReportListVM>({
-        reports: [aReportVM, aThirdReportVM, aSecondReportVM],
+        reports: [
+          aReportVM,
+          aThirdReportVM,
+          aSecondReportVM,
+          aFourthDifferentTransparencyReportVM,
+        ],
       });
     });
   });
 
   const aReport = new ReportBuilder()
     .with("id", "report-id")
+    .with("transparency", Transparency.AUTOMNE_2024)
     .with("folderNumber", 1)
     .with("name", "Banneau Louise")
     .with("reporterName", user.reporterName)
@@ -79,7 +92,7 @@ describe("Select Nomination Case List", () => {
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
-    transparency: "Mars 2025",
+    transparency: "Octobre 2024",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
@@ -89,6 +102,7 @@ describe("Select Nomination Case List", () => {
 
   const aSecondReport = new ReportBuilder()
     .with("id", "report-id")
+    .with("transparency", Transparency.AUTOMNE_2024)
     .with("folderNumber", null)
     .with("name", "Denan Lucien")
     .with("reporterName", user.reporterName)
@@ -102,7 +116,7 @@ describe("Select Nomination Case List", () => {
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
-    transparency: "Mars 2025",
+    transparency: "Octobre 2024",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
@@ -112,6 +126,7 @@ describe("Select Nomination Case List", () => {
 
   const aThirdReport = new ReportBuilder()
     .with("folderNumber", 2)
+    .with("transparency", Transparency.AUTOMNE_2024)
     .buildListVM();
   const aThirdReportVM: ReportListItemVM = {
     id: aThirdReport.id,
@@ -121,11 +136,31 @@ describe("Select Nomination Case List", () => {
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
-    transparency: "Mars 2025",
+    transparency: "Octobre 2024",
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
     href: `/dossier-de-nomination/${aThirdReport.id}`,
+    onClick,
+  };
+
+  const aDifferentTransparencyReport = new ReportBuilder()
+    .with("folderNumber", 1)
+    .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+    .buildListVM();
+  const aFourthDifferentTransparencyReportVM: ReportListItemVM = {
+    id: aDifferentTransparencyReport.id,
+    folderNumber: 1,
+    name: aDifferentTransparencyReport.name,
+    reporterName: aDifferentTransparencyReport.reporterName,
+    dueDate: "30/10/2030",
+    state: "Nouveau",
+    formation: "Parquet",
+    transparency: "PG 8/11/2024",
+    grade: "I",
+    targettedPosition: "PG TJ Marseille",
+    observersCount: aReport.observersCount,
+    href: `/dossier-de-nomination/${aDifferentTransparencyReport.id}`,
     onClick,
   };
 

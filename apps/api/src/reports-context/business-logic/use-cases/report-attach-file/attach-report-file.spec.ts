@@ -41,11 +41,14 @@ describe('Attach Report File Use Case', () => {
 
     it('attaches a new file', async () => {
       await uploadFile();
-      expect(Object.values(reportAttachedFileRepository.files)).toEqual([
+      expect(Object.values(reportAttachedFileRepository.files)).toEqual<
+        ReportAttachedFileSnapshot[]
+      >([
         {
           id: aFile.id,
+          createdAt: dateTimeProvider.currentDate,
           reportId: aFile.reportId,
-          fileId: aFile.fileId,
+          name: aFile.name,
         },
       ]);
     });
@@ -59,14 +62,13 @@ describe('Attach Report File Use Case', () => {
       dateTimeProvider,
       transactionPerformer,
       reportRepository,
-    ).execute(aFile.reportId, 'file.txt', Buffer.from('Some content.'));
+    ).execute(aFile.reportId, aFile.name, Buffer.from('Some content.'));
   };
 });
 
 const aReportSnapshot = new ReportBuilder().build();
-const aFile: ReportAttachedFileSnapshot = {
+const aFile: Omit<ReportAttachedFileSnapshot, 'createdAt'> = {
   id: '123',
-  createdAt: new Date(2025, 10, 10),
   reportId: 'report-id',
-  fileId: 'file-id',
+  name: 'file.txt',
 };

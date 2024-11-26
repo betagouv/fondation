@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  AttachedFileVM,
+  Magistrat,
+  NominationFile,
+  Transparency,
+} from "shared-models";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../../shared-kernel/core-logic/models/date-only";
@@ -21,6 +26,7 @@ export interface ReportSM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
+  attachedFiles: AttachedFileVM[] | null;
 }
 export type ReportListItem = Pick<
   ReportSM,

@@ -10,7 +10,7 @@ import { ReportVM } from "../../../core-logic/view-models/ReportVM";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { selectReport } from "./selectReport";
 
-describe("Select Nomination Case", () => {
+describe("Select Report", () => {
   let store: ReduxStore;
 
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe("Select Nomination Case", () => {
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
   });
 
-  it("has all rules unchecked", async () => {
+  it("selects the whole report with rules unchecked", async () => {
     expect(selectReport(store.getState(), "report-id")).toEqual(aReportVM);
   });
 

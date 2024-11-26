@@ -6,3 +6,4 @@ export * from "./date";
 export * from "./reports-listing-vm";
 export * from "./report-retrieval-vm";
 export * from "./rule.builder";
+export * from "./endpoints";

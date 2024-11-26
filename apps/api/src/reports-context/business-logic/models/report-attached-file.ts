@@ -2,7 +2,7 @@ export type ReportAttachedFileSnapshot = {
   id: string;
   createdAt: Date;
   reportId: string;
-  fileId: string;
+  name: string;
 };
 
 export class ReportAttachedFile {
@@ -10,15 +10,19 @@ export class ReportAttachedFile {
     private readonly id: string,
     private readonly createdAt: Date,
     private readonly reportId: string,
-    private readonly fileId: string,
+    private readonly _name: string,
   ) {}
+
+  public get name(): string {
+    return this._name;
+  }
 
   toSnapshot(): ReportAttachedFileSnapshot {
     return {
       id: this.id,
       createdAt: this.createdAt,
       reportId: this.reportId,
-      fileId: this.fileId,
+      name: this.name,
     };
   }
 
@@ -29,7 +33,7 @@ export class ReportAttachedFile {
       snapshot.id,
       snapshot.createdAt,
       snapshot.reportId,
-      snapshot.fileId,
+      snapshot.name,
     );
   }
 }

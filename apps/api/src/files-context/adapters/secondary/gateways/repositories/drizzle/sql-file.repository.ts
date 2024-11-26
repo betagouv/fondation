@@ -1,3 +1,4 @@
+import { inArray } from 'drizzle-orm';
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import {
   FileDocument,
@@ -14,6 +15,16 @@ export class SqlFileRepository implements FileRepository {
     };
   }
 
+  getByNames(fileNames: string[]): DrizzleTransactionableAsync<FileDocument[]> {
+    return async (db) => {
+      const rows = await db
+        .select()
+        .from(filesPm)
+        .where(inArray(filesPm.name, fileNames));
+      return rows.map(SqlFileRepository.mapToDomain);
+    };
+  }
+
   static mapToDb(file: FileDocument): typeof filesPm.$inferInsert {
     return this.mapSnapshotToDb(file.toSnapshot());
   }
@@ -25,8 +36,8 @@ export class SqlFileRepository implements FileRepository {
       id: file.id,
       createdAt: file.createdAt,
       name: file.name,
+      path: file.path,
       storageProvider: file.storageProvider,
-      uri: file.uri,
     };
   }
 
@@ -35,8 +46,8 @@ export class SqlFileRepository implements FileRepository {
       row.id,
       row.createdAt,
       row.name,
+      row.path,
       row.storageProvider,
-      row.uri,
     );
   }
 }

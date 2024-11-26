@@ -35,6 +35,7 @@ export class ReportBuilder {
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
       rules: new ReportSMRulesBuilder().build(),
+      attachedFiles: null,
     };
   }
 
@@ -130,6 +131,7 @@ export class ReportBuilder {
       comment: this._report.comment,
       observers: this._report.observers,
       rules: this._report.rules,
+      attachedFiles: this._report.attachedFiles,
     };
   }
 }

@@ -25,9 +25,10 @@ async function seed() {
   try {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
 
-    const reportSnapshot1 = new ReportBuilder()
-      .with('id', crypto.randomUUID())
+    const reportSnapshot1 = new ReportBuilder('uuid')
       .with('name', 'John Doe')
+      .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+      .with('reporterName', 'COUTIN Rémi')
       .build();
 
     const reportRow1 = SqlReportRepository.mapToDb(
@@ -53,7 +54,7 @@ async function seed() {
     );
     await Promise.all(report1RulesPromises);
 
-    const reportSnapshot2 = new ReportBuilder()
+    const reportSnapshot2 = new ReportBuilder('uuid')
       .with('id', crypto.randomUUID())
       .with('name', 'Ada Lovelace')
       .with('biography', '- Tribunal de grande instance de Paris')

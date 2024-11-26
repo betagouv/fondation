@@ -4,7 +4,7 @@ import { ReportListItem, ReportSM } from "../../../store/appState";
 import { ApiReportGateway } from "./ApiReport.gateway";
 import { FakeReportApiClient } from "./FakeReport.client";
 
-describe("Api Nomination File Gateway", () => {
+describe("Api Report Gateway", () => {
   let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
@@ -65,6 +65,7 @@ describe("Api Nomination File Gateway", () => {
           },
         },
       },
+      attachedFiles: aReport.attachedFiles,
     });
   });
 

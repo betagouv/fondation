@@ -5,6 +5,7 @@ export const apiConfig: ApiConfig<true> = {
   database: {
     connectionString: process.env.DATABASE_URL!,
   },
+  s3: undefined,
   contextServices: {
     filesContext: {
       baseUrl: 'http://localhost',
@@ -22,6 +23,16 @@ export const defaultApiConfig = {
     user: 'fondation',
     password: 'secret',
     name: 'fondation',
+  },
+  s3: {
+    bucketName: 'fondation',
+    encryptionKey: 'minio-encryption-key',
+    endpoint: 'http://localhost:9000',
+    credentials: {
+      accessKeyId: 'fondation',
+      secretAccessKey: 'fondation-secret',
+    },
+    signedUrlExpiresIn: 3600,
   },
   contextServices: {
     filesContext: {

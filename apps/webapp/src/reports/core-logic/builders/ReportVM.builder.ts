@@ -51,6 +51,12 @@ export class ReportBuilderVM {
         )[ruleName],
         comment: `${ruleName} comment`,
       })).build(),
+      attachedFiles: [
+        {
+          signedUrl: "https://example.fr/image.png",
+          name: "image.png",
+        },
+      ],
     };
   }
 
@@ -58,7 +64,7 @@ export class ReportBuilderVM {
     K extends Paths<ReportVM>,
     V extends Get<ReportVM, K> = Get<ReportVM, K>,
   >(property: K, value: V) {
-    if (!this._reportVM) throw new Error("No nomination file");
+    if (!this._reportVM) throw new Error("No report");
     this._reportVM = _.set(this._reportVM, property, value);
     return this;
   }
@@ -123,6 +129,7 @@ export class ReportBuilderVM {
         reportStoreModel.observers?.map(
           (o) => o.split("\n") as [string, ...string[]],
         ) || null,
-      );
+      )
+      .with("attachedFiles", reportStoreModel.attachedFiles);
   }
 }

@@ -15,21 +15,27 @@ export class UploadFileUseCase {
     private readonly s3StorageProvider: S3StorageProvider,
   ) {}
 
-  async execute(file: Buffer, fileName: string): Promise<string> {
-    const fileUri = await this.s3StorageProvider.uploadFile(file, fileName);
+  async execute(
+    file: Buffer,
+    fileName: string,
+    mimeType: string,
+    filePath: string[] | null,
+  ): Promise<string> {
+    await this.s3StorageProvider.uploadFile(file, fileName, mimeType, filePath);
+
     return this.transactionPerformer.perform(
       async (trx) => {
         const fileDocument = new FileDocument(
           this.uuidGenerator.generate(),
           this.dateTimeProvider.now(),
           fileName,
+          filePath,
           FilesStorageProvider.OUTSCALE,
-          fileUri,
         );
         await this.fileRepository.save(fileDocument)(trx);
         return fileDocument.id;
       },
-      async () => this.s3StorageProvider.deleteFile(fileUri),
+      async () => this.s3StorageProvider.deleteFile(fileName),
     );
   }
 }
