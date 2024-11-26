@@ -21,6 +21,7 @@ import {
 } from 'src/reports-context/business-logic/models/report-rules';
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
+import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -231,7 +232,7 @@ describe('Reports Controller', () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
 
-      await app.listen(3030); // Run server to contact other contexts over REST
+      await app.listen(defaultApiConfig.port); // Run server to contact other contexts over REST
     });
 
     afterEach(async () => {
