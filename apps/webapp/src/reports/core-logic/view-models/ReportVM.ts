@@ -22,7 +22,7 @@ export class ReportVM {
     rank: "Rang",
   };
 
-  static commentLabel = "Commentaires généraux du rapporteur";
+  static commentLabel = "Rapport";
   static commentPlaceholder = "Pas de commentaire";
 
   static ruleGroupToLabel: {

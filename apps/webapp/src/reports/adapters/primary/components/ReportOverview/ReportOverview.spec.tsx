@@ -102,7 +102,7 @@ describe("Report Overview Component", () => {
       placeholder?: string;
     }[] = [
       {
-        label: "Commentaires généraux du rapporteur",
+        label: ReportVM.commentLabel,
         storeKey: "comment",
         placeholder: ReportVM.commentPlaceholder,
       },
