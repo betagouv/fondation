@@ -30,7 +30,7 @@ import { ImportNominationFilesUseCase } from './import-nomination-files.use-case
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
-const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN}(1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;
+const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN} (1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;
 const anObserverExpected = 'FIRST OBSERVER\n(1 sur 2)\nTJ de Rennes';
 
 describe('Import Nomination Files Use Case', () => {
