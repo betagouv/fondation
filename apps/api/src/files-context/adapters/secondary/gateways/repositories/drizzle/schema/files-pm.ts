@@ -9,6 +9,7 @@ export const filesPm = filesContextSchema.table('files', {
     .default(sql`gen_random_uuid()`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   name: varchar('name').notNull(),
+  bucket: varchar('bucket').notNull(),
   path: varchar('path').array(),
   storageProvider: filesStorageProviderEnum('storage_provider').notNull(),
 });

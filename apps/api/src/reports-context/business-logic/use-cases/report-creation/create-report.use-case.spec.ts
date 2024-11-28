@@ -8,7 +8,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
-import { NominationFileReport } from '../../models/nomination-file-report';
+import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportRule } from '../../models/report-rules';
 import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
 
@@ -54,28 +54,27 @@ describe('Create Report Use Case', () => {
 
     await createAReport(payload);
 
-    expectReports(
-      new NominationFileReport(
-        nominationFileReportId,
-        importedNominationFileId,
-        datetimeProvider.currentDate,
-        payload.folderNumber,
-        payload.biography,
-        new DateOnly(2035, 8, 22),
-        payload.name,
-        payload.reporterName,
-        new DateOnly(1962, 8, 22),
-        payload.state,
-        payload.formation,
-        payload.transparency,
-        payload.grade,
-        payload.currentPosition,
-        payload.targettedPosition,
-        null,
-        payload.rank,
-        payload.observers,
-      ),
-    );
+    expectReports({
+      id: nominationFileReportId,
+      nominationFileId: importedNominationFileId,
+      createdAt: datetimeProvider.currentDate,
+      folderNumber: payload.folderNumber,
+      biography: payload.biography,
+      dueDate: new DateOnly(2035, 8, 22),
+      name: payload.name,
+      reporterName: payload.reporterName,
+      birthDate: new DateOnly(1962, 8, 22),
+      state: payload.state,
+      formation: payload.formation,
+      transparency: payload.transparency,
+      grade: payload.grade,
+      currentPosition: payload.currentPosition,
+      targettedPosition: payload.targettedPosition,
+      comment: null,
+      rank: payload.rank,
+      observers: payload.observers,
+      attachedFileNames: null,
+    });
     expectRulesFromPayload(payload.rules);
   });
 
@@ -117,7 +116,7 @@ describe('Create Report Use Case', () => {
       datetimeProvider,
     ).execute(importedNominationFileId, payload);
 
-  const expectReports = (...reports: NominationFileReport[]) => {
+  const expectReports = (...reports: NominationFileReportSnapshot[]) => {
     expect(nominationFileReportRepository.reports).toEqual(
       reports.reduce(
         (acc, report) => ({

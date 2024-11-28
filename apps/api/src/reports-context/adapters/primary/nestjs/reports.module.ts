@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
+import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportOnImportChangeUseCase } from 'src/reports-context/business-logic/use-cases/report-update-on-import-change/update-report-on-import-change.use-case';
@@ -32,7 +33,6 @@ import {
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
 } from './tokens';
-import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 
 @Module({
   imports: [SharedKernelModule],
@@ -43,14 +43,6 @@ import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic
       UpdateReportOnImportChangeUseCase,
     ]),
 
-    generateProvider(AttachReportFileUseCase, [
-      REPORT_ATTACHED_FILE_REPOSITORY,
-      UUID_GENERATOR,
-      REPORT_FILE_SERVICE,
-      DATE_TIME_PROVIDER,
-      TRANSACTION_PERFORMER,
-      REPORT_REPOSITORY,
-    ]),
     generateProvider(UpdateReportOnImportChangeUseCase, [
       REPORT_REPOSITORY,
       REPORT_RULE_REPOSITORY,
@@ -78,11 +70,11 @@ import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic
     ]),
     generateProvider(AttachReportFileUseCase, [
       REPORT_ATTACHED_FILE_REPOSITORY,
-      UUID_GENERATOR,
       REPORT_FILE_SERVICE,
       DATE_TIME_PROVIDER,
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
+      UUID_GENERATOR,
     ]),
     generateProvider(GenerateReportFileUrlUseCase, [
       TRANSACTION_PERFORMER,

@@ -7,12 +7,16 @@ import {
 type FileName = string;
 
 export class FakeS3StorageProvider implements S3StorageProvider {
+  uploadFileError: Error;
+  deleteFileError: Error;
+
   storedFiles: Record<
     FileName,
     {
       file: Buffer;
       fileName: FileName;
       mimeType: string;
+      bucket: string;
       filePath: string[] | null;
       signedUrl?: string;
     }
@@ -22,9 +26,12 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     file: Buffer,
     fileName: FileName,
     mimeType: string,
+    bucket: string,
     filePath: string[] | null,
   ): Promise<void> {
-    this.storedFiles[fileName] = { file, fileName, mimeType, filePath };
+    if (this.uploadFileError) throw this.uploadFileError;
+
+    this.storedFiles[fileName] = { file, fileName, mimeType, bucket, filePath };
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {
@@ -35,7 +42,9 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     });
   }
 
-  deleteFile(fileName: FileName): Promise<void> {
+  deleteFile(_: unknown, __: unknown, fileName: FileName): Promise<void> {
+    if (this.deleteFileError) throw this.deleteFileError;
+
     delete this.storedFiles[fileName];
     return Promise.resolve();
   }

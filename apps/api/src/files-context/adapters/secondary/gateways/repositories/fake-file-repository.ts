@@ -9,23 +9,28 @@ type FileId = string;
 
 export class FakeFileRepository implements FileRepository {
   files: Record<FileId, FileDocumentSnapshot> = {};
-  saveError: Error;
+  saveFileError: Error;
+  deleteFileError: Error;
 
   save(file: FileDocument): TransactionableAsync {
-    if (this.saveError) throw this.saveError;
-
     return async () => {
+      if (this.saveFileError) throw this.saveFileError;
+
       const fileSnapshot = file.toSnapshot();
       this.files[fileSnapshot.id] = fileSnapshot;
     };
   }
 
-  getByNames(fileNames: string[]): TransactionableAsync<FileDocument[]> {
+  getByIds(ids: string[]): TransactionableAsync<FileDocument[]> {
     return async () =>
-      fileNames.map((name) =>
-        FileDocument.fromSnapshot(
-          Object.values(this.files).find((file) => file.name === name)!,
-        ),
-      );
+      ids.map((id) => FileDocument.fromSnapshot(this.files[id]!));
+  }
+
+  deleteFile(file: FileDocument): TransactionableAsync {
+    return async () => {
+      if (this.deleteFileError) throw this.deleteFileError;
+
+      if (file) delete this.files[file.id];
+    };
   }
 }

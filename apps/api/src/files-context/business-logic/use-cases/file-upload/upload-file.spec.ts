@@ -24,51 +24,59 @@ describe('Upload file', () => {
     uuidGenerator.nextUuids = [fileId];
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
-    transactionPerformer = new NullTransactionPerformer();
     fakeS3StorageProvider = new FakeS3StorageProvider();
+
+    transactionPerformer = new NullTransactionPerformer(() => {
+      fileRepository = new FakeFileRepository();
+      fakeS3StorageProvider = new FakeS3StorageProvider();
+    });
+  });
+
+  it("uploads a file to a provider's storage", async () => {
+    const file = getFile();
+    await uploadFile(file);
+    expect(Object.values(fakeS3StorageProvider.storedFiles)).toEqual<
+      FakeS3StorageProvider['storedFiles'][string][]
+    >([
+      {
+        file: Buffer.from('file content'),
+        fileName: file.name,
+        bucket: file.bucket,
+        filePath: file.path,
+        mimeType: 'text/plain',
+      },
+    ]);
   });
 
   it.each`
-    mimeType             | filePath
-    ${'text/plain'}      | ${null}
-    ${'application/pdf'} | ${['Jules Bresse']}
-  `(
-    "uploads a file to a provider's storage",
-    async ({ mimeType, filePath }) => {
-      const file = getFile({ path: filePath });
-      await uploadFile(file, mimeType);
-      expect(Object.values(fakeS3StorageProvider.storedFiles)).toEqual([
-        {
-          file: Buffer.from('file content'),
-          fileName: file.name,
-          filePath: file.path,
-          mimeType,
-        },
-      ]);
-    },
-  );
-
-  it.each`
-    fileName           | filePath
-    ${'file-name.pdf'} | ${null}
-    ${'file-name.txt'} | ${['Jules Bresse']}
+    fileName           | bucket        | filePath
+    ${'file-name.pdf'} | ${'Bucket 1'} | ${null}
+    ${'file-name.txt'} | ${'bucket-2'} | ${['folder', 'subfolder']}
   `(
     'saves a file $fileName with its metadata',
-    async ({ fileName, filePath }) => {
-      const file = getFile({ name: fileName, path: filePath });
+    async ({ fileName, bucket, filePath }) => {
+      const file = getFile({ name: fileName, bucket, path: filePath });
       await uploadFile(file);
       expect(Object.values(fileRepository.files)).toEqual([file]);
     },
   );
 
-  it('delete the file if the metadata saving fails', async () => {
-    fileRepository.saveError = new Error('Failed to save file metadata');
+  it("doesn't store the file if its metadata cannot be saved", async () => {
+    fileRepository.saveFileError = new Error('Failed to save file metadata');
     const file = getFile();
-
     await expect(uploadFile(file)).rejects.toThrow(
-      'Failed to save file metadata',
+      fileRepository.saveFileError,
     );
     expect(fakeS3StorageProvider.storedFiles).toEqual({});
+  });
+
+  it("doesn't save a file's metadata if its storage failed", async () => {
+    fakeS3StorageProvider.uploadFileError = new Error('Failed to upload file');
+    const file = getFile();
+    await expect(uploadFile(file)).rejects.toThrow(
+      fakeS3StorageProvider.uploadFileError,
+    );
+    expect(fileRepository.files).toEqual({});
   });
 
   const uploadFile = async (
@@ -78,10 +86,16 @@ describe('Upload file', () => {
     await new UploadFileUseCase(
       fileRepository,
       transactionPerformer,
-      uuidGenerator,
       dateTimeProvider,
       fakeS3StorageProvider,
-    ).execute(Buffer.from('file content'), file.name, mimeType, file.path);
+    ).execute(
+      file.id,
+      Buffer.from('file content'),
+      file.name,
+      mimeType,
+      file.bucket,
+      file.path,
+    );
 });
 
 const getFile = (
@@ -89,6 +103,7 @@ const getFile = (
 ): FileDocumentSnapshot => ({
   id: 'file-id',
   createdAt: currentDate,
+  bucket: 'fondation',
   name: 'file-name.txt',
   path: null,
   storageProvider: FilesStorageProvider.OUTSCALE,

@@ -76,13 +76,14 @@ describe('SQL Report Retrieval VM Query', () => {
     });
 
     it('retrieves a report with its file', async () => {
-      const fileName = 'file.txt';
+      const fileId = 'file-id';
       const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
       await db
         .insert(reportAttachedFiles)
         .values({
           reportId: aReport.id,
-          name: fileName,
+          name: 'file.txt',
+          fileId,
         })
         .execute();
 
@@ -93,7 +94,7 @@ describe('SQL Report Retrieval VM Query', () => {
           aReport,
         )
           .with('rules', expectedRules)
-          .with('attachedFileNames', [fileName])
+          .with('attachedFileIds', [fileId])
           .buildQueried();
       expect(result).toEqual<ReportRetrievalQueried>(aReportQueried);
     });

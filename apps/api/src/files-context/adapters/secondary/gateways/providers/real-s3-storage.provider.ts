@@ -19,28 +19,35 @@ export class RealS3StorageProvider implements S3StorageProvider {
     fileBuffer: Buffer,
     fileName: string,
     mimeType: string,
+    bucket: string,
+    filePath: string[] | null,
   ): Promise<void> {
-    await this.ensureBucketExists();
+    await this.ensureBucketExists(bucket);
 
-    const bucketName = this.apiConfig.s3.bucketName;
     const command = this.s3Commands.putObject(
-      bucketName,
+      bucket,
       fileBuffer,
       fileName,
       mimeType,
+      filePath,
     );
 
     await this.s3Client.send(command);
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {
-    const bucketName = this.apiConfig.s3.bucketName;
-
     const signedUrls = await Promise.all(
       files.map(async (file) => {
         const fileSnapshot = file.toSnapshot();
+        await this.fileExistsGuard(
+          fileSnapshot.bucket,
+          fileSnapshot.path,
+          fileSnapshot.name,
+        );
+
         const command = this.s3Commands.getObject(
-          bucketName,
+          fileSnapshot.bucket,
+          fileSnapshot.path,
           fileSnapshot.name,
         );
 
@@ -56,26 +63,39 @@ export class RealS3StorageProvider implements S3StorageProvider {
     return signedUrls;
   }
 
-  async deleteFile(fileName: string): Promise<void> {
-    const bucketName = this.apiConfig.s3.bucketName;
-    const command = this.s3Commands.deleteFile(bucketName, fileName);
-
+  async deleteFile(
+    bucket: string,
+    bucketPath: string[] | null,
+    fileName: string,
+  ): Promise<void> {
+    const command = this.s3Commands.deleteFile(bucket, bucketPath, fileName);
     await this.s3Client.send(command);
   }
 
-  private async ensureBucketExists(): Promise<void> {
+  private async ensureBucketExists(bucket: string): Promise<void> {
     try {
-      await this.s3Client.send(
-        this.s3Commands.headBucket(this.apiConfig.s3.bucketName),
-      );
-    } catch (error: any) {
+      await this.s3Client.send(this.s3Commands.headBucket(bucket));
+    } catch (error) {
       if (error.name === 'NotFound') {
-        await this.s3Client.send(
-          this.s3Commands.createBucket(this.apiConfig.s3.bucketName),
-        );
+        await this.s3Client.send(this.s3Commands.createBucket(bucket));
       } else {
         throw error;
       }
     }
+  }
+
+  private async fileExistsGuard(
+    bucket: string,
+    filePath: string[] | null,
+    fileName: string,
+  ) {
+    const fileExists = await this.s3Client.send(
+      this.s3Commands.headObject(bucket, filePath, fileName),
+    );
+
+    if (!fileExists)
+      throw new Error(
+        `File not found in bucket ${bucket} with name ${fileName} and path ${filePath}`,
+      );
   }
 }

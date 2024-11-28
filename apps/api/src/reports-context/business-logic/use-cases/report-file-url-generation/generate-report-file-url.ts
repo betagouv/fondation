@@ -22,11 +22,11 @@ export class GenerateReportFileUrlUseCase {
       }
 
       const signedUrls = await this.reportFileService.getSignedUrls([
-        file.name,
+        file.fileId,
       ]);
 
       if (signedUrls.length === 0) {
-        throw new Error(`Failed to get signed URL for file: ${file.name}`);
+        throw new Error(`Failed to get signed URL for file: ${file.fileId}`);
       }
 
       return signedUrls[0]!.signedUrl;

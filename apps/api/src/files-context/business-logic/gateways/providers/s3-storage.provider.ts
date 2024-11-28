@@ -5,8 +5,13 @@ export interface S3StorageProvider {
     file: Buffer,
     fileName: string,
     mimeType: string,
+    bucket: string,
     filePath: string[] | null,
   ): Promise<void>;
   getSignedUrls(files: FileDocument[]): Promise<FileVM[]>;
-  deleteFile(fileName: string): Promise<void>;
+  deleteFile(
+    bucket: string,
+    bucketPath: string[] | null,
+    fileName: string,
+  ): Promise<void>;
 }

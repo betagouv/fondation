@@ -1,3 +1,4 @@
+import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { APP_PIPE, NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -12,11 +13,20 @@ import {
 import supertest from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import {
-  deleteAllS3Objects,
+  createMinioBucket,
+  deleteMinioBuckets,
   givenSomeS3Files,
-} from '../../secondary/gateways/providers/minio-s3-storage.provider.it-spec';
+} from 'test/minio';
+import { z } from 'zod';
+import { minioS3StorageClient } from '../../secondary/gateways/providers/minio-s3-sorage.client';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
+import { fileUploadQueryDtoSchema } from '../dto/file-upload-query.dto';
 import { FilesContextModule } from './files-context.module';
+
+const bucket = 'fondation-test-bucket';
+const filePath = ['file', 'path'];
+const fileName = 'test-file.pdf';
+const fileId = '672d02d0-adc6-4fb2-8047-9cae543dd80e';
 
 describe('Files Controller', () => {
   let app: NestApplication;
@@ -28,6 +38,8 @@ describe('Files Controller', () => {
 
   beforeEach(async () => {
     await clearDB(db);
+    await deleteMinioBuckets();
+    await createMinioBucket(bucket);
 
     const moduleFixture = await Test.createTestingModule({
       imports: [FilesContextModule],
@@ -47,59 +59,98 @@ describe('Files Controller', () => {
   });
 
   afterEach(async () => {
-    await deleteAllS3Objects();
     await app.close();
   });
   afterAll(() => db.$client.end());
 
   it('uploads a file', async () => {
-    const response = await supertest(app.getHttpServer())
+    const query: z.infer<typeof fileUploadQueryDtoSchema> = {
+      bucket,
+      path: filePath,
+      fileId,
+    };
+
+    await supertest(app.getHttpServer())
       .post(`/api/files/upload-one`)
-      .attach('file', Buffer.from('test file.'), 'test-file.pdf')
+      .query(query)
+      .attach('file', Buffer.from('test file.'), fileName)
       .expect(201);
 
-    expect(response.body).toBeUuidV4();
     await expectFilesPm({
-      id: expect.any(String),
+      id: fileId,
       createdAt: expect.any(Date),
-      name: 'test-file.pdf',
+      name: fileName,
       storageProvider: FilesStorageProvider.OUTSCALE,
-      path: null,
+      path: filePath,
+      bucket,
     });
   });
 
   it("generates a signed url for a file's download", async () => {
-    const fileId = '672d02d0-adc6-4fb2-8047-9cae543dd80e';
     await givenSomeS3Files(
       {
-        fileName: 'test-file.pdf',
-        fileBuffer: Buffer.from('test file'),
+        bucket,
+        Key: fileName,
       },
       {
-        fileName: 'another-file.pdf',
-        fileBuffer: Buffer.from('another file'),
+        bucket,
+        Key: 'another-file.pdf',
       },
     );
     await db
       .insert(filesPm)
       .values({
         id: fileId,
-        name: 'test-file.pdf',
+        name: fileName,
         storageProvider: FilesStorageProvider.OUTSCALE,
+        bucket,
       })
       .execute();
 
     const response = await supertest(app.getHttpServer())
-      .get(`/api/files`)
-      .query({ names: ['test-file.pdf'] })
+      .get('/api/files/signed-urls')
+      .query({
+        ids: fileId,
+      })
       .expect(200);
 
     expect(response.body).toEqual<FileVM[]>([
       {
-        name: 'test-file.pdf',
+        name: fileName,
         signedUrl: expect.stringMatching(/^http/),
       },
     ]);
+  });
+
+  it('deletes a file', async () => {
+    await givenSomeS3Files({
+      bucket,
+      Key: fileName,
+    });
+    await db
+      .insert(filesPm)
+      .values({
+        id: fileId,
+        bucket,
+        path: null,
+        name: fileName,
+        storageProvider: FilesStorageProvider.OUTSCALE,
+      })
+      .execute();
+
+    await supertest(app.getHttpServer())
+      .delete(`/api/files/${fileId}`)
+      .expect(200);
+
+    await expectFilesPm();
+    await expect(
+      minioS3StorageClient.send(
+        new HeadObjectCommand({
+          Bucket: bucket,
+          Key: fileName,
+        }),
+      ),
+    ).rejects.toThrow();
   });
 
   const expectFilesPm = async (...files: (typeof filesPm.$inferSelect)[]) => {

@@ -3,8 +3,10 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
+  HeadObjectCommand,
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
+import { join } from 'path';
 
 // TODO: Make it abstract then fix the generateProvider function typing
 export class S3Commands {
@@ -20,32 +22,43 @@ export class S3Commands {
   createBucket(bucketName: string) {
     return new CreateBucketCommand({ Bucket: bucketName });
   }
+  headObject(bucket: string, filePath: string[] | null, fileName: string) {
+    return new HeadObjectCommand({
+      Bucket: bucket,
+      Key: this.genKey(filePath, fileName),
+    });
+  }
   putObject(
     bucketName: string,
     file: Buffer,
     fileName: string,
     mimeType: string,
+    filePath: string[] | null,
   ) {
     return new PutObjectCommand({
       Bucket: bucketName,
-      Key: fileName,
+      Key: this.genKey(filePath, fileName),
       Body: file,
-      ...this.sseHeaders,
       ContentDisposition: 'inline',
       ContentType: mimeType,
-    });
-  }
-  getObject(bucketName: string, fileName: string) {
-    return new GetObjectCommand({
-      Bucket: bucketName,
-      Key: fileName,
       ...this.sseHeaders,
     });
   }
-  deleteFile(bucketName: string, fileName: string) {
+  getObject(bucketName: string, filePath: string[] | null, fileName: string) {
+    return new GetObjectCommand({
+      Bucket: bucketName,
+      Key: this.genKey(filePath, fileName),
+      ...this.sseHeaders,
+    });
+  }
+  deleteFile(bucketName: string, filePath: string[] | null, fileName: string) {
     return new DeleteObjectCommand({
       Bucket: bucketName,
-      Key: fileName,
+      Key: this.genKey(filePath, fileName),
     });
+  }
+
+  private genKey(filePath: string[] | null, fileName: string) {
+    return join(...(filePath || []), fileName);
   }
 }

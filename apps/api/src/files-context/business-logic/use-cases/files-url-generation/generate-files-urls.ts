@@ -10,9 +10,9 @@ export class GenerateFilesUrlsUseCase {
     private readonly s3StorageProvider: S3StorageProvider,
   ) {}
 
-  async execute(fileNames: string[]): Promise<FileVM[]> {
+  async execute(ids: string[]): Promise<FileVM[]> {
     return this.transactionPerformer.perform(async (trx) => {
-      const files = await this.fileRepository.getByNames(fileNames)(trx);
+      const files = await this.fileRepository.getByIds(ids)(trx);
       return await this.s3StorageProvider.getSignedUrls(files);
     });
   }

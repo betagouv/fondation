@@ -120,7 +120,7 @@ describe('SQL Report Repository', () => {
       const result = await transactionPerformer.perform(
         sqlNominationFileReportRepository.byId(aReport.id),
       );
-      expect(result).toEqual(aReport);
+      expect(result).toEqual(NominationFileReport.fromSnapshot(aReport));
     });
 
     it('finds a report by nomination file id', async () => {
@@ -129,7 +129,7 @@ describe('SQL Report Repository', () => {
           aReport.nominationFileId,
         ),
       );
-      expect(result).toEqual([aReport]);
+      expect(result).toEqual([NominationFileReport.fromSnapshot(aReport)]);
     });
   });
 });

@@ -84,7 +84,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     );
 
     const storedAttachedFiles = await this.db
-      .select({ fileName: reportAttachedFiles.name })
+      .select({ fileId: reportAttachedFiles.fileId })
       .from(reportAttachedFiles)
       .where(eq(reportAttachedFiles.reportId, id))
       .execute();
@@ -108,7 +108,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       rank: reportData.rank,
       observers: reportData.observers,
       rules,
-      attachedFileNames: storedAttachedFiles.map((file) => file.fileName),
+      attachedFileIds: storedAttachedFiles.map((file) => file.fileId),
     };
 
     return reportRetrieval;

@@ -13,7 +13,6 @@ import {
   Transparency,
 } from 'shared-models';
 import { AppModule } from 'src/app.module';
-import { deleteAllS3Objects } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-storage.provider.it-spec';
 import { ReportRetrievalBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
 import {
   ReportRule,
@@ -36,6 +35,7 @@ import { reportRules } from '../../secondary/gateways/repositories/drizzle/schem
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
+import { deleteMinioBuckets } from 'test/minio';
 
 describe('Reports Controller', () => {
   let app: NestApplication;
@@ -236,29 +236,26 @@ describe('Reports Controller', () => {
     });
 
     afterEach(async () => {
-      await deleteAllS3Objects();
+      await deleteMinioBuckets();
     });
 
     it('uploads a file', async () => {
       const response = await uploadFile().expect(201);
 
       expect(response.body).toEqual({});
-      expect(
-        await db.select().from(reportAttachedFiles).execute(),
-      ).toHaveLength(1);
-      expect(await db.select().from(reportAttachedFiles).execute()).toEqual<
-        (typeof reportAttachedFiles.$inferSelect)[]
-      >([
+
+      const savedFiles = await db.select().from(reportAttachedFiles).execute();
+      expect(savedFiles).toEqual<(typeof reportAttachedFiles.$inferSelect)[]>([
         {
-          id: expect.any(String),
           createdAt: expect.any(Date),
           reportId: aReportSnapshot.id,
           name: 'test-file.pdf',
+          fileId: expect.any(String),
         },
       ]);
     });
 
-    it('get files signed URLs', async () => {
+    it('get a file signed URL', async () => {
       await uploadFile().expect(201);
 
       const response = await request(app.getHttpServer())

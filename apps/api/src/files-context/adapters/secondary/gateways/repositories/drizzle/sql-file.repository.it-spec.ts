@@ -14,6 +14,16 @@ import { clearDB } from 'test/docker-postgresql-manager';
 import { filesPm } from './schema';
 import { SqlFileRepository } from './sql-file.repository';
 
+const aFile = new FileDocumentBuilder()
+  .with('id', 'd86d9949-ad4c-4316-9e0e-b34e352045f8')
+  .with('path', ['main-folder', 'sub-folder'])
+  .with('name', 'file-name.txt')
+  .build();
+const anotherFile = FileDocumentBuilder.fromSnapshot(aFile)
+  .with('id', 'aa4a4a07-435d-4004-94fe-1d0980aac693')
+  .with('name', 'other-file-name.txt')
+  .build();
+
 describe('SQL Files Repository', () => {
   let filesRepository: SqlFileRepository;
   let transactionPerformer: TransactionPerformer;
@@ -38,22 +48,32 @@ describe('SQL Files Repository', () => {
       filesRepository.save(FileDocument.fromSnapshot(aFile)),
     );
 
-    const existingFiless = await db.select().from(filesPm).execute();
-    expect(existingFiless).toEqual([SqlFileRepository.mapSnapshotToDb(aFile)]);
+    const existingFiles = await db.select().from(filesPm).execute();
+    expect(existingFiles).toEqual([SqlFileRepository.mapSnapshotToDb(aFile)]);
   });
 
-  describe('when there is already one file', () => {
+  describe('when there are already files', () => {
     beforeEach(async () => {
       await givenSomeFiles(aFile, anotherFile);
     });
 
-    it('gets files by ids', async () => {
+    it('gets files', async () => {
+      const askedFiles = [aFile, anotherFile];
       const files = await transactionPerformer.perform(
-        filesRepository.getByNames([aFile.name, anotherFile.name]),
+        filesRepository.getByIds(askedFiles.map((askedFile) => askedFile.id)),
       );
+      expect(files).toHaveLength(askedFiles.length);
       expect(files).toEqual<FileDocument[]>(
-        [aFile, anotherFile].map(FileDocument.fromSnapshot),
+        askedFiles.map(FileDocument.fromSnapshot),
       );
+    });
+
+    it('deletes one file', async () => {
+      await transactionPerformer.perform(
+        filesRepository.deleteFile(FileDocument.fromSnapshot(aFile)),
+      );
+      const files = await db.select().from(filesPm).execute();
+      expect(files).toEqual([SqlFileRepository.mapSnapshotToDb(anotherFile)]);
     });
   });
 
@@ -63,14 +83,3 @@ describe('SQL Files Repository', () => {
       .values(files.map(SqlFileRepository.mapSnapshotToDb))
       .execute();
 });
-
-const aFile = new FileDocumentBuilder()
-  .with('id', 'd86d9949-ad4c-4316-9e0e-b34e352045f8')
-  .with('name', 'file-name.txt')
-  .with('path', ['main-folder', 'sub-folder'])
-  .build();
-
-const anotherFile = new FileDocumentBuilder()
-  .with('id', 'd86d9949-ad4c-4316-9e0e-b34e352045f9')
-  .with('name', 'file-name2.txt')
-  .build();

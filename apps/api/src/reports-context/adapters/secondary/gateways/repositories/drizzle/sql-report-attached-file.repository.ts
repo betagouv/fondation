@@ -53,10 +53,10 @@ export class SqlReportAttachedFileRepository
     const reportAttachedFileSnapshot = reportAttachedFile.toSnapshot();
 
     return {
-      id: reportAttachedFileSnapshot.id,
       createdAt: reportAttachedFileSnapshot.createdAt,
-      name: reportAttachedFileSnapshot.name,
       reportId: reportAttachedFileSnapshot.reportId,
+      name: reportAttachedFileSnapshot.name,
+      fileId: reportAttachedFileSnapshot.fileId,
     };
   }
 
@@ -71,10 +71,10 @@ export class SqlReportAttachedFileRepository
     reportAttachedFile: typeof reportAttachedFiles.$inferSelect,
   ): ReportAttachedFile {
     return ReportAttachedFile.fromSnapshot({
-      id: reportAttachedFile.id,
       createdAt: reportAttachedFile.createdAt,
-      name: reportAttachedFile.name,
       reportId: reportAttachedFile.reportId,
+      name: reportAttachedFile.name,
+      fileId: reportAttachedFile.fileId,
     });
   }
 }

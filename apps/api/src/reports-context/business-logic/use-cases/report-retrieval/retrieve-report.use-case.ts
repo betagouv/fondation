@@ -12,9 +12,9 @@ export class RetrieveReportUseCase {
     const report = await this.reportRetrievalVMQuery.retrieveReport(id);
     if (!report) return null;
 
-    const { attachedFileNames, ...rest } = report;
-    const attachedFiles = attachedFileNames.length
-      ? await this.reportFileService.getSignedUrls(attachedFileNames)
+    const { attachedFileIds, ...rest } = report;
+    const attachedFiles = attachedFileIds.length
+      ? await this.reportFileService.getSignedUrls(attachedFileIds)
       : null;
 
     return {

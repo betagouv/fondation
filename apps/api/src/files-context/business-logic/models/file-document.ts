@@ -6,6 +6,7 @@ export type FileDocumentSnapshot = {
   id: string;
   createdAt: Date;
   name: string;
+  bucket: string;
   path: string[] | null;
   storageProvider: FilesStorageProvider;
   signedUrl?: string | null;
@@ -15,8 +16,9 @@ export class FileDocument {
   constructor(
     private readonly _id: string,
     private readonly createdAt: Date,
-    private readonly name: string,
-    private readonly path: string[] | null,
+    private readonly _name: string,
+    private readonly _bucket: string,
+    private readonly _path: string[] | null,
     private readonly storageProvider: FilesStorageProvider,
     private signedUrl?: string | null,
   ) {}
@@ -36,12 +38,22 @@ export class FileDocument {
   public get id(): string {
     return this._id;
   }
+  public get path(): string[] | null {
+    return this._path;
+  }
+  public get name(): string {
+    return this._name;
+  }
+  public get bucket(): string {
+    return this._bucket;
+  }
 
   toSnapshot(): FileDocumentSnapshot {
     return {
       id: this.id,
       createdAt: this.createdAt,
       name: this.name,
+      bucket: this.bucket,
       path: this.path,
       storageProvider: this.storageProvider,
       signedUrl: this.signedUrl,
@@ -53,6 +65,7 @@ export class FileDocument {
       reportSnapshot.id,
       reportSnapshot.createdAt,
       reportSnapshot.name,
+      reportSnapshot.bucket,
       reportSnapshot.path,
       reportSnapshot.storageProvider,
     );

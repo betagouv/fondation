@@ -1,0 +1,1 @@
+ALTER TABLE "files_context"."files" ADD COLUMN "bucket" varchar NOT NULL;

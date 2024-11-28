@@ -24,11 +24,8 @@ services:
       MINIO_ROOT_USER: fondation
       MINIO_ROOT_PASSWORD: fondation-secret
       MINIO_STORAGE_FREE_SPACE_THRESHOLD: 1GB
-    volumes:
-      - fondation_minio_test:/data
 
 networks:
   app_test:
     driver: bridge
-volumes:
-  fondation_minio_test:
+

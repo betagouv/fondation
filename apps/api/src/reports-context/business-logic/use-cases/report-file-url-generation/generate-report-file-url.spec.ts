@@ -14,11 +14,11 @@ describe('Generate Report File Url', () => {
 
     reportAttachedFileRepository = new FakeReportAttachedFileRepository();
     reportAttachedFileRepository.files = {
-      [aFile.id]: aFile,
+      [aFile.name]: aFile,
     };
 
     reportFileService = new FakeReportFileService();
-    reportFileService.files[aFile.name] = {
+    reportFileService.files[aFile.fileId] = {
       name: aFile.name,
       signedUrl: 'signed-url',
     };
@@ -36,8 +36,8 @@ describe('Generate Report File Url', () => {
 });
 
 const aFile: ReportAttachedFileSnapshot = {
-  id: '123',
   createdAt: new Date(2025, 10, 10),
   reportId: 'report-id',
   name: 'file-name',
+  fileId: 'file-id',
 };

@@ -1,4 +1,4 @@
-import { inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import {
   FileDocument,
@@ -15,13 +15,19 @@ export class SqlFileRepository implements FileRepository {
     };
   }
 
-  getByNames(fileNames: string[]): DrizzleTransactionableAsync<FileDocument[]> {
+  getByIds(ids: string[]): DrizzleTransactionableAsync<FileDocument[]> {
     return async (db) => {
       const rows = await db
         .select()
         .from(filesPm)
-        .where(inArray(filesPm.name, fileNames));
+        .where(inArray(filesPm.id, ids));
       return rows.map(SqlFileRepository.mapToDomain);
+    };
+  }
+
+  deleteFile(file: FileDocument): DrizzleTransactionableAsync {
+    return async (db) => {
+      await db.delete(filesPm).where(eq(filesPm.id, file.id));
     };
   }
 
@@ -36,6 +42,7 @@ export class SqlFileRepository implements FileRepository {
       id: file.id,
       createdAt: file.createdAt,
       name: file.name,
+      bucket: file.bucket,
       path: file.path,
       storageProvider: file.storageProvider,
     };
@@ -46,6 +53,7 @@ export class SqlFileRepository implements FileRepository {
       row.id,
       row.createdAt,
       row.name,
+      row.bucket,
       row.path,
       row.storageProvider,
     );

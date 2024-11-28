@@ -9,11 +9,16 @@ export class FakeReportAttachedFileRepository
   implements ReportAttachedFileRepository
 {
   files: Record<string, ReportAttachedFileSnapshot> = {};
+  saveError: Error;
 
   save(reportAttachedFile: ReportAttachedFile): TransactionableAsync {
+    if (this.saveError) {
+      throw this.saveError;
+    }
+
     const reportAttachedFileSnapshot = reportAttachedFile.toSnapshot();
     return async () => {
-      this.files[reportAttachedFileSnapshot.id] = reportAttachedFileSnapshot;
+      this.files[reportAttachedFileSnapshot.name] = reportAttachedFileSnapshot;
     };
   }
 

@@ -34,7 +34,7 @@ describe('Report Retrieval', () => {
 
 const aReportQueried: ReportRetrievalQueried =
   new ReportRetrievalBuilder<ReportRetrievalQueried>()
-    .with('attachedFileNames', [fileName])
+    .with('attachedFileIds', [fileName])
     .buildQueried();
 
 const aReportVM: ReportRetrievalVM = ReportRetrievalBuilder.fromQueriedToVM(

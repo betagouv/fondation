@@ -22,7 +22,7 @@ export interface ReportRetrievalQueried {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  attachedFileNames: string[];
+  attachedFileIds: string[];
 }
 
 export interface ReportRetrievalQuery {

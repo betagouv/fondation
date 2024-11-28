@@ -1,25 +1,22 @@
 import { sql } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { getTableConfig, PgTableWithColumns } from 'drizzle-orm/pg-core';
 import * as path from 'path';
-import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
   DockerComposeEnvironment,
   StartedDockerComposeEnvironment,
   Wait,
 } from 'testcontainers';
 import { nominationFiles } from '../src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import * as filesContextTables from '../src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
 import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import * as filesContextTables from '../src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import { CreateBucketCommand } from '@aws-sdk/client-s3';
-import { minioS3StorageClient } from '../src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
-import { defaultApiConfig } from '../src/shared-kernel/adapters/primary/nestjs/env';
+import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-postgresql-test.yaml';
@@ -90,11 +87,3 @@ export async function clearDB(
     );
   }
 }
-
-export const createMinioBucket = async () => {
-  await minioS3StorageClient.send(
-    new CreateBucketCommand({
-      Bucket: defaultApiConfig.s3.bucketName,
-    }),
-  );
-};

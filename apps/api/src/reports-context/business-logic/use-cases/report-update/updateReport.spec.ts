@@ -1,7 +1,7 @@
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { NominationFileReport } from '../../models/nomination-file-report';
+import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportBuilder } from '../../models/report.builder';
 import {
   ReportUpdateData,
@@ -23,81 +23,24 @@ describe('Report Update Use Case', () => {
     };
   });
 
-  const testData: [ReportUpdateData, NominationFileReport][] = [
+  const testData: [ReportUpdateData, NominationFileReportSnapshot][] = [
     [
       {
         comment: 'new comment',
       },
-      new NominationFileReport(
-        aReport.id,
-        aReport.nominationFileId,
-        aReport.createdAt,
-        aReport.folderNumber,
-        aReport.biography,
-        aReport.dueDate,
-        aReport.name,
-        aReport.reporterName,
-        aReport.birthDate,
-        aReport.state,
-        aReport.formation,
-        aReport.transparency,
-        aReport.grade,
-        aReport.currentPosition,
-        aReport.targettedPosition,
-        'new comment',
-        aReport.rank,
-        aReport.observers,
-      ),
+      new ReportBuilder().with('comment', 'new comment').build(),
     ],
     [
       {
         comment: null,
       },
-      new NominationFileReport(
-        aReport.id,
-        aReport.nominationFileId,
-        aReport.createdAt,
-        aReport.folderNumber,
-        aReport.biography,
-        aReport.dueDate,
-        aReport.name,
-        aReport.reporterName,
-        aReport.birthDate,
-        aReport.state,
-        aReport.formation,
-        aReport.transparency,
-        aReport.grade,
-        aReport.currentPosition,
-        aReport.targettedPosition,
-        null,
-        aReport.rank,
-        aReport.observers,
-      ),
+      new ReportBuilder().with('comment', null).build(),
     ],
     [
       {
         comment: '',
       },
-      new NominationFileReport(
-        aReport.id,
-        aReport.nominationFileId,
-        aReport.createdAt,
-        aReport.folderNumber,
-        aReport.biography,
-        aReport.dueDate,
-        aReport.name,
-        aReport.reporterName,
-        aReport.birthDate,
-        aReport.state,
-        aReport.formation,
-        aReport.transparency,
-        aReport.grade,
-        aReport.currentPosition,
-        aReport.targettedPosition,
-        null,
-        aReport.rank,
-        aReport.observers,
-      ),
+      new ReportBuilder().with('comment', null).build(),
     ],
   ];
   it.each(testData)(
@@ -111,7 +54,7 @@ describe('Report Update Use Case', () => {
     },
   );
 
-  const expectChangedReport = (report: NominationFileReport) => {
+  const expectChangedReport = (report: NominationFileReportSnapshot) => {
     const savedReport = reportRepository.reports[report.id];
     expect(savedReport).toEqual(report);
   };

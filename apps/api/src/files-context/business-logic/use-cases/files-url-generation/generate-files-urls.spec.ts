@@ -3,20 +3,20 @@ import { FakeFileRepository } from 'src/files-context/adapters/secondary/gateway
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { FileDocumentBuilder } from '../../builders/file-document.builder';
-import { FilesStorageProvider } from '../../models/files-provider.enum';
 import { GenerateFilesUrlsUseCase } from './generate-files-urls';
 
 describe('Generate Files Urls Use Case', () => {
-  let fileRepository: FakeFileRepository;
   let transactionPerformer: TransactionPerformer;
+  let fileRepository: FakeFileRepository;
   let s3StorageProvider: FakeS3StorageProvider;
 
   beforeEach(() => {
-    fileRepository = new FakeFileRepository();
+    transactionPerformer = new NullTransactionPerformer();
 
+    fileRepository = new FakeFileRepository();
     fileRepository.files = {
-      [file1.name]: file1,
-      [file2.name]: file2,
+      [file1.id]: file1,
+      [file2.id]: file2,
     };
 
     s3StorageProvider = new FakeS3StorageProvider();
@@ -25,6 +25,7 @@ describe('Generate Files Urls Use Case', () => {
         file: Buffer.from('file-content'),
         fileName: file1.name,
         signedUrl: 'signed-url',
+        bucket: 'bucket-1',
         filePath: file1.path,
         mimeType: 'text/plain',
       },
@@ -32,12 +33,11 @@ describe('Generate Files Urls Use Case', () => {
         file: Buffer.from('second-file-content'),
         fileName: file2.name,
         signedUrl: 'second-signed-url',
+        bucket: 'bucket-2',
         filePath: file2.path,
         mimeType: 'text/plain',
       },
     };
-
-    transactionPerformer = new NullTransactionPerformer();
   });
 
   it('generates files urls', async () => {
@@ -46,7 +46,7 @@ describe('Generate Files Urls Use Case', () => {
         fileRepository,
         transactionPerformer,
         s3StorageProvider,
-      ).execute([file1.name, file2.name]),
+      ).execute([file1.id, file2.id]),
     ).toEqual([
       {
         name: file1.name,
@@ -59,14 +59,13 @@ describe('Generate Files Urls Use Case', () => {
     ]);
   });
 });
+
 const file1 = new FileDocumentBuilder()
   .with('id', 'file-id')
   .with('name', 'file-name')
-  .with('storageProvider', FilesStorageProvider.OUTSCALE)
-
   .build();
 const file2 = new FileDocumentBuilder()
   .with('id', 'second-file-id')
   .with('name', 'second-file-name')
-  .with('storageProvider', FilesStorageProvider.OUTSCALE)
+  .with('path', ['folder', 'sub-folder'])
   .build();

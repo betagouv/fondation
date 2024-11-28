@@ -88,7 +88,7 @@ export class ReportRetrievalBuilder<
         },
       },
       attachedFiles: null,
-      attachedFileNames: [],
+      attachedFileIds: [],
     };
   }
 
@@ -144,7 +144,7 @@ export class ReportRetrievalBuilder<
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
-      attachedFileNames: report.attachedFileNames,
+      attachedFileIds: report.attachedFileIds,
     };
   }
 
