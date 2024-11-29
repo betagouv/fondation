@@ -25,7 +25,9 @@ export const defaultApiConfig = {
     name: 'fondation',
   },
   s3: {
-    bucketName: 'fondation',
+    reportsContext: {
+      attachedFilesBucketName: 'csm-fondation-reports-context',
+    },
     encryptionKey: 'minio-encryption-key',
     endpoint: 'http://localhost:9000',
     credentials: {

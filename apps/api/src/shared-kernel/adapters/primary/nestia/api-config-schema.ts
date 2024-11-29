@@ -12,7 +12,9 @@ export interface ApiConfig<Prod extends boolean = boolean> {
   s3: Prod extends true
     ? undefined
     : {
-        bucketName: string;
+        reportsContext: {
+          attachedFilesBucketName: string;
+        };
         encryptionKey: string;
         endpoint: string;
         credentials: {

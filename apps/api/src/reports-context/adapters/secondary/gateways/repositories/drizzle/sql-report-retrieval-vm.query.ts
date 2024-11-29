@@ -9,6 +9,8 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reportAttachedFiles } from './schema';
 import { reports } from './schema/report-pm'; // Drizzle ORM table definition
 import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition
+import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
+import { SqlReportAttachedFileRepository } from './sql-report-attached-file.repository';
 
 export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -84,7 +86,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     );
 
     const storedAttachedFiles = await this.db
-      .select({ fileId: reportAttachedFiles.fileId })
+      .select()
       .from(reportAttachedFiles)
       .where(eq(reportAttachedFiles.reportId, id))
       .execute();
@@ -108,7 +110,9 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       rank: reportData.rank,
       observers: reportData.observers,
       rules,
-      attachedFileIds: storedAttachedFiles.map((file) => file.fileId),
+      attachedFilesVO: new ReportAttachedFiles(
+        storedAttachedFiles.map(SqlReportAttachedFileRepository.toDomain),
+      ),
     };
 
     return reportRetrieval;

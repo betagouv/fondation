@@ -21,15 +21,8 @@ export class GenerateReportFileUrlUseCase {
         );
       }
 
-      const signedUrls = await this.reportFileService.getSignedUrls([
-        file.fileId,
-      ]);
-
-      if (signedUrls.length === 0) {
-        throw new Error(`Failed to get signed URL for file: ${file.fileId}`);
-      }
-
-      return signedUrls[0]!.signedUrl;
+      const { signedUrl } = await this.reportFileService.getSignedUrl(file);
+      return signedUrl;
     });
   }
 }

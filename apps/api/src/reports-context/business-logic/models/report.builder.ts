@@ -37,7 +37,7 @@ export class ReportBuilder {
       rank: '(2 sur une liste de 100)',
       reporterName: 'EMILIEN Denis',
       observers: ['default observer'],
-      attachedFileNames: null,
+      attachedFiles: null,
     };
   }
 

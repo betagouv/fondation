@@ -28,8 +28,9 @@ describe('MinIO S3 Storage Provider', () => {
   });
 
   describe.each`
-    bucketExists | bucket                | filePath
-    ${true}      | ${'fondation-bucket'} | ${null}
+    bucketExists | bucket               | filePath
+    ${false}     | ${'existing-bucket'} | ${null}
+    ${true}      | ${'new-bucket'}      | ${['folder', 'subfolder']}
   `(
     'When a bucket exists = $bucketExists',
     ({
@@ -55,7 +56,7 @@ describe('MinIO S3 Storage Provider', () => {
       });
 
       it(
-        bucket === defaultApiConfig.s3.bucketName
+        bucket === 'existing-bucket'
           ? 'saves a file'
           : 'creates the bucket and saves a file',
         async () => {
@@ -76,63 +77,76 @@ describe('MinIO S3 Storage Provider', () => {
           s3StorageProvider.getSignedUrls([FileDocument.fromSnapshot(aFile)]),
         ).rejects.toThrow();
       });
-
-      describe('When there is already one file', () => {
-        beforeEach(async () => {
-          await givenSomeS3Files({
-            bucket,
-            Key,
-          });
-        });
-
-        it('gets the signed URL', async () => {
-          const filesVM = await s3StorageProvider.getSignedUrls([
-            FileDocument.fromSnapshot(aFile),
-          ]);
-          expect(filesVM.length).toBePositive();
-
-          expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
-          const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
-          signedUrls.forEach((url) =>
-            expectSignedUrl({
-              url,
-              expectedSignedUrl: aFile.signedUrl!,
-            }),
-          );
-        });
-
-        it('deletes the file', async () => {
-          await s3StorageProvider.deleteFile(bucket, filePath, aFile.name);
-          await expect(
-            minioS3StorageClient.send(
-              new HeadObjectCommand({
-                Bucket: bucket,
-                Key,
-              }),
-            ),
-          ).rejects.toBeDefined();
-        });
-
-        const expectSignedUrl = ({
-          url,
-          expectedSignedUrl,
-        }: {
-          url: URL;
-          expectedSignedUrl: string;
-        }) => {
-          expect(url.origin + url.pathname).toEqual(expectedSignedUrl);
-          expect(url.searchParams.get('X-Amz-Algorithm')).toEqual(
-            'AWS4-HMAC-SHA256',
-          );
-          expect(url.searchParams.get('X-Amz-Credential')).toEqual(
-            expect.anything(),
-          );
-          expect(url.searchParams.get('X-Amz-Expires')).toEqual('3600');
-          expect(url.searchParams.get('X-Amz-Signature')).toEqual(
-            expect.any(String),
-          );
-        };
-      });
     },
   );
+
+  describe('When there is already one file', () => {
+    const bucket = 'fondation-bucket';
+    const filePath = ['folder'];
+    const Key = join(...filePath, 'file-name.txt');
+
+    const aFile = new FileDocumentBuilder()
+      .with('id', 'file-id')
+      .with('bucket', bucket)
+      .with('name', 'file-name.txt')
+      .with('path', ['folder'])
+      .with('signedUrl', `${defaultApiConfig.s3.endpoint}/${bucket}/${Key}`)
+      .build();
+
+    beforeEach(async () => {
+      await createMinioBucket(bucket);
+      await givenSomeS3Files({
+        bucket,
+        Key,
+      });
+    });
+
+    it('gets the signed URL', async () => {
+      const filesVM = await s3StorageProvider.getSignedUrls([
+        FileDocument.fromSnapshot(aFile),
+      ]);
+      expect(filesVM.length).toBePositive();
+
+      expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
+      const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
+      signedUrls.forEach((url) =>
+        expectSignedUrl({
+          url,
+          expectedSignedUrl: aFile.signedUrl!,
+        }),
+      );
+    });
+
+    it('deletes the file', async () => {
+      await s3StorageProvider.deleteFile(bucket, filePath, aFile.name);
+      await expect(
+        minioS3StorageClient.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key,
+          }),
+        ),
+      ).rejects.toBeDefined();
+    });
+
+    const expectSignedUrl = ({
+      url,
+      expectedSignedUrl,
+    }: {
+      url: URL;
+      expectedSignedUrl: string;
+    }) => {
+      expect(url.origin + url.pathname).toEqual(expectedSignedUrl);
+      expect(url.searchParams.get('X-Amz-Algorithm')).toEqual(
+        'AWS4-HMAC-SHA256',
+      );
+      expect(url.searchParams.get('X-Amz-Credential')).toEqual(
+        expect.anything(),
+      );
+      expect(url.searchParams.get('X-Amz-Expires')).toEqual('3600');
+      expect(url.searchParams.get('X-Amz-Signature')).toEqual(
+        expect.any(String),
+      );
+    };
+  });
 });

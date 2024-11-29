@@ -6,7 +6,7 @@ export const fileUploadQueryDtoSchema = z.object({
   path: z
     .union([z.string(), z.array(z.string())])
     .transform((value) => (Array.isArray(value) ? value : [value]))
-    .nullable(),
+    .optional(),
   fileId: z.string(),
 });
 

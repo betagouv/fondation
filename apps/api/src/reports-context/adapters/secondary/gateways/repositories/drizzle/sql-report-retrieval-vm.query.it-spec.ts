@@ -21,6 +21,11 @@ import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalQuery } from './sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { SqlReportRepository } from './sql-report.repository';
+import {
+  ReportAttachedFile,
+  ReportAttachedFileSnapshot,
+} from 'src/reports-context/business-logic/models/report-attached-file';
+import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
@@ -76,14 +81,20 @@ describe('SQL Report Retrieval VM Query', () => {
     });
 
     it('retrieves a report with its file', async () => {
-      const fileId = 'file-id';
+      const aFile: ReportAttachedFileSnapshot = {
+        createdAt: new Date(2020, 10, 10),
+        fileId: 'file-id',
+        name: 'file.txt',
+        reportId: aReport.id,
+      };
       const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
       await db
         .insert(reportAttachedFiles)
         .values({
+          createdAt: aFile.createdAt,
           reportId: aReport.id,
-          name: 'file.txt',
-          fileId,
+          name: aFile.name,
+          fileId: aFile.fileId,
         })
         .execute();
 
@@ -94,7 +105,10 @@ describe('SQL Report Retrieval VM Query', () => {
           aReport,
         )
           .with('rules', expectedRules)
-          .with('attachedFileIds', [fileId])
+          .with(
+            'attachedFilesVO',
+            new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(aFile)]),
+          )
           .buildQueried();
       expect(result).toEqual<ReportRetrievalQueried>(aReportQueried);
     });

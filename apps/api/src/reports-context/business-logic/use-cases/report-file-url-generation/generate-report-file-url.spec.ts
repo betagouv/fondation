@@ -24,7 +24,7 @@ describe('Generate Report File Url', () => {
     };
   });
 
-  it('retrieves a report', async () => {
+  it('generates an url', async () => {
     expect(
       await new GenerateReportFileUrlUseCase(
         transactionPerformer,

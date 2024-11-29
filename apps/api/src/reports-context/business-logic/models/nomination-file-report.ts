@@ -2,6 +2,7 @@ import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 import { ReportAttachedFile } from './report-attached-file';
+import { ReportAttachedFiles } from './report-attached-files';
 
 export type NominationFileReportSnapshot = {
   id: string;
@@ -22,7 +23,7 @@ export type NominationFileReportSnapshot = {
   comment: string | null;
   rank: string;
   observers: string[] | null;
-  attachedFileNames: string[] | null;
+  attachedFiles: ReportAttachedFiles | null;
 };
 
 export class NominationFileReport {
@@ -45,7 +46,7 @@ export class NominationFileReport {
     readonly comment: string | null,
     readonly rank: string,
     public observers: string[] | null,
-    readonly attachedFileNames: string[] | null = null,
+    readonly attachedFiles: ReportAttachedFiles | null,
   ) {}
 
   replaceFolderNumber(folderNumber: number | null) {
@@ -56,14 +57,8 @@ export class NominationFileReport {
     this.observers = observers;
   }
 
-  alreadyHasAttachedFile(fileName: string): boolean {
-    return this.attachedFileNames?.includes(fileName) ?? false;
-  }
-
-  getAttachedFilesBucketName(): string {
-    if (!this.reporterName)
-      throw new Error('Reporter name is required to generate a bucket name');
-    return this.reporterName.toLowerCase().replaceAll(' ', '-');
+  alreadyHasAttachedFile(file: ReportAttachedFile): boolean {
+    return !!this.attachedFiles?.alreadyExists(file);
   }
 
   createAttachedFile(
@@ -71,7 +66,12 @@ export class NominationFileReport {
     fileId: string,
     currentDate: Date,
   ): ReportAttachedFile {
-    return new ReportAttachedFile(currentDate, this._id, fileName, fileId);
+    return new ReportAttachedFile(currentDate, this.id, fileName, fileId);
+  }
+
+  generateAttachedFilePath(): string[] {
+    if (!this.reporterName) throw new Error('Reporter name is missing');
+    return [this.transparency, this.name, this.reporterName];
   }
 
   public get id(): string {
@@ -98,7 +98,7 @@ export class NominationFileReport {
       comment: this.comment,
       rank: this.rank,
       observers: this.observers,
-      attachedFileNames: this.attachedFileNames,
+      attachedFiles: this.attachedFiles,
     };
   }
 
@@ -124,7 +124,7 @@ export class NominationFileReport {
       snapshot.comment,
       snapshot.rank,
       snapshot.observers,
-      snapshot.attachedFileNames,
+      snapshot.attachedFiles,
     );
   }
 
@@ -163,6 +163,7 @@ export class NominationFileReport {
       null,
       createReportPayload.rank,
       createReportPayload.observers,
+      null,
     );
 
     return report;

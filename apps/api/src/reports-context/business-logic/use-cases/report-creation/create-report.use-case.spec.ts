@@ -73,7 +73,7 @@ describe('Create Report Use Case', () => {
       comment: null,
       rank: payload.rank,
       observers: payload.observers,
-      attachedFileNames: null,
+      attachedFiles: null,
     });
     expectRulesFromPayload(payload.rules);
   });
@@ -117,14 +117,8 @@ describe('Create Report Use Case', () => {
     ).execute(importedNominationFileId, payload);
 
   const expectReports = (...reports: NominationFileReportSnapshot[]) => {
-    expect(nominationFileReportRepository.reports).toEqual(
-      reports.reduce(
-        (acc, report) => ({
-          ...acc,
-          [report.id]: report,
-        }),
-        {},
-      ),
+    expect(Object.values(nominationFileReportRepository.reports)).toEqual(
+      reports,
     );
   };
 

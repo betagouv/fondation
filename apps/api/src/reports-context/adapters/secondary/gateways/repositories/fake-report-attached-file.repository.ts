@@ -23,12 +23,12 @@ export class FakeReportAttachedFileRepository
   }
 
   byFileName(
-    reportId: string,
+    _: string,
     fileName: string,
   ): TransactionableAsync<ReportAttachedFile | null> {
     return async () => {
       const file = Object.values(this.files).find(
-        (file) => file.reportId === reportId && file.name === fileName,
+        (file) => file.name === fileName,
       );
       return file ? ReportAttachedFile.fromSnapshot(file) : null;
     };

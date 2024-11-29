@@ -37,7 +37,7 @@ export class FilesController {
       file.originalname,
       file.mimetype,
       bucket,
-      path,
+      path || null,
     );
   }
 

@@ -1,3 +1,4 @@
+import { Transparency } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportAttachedFileRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-attached-file.repository';
 import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
@@ -5,12 +6,27 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
-import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
+import {
+  ReportAttachedFile,
+  ReportAttachedFileSnapshot,
+} from '../../models/report-attached-file';
+import { ReportAttachedFiles } from '../../models/report-attached-files';
 import { ReportBuilder } from '../../models/report.builder';
 import { AttachReportFileUseCase } from './attach-report-file';
 
 const currentDate = new Date(2021, 10, 10);
-const expectedBucket = 'julien-bresse-ep.-danielle-lenoir';
+
+const aReportBuilder = new ReportBuilder()
+  .with('id', 'report-id')
+  .with('transparency', Transparency.AUTOMNE_2024)
+  .with('name', 'John Doe')
+  .with('reporterName', 'JULIEN Bresse ep. Danielle Lenoir');
+const aFile: ReportAttachedFileSnapshot = {
+  createdAt: currentDate,
+  reportId: 'report-id',
+  name: 'image-1.png',
+  fileId: 'file-id',
+};
 
 describe('Attach Report File Use Case', () => {
   let reportAttachedFileRepository: FakeReportAttachedFileRepository;
@@ -31,8 +47,6 @@ describe('Attach Report File Use Case', () => {
 
     transactionPerformer = new NullTransactionPerformer(() => {
       reportAttachedFileRepository = new FakeReportAttachedFileRepository();
-      reportFileService = new FakeReportFileService();
-      reportRepository = new FakeNominationFileReportRepository();
     });
   });
 
@@ -41,14 +55,13 @@ describe('Attach Report File Use Case', () => {
   });
 
   describe('when a report exists', () => {
-    const aReportSnapshot = new ReportBuilder()
-      .with('reporterName', 'JULIEN Bresse ep. Danielle Lenoir')
-      .build();
+    const aReportSnapshot = aReportBuilder.build();
 
     beforeEach(() => {
       reportRepository.reports = {
         [aReportSnapshot.id]: aReportSnapshot,
       };
+      reportFileService.currentReport = aReportSnapshot;
     });
 
     it('attaches a new file', async () => {
@@ -60,7 +73,6 @@ describe('Attach Report File Use Case', () => {
       expect(Object.values(reportFileService.files)).toEqual([
         {
           name: aFile.name,
-          signedUrl: `${FakeReportFileService.BASE_URL}/${expectedBucket}/${aReportSnapshot.id}/${aFile.name}`,
         },
       ]);
     });
@@ -79,8 +91,11 @@ describe('Attach Report File Use Case', () => {
 
     describe('with an attached file', () => {
       beforeEach(() => {
-        const aReportSnapshot = new ReportBuilder()
-          .with('attachedFileNames', [aFile.name])
+        const aReportSnapshot = aReportBuilder
+          .with(
+            'attachedFiles',
+            new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(aFile)]),
+          )
           .build();
         reportRepository.reports = {
           [aReportSnapshot.id]: aReportSnapshot,
@@ -110,10 +125,3 @@ describe('Attach Report File Use Case', () => {
     ).execute(aFile.reportId, aFile.name, Buffer.from('Some content.'));
   };
 });
-
-const aFile: ReportAttachedFileSnapshot = {
-  createdAt: currentDate,
-  reportId: 'report-id',
-  name: 'image-1.png',
-  fileId: 'file-id',
-};

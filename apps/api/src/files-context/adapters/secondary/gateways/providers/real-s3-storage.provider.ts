@@ -23,7 +23,6 @@ export class RealS3StorageProvider implements S3StorageProvider {
     filePath: string[] | null,
   ): Promise<void> {
     await this.ensureBucketExists(bucket);
-
     const command = this.s3Commands.putObject(
       bucket,
       fileBuffer,
@@ -31,7 +30,6 @@ export class RealS3StorageProvider implements S3StorageProvider {
       mimeType,
       filePath,
     );
-
     await this.s3Client.send(command);
   }
 

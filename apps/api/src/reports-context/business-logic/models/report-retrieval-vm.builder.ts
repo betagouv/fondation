@@ -6,8 +6,9 @@ import {
   Transparency,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
-import { NominationFileReportSnapshot } from './nomination-file-report';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
+import { NominationFileReportSnapshot } from './nomination-file-report';
+import { ReportAttachedFiles } from './report-attached-files';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -88,7 +89,7 @@ export class ReportRetrievalBuilder<
         },
       },
       attachedFiles: null,
-      attachedFileIds: [],
+      attachedFilesVO: new ReportAttachedFiles(),
     };
   }
 
@@ -144,7 +145,7 @@ export class ReportRetrievalBuilder<
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
-      attachedFileIds: report.attachedFileIds,
+      attachedFilesVO: report.attachedFilesVO,
     };
   }
 

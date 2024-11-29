@@ -13,7 +13,8 @@ export class GenerateFilesUrlsUseCase {
   async execute(ids: string[]): Promise<FileVM[]> {
     return this.transactionPerformer.perform(async (trx) => {
       const files = await this.fileRepository.getByIds(ids)(trx);
-      return await this.s3StorageProvider.getSignedUrls(files);
+      const signedUrls = await this.s3StorageProvider.getSignedUrls(files);
+      return signedUrls;
     });
   }
 }

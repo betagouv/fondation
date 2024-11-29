@@ -60,7 +60,7 @@ describe("Attach Report File", () => {
     });
   });
 
-  it("refuses to uplaod a .txt file", async () => {
+  it("refuses to upload a .txt file", async () => {
     const file = genFile("", "file.txt", "text/plain");
     expect(await attachFile(file)).toMatchObject({
       error: expect.objectContaining({ message: "Invalid file type" }),

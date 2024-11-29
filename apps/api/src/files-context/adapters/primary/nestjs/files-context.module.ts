@@ -17,6 +17,9 @@ import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle
 import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
+import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 @Module({
   imports: [SharedKernelModule],
@@ -40,11 +43,13 @@ import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
     ]),
 
     generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
-    generateProvider(
-      RealS3StorageProvider,
-      [S3Client, API_CONFIG, S3Commands],
-      S3_STORAGE_PROVIDER,
-    ),
+    isProduction
+      ? generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER)
+      : generateProvider(
+          RealS3StorageProvider,
+          [S3Client, API_CONFIG, S3Commands],
+          S3_STORAGE_PROVIDER,
+        ),
     {
       provide: S3Client,
       useValue: minioS3StorageClient,

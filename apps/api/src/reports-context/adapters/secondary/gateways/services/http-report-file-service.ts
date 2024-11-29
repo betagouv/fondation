@@ -4,13 +4,17 @@ import {
   ReportSignedUrl,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
+import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
 import typia from 'typia';
 
 export class HttpReportFileService implements ReportFileService {
   private readonly fileServiceUrl: URL;
 
-  constructor(private readonly apiConfig: ApiConfig) {
+  constructor(
+    //! TODO: Default to true once we have a S3 provider
+    private readonly apiConfig: ApiConfig<false>,
+  ) {
     this.fileServiceUrl = new URL(
       this.apiConfig.contextServices.filesContext.baseUrl,
     );
@@ -20,11 +24,15 @@ export class HttpReportFileService implements ReportFileService {
 
   async uploadFile(
     file: ReportAttachedFile,
-    bucket: string,
     fileBuffer: Buffer,
+    filePath: string[],
   ): Promise<void> {
-    const formData = file.generateFormData(fileBuffer);
-    const uploadUrlHref = file.generateUrlHref(this.fileServiceUrl, bucket);
+    const formData = file.generateUploadFormData(fileBuffer);
+    const uploadUrlHref = file.generateUploadHref(
+      this.fileServiceUrl,
+      this.apiConfig.s3.reportsContext.attachedFilesBucketName,
+      filePath,
+    );
     const response = await axios.post(uploadUrlHref, formData, {
       timeout: 5000,
       headers: formData.getHeaders(),
@@ -37,14 +45,28 @@ export class HttpReportFileService implements ReportFileService {
     }
   }
 
-  async getSignedUrls(attachedFileIds: string[]): Promise<ReportSignedUrl[]> {
-    const fileServiceUrl = new URL(this.fileServiceUrl);
-    fileServiceUrl.pathname = '/api/files/signed-urls';
-    attachedFileIds.forEach((fileId) =>
-      fileServiceUrl.searchParams.append('ids', fileId),
+  async getSignedUrl(
+    attachedFile: ReportAttachedFile,
+  ): Promise<ReportSignedUrl> {
+    const signedUrls = await this.getSignedUrls(
+      new ReportAttachedFiles([attachedFile]),
     );
 
-    const response = await fetch(fileServiceUrl);
+    if (signedUrls.length === 0) {
+      throw new Error(
+        `Failed to get signed URL for file: ${attachedFile.fileId}`,
+      );
+    }
+
+    return signedUrls[0]!;
+  }
+
+  async getSignedUrls(
+    attachedFiles: ReportAttachedFiles,
+  ): Promise<ReportSignedUrl[]> {
+    const url = attachedFiles.createURLForSignedUrls(this.fileServiceUrl);
+
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to get files signed URLs');
     const signedUrls = await response.json();
 
@@ -52,15 +74,11 @@ export class HttpReportFileService implements ReportFileService {
     return signedUrls;
   }
 
-  async deleteFile(file: ReportAttachedFile, bucket: string): Promise<void> {
-    const deleteUrl = new URL(this.fileServiceUrl);
-    deleteUrl.pathname = '/api/files';
-    deleteUrl.searchParams.append('bucket', bucket);
-    deleteUrl.searchParams.append('path', file.generateAttachedFilePath());
-    deleteUrl.searchParams.append('name', file.name);
+  async deleteFile(file: ReportAttachedFile): Promise<void> {
+    const url = file.generateDeleteUrl(this.fileServiceUrl);
 
-    const response = await axios.delete(deleteUrl.href, {
-      timeout: 5000,
+    const response = await fetch(url, {
+      method: 'DELETE',
     });
 
     if (!(response.status === 200)) {

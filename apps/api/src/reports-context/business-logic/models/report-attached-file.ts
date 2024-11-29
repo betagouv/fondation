@@ -1,5 +1,4 @@
 import FormData from 'form-data';
-import { reportAttachedFiles } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 
 export type ReportAttachedFileSnapshot = {
   createdAt: Date;
@@ -11,28 +10,39 @@ export type ReportAttachedFileSnapshot = {
 export class ReportAttachedFile {
   constructor(
     private readonly createdAt: Date,
-    private readonly reportId: string,
+    private readonly _reportId: string,
     private readonly _name: string,
     private readonly _fileId: string,
   ) {}
 
-  generateAttachedFilePath(): string {
-    return this.reportId;
+  isSameFile(file: ReportAttachedFile): boolean {
+    return this._fileId === file._fileId;
   }
 
-  generateFormData(fileBuffer: Buffer): FormData {
+  generateUploadFormData(fileBuffer: Buffer): FormData {
     const formData = new FormData();
     formData.append('file', fileBuffer, this._name);
     return formData;
   }
 
-  generateUrlHref(fileServiceUrl: URL, bucket: string): string {
+  generateUploadHref(
+    fileServiceUrl: URL,
+    bucket: string,
+    path: string[],
+  ): string {
     const url = new URL(fileServiceUrl);
     url.pathname = '/api/files/upload-one';
     url.searchParams.append('bucket', bucket);
-    url.searchParams.append('path', this.generateAttachedFilePath());
+    path.forEach((p) => url.searchParams.append('path', p));
     url.searchParams.append('fileId', this._fileId);
     return url.href;
+  }
+
+  generateDeleteUrl(fileServiceUrl: URL): URL {
+    const deleteUrl = new URL(fileServiceUrl);
+    deleteUrl.pathname = '/api/files';
+    deleteUrl.searchParams.append('id', this._fileId);
+    return deleteUrl;
   }
 
   public get name(): string {
@@ -45,7 +55,7 @@ export class ReportAttachedFile {
   toSnapshot(): ReportAttachedFileSnapshot {
     return {
       createdAt: this.createdAt,
-      reportId: this.reportId,
+      reportId: this._reportId,
       name: this.name,
       fileId: this.fileId,
     };
@@ -59,15 +69,6 @@ export class ReportAttachedFile {
       snapshot.reportId,
       snapshot.name,
       snapshot.fileId,
-    );
-  }
-
-  static fromDb(file: typeof reportAttachedFiles.$inferSelect) {
-    return new ReportAttachedFile(
-      file.createdAt,
-      file.reportId,
-      file.name,
-      file.fileId,
     );
   }
 }

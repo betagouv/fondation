@@ -1,13 +1,15 @@
 import { ReportAttachedFile } from '../../models/report-attached-file';
+import { ReportAttachedFiles } from '../../models/report-attached-files';
 
 export type ReportSignedUrl = { name: string; signedUrl: string };
 
 export interface ReportFileService {
   uploadFile(
     file: ReportAttachedFile,
-    bucket: string,
     fileBuffer: Buffer,
+    filePath: string[],
   ): Promise<void>;
-  getSignedUrls(attachedFileIds: string[]): Promise<ReportSignedUrl[]>;
+  getSignedUrl(attachedFile: ReportAttachedFile): Promise<ReportSignedUrl>;
+  getSignedUrls(attachedFiles: ReportAttachedFiles): Promise<ReportSignedUrl[]>;
   deleteFile(file: ReportAttachedFile, bucket: string): Promise<void>;
 }

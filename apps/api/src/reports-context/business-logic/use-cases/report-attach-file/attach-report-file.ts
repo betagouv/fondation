@@ -24,22 +24,22 @@ export class AttachReportFileUseCase {
     return this.transactionPerformer.perform(async (trx) => {
       const report = await this.reportRepository.byId(reportId)(trx);
       if (!report) throw new NonExistingReportError();
-      if (report.alreadyHasAttachedFile(name)) return;
 
-      const bucketName = report.getAttachedFilesBucketName();
+      const filePath = report.generateAttachedFilePath();
       const attachedFile = report.createAttachedFile(
         name,
         this.uuidGenerator.generate(),
         this.dateTimeProvider.now(),
       );
+      if (report.alreadyHasAttachedFile(attachedFile)) return;
 
       // Order matters, file isn't attached if saving in repository fails
+      await this.reportAttachedFileRepository.save(attachedFile)(trx);
       await this.reportFileService.uploadFile(
         attachedFile,
-        bucketName,
         fileBuffer,
+        filePath,
       );
-      await this.reportAttachedFileRepository.save(attachedFile)(trx);
     });
   }
 }

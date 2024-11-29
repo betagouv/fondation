@@ -39,11 +39,9 @@ export class SqlReportAttachedFileRepository
         )
         .limit(1)
         .execute();
-      if (reportAttachedFile.length === 0) {
-        return null;
-      }
+      if (reportAttachedFile.length === 0) return null;
 
-      return this.toDomain(reportAttachedFile[0]!);
+      return SqlReportAttachedFileRepository.toDomain(reportAttachedFile[0]!);
     };
   }
 
@@ -67,7 +65,7 @@ export class SqlReportAttachedFileRepository
     return this.mapToDb(report);
   }
 
-  toDomain(
+  static toDomain(
     reportAttachedFile: typeof reportAttachedFiles.$inferSelect,
   ): ReportAttachedFile {
     return ReportAttachedFile.fromSnapshot({

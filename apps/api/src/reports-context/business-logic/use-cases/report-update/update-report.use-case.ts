@@ -38,6 +38,7 @@ export class UpdateReportUseCase {
           : report.comment,
         report.rank,
         report.observers,
+        null,
       );
       await this.reportRepository.save(newReport)(trx);
     });

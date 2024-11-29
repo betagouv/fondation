@@ -20,7 +20,6 @@ export class DrizzleTransactionPerformer implements TransactionPerformer {
       try {
         return await useCase(tx);
       } catch (err) {
-        console.error(err);
         if (cleanup) {
           await cleanup();
         }

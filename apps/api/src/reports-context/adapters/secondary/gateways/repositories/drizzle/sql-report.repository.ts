@@ -119,6 +119,7 @@ export class SqlReportRepository implements ReportRepository {
       row.comment,
       row.rank,
       row.observers,
+      null,
     );
   }
 }
