@@ -19,6 +19,7 @@ import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
 import { Observers } from "./Observers";
 import { AttachedFileUpload } from "./AttachedFileUpload";
 import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { deleteReportAttachedFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
 
 export type ReportOverviewProps = {
   id: string;
@@ -68,6 +69,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     dispatch(attachReportFile({ reportId: id, file }));
   };
 
+  const onAttachedFileDeleted = (fileName: string) => {
+    dispatch(deleteReportAttachedFile({ reportId: id, fileName }));
+  };
+
   useEffect(() => {
     dispatch(retrieveReport(id));
   }, [dispatch, id]);
@@ -102,6 +107,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         <AttachedFileUpload
           attachedFiles={report.attachedFiles}
           onFileAttached={onFileAttached}
+          onAttachedFileDeleted={onAttachedFileDeleted}
         />
       )}
     </div>

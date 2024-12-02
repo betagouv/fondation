@@ -1,23 +1,27 @@
-import { FakeReportGateway } from "../../../adapters/secondary/gateways/FakeReport.gateway";
+import "@testing-library/jest-dom/vitest";
+import blobStream from "blob-stream";
+import PDF from "pdfkit";
+import sharp, { FormatEnum } from "sharp";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { AppState } from "../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFile } from "./attach-report-file";
-import PDF from "pdfkit";
-import sharp, { FormatEnum } from "sharp";
-import blobStream from "blob-stream";
-import "@testing-library/jest-dom/vitest";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
   let initialState: AppState;
-  let reportGateway: FakeReportGateway;
+  let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
-    reportGateway.addReport(aReport);
+    reportApiClient = new FakeReportApiClient();
+    reportApiClient.addReport(aReportApiModel);
+    const reportGateway = new ApiReportGateway(reportApiClient);
+
     store = initReduxStore(
       {
         reportGateway,
@@ -130,7 +134,8 @@ describe("Attach Report File", () => {
 });
 
 const signedUrl = "https://example.fr/file.txt";
-const aReport = new ReportBuilder().buildRetrieveVM();
+const aReportApiModel = new ReportApiModelBuilder().build();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

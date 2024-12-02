@@ -20,24 +20,22 @@ describe('Generate Files Urls Use Case', () => {
     };
 
     s3StorageProvider = new FakeS3StorageProvider();
-    s3StorageProvider.storedFiles = {
-      [file1.name]: {
-        file: Buffer.from('file-content'),
-        fileName: file1.name,
-        signedUrl: 'signed-url',
-        bucket: 'bucket-1',
-        filePath: file1.path,
-        mimeType: 'text/plain',
-      },
-      [file2.name]: {
-        file: Buffer.from('second-file-content'),
-        fileName: file2.name,
-        signedUrl: 'second-signed-url',
-        bucket: 'bucket-2',
-        filePath: file2.path,
-        mimeType: 'text/plain',
-      },
-    };
+    s3StorageProvider.addFile(
+      file1.bucket,
+      file1.path,
+      file1.name,
+      Buffer.from('file-content'),
+      'text/plain',
+      'signed-url',
+    );
+    s3StorageProvider.addFile(
+      file2.bucket,
+      file2.path,
+      file2.name,
+      Buffer.from('second-file-content'),
+      'text/plain',
+      'second-signed-url',
+    );
   });
 
   it('generates files urls', async () => {

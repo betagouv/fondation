@@ -1,26 +1,29 @@
 import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
-import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { FakeReportGateway } from "../../../secondary/gateways/FakeReport.gateway";
-import { ReportList } from "./ReportList";
 import { FakeAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { AuthenticatedUser } from "../../../../../authentication/core-logic/gateways/authentication.gateway";
 import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
+import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
+import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
+import { ReportList } from "./ReportList";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
-  let reportGateway: FakeReportGateway;
+  let reportApiClient: FakeReportApiClient;
   let authenticationGateway: FakeAuthenticationGateway;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
     authenticationGateway = new FakeAuthenticationGateway();
     authenticationGateway.setEligibleAuthUser(
       "user@example.fr",
       "password",
       user,
     );
+
+    reportApiClient = new FakeReportApiClient();
+    const reportGateway = new ApiReportGateway(reportApiClient);
 
     store = initReduxStore(
       {
@@ -42,7 +45,7 @@ describe("Nomination Case List Component", () => {
   describe("when there is a report", () => {
     beforeEach(() => {
       givenAnAuthenticatedUser();
-      reportGateway.addReport(aReport);
+      reportApiClient.addReport(aReport);
     });
 
     it("shows the table header", async () => {
@@ -94,6 +97,6 @@ const user = {
   reporterName: "CURRENT User",
 } satisfies AuthenticatedUser;
 
-const aReport = new ReportBuilder()
+const aReport = new ReportApiModelBuilder()
   .with("reporterName", user.reporterName)
-  .buildListVM();
+  .build();

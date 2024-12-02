@@ -35,6 +35,7 @@ export const reportsEndpointRelativePaths = {
   updateRule: "rules/:ruleId",
   attachFile: ":id/files/upload-one",
   generateFileUrl: ":reportId/files/:fileName",
+  deleteAttachedFile: ":id/files/:fileName",
 };
 
 export const ReportsEndpoints = {
@@ -67,6 +68,10 @@ export const ReportsEndpoints = {
     path: `${reportsControllerRoute}/${reportsEndpointRelativePaths.generateFileUrl}`,
     method: "GET",
   } as Endpoint<{ reportId: string; fileName: string }, void, string>,
+  deleteAttachedFile: {
+    path: `${reportsControllerRoute}/${reportsEndpointRelativePaths.deleteAttachedFile}`,
+    method: "DELETE",
+  } as Endpoint<{ id: string; fileName: string }, void, void>,
 };
 
 export const reportUpdateDto = z.object({

@@ -4,20 +4,23 @@ import { Provider } from "react-redux";
 import { NominationFile } from "shared-models";
 import sharp from "sharp";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
+import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { FakeReportGateway } from "../../../secondary/gateways/FakeReport.gateway";
+import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";
 
 describe("Report Overview Component", () => {
   let store: ReduxStore;
   let initialState: AppState;
-  let reportGateway: FakeReportGateway;
+  let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
+    reportApiClient = new FakeReportApiClient();
+    const reportGateway = new ApiReportGateway(reportApiClient);
     store = initReduxStore(
       {
         reportGateway,
@@ -120,13 +123,13 @@ describe("Report Overview Component", () => {
         it.skipIf(!placeholder)(
           "shows the placeholder when there is no content",
           async () => {
-            const aNomination = new ReportBuilder()
+            const aReport = new ReportApiModelBuilder()
               .with("id", "without-comment")
               .with("comment", null)
-              .buildRetrieveVM();
-            reportGateway.addReport(aNomination);
+              .build();
+            reportApiClient.addReport(aReport);
 
-            renderReport(aNomination.id);
+            renderReport(aReport.id);
             textarea = await givenTheTextArea();
 
             expect(textarea).toHaveValue("");
@@ -228,14 +231,14 @@ describe("Report Overview Component", () => {
 
       it("checks the rule", async () => {
         givenAValidatedReport();
-        renderReport("report-id");
+        renderReport(aValidatedReport.id);
         await clickCheckboxAndExpectChange(label, { initiallyChecked: false });
       });
 
       it("unchecks the rule", async () => {
         act(() => {
           renderReport("report-id");
-          reportGateway.addReport(anUnvalidatedNomination);
+          reportApiClient.addReport(anUnvalidatedReportApiModel);
         });
         await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
       });
@@ -249,10 +252,10 @@ describe("Report Overview Component", () => {
       it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
         act(() => {
           renderReport("report-id");
-          reportGateway.addReport(
-            new ReportBuilder()
-              .withTransferTimeValidated(false)
-              .buildRetrieveVM(),
+          reportApiClient.addReport(
+            new ReportApiModelBuilder()
+              .with("rules.management.TRANSFER_TIME.validated", false)
+              .build(),
           );
         });
 
@@ -278,34 +281,31 @@ describe("Report Overview Component", () => {
           /^Ajouter des pièces jointes/,
         );
         await userEvent.upload(input, file);
-        // screen.logTestingPlaygroundURL();
 
-        await waitFor(() => {
-          expect(store.getState().reportOverview.byIds).toEqual({
-            [aValidatedReport.id]: {
-              ...aValidatedReport,
-              attachedFiles: [
-                {
-                  name: "image.png",
-                  signedUrl: `${FakeReportGateway.BASE_URI}/image.png`,
-                },
-              ],
-            },
-          });
+        expect(store.getState().reportOverview.byIds).toEqual({
+          [aValidatedReport.id]: {
+            ...aValidatedReport,
+            attachedFiles: [
+              {
+                name: "image.png",
+                signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
+              },
+            ],
+          },
         });
       });
 
       it("lists attached files urls", async () => {
-        reportGateway.addReport({
-          ...aValidatedReport,
+        reportApiClient.addReport({
+          ...aValidatedReportApiModel,
           attachedFiles: [
             {
               name: "file1.png",
-              signedUrl: `${FakeReportGateway.BASE_URI}/file1.png`,
+              signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
             },
             {
               name: "file2.png",
-              signedUrl: `${FakeReportGateway.BASE_URI}/file2.png`,
+              signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
             },
           ],
         });
@@ -313,6 +313,31 @@ describe("Report Overview Component", () => {
 
         await screen.findByText("file1.png");
         await screen.findByText("file2.png");
+      });
+
+      it("deletes an attached file", async () => {
+        reportApiClient.addReport({
+          ...aValidatedReportApiModel,
+          attachedFiles: [
+            {
+              name: "file1.png",
+              signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
+            },
+            {
+              name: "file2.png",
+              signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
+            },
+          ],
+        });
+        renderReport(aValidatedReport.id);
+
+        await screen.findByText("file1.png");
+
+        const deleteButton = await screen.findByRole("button", {
+          name: "delete-attached-file-file1.png",
+        });
+        await userEvent.click(deleteButton);
+        expect(screen.queryByText("file1.png")).toBeNull();
       });
     });
 
@@ -329,7 +354,7 @@ describe("Report Overview Component", () => {
         .toBuffer();
 
     const givenAValidatedReport = () => {
-      reportGateway.addReport(aValidatedReport);
+      reportApiClient.addReport(aValidatedReportApiModel);
     };
   });
 
@@ -392,25 +417,26 @@ describe("Report Overview Component", () => {
       }),
     );
 
-    await waitFor(async () => {
-      expect(store.getState()).not.toEqual(initialState);
-      await screen.findByRole("checkbox", {
-        name: label,
-        checked: !initiallyChecked,
-      });
+    await screen.findByRole("checkbox", {
+      name: label,
+      checked: !initiallyChecked,
     });
+    expect(store.getState()).not.toEqual(initialState);
   };
 });
 
-const aValidatedReport = new ReportBuilder()
+const aValidatedReportApiModel = new ReportApiModelBuilder()
   .with("id", "report-id")
   .with("biography", "  - John Doe's biography - second line  - third line ")
   .with("observers", [
     "observer 1",
     "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
   ])
-  .buildRetrieveVM();
+  .build();
+const aValidatedReport = ReportBuilder.fromApiModel(
+  aValidatedReportApiModel,
+).buildRetrieveVM();
 
-const anUnvalidatedNomination = new ReportBuilder()
+const anUnvalidatedReportApiModel = new ReportApiModelBuilder()
   .withAllRulesUnvalidated()
-  .buildRetrieveVM();
+  .build();

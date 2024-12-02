@@ -77,7 +77,7 @@ describe('Attach Report File Use Case', () => {
       ]);
     });
 
-    it('delete the file if its metadata cannot be saved', async () => {
+    it("doesn't upload the file if its metadata cannot be saved", async () => {
       reportAttachedFileRepository.saveError = new Error('Failed to save file');
       await expect(uploadFile()).rejects.toThrow('Failed to save file');
       expect(reportFileService.files).toEqual({});

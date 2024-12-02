@@ -5,21 +5,26 @@ import {
 } from 'src/files-context/business-logic/models/file-document';
 
 type FileName = string;
+type Bucket = string;
+type FilePath = string;
 
 export class FakeS3StorageProvider implements S3StorageProvider {
   uploadFileError: Error;
   deleteFileError: Error;
 
   storedFiles: Record<
-    FileName,
-    {
-      file: Buffer;
-      fileName: FileName;
-      mimeType: string;
-      bucket: string;
-      filePath: string[] | null;
-      signedUrl?: string;
-    }
+    Bucket,
+    Record<
+      FilePath,
+      Record<
+        FileName,
+        {
+          file: Buffer;
+          mimeType: string;
+          signedUrl?: string;
+        }
+      >
+    >
   > = {};
 
   async uploadFile(
@@ -31,21 +36,71 @@ export class FakeS3StorageProvider implements S3StorageProvider {
   ): Promise<void> {
     if (this.uploadFileError) throw this.uploadFileError;
 
-    this.storedFiles[fileName] = { file, fileName, mimeType, bucket, filePath };
+    this.storedFiles = {
+      ...this.storedFiles,
+      [bucket]: {
+        ...this.storedFiles[bucket],
+        [filePath?.join('/') || '']: {
+          [fileName]: {
+            file,
+            mimeType,
+          },
+        },
+      },
+    };
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {
     return files.map((file) => {
-      const { name } = file.toSnapshot();
-      file.addSignedUrl(this.storedFiles[name]!.signedUrl!);
+      const { name, bucket, path } = file.toSnapshot();
+      const fileStored =
+        this.storedFiles[bucket]![path?.join('/') || '']![name];
+      file.addSignedUrl(
+        fileStored?.signedUrl || this.genSignedUrl(bucket, path, name),
+      );
       return file.getFileVM();
     });
   }
 
-  deleteFile(_: unknown, __: unknown, fileName: FileName): Promise<void> {
+  async deleteFile(
+    bucket: string,
+    filePath: string[] | null,
+    fileName: FileName,
+  ): Promise<void> {
     if (this.deleteFileError) throw this.deleteFileError;
 
-    delete this.storedFiles[fileName];
-    return Promise.resolve();
+    delete this.storedFiles[bucket]![filePath?.join('/') || '']![fileName];
+  }
+
+  addFile(
+    bucket: Bucket,
+    path: string[] | null,
+    fileName: FileName,
+    file: Buffer,
+    mimeType: string,
+    signedUrl?: string,
+  ) {
+    this.storedFiles = {
+      ...this.storedFiles,
+      [bucket]: {
+        ...this.storedFiles[bucket],
+        [path?.join('/') || '']: {
+          ...this.storedFiles[bucket]?.[path?.join('/') || ''],
+          [fileName]: {
+            file,
+            mimeType,
+            signedUrl,
+          },
+        },
+      },
+    };
+  }
+
+  genSignedUrl(
+    bucket: Bucket,
+    path: string[] | null,
+    fileName: FileName,
+  ): string {
+    return `http://example.fr/${bucket}/${path ? path.join('/') + '/' : ''}${fileName}`;
   }
 }

@@ -4,16 +4,18 @@ import { AppState } from "../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
+import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { updateReportRule } from "./updateReportRule.use-case";
+import { deleteReportAttachedFile } from "./delete-report-attached-file";
 
-describe("Report Rule Update", () => {
+describe("Delete Report Attached File", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
+    reportApiClient.addReport(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
     store = initReduxStore(
       {
@@ -21,36 +23,29 @@ describe("Report Rule Update", () => {
       },
       {},
       {},
+      { reportFileAttached },
     );
     initialState = store.getState();
+
+    store.dispatch(retrieveReport.fulfilled(aReport, "", aReport.id));
   });
 
-  it("switch the transfer time rule from unvalidated to validated", async () => {
-    reportApiClient.addReport(aReportApiModel);
-    store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
-    await store.dispatch(
-      updateReportRule({
-        reportId: "report-id",
-        ruleId: aReport.rules.management.TRANSFER_TIME.id,
-        validated: true,
+  it("deletes a report", async () => {
+    store.dispatch(
+      deleteReportAttachedFile.fulfilled(undefined, "", {
+        reportId: aReport.id,
+        fileName: "file.pdf",
       }),
     );
+
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: {
             ...aReport,
-            rules: {
-              ...aReport.rules,
-              management: {
-                ...aReport.rules.management,
-                TRANSFER_TIME: {
-                  ...aReport.rules.management.TRANSFER_TIME,
-                  validated: true,
-                },
-              },
-            },
+            attachedFiles: [],
           },
         },
       },
@@ -59,6 +54,11 @@ describe("Report Rule Update", () => {
 });
 
 const aReportApiModel = new ReportApiModelBuilder()
-  .with("rules.management.TRANSFER_TIME.validated", false)
+  .with("attachedFiles", [
+    {
+      signedUrl: "https://example.fr",
+      name: "file.pdf",
+    },
+  ])
   .build();
 const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();

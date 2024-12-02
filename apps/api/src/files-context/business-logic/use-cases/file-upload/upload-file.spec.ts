@@ -35,17 +35,18 @@ describe('Upload file', () => {
   it("uploads a file to a provider's storage", async () => {
     const file = getFile();
     await uploadFile(file);
-    expect(Object.values(fakeS3StorageProvider.storedFiles)).toEqual<
-      FakeS3StorageProvider['storedFiles'][string][]
-    >([
-      {
-        file: Buffer.from('file content'),
-        fileName: file.name,
-        bucket: file.bucket,
-        filePath: file.path,
-        mimeType: 'text/plain',
+    expect(fakeS3StorageProvider.storedFiles).toEqual<
+      FakeS3StorageProvider['storedFiles']
+    >({
+      [file.bucket]: {
+        [file.path?.join('/') || '']: {
+          [file.name]: {
+            file: Buffer.from('file content'),
+            mimeType: 'text/plain',
+          },
+        },
       },
-    ]);
+    });
   });
 
   it.each`

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -23,6 +24,7 @@ import {
 } from 'shared-models';
 import { ChangeRuleValidationStateDto } from './dto/report-update.dto';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
+import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 
 export type ReportsEndpoints = typeof ReportsEndpoints;
 
@@ -44,6 +46,7 @@ export class ReportsController implements IReportController {
     private readonly updateReportUseCase: UpdateReportUseCase,
     private readonly attachReportFileUseCase: AttachReportFileUseCase,
     private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
+    private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
   ) {}
 
   @Get(reportsEndpointRelativePaths.listReports)
@@ -94,5 +97,12 @@ export class ReportsController implements IReportController {
     { reportId, fileName }: ReportsEndpoints['generateFileUrl']['Params'],
   ): Promise<string> {
     return this.generateReportFileUrlUseCase.execute(reportId, fileName);
+  }
+
+  @Delete(reportsEndpointRelativePaths.deleteAttachedFile)
+  async deleteAttachedFile(
+    @Param() { id, fileName }: ReportsEndpoints['deleteAttachedFile']['Params'],
+  ): Promise<void> {
+    return this.deleteReportAttachedFileUseCase.execute(id, fileName);
   }
 }

@@ -11,5 +11,5 @@ export interface ReportFileService {
   ): Promise<void>;
   getSignedUrl(attachedFile: ReportAttachedFile): Promise<ReportSignedUrl>;
   getSignedUrls(attachedFiles: ReportAttachedFiles): Promise<ReportSignedUrl[]>;
-  deleteFile(file: ReportAttachedFile, bucket: string): Promise<void>;
+  deleteFile(file: ReportAttachedFile): Promise<void>;
 }

@@ -1,21 +1,25 @@
 import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
-import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
-import { FakeReportGateway } from "../../../adapters/secondary/gateways/FakeReport.gateway";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { AppState } from "../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { listReport } from "./listReport.use-case";
 
 describe("Nomination Files Listing", () => {
   let store: ReduxStore;
-  let reportGateway: FakeReportGateway;
   let initialState: AppState;
   let authenticationGateway: FakeAuthenticationGateway;
+  let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
+    reportApiClient = new FakeReportApiClient();
+    const reportGateway = new ApiReportGateway(reportApiClient);
+
     authenticationGateway = new FakeAuthenticationGateway();
+
     store = initReduxStore(
       {
         reportGateway,
@@ -29,7 +33,7 @@ describe("Nomination Files Listing", () => {
 
   describe("when there is a report", () => {
     beforeEach(() => {
-      reportGateway.addReport(aReport);
+      reportApiClient.addReport(aReportApiModel);
     });
 
     describe("Authenticated user", () => {
@@ -72,9 +76,10 @@ const user = {
   reporterName: "REPORTER Name",
 } satisfies AuthenticatedUser;
 
-const aReport = new ReportBuilder()
+const aReportApiModel = new ReportApiModelBuilder()
   .with("id", "user-report-id")
   .with("name", "Lucien Denan")
   .with("reporterName", user.reporterName)
-  .with("dueDate", new DateOnly(2030, 10, 30))
-  .buildListVM();
+  .with("dueDate", { year: 2030, month: 10, day: 10 })
+  .build();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildListVM();

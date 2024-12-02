@@ -40,7 +40,7 @@ export class ReportBuilderVM {
         ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
       ],
       rulesChecked: new ReportVMRulesBuilder(({ ruleGroup, ruleName }) => ({
-        id: ruleName,
+        id: `${ruleGroup}-${ruleName}`,
         highlighted: true,
         checked: false,
         label: (

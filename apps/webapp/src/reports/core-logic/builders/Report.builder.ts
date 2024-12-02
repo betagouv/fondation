@@ -4,6 +4,7 @@ import { Get, Paths } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../store/appState";
 import { ReportSMRulesBuilder } from "./ReportSMRules.builder";
+import { ReportApiModel } from "./ReportApiModel.builder";
 
 type InternalReport = Omit<
   ReportSM & ReportListItem,
@@ -133,5 +134,35 @@ export class ReportBuilder {
       rules: this._report.rules,
       attachedFiles: this._report.attachedFiles,
     };
+  }
+
+  static fromApiModel(aValidatedReportApiModel: ReportApiModel) {
+    const builder = new ReportBuilder();
+    return builder
+      .with("id", aValidatedReportApiModel.id)
+      .with("folderNumber", aValidatedReportApiModel.folderNumber)
+      .with("name", aValidatedReportApiModel.name)
+      .with("biography", aValidatedReportApiModel.biography)
+      .with(
+        "dueDate",
+        aValidatedReportApiModel.dueDate
+          ? DateOnly.fromStoreModel(aValidatedReportApiModel.dueDate)
+          : null,
+      )
+      .with(
+        "birthDate",
+        DateOnly.fromStoreModel(aValidatedReportApiModel.birthDate),
+      )
+      .with("state", aValidatedReportApiModel.state)
+      .with("formation", aValidatedReportApiModel.formation)
+      .with("transparency", aValidatedReportApiModel.transparency)
+      .with("grade", aValidatedReportApiModel.grade)
+      .with("currentPosition", aValidatedReportApiModel.currentPosition)
+      .with("targettedPosition", aValidatedReportApiModel.targettedPosition)
+      .with("comment", aValidatedReportApiModel.comment)
+      .with("rank", aValidatedReportApiModel.rank)
+      .with("observers", aValidatedReportApiModel.observers)
+      .with("rules", aValidatedReportApiModel.rules)
+      .with("attachedFiles", aValidatedReportApiModel.attachedFiles);
   }
 }

@@ -10,6 +10,7 @@ export class FakeReportFileService implements ReportFileService {
   static BASE_URL = 'http://example.fr' as const;
 
   uploadError: Error;
+  deleteError: Error;
 
   currentReport: NominationFileReportSnapshot;
   files: Record<
@@ -58,6 +59,8 @@ export class FakeReportFileService implements ReportFileService {
   }
 
   async deleteFile(file: ReportAttachedFile): Promise<void> {
+    if (this.deleteError) throw this.deleteError;
+
     delete this.files[file.toSnapshot().fileId];
   }
 }

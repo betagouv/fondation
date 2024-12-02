@@ -28,7 +28,7 @@ export class FetchReportApiClient implements ReportApiClient {
     reportUpdateDto.parse(data);
     await this.fetchJson({
       endpoint: ReportsEndpoints.updateReport,
-      params: { id: id },
+      params: { id },
       body: {
         state: data.state,
         comment: data.comment,
@@ -65,6 +65,16 @@ export class FetchReportApiClient implements ReportApiClient {
       method: ReportsEndpoints.generateFileUrl.method,
     });
     return await response.text();
+  }
+
+  async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
+    return this.fetchJson({
+      endpoint: ReportsEndpoints.deleteAttachedFile,
+      params: {
+        id: reportId,
+        fileName,
+      },
+    });
   }
 
   private async fetchJson<

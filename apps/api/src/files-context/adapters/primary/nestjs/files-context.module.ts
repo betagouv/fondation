@@ -19,8 +19,6 @@ import { generateFilesProvider as generateProvider } from './provider-generator'
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
 import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 @Module({
   imports: [SharedKernelModule],
   controllers: [FilesController],
@@ -43,13 +41,12 @@ const isProduction = process.env.NODE_ENV === 'production';
     ]),
 
     generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
-    isProduction
-      ? generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER)
-      : generateProvider(
-          RealS3StorageProvider,
-          [S3Client, API_CONFIG, S3Commands],
-          S3_STORAGE_PROVIDER,
-        ),
+    generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER),
+    generateProvider(
+      RealS3StorageProvider,
+      [S3Client, API_CONFIG, S3Commands],
+      S3_STORAGE_PROVIDER,
+    ),
     {
       provide: S3Client,
       useValue: minioS3StorageClient,

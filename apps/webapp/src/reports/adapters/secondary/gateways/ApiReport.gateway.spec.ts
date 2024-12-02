@@ -3,56 +3,57 @@ import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportListItem, ReportSM } from "../../../store/appState";
 import { ApiReportGateway } from "./ApiReport.gateway";
 import { FakeReportApiClient } from "./FakeReport.client";
+import { ReportApiModelBuilder } from "../../../core-logic/builders/ReportApiModel.builder";
 
 describe("Api Report Gateway", () => {
   let reportApiClient: FakeReportApiClient;
+  let apiReportGateway: ApiReportGateway;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReport(aReport, aRule);
+    reportApiClient.addReport(aReportApiModel);
+    apiReportGateway = new ApiReportGateway(reportApiClient);
   });
 
   it("lists a report", async () => {
-    expect(await new ApiReportGateway(reportApiClient).list()).toEqual<
-      ReportListItem[]
-    >([
+    expect(await apiReportGateway.list()).toEqual<ReportListItem[]>([
       {
-        id: aReport.id,
-        folderNumber: aReport.folderNumber,
-        name: aReport.name,
-        reporterName: aReport.reporterName,
-        state: aReport.state,
-        dueDate: aReport.dueDate,
-        formation: aReport.formation,
-        transparency: aReport.transparency,
-        grade: aReport.grade,
-        targettedPosition: aReport.targettedPosition,
-        observersCount: aReport.observersCount,
+        id: aReportListSM.id,
+        folderNumber: aReportListSM.folderNumber,
+        name: aReportListSM.name,
+        reporterName: aReportListSM.reporterName,
+        state: aReportListSM.state,
+        dueDate: aReportListSM.dueDate,
+        formation: aReportListSM.formation,
+        transparency: aReportListSM.transparency,
+        grade: aReportListSM.grade,
+        targettedPosition: aReportListSM.targettedPosition,
+        observersCount: aReportListSM.observersCount,
       },
     ]);
   });
 
   it("retrieves a report", async () => {
-    const rules = reportApiClient.reports[aReport.id]!.rules;
+    const rules = reportApiClient.reports[aReportRetrievedSM.id]!.rules;
 
     expect(
-      await new ApiReportGateway(reportApiClient).retrieveReport(aReport.id),
+      await apiReportGateway.retrieveReport(aReportRetrievedSM.id),
     ).toEqual<ReportSM>({
-      id: aReport.id,
-      folderNumber: aReport.folderNumber,
-      name: aReport.name,
-      biography: aReport.biography,
-      dueDate: aReport.dueDate,
-      birthDate: aReport.birthDate,
-      state: aReport.state,
-      formation: aReport.formation,
-      transparency: aReport.transparency,
-      grade: aReport.grade,
-      currentPosition: aReport.currentPosition,
-      targettedPosition: aReport.targettedPosition,
-      comment: aReport.comment,
-      rank: aReport.rank,
-      observers: aReport.observers,
+      id: aReportRetrievedSM.id,
+      folderNumber: aReportRetrievedSM.folderNumber,
+      name: aReportRetrievedSM.name,
+      biography: aReportRetrievedSM.biography,
+      dueDate: aReportRetrievedSM.dueDate,
+      birthDate: aReportRetrievedSM.birthDate,
+      state: aReportRetrievedSM.state,
+      formation: aReportRetrievedSM.formation,
+      transparency: aReportRetrievedSM.transparency,
+      grade: aReportRetrievedSM.grade,
+      currentPosition: aReportRetrievedSM.currentPosition,
+      targettedPosition: aReportRetrievedSM.targettedPosition,
+      comment: aReportRetrievedSM.comment,
+      rank: aReportRetrievedSM.rank,
+      observers: aReportRetrievedSM.observers,
       rules: {
         ...rules,
         [aRule.group]: {
@@ -65,18 +66,15 @@ describe("Api Report Gateway", () => {
           },
         },
       },
-      attachedFiles: aReport.attachedFiles,
+      attachedFiles: aReportRetrievedSM.attachedFiles,
     });
   });
 
   it("updates a rule", async () => {
-    await new ApiReportGateway(reportApiClient).updateRule(
-      aRule.id,
-      !aRule.validated,
-    );
+    await apiReportGateway.updateRule(aRule.id, !aRule.validated);
 
     const ruleGroupEntry =
-      reportApiClient.reports[aReport.id]!.rules[aRule.group];
+      reportApiClient.reports[aReportRetrievedSM.id]!.rules[aRule.group];
     expect(
       (
         ruleGroupEntry as NominationFile.Rules[NominationFile.RuleGroup.MANAGEMENT]
@@ -88,17 +86,64 @@ describe("Api Report Gateway", () => {
       comment: aRule.comment,
     });
   });
+
+  describe("Attached Files", () => {
+    const aFile = new File([""], "some-file.pdf");
+
+    it("attaches a file", async () => {
+      await apiReportGateway.attachFile(aReportRetrievedSM.id, aFile);
+      expect(
+        reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles![0]!.name,
+      ).toEqual(aFile.name);
+    });
+
+    describe("When there is a file attached", () => {
+      beforeEach(() => {
+        reportApiClient.reports[aReportRetrievedSM.id]! = {
+          ...reportApiClient.reports[aReportRetrievedSM.id]!,
+          attachedFiles: [{ name: aFile.name, signedUrl: "some-url" }],
+        };
+      });
+
+      it("generates a file url", async () => {
+        expect(
+          await apiReportGateway.generateFileUrl(
+            aReportRetrievedSM.id,
+            aFile.name,
+          ),
+        ).toEqual("some-url");
+      });
+
+      it("deletes an attached file", async () => {
+        await apiReportGateway.deleteAttachedFile(
+          aReportRetrievedSM.id,
+          aFile.name,
+        );
+        expect(
+          reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
+        ).toEqual([]);
+      });
+    });
+  });
 });
 
-const aReport = {
-  ...new ReportBuilder().buildRetrieveVM(),
-  ...new ReportBuilder().buildListVM(),
-};
 const aRule = {
-  id: "1",
+  id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.TRANSFER_TIME}`,
   group: NominationFile.RuleGroup.MANAGEMENT,
   name: NominationFile.ManagementRule.TRANSFER_TIME,
   preValidated: true,
   validated: true,
   comment: "some rule comment",
 };
+
+const aReportApiModel = new ReportApiModelBuilder()
+  .with("rules.management.TRANSFER_TIME", {
+    id: aRule.id,
+    preValidated: aRule.preValidated,
+    validated: aRule.validated,
+    comment: aRule.comment,
+  })
+  .build();
+const aReportRetrievedSM =
+  ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReportListSM = ReportBuilder.fromApiModel(aReportApiModel).buildListVM();

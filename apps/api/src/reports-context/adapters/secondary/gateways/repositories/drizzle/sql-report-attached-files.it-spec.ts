@@ -53,6 +53,21 @@ describe('SQL Report Attached File Repository', () => {
 
     expect(result).toEqual(ReportAttachedFile.fromSnapshot(file));
   });
+
+  it("deletes an attached file by report's id and file name", async () => {
+    const file = reportAttachedFile.toSnapshot();
+
+    await db
+      .insert(reportAttachedFiles)
+      .values(SqlReportAttachedFileRepository.mapSnapshotToDb(file))
+      .execute();
+
+    await transactionPerformer.perform(
+      sqlReportRuleRepository.delete(ReportAttachedFile.fromSnapshot(file)),
+    );
+
+    expect(await db.select().from(reportAttachedFiles).execute()).toEqual([]);
+  });
 });
 
 const reportId = 'cd1619e2-263d-49b6-b928-6a04ee681133';

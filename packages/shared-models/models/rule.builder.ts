@@ -11,8 +11,11 @@ type RuleFunction<T> = (rule: {
 export abstract class RulesBuilder<T = NominationFile.RuleValue> {
   private readonly _rules: NominationFile.Rules<T>;
 
-  constructor(defaultRuleValue: T | RuleFunction<T>) {
-    this._rules = rulesTuple.reduce((acc, [ruleGroup, ruleName]) => {
+  constructor(
+    defaultRuleValue: T | RuleFunction<T>,
+    initialRules?: NominationFile.Rules<T>
+  ) {
+    const rules = rulesTuple.reduce((acc, [ruleGroup, ruleName]) => {
       return {
         ...acc,
         [ruleGroup]: {
@@ -27,6 +30,7 @@ export abstract class RulesBuilder<T = NominationFile.RuleValue> {
         },
       };
     }, {} as NominationFile.Rules<T>);
+    this._rules = _.merge(rules, initialRules);
   }
 
   with<

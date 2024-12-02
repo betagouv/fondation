@@ -7,4 +7,5 @@ export interface ReportAttachedFileRepository {
     reportId: string,
     fileName: string,
   ): TransactionableAsync<ReportAttachedFile | null>;
+  delete(reportAttachedFile: ReportAttachedFile): TransactionableAsync;
 }

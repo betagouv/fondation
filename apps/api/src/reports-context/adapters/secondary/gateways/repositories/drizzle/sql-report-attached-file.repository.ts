@@ -1,3 +1,4 @@
+import { and, eq } from 'drizzle-orm';
 import { ReportAttachedFileRepository } from 'src/reports-context/business-logic/gateways/repositories/report-attached-file.repository';
 import {
   ReportAttachedFile,
@@ -5,7 +6,6 @@ import {
 } from 'src/reports-context/business-logic/models/report-attached-file';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { reportAttachedFiles } from './schema/report-attached-file-pm';
-import { and, eq } from 'drizzle-orm';
 
 export class SqlReportAttachedFileRepository
   implements ReportAttachedFileRepository
@@ -42,6 +42,20 @@ export class SqlReportAttachedFileRepository
       if (reportAttachedFile.length === 0) return null;
 
       return SqlReportAttachedFileRepository.toDomain(reportAttachedFile[0]!);
+    };
+  }
+
+  delete(reportAttachedFile: ReportAttachedFile): DrizzleTransactionableAsync {
+    return async (trx) => {
+      await trx
+        .delete(reportAttachedFiles)
+        .where(
+          and(
+            eq(reportAttachedFiles.reportId, reportAttachedFile.reportId),
+            eq(reportAttachedFiles.name, reportAttachedFile.name),
+          ),
+        )
+        .execute();
     };
   }
 

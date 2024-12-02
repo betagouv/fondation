@@ -9,11 +9,13 @@ import clsx from "clsx";
 export type AttachedFileUploadProps = {
   attachedFiles: ReportSM["attachedFiles"];
   onFileAttached: (file: File) => void;
+  onAttachedFileDeleted: (fileName: string) => void;
 };
 
 export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   attachedFiles,
   onFileAttached,
+  onAttachedFileDeleted,
 }) => {
   return (
     <Card>
@@ -32,7 +34,12 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
           hint="Formats supportés : png, jpeg et pdf."
           multiple={false}
         />
-        {attachedFiles && <AttachedFilesList attachedFiles={attachedFiles} />}
+        {attachedFiles && (
+          <AttachedFilesList
+            attachedFiles={attachedFiles}
+            onAttachedFileDeleted={onAttachedFileDeleted}
+          />
+        )}
       </div>
     </Card>
   );

@@ -40,8 +40,7 @@ export class ReportAttachedFile {
 
   generateDeleteUrl(fileServiceUrl: URL): URL {
     const deleteUrl = new URL(fileServiceUrl);
-    deleteUrl.pathname = '/api/files';
-    deleteUrl.searchParams.append('id', this._fileId);
+    deleteUrl.pathname = `/api/files/${this._fileId}`;
     return deleteUrl;
   }
 
@@ -50,6 +49,9 @@ export class ReportAttachedFile {
   }
   public get fileId(): string {
     return this._fileId;
+  }
+  public get reportId(): string {
+    return this._reportId;
   }
 
   toSnapshot(): ReportAttachedFileSnapshot {

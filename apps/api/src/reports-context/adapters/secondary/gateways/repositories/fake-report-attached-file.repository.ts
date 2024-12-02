@@ -8,8 +8,10 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeReportAttachedFileRepository
   implements ReportAttachedFileRepository
 {
-  files: Record<string, ReportAttachedFileSnapshot> = {};
   saveError: Error;
+  deleteError: Error;
+
+  files: Record<string, ReportAttachedFileSnapshot> = {};
 
   save(reportAttachedFile: ReportAttachedFile): TransactionableAsync {
     if (this.saveError) {
@@ -31,6 +33,14 @@ export class FakeReportAttachedFileRepository
         (file) => file.name === fileName,
       );
       return file ? ReportAttachedFile.fromSnapshot(file) : null;
+    };
+  }
+
+  delete(reportAttachedFile: ReportAttachedFile): TransactionableAsync {
+    return async () => {
+      if (this.deleteError) throw this.deleteError;
+
+      delete this.files[reportAttachedFile.toSnapshot().name];
     };
   }
 }

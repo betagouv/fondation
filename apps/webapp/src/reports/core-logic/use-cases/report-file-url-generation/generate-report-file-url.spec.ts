@@ -1,18 +1,22 @@
-import { FakeReportGateway } from "../../../adapters/secondary/gateways/FakeReport.gateway";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { AppState } from "../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { generateReportFileUrl } from "./generate-report-file-url";
 
 describe("Generate Report File Url", () => {
   let store: ReduxStore;
   let initialState: AppState;
-  let reportGateway: FakeReportGateway;
+  let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
-    reportGateway.addReport(aReport);
+    reportApiClient = new FakeReportApiClient();
+    reportApiClient.addReport(aReportApiModel);
+    const reportGateway = new ApiReportGateway(reportApiClient);
+
     store = initReduxStore(
       {
         reportGateway,
@@ -52,11 +56,12 @@ describe("Generate Report File Url", () => {
 
 const signedUrl = "https://example.fr/file.txt";
 
-const aReport = new ReportBuilder()
+const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [
     {
       name: "file.txt",
       signedUrl: signedUrl,
     },
   ])
-  .buildRetrieveVM();
+  .build();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();

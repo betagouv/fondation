@@ -5,6 +5,7 @@ import { generateReportFileUrl } from "../use-cases/report-file-url-generation/g
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
+import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 
 const initialState: AppState["reportOverview"] = { byIds: null };
 
@@ -92,6 +93,18 @@ const reportOverviewSlice = createSlice({
     builder.addCase(retrieveReport.fulfilled, (state, action) => {
       if (action.payload)
         state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
+    });
+
+    builder.addCase(deleteReportAttachedFile.fulfilled, (state, action) => {
+      const { reportId, fileName } = action.meta.arg;
+      const report = state.byIds?.[reportId];
+
+      if (report) {
+        const attachedFiles = report.attachedFiles || [];
+        report.attachedFiles = attachedFiles.filter(
+          (file) => file.name !== fileName,
+        );
+      }
     });
   },
 });

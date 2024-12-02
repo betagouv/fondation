@@ -33,6 +33,7 @@ import {
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
 } from './tokens';
+import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 
 @Module({
   imports: [SharedKernelModule],
@@ -80,6 +81,11 @@ import {
       TRANSACTION_PERFORMER,
       REPORT_ATTACHED_FILE_REPOSITORY,
       REPORT_FILE_SERVICE,
+    ]),
+    generateProvider(DeleteReportAttachedFileUseCase, [
+      REPORT_ATTACHED_FILE_REPOSITORY,
+      REPORT_FILE_SERVICE,
+      TRANSACTION_PERFORMER,
     ]),
 
     generateProvider(HttpReportFileService, [API_CONFIG], REPORT_FILE_SERVICE),

@@ -11,9 +11,3 @@ export const rulesTuple = [
     (rule) => [NominationFile.RuleGroup.QUALITATIVE, rule] as const
   ),
 ];
-
-export const ruleGroupToRuleNames = {
-  [NominationFile.RuleGroup.MANAGEMENT]: NominationFile.ManagementRule,
-  [NominationFile.RuleGroup.STATUTORY]: NominationFile.StatutoryRule,
-  [NominationFile.RuleGroup.QUALITATIVE]: NominationFile.QualitativeRule,
-};

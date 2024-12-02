@@ -11,32 +11,32 @@ describe('Delete File Use Case', () => {
   let transactionPerformer: NullTransactionPerformer;
 
   beforeEach(() => {
-    const createFakeData = () => {
+    const createRepositories = () => {
       fileRepository = new FakeFileRepository();
       fileRepository.files = {
         [aFile.id]: aFile,
       };
-
-      storageProvider = new FakeS3StorageProvider();
-      storageProvider.storedFiles = {
-        [aFile.name]: {
-          bucket: aFile.bucket,
-          filePath: aFile.path,
-          fileName: aFile.name,
-          file: Buffer.from('test file.pdf'),
-          mimeType: 'application/pdf',
-        },
-      };
     };
 
-    createFakeData();
-    transactionPerformer = new NullTransactionPerformer(createFakeData);
+    storageProvider = new FakeS3StorageProvider();
+    storageProvider.addFile(
+      aFile.bucket,
+      aFile.path,
+      aFile.name,
+      Buffer.from('test file.pdf'),
+      'application/pdf',
+    );
+
+    createRepositories();
+    transactionPerformer = new NullTransactionPerformer(createRepositories);
   });
 
   it('should delete a file successfully', async () => {
     await deleteFile(aFile);
     expect(fileRepository.files).toEqual({});
-    expect(storageProvider.storedFiles).toEqual({});
+    expect(storageProvider.storedFiles).toEqual({
+      [aFile.bucket]: { '': {} },
+    });
   });
 
   it("keeps the file's metadata if storage deletion failed", async () => {
@@ -56,13 +56,16 @@ describe('Delete File Use Case', () => {
     );
 
     expect(Object.values(fileRepository.files)).toEqual([aFile]);
-    expect(storageProvider.storedFiles).toEqual({
-      [aFile.name]: {
-        bucket: aFile.bucket,
-        file: Buffer.from('test file.pdf'),
-        fileName: aFile.name,
-        filePath: aFile.path,
-        mimeType: 'application/pdf',
+    expect(storageProvider.storedFiles).toEqual<
+      FakeS3StorageProvider['storedFiles']
+    >({
+      [aFile.bucket]: {
+        [aFile.path?.join('/') || '']: {
+          [aFile.name]: {
+            file: Buffer.from('test file.pdf'),
+            mimeType: 'application/pdf',
+          },
+        },
       },
     });
   });

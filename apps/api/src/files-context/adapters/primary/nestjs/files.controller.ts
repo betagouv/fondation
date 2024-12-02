@@ -47,7 +47,8 @@ export class FilesController {
   }
 
   @Delete(':id')
-  async deleteFile(@Param() { id }: FileDeletionParamDto) {
+  async deleteFile(@Param() query: FileDeletionParamDto) {
+    const { id } = query;
     return this.deleteFileUseCase.execute(id);
   }
 }

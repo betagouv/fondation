@@ -1,16 +1,19 @@
-import { FakeReportGateway } from "../../../adapters/secondary/gateways/FakeReport.gateway";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { AppState } from "../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "./retrieveReport.use-case";
 
 describe("Retrieve Nomination Case", () => {
   let store: ReduxStore;
-  let reportGateway: FakeReportGateway;
   let initialState: AppState;
+  let reportApiClient: FakeReportApiClient;
 
   beforeEach(() => {
-    reportGateway = new FakeReportGateway();
+    reportApiClient = new FakeReportApiClient();
+    const reportGateway = new ApiReportGateway(reportApiClient);
     store = initReduxStore(
       {
         reportGateway: reportGateway,
@@ -22,16 +25,16 @@ describe("Retrieve Nomination Case", () => {
   });
 
   it("retrieve a nomination file", async () => {
-    reportGateway.addReport(aNomination);
+    reportApiClient.addReport(aReportApiModel);
     await store.dispatch(retrieveReport("report-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
-      reportOverview: { byIds: { [aNomination.id]: aNomination } },
+      reportOverview: { byIds: { [aReport.id]: aReport } },
     });
   });
 
   it("has two nomination cases in the store after retrieving a second one", async () => {
-    reportGateway.addReport(aNomination);
+    reportApiClient.addReport(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(anotherNomination, "", ""));
 
     await store.dispatch(retrieveReport("report-id"));
@@ -40,7 +43,7 @@ describe("Retrieve Nomination Case", () => {
       ...initialState,
       reportOverview: {
         byIds: {
-          [aNomination.id]: aNomination,
+          [aReport.id]: aReport,
           [anotherNomination.id]: anotherNomination,
         },
       },
@@ -48,7 +51,8 @@ describe("Retrieve Nomination Case", () => {
   });
 });
 
-const aNomination = new ReportBuilder().buildRetrieveVM();
+const aReportApiModel = new ReportApiModelBuilder().build();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
 
 const anotherNomination = new ReportBuilder()
   .with("id", "another-report-id")
