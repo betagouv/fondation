@@ -4,7 +4,15 @@ on:
   pull_request:
     types: [opened, synchronize]
   workflow_call:
-
+    inputs:
+      environment:
+        type: string
+        required: true
+    secrets:
+      SCW_SECRET_KEY:
+        required: true
+      SCW_ENCRYPTION_KEY:
+        required: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,5 +40,10 @@ jobs:
         run: pnpm format:check
       - name: Test
         run: pnpm test:all
+        env:
+          SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
+          S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
       - name: Build
         run: pnpm build

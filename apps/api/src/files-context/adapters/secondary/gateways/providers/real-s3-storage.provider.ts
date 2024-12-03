@@ -11,7 +11,7 @@ import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-
 export class RealS3StorageProvider implements S3StorageProvider {
   constructor(
     private readonly s3Client: S3Client,
-    private readonly apiConfig: ApiConfig<false>,
+    private readonly apiConfig: ApiConfig,
     private readonly s3Commands: S3Commands,
   ) {}
 
@@ -75,7 +75,7 @@ export class RealS3StorageProvider implements S3StorageProvider {
       await this.s3Client.send(this.s3Commands.headBucket(bucket));
     } catch (error) {
       if (error.name === 'NotFound') {
-        await this.s3Client.send(this.s3Commands.createBucket(bucket));
+        throw new Error(`Bucket ${bucket} not found`);
       } else {
         throw error;
       }

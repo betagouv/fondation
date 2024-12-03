@@ -18,6 +18,12 @@ import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
 import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const isCi = process.env.CI === 'true';
+const isScalewayS3 = isProduction || isCi;
 
 @Module({
   imports: [SharedKernelModule],
@@ -42,14 +48,20 @@ import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s
 
     generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
     generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER),
-    generateProvider(
-      RealS3StorageProvider,
-      [S3Client, API_CONFIG, S3Commands],
-      S3_STORAGE_PROVIDER,
-    ),
+    {
+      provide: S3_STORAGE_PROVIDER,
+      useFactory: (
+        s3Client: S3Client,
+        apiConfig: ApiConfig,
+        s3Commands: S3Commands,
+      ) => {
+        return new RealS3StorageProvider(s3Client, apiConfig, s3Commands);
+      },
+      inject: [S3Client, API_CONFIG, S3Commands],
+    },
     {
       provide: S3Client,
-      useValue: minioS3StorageClient,
+      useValue: isScalewayS3 ? scalewayS3StorageClient : minioS3StorageClient,
     },
     { provide: S3Commands, useClass: MinioS3Commands },
   ],

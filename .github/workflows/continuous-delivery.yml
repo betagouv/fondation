@@ -4,12 +4,14 @@ on:
   push:
     branches:
       - main
-  # Temporary, to trigger the workflow manually while creating the API CI/CD
   workflow_dispatch:
 
 jobs:
   integration-checks:
     uses: ./.github/workflows/integration-checks.yml
+    with:
+      environment: ci
+    secrets: inherit
 
   build-and-upload-api-artifact:
     needs: [integration-checks]

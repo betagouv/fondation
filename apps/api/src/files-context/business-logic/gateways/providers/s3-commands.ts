@@ -1,26 +1,30 @@
 import {
-  CreateBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  PutObjectRequest,
 } from '@aws-sdk/client-s3';
 import { join } from 'path';
 
+export type SseHeaders = Required<
+  Pick<
+    PutObjectRequest,
+    'SSECustomerAlgorithm' | 'SSECustomerKey' | 'SSECustomerKeyMD5'
+  >
+>;
+
 // TODO: Make it abstract then fix the generateProvider function typing
 export class S3Commands {
-  private readonly sseHeaders: object | undefined;
+  private readonly sseHeaders: SseHeaders | undefined;
 
-  constructor(sseHeaders?: object) {
+  constructor(sseHeaders?: SseHeaders) {
     this.sseHeaders = sseHeaders;
   }
 
   headBucket(bucketName: string) {
     return new HeadBucketCommand({ Bucket: bucketName });
-  }
-  createBucket(bucketName: string) {
-    return new CreateBucketCommand({ Bucket: bucketName });
   }
   headObject(bucket: string, filePath: string[] | null, fileName: string) {
     return new HeadObjectCommand({

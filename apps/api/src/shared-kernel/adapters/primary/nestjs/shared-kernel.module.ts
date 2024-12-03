@@ -9,10 +9,15 @@ import {
   getDrizzleInstance,
 } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { SqlDomainEventRepository } from '../../secondary/gateways/repositories/drizzle/sql-domain-event-repository';
-import { ApiConfig } from '../nestia/api-config-schema';
+import {
+  ApiConfig,
+  DevApiConfig,
+  ProdApiConfig,
+} from '../nestia/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
 import { apiConfig, defaultApiConfig } from './env';
-import { validate } from './env.validation';
+import { validateDevConfig, validateProdConfig } from './env.validation';
+import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
 import {
   API_CONFIG,
   DATE_TIME_PROVIDER,
@@ -23,7 +28,6 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from './tokens';
-import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -45,8 +49,8 @@ const isProduction = process.env.NODE_ENV === 'production';
       provide: API_CONFIG,
       useFactory: (): ApiConfig =>
         isProduction
-          ? validate<true>(apiConfig)
-          : validate<false>(defaultApiConfig),
+          ? validateProdConfig(apiConfig)
+          : validateDevConfig(defaultApiConfig),
     },
     {
       provide: TRANSACTION_PERFORMER,
@@ -61,10 +65,10 @@ const isProduction = process.env.NODE_ENV === 'production';
         const db = getDrizzleInstance(
           isProduction
             ? getDrizzleConfig<true>(
-                config.database as ApiConfig<true>['database'],
+                config.database as ProdApiConfig['database'],
               )
             : getDrizzleConfig<false>(
-                config.database as ApiConfig<false>['database'],
+                config.database as DevApiConfig['database'],
               ),
         );
         return db;

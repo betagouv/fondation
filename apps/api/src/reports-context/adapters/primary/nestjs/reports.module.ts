@@ -34,6 +34,7 @@ import {
   REPORT_RULE_REPOSITORY,
 } from './tokens';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
 
 @Module({
   imports: [SharedKernelModule],
@@ -87,8 +88,14 @@ import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-lo
       REPORT_FILE_SERVICE,
       TRANSACTION_PERFORMER,
     ]),
-
-    generateProvider(HttpReportFileService, [API_CONFIG], REPORT_FILE_SERVICE),
+    {
+      provide: REPORT_FILE_SERVICE,
+      // generateProvider function doesn't handle the union type in ApiConfig
+      useFactory: (apiConfig: ApiConfig) => {
+        return new HttpReportFileService(apiConfig);
+      },
+      inject: [API_CONFIG],
+    },
 
     generateProvider(SqlReportListingQuery, [DRIZZLE_DB], REPORT_LISTING_QUERY),
     generateProvider(

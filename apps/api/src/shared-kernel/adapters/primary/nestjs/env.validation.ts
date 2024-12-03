@@ -1,11 +1,12 @@
-import typia from 'typia';
-import { ApiConfig } from '../nestia/api-config-schema';
+import {
+  DevApiConfig,
+  DevApiConfigSchema,
+  ProdApiConfig,
+  ProdApiConfigSchema,
+} from '../nestia/api-config-schema';
 
-export function validate<Prod extends boolean>(
-  apiConfig: ApiConfig<Prod>,
-): ApiConfig<Prod> {
-  const validationResult = typia.validate<ApiConfig<Prod>>(apiConfig);
+export const validateProdConfig = (apiConfig: ProdApiConfig): ProdApiConfig =>
+  ProdApiConfigSchema.parse(apiConfig);
 
-  if (validationResult.success) return validationResult.data;
-  else throw new Error(JSON.stringify(validationResult.errors));
-}
+export const validateDevConfig = (apiConfig: DevApiConfig): DevApiConfig =>
+  DevApiConfigSchema.parse(apiConfig);

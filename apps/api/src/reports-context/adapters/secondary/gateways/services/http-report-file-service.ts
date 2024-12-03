@@ -11,10 +11,7 @@ import typia from 'typia';
 export class HttpReportFileService implements ReportFileService {
   private readonly fileServiceUrl: URL;
 
-  constructor(
-    //! TODO: Default to true once we have a S3 provider
-    private readonly apiConfig: ApiConfig<false>,
-  ) {
+  constructor(private readonly apiConfig: ApiConfig) {
     this.fileServiceUrl = new URL(
       this.apiConfig.contextServices.filesContext.baseUrl,
     );

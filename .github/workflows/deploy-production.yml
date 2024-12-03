@@ -6,6 +6,9 @@ on:
 jobs:
   integration-checks:
     uses: ./.github/workflows/integration-checks.yml
+    with:
+      environment: ci
+    secrets: inherit
 
   build-and-upload-api-artifact:
     needs: [integration-checks]

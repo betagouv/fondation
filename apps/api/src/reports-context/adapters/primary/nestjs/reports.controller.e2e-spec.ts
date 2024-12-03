@@ -5,11 +5,11 @@ import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import PDF from 'pdfkit';
 import {
+  allRulesTuple,
   Magistrat,
   NominationFile,
   ReportListItemVM,
   ReportRetrievalVM,
-  allRulesTuple,
   Transparency,
 } from 'shared-models';
 import { AppModule } from 'src/app.module';
@@ -29,17 +29,19 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import request from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
+import { deleteS3Files } from 'test/minio';
 import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
-import { deleteMinioBuckets } from 'test/minio';
+import { S3Client } from '@aws-sdk/client-s3';
 
 describe('Reports Controller', () => {
   let app: NestApplication;
   let db: DrizzleDb;
+  let s3Client: S3Client;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
@@ -55,6 +57,7 @@ describe('Reports Controller', () => {
       .useValue(db)
       .compile();
     app = moduleFixture.createNestApplication();
+    s3Client = app.get(S3Client);
 
     await app.init();
   });
@@ -236,7 +239,7 @@ describe('Reports Controller', () => {
     });
 
     afterEach(async () => {
-      await deleteMinioBuckets();
+      await deleteS3Files(s3Client);
     });
 
     it('uploads a file', async () => {
