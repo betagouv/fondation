@@ -53,6 +53,7 @@ describe("Report Update", () => {
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: {
             ...aReport,
@@ -70,4 +71,4 @@ const aReportApiModel = new ReportApiModelBuilder()
   .with("biography", "John Doe's biography")
   .with("comment", "Some comment")
   .build();
-const aReport = new ReportBuilder().buildRetrieveVM();
+const aReport = new ReportBuilder().buildRetrieveSM();

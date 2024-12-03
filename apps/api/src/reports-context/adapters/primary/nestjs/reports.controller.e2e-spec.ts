@@ -9,7 +9,7 @@ import {
   NominationFile,
   ReportListItemVM,
   ReportRetrievalVM,
-  rulesTuple,
+  allRulesTuple,
   Transparency,
 } from 'shared-models';
 import { AppModule } from 'src/app.module';
@@ -107,7 +107,7 @@ describe('Reports Controller', () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
-      const reportRulesPromises = rulesTuple.map(
+      const reportRulesPromises = allRulesTuple.map(
         async ([ruleGroup, ruleName]) => {
           const reportRuleSnapshot = new ReportRuleBuilder()
             .with('id', crypto.randomUUID())

@@ -12,10 +12,11 @@ import { RouterProvider } from "../../router/core-logic/providers/router";
 import { createRouterSlice } from "../../router/core-logic/reducers/router.slice";
 import { ReportGateway } from "../core-logic/gateways/Report.gateway";
 import { reportListReducer as reportList } from "../core-logic/reducers/reportList.slice";
-import { reportRetrievalReducer as reportOverview } from "../core-logic/reducers/reportOverview.slice";
+import { createReportOverviewSlice } from "../core-logic/reducers/reportOverview.slice";
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { allRulesTuple as allRulesTuple } from "shared-models";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -49,10 +50,11 @@ export const initReduxStore = <IsTest extends boolean = true>(
     : NestedPrimaryAdapters,
   listeners?: IsTest extends true ? Partial<AppListeners> : AppListeners,
   routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
+  rulesTuple: typeof allRulesTuple = allRulesTuple,
 ) => {
   return configureStore({
     reducer: {
-      reportOverview,
+      reportOverview: createReportOverviewSlice(rulesTuple).reducer,
       reportList,
       authentication: createAuthenticationSlice({
         authenticationStorageProvider: providers?.authenticationStorageProvider,

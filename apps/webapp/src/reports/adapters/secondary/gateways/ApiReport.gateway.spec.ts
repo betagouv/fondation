@@ -34,7 +34,7 @@ describe("Api Report Gateway", () => {
   });
 
   it("retrieves a report", async () => {
-    const rules = reportApiClient.reports[aReportRetrievedSM.id]!.rules;
+    const rules = reportApiClient.reports[aReportRetrievedSM.id]!.rules!;
 
     expect(
       await apiReportGateway.retrieveReport(aReportRetrievedSM.id),
@@ -74,7 +74,7 @@ describe("Api Report Gateway", () => {
     await apiReportGateway.updateRule(aRule.id, !aRule.validated);
 
     const ruleGroupEntry =
-      reportApiClient.reports[aReportRetrievedSM.id]!.rules[aRule.group];
+      reportApiClient.reports[aReportRetrievedSM.id]!.rules![aRule.group];
     expect(
       (
         ruleGroupEntry as NominationFile.Rules[NominationFile.RuleGroup.MANAGEMENT]
@@ -137,6 +137,7 @@ const aRule = {
 };
 
 const aReportApiModel = new ReportApiModelBuilder()
+  .withSomeRules()
   .with("rules.management.TRANSFER_TIME", {
     id: aRule.id,
     preValidated: aRule.preValidated,
@@ -145,5 +146,5 @@ const aReportApiModel = new ReportApiModelBuilder()
   })
   .build();
 const aReportRetrievedSM =
-  ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
-const aReportListSM = ReportBuilder.fromApiModel(aReportApiModel).buildListVM();
+  ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+const aReportListSM = ReportBuilder.fromApiModel(aReportApiModel).buildListSM();

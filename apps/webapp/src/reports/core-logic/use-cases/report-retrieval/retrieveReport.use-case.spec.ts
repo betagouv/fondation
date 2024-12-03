@@ -29,7 +29,10 @@ describe("Retrieve Nomination Case", () => {
     await store.dispatch(retrieveReport("report-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
-      reportOverview: { byIds: { [aReport.id]: aReport } },
+      reportOverview: {
+        ...initialState.reportOverview,
+        byIds: { [aReport.id]: aReport },
+      },
     });
   });
 
@@ -42,6 +45,7 @@ describe("Retrieve Nomination Case", () => {
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: aReport,
           [anotherNomination.id]: anotherNomination,
@@ -52,8 +56,8 @@ describe("Retrieve Nomination Case", () => {
 });
 
 const aReportApiModel = new ReportApiModelBuilder().build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
 
 const anotherNomination = new ReportBuilder()
   .with("id", "another-report-id")
-  .buildRetrieveVM();
+  .buildRetrieveSM();

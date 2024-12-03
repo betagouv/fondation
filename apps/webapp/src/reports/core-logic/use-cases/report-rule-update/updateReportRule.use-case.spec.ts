@@ -38,6 +38,7 @@ describe("Report Rule Update", () => {
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: {
             ...aReport,
@@ -59,6 +60,7 @@ describe("Report Rule Update", () => {
 });
 
 const aReportApiModel = new ReportApiModelBuilder()
+  .withSomeRules()
   .with("rules.management.TRANSFER_TIME.validated", false)
   .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();

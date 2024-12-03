@@ -1,3 +1,4 @@
+import { NominationFile, allRulesTuple } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportBuilderVM } from "../../../core-logic/builders/ReportVM.builder";
@@ -10,16 +11,23 @@ import { ReportVM } from "../../../core-logic/view-models/ReportVM";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { selectReport } from "./selectReport";
 
+const testRulesTuple: typeof allRulesTuple = [
+  [
+    NominationFile.RuleGroup.MANAGEMENT,
+    NominationFile.ManagementRule.TRANSFER_TIME,
+  ],
+];
+
 describe("Select Report", () => {
   let store: ReduxStore;
 
   beforeEach(() => {
-    store = initReduxStore({}, {}, {});
+    store = initReduxStore({}, {}, {}, undefined, undefined, testRulesTuple);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
   });
 
   it("selects the whole report with rules unchecked", async () => {
-    expect(selectReport(store.getState(), "report-id")).toEqual(aReportVM);
+    expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
   });
 
   it("after checking a validation  rule, it has its rule checked", () => {
@@ -36,7 +44,7 @@ describe("Select Report", () => {
       ),
     );
 
-    expect(selectReport(store.getState(), "report-id")).toEqual<ReportVM>({
+    expect(selectReport(store.getState(), aReport.id)).toEqual<ReportVM>({
       ...aReportVM,
       rulesChecked: {
         ...aReportVM.rulesChecked,
@@ -60,9 +68,21 @@ describe("Select Report", () => {
       "observer 1",
       "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
     ])
-    .buildRetrieveVM();
+    .with("rules.management.TRANSFER_TIME", {
+      id: "transfer-time-id",
+      preValidated: false,
+      validated: true,
+      comment: null,
+    })
+    .buildRetrieveSM();
   const aReportVM = ReportBuilderVM.fromStoreModel(aReport)
-    .withAllRulesChecked(false)
+    .with("rulesChecked.management.TRANSFER_TIME", {
+      id: "transfer-time-id",
+      label: ReportVM.rulesToLabels.management.TRANSFER_TIME,
+      highlighted: false,
+      checked: false,
+      comment: null,
+    })
     .with("observers", [
       ["observer 1"],
       ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],

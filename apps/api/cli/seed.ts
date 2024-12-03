@@ -1,7 +1,7 @@
 import {
   Magistrat,
   NominationFile,
-  rulesTuple,
+  allRulesTuple,
   Transparency,
 } from 'shared-models';
 import { NestFactory } from '@nestjs/core';
@@ -35,7 +35,7 @@ async function seed() {
     );
     await db.insert(reports).values(reportRow1).execute();
 
-    const report1RulesPromises = rulesTuple.map(
+    const report1RulesPromises = allRulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
           .with('id', crypto.randomUUID())
@@ -72,7 +72,7 @@ async function seed() {
     const reportRow2 = SqlReportRepository.mapSnapshotToDb(reportSnapshot2);
     await db.insert(reports).values(reportRow2).execute();
 
-    const report2RulesPromises = rulesTuple.map(
+    const report2RulesPromises = allRulesTuple.map(
       async ([ruleGroup, ruleName]) => {
         const reportRule = new ReportRuleBuilder()
           .with('id', crypto.randomUUID())

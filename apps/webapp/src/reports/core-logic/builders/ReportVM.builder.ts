@@ -1,17 +1,14 @@
 import _ from "lodash";
-import {
-  Magistrat,
-  NominationFile,
-  rulesTuple,
-  Transparency,
-} from "shared-models";
-import { Get, Paths } from "type-fest";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
+import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../store/appState";
-import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
-import { ReportVMRulesBuilder } from "./ReportVMRules.builder";
+import { ReportVM } from "../view-models/ReportVM";
 
-type InternalReportVM = Omit<ReportVM, "dueDate" | "birthDate"> & {
+type InternalReportVM = Omit<
+  SetOptional<ReportVM, "rulesChecked">,
+  "dueDate" | "birthDate"
+> & {
   dueDate: DateOnly | null;
   birthDate: DateOnly;
 };
@@ -39,18 +36,6 @@ export class ReportBuilderVM {
         ["observer 1"],
         ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2"],
       ],
-      rulesChecked: new ReportVMRulesBuilder(({ ruleGroup, ruleName }) => ({
-        id: `${ruleGroup}-${ruleName}`,
-        highlighted: true,
-        checked: false,
-        label: (
-          ReportVM.rulesToLabels[ruleGroup] as Record<
-            NominationFile.RuleName,
-            string
-          >
-        )[ruleName],
-        comment: `${ruleName} comment`,
-      })).build(),
       attachedFiles: [
         {
           signedUrl: "https://example.fr/image.png",
@@ -78,29 +63,10 @@ export class ReportBuilderVM {
     return this;
   }
 
-  withAllRulesChecked(checked: boolean) {
-    return rulesTuple.reduce((builder, [ruleGroup, ruleName]) => {
-      return builder.withRuleChecked(ruleGroup, ruleName, checked);
-    }, this);
-  }
-
-  private withRuleChecked(
-    ruleGroup: NominationFile.RuleGroup,
-    ruleName: NominationFile.RuleName,
-    checked: boolean,
-  ) {
-    (
-      this._reportVM.rulesChecked[ruleGroup] as Record<
-        NominationFile.RuleName,
-        VMReportRuleValue
-      >
-    )[ruleName].checked = checked;
-    return this;
-  }
-
   build(): ReportVM {
     return {
       ...this._reportVM,
+      rulesChecked: this._reportVM.rulesChecked!,
       dueDate: this._reportVM.dueDate?.toFormattedString() ?? null,
       birthDate: this._reportVM.birthDate.toFormattedString(),
     };

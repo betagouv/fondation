@@ -61,4 +61,4 @@ const aReportApiModel = new ReportApiModelBuilder()
     },
   ])
   .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();

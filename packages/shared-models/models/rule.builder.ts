@@ -1,4 +1,4 @@
-import { rulesTuple } from "./nomination-file";
+import { allRulesTuple as allRulesTuple } from "./nomination-file";
 import { NominationFile } from "./nomination-file.namespace";
 import { Get, Paths } from "type-fest";
 import _ from "lodash";
@@ -13,7 +13,8 @@ export abstract class RulesBuilder<T = NominationFile.RuleValue> {
 
   constructor(
     defaultRuleValue: T | RuleFunction<T>,
-    initialRules?: NominationFile.Rules<T>
+    initialRules?: NominationFile.Rules<T>,
+    rulesTuple = allRulesTuple
   ) {
     const rules = rulesTuple.reduce((acc, [ruleGroup, ruleName]) => {
       return {

@@ -28,4 +28,4 @@ describe("Select Report Attached Files", () => {
   });
 });
 
-const aReport = new ReportBuilder().buildRetrieveVM();
+const aReport = new ReportBuilder().buildRetrieveSM();

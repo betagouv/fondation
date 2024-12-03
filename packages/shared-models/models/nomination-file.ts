@@ -1,6 +1,6 @@
 import { NominationFile } from "./nomination-file.namespace";
 
-export const rulesTuple = [
+export const allRulesTuple = [
   ...Object.values(NominationFile.ManagementRule).map(
     (rule) => [NominationFile.RuleGroup.MANAGEMENT, rule] as const
   ),

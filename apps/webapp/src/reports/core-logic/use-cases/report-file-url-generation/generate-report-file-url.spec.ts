@@ -35,9 +35,10 @@ describe("Generate Report File Url", () => {
         fileName: "file.txt",
       }),
     );
-    expect(store.getState()).toEqual({
+    expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: {
             ...aReport,
@@ -64,4 +65,4 @@ const aReportApiModel = new ReportApiModelBuilder()
     },
   ])
   .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();

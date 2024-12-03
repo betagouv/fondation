@@ -49,6 +49,7 @@ describe("Attach Report File", () => {
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       reportOverview: {
+        ...initialState.reportOverview,
         byIds: {
           [aReport.id]: {
             ...aReport,
@@ -135,7 +136,7 @@ describe("Attach Report File", () => {
 
 const signedUrl = "https://example.fr/file.txt";
 const aReportApiModel = new ReportApiModelBuilder().build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

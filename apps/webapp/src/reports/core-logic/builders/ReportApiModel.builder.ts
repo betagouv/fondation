@@ -4,12 +4,12 @@ import {
   NominationFile,
   ReportListItemVM,
   ReportRetrievalVM,
-  RulesBuilder,
   Transparency,
 } from "shared-models";
-import { Get, Paths } from "type-fest";
+import { Get, Paths, SetOptional } from "type-fest";
 
-export type ReportApiModel = ReportRetrievalVM & ReportListItemVM;
+export type ReportApiModel = SetOptional<ReportRetrievalVM, "rules"> &
+  ReportListItemVM;
 
 export class ReportApiModelBuilder {
   private _report: ReportApiModel;
@@ -41,7 +41,6 @@ export class ReportApiModelBuilder {
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
       observersCount: 2,
-      rules: new AllRulesValidedBuilder().build(),
       attachedFiles: null,
     };
   }
@@ -55,34 +54,42 @@ export class ReportApiModelBuilder {
     return this;
   }
 
-  withAllRulesUnvalidated() {
-    this._report.rules = new AllRulesUnvalidatedBuilder().build();
-    return this;
+  withSomeRules() {
+    return this.with("rules.management.TRANSFER_TIME", {
+      id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.TRANSFER_TIME}`,
+      validated: true,
+      preValidated: false,
+      comment: null,
+    })
+      .with("rules.management.CASSATION_COURT_NOMINATION", {
+        id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.CASSATION_COURT_NOMINATION}`,
+        validated: true,
+        preValidated: false,
+        comment: null,
+      })
+
+      .with("rules.statutory.MINISTER_CABINET", {
+        id: `${NominationFile.RuleGroup.STATUTORY}-${NominationFile.StatutoryRule.MINISTER_CABINET}`,
+        validated: true,
+        preValidated: false,
+        comment: null,
+      })
+      .with("rules.statutory.GRADE_REGISTRATION", {
+        id: `${NominationFile.RuleGroup.STATUTORY}-${NominationFile.StatutoryRule.GRADE_REGISTRATION}`,
+        validated: true,
+        preValidated: false,
+        comment: null,
+      })
+
+      .with("rules.qualitative.EVALUATIONS", {
+        id: `${NominationFile.RuleGroup.QUALITATIVE}-${NominationFile.QualitativeRule.EVALUATIONS}`,
+        validated: true,
+        preValidated: false,
+        comment: null,
+      });
   }
 
   build(): ReportApiModel {
     return this._report;
-  }
-}
-
-class AllRulesValidedBuilder extends RulesBuilder {
-  constructor() {
-    super(({ ruleGroup, ruleName }) => ({
-      id: `${ruleGroup}-${ruleName}`,
-      preValidated: true,
-      validated: true,
-      comment: `${ruleName} comment`,
-    }));
-  }
-}
-
-class AllRulesUnvalidatedBuilder extends RulesBuilder {
-  constructor() {
-    super(({ ruleGroup, ruleName }) => ({
-      id: `${ruleGroup}-${ruleName}`,
-      preValidated: true,
-      validated: false,
-      comment: `${ruleName} comment`,
-    }));
   }
 }

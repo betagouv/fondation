@@ -1,13 +1,12 @@
 import _ from "lodash";
 import { Magistrat, NominationFile, Transparency } from "shared-models";
-import { Get, Paths } from "type-fest";
+import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../store/appState";
-import { ReportSMRulesBuilder } from "./ReportSMRules.builder";
 import { ReportApiModel } from "./ReportApiModel.builder";
 
 type InternalReport = Omit<
-  ReportSM & ReportListItem,
+  SetOptional<ReportSM, "rules"> & ReportListItem,
   "dueDate" | "birthDate" | "observersCount"
 > & {
   dueDate: DateOnly | null;
@@ -35,7 +34,6 @@ export class ReportBuilder {
       rank: "(2 sur une liste de 3)",
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
-      rules: new ReportSMRulesBuilder().build(),
       attachedFiles: null,
     };
   }
@@ -49,57 +47,7 @@ export class ReportBuilder {
     return this;
   }
 
-  withTransferTimeValidated(transferTime: boolean) {
-    this._report.rules.management.TRANSFER_TIME.validated = transferTime;
-    return this;
-  }
-
-  withAllRulesUnvalidated() {
-    this.withTransferTimeValidated(false)
-      .with("rules.management.GETTING_FIRST_GRADE.validated", false)
-      .with("rules.management.GETTING_GRADE_HH.validated", false)
-      .with("rules.management.GETTING_GRADE_IN_PLACE.validated", false)
-      .with("rules.management.PROFILED_POSITION.validated", false)
-      .with("rules.management.CASSATION_COURT_NOMINATION.validated", false)
-      .with("rules.management.OVERSEAS_TO_OVERSEAS.validated", false)
-      .with(
-        "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated",
-        false,
-      )
-      .with(
-        "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated",
-        false,
-      )
-      .with("rules.statutory.GRADE_ON_SITE_AFTER_7_YEARS.validated", false)
-      .with("rules.statutory.GRADE_REGISTRATION.validated", false)
-      .with(
-        "rules.statutory.HH_WITHOUT_2_FIRST_GRADE_POSITIONS.validated",
-        false,
-      )
-      .with(
-        "rules.statutory.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION.validated",
-        false,
-      )
-      .with("rules.statutory.MINISTER_CABINET.validated", false)
-      .with(
-        "rules.statutory.LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO.validated",
-        false,
-      )
-      .with(
-        "rules.qualitative.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE.validated",
-        false,
-      )
-      .with(
-        "rules.qualitative.CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION.validated",
-        false,
-      )
-      .with("rules.qualitative.DISCIPLINARY_ELEMENTS.validated", false)
-      .with("rules.qualitative.EVALUATIONS.validated", false)
-      .with("rules.qualitative.HH_NOMINATION_CONDITIONS.validated", false);
-    return this;
-  }
-
-  buildListVM(): ReportListItem {
+  buildListSM(): ReportListItem {
     return {
       id: this._report.id,
       folderNumber: this._report.folderNumber,
@@ -114,7 +62,7 @@ export class ReportBuilder {
       observersCount: this._report.observers?.length ?? 0,
     };
   }
-  buildRetrieveVM(): ReportSM {
+  buildRetrieveSM(): ReportSM {
     return {
       id: this._report.id,
       folderNumber: this._report.folderNumber,
@@ -131,7 +79,7 @@ export class ReportBuilder {
       rank: this._report.rank,
       comment: this._report.comment,
       observers: this._report.observers,
-      rules: this._report.rules,
+      rules: this._report.rules!,
       attachedFiles: this._report.attachedFiles,
     };
   }

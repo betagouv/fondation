@@ -5,8 +5,12 @@ import { ReportVM } from "../../../core-logic/view-models/ReportVM";
 import { AppState, ReportSM } from "../../../store/appState";
 
 export const selectReport = createSelector(
-  [(state: AppState) => state.reportOverview.byIds, (_, id: string) => id],
-  (byIds, id): ReportVM | null => {
+  [
+    (state: AppState) => state.reportOverview.byIds,
+    (_, id: string) => id,
+    (state: AppState) => state.reportOverview.rulesTuple,
+  ],
+  (byIds, id, rulesTuple): ReportVM | null => {
     const report = byIds?.[id];
     if (!report) return null;
 
@@ -27,7 +31,10 @@ export const selectReport = createSelector(
       comment: report.comment,
       rank: report.rank,
       observers: formatObservers(report.observers),
-      rulesChecked: ReportVMRulesBuilder.fromStoreModel(report.rules).build(),
+      rulesChecked: ReportVMRulesBuilder.fromStoreModel(
+        report.rules,
+        rulesTuple,
+      ).build(),
       attachedFiles: report.attachedFiles,
     };
   },

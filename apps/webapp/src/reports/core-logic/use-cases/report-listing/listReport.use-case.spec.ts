@@ -82,4 +82,4 @@ const aReportApiModel = new ReportApiModelBuilder()
   .with("reporterName", user.reporterName)
   .with("dueDate", { year: 2030, month: 10, day: 10 })
   .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildListVM();
+const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildListSM();

@@ -6,17 +6,16 @@ import {
   ReportUpdateDto,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-
-export type FakeReportFromApi = ReportRetrievalVM & ReportListItemVM;
+import { ReportApiModel } from "../../../core-logic/builders/ReportApiModel.builder";
 
 export class FakeReportApiClient implements ReportApiClient {
   static BASE_URI = "https://example.fr";
 
   // Readonly because Redux makes it immutable
-  reports: Record<string, Readonly<FakeReportFromApi>> = {};
+  reports: Record<string, Readonly<ReportApiModel>> = {};
   currentReportId: string | null = null;
 
-  addReport(report: FakeReportFromApi): void {
+  addReport(report: ReportApiModel): void {
     this.currentReportId = report.id;
     this.reports = {
       ...this.reports,

@@ -83,7 +83,7 @@ describe("Select Nomination Case List", () => {
     .with("name", "Banneau Louise")
     .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
-    .buildListVM();
+    .buildListSM();
   const aReportVM: ReportListItemVM = {
     id: aReport.id,
     folderNumber: 1,
@@ -107,7 +107,7 @@ describe("Select Nomination Case List", () => {
     .with("name", "Denan Lucien")
     .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
-    .buildListVM();
+    .buildListSM();
   const aSecondReportVM: ReportListItemVM = {
     id: aSecondReport.id,
     folderNumber: "Profilé",
@@ -127,7 +127,7 @@ describe("Select Nomination Case List", () => {
   const aThirdReport = new ReportBuilder()
     .with("folderNumber", 2)
     .with("transparency", Transparency.AUTOMNE_2024)
-    .buildListVM();
+    .buildListSM();
   const aThirdReportVM: ReportListItemVM = {
     id: aThirdReport.id,
     folderNumber: 2,
@@ -147,7 +147,7 @@ describe("Select Nomination Case List", () => {
   const aDifferentTransparencyReport = new ReportBuilder()
     .with("folderNumber", 1)
     .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
-    .buildListVM();
+    .buildListSM();
   const aFourthDifferentTransparencyReportVM: ReportListItemVM = {
     id: aDifferentTransparencyReport.id,
     folderNumber: 1,
@@ -169,7 +169,7 @@ describe("Select Nomination Case List", () => {
     .with("name", "Another name")
     .with("reporterName", "ANOTHER REPORTER Name")
     .with("dueDate", new DateOnly(2030, 10, 10))
-    .buildListVM();
+    .buildListSM();
 });
 
 const user = {

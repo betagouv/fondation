@@ -2,6 +2,7 @@ import {
   AttachedFileVM,
   Magistrat,
   NominationFile,
+  allRulesTuple,
   Transparency,
 } from "shared-models";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
@@ -42,7 +43,10 @@ export type ReportListItem = Pick<
 > & { reporterName: string | null; observersCount: number };
 
 export interface AppState {
-  reportOverview: { byIds: Record<string, ReportSM> | null };
+  reportOverview: {
+    byIds: Record<string, ReportSM> | null;
+    rulesTuple: typeof allRulesTuple;
+  };
   reportList: { data: ReportListItem[] | null };
   authentication: {
     authenticated: boolean;

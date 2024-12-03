@@ -176,4 +176,4 @@ describe("App Router Component", () => {
   }
 });
 
-const aNominationRetrieved = new ReportBuilder().buildRetrieveVM();
+const aNominationRetrieved = new ReportBuilder().buildRetrieveSM();
