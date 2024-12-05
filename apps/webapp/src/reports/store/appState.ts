@@ -1,14 +1,14 @@
 import {
+  AllRulesMap,
   AttachedFileVM,
   Magistrat,
   NominationFile,
-  allRulesTuple,
   Transparency,
 } from "shared-models";
+import { AuthenticatedUser } from "../../authentication/core-logic/gateways/authentication.gateway";
 import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../../shared-kernel/core-logic/models/date-only";
-import { AuthenticatedUser } from "../../authentication/core-logic/gateways/authentication.gateway";
 
 export interface ReportSM {
   id: string;
@@ -45,7 +45,7 @@ export type ReportListItem = Pick<
 export interface AppState {
   reportOverview: {
     byIds: Record<string, ReportSM> | null;
-    rulesTuple: typeof allRulesTuple;
+    rulesMap: AllRulesMap;
   };
   reportList: { data: ReportListItem[] | null };
   authentication: {

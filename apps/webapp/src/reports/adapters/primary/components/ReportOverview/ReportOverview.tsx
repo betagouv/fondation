@@ -52,10 +52,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     () => {
       if (!report) return;
 
-      const rule = report.rulesChecked[ruleGroup] as Record<
-        NominationFile.RuleName,
-        VMReportRuleValue
-      >;
+      const rule = {
+        ...report.rulesChecked[ruleGroup].selected,
+        ...report.rulesChecked[ruleGroup].others,
+      } as Record<NominationFile.RuleName, VMReportRuleValue>;
       dispatch(
         updateReportRule({
           reportId: id,

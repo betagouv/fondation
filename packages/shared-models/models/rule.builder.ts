@@ -1,4 +1,4 @@
-import { allRulesTuple as allRulesTuple } from "./nomination-file";
+import { allRulesMap } from "./nomination-file";
 import { NominationFile } from "./nomination-file.namespace";
 import { Get, Paths } from "type-fest";
 import _ from "lodash";
@@ -14,23 +14,32 @@ export abstract class RulesBuilder<T = NominationFile.RuleValue> {
   constructor(
     defaultRuleValue: T | RuleFunction<T>,
     initialRules?: NominationFile.Rules<T>,
-    rulesTuple = allRulesTuple
+    rulesMap = allRulesMap
   ) {
-    const rules = rulesTuple.reduce((acc, [ruleGroup, ruleName]) => {
-      return {
-        ...acc,
-        [ruleGroup]: {
-          ...acc[ruleGroup],
-          [ruleName]:
-            typeof defaultRuleValue === "function"
-              ? (defaultRuleValue as RuleFunction<T>)({
-                  ruleGroup,
-                  ruleName,
-                })
-              : defaultRuleValue,
-        },
-      };
-    }, {} as NominationFile.Rules<T>);
+    const rules = Object.entries(rulesMap).reduce(
+      (acc, [ruleGroup, ruleNames]) => {
+        const group = ruleGroup as NominationFile.RuleGroup;
+        return {
+          ...acc,
+          [group]: {
+            ...acc[group],
+            ..._.merge(
+              {},
+              ...ruleNames.map((ruleName) => ({
+                [ruleName]:
+                  typeof defaultRuleValue === "function"
+                    ? (defaultRuleValue as RuleFunction<T>)({
+                        ruleGroup: group,
+                        ruleName,
+                      })
+                    : defaultRuleValue,
+              }))
+            ),
+          },
+        };
+      },
+      {} as NominationFile.Rules<T>
+    );
     this._rules = _.merge(rules, initialRules);
   }
 

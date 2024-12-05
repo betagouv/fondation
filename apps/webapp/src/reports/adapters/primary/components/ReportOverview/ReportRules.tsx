@@ -1,14 +1,8 @@
 import { NominationFile } from "shared-models";
-import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { Card } from "./Card";
-import { RuleCheckNotice } from "./RuleCheckNotice";
-import {
-  ReportVM,
-  VMReportRuleValue,
-} from "../../../../core-logic/view-models/ReportVM";
+import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
+import { ReportRule } from "./ReportRule";
 
-export type ReportRuleProps = {
+export type ReportRulesProps = {
   rulesChecked: ReportVM["rulesChecked"];
   onUpdateReportRule: (
     ruleGroup: NominationFile.RuleGroup,
@@ -16,66 +10,38 @@ export type ReportRuleProps = {
   ) => () => void;
 };
 
-export const ReportRules: React.FC<ReportRuleProps> = ({
+export const ReportRules: React.FC<ReportRulesProps> = ({
   rulesChecked,
   onUpdateReportRule,
 }) => {
-  const createCheckboxes = (
-    ruleGroup: NominationFile.RuleGroup,
-    rulesChecked: Record<string, VMReportRuleValue>,
-  ) => {
-    const checkboxes = Object.entries(rulesChecked).map(
-      ([ruleName, { label, checked, highlighted }]) => (
-        <Checkbox
-          id={ruleName}
-          key={ruleName}
-          options={[
-            {
-              label,
-              nativeInputProps: {
-                name: ruleName,
-                checked,
-                onChange: onUpdateReportRule(
-                  ruleGroup,
-                  ruleName as NominationFile.RuleName,
-                ),
-              },
-            },
-          ]}
-          className={highlighted ? cx("fr-fieldset--error") : undefined}
-        />
-      ),
-    );
-    return checkboxes;
-  };
+  const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
+    onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
+
+  const onUpdateStatutoryRule = (ruleName: NominationFile.StatutoryRule) =>
+    onUpdateReportRule(NominationFile.RuleGroup.STATUTORY, ruleName);
+
+  const onUpdateQualitativeRule = (ruleName: NominationFile.QualitativeRule) =>
+    onUpdateReportRule(NominationFile.RuleGroup.QUALITATIVE, ruleName);
 
   return (
     <>
-      <Card>
-        <div className="fr-h2">Règles de gestion</div>
-        <RuleCheckNotice />
-        {createCheckboxes(
-          NominationFile.RuleGroup.MANAGEMENT,
-          rulesChecked.management,
-        )}
-      </Card>
-
-      <Card>
-        <div className="fr-h2">Règles statutaires</div>
-        <RuleCheckNotice />
-        {createCheckboxes(
-          NominationFile.RuleGroup.STATUTORY,
-          rulesChecked.statutory,
-        )}
-      </Card>
-
-      <Card>
-        <div className="fr-h2">Les autres éléments qualitatifs à vérifier</div>
-        {createCheckboxes(
-          NominationFile.RuleGroup.QUALITATIVE,
-          rulesChecked.qualitative,
-        )}
-      </Card>
+      <ReportRule<NominationFile.ManagementRule>
+        title="Règles de gestion"
+        rulesChecked={rulesChecked.management}
+        onUpdateReportRule={onUpdateManagementRule}
+        showNotice={true}
+      />
+      <ReportRule<NominationFile.StatutoryRule>
+        title="Règles statutaires"
+        rulesChecked={rulesChecked.statutory}
+        onUpdateReportRule={onUpdateStatutoryRule}
+        showNotice={true}
+      />
+      <ReportRule<NominationFile.QualitativeRule>
+        title="Les autres éléments qualitatifs à vérifier"
+        rulesChecked={rulesChecked.qualitative}
+        onUpdateReportRule={onUpdateQualitativeRule}
+      />
     </>
   );
 };

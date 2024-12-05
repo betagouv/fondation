@@ -8,7 +8,7 @@ export const selectReport = createSelector(
   [
     (state: AppState) => state.reportOverview.byIds,
     (_, id: string) => id,
-    (state: AppState) => state.reportOverview.rulesTuple,
+    (state: AppState) => state.reportOverview.rulesMap,
   ],
   (byIds, id, rulesTuple): ReportVM | null => {
     const report = byIds?.[id];
@@ -31,10 +31,10 @@ export const selectReport = createSelector(
       comment: report.comment,
       rank: report.rank,
       observers: formatObservers(report.observers),
-      rulesChecked: ReportVMRulesBuilder.fromStoreModel(
+      rulesChecked: ReportVMRulesBuilder.buildFromStoreModel(
         report.rules,
         rulesTuple,
-      ).build(),
+      ),
       attachedFiles: report.attachedFiles,
     };
   },

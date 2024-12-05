@@ -11,3 +11,17 @@ export const allRulesTuple = [
     (rule) => [NominationFile.RuleGroup.QUALITATIVE, rule] as const
   ),
 ];
+
+export const allRulesMap = {
+  [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
+    NominationFile.ManagementRule
+  ),
+  [NominationFile.RuleGroup.STATUTORY]: Object.values(
+    NominationFile.StatutoryRule
+  ),
+  [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
+    NominationFile.QualitativeRule
+  ),
+};
+
+export type AllRulesMap = typeof allRulesMap;

@@ -21,6 +21,8 @@ import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.l
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
+import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
+import { allRulesMap } from "shared-models";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -68,6 +70,8 @@ const store = initReduxStore<false>(
     redirectOnLogin,
     reportFileAttached,
   },
+  routeToReactComponentMap,
+  allRulesMap,
 );
 
 createRoot(document.getElementById("root")!).render(

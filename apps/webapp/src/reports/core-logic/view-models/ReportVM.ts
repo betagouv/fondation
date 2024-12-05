@@ -1,19 +1,45 @@
 import {
-  NominationFile,
-  Magistrat,
-  Transparency,
+  AllRulesMap,
   AttachedFileVM,
+  Magistrat,
+  NominationFile,
+  Transparency,
 } from "shared-models";
 
-export type VMReportRuleValue = {
+export type VMReportRuleValue<Selected extends boolean = boolean> = {
   id: string;
   label: string;
   checked: boolean;
   highlighted: boolean;
   comment: string | null;
+} & (Selected extends true
+  ?
+      | { checked: true; highlighted: true }
+      | { checked: false; highlighted: true }
+      | { checked: true; highlighted: false }
+  : { checked: false; highlighted: false });
+
+export type RuleGroupToLabelIntersection = {
+  [G in keyof typeof ReportVM.rulesToLabels]: (typeof ReportVM.rulesToLabels)[G];
 };
 
-export class ReportVM {
+export class ReportVM<
+  RulesMap extends AllRulesMap = AllRulesMap,
+  RuleName extends
+    NominationFile.RuleName = RulesMap[NominationFile.RuleGroup][number],
+  ManagementRules extends NominationFile.RuleName = Extract<
+    NominationFile.ManagementRule,
+    RuleName
+  >,
+  StatutoryRules extends NominationFile.RuleName = Extract<
+    NominationFile.StatutoryRule,
+    RuleName
+  >,
+  QualitativeRules extends NominationFile.RuleName = Extract<
+    NominationFile.QualitativeRule,
+    RuleName
+  >,
+> {
   static magistratIdentityLabels = {
     birthDate: "Date de naissance",
     grade: "Grade",
@@ -104,19 +130,23 @@ export class ReportVM {
     public observers: [string, ...string[]][] | null,
     public attachedFiles: AttachedFileVM[] | null,
 
-    public rulesChecked: {
-      [NominationFile.RuleGroup.MANAGEMENT]: Record<
-        NominationFile.ManagementRule,
-        VMReportRuleValue
-      >;
-      [NominationFile.RuleGroup.STATUTORY]: Record<
-        NominationFile.StatutoryRule,
-        VMReportRuleValue
-      >;
-      [NominationFile.RuleGroup.QUALITATIVE]: Record<
-        NominationFile.QualitativeRule,
-        VMReportRuleValue
-      >;
-    },
+    public rulesChecked: GroupRulesChecked<
+      NominationFile.RuleGroup.MANAGEMENT,
+      ManagementRules
+    > &
+      GroupRulesChecked<NominationFile.RuleGroup.STATUTORY, StatutoryRules> &
+      GroupRulesChecked<NominationFile.RuleGroup.QUALITATIVE, QualitativeRules>,
   ) {}
 }
+
+type GroupRulesChecked<
+  G extends NominationFile.RuleGroup,
+  R extends NominationFile.RuleName,
+> = Record<
+  G,
+  {
+    selected: Partial<Record<R, VMReportRuleValue<true>>>;
+    others: Partial<Record<R, VMReportRuleValue<false>>>;
+    accordionLabel: string;
+  }
+>;

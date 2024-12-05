@@ -1,14 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { NominationFile, allRulesTuple } from "shared-models";
+import { AllRulesMap, NominationFile, allRulesMap } from "shared-models";
 import { AppState } from "../../store/appState";
+import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
-import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 
-export const createReportOverviewSlice = (rulesTuple: typeof allRulesTuple) => {
-  const initialState: AppState["reportOverview"] = { byIds: null, rulesTuple };
+export const createReportOverviewSlice = (
+  rulesMap: AllRulesMap = allRulesMap,
+) => {
+  const initialState: AppState["reportOverview"] = {
+    byIds: null,
+    rulesMap: rulesMap,
+  };
 
   return createSlice({
     name: "report",

@@ -11,13 +11,13 @@
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",
     "types:check:watch": "tsc --noEmit -p ./tsconfig.app.json --watch",
     "preview": "vite preview",
-    "test": "DEBUG_PRINT_LIMIT=1000 vitest",
+    "test": "DEBUG_PRINT_LIMIT=10000 vitest",
     "test:all": "vitest run",
     "postinstall": "pnpm dsfr:build",
     "dsfr:build": "react-dsfr update-icons"
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "^1.13.6",
+    "@codegouvfr/react-dsfr": "^1.15.0",
     "@reduxjs/toolkit": "^2.2.7",
     "api-sdk": "workspace:*",
     "clsx": "^2.1.1",

@@ -1,5 +1,11 @@
 import _ from "lodash";
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  AllRulesMap,
+  Magistrat,
+  NominationFile,
+  RulesBuilder,
+  Transparency,
+} from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../store/appState";
@@ -16,7 +22,13 @@ type InternalReport = Omit<
 export class ReportBuilder {
   private _report: InternalReport;
 
-  constructor() {
+  constructor(
+    rulesMap: AllRulesMap = {
+      [NominationFile.RuleGroup.MANAGEMENT]: [],
+      [NominationFile.RuleGroup.STATUTORY]: [],
+      [NominationFile.RuleGroup.QUALITATIVE]: [],
+    },
+  ) {
     this._report = {
       id: "report-id",
       name: "John Doe",
@@ -35,6 +47,7 @@ export class ReportBuilder {
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
       attachedFiles: null,
+      rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }
 
@@ -112,5 +125,20 @@ export class ReportBuilder {
       .with("observers", aValidatedReportApiModel.observers)
       .with("rules", aValidatedReportApiModel.rules)
       .with("attachedFiles", aValidatedReportApiModel.attachedFiles);
+  }
+}
+
+class RulesFromMapBuilder extends RulesBuilder {
+  constructor(rulesMap: AllRulesMap) {
+    super(
+      ({ ruleName }) => ({
+        id: `${ruleName}-id`,
+        validated: true,
+        preValidated: true,
+        comment: null,
+      }),
+      undefined,
+      rulesMap,
+    );
   }
 }

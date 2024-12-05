@@ -196,8 +196,8 @@ importers:
   apps/webapp:
     dependencies:
       '@codegouvfr/react-dsfr':
-        specifier: ^1.13.6
-        version: 1.13.6
+        specifier: ^1.15.0
+        version: 1.15.0
       '@reduxjs/toolkit':
         specifier: ^2.2.7
         version: 2.2.7(react-redux@9.1.2(@types/react@18.3.11)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
@@ -741,8 +741,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@codegouvfr/react-dsfr@1.13.6':
-    resolution: {integrity: sha512-/ERzY5MhgZ8X8uz40qfBAx6wNjsqHk2BqjPbcrLNtsj5o3DIGYL6HBF7hRA3fRGq+l8CrFfLgE9xOIQRtTVfvA==}
+  '@codegouvfr/react-dsfr@1.15.0':
+    resolution: {integrity: sha512-O+FWFAzxBFN4iGsqyFSISMkMxAeM1e4m/uJgmOHf6wAoNiaXOFZY0WVAoWrvSa5N5Hi4ENRj0hNRjDmxtibSqQ==}
     hasBin: true
     peerDependencies:
       '@gouvfr/dsfr-chart': ^1.0.0
@@ -5511,8 +5511,8 @@ packages:
     resolution: {integrity: sha512-hlR43v+GUIUy8/ZGFP1DquEqPh7PFKQdDMTAmYt671kCCA6AkDQMoeFaFmZ7ObPLYOmpMgyKUqL1C+coFMf30w==}
     hasBin: true
 
-  tsafe@1.7.5:
-    resolution: {integrity: sha512-tbNyyBSbwfbilFfiuXkSOj82a6++ovgANwcoqBAcO9/REPoZMEQoE8kWPeO0dy5A2D/2Lajr8Ohue5T0ifIvLQ==}
+  tsafe@1.8.5:
+    resolution: {integrity: sha512-LFWTWQrW6rwSY+IBNFl2ridGfUzVsPwrZ26T4KUJww/py8rzaQ/SY+MIz6YROozpUCaRcuISqagmlwub9YT9kw==}
 
   tsconfck@2.1.2:
     resolution: {integrity: sha512-ghqN1b0puy3MhhviwO2kGF8SeMDNhEbnKxjK7h6+fvY9JAxqvXi8y5NAHSQv687OVboS2uZIByzGd45/YxrRHg==}
@@ -6725,9 +6725,9 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@codegouvfr/react-dsfr@1.13.6':
+  '@codegouvfr/react-dsfr@1.15.0':
     dependencies:
-      tsafe: 1.7.5
+      tsafe: 1.8.5
       yargs-parser: 21.1.1
 
   '@colors/colors@1.5.0':
@@ -12026,7 +12026,7 @@ snapshots:
       semver: 7.6.3
       strip-ansi: 6.0.1
 
-  tsafe@1.7.5: {}
+  tsafe@1.8.5: {}
 
   tsconfck@2.1.2(typescript@5.6.2):
     optionalDependencies:

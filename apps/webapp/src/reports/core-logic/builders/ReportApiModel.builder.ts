@@ -1,9 +1,11 @@
 import _ from "lodash";
 import {
+  AllRulesMap,
   Magistrat,
   NominationFile,
   ReportListItemVM,
   ReportRetrievalVM,
+  RulesBuilder,
   Transparency,
 } from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
@@ -14,7 +16,13 @@ export type ReportApiModel = SetOptional<ReportRetrievalVM, "rules"> &
 export class ReportApiModelBuilder {
   private _report: ReportApiModel;
 
-  constructor() {
+  constructor(
+    rulesMap: AllRulesMap = {
+      [NominationFile.RuleGroup.MANAGEMENT]: [],
+      [NominationFile.RuleGroup.STATUTORY]: [],
+      [NominationFile.RuleGroup.QUALITATIVE]: [],
+    },
+  ) {
     this._report = {
       id: "report-id",
       name: "John Doe",
@@ -42,6 +50,7 @@ export class ReportApiModelBuilder {
       observers: ["observer 1", "observer 2"],
       observersCount: 2,
       attachedFiles: null,
+      rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }
 
@@ -49,7 +58,7 @@ export class ReportApiModelBuilder {
     K extends Paths<ReportApiModel>,
     V extends Get<ReportApiModel, K> = Get<ReportApiModel, K>,
   >(property: K, value: V) {
-    if (!this._report) throw new Error("No nomination file");
+    if (!this._report) throw new Error("No report");
     this._report = _.set(this._report, property, value);
     return this;
   }
@@ -90,6 +99,51 @@ export class ReportApiModelBuilder {
   }
 
   build(): ReportApiModel {
-    return this._report;
+    return {
+      ...this._report,
+      rules: this.buildRules(),
+    };
+  }
+
+  private buildRules() {
+    return Object.values(NominationFile.RuleGroup).reduce(
+      (acc, group) =>
+        ({
+          ...acc,
+          ...this.buildRulesGroup(group),
+        }) as NominationFile.Rules,
+      {} as NominationFile.Rules,
+    );
+  }
+
+  private buildRulesGroup<G extends NominationFile.RuleGroup>(group: G) {
+    const rulesGroup: NominationFile.Rules[G] = {
+      ...(this._report.rules?.[group] as NominationFile.Rules[G]),
+    };
+
+    // Typescript generalizes the group type to string because it's a dynamic value,
+    // so we need to cast the returned type to the correct one.
+    return {
+      [group]: rulesGroup,
+    } as Record<G, typeof rulesGroup>;
+  }
+
+  static fromRulesMap(rulesMap: AllRulesMap) {
+    return new ReportApiModelBuilder(rulesMap);
+  }
+}
+
+class RulesFromMapBuilder extends RulesBuilder {
+  constructor(rulesMap: AllRulesMap) {
+    super(
+      ({ ruleName }) => ({
+        id: `${ruleName}-id`,
+        validated: true,
+        preValidated: true,
+        comment: null,
+      }),
+      undefined,
+      rulesMap,
+    );
   }
 }

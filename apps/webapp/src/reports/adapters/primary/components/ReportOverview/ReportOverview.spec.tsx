@@ -1,40 +1,26 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { allRulesTuple, NominationFile } from "shared-models";
+import { AllRulesMap, NominationFile } from "shared-models";
 import sharp from "sharp";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { AppState } from "../../../../store/appState";
-import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";
 
-const testRulesTuple: typeof allRulesTuple = [
-  [
-    NominationFile.RuleGroup.MANAGEMENT,
+const testRulesMap = {
+  [NominationFile.RuleGroup.MANAGEMENT]: [
     NominationFile.ManagementRule.TRANSFER_TIME,
-  ],
-  [
-    NominationFile.RuleGroup.MANAGEMENT,
     NominationFile.ManagementRule.CASSATION_COURT_NOMINATION,
   ],
-  [
-    NominationFile.RuleGroup.STATUTORY,
-    NominationFile.StatutoryRule.MINISTER_CABINET,
-  ],
-  [
-    NominationFile.RuleGroup.STATUTORY,
-    NominationFile.StatutoryRule.GRADE_REGISTRATION,
-  ],
-  [
-    NominationFile.RuleGroup.QUALITATIVE,
-    NominationFile.QualitativeRule.EVALUATIONS,
-  ],
-];
+  [NominationFile.RuleGroup.STATUTORY]: [],
+  [NominationFile.RuleGroup.QUALITATIVE]: [],
+} as const satisfies AllRulesMap;
 
 describe("Report Overview Component", () => {
   let store: ReduxStore;
@@ -52,33 +38,23 @@ describe("Report Overview Component", () => {
       {},
       { reportFileAttached },
       undefined,
-      testRulesTuple,
+      testRulesMap,
     );
     initialState = store.getState();
   });
 
-  it("shows a message if no nomination file found", async () => {
+  it("shows a message if no report found", async () => {
     renderReport("invalid-id");
     await screen.findByText("Dossier de nomination non trouvé.");
   });
 
-  describe("when there is a nomination file", () => {
+  describe("when there is a report", () => {
     it("shows a message to explain autosave feature", async () => {
       givenAValidatedReport();
       renderReport(aValidatedReport.id);
       await screen.findByText(
         "L'enregistrement des modifications est automatique.",
       );
-    });
-
-    it("shows a message to explain rules checked and red meaning", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
-
-      const messages = await screen.findAllByText(
-        "Case cochée = la règle n'est pas respectée. Si le texte est rouge, cela signifie que notre outil de pré-analyse a détecté un risque de non-respect de la règle.",
-      );
-      expect(messages).toHaveLength(2);
     });
 
     it("shows magistrat identity section", async () => {
@@ -104,24 +80,6 @@ describe("Report Overview Component", () => {
           await screen.findByText("(1 sur une liste de 2)");
         }
       }
-    });
-
-    it("shows the rules", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
-
-      await waitFor(() => {
-        testRulesTuple.forEach(([ruleGroup, ruleName]) => {
-          const label = (
-            ReportVM.rulesToLabels[ruleGroup] as Record<
-              NominationFile.RuleName,
-              string
-            >
-          )[ruleName];
-          screen.getByText(label);
-          expectRuleUnchecked(label);
-        });
-      });
     });
 
     it("show the biography with line breaks", async () => {
@@ -260,49 +218,6 @@ describe("Report Overview Component", () => {
       },
     );
 
-    describe("Transfer time rule", () => {
-      const label =
-        ReportVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
-          "TRANSFER_TIME"
-        ];
-
-      it("checks the rule", async () => {
-        givenAValidatedReport();
-        renderReport(aValidatedReport.id);
-        await clickCheckboxAndExpectChange(label, { initiallyChecked: false });
-      });
-
-      it("unchecks the rule", async () => {
-        act(() => {
-          renderReport("report-id");
-          reportApiClient.addReport(anUnvalidatedReportApiModel);
-        });
-        await clickCheckboxAndExpectChange(label, { initiallyChecked: true });
-      });
-
-      const anotherRuleName: NominationFile.RuleName =
-        NominationFile.ManagementRule.CASSATION_COURT_NOMINATION;
-      const anotherRuleLabel =
-        ReportVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
-          anotherRuleName
-        ];
-      it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
-        act(() => {
-          renderReport("report-id");
-          reportApiClient.addReport(
-            new ReportApiModelBuilder()
-              .withSomeRules()
-              .with("rules.management.TRANSFER_TIME.validated", false)
-              .build(),
-          );
-        });
-
-        await clickCheckboxAndExpectChange(anotherRuleLabel, {
-          initiallyChecked: false,
-        });
-      });
-    });
-
     describe("Files", () => {
       it("uploads a file", async () => {
         givenAValidatedReport();
@@ -396,12 +311,13 @@ describe("Report Overview Component", () => {
     };
   });
 
-  const renderReport = (id: string) =>
-    render(
+  const renderReport = (id: string) => {
+    return render(
       <Provider store={store}>
         <ReportOverview id={id} />
       </Provider>,
     );
+  };
 
   const expectMagistratIdentity = async () => {
     const labels = ReportVM.magistratIdentityLabels;
@@ -411,30 +327,6 @@ describe("Report Overview Component", () => {
     await screen.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
     await screen.findByText(`${labels.rank} : (2 sur une liste de 3)`);
     await screen.findByText(`${labels.birthDate} : 01/01/1980`);
-  };
-
-  const expectRuleUnchecked = (name: string) => {
-    expect(screen.queryByRole("checkbox", { name })).not.toBeChecked();
-  };
-
-  const clickCheckboxAndExpectChange = async (
-    label: string,
-    { initiallyChecked }: { initiallyChecked: boolean },
-  ) => {
-    const initialState = store.getState();
-
-    await userEvent.click(
-      await screen.findByRole("checkbox", {
-        name: label,
-        checked: initiallyChecked,
-      }),
-    );
-
-    await screen.findByRole("checkbox", {
-      name: label,
-      checked: !initiallyChecked,
-    });
-    expect(store.getState()).not.toEqual(initialState);
   };
 });
 
@@ -451,8 +343,3 @@ const aValidatedReportApiModel = new ReportApiModelBuilder()
 const aValidatedReport = ReportBuilder.fromApiModel(
   aValidatedReportApiModel,
 ).buildRetrieveSM();
-
-const anUnvalidatedReportApiModel = new ReportApiModelBuilder()
-  .withSomeRules()
-  .with("rules.management.TRANSFER_TIME.validated", false)
-  .build();

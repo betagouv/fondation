@@ -16,7 +16,7 @@ import { createReportOverviewSlice } from "../core-logic/reducers/reportOverview
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { allRulesTuple as allRulesTuple } from "shared-models";
+import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -42,6 +42,8 @@ export type PartialAppDependencies = {
   [K in keyof AppDependencies]: Partial<AppDependencies[K]>;
 };
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const initReduxStore = <IsTest extends boolean = true>(
   gateways: IsTest extends true ? Partial<Gateways> : Gateways,
   providers: IsTest extends true ? Partial<Providers> : Providers,
@@ -50,7 +52,13 @@ export const initReduxStore = <IsTest extends boolean = true>(
     : NestedPrimaryAdapters,
   listeners?: IsTest extends true ? Partial<AppListeners> : AppListeners,
   routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
-  rulesTuple: typeof allRulesTuple = allRulesTuple,
+  rulesTuple: AllRulesMap = isProduction
+    ? allRulesMap
+    : {
+        [NominationFile.RuleGroup.MANAGEMENT]: [],
+        [NominationFile.RuleGroup.STATUTORY]: [],
+        [NominationFile.RuleGroup.QUALITATIVE]: [],
+      },
 ) => {
   return configureStore({
     reducer: {

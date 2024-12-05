@@ -1,20 +1,26 @@
 import _ from "lodash";
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  AllRulesMap,
+  Magistrat,
+  NominationFile,
+  Transparency,
+} from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../store/appState";
-import { ReportVM } from "../view-models/ReportVM";
+import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
+import { getReportAccordionLabel } from "./ReportVMRules.builder";
 
-type InternalReportVM = Omit<
-  SetOptional<ReportVM, "rulesChecked">,
+type InternalReportVM<RulesMap extends AllRulesMap> = Omit<
+  SetOptional<ReportVM<RulesMap>, "rulesChecked">,
   "dueDate" | "birthDate"
 > & {
   dueDate: DateOnly | null;
   birthDate: DateOnly;
 };
 
-export class ReportBuilderVM {
-  private _reportVM: InternalReportVM;
+export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
+  private _reportVM: InternalReportVM<RulesMap>;
 
   constructor() {
     this._reportVM = {
@@ -46,8 +52,8 @@ export class ReportBuilderVM {
   }
 
   with<
-    K extends Paths<ReportVM>,
-    V extends Get<ReportVM, K> = Get<ReportVM, K>,
+    K extends Paths<ReportVM<RulesMap>>,
+    V extends Get<ReportVM<RulesMap>, K> = Get<ReportVM<RulesMap>, K>,
   >(property: K, value: V) {
     if (!this._reportVM) throw new Error("No report");
     this._reportVM = _.set(this._reportVM, property, value);
@@ -63,17 +69,58 @@ export class ReportBuilderVM {
     return this;
   }
 
-  build(): ReportVM {
+  build(): ReportVM<RulesMap> {
     return {
       ...this._reportVM,
-      rulesChecked: this._reportVM.rulesChecked!,
+      rulesChecked: this.buildRulesChecked(),
       dueDate: this._reportVM.dueDate?.toFormattedString() ?? null,
       birthDate: this._reportVM.birthDate.toFormattedString(),
     };
   }
 
-  static fromStoreModel(reportStoreModel: ReportSM) {
-    return new ReportBuilderVM()
+  private buildRulesChecked() {
+    return Object.values(NominationFile.RuleGroup).reduce(
+      (acc, group) =>
+        ({
+          ...acc,
+          ...this.buildRulesCheckedForGroup(group),
+        }) as ReportVM<RulesMap>["rulesChecked"],
+      {} as ReportVM<RulesMap>["rulesChecked"],
+    );
+  }
+
+  private buildRulesCheckedForGroup<G extends NominationFile.RuleGroup>(
+    group: G,
+  ) {
+    const rulesChecked = this._reportVM.rulesChecked?.[group];
+
+    const rulesGroup: ReportVM<RulesMap>["rulesChecked"][G] = {
+      selected: {
+        ...(rulesChecked?.selected as Record<
+          RulesMap[G][number],
+          VMReportRuleValue<true>
+        >),
+      },
+      others: {
+        ...(rulesChecked?.others as Record<
+          RulesMap[G][number],
+          VMReportRuleValue<false>
+        >),
+      },
+      accordionLabel: getReportAccordionLabel(group),
+    };
+
+    // Typescript generalizes the group type to string because it's a dynamic value,
+    // so we need to cast the returned type to the correct one.
+    return {
+      [group]: rulesGroup,
+    } as Record<G, typeof rulesGroup>;
+  }
+
+  static fromStoreModel<R extends AllRulesMap = AllRulesMap>(
+    reportStoreModel: ReportSM,
+  ): ReportBuilderVM<R> {
+    return new ReportBuilderVM<R>()
       .with("id", reportStoreModel.id)
       .with("biography", reportStoreModel.biography)
       .withBirthDate(DateOnly.fromStoreModel(reportStoreModel.birthDate))
