@@ -10,8 +10,9 @@ export const apiConfig: ProdApiConfig = {
   },
   contextServices: {
     filesContext: {
-      baseUrl: 'http://localhost',
-      port: 3000,
+      // The DNS will resolve this url to a private IP.
+      // APP env variable is set by scalingo.
+      baseUrl: `http://${process.env.APP}.osc-secnum-fr1.scalingo.io`,
     },
   },
   s3: {
@@ -43,8 +44,7 @@ export const defaultApiConfig = {
   },
   contextServices: {
     filesContext: {
-      baseUrl: 'http://localhost',
-      port: 3000,
+      baseUrl: 'http://localhost:3000',
     },
   },
   s3: {

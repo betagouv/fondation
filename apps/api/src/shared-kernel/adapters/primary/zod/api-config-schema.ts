@@ -5,7 +5,6 @@ const commonBaseSchema = z.object({
   contextServices: z.object({
     filesContext: z.object({
       baseUrl: z.string(),
-      port: z.number(),
     }),
   }),
 });

@@ -15,8 +15,6 @@ export class HttpReportFileService implements ReportFileService {
     this.fileServiceUrl = new URL(
       this.apiConfig.contextServices.filesContext.baseUrl,
     );
-    this.fileServiceUrl.port =
-      this.apiConfig.contextServices.filesContext.port.toString();
   }
 
   async uploadFile(

@@ -85,7 +85,7 @@ export const getReportAccordionLabel = (
     case NominationFile.RuleGroup.STATUTORY:
       return "Autres règles statutaires";
     case NominationFile.RuleGroup.QUALITATIVE:
-      return "Autres règles qualitatives";
+      return "Autres éléments qualitatifs";
     default: {
       const _exhaustiveCheck: never = group;
       console.info(_exhaustiveCheck);
