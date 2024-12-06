@@ -107,7 +107,7 @@ const getFile = (
   bucket: 'fondation',
   name: 'file-name.txt',
   path: null,
-  storageProvider: FilesStorageProvider.OUTSCALE,
+  storageProvider: FilesStorageProvider.SCALEWAY,
   signedUrl: undefined,
   ...override,
 });

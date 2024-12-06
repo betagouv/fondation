@@ -78,7 +78,7 @@ describe('Files Controller', () => {
       id: fileId,
       createdAt: expect.any(Date),
       name: fileName,
-      storageProvider: FilesStorageProvider.OUTSCALE,
+      storageProvider: FilesStorageProvider.SCALEWAY,
       path: filePath,
       bucket,
     });
@@ -101,7 +101,7 @@ describe('Files Controller', () => {
       .values({
         id: fileId,
         name: fileName,
-        storageProvider: FilesStorageProvider.OUTSCALE,
+        storageProvider: FilesStorageProvider.SCALEWAY,
         bucket,
       })
       .execute();
@@ -133,7 +133,7 @@ describe('Files Controller', () => {
         bucket,
         path: null,
         name: fileName,
-        storageProvider: FilesStorageProvider.OUTSCALE,
+        storageProvider: FilesStorageProvider.SCALEWAY,
       })
       .execute();
 

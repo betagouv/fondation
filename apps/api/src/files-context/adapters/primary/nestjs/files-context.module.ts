@@ -24,6 +24,7 @@ import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scal
 const isProduction = process.env.NODE_ENV === 'production';
 const isCi = process.env.CI === 'true';
 const isScalewayS3 = isProduction || isCi;
+console.log('isScalewayS3', isScalewayS3);
 
 @Module({
   imports: [SharedKernelModule],

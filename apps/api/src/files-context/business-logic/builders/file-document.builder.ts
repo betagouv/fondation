@@ -16,7 +16,7 @@ export class FileDocumentBuilder {
       name: 'file-name',
       bucket: 'fondation',
       path: null,
-      storageProvider: FilesStorageProvider.OUTSCALE,
+      storageProvider: FilesStorageProvider.SCALEWAY,
     };
   }
 
