@@ -103,13 +103,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         rulesChecked={report.rulesChecked}
         onUpdateReportRule={onUpdateReportRule}
       />
-      {import.meta.env.DEV && (
-        <AttachedFileUpload
-          attachedFiles={report.attachedFiles}
-          onFileAttached={onFileAttached}
-          onAttachedFileDeleted={onAttachedFileDeleted}
-        />
-      )}
+      <AttachedFileUpload
+        attachedFiles={report.attachedFiles}
+        onFileAttached={onFileAttached}
+        onAttachedFileDeleted={onAttachedFileDeleted}
+      />
     </div>
   );
 };
