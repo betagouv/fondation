@@ -29,6 +29,11 @@ jobs:
         run: pnpm --filter shared-models build
       - name: Generate SDK, necessary for the types check
         run: pnpm --filter api gen-sdk
+        env:
+          SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
+          S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
       - name: Types check
         run: pnpm types:check
       - name: Lint
@@ -44,3 +49,9 @@ jobs:
           S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
       - name: Build
         run: pnpm build
+        # Needed for nestia sdk generation
+        env:
+          SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
+          S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
