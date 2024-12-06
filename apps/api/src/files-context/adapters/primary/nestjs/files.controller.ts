@@ -30,6 +30,7 @@ export class FilesController {
     @Query() query: FileUploadQueryDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    console.log('query', query);
     const { bucket, path, fileId } = query;
     return this.uploadFileUseCase.execute(
       fileId,

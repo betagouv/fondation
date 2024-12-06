@@ -65,9 +65,9 @@ export const defaultApiConfig = {
     scaleway: {
       endpoint: { scheme: 'https', baseDomain: baseScalewayDomain },
       region: 'fr-par',
-      encryptionKeyBase64: Buffer.from(crypto.randomBytes(32)).toString(
-        'base64',
-      ),
+      encryptionKeyBase64:
+        process.env.SCW_ENCRYPTION_KEY ??
+        Buffer.from(crypto.randomBytes(32)).toString('base64'),
       credentials: {
         accessKeyId: process.env.SCW_ACCESS_KEY!,
         secretAccessKey: process.env.SCW_SECRET_KEY!,

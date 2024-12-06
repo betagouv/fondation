@@ -84,6 +84,7 @@ export class ReportsController implements IReportController {
     @Param() { id }: ReportsEndpoints['attachFile']['Params'],
     @UploadedFile() file: Express.Multer.File,
   ): Promise<void> {
+    console.log('attach file', id, file);
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,

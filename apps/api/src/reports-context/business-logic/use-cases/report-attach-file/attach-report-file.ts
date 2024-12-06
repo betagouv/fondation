@@ -35,11 +35,13 @@ export class AttachReportFileUseCase {
 
       // Order matters, file isn't attached if saving in repository fails
       await this.reportAttachedFileRepository.save(attachedFile)(trx);
+      console.log('saved attached file');
       await this.reportFileService.uploadFile(
         attachedFile,
         fileBuffer,
         filePath,
       );
+      console.log('uploaded file');
     });
   }
 }
