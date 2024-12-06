@@ -3,7 +3,7 @@ import { join } from 'path';
 import { FileDocumentBuilder } from 'src/files-context/business-logic/builders/file-document.builder';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { FileDocument } from 'src/files-context/business-logic/models/file-document';
-import { S3Config } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { S3Config } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { MinioS3Commands } from './minio-s3-commands';

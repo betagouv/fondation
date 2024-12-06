@@ -34,7 +34,7 @@ import {
   REPORT_RULE_REPOSITORY,
 } from './tokens';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 @Module({
   imports: [SharedKernelModule],

@@ -13,7 +13,7 @@ import {
   ApiConfig,
   DevApiConfig,
   ProdApiConfig,
-} from '../nestia/api-config-schema';
+} from '../zod/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
 import { apiConfig, defaultApiConfig } from './env';
 import { validateDevConfig, validateProdConfig } from './env.validation';

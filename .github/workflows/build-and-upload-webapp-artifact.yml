@@ -35,7 +35,6 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_FAKE_USERS: ${{ secrets.VITE_FAKE_USERS }}
-
       - name: Create Archive
         run: |
           # In Scalingo dashboard, we set the PROJECT_DIR environment variable to webapp

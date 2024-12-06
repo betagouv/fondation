@@ -3,7 +3,7 @@ import {
   DevApiConfigSchema,
   ProdApiConfig,
   ProdApiConfigSchema,
-} from '../nestia/api-config-schema';
+} from '../zod/api-config-schema';
 
 export const validateProdConfig = (apiConfig: ProdApiConfig): ProdApiConfig =>
   ProdApiConfigSchema.parse(apiConfig);

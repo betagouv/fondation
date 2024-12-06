@@ -34,6 +34,8 @@ export const selectReportList = createAppSelector(
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
+      Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024,
+      Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024,
       Transparency.MARCH_2025,
       Transparency.MARCH_2026,
     ];
@@ -108,6 +110,10 @@ export const transparencyToLabel = (transparency: Transparency) => {
       return "Mars 2026";
     case Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024:
       return "PG 8/11/2024";
+    case Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024:
+      return "PG 25/11/2024";
+    case Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024:
+      return "Tableau général T 25/11/2024";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

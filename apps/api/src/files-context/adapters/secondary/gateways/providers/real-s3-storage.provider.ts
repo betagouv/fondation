@@ -6,7 +6,7 @@ import {
   FileDocument,
   FileVM,
 } from 'src/files-context/business-logic/models/file-document';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 export class RealS3StorageProvider implements S3StorageProvider {
   constructor(

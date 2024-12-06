@@ -35,8 +35,8 @@ import { reports } from '../../secondary/gateways/repositories/drizzle/schema/re
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
-import { ChangeRuleValidationStateDto } from '../nestia/change-rule-validation-state.dto';
 import { S3Client } from '@aws-sdk/client-s3';
+import { ChangeRuleValidationStateDto } from './dto/report-update.dto';
 
 describe('Reports Controller', () => {
   let app: NestApplication;

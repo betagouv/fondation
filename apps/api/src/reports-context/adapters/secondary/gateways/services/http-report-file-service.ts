@@ -5,7 +5,7 @@ import {
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
 import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import typia from 'typia';
 
 export class HttpReportFileService implements ReportFileService {

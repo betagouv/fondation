@@ -134,6 +134,13 @@
       "when": 1732813261817,
       "tag": "0018_reports_context__add_file_id",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1733500128327,
+      "tag": "0019_reports_context__add_transparency_values",
+      "breakpoints": true
     }
   ]
 }

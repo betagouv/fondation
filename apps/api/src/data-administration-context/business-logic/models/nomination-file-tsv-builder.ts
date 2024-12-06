@@ -241,6 +241,10 @@ export class NominationFileTsvBuilder {
       [Transparency.MARCH_2026]: 'Mars 2026',
       [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
         'Transparence PG 08/11',
+      [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
+        'Transparence PG 25/11',
+      [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
+        'Tableau général T du 25/11',
     };
 
     const stateMap = {

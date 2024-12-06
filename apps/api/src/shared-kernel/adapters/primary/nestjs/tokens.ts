@@ -4,7 +4,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { DrizzleDb } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { ApiConfig } from '../nestia/api-config-schema';
+import { ApiConfig } from '../zod/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
 
 export const API_CONFIG = 'API_CONFIG';

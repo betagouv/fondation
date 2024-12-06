@@ -18,7 +18,7 @@ import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
 import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
 
 const isProduction = process.env.NODE_ENV === 'production';

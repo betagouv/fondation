@@ -3,7 +3,7 @@ import {
   S3Commands,
   SseHeaders,
 } from 'src/files-context/business-logic/gateways/providers/s3-commands';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/nestia/api-config-schema';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 export class ScalewayS3Commands extends S3Commands {
   constructor(readonly apiConfig: ApiConfig) {

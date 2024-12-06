@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { DevApiConfig, ProdApiConfig } from '../nestia/api-config-schema';
+import { DevApiConfig, ProdApiConfig } from '../zod/api-config-schema';
 
 const baseScalewayDomain = 's3.fr-par.scw.cloud';
 
