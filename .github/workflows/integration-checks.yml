@@ -4,10 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize]
   workflow_call:
-    inputs:
-      environment:
-        type: string
-        required: true
     secrets:
       SCW_SECRET_KEY:
         required: true
@@ -15,6 +11,7 @@ on:
         required: true
 jobs:
   build:
+    environment: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
