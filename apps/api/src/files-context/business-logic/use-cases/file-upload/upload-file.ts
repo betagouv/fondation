@@ -30,7 +30,11 @@ export class UploadFileUseCase {
         filePath,
         FilesStorageProvider.SCALEWAY,
       );
-      console.log('files context - created file document');
+      console.log(
+        'files context - created file document',
+        fileDocument,
+        fileDocument.toSnapshot(),
+      );
 
       // Order matters, file isn't uploaded if saving in repository fails
       await this.fileRepository.save(fileDocument)(trx);

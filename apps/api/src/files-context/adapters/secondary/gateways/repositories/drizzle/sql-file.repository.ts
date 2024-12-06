@@ -8,9 +8,9 @@ import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondar
 import { filesPm } from './schema/files-pm';
 
 export class SqlFileRepository implements FileRepository {
-  save(report: FileDocument): DrizzleTransactionableAsync {
+  save(file: FileDocument): DrizzleTransactionableAsync {
     return async (db) => {
-      const reportRow = SqlFileRepository.mapToDb(report);
+      const reportRow = SqlFileRepository.mapToDb(file);
       await db.insert(filesPm).values(reportRow);
     };
   }
