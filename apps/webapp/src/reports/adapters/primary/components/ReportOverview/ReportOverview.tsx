@@ -2,24 +2,26 @@ import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { NominationFile } from "shared-models";
+import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { deleteReportAttachedFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { retrieveReport } from "../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
+import { updateReportRule } from "../../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
 import {
+  ReportStateUpdateParam,
   updateReport,
   UpdateReportParams,
 } from "../../../../core-logic/use-cases/report-update/updateReport.use-case";
-import { updateReportRule } from "../../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
+import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
 import { selectReport } from "../../selectors/selectReport";
+import { AttachedFileUpload } from "./AttachedFileUpload";
 import { AutoSaveNotice } from "./AutoSaveNotice";
 import { Biography } from "./Biography";
 import { Comment } from "./Comment";
 import { MagistratIdentity } from "./MagistratIdentity";
-import { ReportRules } from "./ReportRules";
-import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
 import { Observers } from "./Observers";
-import { AttachedFileUpload } from "./AttachedFileUpload";
-import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
-import { deleteReportAttachedFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
+import { ReportRules } from "./ReportRules";
+import { ReportOverviewState } from "./ReportOverviewState";
 
 export type ReportOverviewProps = {
   id: string;
@@ -45,6 +47,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   };
   const onUpdateComment = (comment: string) => {
     return onUpdateNomination<"comment">({ comment });
+  };
+
+  const onUpdateState = (state: ReportStateUpdateParam) => {
+    return onUpdateNomination<"state">({ state });
   };
 
   const onUpdateReportRule =
@@ -88,6 +94,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       )}
     >
       <AutoSaveNotice />
+      <ReportOverviewState state={report.state} onUpdateState={onUpdateState} />
       <MagistratIdentity
         name={report.name}
         birthDate={report.birthDate}

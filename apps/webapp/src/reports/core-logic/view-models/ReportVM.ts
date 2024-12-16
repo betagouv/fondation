@@ -5,6 +5,8 @@ import {
   NominationFile,
   Transparency,
 } from "shared-models";
+import { stateToLabel } from "../../adapters/primary/labels/state-label.mapper";
+import { reportStateFilterTitle } from "../../adapters/primary/labels/state-filter-labels";
 
 export type VMReportRuleValue<Selected extends boolean = boolean> = {
   id: string;
@@ -40,6 +42,14 @@ export class ReportVM<
     RuleName
   >,
 > {
+  static stateSelectLabel = reportStateFilterTitle;
+  static stateSelectOptions = Object.values(NominationFile.ReportState).reduce(
+    (acc, state) => ({
+      ...acc,
+      [state]: stateToLabel(state),
+    }),
+    {} as Record<NominationFile.ReportState, string>,
+  );
   static magistratIdentityLabels = {
     birthDate: "Date de naissance",
     grade: "Grade",
@@ -114,23 +124,23 @@ export class ReportVM<
   };
 
   constructor(
-    public id: string,
-    public name: string,
-    public biography: string | null,
-    public dueDate: string | null,
-    public birthDate: string,
-    public state: NominationFile.ReportState,
-    public formation: Magistrat.Formation,
-    public transparency: Transparency,
-    public grade: Magistrat.Grade,
-    public currentPosition: string,
-    public targettedPosition: string,
-    public comment: string | null,
-    public rank: string,
-    public observers: [string, ...string[]][] | null,
-    public attachedFiles: AttachedFileVM[] | null,
+    public readonly id: string,
+    public readonly name: string,
+    public readonly biography: string | null,
+    public readonly dueDate: string | null,
+    public readonly birthDate: string,
+    public readonly state: NominationFile.ReportState,
+    public readonly formation: Magistrat.Formation,
+    public readonly transparency: Transparency,
+    public readonly grade: Magistrat.Grade,
+    public readonly currentPosition: string,
+    public readonly targettedPosition: string,
+    public readonly comment: string | null,
+    public readonly rank: string,
+    public readonly observers: [string, ...string[]][] | null,
+    public readonly attachedFiles: AttachedFileVM[] | null,
 
-    public rulesChecked: GroupRulesChecked<
+    public readonly rulesChecked: GroupRulesChecked<
       NominationFile.RuleGroup.MANAGEMENT,
       ManagementRules
     > &

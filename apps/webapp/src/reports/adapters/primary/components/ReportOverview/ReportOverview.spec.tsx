@@ -4,7 +4,10 @@ import { Provider } from "react-redux";
 import { AllRulesMap, NominationFile } from "shared-models";
 import sharp from "sharp";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
-import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
+import {
+  ReportApiModel,
+  ReportApiModelBuilder,
+} from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { AppState } from "../../../../store/appState";
@@ -26,6 +29,7 @@ describe("Report Overview Component", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let reportApiClient: FakeReportApiClient;
+  let reportApiModelBuilder: ReportApiModelBuilder;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -41,36 +45,75 @@ describe("Report Overview Component", () => {
       testRulesMap,
     );
     initialState = store.getState();
+
+    reportApiModelBuilder = new ReportApiModelBuilder(testRulesMap);
   });
 
   it("shows a message if no report found", async () => {
-    renderReport("invalid-id");
+    renderReportId("invalid-id");
     await screen.findByText("Dossier de nomination non trouvé.");
   });
 
   describe("when there is a report", () => {
     it("shows a message to explain autosave feature", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
+      const report = reportApiModelBuilder.build();
+      givenARenderedReport(report);
       await screen.findByText(
         "L'enregistrement des modifications est automatique.",
       );
     });
 
+    it("changes the report state from 'in progress' to 'ready to support'", async () => {
+      const reportApiModel = reportApiModelBuilder
+        .with("state", NominationFile.ReportState.IN_PROGRESS)
+        .build();
+      const expectedRportVM = ReportBuilder.fromApiModel(reportApiModel)
+        .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
+        .buildRetrieveSM();
+      givenARenderedReport(reportApiModel);
+
+      const select = await screen.findByLabelText(ReportVM.stateSelectLabel);
+      await userEvent.selectOptions(
+        select,
+        ReportVM.stateSelectOptions[
+          NominationFile.ReportState.READY_TO_SUPPORT
+        ],
+      );
+
+      await waitFor(() => {
+        expect(store.getState()).toEqual<AppState>({
+          ...initialState,
+          reportOverview: {
+            ...initialState.reportOverview,
+            byIds: {
+              [reportApiModel.id]: expectedRportVM,
+            },
+          },
+        });
+      });
+    });
+
     it("shows magistrat identity section", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
+      const reportApiModel = reportApiModelBuilder.build();
+      givenARenderedReport(reportApiModel);
 
       await expectMagistratIdentity();
     });
 
     it("shows the observers", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
+      const reportApiModel = reportApiModelBuilder
+        .with("observers", [
+          "observer 1",
+          "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
+        ])
+        .build();
+      const aReportVM =
+        ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
+      givenARenderedReport(reportApiModel);
 
       await screen.findByText("Observants");
 
-      for (const [index, observer] of aValidatedReport.observers!.entries()) {
+      for (const [index, observer] of aReportVM.observers!.entries()) {
         if (index === 0) {
           await screen.findByText(observer);
         } else {
@@ -83,8 +126,13 @@ describe("Report Overview Component", () => {
     });
 
     it("show the biography with line breaks", async () => {
-      givenAValidatedReport();
-      renderReport(aValidatedReport.id);
+      const reportApiModel = reportApiModelBuilder
+        .with(
+          "biography",
+          "  - John Doe's biography - second line  - third line ",
+        )
+        .build();
+      givenARenderedReport(reportApiModel);
 
       await screen.findByText(
         /- John Doe's biography\s- second line\s- third line/,
@@ -115,14 +163,11 @@ describe("Report Overview Component", () => {
         it.skipIf(!placeholder)(
           "shows the placeholder when there is no content",
           async () => {
-            const aReport = new ReportApiModelBuilder()
+            const aReport = reportApiModelBuilder
               .with("id", "without-comment")
               .with("comment", null)
-              .withSomeRules()
               .build();
-            reportApiClient.addReport(aReport);
-
-            renderReport(aReport.id);
+            givenARenderedReport(aReport);
             textarea = await givenTheTextArea();
 
             expect(textarea).toHaveValue("");
@@ -134,8 +179,8 @@ describe("Report Overview Component", () => {
         );
 
         it("writes content", async () => {
-          givenAValidatedReport();
-          renderReport(aValidatedReport.id);
+          const reportApiModel = reportApiModelBuilder.build();
+          givenARenderedReport(reportApiModel);
 
           textarea = await givenTheTextArea();
 
@@ -145,8 +190,10 @@ describe("Report Overview Component", () => {
         });
 
         it("removes content", async () => {
-          givenAValidatedReport();
-          renderReport(aValidatedReport.id);
+          const reportApiModel = reportApiModelBuilder.build();
+          const aReportVM =
+            ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
+          givenARenderedReport(reportApiModel);
 
           textarea = await givenTheTextArea();
           await userEvent.clear(textarea!);
@@ -158,8 +205,8 @@ describe("Report Overview Component", () => {
               reportOverview: {
                 ...initialState.reportOverview,
                 byIds: {
-                  [aValidatedReport.id]: {
-                    ...aValidatedReport,
+                  [reportApiModel.id]: {
+                    ...aReportVM,
                     [storeKey]: null,
                   },
                 },
@@ -169,8 +216,10 @@ describe("Report Overview Component", () => {
         });
 
         it("keeps the cursor position after typing and saves the new content", async () => {
-          givenAValidatedReport();
-          renderReport(aValidatedReport.id);
+          const reportApiModel = reportApiModelBuilder.build();
+          const aReportVM =
+            ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
+          givenARenderedReport(reportApiModel);
 
           textarea = await givenTheTextArea();
           await typeNewBiographyText();
@@ -187,8 +236,8 @@ describe("Report Overview Component", () => {
               reportOverview: {
                 ...initialState.reportOverview,
                 byIds: {
-                  [aValidatedReport.id]: {
-                    ...aValidatedReport,
+                  [reportApiModel.id]: {
+                    ...aReportVM,
                     [storeKey]: newContentAfterCursorTyping,
                   },
                 },
@@ -220,24 +269,25 @@ describe("Report Overview Component", () => {
 
     describe("Files", () => {
       it("uploads a file", async () => {
-        givenAValidatedReport();
-        renderReport(aValidatedReport.id);
-
+        const reportApiModel = reportApiModelBuilder.build();
+        givenARenderedReport(reportApiModel);
+        const aReportVM =
+          ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
         const fileBuffer = await givenAPngBuffer();
 
         const file = new File([fileBuffer], "image.png", {
           type: "image/png",
         });
 
-        await screen.findByText(aValidatedReport.name);
+        await screen.findByText(aReportVM.name);
         const input = await screen.findByLabelText(
           /^Ajouter des pièces jointes/,
         );
         await userEvent.upload(input, file);
 
         expect(store.getState().reportOverview.byIds).toEqual({
-          [aValidatedReport.id]: {
-            ...aValidatedReport,
+          [reportApiModel.id]: {
+            ...aReportVM,
             attachedFiles: [
               {
                 name: "image.png",
@@ -249,9 +299,8 @@ describe("Report Overview Component", () => {
       });
 
       it("lists attached files urls", async () => {
-        reportApiClient.addReport({
-          ...aValidatedReportApiModel,
-          attachedFiles: [
+        const reportApiModel = reportApiModelBuilder
+          .with("attachedFiles", [
             {
               name: "file1.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
@@ -260,18 +309,17 @@ describe("Report Overview Component", () => {
               name: "file2.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
             },
-          ],
-        });
-        renderReport(aValidatedReport.id);
+          ])
+          .build();
+        givenARenderedReport(reportApiModel);
 
         await screen.findByText("file1.png");
         await screen.findByText("file2.png");
       });
 
       it("deletes an attached file", async () => {
-        reportApiClient.addReport({
-          ...aValidatedReportApiModel,
-          attachedFiles: [
+        const reportApiModel = reportApiModelBuilder
+          .with("attachedFiles", [
             {
               name: "file1.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
@@ -280,16 +328,16 @@ describe("Report Overview Component", () => {
               name: "file2.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
             },
-          ],
-        });
-        renderReport(aValidatedReport.id);
+          ])
+          .build();
+        givenARenderedReport(reportApiModel);
 
         await screen.findByText("file1.png");
-
-        const deleteButton = await screen.findByRole("button", {
+        const deleteButton = screen.getByRole("button", {
           name: "delete-attached-file-file1.png",
         });
         await userEvent.click(deleteButton);
+
         expect(screen.queryByText("file1.png")).toBeNull();
       });
     });
@@ -305,16 +353,19 @@ describe("Report Overview Component", () => {
       })
         .png()
         .toBuffer();
-
-    const givenAValidatedReport = () => {
-      reportApiClient.addReport(aValidatedReportApiModel);
-    };
   });
 
-  const renderReport = (id: string) => {
+  const givenARenderedReport = (report: ReportApiModel) => {
+    reportApiClient.reports = {};
+    reportApiClient.addReport(report);
+
+    return renderReportId(report.id);
+  };
+
+  const renderReportId = (reportId: string) => {
     return render(
       <Provider store={store}>
-        <ReportOverview id={id} />
+        <ReportOverview id={reportId} />
       </Provider>,
     );
   };
@@ -329,17 +380,3 @@ describe("Report Overview Component", () => {
     await screen.findByText(`${labels.birthDate} : 01/01/1980`);
   };
 });
-
-const aValidatedReportApiModel = new ReportApiModelBuilder()
-  .with("id", "report-id")
-  .with("biography", "  - John Doe's biography - second line  - third line ")
-  .with("observers", [
-    "observer 1",
-    "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
-  ])
-  .withSomeRules()
-  .with("rules.management.TRANSFER_TIME.validated", true)
-  .build();
-const aValidatedReport = ReportBuilder.fromApiModel(
-  aValidatedReportApiModel,
-).buildRetrieveSM();

@@ -33,6 +33,9 @@ describe("Report Update", () => {
       state: NominationFile.ReportState.READY_TO_SUPPORT,
     },
     {
+      state: NominationFile.ReportState.OPINION_RETURNED,
+    },
+    {
       comment: "new comment",
     },
     {
@@ -40,7 +43,7 @@ describe("Report Update", () => {
       comment: "new comment",
     },
   ];
-  it.each(testData)("updates with this new data: %s", async (newData) => {
+  it.each(testData)("updates with: %s", async (newData) => {
     reportApiClient.addReport(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
 

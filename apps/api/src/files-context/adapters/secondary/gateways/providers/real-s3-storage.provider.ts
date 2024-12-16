@@ -22,11 +22,7 @@ export class RealS3StorageProvider implements S3StorageProvider {
     bucket: string,
     filePath: string[] | null,
   ): Promise<void> {
-    console.log(
-      `Uploading file to S3 with  fileName: ${fileName}, mimeType: ${mimeType}, bucket: ${bucket}, filePath: ${filePath}`,
-    );
     await this.ensureBucketExists(bucket);
-    console.log(`Bucket ${bucket} exists`);
     const command = this.s3Commands.putObject(
       bucket,
       fileBuffer,
@@ -35,7 +31,6 @@ export class RealS3StorageProvider implements S3StorageProvider {
       filePath,
     );
     await this.s3Client.send(command);
-    console.log(`File ${fileName} uploaded to S3`);
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {

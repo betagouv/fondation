@@ -176,6 +176,9 @@ describe("Select Report", () => {
       validated: true,
       comment: null,
     })
+    .with("attachedFiles", [
+      { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
+    ])
     .buildRetrieveSM();
 
   const aRuleVM: VMReportRuleValue = {
@@ -187,6 +190,7 @@ describe("Select Report", () => {
   };
 
   const aReportVM = ReportBuilderVM.fromStoreModel<typeof testRulesMap>(aReport)
+    .with("state", NominationFile.ReportState.NEW)
     .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
     .with("observers", [
       ["observer 1"],

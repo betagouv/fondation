@@ -1,10 +1,11 @@
-import { Transparency } from "shared-models";
+import { NominationFile, Transparency } from "shared-models";
 import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
 import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
 import { authenticate } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
+import { reportsFilteredByState } from "../../../core-logic/reducers/reportList.slice";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import {
@@ -38,10 +39,13 @@ describe("Select Nomination Case List", () => {
   it("shows an empty list", () => {
     expect(selectReportList(store.getState())).toEqual<ReportListVM>({
       reports: [],
+      filters: {
+        state: "all",
+      },
     });
   });
 
-  describe("when there are three reports", () => {
+  describe("when there are many reports", () => {
     beforeEach(() => {
       store.dispatch(
         authenticate.fulfilled(user, "", {
@@ -72,6 +76,40 @@ describe("Select Nomination Case List", () => {
           aSecondReportVM,
           aFourthDifferentTransparencyReportVM,
         ],
+        filters: {
+          state: "all",
+        },
+      });
+    });
+
+    it("filters the reports ready to support", () => {
+      store.dispatch(
+        reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
+      );
+      expect(selectReportList(store.getState())).toEqual<ReportListVM>({
+        reports: [aReportVM],
+        filters: {
+          state: NominationFile.ReportState.READY_TO_SUPPORT,
+        },
+      });
+    });
+
+    it("resets the state filter", () => {
+      store.dispatch(
+        reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
+      );
+      store.dispatch(reportsFilteredByState("all"));
+
+      expect(selectReportList(store.getState())).toEqual<ReportListVM>({
+        reports: [
+          aReportVM,
+          aThirdReportVM,
+          aSecondReportVM,
+          aFourthDifferentTransparencyReportVM,
+        ],
+        filters: {
+          state: "all",
+        },
       });
     });
   });
@@ -83,6 +121,7 @@ describe("Select Nomination Case List", () => {
     .with("name", "Banneau Louise")
     .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
+    .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
     .buildListSM();
   const aReportVM: ReportListItemVM = {
     id: aReport.id,
@@ -90,7 +129,7 @@ describe("Select Nomination Case List", () => {
     name: aReport.name,
     reporterName: aReport.reporterName,
     dueDate: "30/10/2030",
-    state: "Nouveau",
+    state: "Prêt à soutenir",
     formation: "Parquet",
     transparency: "Octobre 2024",
     grade: "I",

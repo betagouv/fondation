@@ -3,9 +3,7 @@ import { ReportListItem, ReportSM } from "../../store/appState";
 
 export interface UpdateReportParams {
   comment?: string;
-  state?:
-    | NominationFile.ReportState.IN_PROGRESS
-    | NominationFile.ReportState.READY_TO_SUPPORT;
+  state?: NominationFile.ReportState;
 }
 
 export interface ReportGateway {

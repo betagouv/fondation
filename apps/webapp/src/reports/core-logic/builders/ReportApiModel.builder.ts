@@ -39,7 +39,7 @@ export class ReportApiModelBuilder {
         month: 1,
         day: 1,
       },
-      state: NominationFile.ReportState.NEW,
+      state: NominationFile.ReportState.IN_PROGRESS,
       formation: Magistrat.Formation.PARQUET,
       transparency: Transparency.MARCH_2025,
       grade: Magistrat.Grade.I,

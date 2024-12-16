@@ -47,7 +47,12 @@ export interface AppState {
     byIds: Record<string, ReportSM> | null;
     rulesMap: AllRulesMap;
   };
-  reportList: { data: ReportListItem[] | null };
+  reportList: {
+    data: ReportListItem[] | null;
+    filters: {
+      state?: NominationFile.ReportState;
+    };
+  };
   authentication: {
     authenticated: boolean;
     user: AuthenticatedUser;

@@ -7,6 +7,7 @@ import {
   ReportUpdateData,
   UpdateReportUseCase,
 } from './update-report.use-case';
+import { NominationFile } from 'shared-models';
 
 const aReport = new ReportBuilder().build();
 
@@ -41,6 +42,15 @@ describe('Report Update Use Case', () => {
         comment: '',
       },
       new ReportBuilder().with('comment', null).build(),
+    ],
+
+    [
+      {
+        state: NominationFile.ReportState.IN_PROGRESS,
+      },
+      new ReportBuilder()
+        .with('state', NominationFile.ReportState.IN_PROGRESS)
+        .build(),
     ],
   ];
   it.each(testData)(

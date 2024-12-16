@@ -1,13 +1,13 @@
 import { NominationFile } from "shared-models";
 import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
 
+export type ReportStateUpdateParam = NominationFile.ReportState;
+
 export type UpdateReportParams = {
   reportId: string;
   data: {
     comment?: string;
-    state?:
-      | NominationFile.ReportState.IN_PROGRESS
-      | NominationFile.ReportState.READY_TO_SUPPORT;
+    state?: ReportStateUpdateParam;
   };
 };
 export type UpdateReportPayload = UpdateReportParams;

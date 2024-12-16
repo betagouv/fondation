@@ -30,15 +30,9 @@ export class UploadFileUseCase {
         filePath,
         FilesStorageProvider.SCALEWAY,
       );
-      console.log(
-        'files context - created file document',
-        fileDocument,
-        fileDocument.toSnapshot(),
-      );
 
       // Order matters, file isn't uploaded if saving in repository fails
       await this.fileRepository.save(fileDocument)(trx);
-      console.log('files context - saved file');
       await this.s3StorageProvider.uploadFile(
         file,
         fileName,
@@ -46,7 +40,6 @@ export class UploadFileUseCase {
         bucket,
         filePath,
       );
-      console.log('files context - uploaded file');
     });
   }
 }

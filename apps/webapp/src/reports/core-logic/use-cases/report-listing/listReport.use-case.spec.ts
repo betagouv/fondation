@@ -50,6 +50,7 @@ describe("Nomination Files Listing", () => {
         expect(store.getState()).toEqual<AppState>({
           ...initialState,
           reportList: {
+            ...initialState.reportList,
             data: [
               {
                 id: aReport.id,

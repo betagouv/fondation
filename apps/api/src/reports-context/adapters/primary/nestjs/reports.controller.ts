@@ -20,9 +20,11 @@ import {
   reportsControllerRoute,
   reportsEndpointRelativePaths,
   ReportsEndpoints,
-  ReportUpdateDto,
 } from 'shared-models';
-import { ChangeRuleValidationStateDto } from './dto/report-update.dto';
+import {
+  ChangeRuleValidationStateDto,
+  ReportUpdateDto,
+} from './dto/report-update.dto';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 
@@ -84,7 +86,6 @@ export class ReportsController implements IReportController {
     @Param() { id }: ReportsEndpoints['attachFile']['Params'],
     @UploadedFile() file: Express.Multer.File,
   ): Promise<void> {
-    console.log('attach file', id, file);
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,
