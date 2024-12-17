@@ -3,8 +3,8 @@ import { stateToLabel } from "./state-label.mapper";
 import { reportStateFilterTitle } from "./state-filter-labels";
 
 const reportListStateFilters = [
-  ...Object.values(NominationFile.ReportState),
   "all",
+  ...Object.values(NominationFile.ReportState),
 ] as const;
 
 export type ReportListStateFilter = (typeof reportListStateFilters)[number];

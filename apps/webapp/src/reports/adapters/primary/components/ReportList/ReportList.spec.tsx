@@ -12,6 +12,8 @@ import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.clie
 import { reportListFilters } from "../../labels/report-list-state-filter-labels.mapper";
 import { reportStateFilterTitle } from "../../labels/state-filter-labels";
 import { ReportList } from "./ReportList";
+import { reportListTableLabels } from "../../labels/report-list-table-labels";
+import { stateToLabel } from "../../labels/state-label.mapper";
 
 describe("Nomination Case List Component", () => {
   let store: ReduxStore;
@@ -65,15 +67,9 @@ describe("Nomination Case List Component", () => {
 
     it("shows the table header", async () => {
       renderReportList();
-      await screen.findByText("N° dossier");
-      await screen.findByText("Etat");
-      await screen.findByText("Echéance");
-      await screen.findByText("Formation");
-      await screen.findByText("Magistrat concerné");
-      await screen.findByText("Transparence");
-      await screen.findByText("Grade actuel");
-      await screen.findByText("Poste ciblé");
-      await screen.findByText("Observants");
+      for (const header of reportListTableLabels.headers) {
+        await screen.findByText(header);
+      }
     });
 
     it("shows it in the table", async () => {
@@ -92,6 +88,23 @@ describe("Nomination Case List Component", () => {
     });
 
     describe("when there are multiple reports", () => {
+      it("shows the filter options in the right order", async () => {
+        renderReportList();
+        const select = await screen.findByLabelText(reportStateFilterTitle);
+        const options = Array.from(select.querySelectorAll("option")).map(
+          (option) => option.textContent,
+        );
+        expect(options).toEqual([
+          "Tous",
+          ...[
+            NominationFile.ReportState.NEW,
+            NominationFile.ReportState.IN_PROGRESS,
+            NominationFile.ReportState.READY_TO_SUPPORT,
+            NominationFile.ReportState.SUPPORTED,
+          ].map(stateToLabel),
+        ]);
+      });
+
       it("filters the 'in progress' report", async () => {
         reportApiClient.addReport(
           new ReportApiModelBuilder()

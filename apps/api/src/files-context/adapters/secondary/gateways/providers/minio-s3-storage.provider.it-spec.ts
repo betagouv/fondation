@@ -124,12 +124,12 @@ describe.each`
 
         expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
         const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
-        signedUrls.forEach((url) =>
+        for (const url of signedUrls) {
           expectSignedUrl({
             url,
             expectedSignedUrl: aFile.signedUrl!,
-          }),
-        );
+          });
+        }
       });
 
       it('deletes the file', async () => {

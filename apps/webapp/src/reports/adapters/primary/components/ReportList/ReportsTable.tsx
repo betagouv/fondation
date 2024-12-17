@@ -1,6 +1,7 @@
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { ReportListItemVM } from "../../selectors/selectReportList";
 import "./ReportsTable.css";
+import { reportListTableLabels } from "../../labels/report-list-table-labels";
 
 export type ReportsTableProps = {
   reports: ReportListItemVM[];
@@ -9,17 +10,7 @@ export type ReportsTableProps = {
 export const ReportsTable: React.FC<ReportsTableProps> = ({ reports }) => (
   <Table
     id="reports-table"
-    headers={[
-      "N° dossier",
-      "Formation",
-      "Etat",
-      "Echéance",
-      "Magistrat concerné",
-      "Transparence",
-      "Grade actuel",
-      "Poste ciblé",
-      "Observants",
-    ]}
+    headers={reportListTableLabels.headers}
     bordered
     data={reports.map((report) => [
       <div>{report.folderNumber}</div>,
