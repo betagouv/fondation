@@ -10,36 +10,46 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ReportListingVM, ReportRetrievalVM } from 'shared-models';
+import { ReportsContextRestContract } from 'shared-models';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
+import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
+import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-update/update-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reports-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import {
-  reportsControllerRoute,
-  reportsEndpointRelativePaths,
-  ReportsEndpoints,
-} from 'shared-models';
+  IController,
+  IControllerPaths,
+} from 'src/shared-kernel/adapters/primary/nestjs/controller';
 import {
   ChangeRuleValidationStateDto,
   ReportUpdateDto,
 } from './dto/report-update.dto';
-import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
-import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 
-export type ReportsEndpoints = typeof ReportsEndpoints;
+type IReportController = Pick<
+  IController<ReportsContextRestContract>,
+  | 'listReports'
+  | 'retrieveReport'
+  | 'updateReport'
+  | 'updateRule'
+  | 'attachFile'
+  | 'generateFileUrl'
+  | 'deleteAttachedFile'
+>;
 
-export type IReportController = {
-  [K in keyof ReportsEndpoints]: (
-    params: ReportsEndpoints[K]['Params'],
-    body: K extends 'attachFile'
-      ? Express.Multer.File
-      : ReportsEndpoints[K]['Body'],
-  ) => Promise<ReportsEndpoints[K]['Response']>;
+const baseRoute: ReportsContextRestContract['basePath'] = 'api/reports';
+const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
+  retrieveReport: ':id',
+  listReports: '',
+  updateReport: ':id',
+  updateRule: 'rules/:ruleId',
+  attachFile: ':id/files/upload-one',
+  generateFileUrl: ':reportId/files/:fileName',
+  deleteAttachedFile: ':id/files/:fileName',
 };
 
-@Controller(reportsControllerRoute)
+@Controller(baseRoute)
 export class ReportsController implements IReportController {
   constructor(
     private readonly listReportsUseCase: ListReportsUseCase,
@@ -51,41 +61,45 @@ export class ReportsController implements IReportController {
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
   ) {}
 
-  @Get(reportsEndpointRelativePaths.listReports)
-  async listReports(): Promise<ReportListingVM> {
+  @Get(endpointsPaths.listReports)
+  async listReports() {
     return this.listReportsUseCase.execute();
   }
 
-  @Get(reportsEndpointRelativePaths.retrieveReport)
+  @Get(endpointsPaths.retrieveReport)
   async retrieveReport(
-    @Param() params: ReportsEndpoints['retrieveReport']['Params'],
-  ): Promise<ReportRetrievalVM | null> {
+    @Param()
+    params: ReportsContextRestContract['endpoints']['retrieveReport']['params'],
+  ) {
     const { id } = params;
     return this.retrieveReportUseCase.execute(id);
   }
 
-  @Put(reportsEndpointRelativePaths.updateReport)
+  @Put(endpointsPaths.updateReport)
   async updateReport(
-    @Param() { id }: ReportsEndpoints['updateReport']['Params'],
+    @Param()
+    { id }: ReportsContextRestContract['endpoints']['updateReport']['params'],
     @Body() dto: ReportUpdateDto,
-  ): Promise<void> {
+  ) {
     await this.updateReportUseCase.execute(id, dto);
   }
 
-  @Put(reportsEndpointRelativePaths.updateRule)
+  @Put(endpointsPaths.updateRule)
   async updateRule(
-    @Param() { ruleId }: ReportsEndpoints['updateRule']['Params'],
+    @Param()
+    { ruleId }: ReportsContextRestContract['endpoints']['updateRule']['params'],
     @Body() dto: ChangeRuleValidationStateDto,
-  ): Promise<void> {
+  ) {
     await this.changeRuleValidationStateUseCase.execute(ruleId, dto.validated);
   }
 
-  @Post(reportsEndpointRelativePaths.attachFile)
+  @Post(endpointsPaths.attachFile)
   @UseInterceptors(FileInterceptor('file'))
   async attachFile(
-    @Param() { id }: ReportsEndpoints['attachFile']['Params'],
+    @Param()
+    { id }: ReportsContextRestContract['endpoints']['attachFile']['params'],
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<void> {
+  ) {
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,
@@ -93,18 +107,25 @@ export class ReportsController implements IReportController {
     );
   }
 
-  @Get(reportsEndpointRelativePaths.generateFileUrl)
+  @Get(endpointsPaths.generateFileUrl)
   async generateFileUrl(
     @Param()
-    { reportId, fileName }: ReportsEndpoints['generateFileUrl']['Params'],
-  ): Promise<string> {
+    {
+      reportId,
+      fileName,
+    }: ReportsContextRestContract['endpoints']['generateFileUrl']['params'],
+  ) {
     return this.generateReportFileUrlUseCase.execute(reportId, fileName);
   }
 
-  @Delete(reportsEndpointRelativePaths.deleteAttachedFile)
+  @Delete(endpointsPaths.deleteAttachedFile)
   async deleteAttachedFile(
-    @Param() { id, fileName }: ReportsEndpoints['deleteAttachedFile']['Params'],
-  ): Promise<void> {
+    @Param()
+    {
+      id,
+      fileName,
+    }: ReportsContextRestContract['endpoints']['deleteAttachedFile']['params'],
+  ) {
     return this.deleteReportAttachedFileUseCase.execute(id, fileName);
   }
 }

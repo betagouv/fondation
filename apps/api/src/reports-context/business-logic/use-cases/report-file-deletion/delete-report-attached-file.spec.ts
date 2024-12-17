@@ -43,7 +43,7 @@ describe('Delete Report Attached File Use Case', () => {
     expect(reportAttachedFileRepository.files).toEqual({});
   });
 
-  it("doesn't delete the uploaded file if it's not metadata cannot be removed", async () => {
+  it("doesn't delete the uploaded file if its metadata cannot be removed", async () => {
     reportAttachedFileRepository.deleteError = new Error('Failed to delete');
     await expect(deleteFile()).rejects.toThrow(
       reportAttachedFileRepository.deleteError,
@@ -55,7 +55,7 @@ describe('Delete Report Attached File Use Case', () => {
     ]);
   });
 
-  it("doesn't remos a file's metadata if file deletion failed", async () => {
+  it("doesn't remove a file's metadata if file deletion failed", async () => {
     reportFileService.deleteError = new Error('Failed to delete');
     await expect(deleteFile()).rejects.toThrow(reportFileService.deleteError);
     expect(Object.values(reportAttachedFileRepository.files)).toEqual([

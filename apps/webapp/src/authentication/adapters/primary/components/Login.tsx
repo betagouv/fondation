@@ -24,25 +24,27 @@ export const Login = () => {
   };
 
   return (
-    <form onSubmit={authenticateUser} className="w-1/2 m-auto">
-      <Input
-        label="Email"
-        id="username"
-        nativeInputProps={{
-          name: "username",
-          type: "email",
-        }}
-      />
-      <Input
-        label="Mot de passe"
-        id="password"
-        nativeInputProps={{
-          name: "password",
-          type: "password",
-        }}
-      />
-      <Button type="submit">Se connecter</Button>
-    </form>
+    <div id="login-layout" className="h-full flex place-items-center">
+      <form onSubmit={authenticateUser} className="w-1/2 m-auto">
+        <Input
+          label="Email"
+          id="username"
+          nativeInputProps={{
+            name: "username",
+            type: "email",
+          }}
+        />
+        <Input
+          label="Mot de passe"
+          id="password"
+          nativeInputProps={{
+            name: "password",
+            type: "password",
+          }}
+        />
+        <Button type="submit">Se connecter</Button>
+      </form>
+    </div>
   );
 };
 
