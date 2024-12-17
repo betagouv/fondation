@@ -249,7 +249,7 @@ export class NominationFileTsvBuilder {
 
     const stateMap = {
       [NominationFile.ReportState.NEW]: 'Nouveau',
-      [NominationFile.ReportState.OPINION_RETURNED]: 'Avis restitué',
+      [NominationFile.ReportState.SUPPORTED]: 'Avis restitué',
     };
 
     const gradeMap = {

@@ -415,7 +415,7 @@ describe('Import Nomination Files Use Case', () => {
       field                  | updatedContent
       ${'name'}              | ${{ name: 'Other Name' }}
       ${'formation'}         | ${{ formation: Magistrat.Formation.SIEGE }}
-      ${'state'}             | ${{ state: NominationFile.ReportState.OPINION_RETURNED }}
+      ${'state'}             | ${{ state: NominationFile.ReportState.SUPPORTED }}
       ${'transparency'}      | ${{ transparency: Transparency.AUTOMNE_2024 }}
       ${'grade'}             | ${{ grade: Magistrat.Grade.I }}
       ${'currentPosition'}   | ${{ currentPosition: 'Other Current Position' }}
@@ -551,7 +551,7 @@ describe('Import Nomination Files Use Case', () => {
       name: 'Lucien Pierre',
       formation: Magistrat.Formation.PARQUET,
       dueDate: null,
-      state: NominationFile.ReportState.OPINION_RETURNED,
+      state: NominationFile.ReportState.SUPPORTED,
       transparency: Transparency.AUTOMNE_2024,
       reporters: null,
       grade: Magistrat.Grade.HH,

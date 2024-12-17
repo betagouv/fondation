@@ -90,7 +90,7 @@ describe('Create Report Use Case', () => {
       month: 8,
       day: 22,
     },
-    state: NominationFile.ReportState.OPINION_RETURNED,
+    state: NominationFile.ReportState.SUPPORTED,
     transparency: Transparency.AUTOMNE_2024,
     grade: Magistrat.Grade.HH,
     currentPosition: 'Procureur de la République adjoint TJ  NIMES',

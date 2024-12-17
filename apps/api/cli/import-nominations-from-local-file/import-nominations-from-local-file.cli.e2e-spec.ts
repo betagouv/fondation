@@ -416,7 +416,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
           MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS: false,
         },
       },
-      state: NominationFile.ReportState.OPINION_RETURNED,
+      state: NominationFile.ReportState.SUPPORTED,
       targettedPosition: 'Premier vice-président adjoint TJ RENNES - I',
       transparency: Transparency.AUTOMNE_2024,
     },

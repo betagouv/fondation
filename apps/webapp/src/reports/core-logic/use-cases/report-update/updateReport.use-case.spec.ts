@@ -33,7 +33,7 @@ describe("Report Update", () => {
       state: NominationFile.ReportState.READY_TO_SUPPORT,
     },
     {
-      state: NominationFile.ReportState.OPINION_RETURNED,
+      state: NominationFile.ReportState.SUPPORTED,
     },
     {
       comment: "new comment",

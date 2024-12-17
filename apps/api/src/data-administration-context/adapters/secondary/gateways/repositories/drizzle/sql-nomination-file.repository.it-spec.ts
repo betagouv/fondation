@@ -89,7 +89,7 @@ describe('SQL Nomination File Repository', () => {
           name: 'Lucien Pierre',
           formation: Magistrat.Formation.PARQUET,
           dueDate: null,
-          state: NominationFile.ReportState.OPINION_RETURNED,
+          state: NominationFile.ReportState.SUPPORTED,
           transparency: Transparency.AUTOMNE_2024,
           reporters: ['VICTOIRE Christian'],
           grade: Magistrat.Grade.HH,

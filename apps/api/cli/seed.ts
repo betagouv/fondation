@@ -61,7 +61,7 @@ async function seed() {
       .with('dueDate', new DateOnly(2025, 10, 1))
       .with('formation', Magistrat.Formation.PARQUET)
       .with('grade', Magistrat.Grade.HH)
-      .with('state', NominationFile.ReportState.OPINION_RETURNED)
+      .with('state', NominationFile.ReportState.SUPPORTED)
       .with('transparency', Transparency.AUTOMNE_2024)
       .with('currentPosition', 'Juge')
       .with('targettedPosition', 'Procureur')

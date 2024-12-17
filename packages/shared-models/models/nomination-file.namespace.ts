@@ -3,7 +3,7 @@ export namespace NominationFile {
     NEW = "NEW",
     IN_PROGRESS = "IN_PROGRESS",
     READY_TO_SUPPORT = "READY_TO_SUPPORT",
-    OPINION_RETURNED = "OPINION_RETURNED",
+    SUPPORTED = "SUPPORTED",
   }
 
   export enum RuleGroup {

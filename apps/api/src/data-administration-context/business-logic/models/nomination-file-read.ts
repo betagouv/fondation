@@ -10,7 +10,7 @@ export type NominationFileRead = {
     dueDate: DateOnlyJson | null;
     state:
       | NominationFile.ReportState.NEW
-      | NominationFile.ReportState.OPINION_RETURNED;
+      | NominationFile.ReportState.SUPPORTED;
     transparency: Transparency;
     reporters: string[] | null;
     grade: Magistrat.Grade;

@@ -10,8 +10,8 @@ export const stateToLabel = <State extends NominationFile.ReportState>(
       return "En cours";
     case NominationFile.ReportState.READY_TO_SUPPORT:
       return "Prêt à soutenir";
-    case NominationFile.ReportState.OPINION_RETURNED:
-      return "Avis restitué";
+    case NominationFile.ReportState.SUPPORTED:
+      return "Soutenu";
     default: {
       const _exhaustiveCheck: never = state;
       console.info(_exhaustiveCheck);
