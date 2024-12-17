@@ -4,10 +4,10 @@ import { AppHeader } from "./AppHeader";
 
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen w-full">
       <AppHeader />
-      <main className="flex-grow flex place-items-center">
-        <div className={"flex-grow"}>{children}</div>
+      <main className="flex-grow flex">
+        <div className="flex-grow">{children}</div>
       </main>
       <AppFooter />
     </div>
