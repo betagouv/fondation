@@ -19,7 +19,7 @@ import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways
 import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
-const composeFile = 'docker-compose-postgresql-test.yaml';
+const composeFile = 'docker-compose-test.yaml';
 
 export let dockerDBInstance: StartedDockerComposeEnvironment | null = null;
 export let db: DrizzleDb;
