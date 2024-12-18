@@ -23,7 +23,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
 }) => {
   return (
     <Card>
-      <div className={cx("fr-h1")}>{name}</div>
+      <h1>{name}</h1>
       <div className={cx("fr-text--bold")}>
         {`${ReportVM.magistratIdentityLabels.currentPosition} : ${currentPosition}`}
       </div>

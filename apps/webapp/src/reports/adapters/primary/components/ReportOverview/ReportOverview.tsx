@@ -20,8 +20,9 @@ import { Biography } from "./Biography";
 import { Comment } from "./Comment";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { Observers } from "./Observers";
-import { ReportRules } from "./ReportRules";
 import { ReportOverviewState } from "./ReportOverviewState";
+import { ReportRules } from "./ReportRules";
+import { Summary } from "./Summary";
 
 export type ReportOverviewProps = {
   id: string;
@@ -83,38 +84,67 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     dispatch(retrieveReport(id));
   }, [dispatch, id]);
 
-  if (!report) return <div>Dossier de nomination non trouvé.</div>;
+  if (!report) return <div>Rapport non trouvé.</div>;
   return (
     <div
       className={clsx(
-        "bg-light-orange",
-        "gap-2",
-        "justify-center",
-        cx("fr-py-5v", "fr-grid-row"),
+        "flex-col items-center bg-light-orange",
+        cx("fr-grid-row"),
       )}
     >
       <AutoSaveNotice />
-      <ReportOverviewState state={report.state} onUpdateState={onUpdateState} />
-      <MagistratIdentity
-        name={report.name}
-        birthDate={report.birthDate}
-        grade={report.grade}
-        currentPosition={report.currentPosition}
-        targettedPosition={report.targettedPosition}
-        rank={report.rank}
-      />
-      <Comment comment={report.comment} onUpdate={onUpdateComment} />
-      <Biography biography={report.biography} />
-      <Observers observers={report.observers} />
-      <ReportRules
-        rulesChecked={report.rulesChecked}
-        onUpdateReportRule={onUpdateReportRule}
-      />
-      <AttachedFileUpload
-        attachedFiles={report.attachedFiles}
-        onFileAttached={onFileAttached}
-        onAttachedFileDeleted={onAttachedFileDeleted}
-      />
+      <div
+        className={clsx(
+          "scroll-smooth",
+          cx("fr-grid-row", "fr-grid-row--center", "fr-py-5v"),
+        )}
+      >
+        <div
+          className={clsx(
+            "hidden md:block",
+            cx("fr-col-md-5", "fr-col-lg-4", "fr-col-xl-3"),
+          )}
+        >
+          <Summary summary={report.summary} />
+        </div>
+        <div
+          className={clsx(
+            "flex-col gap-2",
+            cx(
+              "fr-grid-row",
+              "fr-col-10",
+              "fr-col-md-5",
+              "fr-col-lg-6",
+              "fr-col-xl-8",
+            ),
+          )}
+        >
+          <ReportOverviewState
+            state={report.state}
+            onUpdateState={onUpdateState}
+          />
+          <MagistratIdentity
+            name={report.name}
+            birthDate={report.birthDate}
+            grade={report.grade}
+            currentPosition={report.currentPosition}
+            targettedPosition={report.targettedPosition}
+            rank={report.rank}
+          />
+          <Comment comment={report.comment} onUpdate={onUpdateComment} />
+          <Biography biography={report.biography} />
+          <Observers observers={report.observers} />
+          <ReportRules
+            rulesChecked={report.rulesChecked}
+            onUpdateReportRule={onUpdateReportRule}
+          />
+          <AttachedFileUpload
+            attachedFiles={report.attachedFiles}
+            onFileAttached={onFileAttached}
+            onAttachedFileDeleted={onAttachedFileDeleted}
+          />
+        </div>
+      </div>
     </div>
   );
 };

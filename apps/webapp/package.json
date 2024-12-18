@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
-    "@ryoppippi/unplugin-typia": "^1.0.6",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
@@ -52,6 +51,7 @@
     "pdfkit": "^0.15.1",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "sharp": "^0.33.5",
     "tailwindcss": "^3.4.13",
     "type-fest": "^4.26.1",

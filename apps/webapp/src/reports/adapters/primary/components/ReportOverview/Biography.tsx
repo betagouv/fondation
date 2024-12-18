@@ -1,4 +1,5 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
+import { reportHtmlIds } from "../../dom/html-ids";
 import { Card } from "./Card";
 
 export type BiographyProps = {
@@ -6,13 +7,11 @@ export type BiographyProps = {
 };
 
 export const Biography: React.FC<BiographyProps> = ({ biography }) => (
-  <Card>
-    <label className={cx("fr-h2")} id="biography">
-      Biographie
-    </label>
+  <Card id={reportHtmlIds.overview.biographySection}>
+    <h2 id={reportHtmlIds.overview.biography}>{ReportVM.biographyLabel}</h2>
     <div
-      aria-labelledby="biography"
-      className="whitespace-pre-line leading-10 w-full"
+      aria-labelledby={reportHtmlIds.overview.biography}
+      className="w-full whitespace-pre-line leading-10"
     >
       {biography}
     </div>

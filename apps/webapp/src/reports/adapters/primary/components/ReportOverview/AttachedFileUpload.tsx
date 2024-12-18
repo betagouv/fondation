@@ -1,10 +1,11 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
+import clsx from "clsx";
 import { FC } from "react";
 import { ReportSM } from "../../../../../store/appState";
+import { reportHtmlIds } from "../../dom/html-ids";
+import { summaryLabels } from "../../labels/summary-labels";
 import { AttachedFilesList } from "./AttachedFilesList";
 import { Card } from "./Card";
-import clsx from "clsx";
 
 export type AttachedFileUploadProps = {
   attachedFiles: ReportSM["attachedFiles"];
@@ -18,7 +19,8 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   onAttachedFileDeleted,
 }) => {
   return (
-    <Card>
+    <Card id={reportHtmlIds.overview.attachedFilesSection}>
+      <h2>{summaryLabels.attachedFiles}</h2>
       <div className={clsx("flex flex-col gap-6")}>
         <Upload
           id="report-attached-file-upload"
@@ -30,8 +32,8 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
               }
             },
           }}
-          label={<div className={cx("fr-h2")}>Ajouter des pièces jointes</div>}
           hint="Formats supportés : png, jpeg et pdf."
+          label={null}
           multiple={false}
         />
         {attachedFiles && (

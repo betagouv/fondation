@@ -60,6 +60,9 @@ export class ReportVM<
 
   static commentLabel = "Rapport";
   static commentPlaceholder = "Pas de commentaire";
+  static biographyLabel = "Biographie";
+  static observersLabel = "Observants";
+  static attachedFilesLabel = "Ajouter des pièces jointes";
 
   static ruleGroupToLabel: {
     [NominationFile.RuleGroup.MANAGEMENT]: string;
@@ -73,6 +76,7 @@ export class ReportVM<
     [NominationFile.RuleGroup.QUALITATIVE]:
       "Les autres éléments qualitatifs à vérifier",
   };
+
   static rulesToLabels: {
     [NominationFile.RuleGroup.MANAGEMENT]: Record<
       NominationFile.ManagementRule,
@@ -146,6 +150,7 @@ export class ReportVM<
     > &
       GroupRulesChecked<NominationFile.RuleGroup.STATUTORY, StatutoryRules> &
       GroupRulesChecked<NominationFile.RuleGroup.QUALITATIVE, QualitativeRules>,
+    public readonly summary: { anchorId: string; label: string }[],
   ) {}
 }
 

@@ -4,7 +4,8 @@ import { Card } from "./Card";
 import { debounce } from "lodash";
 
 export type TextareaCardProps = {
-  id: string;
+  cardId: string;
+  titleId: string;
   label: string;
   content: string | null;
   rowsCount?: number;
@@ -13,7 +14,8 @@ export type TextareaCardProps = {
 };
 
 export const TextareaCard: React.FC<TextareaCardProps> = ({
-  id,
+  cardId,
+  titleId,
   label,
   content,
   rowsCount,
@@ -42,13 +44,13 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   }, [debouncedOnContentChange]);
 
   return (
-    <Card>
-      <label className={cx("fr-h2")} htmlFor={id}>
+    <Card id={cardId}>
+      <h2 className={cx("fr-h2")} id={titleId}>
         {label}
-      </label>
+      </h2>
       <textarea
-        id={id}
-        className="whitespace-pre-line w-full"
+        aria-labelledby={titleId}
+        className="w-full whitespace-pre-line"
         value={textareaContent ?? undefined}
         rows={rowsCount || 10}
         onChange={handleChange}

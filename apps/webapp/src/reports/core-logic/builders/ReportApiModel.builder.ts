@@ -63,6 +63,13 @@ export class ReportApiModelBuilder {
     return this;
   }
 
+  withObservers(observers: string[] | null) {
+    return this.with("observers", observers).with(
+      "observersCount",
+      observers?.length || 0,
+    );
+  }
+
   withSomeRules() {
     return this.with("rules.management.TRANSFER_TIME", {
       id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.TRANSFER_TIME}`,

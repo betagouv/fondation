@@ -9,6 +9,7 @@ import { AuthenticatedUser } from "../authentication/core-logic/gateways/authent
 import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
+import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
 
 export interface ReportSM {
   id: string;
@@ -44,6 +45,7 @@ export type ReportListItem = Pick<
 
 export interface AppState {
   reportOverview: {
+    summarySections: SummarySection[];
     byIds: Record<string, ReportSM> | null;
     rulesMap: AllRulesMap;
   };

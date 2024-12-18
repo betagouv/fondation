@@ -51,7 +51,7 @@ describe("Report Overview Component", () => {
 
   it("shows a message if no report found", async () => {
     renderReportId("invalid-id");
-    await screen.findByText("Dossier de nomination non trouvé.");
+    await screen.findByText("Rapport non trouvé.");
   });
 
   describe("when there is a report", () => {
@@ -111,7 +111,9 @@ describe("Report Overview Component", () => {
         ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
       givenARenderedReport(reportApiModel);
 
-      await screen.findByText("Observants");
+      await screen.findByText("Observants", {
+        selector: "h2",
+      });
 
       for (const [index, observer] of aReportVM.observers!.entries()) {
         if (index === 0) {
@@ -280,9 +282,7 @@ describe("Report Overview Component", () => {
         });
 
         await screen.findByText(aReportVM.name);
-        const input = await screen.findByLabelText(
-          /^Ajouter des pièces jointes/,
-        );
+        const input = await screen.findByLabelText(/^Formats supportés.*/);
         await userEvent.upload(input, file);
 
         expect(store.getState().reportOverview.byIds).toEqual({

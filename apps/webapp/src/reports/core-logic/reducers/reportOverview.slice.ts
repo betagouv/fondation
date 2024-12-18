@@ -6,13 +6,16 @@ import { generateReportFileUrl } from "../use-cases/report-file-url-generation/g
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
+import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 
 export const createReportOverviewSlice = (
+  summarySections: SummarySection[],
   rulesMap: AllRulesMap = allRulesMap,
 ) => {
   const initialState: AppState["reportOverview"] = {
     byIds: null,
-    rulesMap: rulesMap,
+    rulesMap,
+    summarySections,
   };
 
   return createSlice({

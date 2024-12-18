@@ -17,6 +17,11 @@ import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
 import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
+import {
+  summaryLabels,
+  SummarySection,
+} from "../reports/adapters/primary/labels/summary-labels";
+import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -44,6 +49,37 @@ export type PartialAppDependencies = {
 
 const isProduction = process.env.NODE_ENV === "production";
 
+const defaultReportSummarySections: SummarySection[] = [
+  {
+    anchorId: reportHtmlIds.overview.commentSection,
+    label: summaryLabels.comment,
+  },
+  {
+    anchorId: reportHtmlIds.overview.biographySection,
+    label: summaryLabels.biography,
+  },
+  {
+    anchorId: reportHtmlIds.overview.observersSection,
+    label: summaryLabels.observers,
+  },
+  {
+    anchorId: reportHtmlIds.overview.managementSection,
+    label: summaryLabels.rules.management,
+  },
+  {
+    anchorId: reportHtmlIds.overview.statutorySection,
+    label: summaryLabels.rules.statutory,
+  },
+  {
+    anchorId: reportHtmlIds.overview.qualitativeSection,
+    label: summaryLabels.rules.qualitative,
+  },
+  {
+    anchorId: reportHtmlIds.overview.attachedFilesSection,
+    label: summaryLabels.attachedFiles,
+  },
+];
+
 export const initReduxStore = <IsTest extends boolean = true>(
   gateways: IsTest extends true ? Partial<Gateways> : Gateways,
   providers: IsTest extends true ? Partial<Providers> : Providers,
@@ -59,10 +95,14 @@ export const initReduxStore = <IsTest extends boolean = true>(
         [NominationFile.RuleGroup.STATUTORY]: [],
         [NominationFile.RuleGroup.QUALITATIVE]: [],
       },
+  reportSummarySections: SummarySection[] = defaultReportSummarySections,
 ) => {
   return configureStore({
     reducer: {
-      reportOverview: createReportOverviewSlice(rulesTuple).reducer,
+      reportOverview: createReportOverviewSlice(
+        reportSummarySections,
+        rulesTuple,
+      ).reducer,
       reportList,
       authentication: createAuthenticationSlice({
         authenticationStorageProvider: providers?.authenticationStorageProvider,

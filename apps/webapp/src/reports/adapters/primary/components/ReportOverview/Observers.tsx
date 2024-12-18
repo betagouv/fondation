@@ -2,19 +2,18 @@ import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { Card } from "./Card";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import clsx from "clsx";
+import { reportHtmlIds } from "../../dom/html-ids";
 
 export const Observers = ({ observers }: Pick<ReportVM, "observers">) => {
   if (!observers) return null;
 
   return (
-    <Card>
-      <label className={cx("fr-h2")} id="observers">
-        Observants
-      </label>
+    <Card id={reportHtmlIds.overview.observersSection}>
+      <h2 id={reportHtmlIds.overview.observers}>{ReportVM.observersLabel}</h2>
       <div
-        aria-labelledby="observers"
+        aria-labelledby={reportHtmlIds.overview.observers}
         className={clsx(
-          "whitespace-pre-line leading-10 w-full flex flex-col gap-4",
+          "flex w-full flex-col gap-4 whitespace-pre-line leading-10",
         )}
       >
         {observers.map(([observerName, ...observerInformation]) => (
@@ -36,7 +35,7 @@ const ObserverInformation = ({
   observerInformation: string[];
 }) => {
   return (
-    <div aria-labelledby="observers" className="whitespace-pre-line  w-full">
+    <div aria-labelledby="observers" className="w-full whitespace-pre-line">
       {observerInformation.map((info) => (
         <div key={info}>{info}</div>
       ))}

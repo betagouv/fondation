@@ -1,18 +1,31 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { AppState, ReportSM } from "../../../../store/appState";
 import { ReportVMRulesBuilder } from "../../../core-logic/builders/ReportVMRules.builder";
 import { ReportVM } from "../../../core-logic/view-models/ReportVM";
-import { AppState, ReportSM } from "../../../../store/appState";
+import { reportHtmlIds } from "../dom/html-ids";
+import { SummarySection } from "../labels/summary-labels";
 
 export const selectReport = createSelector(
   [
     (state: AppState) => state.reportOverview.byIds,
     (_, id: string) => id,
     (state: AppState) => state.reportOverview.rulesMap,
+    (state: AppState) => state.reportOverview.summarySections,
   ],
-  (byIds, id, rulesTuple): ReportVM | null => {
+  (byIds, id, rulesMap, summarySections): ReportVM | null => {
     const report = byIds?.[id];
     if (!report) return null;
+
+    const filterOutObserversInSummary = ({
+      anchorId,
+    }: SummarySection): boolean => {
+      const isObserverSection = anchorId === htmlIds.observersSection;
+      const isOtherSection = !isObserverSection;
+      const hasNoObserver = !!report.observers?.length;
+
+      return isOtherSection || (isObserverSection && hasNoObserver);
+    };
 
     return {
       id: report.id,
@@ -33,9 +46,10 @@ export const selectReport = createSelector(
       observers: formatObservers(report.observers),
       rulesChecked: ReportVMRulesBuilder.buildFromStoreModel(
         report.rules,
-        rulesTuple,
+        rulesMap,
       ),
       attachedFiles: report.attachedFiles,
+      summary: summarySections.filter(filterOutObserversInSummary),
     };
   },
 );
@@ -57,3 +71,5 @@ const formatObservers = (
 ): ReportVM["observers"] =>
   observers?.map((observer) => observer.split("\n") as [string, ...string[]]) ||
   null;
+
+const htmlIds = reportHtmlIds.overview;

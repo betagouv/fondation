@@ -15,23 +15,40 @@ import {
   VMReportRuleValue,
 } from "../../../core-logic/view-models/ReportVM";
 import { selectReport } from "./selectReport";
-
-const testRulesMap = {
-  [NominationFile.RuleGroup.MANAGEMENT]: [
-    NominationFile.ManagementRule.TRANSFER_TIME,
-  ],
-  [NominationFile.RuleGroup.STATUTORY]: [],
-  [NominationFile.RuleGroup.QUALITATIVE]: [],
-} satisfies AllRulesMap;
-
-const reportVMBuilder = ReportBuilderVM.fromStoreModel<typeof testRulesMap>;
+import { SummarySection } from "../labels/summary-labels";
+import { reportHtmlIds } from "../dom/html-ids";
 
 describe("Select Report", () => {
   let store: ReduxStore;
   let reportBuilder: ReportBuilder;
 
+  const testRulesMap = {
+    [NominationFile.RuleGroup.MANAGEMENT]: [
+      NominationFile.ManagementRule.TRANSFER_TIME,
+    ],
+    [NominationFile.RuleGroup.STATUTORY]: [],
+    [NominationFile.RuleGroup.QUALITATIVE]: [],
+  } satisfies AllRulesMap;
+  const summarySections: SummarySection[] = [
+    { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
+  ];
+
+  const reportVMBuilder = (report: ReportSM) =>
+    ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
+      report,
+      summarySections,
+    );
+
   beforeEach(() => {
-    store = initReduxStore({}, {}, {}, undefined, undefined, testRulesMap);
+    store = initReduxStore(
+      {},
+      {},
+      {},
+      undefined,
+      undefined,
+      testRulesMap,
+      summarySections,
+    );
     reportBuilder = new ReportBuilder(testRulesMap);
   });
 
@@ -116,10 +133,7 @@ describe("Select Report", () => {
           .buildRetrieveSM();
         store.dispatch(retrieveReport.fulfilled(aHighlightedReport, "", ""));
 
-        const aHighlightedReportVMBuilder =
-          ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
-            aHighlightedReport,
-          );
+        const aHighlightedReportVMBuilder = reportVMBuilder(aHighlightedReport);
 
         const aRuleVM: VMReportRuleValue = {
           highlighted: expectHighlighted,
@@ -191,6 +205,54 @@ describe("Select Report", () => {
       },
     });
   };
+
+  const givenAReport = (report: ReportSM) => {
+    store.dispatch(retrieveReport.fulfilled(report, "", ""));
+  };
+});
+
+describe("Select Report Summary", () => {
+  let store: ReduxStore;
+  let reportBuilder: ReportBuilder;
+
+  const emptyTestRulesMap = {
+    [NominationFile.RuleGroup.MANAGEMENT]: [],
+    [NominationFile.RuleGroup.STATUTORY]: [],
+    [NominationFile.RuleGroup.QUALITATIVE]: [],
+  };
+  const summarySections: SummarySection[] = [
+    { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
+    { anchorId: reportHtmlIds.overview.observersSection, label: "Observants" },
+  ];
+  const reportVMBuilder = (report: ReportSM) =>
+    ReportBuilderVM.fromStoreModel<typeof emptyTestRulesMap>(
+      report,
+      summarySections,
+    );
+
+  beforeEach(() => {
+    store = initReduxStore(
+      {},
+      {},
+      {},
+      undefined,
+      undefined,
+      emptyTestRulesMap,
+      summarySections,
+    );
+    reportBuilder = new ReportBuilder(emptyTestRulesMap);
+  });
+
+  it("doesn't include observer section in summary if there are no observers", () => {
+    const aReport = reportBuilder.with("observers", null).buildRetrieveSM();
+    givenAReport(aReport);
+
+    const aReportVM = reportVMBuilder(aReport)
+      .with("observers", null)
+      .with("summary", [summarySections[0]!])
+      .build();
+    expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
+  });
 
   const givenAReport = (report: ReportSM) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));

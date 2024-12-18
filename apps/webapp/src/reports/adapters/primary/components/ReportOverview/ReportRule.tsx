@@ -11,6 +11,7 @@ import {
 import _ from "lodash";
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {
+  id: string;
   title: string;
   rulesChecked: ReportVM["rulesChecked"][NominationFile.RuleGroup];
   onUpdateReportRule: (ruleName: R) => () => void;
@@ -18,6 +19,7 @@ export type ReportRuleProps<R extends NominationFile.RuleName> = {
 };
 
 export const ReportRule = <R extends NominationFile.RuleName>({
+  id,
   title,
   rulesChecked,
   onUpdateReportRule,
@@ -47,22 +49,20 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   };
 
   return (
-    <>
-      <Card>
-        <div className="fr-h2">{title}</div>
-        {showNotice && <RuleCheckNotice />}
+    <Card id={id}>
+      <h2>{title}</h2>
+      {showNotice && <RuleCheckNotice />}
 
-        {createCheckboxes(rulesChecked.selected)}
+      {createCheckboxes(rulesChecked.selected)}
 
-        <Accordion
-          label={rulesChecked.accordionLabel}
-          style={{
-            display: _.isEmpty(rulesChecked.others) ? "none" : undefined,
-          }}
-        >
-          {createCheckboxes(rulesChecked.others)}
-        </Accordion>
-      </Card>
-    </>
+      <Accordion
+        label={rulesChecked.accordionLabel}
+        style={{
+          display: _.isEmpty(rulesChecked.others) ? "none" : undefined,
+        }}
+      >
+        {createCheckboxes(rulesChecked.others)}
+      </Accordion>
+    </Card>
   );
 };

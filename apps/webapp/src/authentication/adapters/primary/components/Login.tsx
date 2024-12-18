@@ -24,8 +24,8 @@ export const Login = () => {
   };
 
   return (
-    <div id="login-layout" className="h-full flex place-items-center">
-      <form onSubmit={authenticateUser} className="w-1/2 m-auto">
+    <div id="login-layout" className="flex h-full place-items-center">
+      <form onSubmit={authenticateUser} className="m-auto w-1/2">
         <Input
           label="Email"
           id="username"
