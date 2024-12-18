@@ -10,8 +10,8 @@ import {
 } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { AppState } from "../../../../store/appState";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import { AppState } from "../../../../../store/appState";
+import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";

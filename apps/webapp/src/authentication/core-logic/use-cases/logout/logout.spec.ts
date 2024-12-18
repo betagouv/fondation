@@ -1,8 +1,5 @@
-import { AppState } from "../../../../reports/store/appState";
-import {
-  ReduxStore,
-  initReduxStore,
-} from "../../../../reports/store/reduxStore";
+import { AppState } from "../../../../store/appState";
+import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { FakeAuthenticationGateway } from "../../../adapters/secondary/gateways/fakeAuthentication.gateway";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
 import { storeDisconnectionOnLogout } from "../../listeners/logout.listeners";

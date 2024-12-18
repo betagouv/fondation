@@ -8,7 +8,7 @@ import {
 } from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
-import { ReportListItem, ReportSM } from "../../store/appState";
+import { ReportListItem, ReportSM } from "../../../store/appState";
 import { ReportApiModel } from "./ReportApiModel.builder";
 
 type InternalReport = Omit<

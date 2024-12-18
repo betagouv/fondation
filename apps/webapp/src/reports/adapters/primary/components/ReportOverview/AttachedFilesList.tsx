@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { FC } from "react";
-import { ReportSM } from "../../../../store/appState";
+import { ReportSM } from "../../../../../store/appState";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 export type AttachedFilesListProps = {

@@ -1,5 +1,5 @@
 import { RulesBuilder, NominationFile } from "shared-models";
-import { AppState, ReportSM } from "../../store/appState";
+import { AppState, ReportSM } from "../../../store/appState";
 import { VMReportRuleValue, ReportVM } from "../view-models/ReportVM";
 import { UnionToIntersection } from "type-fest";
 import _ from "lodash";

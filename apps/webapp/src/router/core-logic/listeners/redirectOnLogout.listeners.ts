@@ -1,5 +1,5 @@
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
-import { Listener } from "../../../reports/store/listeners";
+import { Listener } from "../../../store/listeners";
 
 export const redirectOnLogout: Listener = (startAppListening) =>
   startAppListening({

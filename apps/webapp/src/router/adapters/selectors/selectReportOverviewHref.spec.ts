@@ -1,4 +1,4 @@
-import { initReduxStore, ReduxStore } from "../../../reports/store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { StubRouterProvider } from "../stubRouterProvider";
 import { selectReportListHref } from "./selectReportOverviewHref";
 

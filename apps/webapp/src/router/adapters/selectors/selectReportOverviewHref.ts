@@ -1,4 +1,4 @@
-import { createAppSelector } from "../../../reports/store/createAppSelector";
+import { createAppSelector } from "../../../store/createAppSelector";
 
 export const selectReportListHref = createAppSelector(
   [(state) => state.router.hrefs],

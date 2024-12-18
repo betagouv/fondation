@@ -2,7 +2,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportVMRulesBuilder } from "../../../core-logic/builders/ReportVMRules.builder";
 import { ReportVM } from "../../../core-logic/view-models/ReportVM";
-import { AppState, ReportSM } from "../../../store/appState";
+import { AppState, ReportSM } from "../../../../store/appState";
 
 export const selectReport = createSelector(
   [

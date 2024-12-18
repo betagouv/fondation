@@ -27,16 +27,7 @@ import {
   ReportUpdateDto,
 } from './dto/report-update.dto';
 
-type IReportController = Pick<
-  IController<ReportsContextRestContract>,
-  | 'listReports'
-  | 'retrieveReport'
-  | 'updateReport'
-  | 'updateRule'
-  | 'attachFile'
-  | 'generateFileUrl'
-  | 'deleteAttachedFile'
->;
+type IReportController = IController<ReportsContextRestContract>;
 
 const baseRoute: ReportsContextRestContract['basePath'] = 'api/reports';
 const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {

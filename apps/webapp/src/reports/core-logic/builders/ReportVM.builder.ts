@@ -7,7 +7,7 @@ import {
 } from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
-import { ReportSM } from "../../store/appState";
+import { ReportSM } from "../../../store/appState";
 import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
 import { getReportAccordionLabel } from "./ReportVMRules.builder";
 

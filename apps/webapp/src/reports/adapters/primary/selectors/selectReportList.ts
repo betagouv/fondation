@@ -2,7 +2,7 @@ import _ from "lodash";
 import { Transparency } from "shared-models";
 import { UnionToTuple } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
-import { createAppSelector } from "../../../store/createAppSelector";
+import { createAppSelector } from "../../../../store/createAppSelector";
 import {
   formationToLabel,
   gradeToLabel,

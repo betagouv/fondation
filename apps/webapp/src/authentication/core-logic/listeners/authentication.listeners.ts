@@ -1,4 +1,4 @@
-import { Listener } from "../../../reports/store/listeners";
+import { Listener } from "../../../store/listeners";
 import { authenticate } from "../use-cases/authentication/authenticate";
 
 export const storeAuthenticationOnLoginSuccess: Listener = (

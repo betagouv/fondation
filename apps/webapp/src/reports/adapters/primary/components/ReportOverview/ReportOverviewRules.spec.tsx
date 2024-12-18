@@ -9,7 +9,7 @@ import {
 import { getReportAccordionLabel } from "../../../../core-logic/builders/ReportVMRules.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";

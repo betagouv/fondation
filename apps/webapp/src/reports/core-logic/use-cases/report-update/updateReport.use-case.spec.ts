@@ -1,8 +1,8 @@
 import { NominationFile } from "shared-models";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
-import { AppState } from "../../../store/appState";
-import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
+import { AppState } from "../../../../store/appState";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";

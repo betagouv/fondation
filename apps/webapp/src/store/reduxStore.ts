@@ -1,18 +1,18 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
-import { AuthenticationGateway } from "../../authentication/core-logic/gateways/authentication.gateway";
-import { AuthenticationStorageProvider } from "../../authentication/core-logic/providers/authenticationStorage.provider";
-import { createAuthenticationSlice } from "../../authentication/core-logic/reducers/authentication.slice";
+import { AuthenticationGateway } from "../authentication/core-logic/gateways/authentication.gateway";
+import { AuthenticationStorageProvider } from "../authentication/core-logic/providers/authenticationStorage.provider";
+import { createAuthenticationSlice } from "../authentication/core-logic/reducers/authentication.slice";
 import {
   RouteToComponentMap,
   routeToReactComponentMap,
-} from "../../router/adapters/routeToReactComponentMap";
-import { RouteChangedHandler } from "../../router/core-logic/components/routeChangedHandler";
-import { RouteToComponentFactory } from "../../router/core-logic/components/routeToComponent";
-import { RouterProvider } from "../../router/core-logic/providers/router";
-import { createRouterSlice } from "../../router/core-logic/reducers/router.slice";
-import { ReportGateway } from "../core-logic/gateways/Report.gateway";
-import { reportListReducer as reportList } from "../core-logic/reducers/reportList.slice";
-import { createReportOverviewSlice } from "../core-logic/reducers/reportOverview.slice";
+} from "../router/adapters/routeToReactComponentMap";
+import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
+import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
+import { RouterProvider } from "../router/core-logic/providers/router";
+import { createRouterSlice } from "../router/core-logic/reducers/router.slice";
+import { ReportGateway } from "../reports/core-logic/gateways/Report.gateway";
+import { reportListReducer as reportList } from "../reports/core-logic/reducers/reportList.slice";
+import { createReportOverviewSlice } from "../reports/core-logic/reducers/reportOverview.slice";
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";

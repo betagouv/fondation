@@ -6,7 +6,7 @@ import { FakeAuthenticationGateway } from "../../../../../authentication/adapter
 import { AuthenticatedUser } from "../../../../../authentication/core-logic/gateways/authentication.gateway";
 import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { reportListFilters } from "../../labels/report-list-state-filter-labels.mapper";

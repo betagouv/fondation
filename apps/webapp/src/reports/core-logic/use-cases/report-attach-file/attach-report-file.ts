@@ -1,5 +1,5 @@
 import { fileTypeFromBuffer } from "file-type";
-import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 type AttachReportFileParams = {
   reportId: string;

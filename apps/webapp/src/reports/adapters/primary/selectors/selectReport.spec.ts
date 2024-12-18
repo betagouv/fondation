@@ -1,5 +1,7 @@
-import { NominationFile } from "shared-models";
-import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { AllRulesMap, NominationFile } from "shared-models";
+import { ConditionalExcept } from "type-fest";
+import { ReportSM } from "../../../../store/appState";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportBuilderVM } from "../../../core-logic/builders/ReportVM.builder";
 import { retrieveReport } from "../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
@@ -8,10 +10,10 @@ import {
   UpdateReportRuleParams,
 } from "../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
 import {
+  GroupRulesChecked,
   ReportVM,
   VMReportRuleValue,
 } from "../../../core-logic/view-models/ReportVM";
-import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { selectReport } from "./selectReport";
 
 const testRulesMap = {
@@ -20,21 +22,51 @@ const testRulesMap = {
   ],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],
-};
+} satisfies AllRulesMap;
+
+const reportVMBuilder = ReportBuilderVM.fromStoreModel<typeof testRulesMap>;
 
 describe("Select Report", () => {
   let store: ReduxStore;
+  let reportBuilder: ReportBuilder;
 
   beforeEach(() => {
     store = initReduxStore({}, {}, {}, undefined, undefined, testRulesMap);
-    store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
+    reportBuilder = new ReportBuilder(testRulesMap);
   });
 
   it("selects the whole report with rules unchecked", async () => {
+    const aReport = reportBuilder
+      .with("observers", [
+        "observer 1",
+        "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
+      ])
+      .with("rules.management.TRANSFER_TIME.validated", true)
+      .with("rules.management.TRANSFER_TIME.preValidated", false)
+      .with("attachedFiles", [
+        { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
+      ])
+      .buildRetrieveSM();
+    givenAReport(aReport);
+
+    const aRuleVM = givenATransferTimeRuleVM(aReport);
+    const aReportVM = reportVMBuilder(aReport)
+      .with("observers", [
+        ["observer 1"],
+        ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],
+      ])
+      .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
+      .build();
     expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
   });
 
   it("after checking a validation rule, it has its rule checked", () => {
+    const aReport = reportBuilder
+      .with("rules.management.TRANSFER_TIME.validated", true)
+      .with("rules.management.TRANSFER_TIME.preValidated", false)
+      .buildRetrieveSM();
+    givenAReport(aReport);
+
     const updateReportRuleParams: UpdateReportRuleParams = {
       reportId: aReport.id,
       ruleId: aReport.rules.management.TRANSFER_TIME.id,
@@ -48,34 +80,25 @@ describe("Select Report", () => {
       ),
     );
 
-    expect(selectReport(store.getState(), aReport.id)).toEqual<
-      ReportVM<typeof testRulesMap>
-    >({
-      ...aReportVM,
-      rulesChecked: {
-        ...aReportVM.rulesChecked,
-        management: {
-          ...aReportVM.rulesChecked[NominationFile.RuleGroup.MANAGEMENT],
-          selected: {
-            TRANSFER_TIME: {
-              ...aRuleVM,
-              checked: true,
-            },
+    const aRuleVM = givenATransferTimeRuleVM(aReport);
+    const aReportVM = reportVMBuilder(aReport)
+      .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
+      .build();
+
+    expectReportVMToHaveRuleChecked(
+      aReport.id,
+      aReportVM,
+      NominationFile.RuleGroup.MANAGEMENT,
+      {
+        selected: {
+          TRANSFER_TIME: {
+            ...aRuleVM,
+            checked: true,
           },
-          others: {},
         },
-        [NominationFile.RuleGroup.STATUTORY]: {
-          ...aReportVM.rulesChecked[NominationFile.RuleGroup.STATUTORY],
-          selected: {},
-          others: {},
-        },
-        [NominationFile.RuleGroup.QUALITATIVE]: {
-          ...aReportVM.rulesChecked[NominationFile.RuleGroup.QUALITATIVE],
-          selected: {},
-          others: {},
-        },
+        others: {},
       },
-    });
+    );
   });
 
   describe("Pre validation", () => {
@@ -106,95 +129,70 @@ describe("Select Report", () => {
           comment: null,
         };
 
-        if (expectHighlighted) {
-          aHighlightedReportVMBuilder.with(
-            "rulesChecked.management.selected.TRANSFER_TIME",
-            aRuleVM as VMReportRuleValue<true>,
-          );
-        } else {
-          aHighlightedReportVMBuilder.with(
-            "rulesChecked.management.others.TRANSFER_TIME",
-            aRuleVM as VMReportRuleValue<false>,
-          );
-        }
+        aHighlightedReportVMBuilder.with(
+          `rulesChecked.management.${expectHighlighted ? "selected" : "others"}.TRANSFER_TIME`,
+          aRuleVM,
+        );
 
         const aHighlightedReportVM = aHighlightedReportVMBuilder.build();
 
-        expect(selectReport(store.getState(), aHighlightedReport.id)).toEqual<
-          ReportVM<typeof testRulesMap>
-        >({
-          ...aHighlightedReportVM,
-          rulesChecked: {
-            ...aHighlightedReportVM.rulesChecked,
-            [NominationFile.RuleGroup.MANAGEMENT]: {
-              ...aHighlightedReportVM.rulesChecked[
-                NominationFile.RuleGroup.MANAGEMENT
-              ],
-              selected: expectHighlighted
-                ? {
-                    TRANSFER_TIME: aRuleVM as VMReportRuleValue<true>,
-                  }
-                : {},
-              others: expectHighlighted
-                ? {}
-                : {
-                    TRANSFER_TIME: aRuleVM as VMReportRuleValue<false>,
-                  },
-            },
-            [NominationFile.RuleGroup.STATUTORY]: {
-              ...aHighlightedReportVM.rulesChecked[
-                NominationFile.RuleGroup.STATUTORY
-              ],
-              selected: {},
-              others: {},
-            },
-            [NominationFile.RuleGroup.QUALITATIVE]: {
-              ...aHighlightedReportVM.rulesChecked[
-                NominationFile.RuleGroup.QUALITATIVE
-              ],
-              selected: {},
-              others: {},
-            },
+        expectReportVMToHaveRuleChecked(
+          aHighlightedReport.id,
+          aHighlightedReportVM,
+          NominationFile.RuleGroup.MANAGEMENT,
+          {
+            selected: expectHighlighted
+              ? {
+                  TRANSFER_TIME: aRuleVM as VMReportRuleValue<true>,
+                }
+              : {},
+            others: expectHighlighted
+              ? {}
+              : {
+                  TRANSFER_TIME: aRuleVM as VMReportRuleValue<false>,
+                },
           },
-        });
+        );
       },
     );
   });
 
-  const aReport = new ReportBuilder()
-    .with("id", "report-id")
-    .with("name", "John Doe")
-    .with("dueDate", new DateOnly(2030, 10, 30))
-    .with("biography", "The biography.")
-    .with("observers", [
-      "observer 1",
-      "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
-    ])
-    .with("rules.management.TRANSFER_TIME", {
-      id: "transfer-time-id",
-      preValidated: false,
-      validated: true,
+  const givenATransferTimeRuleVM = (aReport: ReportSM) =>
+    ({
+      id: aReport.rules.management.TRANSFER_TIME.id,
+      label: ReportVM.rulesToLabels.management.TRANSFER_TIME,
+      checked: false,
+      highlighted: false,
       comment: null,
-    })
-    .with("attachedFiles", [
-      { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
-    ])
-    .buildRetrieveSM();
+    }) satisfies VMReportRuleValue;
 
-  const aRuleVM: VMReportRuleValue = {
-    id: "transfer-time-id",
-    label: ReportVM.rulesToLabels.management.TRANSFER_TIME,
-    highlighted: false,
-    checked: false,
-    comment: null,
+  const expectReportVMToHaveRuleChecked = <
+    G extends keyof ConditionalExcept<typeof testRulesMap, never[]>,
+    RulesChecked extends Omit<
+      GroupRulesChecked<G, (typeof testRulesMap)[G][number]>[G],
+      "accordionLabel"
+    >,
+  >(
+    reportId: string,
+    reportVM: ReportVM,
+    ruleGroup: G,
+    rulesChecked: RulesChecked,
+  ) => {
+    expect(selectReport(store.getState(), reportId)).toEqual<
+      ReportVM<typeof testRulesMap>
+    >({
+      ...reportVM,
+      rulesChecked: {
+        ...reportVM.rulesChecked,
+        [ruleGroup]: {
+          ...reportVM.rulesChecked[ruleGroup],
+          ...rulesChecked,
+        },
+      },
+    });
   };
 
-  const aReportVM = ReportBuilderVM.fromStoreModel<typeof testRulesMap>(aReport)
-    .with("state", NominationFile.ReportState.NEW)
-    .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
-    .with("observers", [
-      ["observer 1"],
-      ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],
-    ])
-    .build();
+  const givenAReport = (report: ReportSM) => {
+    store.dispatch(retrieveReport.fulfilled(report, "", ""));
+  };
 });

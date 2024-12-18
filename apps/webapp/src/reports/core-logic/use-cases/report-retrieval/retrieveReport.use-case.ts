@@ -1,4 +1,4 @@
-import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk.ts";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk.ts";
 
 export const retrieveReport = createAppAsyncThunk(
   "report/retrieval",

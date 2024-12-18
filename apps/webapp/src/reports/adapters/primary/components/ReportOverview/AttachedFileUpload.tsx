@@ -1,7 +1,7 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { FC } from "react";
-import { ReportSM } from "../../../../store/appState";
+import { ReportSM } from "../../../../../store/appState";
 import { AttachedFilesList } from "./AttachedFilesList";
 import { Card } from "./Card";
 import clsx from "clsx";

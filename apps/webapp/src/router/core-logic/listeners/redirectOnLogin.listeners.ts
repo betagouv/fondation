@@ -1,5 +1,5 @@
 import { authenticate } from "../../../authentication/core-logic/use-cases/authentication/authenticate";
-import { Listener } from "../../../reports/store/listeners";
+import { Listener } from "../../../store/listeners";
 
 export const redirectOnLogin: Listener = (startAppListening) =>
   startAppListening({

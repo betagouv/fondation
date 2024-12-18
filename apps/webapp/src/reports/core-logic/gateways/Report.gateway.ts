@@ -1,5 +1,5 @@
 import { NominationFile } from "shared-models";
-import { ReportListItem, ReportSM } from "../../store/appState";
+import { ReportListItem, ReportSM } from "../../../store/appState";
 
 export interface UpdateReportParams {
   comment?: string;

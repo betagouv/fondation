@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AppState } from "../../store/appState";
+import { AppState } from "../../../store/appState";
 import { listReport } from "../use-cases/report-listing/listReport.use-case";
 import { ReportListStateFilter } from "../../adapters/primary/labels/report-list-state-filter-labels.mapper";
 

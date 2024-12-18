@@ -1,6 +1,6 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { AppState } from "../../../reports/store/appState";
-import { PartialAppDependencies } from "../../../reports/store/reduxStore";
+import { AppState } from "../../../store/appState";
+import { PartialAppDependencies } from "../../../store/reduxStore";
 import { RouteChangedHandler } from "../components/routeChangedHandler";
 import { RouteToComponentFactory } from "../components/routeToComponent";
 

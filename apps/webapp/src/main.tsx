@@ -10,7 +10,7 @@ import { storeDisconnectionOnLogout } from "./authentication/core-logic/listener
 import "./index.css";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
-import { initReduxStore } from "./reports/store/reduxStore.ts";
+import { initReduxStore } from "./store/reduxStore.ts";
 import {
   RouteProvider,
   TypeRouterProvider,

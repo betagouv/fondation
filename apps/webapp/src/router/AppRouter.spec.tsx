@@ -5,7 +5,7 @@ import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { ReportBuilder } from "../reports/core-logic/builders/Report.builder";
 import { retrieveReport } from "../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
-import { initReduxStore, ReduxStore } from "../reports/store/reduxStore";
+import { initReduxStore, ReduxStore } from "../store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,

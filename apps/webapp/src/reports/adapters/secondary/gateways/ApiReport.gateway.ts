@@ -4,7 +4,7 @@ import {
   UpdateReportParams,
 } from "../../../core-logic/gateways/Report.gateway";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-import { ReportListItem, ReportSM } from "../../../store/appState";
+import { ReportListItem, ReportSM } from "../../../../store/appState";
 
 export class ApiReportGateway implements ReportGateway {
   constructor(private readonly reportApiClient: ReportApiClient) {}

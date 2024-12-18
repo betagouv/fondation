@@ -1,4 +1,4 @@
-import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 export type UpdateReportRuleParams = {
   reportId: string;

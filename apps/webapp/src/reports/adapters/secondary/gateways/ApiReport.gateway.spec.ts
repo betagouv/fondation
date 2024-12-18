@@ -1,6 +1,6 @@
 import { NominationFile } from "shared-models";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
-import { ReportListItem, ReportSM } from "../../../store/appState";
+import { ReportListItem, ReportSM } from "../../../../store/appState";
 import { ApiReportGateway } from "./ApiReport.gateway";
 import { FakeReportApiClient } from "./FakeReport.client";
 import { ReportApiModelBuilder } from "../../../core-logic/builders/ReportApiModel.builder";

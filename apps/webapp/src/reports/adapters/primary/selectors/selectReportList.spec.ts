@@ -7,7 +7,7 @@ import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only"
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { reportsFilteredByState } from "../../../core-logic/reducers/reportList.slice";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
-import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import {
   ReportListItemVM,
   ReportListVM,

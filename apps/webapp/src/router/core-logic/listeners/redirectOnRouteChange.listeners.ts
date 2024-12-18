@@ -1,4 +1,4 @@
-import { Listener } from "../../../reports/store/listeners";
+import { Listener } from "../../../store/listeners";
 import { routeChanged } from "../reducers/router.slice";
 
 export const redirectOnRouteChange: Listener = (startAppListening) =>

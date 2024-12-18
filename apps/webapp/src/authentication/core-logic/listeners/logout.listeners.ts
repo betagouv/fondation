@@ -1,4 +1,4 @@
-import { Listener } from "../../../reports/store/listeners";
+import { Listener } from "../../../store/listeners";
 import { logout } from "../use-cases/logout/logout";
 
 export const storeDisconnectionOnLogout: Listener = (startAppListening) =>

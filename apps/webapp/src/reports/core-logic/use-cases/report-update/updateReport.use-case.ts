@@ -1,5 +1,5 @@
 import { NominationFile } from "shared-models";
-import { createAppAsyncThunk } from "../../../store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 export type ReportStateUpdateParam = NominationFile.ReportState;
 

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { AllRulesMap, NominationFile, allRulesMap } from "shared-models";
-import { AppState } from "../../store/appState";
+import { AppState } from "../../../store/appState";
 import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";

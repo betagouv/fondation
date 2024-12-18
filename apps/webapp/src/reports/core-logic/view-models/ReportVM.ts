@@ -149,7 +149,7 @@ export class ReportVM<
   ) {}
 }
 
-type GroupRulesChecked<
+export type GroupRulesChecked<
   G extends NominationFile.RuleGroup,
   R extends NominationFile.RuleName,
 > = Record<
