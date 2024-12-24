@@ -47,7 +47,7 @@ describe("Report Overview Component - Summary use cases", () => {
   });
 
   describe("when there is a report", () => {
-    it.only("shows the summary content", async () => {
+    it("shows the summary content", async () => {
       const report = reportApiModelBuilder.build();
       givenARenderedReport(report);
 
