@@ -30,3 +30,5 @@ global.IntersectionObserver = vi.fn((callback, options) => {
     },
   };
 });
+
+Element.prototype.scrollIntoView = vi.fn();
