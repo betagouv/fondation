@@ -29,7 +29,7 @@ export const AppHeader = () => {
       }
       homeLinkProps={{
         href: loginHref,
-        title: "Dossiers de nomination",
+        title: "Mes rapports",
       }}
       navigation={[
         {

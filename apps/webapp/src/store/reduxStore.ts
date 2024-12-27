@@ -1,7 +1,16 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
+import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
 import { AuthenticationGateway } from "../authentication/core-logic/gateways/authentication.gateway";
 import { AuthenticationStorageProvider } from "../authentication/core-logic/providers/authenticationStorage.provider";
 import { createAuthenticationSlice } from "../authentication/core-logic/reducers/authentication.slice";
+import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";
+import {
+  summaryLabels,
+  SummarySection,
+} from "../reports/adapters/primary/labels/summary-labels";
+import { ReportGateway } from "../reports/core-logic/gateways/Report.gateway";
+import { reportListReducer as reportList } from "../reports/core-logic/reducers/reportList.slice";
+import { createReportOverviewSlice } from "../reports/core-logic/reducers/reportOverview.slice";
 import {
   RouteToComponentMap,
   routeToReactComponentMap,
@@ -10,18 +19,10 @@ import { RouteChangedHandler } from "../router/core-logic/components/routeChange
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { createRouterSlice } from "../router/core-logic/reducers/router.slice";
-import { ReportGateway } from "../reports/core-logic/gateways/Report.gateway";
-import { reportListReducer as reportList } from "../reports/core-logic/reducers/reportList.slice";
-import { createReportOverviewSlice } from "../reports/core-logic/reducers/reportOverview.slice";
+import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/shared-kernel.slice";
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
-import {
-  summaryLabels,
-  SummarySection,
-} from "../reports/adapters/primary/labels/summary-labels";
-import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -96,9 +97,11 @@ export const initReduxStore = <IsTest extends boolean = true>(
         [NominationFile.RuleGroup.QUALITATIVE]: [],
       },
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
+  currentDate = new Date(),
 ) => {
   return configureStore({
     reducer: {
+      sharedKernel: createSharedKernelSlice(currentDate).reducer,
       reportOverview: createReportOverviewSlice(
         reportSummarySections,
         rulesTuple,

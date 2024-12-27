@@ -132,7 +132,7 @@ export class ReportVM<
     public readonly name: string,
     public readonly biography: string | null,
     public readonly dueDate: string | null,
-    public readonly birthDate: string,
+    public birthDate: string,
     public readonly state: NominationFile.ReportState,
     public readonly formation: Magistrat.Formation,
     public readonly transparency: Transparency,

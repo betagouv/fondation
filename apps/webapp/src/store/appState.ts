@@ -44,6 +44,9 @@ export type ReportListItem = Pick<
 > & { reporterName: string | null; observersCount: number };
 
 export interface AppState {
+  sharedKernel: {
+    currentDate: Date;
+  };
   reportOverview: {
     summarySections: SummarySection[];
     byIds: Record<string, ReportSM> | null;

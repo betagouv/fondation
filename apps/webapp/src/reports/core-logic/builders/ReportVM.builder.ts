@@ -14,10 +14,9 @@ import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 
 type InternalReportVM<RulesMap extends AllRulesMap> = Omit<
   SetOptional<ReportVM<RulesMap>, "rulesChecked">,
-  "dueDate" | "birthDate"
+  "dueDate"
 > & {
   dueDate: DateOnly | null;
-  birthDate: DateOnly;
 };
 
 export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
@@ -30,7 +29,7 @@ export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
       name: "John Doe",
       biography: "John Doe's biography",
       dueDate: new DateOnly(2030, 10, 30),
-      birthDate: new DateOnly(1990, 1, 1),
+      birthDate: "01/01/1990",
       state: NominationFile.ReportState.NEW,
       formation: Magistrat.Formation.PARQUET,
       transparency: Transparency.MARCH_2025,
@@ -59,20 +58,19 @@ export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
   }
 
   with<
-    K extends Paths<ReportVM<RulesMap>>,
-    V extends Get<ReportVM<RulesMap>, K> = Get<ReportVM<RulesMap>, K>,
+    K extends Paths<InternalReportVM<RulesMap>>,
+    V extends Get<InternalReportVM<RulesMap>, K> = Get<
+      InternalReportVM<RulesMap>,
+      K
+    >,
   >(property: K, value: V) {
     if (!this._reportVM) throw new Error("No report");
     this._reportVM = _.set(this._reportVM, property, value);
     return this;
   }
 
-  withDueDate(dueDate: DateOnly | null) {
-    this._reportVM.dueDate = dueDate;
-    return this;
-  }
-  withBirthDate(birthDate: DateOnly) {
-    this._reportVM.birthDate = birthDate;
+  withBirthDate(birthDate: DateOnly, currentDate: DateOnly) {
+    this._reportVM.birthDate = `${birthDate.toFormattedString()} (${birthDate.getAge(currentDate)} ans)`;
     return this;
   }
 
@@ -81,7 +79,6 @@ export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
       ...this._reportVM,
       rulesChecked: this.buildRulesChecked(),
       dueDate: this._reportVM.dueDate?.toFormattedString() ?? null,
-      birthDate: this._reportVM.birthDate.toFormattedString(),
     };
   }
 
@@ -127,14 +124,19 @@ export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
   static fromStoreModel<R extends AllRulesMap = AllRulesMap>(
     reportStoreModel: ReportSM,
     summarySections?: SummarySection[],
+    currentDate: DateOnly = DateOnly.now(),
   ): ReportBuilderVM<R> {
     return new ReportBuilderVM<R>(summarySections)
       .with("id", reportStoreModel.id)
       .with("biography", reportStoreModel.biography)
-      .withBirthDate(DateOnly.fromStoreModel(reportStoreModel.birthDate))
+      .withBirthDate(
+        DateOnly.fromStoreModel(reportStoreModel.birthDate),
+        currentDate,
+      )
       .with("comment", reportStoreModel.comment)
       .with("currentPosition", reportStoreModel.currentPosition)
-      .withDueDate(
+      .with(
+        "dueDate",
         reportStoreModel.dueDate
           ? DateOnly.fromStoreModel(reportStoreModel.dueDate)
           : null,

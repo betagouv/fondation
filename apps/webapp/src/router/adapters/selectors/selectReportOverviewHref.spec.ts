@@ -11,7 +11,7 @@ describe("Select Nomination File Overview Href", () => {
     store = initReduxStore({}, { routerProvider }, {});
   });
 
-  it("selects the nomination file overview href", () => {
+  it("selects the report overview href", () => {
     expect(selectReportListHref(store.getState())).toEqual(
       routerProvider.getReportListHref(),
     );

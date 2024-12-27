@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyStoreModel = {
@@ -15,13 +15,6 @@ export class DateOnly {
     this.value = new Date(Date.UTC(year, month - 1, day));
   }
 
-  getYear(): number {
-    return this.value.getFullYear();
-  }
-  getMonth(): number {
-    return this.value.getMonth() + 1;
-  }
-
   toDate(): Date {
     return this.value;
   }
@@ -31,19 +24,40 @@ export class DateOnly {
   toStoreModel(): DateOnlyStoreModel {
     return {
       year: this.getYear(),
-      month: this.getMonth() as Month,
-      day: this.value.getDate(),
+      month: this.getMonth(),
+      day: this.getDay(),
     };
   }
 
-  static fromDate(dueDate: Date): DateOnly {
+  getAge(today: DateOnly): number {
+    return this.yearsDiffWithLaterDate(today);
+  }
+
+  private yearsDiffWithLaterDate(today: DateOnly): number {
+    return differenceInYears(today.toDate(), this.value);
+  }
+
+  private getYear(): number {
+    return this.value.getFullYear();
+  }
+  private getMonth(): Month {
+    return (this.value.getMonth() + 1) as Month;
+  }
+  private getDay(): number {
+    return this.value.getDate();
+  }
+
+  static fromDate(date: Date): DateOnly {
     return new DateOnly(
-      dueDate.getFullYear(),
-      (dueDate.getMonth() + 1) as Month,
-      dueDate.getDate(),
+      date.getFullYear(),
+      (date.getMonth() + 1) as Month,
+      date.getDate(),
     );
   }
   static fromStoreModel(date: DateOnlyStoreModel): DateOnly {
     return new DateOnly(date.year, date.month, date.day);
+  }
+  static now(): DateOnly {
+    return DateOnly.fromDate(new Date());
   }
 }

@@ -93,13 +93,6 @@ describe("Report Overview Component", () => {
       });
     });
 
-    it("shows magistrat identity section", async () => {
-      const reportApiModel = reportApiModelBuilder.build();
-      givenARenderedReport(reportApiModel);
-
-      await expectMagistratIdentity();
-    });
-
     it("shows the observers", async () => {
       const reportApiModel = reportApiModelBuilder
         .with("observers", [
@@ -193,7 +186,7 @@ describe("Report Overview Component", () => {
 
         it("removes content", async () => {
           const reportApiModel = reportApiModelBuilder.build();
-          const aReportVM =
+          const aReportSM =
             ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
           givenARenderedReport(reportApiModel);
 
@@ -208,7 +201,7 @@ describe("Report Overview Component", () => {
                 ...initialState.reportOverview,
                 byIds: {
                   [reportApiModel.id]: {
-                    ...aReportVM,
+                    ...aReportSM,
                     [storeKey]: null,
                   },
                 },
@@ -368,15 +361,5 @@ describe("Report Overview Component", () => {
         <ReportOverview id={reportId} />
       </Provider>,
     );
-  };
-
-  const expectMagistratIdentity = async () => {
-    const labels = ReportVM.magistratIdentityLabels;
-    await screen.findByText("John Doe");
-    await screen.findByText(`${labels.currentPosition} : PG TJ Paris`);
-    await screen.findByText(`${labels.grade} : I`);
-    await screen.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
-    await screen.findByText(`${labels.rank} : (2 sur une liste de 3)`);
-    await screen.findByText(`${labels.birthDate} : 01/01/1980`);
   };
 });

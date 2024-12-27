@@ -2,6 +2,8 @@ import { vi } from "vitest";
 import "@codegouvfr/react-dsfr/dsfr/dsfr.min.css";
 import "@testing-library/jest-dom/vitest";
 
+process.env.TZ = "Europe/Paris";
+
 window.matchMedia = vi.fn().mockImplementation((query: string) => ({
   matches: false,
   media: query,

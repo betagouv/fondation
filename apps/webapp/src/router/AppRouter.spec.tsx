@@ -53,7 +53,7 @@ describe("App Router Component", () => {
     expect(window.location.pathname).toBe(routerProvider.getLoginHref());
   });
 
-  it("cannot visit the nomination file list page", async () => {
+  it("cannot visit the report list page", async () => {
     renderAppRouter();
 
     act(() => {
@@ -64,7 +64,7 @@ describe("App Router Component", () => {
     expect(window.location.pathname).toBe(routerProvider.getLoginHref());
   });
 
-  it("cannot show the nomination file list page before the redirection", async () => {
+  it("cannot show the report list page before the redirection", async () => {
     store = initReduxStore(
       { authenticationGateway },
       { routerProvider },
@@ -113,7 +113,7 @@ describe("App Router Component", () => {
       expect(window.location.pathname).toBe(routerProvider.getReportListHref());
     });
 
-    it("visits the nomination file overview page", async () => {
+    it("visits the report overview page", async () => {
       renderAppRouter();
       act(() => {
         givenAnAuthenticatedUser();

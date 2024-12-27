@@ -24,7 +24,7 @@ describe("Retrieve Nomination Case", () => {
     initialState = store.getState();
   });
 
-  it("retrieve a nomination file", async () => {
+  it("retrieve a report", async () => {
     reportApiClient.addReport(aReportApiModel);
     await store.dispatch(retrieveReport("report-id"));
     expect(store.getState()).toEqual<AppState>({
@@ -36,7 +36,7 @@ describe("Retrieve Nomination Case", () => {
     });
   });
 
-  it("has two nomination cases in the store after retrieving a second one", async () => {
+  it("has two reports in the store after retrieving a second one", async () => {
     reportApiClient.addReport(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(anotherNomination, "", ""));
 

@@ -2,14 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMap, NominationFile } from "shared-models";
+import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
   ReportApiModel,
   ReportApiModelBuilder,
 } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { getReportAccordionLabel } from "../../../../core-logic/builders/ReportVMRules.builder";
-import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";
@@ -199,7 +198,7 @@ describe("Report Overview Component - Rules use cases", () => {
       },
       {},
       {},
-      { reportFileAttached },
+      {},
       undefined,
       rulesMap,
     );

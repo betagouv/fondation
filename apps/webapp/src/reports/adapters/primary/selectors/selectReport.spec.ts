@@ -17,6 +17,7 @@ import {
 import { selectReport } from "./selectReport";
 import { SummarySection } from "../labels/summary-labels";
 import { reportHtmlIds } from "../dom/html-ids";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 
 describe("Select Report", () => {
   let store: ReduxStore;
@@ -211,7 +212,9 @@ describe("Select Report", () => {
   };
 });
 
-describe("Select Report Summary", () => {
+describe("Select Report - Summary and Age", () => {
+  const currentDate = new DateOnly(2025, 10, 2);
+
   let store: ReduxStore;
   let reportBuilder: ReportBuilder;
 
@@ -228,6 +231,7 @@ describe("Select Report Summary", () => {
     ReportBuilderVM.fromStoreModel<typeof emptyTestRulesMap>(
       report,
       summarySections,
+      currentDate,
     );
 
   beforeEach(() => {
@@ -239,6 +243,7 @@ describe("Select Report Summary", () => {
       undefined,
       emptyTestRulesMap,
       summarySections,
+      currentDate.toDate(),
     );
     reportBuilder = new ReportBuilder(emptyTestRulesMap);
   });
@@ -257,4 +262,61 @@ describe("Select Report Summary", () => {
   const givenAReport = (report: ReportSM) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));
   };
+
+  describe("Age", () => {
+    it.each`
+      testName           | birthDate                    | expectedBirthDate
+      ${"was yesterday"} | ${new DateOnly(2000, 10, 1)} | ${"01/10/2000 (25 ans)"}
+      ${"is today"}      | ${new DateOnly(2000, 10, 2)} | ${"02/10/2000 (25 ans)"}
+      ${"is tomorrow"}   | ${new DateOnly(2000, 10, 3)} | ${"03/10/2000 (24 ans)"}
+    `(
+      "selects the magistrate's age $expectedBirthDate when birthday $testName",
+      ({ birthDate, expectedBirthDate }) => {
+        const aReport = reportBuilder
+          .with("birthDate", birthDate)
+          .buildRetrieveSM();
+        givenAReport(aReport);
+
+        const aReportVM = reportVMBuilder(aReport)
+          .with("birthDate", expectedBirthDate)
+          .build();
+        expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
+      },
+    );
+  });
+
+  /**
+   * Test done for user display coherency,
+   * even if we don't now the magistrate's birth date timezone.
+   */
+  it.each`
+    timezone                 | currentDate
+    ${"Paris standard time"} | ${new Date("2025-10-02T00:00:00+01:00")}
+    ${"Paris summer time"}   | ${new Date("2025-10-02T00:00:00+02:00")}
+  `(
+    "handles $timezone timezone when computing birthdate",
+    ({ currentDate }) => {
+      const birthDate = new DateOnly(2000, 10, 2);
+      store = initReduxStore(
+        {},
+        {},
+        {},
+        undefined,
+        undefined,
+        emptyTestRulesMap,
+        summarySections,
+        currentDate,
+      );
+
+      const aReport = reportBuilder
+        .with("birthDate", birthDate)
+        .buildRetrieveSM();
+      givenAReport(aReport);
+
+      const aReportVM = reportVMBuilder(aReport)
+        .with("birthDate", "02/10/2000 (25 ans)")
+        .build();
+      expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
+    },
+  );
 });

@@ -32,9 +32,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const report = useAppSelector((state) => selectReport(state, id));
   const dispatch = useAppDispatch();
 
-  const onUpdateNomination = <
-    T extends keyof UpdateReportParams["data"],
-  >(data: {
+  const onUpdateReport = <T extends keyof UpdateReportParams["data"]>(data: {
     [key in keyof UpdateReportParams["data"]]: T extends key
       ? UpdateReportParams["data"][key]
       : undefined;
@@ -47,11 +45,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     );
   };
   const onUpdateComment = (comment: string) => {
-    return onUpdateNomination<"comment">({ comment });
+    return onUpdateReport<"comment">({ comment });
   };
 
   const onUpdateState = (state: ReportStateUpdateParam) => {
-    return onUpdateNomination<"state">({ state });
+    return onUpdateReport<"state">({ state });
   };
 
   const onUpdateReportRule =

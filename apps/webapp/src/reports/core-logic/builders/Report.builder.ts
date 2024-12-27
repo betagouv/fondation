@@ -55,7 +55,6 @@ export class ReportBuilder {
     K extends Paths<InternalReport>,
     V extends Get<InternalReport, K> = Get<InternalReport, K>,
   >(property: K, value: V) {
-    if (!this._report) throw new Error("No nomination file");
     this._report = _.set(this._report, property, value);
     return this;
   }
