@@ -1,10 +1,10 @@
-import typia from 'typia';
-import { NominationFileModel } from './nomination-file';
-import { NominationFileRead } from './nomination-file-read';
 import {
   NominationFilesUpdatedEvent,
   NominationFilesUpdatedEventPayload,
+  nominationFilesUpdatedEventPayloadSchema,
 } from './events/nomination-files-updated.event';
+import { NominationFileModel } from './nomination-file';
+import { NominationFileRead } from './nomination-file-read';
 
 export class NominationFilesUpdatedCollection {
   private _nominationFileModels: NominationFileModel[];
@@ -70,7 +70,7 @@ export class NominationFilesUpdatedCollection {
           },
         };
       });
-    typia.assertEquals(payload);
+    nominationFilesUpdatedEventPayloadSchema.parse(payload);
 
     const nominationFilesUpdatedEvent = new NominationFilesUpdatedEvent(
       eventId,

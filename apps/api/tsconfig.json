@@ -20,12 +20,7 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "lib": ["ESNext"],
-    "plugins": [
-      {
-        "transform": "typia/lib/transform"
-      }
-    ],
   },
-  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts", "src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/q"],
+  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts"],
   "references":[{"path": "../../packages/shared-models"}],
 }

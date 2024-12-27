@@ -1,16 +1,18 @@
 import { NominationFile } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import typia from 'typia';
 import { InvalidRowValueError } from '../errors/invalid-row-value.error';
+import {
+  NominationFileRead,
+  nominationFileReadListSchema,
+} from './nomination-file-read';
+import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
 import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normalizer';
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
-import { NominationFileRead } from './nomination-file-read';
-import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
-import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
 import { StateTsvNormalizer } from './tsv-normalizers/state-tsv-normalizer';
+import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -107,7 +109,7 @@ export class NominationFileContentReader {
     });
 
     const safeNominationFileRead =
-      typia.assertEquals<NominationFileRead[]>(contentRead);
+      nominationFileReadListSchema.parse(contentRead);
 
     return new NominationFilesContentReadCollection(safeNominationFileRead);
   }

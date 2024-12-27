@@ -1,9 +1,11 @@
 import { NominationFileRepository } from 'src/data-administration-context/business-logic/gateways/repositories/nomination-file-repository';
 import { NominationFileModel } from 'src/data-administration-context/business-logic/models/nomination-file';
-import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
+import {
+  NominationFileRead,
+  nominationFileReadContentSchema,
+} from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
-import typia from 'typia';
 import { nominationFiles } from './schema/nomination-file-pm';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
@@ -43,7 +45,7 @@ export class SqlNominationFileRepository implements NominationFileRepository {
   }
 
   private safeContent(content: unknown): NominationFileRead['content'] {
-    return typia.assert<NominationFileRead['content']>(content);
+    return nominationFileReadContentSchema.parse(content);
   }
 
   static mapToDb(

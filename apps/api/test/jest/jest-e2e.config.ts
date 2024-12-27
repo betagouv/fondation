@@ -7,7 +7,12 @@ const jestConfig: JestConfigWithTsJest = {
   globalTeardown: '<rootDir>/test/teardown-postgresql-docker.ts',
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.(ts)$': 'ts-jest',
+    '^.+\\.(ts)$': [
+      'ts-jest',
+      {
+        isolatedModules: true,
+      },
+    ],
   },
   testMatch: ['**/{src,cli}/**/*.e2e-spec.(ts)'],
   testEnvironment: 'node',

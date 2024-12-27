@@ -1,9 +1,6 @@
-import typia from 'typia';
-import { Maximum, Minimum } from 'typia/lib/tags';
-import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
+import { z } from 'zod';
 import { CreateReportValidationError } from '../errors/create-report-validation.error';
-
-type NumberEquals<T extends number> = number & Minimum<T> & Maximum<T>;
+import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 
 export class CreateReportValidator {
   validate(report: ReportToCreate) {
@@ -13,7 +10,7 @@ export class CreateReportValidator {
     );
 
     try {
-      typia.assert<NumberEquals<21>>(rulesCount);
+      z.number().min(21).max(21).parse(rulesCount);
     } catch (e) {
       throw new CreateReportValidationError(e);
     }

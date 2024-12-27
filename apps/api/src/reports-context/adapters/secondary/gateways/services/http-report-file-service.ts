@@ -2,11 +2,11 @@ import axios from 'axios';
 import {
   ReportFileService,
   ReportSignedUrl,
+  reportSignedUrlsSchema,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
 import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import typia from 'typia';
 
 export class HttpReportFileService implements ReportFileService {
   private readonly fileServiceUrl: URL;
@@ -65,8 +65,7 @@ export class HttpReportFileService implements ReportFileService {
     if (!response.ok) throw new Error('Failed to get files signed URLs');
     const signedUrls = await response.json();
 
-    typia.assertGuardEquals<ReportSignedUrl[]>(signedUrls);
-    return signedUrls;
+    return reportSignedUrlsSchema.parse(signedUrls);
   }
 
   async deleteFile(file: ReportAttachedFile): Promise<void> {

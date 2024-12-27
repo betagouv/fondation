@@ -3,9 +3,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   NominationFilesImportedEvent,
   NominationFilesImportedEventPayload,
+  nominationFilesImportedEventPayloadSchema,
 } from 'src/data-administration-context/business-logic/models/events/nomination-file-imported.event';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
-import typia from 'typia';
 
 @Injectable()
 export class NominationFileImportedSubscriber {
@@ -15,7 +15,7 @@ export class NominationFileImportedSubscriber {
   async handleNominationFilesImportedEvent(
     payload: NominationFilesImportedEventPayload,
   ) {
-    typia.assert<NominationFilesImportedEventPayload>(payload);
+    nominationFilesImportedEventPayloadSchema.parse(payload);
 
     const promises: Promise<void>[] = payload
       .map(({ nominationFileImportedId: id, content }) =>
