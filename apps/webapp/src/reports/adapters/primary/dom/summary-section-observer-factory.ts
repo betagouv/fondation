@@ -5,11 +5,8 @@ type Notify = (targetId: string) => void;
 const notifyMostVisibleSectionFactory =
   (notify: Notify) => (entries: IntersectionObserverEntry[]) =>
     entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        if (!isScrollingToSummarySection) {
-          notify(entry.target.id);
-        }
-      }
+      if (entry.isIntersecting && !isScrollingToSummarySection)
+        notify(entry.target.id);
     });
 
 export const summarySectionsObserverFactory = (

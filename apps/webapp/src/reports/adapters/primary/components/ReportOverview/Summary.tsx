@@ -33,7 +33,7 @@ export const Summary: FC<SummaryProps> = ({ summary }) => {
   useEffect(() => {
     scrollToSummarySection();
     createListeners();
-    return () => removeListeners();
+    return removeListeners;
   }, []);
 
   const sideMenuItems: SideMenuProps.Item[] = summary.map(
