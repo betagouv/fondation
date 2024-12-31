@@ -25,6 +25,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build the shared models, necessary for the type checks
+        run: pnpm --filter shared-models build
       - name: Types check
         run: pnpm types:check
       - name: Lint
