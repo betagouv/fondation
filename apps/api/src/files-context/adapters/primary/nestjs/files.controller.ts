@@ -9,22 +9,36 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesContextRestContract } from 'shared-models/models/endpoints/files';
 import { DeleteFileUseCase } from 'src/files-context/business-logic/use-cases/file-deletion/delete-file';
 import { UploadFileUseCase } from 'src/files-context/business-logic/use-cases/file-upload/upload-file';
 import { GenerateFilesUrlsUseCase } from 'src/files-context/business-logic/use-cases/files-url-generation/generate-files-urls';
+import {
+  IController,
+  IControllerPaths,
+} from 'src/shared-kernel/adapters/primary/nestjs/controller';
 import { FileDeletionParamDto } from '../dto/file-deletion.dto';
 import { FileUploadQueryDto } from '../dto/file-upload-query.dto';
 import { FilesUrlsQueryDto } from '../dto/files-urls-query.dto';
 
-@Controller('api/files')
-export class FilesController {
+type IReportController = IController<FilesContextRestContract>;
+
+const baseRoute: FilesContextRestContract['basePath'] = 'api/files';
+const endpointsPaths: IControllerPaths<FilesContextRestContract> = {
+  uploadFile: 'upload-one',
+  getSignedUrls: 'signed-urls',
+  deleteFile: ':id',
+};
+
+@Controller(baseRoute)
+export class FilesController implements IReportController {
   constructor(
     private readonly uploadFileUseCase: UploadFileUseCase,
     private readonly generateFilesUrlsUseCase: GenerateFilesUrlsUseCase,
     private readonly deleteFileUseCase: DeleteFileUseCase,
   ) {}
 
-  @Post('upload-one')
+  @Post(endpointsPaths.uploadFile)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Query() query: FileUploadQueryDto,
@@ -41,12 +55,12 @@ export class FilesController {
     );
   }
 
-  @Get('signed-urls')
+  @Get(endpointsPaths.getSignedUrls)
   async getSignedUrls(@Query() { ids }: FilesUrlsQueryDto) {
     return this.generateFilesUrlsUseCase.execute(ids);
   }
 
-  @Delete(':id')
+  @Delete(endpointsPaths.deleteFile)
   async deleteFile(@Param() query: FileDeletionParamDto) {
     const { id } = query;
     return this.deleteFileUseCase.execute(id);

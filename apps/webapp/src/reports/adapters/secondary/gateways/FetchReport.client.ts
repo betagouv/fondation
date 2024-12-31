@@ -5,6 +5,7 @@ import {
   reportUpdateDto,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
+import { interpolateUrlParams } from "shared-models/models/endpoints/common";
 
 type Endpoints = ReportsContextRestContract["endpoints"];
 type ClientFetchOptions = {
@@ -123,13 +124,7 @@ export class FetchReportApiClient implements ReportApiClient {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
     if (!params) return url.href;
-    return Object.keys(params).reduce(
-      (resolvedPath, key) =>
-        params[key]
-          ? resolvedPath.replace(`:${key}`, params[key])
-          : resolvedPath,
-      url.href,
-    );
+    return interpolateUrlParams(url, params);
   }
 
   private async fetch(url: string, requestInit: RequestInit) {

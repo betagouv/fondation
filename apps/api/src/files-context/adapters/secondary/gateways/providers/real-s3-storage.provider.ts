@@ -1,11 +1,9 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { FileVM } from 'shared-models/models/endpoints/files';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
-import {
-  FileDocument,
-  FileVM,
-} from 'src/files-context/business-logic/models/file-document';
+import { FileDocument } from 'src/files-context/business-logic/models/file-document';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 export class RealS3StorageProvider implements S3StorageProvider {

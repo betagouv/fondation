@@ -2,7 +2,6 @@ import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { APP_PIPE, NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { FileVM } from 'src/files-context/business-logic/models/file-document';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
@@ -16,8 +15,11 @@ import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
-import { fileUploadQueryDtoSchema } from '../dto/file-upload-query.dto';
 import { FilesContextModule } from './files-context.module';
+import {
+  fileUploadQueryDtoSchema,
+  FileVM,
+} from 'shared-models/models/endpoints/files';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;

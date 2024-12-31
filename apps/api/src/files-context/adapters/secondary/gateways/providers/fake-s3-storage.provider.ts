@@ -1,8 +1,6 @@
+import { FileVM } from 'shared-models/models/endpoints/files';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
-import {
-  FileDocument,
-  FileVM,
-} from 'src/files-context/business-logic/models/file-document';
+import { FileDocument } from 'src/files-context/business-logic/models/file-document';
 
 type FileName = string;
 type Bucket = string;

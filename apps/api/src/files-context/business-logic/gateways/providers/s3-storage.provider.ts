@@ -1,4 +1,5 @@
-import { FileDocument, FileVM } from '../../models/file-document';
+import { FileVM } from 'shared-models/models/endpoints/files';
+import { FileDocument } from '../../models/file-document';
 
 export interface S3StorageProvider {
   uploadFile(

@@ -1,14 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
-
-export const fileUploadQueryDtoSchema = z.object({
-  bucket: z.string(),
-  path: z
-    .union([z.string(), z.array(z.string())])
-    .transform((value) => (Array.isArray(value) ? value : [value]))
-    .optional(),
-  fileId: z.string(),
-});
+import { fileUploadQueryDtoSchema } from 'shared-models/models/endpoints/files';
 
 export class FileUploadQueryDto extends createZodDto(
   fileUploadQueryDtoSchema,
