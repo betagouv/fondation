@@ -268,6 +268,17 @@ describe('Reports Controller', () => {
       expect(response.text).toEqual(expect.stringMatching(/^http/));
     });
 
+    it('deletes a file', async () => {
+      await uploadFile().expect(201);
+
+      await request(app.getHttpServer())
+        .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+        .expect(HttpStatus.OK);
+
+      const savedFiles = await db.select().from(reportAttachedFiles).execute();
+      expect(savedFiles).toEqual([]);
+    });
+
     const uploadFile = () => {
       const pdfBuffer = givenAPdfBuffer();
 
