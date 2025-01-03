@@ -31,6 +31,7 @@
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:migrate:prod": "pnpm drizzle-kit migrate --config dist/drizzle.config.js",
     "cli:seed": "dotenvx run -- ts-node -r tsconfig-paths/register cli/seed.ts",
+    "cli:register-users": "ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/register-user.cli.ts",
     "cli:upload-nomination-files:local": "dotenvx run -- ts-node -r tsconfig-paths/register cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.ts",
     "scalingo:upload-nomination-files:staging": "dotenvx run -f .env.scalingo-upload.staging -f .env.scalingo-upload -- ./scripts/import-nominations-from-local-file-to-scalingo.sh",
     "scalingo:upload-nomination-files:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/import-nominations-from-local-file-to-scalingo.sh"

@@ -7,12 +7,14 @@ import { DataAdministrationContextModule } from './data-administration-context/a
 import { FilesContextModule } from './files-context/adapters/primary/nestjs/files-context.module';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { IdentityAndAccessModule } from './identity-and-access-context/adapters/primary/nestjs/identity-and-access.module';
 
 @Module({
   imports: [
     FilesContextModule,
     DataAdministrationContextModule,
     ReportsModule,
+    IdentityAndAccessModule,
     SharedKernelModule,
   ],
   controllers: [],

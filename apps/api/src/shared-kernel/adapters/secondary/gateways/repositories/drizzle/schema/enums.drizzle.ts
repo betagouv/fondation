@@ -1,4 +1,4 @@
-import { DomainEventStatus } from '../../../../../../business-logic/models/domain-event';
+import { DomainEventStatus } from 'src/shared-kernel/business-logic/models/domain-event';
 import { sharedKernelContextSchema } from './shared-kernel-context-schema.drizzle';
 
 export const domainEventStatusEnum = sharedKernelContextSchema.enum(

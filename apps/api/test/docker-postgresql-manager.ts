@@ -7,16 +7,17 @@ import {
   StartedDockerComposeEnvironment,
   Wait,
 } from 'testcontainers';
-import { nominationFiles } from '../src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import * as filesContextTables from '../src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import * as reportsContextTables from '../src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
+import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import * as filesContextTables from 'src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import * as reportsContextTables from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import * as identityAndAccessContextTables from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
-} from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { migrateDrizzle } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
-import { domainEvents } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { migrateDrizzle } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
+import { domainEvents } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-test.yaml';
@@ -64,6 +65,7 @@ export async function clearDB(
   tables: PgTableWithColumns<any>[] = [
     ...Object.values(reportsContextTables),
     ...Object.values(filesContextTables),
+    ...Object.values(identityAndAccessContextTables),
     nominationFiles,
     domainEvents,
   ],

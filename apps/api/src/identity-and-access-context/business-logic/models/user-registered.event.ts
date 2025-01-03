@@ -1,5 +1,5 @@
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
-import { Role } from './roles';
+import { Role } from './role';
 
 export type UserRegisteredEventPayload = {
   userId: string;

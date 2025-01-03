@@ -1,4 +1,4 @@
-import { FileVM } from 'shared-models/models/endpoints/files';
+import { FileVM } from 'shared-models';
 import { FilesStorageProvider } from './files-provider.enum';
 
 export type FileDocumentSnapshot = {

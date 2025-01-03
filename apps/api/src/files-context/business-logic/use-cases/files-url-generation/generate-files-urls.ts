@@ -1,7 +1,7 @@
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { S3StorageProvider } from '../../gateways/providers/s3-storage.provider';
 import { FileRepository } from '../../gateways/repositories/file-repository';
-import { FileVM } from 'shared-models/models/endpoints/files';
+import { FileVM } from 'shared-models';
 
 export class GenerateFilesUrlsUseCase {
   constructor(

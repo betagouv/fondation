@@ -8,7 +8,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { minioS3StorageClient } from '../src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
+import { minioS3StorageClient } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
 
 export const createBucket = async (
   bucket: string,

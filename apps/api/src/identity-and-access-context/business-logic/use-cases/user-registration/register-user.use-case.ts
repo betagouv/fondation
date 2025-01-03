@@ -1,7 +1,7 @@
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
 import { User } from '../../models/user';
-import { Role } from '../../models/roles';
+import { Role } from '../../models/role';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';

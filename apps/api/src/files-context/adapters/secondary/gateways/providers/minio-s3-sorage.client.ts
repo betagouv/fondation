@@ -1,6 +1,6 @@
 import { S3Client } from '@aws-sdk/client-s3';
-import { defaultApiConfig } from '../../../../../shared-kernel/adapters/primary/nestjs/env';
-import { buildFileStorageProviderEndpoint } from '../../../../business-logic/builders/build-file-storage-provider-endpoint';
+import { buildFileStorageProviderEndpoint } from 'src/files-context/business-logic/builders/build-file-storage-provider-endpoint';
+import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 
 export const minioS3StorageClient = new S3Client({
   region: 'eu-west-2',

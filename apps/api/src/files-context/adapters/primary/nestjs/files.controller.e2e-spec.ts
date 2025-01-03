@@ -16,10 +16,7 @@ import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
 import { FilesContextModule } from './files-context.module';
-import {
-  fileUploadQueryDtoSchema,
-  FileVM,
-} from 'shared-models/models/endpoints/files';
+import { fileUploadQueryDtoSchema, FileVM } from 'shared-models';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;

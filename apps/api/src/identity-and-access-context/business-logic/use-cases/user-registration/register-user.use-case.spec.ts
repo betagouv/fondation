@@ -5,7 +5,7 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
-import { Role } from '../../models/roles';
+import { Role } from '../../models/role';
 import { UserSnapshot } from '../../models/user';
 import { UserRegisteredEvent } from '../../models/user-registered.event';
 import {

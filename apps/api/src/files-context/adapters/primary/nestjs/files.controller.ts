@@ -9,7 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilesContextRestContract } from 'shared-models/models/endpoints/files';
+import { FilesContextRestContract } from 'shared-models';
 import { DeleteFileUseCase } from 'src/files-context/business-logic/use-cases/file-deletion/delete-file';
 import { UploadFileUseCase } from 'src/files-context/business-logic/use-cases/file-upload/upload-file';
 import { GenerateFilesUrlsUseCase } from 'src/files-context/business-logic/use-cases/files-url-generation/generate-files-urls';

@@ -1,4 +1,4 @@
-import { Role } from './roles';
+import { Role } from './role';
 import { UserRegisteredEvent } from './user-registered.event';
 
 export type UserSnapshot = {

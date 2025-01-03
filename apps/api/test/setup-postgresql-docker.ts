@@ -1,6 +1,8 @@
+import 'tsconfig-paths/register';
+
 import { sql } from 'drizzle-orm';
-import { drizzleConfigForTest } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
-import { getDrizzleInstance } from '../src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
+import { getDrizzleInstance } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { startDockerPostgresql } from './docker-postgresql-manager';
 import teardown from './teardown-postgresql-docker';
 

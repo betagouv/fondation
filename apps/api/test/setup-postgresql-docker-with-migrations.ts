@@ -1,4 +1,5 @@
-import { defaultApiConfig } from '../src/shared-kernel/adapters/primary/nestjs/env';
+import 'tsconfig-paths/register';
+import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import {
   migrateDockerPostgresql,
   startDockerPostgresql,

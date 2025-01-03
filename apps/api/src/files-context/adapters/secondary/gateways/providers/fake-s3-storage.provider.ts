@@ -1,4 +1,4 @@
-import { FileVM } from 'shared-models/models/endpoints/files';
+import { FileVM } from 'shared-models';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
 import { FileDocument } from 'src/files-context/business-logic/models/file-document';
 

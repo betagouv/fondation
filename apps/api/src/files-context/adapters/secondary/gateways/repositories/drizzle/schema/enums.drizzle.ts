@@ -1,4 +1,4 @@
-import { FilesStorageProvider } from '../../../../../../business-logic/models/files-provider.enum';
+import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { filesContextSchema } from './schema';
 
 export const filesStorageProviderEnum = filesContextSchema.enum(

@@ -1,4 +1,4 @@
-import { RestContract } from 'shared-models/models/endpoints/common';
+import { RestContract } from 'shared-models';
 import type FormDataLib from 'form-data';
 
 export type IController<C extends RestContract> = {

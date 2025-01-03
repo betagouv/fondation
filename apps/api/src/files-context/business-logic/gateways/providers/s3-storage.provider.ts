@@ -1,4 +1,4 @@
-import { FileVM } from 'shared-models/models/endpoints/files';
+import { FileVM } from 'shared-models';
 import { FileDocument } from '../../models/file-document';
 
 export interface S3StorageProvider {
