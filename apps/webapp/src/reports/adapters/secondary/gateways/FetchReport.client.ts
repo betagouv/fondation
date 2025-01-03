@@ -5,7 +5,7 @@ import {
   reportUpdateDto,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-import { interpolateUrlParams } from "shared-models/models/endpoints/common";
+import { interpolateUrlParams } from "shared-models";
 
 type Endpoints = ReportsContextRestContract["endpoints"];
 type ClientFetchOptions = {
