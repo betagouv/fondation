@@ -1,7 +1,6 @@
-import { z } from "zod";
-import { NominationFile } from "../nomination-file.namespace";
-import { RestContract, ZodParamsDto } from "./common";
 import type FormData from "form-data";
+import { z } from "zod";
+import { RestContract, ZodParamsDto } from "./common";
 
 export type FileVM = { name: string; signedUrl: string };
 
@@ -32,15 +31,6 @@ export interface FilesContextRestContract extends RestContract {
       response: void;
     };
   };
-}
-
-export interface ReportUpdateDto {
-  state?: NominationFile.ReportState;
-  comment?: string;
-}
-
-export interface ChangeRuleValidationStateDto {
-  validated: boolean;
 }
 
 export const fileUploadQueryDtoSchema = z.object({
