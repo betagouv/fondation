@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "declaration": true,
-    "outDir": "./dist/cjs",
-    "noEmit": false // Ensure it does emit files
-  }
-}

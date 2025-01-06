@@ -52,12 +52,12 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const defaultReportSummarySections: SummarySection[] = [
   {
-    anchorId: reportHtmlIds.overview.commentSection,
-    label: summaryLabels.comment,
-  },
-  {
     anchorId: reportHtmlIds.overview.biographySection,
     label: summaryLabels.biography,
+  },
+  {
+    anchorId: reportHtmlIds.overview.commentSection,
+    label: summaryLabels.comment,
   },
   {
     anchorId: reportHtmlIds.overview.observersSection,

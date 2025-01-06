@@ -3,9 +3,9 @@ import {
   ReportsContextRestContract,
   ReportUpdateDto,
   reportUpdateDto,
+  interpolateUrlParams,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-import { interpolateUrlParams } from "shared-models";
 
 type Endpoints = ReportsContextRestContract["endpoints"];
 type ClientFetchOptions = {
@@ -37,7 +37,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path);
     const response = await this.fetch(url, {
-      method: method,
+      method,
     });
     return response.json();
   }

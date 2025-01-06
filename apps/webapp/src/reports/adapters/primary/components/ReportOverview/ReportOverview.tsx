@@ -129,8 +129,8 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             targettedPosition={report.targettedPosition}
             rank={report.rank}
           />
-          <Comment comment={report.comment} onUpdate={onUpdateComment} />
           <Biography biography={report.biography} />
+          <Comment comment={report.comment} onUpdate={onUpdateComment} />
           <Observers observers={report.observers} />
           <ReportRules
             rulesChecked={report.rulesChecked}
