@@ -11,8 +11,10 @@ import { SqlUserRepository } from './sql-user.repository';
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 
+const currentDate = new Date(2030, 0, 10);
 const aUser = new User(
   'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e',
+  currentDate,
   'user@example.fr',
   'password',
   Role.MEMBRE_DU_SIEGE,

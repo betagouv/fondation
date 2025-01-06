@@ -1,6 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
-import { User } from 'src/identity-and-access-context/business-logic/models/user';
+import {
+  User,
+  UserSnapshot,
+} from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
 
@@ -40,19 +43,26 @@ export class SqlUserRepository implements UserRepository {
   }
 
   static mapToDb(user: User): typeof users.$inferInsert {
+    const snapshot = user.toSnapshot();
+    return SqlUserRepository.mapSnapshotToDb(snapshot);
+  }
+
+  static mapSnapshotToDb(snapshot: UserSnapshot): typeof users.$inferInsert {
     return {
-      id: user.id,
-      email: user.email,
-      password: user.password,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      id: snapshot.id,
+      createdAt: snapshot.createdAt,
+      email: snapshot.email,
+      password: snapshot.password,
+      role: snapshot.role,
+      firstName: snapshot.firstName,
+      lastName: snapshot.lastName,
     };
   }
 
   static mapToDomain(row: typeof users.$inferSelect): User {
     return new User(
       row.id,
+      row.createdAt,
       row.email,
       row.password,
       row.role,

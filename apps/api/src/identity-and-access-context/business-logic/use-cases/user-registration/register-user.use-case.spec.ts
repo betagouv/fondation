@@ -1,3 +1,4 @@
+import { FakeEncryptionProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-encryption.provider';
 import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -5,6 +6,7 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { DomainRegistry } from '../../models/domain-registry';
 import { Role } from '../../models/role';
 import { UserSnapshot } from '../../models/user';
 import { UserRegisteredEvent } from '../../models/user-registered.event';
@@ -21,6 +23,7 @@ const aUserToRegister: RegisterUserCommand = {
   firstName: 'John',
   lastName: 'Doe',
 };
+const expectedEncryptedPassword = 'encrypted-password';
 const currentDate = new Date(2030, 0, 10);
 const anEventId: string = 'event-id';
 
@@ -33,21 +36,32 @@ describe('Register User', () => {
 
   beforeEach(() => {
     transactionPerformer = new NullTransactionPerformer();
+    domainEventRepository = new FakeDomainEventRepository();
+    userRepository = new FakeUserRepository();
+
     uuidGenerator = new DeterministicUuidGenerator();
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
-    domainEventRepository = new FakeDomainEventRepository();
-    userRepository = new FakeUserRepository();
+    const bcryptEncryptionProvider = new FakeEncryptionProvider();
+    bcryptEncryptionProvider.encryptionMap = {
+      [aUserToRegister.password]: expectedEncryptedPassword,
+    };
+    DomainRegistry.setUuidGenerator(uuidGenerator);
+    DomainRegistry.setDateTimeProvider(dateTimeProvider);
+    DomainRegistry.setEncryptionProvider(bcryptEncryptionProvider);
   });
 
   it.each`
-    userId               | command
-    ${aUserId}           | ${aUserToRegister}
-    ${'another-user-id'} | ${{ ...aUserToRegister, email: 'other@example.fr' }}
-  `('should register a user', async ({ userId, command }) => {
+    testName                    | userId               | command
+    ${''}                       | ${aUserId}           | ${aUserToRegister}
+    ${'with other information'} | ${'another-user-id'} | ${{ ...aUserToRegister, email: 'other@example.fr' }}
+  `('should register a user $testName', async ({ userId, command }) => {
     uuidGenerator.nextUuids = [userId, anEventId];
     await registerUser(command);
-    expectRegisteredUser(userId, command);
+    expectRegisteredUser(userId, {
+      ...command,
+      password: expectedEncryptedPassword,
+    });
   });
 
   it('informs about a new user', async () => {
@@ -71,8 +85,6 @@ describe('Register User', () => {
   const registerUser = (command: RegisterUserCommand) =>
     new RegisterUserUseCase(
       transactionPerformer,
-      uuidGenerator,
-      dateTimeProvider,
       domainEventRepository,
       userRepository,
     ).execute(command);
@@ -84,6 +96,7 @@ describe('Register User', () => {
     expect(Object.values(userRepository.users)).toEqual<UserSnapshot[]>([
       {
         id: userId,
+        createdAt: currentDate,
         ...command,
       },
     ]);

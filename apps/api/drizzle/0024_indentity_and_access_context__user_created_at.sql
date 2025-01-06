@@ -1,0 +1,1 @@
+ALTER TABLE "identity_and_access_context"."users" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;

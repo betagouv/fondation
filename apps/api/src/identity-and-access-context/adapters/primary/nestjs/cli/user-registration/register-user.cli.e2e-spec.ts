@@ -73,7 +73,8 @@ describe('User Registration (CLI)', () => {
       expect(user).toEqual({
         id: expect.any(String),
         ...commands.find((c) => c.email === user.email),
-        password: 'test-password-1234',
+        password: expect.any(String),
+        createdAt: expect.any(Date),
       });
     }
   };
