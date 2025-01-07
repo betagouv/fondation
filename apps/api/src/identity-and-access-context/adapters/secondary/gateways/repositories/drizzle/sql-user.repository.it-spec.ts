@@ -21,6 +21,15 @@ const aUser = new User(
   'John',
   'Doe',
 );
+const anotherUser = new User(
+  'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
+  currentDate,
+  'another-user@example.fr',
+  'another-password',
+  Role.MEMBRE_DU_SIEGE,
+  'Jane',
+  'Smith',
+);
 
 describe('SQL User Repository', () => {
   let sqlUserRepository: SqlUserRepository;
@@ -48,15 +57,16 @@ describe('SQL User Repository', () => {
     expect(existingUsers).toEqual([SqlUserRepository.mapToDb(aUser)]);
   });
 
-  describe('when there is a user', () => {
+  describe('when there are users', () => {
     beforeEach(async () => {
       const userRow = SqlUserRepository.mapToDb(aUser);
-      await db.insert(users).values(userRow).execute();
+      const anotherUserRow = SqlUserRepository.mapToDb(anotherUser);
+      await db.insert(users).values([userRow, anotherUserRow]).execute();
     });
 
-    it('finds a user by id', async () => {
+    it("finds a user by email and password and returns the user's data", async () => {
       const result = await transactionPerformer.perform(
-        sqlUserRepository.byId(aUser.id),
+        sqlUserRepository.userFromCredentials(aUser.email, aUser.password),
       );
       expect(result).toEqual(aUser);
     });

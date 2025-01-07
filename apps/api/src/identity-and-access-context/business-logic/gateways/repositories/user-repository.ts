@@ -3,4 +3,8 @@ import { User } from '../../models/user';
 
 export interface UserRepository {
   save(user: User): TransactionableAsync;
+  userFromCredentials(
+    email: string,
+    password: string,
+  ): TransactionableAsync<User | null>;
 }

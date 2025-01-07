@@ -13,4 +13,17 @@ export class FakeUserRepository implements UserRepository {
       this.users[user.id] = user.toSnapshot();
     };
   }
+
+  userFromCredentials(
+    email: string,
+    password: string,
+  ): TransactionableAsync<User | null> {
+    return async () => {
+      const user =
+        Object.values(this.users).find(
+          (user) => user.email === email && user.password === password,
+        ) ?? null;
+      return user ? User.fromSnapshot(user) : null;
+    };
+  }
 }

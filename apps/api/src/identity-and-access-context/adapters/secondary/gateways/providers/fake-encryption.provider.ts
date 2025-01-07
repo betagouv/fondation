@@ -4,9 +4,11 @@ type PlainValue = string;
 type EncryptedValue = string;
 
 export class FakeEncryptionProvider implements EncryptionProvider {
-  encryptionMap: Record<PlainValue, EncryptedValue>;
+  encryptionMap: Record<PlainValue, EncryptedValue> = {};
 
   async encryptedValue(value: PlainValue): Promise<EncryptedValue> {
-    return this.encryptionMap[value]!;
+    const encryptedValue = this.encryptionMap[value];
+    if (!encryptedValue) throw new Error('Value not found in encryption map');
+    return encryptedValue;
   }
 }

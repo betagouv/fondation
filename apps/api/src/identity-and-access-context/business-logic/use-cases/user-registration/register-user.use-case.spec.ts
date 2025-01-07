@@ -42,13 +42,13 @@ describe('Register User', () => {
     uuidGenerator = new DeterministicUuidGenerator();
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
-    const bcryptEncryptionProvider = new FakeEncryptionProvider();
-    bcryptEncryptionProvider.encryptionMap = {
+    const encryptionProvider = new FakeEncryptionProvider();
+    encryptionProvider.encryptionMap = {
       [aUserToRegister.password]: expectedEncryptedPassword,
     };
     DomainRegistry.setUuidGenerator(uuidGenerator);
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
-    DomainRegistry.setEncryptionProvider(bcryptEncryptionProvider);
+    DomainRegistry.setEncryptionProvider(encryptionProvider);
   });
 
   it.each`

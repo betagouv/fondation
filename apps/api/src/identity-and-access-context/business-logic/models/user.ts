@@ -47,42 +47,42 @@ export class User {
     this._id = value;
   }
 
-  private get createdAt(): Date {
+  public get createdAt(): Date {
     return this._createdAt;
   }
   private set createdAt(value: Date) {
     this._createdAt = z.date().parse(value);
   }
 
-  private get email(): string {
+  public get email(): string {
     return this._email;
   }
   private set email(value: string) {
     this._email = z.string().email().parse(value);
   }
 
-  private get password(): string {
+  public get password(): string {
     return this._password;
   }
   private set password(value: string) {
     this._password = z.string().min(1).parse(value);
   }
 
-  private get role(): Role {
+  public get role(): Role {
     return this._role;
   }
   private set role(value: Role) {
     this._role = z.nativeEnum(Role).parse(value);
   }
 
-  private get firstName(): string {
+  public get firstName(): string {
     return this._firstName;
   }
   private set firstName(value: string) {
     this._firstName = z.string().min(1).parse(value);
   }
 
-  private get lastName(): string {
+  public get lastName(): string {
     return this._lastName;
   }
   private set lastName(value: string) {
@@ -91,13 +91,13 @@ export class User {
 
   toSnapshot(): UserSnapshot {
     return {
-      id: this.id,
-      createdAt: this.createdAt,
-      email: this.email,
-      password: this.password,
-      role: this.role,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      id: this._id,
+      createdAt: this._createdAt,
+      email: this._email,
+      password: this._password,
+      role: this._role,
+      firstName: this._firstName,
+      lastName: this._lastName,
     };
   }
 
