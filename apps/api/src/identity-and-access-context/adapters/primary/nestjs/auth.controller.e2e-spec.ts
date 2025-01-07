@@ -1,8 +1,9 @@
-import { HttpStatus } from '@nestjs/common';
-import { NestApplication } from '@nestjs/core';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { AppModule } from 'src/app.module';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { MainAppConfigurator } from 'src/main.configurator';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -12,9 +13,8 @@ import {
 import supertest from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
-import { IdentityAndAccessModule } from './identity-and-access.module';
-import { ENCRYPTION_PROVIDER } from './tokens';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
+import { ENCRYPTION_PROVIDER } from './tokens';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -27,7 +27,7 @@ const aUserDb = {
 } satisfies typeof users.$inferInsert;
 
 describe('Auth Controller', () => {
-  let app: NestApplication;
+  let app: INestApplication;
   let db: DrizzleDb;
 
   beforeAll(() => {
@@ -40,14 +40,17 @@ describe('Auth Controller', () => {
     await db.insert(users).values(aUserDb).execute();
 
     const moduleFixture = await Test.createTestingModule({
-      imports: [IdentityAndAccessModule],
+      imports: [AppModule],
     })
       .overrideProvider(DRIZZLE_DB)
       .useValue(db)
       .overrideProvider(ENCRYPTION_PROVIDER)
       .useClass(FakeEncryptionProvider)
       .compile();
-    app = moduleFixture.createNestApplication();
+
+    app = new MainAppConfigurator(moduleFixture.createNestApplication())
+      .withCookies()
+      .configure();
 
     const encryptionProvider =
       app.get<FakeEncryptionProvider>(ENCRYPTION_PROVIDER);
@@ -66,39 +69,79 @@ describe('Auth Controller', () => {
       password: aPassword,
     };
 
-    const response = await supertest(app.getHttpServer())
+    await supertest(app.getHttpServer())
       .post('/api/auth/login')
       .send(loginDto)
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.OK)
+      .expect('set-cookie', /sessionId=.*; HttpOnly; Secure/);
 
-    expect(response.headers['set-cookie']).toBeDefined();
-    const cookie = response.headers['set-cookie']![0];
-    expect(cookie).toMatch(/sessionId=.*; HttpOnly; Secure/);
-    expect(await db.select().from(sessions).execute()).toEqual([
+    expect(await db.select().from(sessions).execute()).toEqual<
+      (typeof sessions.$inferSelect)[]
+    >([
       {
         sessionId: expect.any(String),
         userId: aUserDb.id,
         createdAt: expect.any(Date),
         expiresAt: expect.any(Date),
+        invalidatedAt: null,
       },
     ]);
   });
 
   it('validates a session id', async () => {
     const sessionId = 'ad4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b';
-    await db
-      .insert(sessions)
-      .values({
-        sessionId,
-        userId: aUserDb.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
-      })
-      .execute();
+    await givenSomeSessions({
+      sessionId,
+      userId: aUserDb.id,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+    });
 
     await supertest(app.getHttpServer())
       .post('/api/auth/validate-session')
       .send({ sessionId })
       .expect(HttpStatus.OK);
   });
+
+  it('logs out a user and invalidates the session', async () => {
+    const sessionId = 'ad4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b';
+    await givenSomeSessions({
+      sessionId,
+      userId: aUserDb.id,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+    });
+
+    await supertest(app.getHttpServer())
+      .post('/api/auth/logout')
+      .set('Cookie', `sessionId=${sessionId}`)
+      .expect(HttpStatus.OK)
+      .expect(
+        'set-cookie',
+        /sessionId=; Path=.*; Expires=Thu, 01 Jan 1970 .*; HttpOnly; Secure/,
+      );
+
+    await expectSession({
+      sessionId,
+      userId: aUserDb.id,
+      createdAt: expect.any(Date),
+      expiresAt: expect.any(Date),
+      invalidatedAt: expect.any(Date),
+    });
+  });
+
+  const givenSomeSessions = async (
+    ...sessionsToInsert: (typeof sessions.$inferInsert)[]
+  ) => {
+    await db.insert(sessions).values(sessionsToInsert).execute();
+  };
+
+  const expectSession = async (
+    ...expectedSessions: (typeof sessions.$inferSelect)[]
+  ) => {
+    const existingSessions = await db.select().from(sessions).execute();
+    expect(existingSessions).toEqual<(typeof sessions.$inferSelect)[]>(
+      expectedSessions,
+    );
+  };
 });

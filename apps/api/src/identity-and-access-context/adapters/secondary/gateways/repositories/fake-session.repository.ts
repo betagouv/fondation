@@ -16,4 +16,10 @@ export class FakeSessionRepository implements SessionRepository {
       return this.sessions[sessionId] || null;
     };
   }
+
+  deleteSession(): TransactionableAsync {
+    throw new Error(
+      'Method not implemented. We use a fake session provider to test deletion use cases.',
+    );
+  }
 }

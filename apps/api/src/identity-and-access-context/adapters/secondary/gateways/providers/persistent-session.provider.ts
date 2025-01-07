@@ -18,4 +18,10 @@ export class PersistentSessionProvider implements SessionProvider {
       return sessionId;
     };
   }
+
+  invalidateSession(sessionId: string): TransactionableAsync {
+    return async (trx) => {
+      await this.sessionRepository.deleteSession(sessionId)(trx);
+    };
+  }
 }

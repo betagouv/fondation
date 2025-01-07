@@ -5,4 +5,5 @@ export interface SessionProvider {
     userId: string,
     expiresInDays: number,
   ): TransactionableAsync<string>;
+  invalidateSession(sessionId: string): TransactionableAsync;
 }

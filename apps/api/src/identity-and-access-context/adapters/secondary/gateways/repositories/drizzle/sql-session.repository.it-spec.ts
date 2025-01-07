@@ -31,10 +31,11 @@ describe('SQL Session Repository', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-    sqlSessionRepository = new SqlSessionRepository();
+
     transactionPerformer = new DrizzleTransactionPerformer(db);
     const dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
+    sqlSessionRepository = new SqlSessionRepository(dateTimeProvider);
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
   });
 
@@ -42,7 +43,7 @@ describe('SQL Session Repository', () => {
 
   it('creates a session', async () => {
     await givenAUser();
-    const session = givenASession();
+    const session = givenASessionModel();
 
     await transactionPerformer.perform(sqlSessionRepository.create(session));
 
@@ -51,7 +52,28 @@ describe('SQL Session Repository', () => {
       userId: aUserId,
       createdAt: currentDate,
       expiresAt,
+      invalidatedAt: null,
     });
+  });
+
+  it('soft deletes a session', async () => {
+    await givenAUser();
+    await givenASession({ createdAt: new Date(2029, 10, 1) });
+
+    await transactionPerformer.perform(
+      sqlSessionRepository.deleteSession(aSessionId),
+    );
+
+    const existingSessions = await db.select().from(sessions).execute();
+    expect(existingSessions).toEqual([
+      {
+        sessionId: aSessionId,
+        userId: aUserId,
+        createdAt: new Date(2029, 10, 1),
+        expiresAt,
+        invalidatedAt: currentDate,
+      },
+    ]);
   });
 
   const givenAUser = async () => {
@@ -68,8 +90,22 @@ describe('SQL Session Repository', () => {
       })
       .execute();
   };
-  const givenASession = () =>
+  const givenASessionModel = () =>
     UserSession.create(expiryTimeInDays, aSessionId, aUserId);
+  const givenASession = async (
+    override?: Partial<typeof sessions.$inferInsert>,
+  ) => {
+    await db
+      .insert(sessions)
+      .values({
+        sessionId: aSessionId,
+        userId: aUserId,
+        createdAt: currentDate,
+        expiresAt,
+        ...override,
+      })
+      .execute();
+  };
 
   const expectSessions = async (
     ...expectedSessions: (typeof sessions.$inferSelect)[]

@@ -7,10 +7,11 @@ export class ValidateSessionUseCase {
     private readonly transactionPerformer: TransactionPerformer,
   ) {}
 
-  async execute(sessionId: string): Promise<boolean> {
+  async execute(sessionId: string): Promise<string | null> {
     return this.transactionPerformer.perform(async (trx) => {
       const session = await this.sessionRepository.session(sessionId)(trx);
-      return session !== null;
+
+      return session !== null ? session.userId : null;
     });
   }
 }

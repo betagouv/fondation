@@ -1,4 +1,3 @@
-import { FakeEncryptionProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-encryption.provider';
 import {
   FakeSession,
   FakeSessionProvider,
@@ -6,10 +5,8 @@ import {
 import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { DomainRegistry } from '../../models/domain-registry';
 import { Role } from '../../models/role';
-import { AuthenticationService } from '../../services/authentication.service';
-import { LoginUserUseCase } from './login-user.use-case';
+import { LogoutUserUseCase } from './logout-user.use-case';
 
 const currentDate = new Date(2030, 0, 1);
 const aUser = new User(
@@ -22,7 +19,7 @@ const aUser = new User(
   'Doe',
 );
 
-describe('Login User Use Case', () => {
+describe('Logout User Use Case', () => {
   let userRepository: FakeUserRepository;
   let sessionProvider: FakeSessionProvider;
 
@@ -30,35 +27,30 @@ describe('Login User Use Case', () => {
     userRepository = new FakeUserRepository();
     sessionProvider = new FakeSessionProvider();
 
-    const encryptionProvider = new FakeEncryptionProvider();
-    encryptionProvider.encryptionMap = {
-      password: 'encrypted-password',
-    };
-    DomainRegistry.setEncryptionProvider(encryptionProvider);
-  });
-
-  beforeEach(() => {
     userRepository.users = {
       [aUser.id]: aUser.toSnapshot(),
     };
-  });
 
-  it('logs in a user and generates a session ID', async () => {
-    const sessionId = await loginUser('user@example.com', 'password');
-    expect(sessionId).toEqual('session-user-id');
-    expectSession({
+    sessionProvider.setSessions({
       sessionId: 'session-user-id',
       userId: 'user-id',
-      valid: true,
     });
   });
 
-  const loginUser = (email: string, password: string) =>
-    new LoginUserUseCase(
+  it('logs out a user and invalidates its session ID', async () => {
+    await logoutUser('session-user-id');
+    expectSession({
+      sessionId: 'session-user-id',
+      userId: 'user-id',
+      valid: false,
+    });
+  });
+
+  const logoutUser = (sessionId: string) =>
+    new LogoutUserUseCase(
       sessionProvider,
       new NullTransactionPerformer(),
-      new AuthenticationService(userRepository),
-    ).execute(email, password);
+    ).execute(sessionId);
 
   const expectSession = (...sessions: FakeSession[]) => {
     expect(Object.values(sessionProvider.sessions)).toEqual(sessions);

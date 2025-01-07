@@ -23,18 +23,18 @@ describe('Validate Session Use Case', () => {
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
   });
 
-  it('returns true for a valid session id', async () => {
+  it('validates an valid session id', async () => {
     const session = UserSession.create(30, 'valid-session-id', 'user-id');
     sessionRepository.sessions = {
       [session.sessionId]: session,
     };
 
     const result = await validateSessionUseCase.execute('valid-session-id');
-    expect(result).toBe(true);
+    expect(result).toEqual('user-id');
   });
 
-  it('returns false for an invalid session id', async () => {
+  it('invalidates an invalid session id', async () => {
     const result = await validateSessionUseCase.execute('invalid-session-id');
-    expect(result).toBe(false);
+    expect(result).toBeNull();
   });
 });

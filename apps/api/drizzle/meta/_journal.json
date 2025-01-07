@@ -183,6 +183,13 @@
       "when": 1736255315702,
       "tag": "0025_identity_and_access_context_add_session_table",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1736266083388,
+      "tag": "0026_indentity_and_access_context__add_session_invalidated_at",
+      "breakpoints": true
     }
   ]
 }

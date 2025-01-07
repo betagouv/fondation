@@ -26,6 +26,7 @@ import {
   USER_REPOSITORY,
 } from './tokens';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
+import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 
 @Module({
   imports: [SharedKernelModule],
@@ -45,7 +46,10 @@ import { ValidateSessionUseCase } from 'src/identity-and-access-context/business
       DOMAIN_EVENT_REPOSITORY,
       USER_REPOSITORY,
     ]),
-
+    generateProvider(LogoutUserUseCase, [
+      SESSION_PROVIDER,
+      TRANSACTION_PERFORMER,
+    ]),
     generateProvider(AuthenticationService, [USER_REPOSITORY]),
 
     generateProvider(BcryptEncryptionProvider, [], ENCRYPTION_PROVIDER),
@@ -56,7 +60,11 @@ import { ValidateSessionUseCase } from 'src/identity-and-access-context/business
     ),
 
     generateProvider(SqlUserRepository, [], USER_REPOSITORY),
-    generateProvider(SqlSessionRepository, [], SESSION_REPOSITORY),
+    generateProvider(
+      SqlSessionRepository,
+      [DATE_TIME_PROVIDER],
+      SESSION_REPOSITORY,
+    ),
   ],
 })
 export class IdentityAndAccessModule implements OnModuleInit {

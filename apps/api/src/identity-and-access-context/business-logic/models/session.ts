@@ -7,17 +7,20 @@ export class UserSession {
   private _expiresAt: Date;
   private _sessionId: string;
   private _userId: string;
+  private _invalidatedAt: Date | null;
 
   constructor(
     createdAt: Date,
     expiresAt: Date,
     sessionId: string,
     userId: string,
+    invalidatedAt: Date | null,
   ) {
     this.createdAt = createdAt;
     this.expiresAt = expiresAt;
     this.sessionId = sessionId;
     this.userId = userId;
+    this.invalidatedAt = invalidatedAt;
   }
 
   public get createdAt(): Date {
@@ -48,6 +51,13 @@ export class UserSession {
     this._userId = value;
   }
 
+  public get invalidatedAt(): Date | null {
+    return this._invalidatedAt;
+  }
+  private set invalidatedAt(value: Date | null) {
+    this._invalidatedAt = value;
+  }
+
   static create(
     expiresInDays: number,
     sessionId: string,
@@ -55,7 +65,7 @@ export class UserSession {
   ): UserSession {
     const createdAt = DomainRegistry.dateTimeProvider().now();
     const expiresAt = this.asExpiryDate(createdAt, expiresInDays);
-    return new UserSession(createdAt, expiresAt, sessionId, userId);
+    return new UserSession(createdAt, expiresAt, sessionId, userId, null);
   }
 
   private static asExpiryDate(createdAt: Date, expiresInDays: number): Date {
