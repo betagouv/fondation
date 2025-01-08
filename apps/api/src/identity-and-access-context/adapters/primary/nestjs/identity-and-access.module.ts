@@ -24,9 +24,11 @@ import {
   SESSION_PROVIDER,
   SESSION_REPOSITORY,
   USER_REPOSITORY,
+  SIGNATURE_PROVIDER,
 } from './tokens';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
+import { HmacSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 
 @Module({
   imports: [SharedKernelModule],
@@ -58,6 +60,7 @@ import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logi
       [SESSION_REPOSITORY],
       SESSION_PROVIDER,
     ),
+    generateProvider(HmacSignatureProvider, [], SIGNATURE_PROVIDER),
 
     generateProvider(SqlUserRepository, [], USER_REPOSITORY),
     generateProvider(

@@ -4,6 +4,7 @@ import { EncryptionProvider } from 'src/identity-and-access-context/business-log
 export class BcryptEncryptionProvider implements EncryptionProvider {
   async encryptedValue(value: string): Promise<string> {
     const salt = await bcrypt.genSalt();
-    return bcrypt.hash(value, salt);
+    const hasedValue = await bcrypt.hash(value, salt);
+    return hasedValue;
   }
 }

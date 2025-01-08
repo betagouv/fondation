@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const commonBaseSchema = z.object({
   port: z.number(),
+  cookieSecret: z.string().min(32),
   contextServices: z.object({
     filesContext: z.object({
       baseUrl: z.string(),

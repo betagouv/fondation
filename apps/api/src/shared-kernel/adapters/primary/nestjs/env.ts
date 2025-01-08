@@ -5,6 +5,7 @@ const baseScalewayDomain = 's3.fr-par.scw.cloud';
 
 export const apiConfig: ProdApiConfig = {
   port: 3000,
+  cookieSecret: process.env.COOKIE_SECRET!,
   database: {
     connectionString: process.env.DATABASE_URL!,
   },
@@ -34,6 +35,7 @@ export const apiConfig: ProdApiConfig = {
 
 export const defaultApiConfig = {
   port: 3000,
+  cookieSecret: process.env.COOKIE_SECRET!,
   database: {
     // env variable used by docker compose
     host: process.env.DATABASE_HOST || 'localhost',

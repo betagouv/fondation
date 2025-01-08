@@ -1,5 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
@@ -13,8 +13,9 @@ import {
 import supertest from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
+import { FakeSignatureProvider } from '../../secondary/gateways/providers/fake-signature.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
-import { ENCRYPTION_PROVIDER } from './tokens';
+import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -26,6 +27,11 @@ const aUserDb = {
   role: Role.MEMBRE_DU_PARQUET,
 } satisfies typeof users.$inferInsert;
 
+const loginDto = {
+  email: 'user@example.com',
+  password: aPassword,
+};
+
 describe('Auth Controller', () => {
   let app: INestApplication;
   let db: DrizzleDb;
@@ -36,97 +42,110 @@ describe('Auth Controller', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-
     await db.insert(users).values(aUserDb).execute();
-
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(DRIZZLE_DB)
-      .useValue(db)
-      .overrideProvider(ENCRYPTION_PROVIDER)
-      .useClass(FakeEncryptionProvider)
-      .compile();
-
-    app = new MainAppConfigurator(moduleFixture.createNestApplication())
-      .withCookies()
-      .configure();
-
-    const encryptionProvider =
-      app.get<FakeEncryptionProvider>(ENCRYPTION_PROVIDER);
-    encryptionProvider.encryptionMap = {
-      [aPassword]: 'encrypted-password-123',
-    };
-    await app.init();
   });
 
   afterEach(() => app.close());
   afterAll(() => db.$client.end());
 
-  it('logs in a user and receives a session id in a signed cookie', async () => {
-    const loginDto = {
-      email: 'user@example.com',
-      password: aPassword,
-    };
+  describe('With fake encryption', () => {
+    beforeEach(async () => {
+      const moduleFixture = await new AppTestingModule()
+        .withFakeEncryption()
+        .compile();
 
-    await supertest(app.getHttpServer())
-      .post('/api/auth/login')
-      .send(loginDto)
-      .expect(HttpStatus.OK)
-      .expect('set-cookie', /sessionId=.*; HttpOnly; Secure/);
+      app = new MainAppConfigurator(moduleFixture.createNestApplication())
+        .withCookies()
+        .configure();
 
-    expect(await db.select().from(sessions).execute()).toEqual<
-      (typeof sessions.$inferSelect)[]
-    >([
-      {
+      await app.init();
+    });
+
+    it('logs in a user, has the session ID stored and receives it in a signed cookie', async () => {
+      const response = await supertest(app.getHttpServer())
+        .post('/api/auth/login')
+        .send(loginDto)
+        .expect(HttpStatus.OK)
+        .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
+
+      const cookies = response.headers['set-cookie'] as unknown as string[];
+      const sessionCookie = cookies.find((cookie: string) =>
+        cookie.startsWith('sessionId='),
+      );
+
+      const signedSessionId = sessionCookie!.split('=')[1]!.split(';')[0]!;
+      expect(signedSessionId.length).toBeGreaterThan(32);
+      expectSessions({
         sessionId: expect.any(String),
         userId: aUserDb.id,
         createdAt: expect.any(Date),
         expiresAt: expect.any(Date),
         invalidatedAt: null,
-      },
-    ]);
+      });
+      const sessionsDb = await db.select().from(sessions).execute();
+      expect(sessionsDb[0]!.sessionId).not.toEqual(signedSessionId);
+    });
   });
 
-  it('validates a session id', async () => {
+  describe('Session validation with fake encryption and fake signatures', () => {
+    const signedSessionId = 'signed-session-id';
     const sessionId = 'ad4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b';
-    await givenSomeSessions({
-      sessionId,
-      userId: aUserDb.id,
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+
+    beforeEach(async () => {
+      const moduleFixture = await new AppTestingModule()
+        .withFakeEncryption()
+        .withFakeSignature({
+          signedValuesMap: {
+            [signedSessionId]: sessionId,
+          },
+        })
+        .compile();
+
+      app = new MainAppConfigurator(moduleFixture.createNestApplication())
+        .withCookies()
+        .configure();
+
+      await app.init();
     });
 
-    await supertest(app.getHttpServer())
-      .post('/api/auth/validate-session')
-      .send({ sessionId })
-      .expect(HttpStatus.OK);
-  });
+    it('validates a session id', async () => {
+      await givenSomeSessions({
+        sessionId,
+        userId: aUserDb.id,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+      });
 
-  it('logs out a user and invalidates the session', async () => {
-    const sessionId = 'ad4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b';
-    await givenSomeSessions({
-      sessionId,
-      userId: aUserDb.id,
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+      await supertest(app.getHttpServer())
+        .post('/api/auth/validate-session')
+        .send({ sessionId: signedSessionId })
+        .expect(HttpStatus.OK);
     });
 
-    await supertest(app.getHttpServer())
-      .post('/api/auth/logout')
-      .set('Cookie', `sessionId=${sessionId}`)
-      .expect(HttpStatus.OK)
-      .expect(
-        'set-cookie',
-        /sessionId=; Path=.*; Expires=Thu, 01 Jan 1970 .*; HttpOnly; Secure/,
-      );
+    it('logs out a user and invalidates the session', async () => {
+      await givenSomeSessions({
+        sessionId,
+        userId: aUserDb.id,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+      });
 
-    await expectSession({
-      sessionId,
-      userId: aUserDb.id,
-      createdAt: expect.any(Date),
-      expiresAt: expect.any(Date),
-      invalidatedAt: expect.any(Date),
+      await supertest(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Cookie', `sessionId=${signedSessionId}`)
+        .expect(HttpStatus.OK)
+        .expect(
+          'set-cookie',
+          /sessionId=; Path=.*; Expires=Thu, 01 Jan 1970 .*; HttpOnly; Secure/,
+        );
+
+      await expectSessions({
+        sessionId,
+        userId: aUserDb.id,
+        createdAt: expect.any(Date),
+        expiresAt: expect.any(Date),
+        invalidatedAt: expect.any(Date),
+      });
     });
   });
 
@@ -136,7 +155,7 @@ describe('Auth Controller', () => {
     await db.insert(sessions).values(sessionsToInsert).execute();
   };
 
-  const expectSession = async (
+  const expectSessions = async (
     ...expectedSessions: (typeof sessions.$inferSelect)[]
   ) => {
     const existingSessions = await db.select().from(sessions).execute();
@@ -144,4 +163,50 @@ describe('Auth Controller', () => {
       expectedSessions,
     );
   };
+
+  class AppTestingModule {
+    moduleFixture: TestingModuleBuilder;
+
+    constructor() {
+      this.moduleFixture = Test.createTestingModule({
+        imports: [AppModule],
+      })
+        .overrideProvider(DRIZZLE_DB)
+        .useValue(db);
+    }
+
+    withFakeEncryption() {
+      this.moduleFixture.overrideProvider(ENCRYPTION_PROVIDER).useFactory({
+        factory: () => {
+          const encryptionProvider = new FakeEncryptionProvider();
+          encryptionProvider.encryptionMap = {
+            [aPassword]: 'encrypted-password-123',
+          };
+          return encryptionProvider;
+        },
+      });
+
+      return this;
+    }
+
+    withFakeSignature(options?: { signedValuesMap?: Record<string, string> }) {
+      this.moduleFixture.overrideProvider(SIGNATURE_PROVIDER).useFactory({
+        factory: () => {
+          const signatureProvider = new FakeSignatureProvider();
+
+          if (options?.signedValuesMap) {
+            signatureProvider.signedValuesMap = options.signedValuesMap;
+          }
+
+          return signatureProvider;
+        },
+      });
+
+      return this;
+    }
+
+    compile() {
+      return this.moduleFixture.compile();
+    }
+  }
 });
