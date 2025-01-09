@@ -1,8 +1,10 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
+import { AuthenticatedUser } from 'shared-models';
 import { AppModule } from 'src/app.module';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -16,7 +18,6 @@ import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-
 import { FakeSignatureProvider } from '../../secondary/gateways/providers/fake-signature.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
-import { AuthenticatedUser } from 'shared-models';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -49,6 +50,43 @@ describe('Auth Controller', () => {
   afterEach(() => app.close());
   afterAll(() => db.$client.end());
 
+  describe('With real encryption', () => {
+    beforeEach(async () => {
+      const moduleFixture = await new AppTestingModule().compile();
+
+      app = new MainAppConfigurator(moduleFixture.createNestApplication())
+        .withCookies()
+        .configure();
+
+      await app.init();
+    });
+
+    it('registers a user and logs in successfully', async () => {
+      const registerUserUseCase =
+        app.get<RegisterUserUseCase>(RegisterUserUseCase);
+
+      await registerUserUseCase.execute({
+        email: 'new-user@example.com',
+        password: 'new-password-123',
+        role: Role.MEMBRE_DU_PARQUET,
+        firstName: 'New',
+        lastName: 'User',
+      });
+
+      const response = await supertest(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: 'new-user@example.com', password: 'new-password-123' })
+        .expect(HttpStatus.OK)
+        .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
+
+      const expectedAuthenticatedUser: AuthenticatedUser = {
+        firstName: 'New',
+        lastName: 'User',
+      };
+      expect(response.body).toEqual(expectedAuthenticatedUser);
+    });
+  });
+
   describe('With fake encryption', () => {
     beforeEach(async () => {
       const moduleFixture = await new AppTestingModule()
@@ -69,11 +107,11 @@ describe('Auth Controller', () => {
         .expect(HttpStatus.OK)
         .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
 
-      const expectedUser: AuthenticatedUser = {
+      const expectedAuthenticatedUser: AuthenticatedUser = {
         firstName: aUserDb.firstName,
         lastName: aUserDb.lastName,
       };
-      expect(response.body).toEqual(expectedUser);
+      expect(response.body).toEqual(expectedAuthenticatedUser);
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       const sessionCookie = cookies.find((cookie: string) =>

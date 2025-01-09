@@ -11,15 +11,17 @@ export class AuthenticationService {
     password: string,
   ): TransactionableAsync<User | null> {
     return async (trx) => {
-      const encryptedPassword =
-        await DomainRegistry.encryptionProvider().encryptedValue(password);
+      const user = await this.userRepository.userWithEmail(email)(trx);
+      if (!user) return null;
 
-      const user = await this.userRepository.userFromCredentials(
-        email,
-        encryptedPassword,
-      )(trx);
+      const samePassword =
+        await DomainRegistry.encryptionProvider().comparePasswords(
+          password,
+          user.password,
+        );
 
-      return user;
+      if (samePassword) return user;
+      return null;
     };
   }
 }

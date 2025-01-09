@@ -64,11 +64,18 @@ describe('SQL User Repository', () => {
       await db.insert(users).values([userRow, anotherUserRow]).execute();
     });
 
-    it("finds a user by email and password and returns the user's data", async () => {
-      const result = await transactionPerformer.perform(
-        sqlUserRepository.userFromCredentials(aUser.email, aUser.password),
-      );
-      expect(result).toEqual(aUser);
-    });
+    it.each([
+      { email: aUser.email, expected: aUser },
+      { email: 'nonexistent@example.com', expected: null },
+    ])(
+      'finds a user by email or return nothing',
+      async ({ email, expected }) => {
+        expect(
+          await transactionPerformer.perform(
+            sqlUserRepository.userWithEmail(email),
+          ),
+        ).toEqual(expected);
+      },
+    );
   });
 });
