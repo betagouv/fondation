@@ -50,7 +50,6 @@ export const givenSomeS3Files = async (
 export const deleteS3Files = async (s3Client: S3Client) => {
   const bucketsResponse = await s3Client.send(new ListBucketsCommand({}));
   const buckets = bucketsResponse.Buckets || [];
-
   for (const bucket of buckets) {
     if (!bucket.Name) continue;
 

@@ -1,4 +1,4 @@
-import { AuthenticatedUser } from "../../../core-logic/gateways/authentication.gateway";
+import { AuthenticatedUser } from "../../../core-logic/gateways/Authentication.gateway";
 import { AuthenticationStorageProvider } from "../../../core-logic/providers/authenticationStorage.provider";
 
 export class FakeAuthenticationStorageProvider

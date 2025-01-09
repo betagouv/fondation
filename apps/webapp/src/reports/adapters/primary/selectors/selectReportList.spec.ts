@@ -1,13 +1,12 @@
 import { NominationFile, Transparency } from "shared-models";
-import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
-import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
+import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import { authenticate } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { reportsFilteredByState } from "../../../core-logic/reducers/reportList.slice";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import {
   ReportListItemVM,
   ReportListVM,
@@ -16,14 +15,18 @@ import {
 
 describe("Select Nomination Case List", () => {
   let store: ReduxStore;
-  let authenticationGateway: FakeAuthenticationGateway;
+  // let apiClient: FakeAuthenticationApiClient;
   const onClick = () => null;
 
   beforeEach(() => {
-    authenticationGateway = new FakeAuthenticationGateway();
-    authenticationGateway.setEligibleAuthUser(user.email, user.password, {
-      reporterName: user.reporterName,
-    });
+    // apiClient = new FakeAuthenticationApiClient();
+    // const authenticationGateway = new ApiAuthenticationGateway(apiClient);
+    // apiClient.setEligibleAuthUser(
+    //   user.email,
+    //   user.password,
+    //   user.firstName,
+    //   user.lastName,
+    // );
 
     const stubRouterProvider = new StubRouterProvider();
     stubRouterProvider.onClickAttribute = onClick;
@@ -214,5 +217,12 @@ describe("Select Nomination Case List", () => {
 const user = {
   email: "username@example.fr",
   password: "password",
+  firstName: "John",
+  lastName: "Doe",
   reporterName: "REPORTER Name",
-} satisfies AuthenticatedUser & { email: string; password: string };
+} satisfies AuthenticatedUser & {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+};

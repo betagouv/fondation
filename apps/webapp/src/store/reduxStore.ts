@@ -1,6 +1,6 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
-import { AuthenticationGateway } from "../authentication/core-logic/gateways/authentication.gateway";
+import { AuthenticationGateway } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { AuthenticationStorageProvider } from "../authentication/core-logic/providers/authenticationStorage.provider";
 import { createAuthenticationSlice } from "../authentication/core-logic/reducers/authentication.slice";
 import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";

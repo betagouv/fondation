@@ -1,5 +1,5 @@
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
-import { AuthenticatedUser } from "../../gateways/authentication.gateway";
+import { AuthenticatedUser } from "../../gateways/Authentication.gateway";
 
 type AuthenticateParams = { email: string; password: string };
 

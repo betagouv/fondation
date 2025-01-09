@@ -1,4 +1,4 @@
-import { AuthenticatedUser } from "../gateways/authentication.gateway";
+import { AuthenticatedUser } from "../gateways/Authentication.gateway";
 
 export interface AuthenticationStorageProvider {
   storeAuthentication(payload: AuthenticatedUser): void;

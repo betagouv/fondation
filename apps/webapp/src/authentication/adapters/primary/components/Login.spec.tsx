@@ -4,15 +4,18 @@ import userEvent from "@testing-library/user-event";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { Provider } from "react-redux";
-import { FakeAuthenticationGateway } from "../../secondary/gateways/fakeAuthentication.gateway";
+import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentication.gateway";
+import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
 
 describe("Login Component", () => {
   let store: ReduxStore;
   let initialState: AppState;
-  let authenticationGateway: FakeAuthenticationGateway;
+  let authenticationGateway: ApiAuthenticationGateway;
+  let apiClient: FakeAuthenticationApiClient;
 
   beforeEach(() => {
-    authenticationGateway = new FakeAuthenticationGateway();
+    apiClient = new FakeAuthenticationApiClient();
+    authenticationGateway = new ApiAuthenticationGateway(apiClient);
     store = initReduxStore({ authenticationGateway }, {}, {});
     initialState = store.getState();
   });
@@ -24,9 +27,11 @@ describe("Login Component", () => {
   });
 
   it("authenticates a user", async () => {
-    authenticationGateway.setEligibleAuthUser(
+    apiClient.setEligibleAuthUser(
       "username@example.fr",
       "password",
+      "John",
+      "Doe",
     );
 
     renderLogin();
@@ -39,6 +44,9 @@ describe("Login Component", () => {
         authentication: {
           ...initialState.authentication,
           authenticated: true,
+          user: {
+            reporterName: "DOE John",
+          },
         },
       });
     });

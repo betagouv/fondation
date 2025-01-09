@@ -1,5 +1,6 @@
-import { FakeAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
-import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/authentication.gateway";
+import { ApiAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
+import { FakeAuthenticationApiClient } from "../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
+import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { AppState } from "../../../../store/appState";
@@ -11,14 +12,16 @@ import { listReport } from "./listReport.use-case";
 describe("Nomination Files Listing", () => {
   let store: ReduxStore;
   let initialState: AppState;
-  let authenticationGateway: FakeAuthenticationGateway;
+  let authenticationGateway: ApiAuthenticationGateway;
   let reportApiClient: FakeReportApiClient;
+  let apiClient: FakeAuthenticationApiClient;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
 
-    authenticationGateway = new FakeAuthenticationGateway();
+    apiClient = new FakeAuthenticationApiClient();
+    authenticationGateway = new ApiAuthenticationGateway(apiClient);
 
     store = initReduxStore(
       {
@@ -38,10 +41,11 @@ describe("Nomination Files Listing", () => {
 
     describe("Authenticated user", () => {
       beforeEach(() => {
-        authenticationGateway.setEligibleAuthUser(
+        apiClient.setEligibleAuthUser(
           "user@example.fr",
           "password",
-          user,
+          userFirstName,
+          userLastName,
         );
       });
 
@@ -73,6 +77,8 @@ describe("Nomination Files Listing", () => {
   });
 });
 
+const userFirstName = "Name";
+const userLastName = "Reporter";
 const user = {
   reporterName: "REPORTER Name",
 } satisfies AuthenticatedUser;

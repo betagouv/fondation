@@ -3,7 +3,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import App from "./App.tsx";
-import { FakeAuthenticationGateway } from "./authentication/adapters/secondary/gateways/fakeAuthentication.gateway.ts";
 import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/authenticationSessionStorage.provider.ts";
 import { storeAuthenticationOnLoginSuccess } from "./authentication/core-logic/listeners/authentication.listeners.ts";
 import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
@@ -23,30 +22,17 @@ import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnR
 import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import { allRulesMap } from "shared-models";
+import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
+import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
-const authenticationGateway = new FakeAuthenticationGateway();
-
-const fakeUsersString = import.meta.env.VITE_FAKE_USERS;
-const fakeUsers: {
-  username: string;
-  password: string;
-  reporterName: string;
-}[] = fakeUsersString ? JSON.parse(fakeUsersString) : [];
-fakeUsers.forEach(({ username, password, reporterName }) => {
-  if (!username) {
-    throw new Error("Missing username in fake user");
-  }
-  if (!password) {
-    throw new Error("Missing password in fake user");
-  }
-  authenticationGateway.setEligibleAuthUser(
-    username,
-    password,
-    reporterName ? { reporterName } : undefined,
-  );
-});
+const authencationApiClient = new FetchAuthenticationApiClient(
+  import.meta.env.VITE_API_URL,
+);
+const authenticationGateway = new ApiAuthenticationGateway(
+  authencationApiClient,
+);
 
 const reportApiClient = new FetchReportApiClient(import.meta.env.VITE_API_URL);
 const reportGateway = new ApiReportGateway(reportApiClient);

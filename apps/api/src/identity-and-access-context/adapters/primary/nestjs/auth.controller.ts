@@ -8,17 +8,32 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { IdentityAndAccessRestContract } from 'shared-models';
+import { SignatureProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/signature.provider';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
-import { LoginDto } from './dto/login.dto';
-import { SignatureProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/signature.provider';
-import { SIGNATURE_PROVIDER } from './tokens';
+import {
+  IController,
+  IControllerPaths,
+} from 'src/shared-kernel/adapters/primary/nestjs/controller';
 import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { LoginNestDto } from './dto/login.dto';
+import { ValidateSessionNestDto } from './dto/validate-session.dto';
+import { SIGNATURE_PROVIDER } from './tokens';
 
-@Controller('api/auth')
-export class AuthController {
+type IAuthController = IController<IdentityAndAccessRestContract>;
+
+const baseRoute: IdentityAndAccessRestContract['basePath'] = '/api/auth';
+const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
+  login: '/login',
+  validateSession: '/validate-session',
+  logout: '/logout',
+};
+
+@Controller(baseRoute)
+export class AuthController implements IAuthController {
   constructor(
     private readonly loginUser: LoginUserUseCase,
     private readonly validateSessionUseCase: ValidateSessionUseCase,
@@ -28,28 +43,23 @@ export class AuthController {
     @Inject(API_CONFIG) private readonly apiConfig: ApiConfig,
   ) {}
 
-  @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const sessionId = await this.loginUser.execute(
+  @Post(endpointsPaths.login)
+  async login(_: any, @Body() loginDto: LoginNestDto, @Res() res: Response) {
+    const { sessionId, userDescriptor } = await this.loginUser.execute(
       loginDto.email,
       loginDto.password,
     );
-
-    if (!sessionId) {
-      return res.status(HttpStatus.UNAUTHORIZED).send();
-    }
-
-    const secret = this.apiConfig.cookieSecret;
-    const signedSessionId = this.signatureProvider.sign(sessionId, secret);
-    this.createSessionCookie(res, signedSessionId);
-    return res.status(HttpStatus.OK).send();
+    this.createSessionCookie(sessionId, res);
+    return res.status(HttpStatus.OK).send(userDescriptor);
   }
 
-  @Post('validate-session')
+  @Post(endpointsPaths.validateSession)
   async validateSession(
-    @Body('sessionId') signedSessionId: string,
+    _: any,
+    @Body() body: ValidateSessionNestDto,
     @Res() res: Response,
   ) {
+    const signedSessionId = body.sessionId;
     const sessionId = this.unsignedSessionId(signedSessionId);
     if (sessionId === false) {
       return res
@@ -62,8 +72,8 @@ export class AuthController {
     return res.status(HttpStatus.OK).send(userId);
   }
 
-  @Post('logout')
-  async logout(@Req() req: Request, @Res() res: Response) {
+  @Post(endpointsPaths.logout)
+  async logout(_: any, __: any, @Req() req: Request, @Res() res: Response) {
     const sessionId = this.unsignedSessionIdFromCookies(req.cookies);
 
     if (sessionId === false) {
@@ -77,7 +87,8 @@ export class AuthController {
     return res.status(HttpStatus.OK).send();
   }
 
-  private createSessionCookie(res: Response, signedSessionId: string) {
+  private createSessionCookie(sessionId: string, res: Response) {
+    const signedSessionId = this.signedSessionId(sessionId);
     res.cookie('sessionId', signedSessionId, {
       httpOnly: true,
       secure: true,
@@ -89,6 +100,11 @@ export class AuthController {
       httpOnly: true,
       secure: true,
     });
+  }
+
+  private signedSessionId(sessionId: string) {
+    const secret = this.apiConfig.cookieSecret;
+    return this.signatureProvider.sign(sessionId, secret);
   }
 
   private unsignedSessionIdFromCookies(cookies: Request['cookies']) {

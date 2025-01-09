@@ -1,5 +1,6 @@
 import { RestContract } from 'shared-models';
 import type FormDataLib from 'form-data';
+import { Response } from 'express';
 
 export type IController<C extends RestContract> = {
   [K in keyof C['endpoints']]: (
@@ -7,7 +8,10 @@ export type IController<C extends RestContract> = {
     body: C['endpoints'][K]['body'] extends FormData | FormDataLib
       ? Express.Multer.File
       : C['endpoints'][K]['body'],
-  ) => Promise<C['endpoints'][K]['response']>;
+    ...args: any[]
+  ) =>
+    | Promise<C['endpoints'][K]['response']>
+    | Promise<Response<C['endpoints'][K]['response'], Record<string, any>>>;
 };
 
 export type IControllerPaths<C extends RestContract> = {

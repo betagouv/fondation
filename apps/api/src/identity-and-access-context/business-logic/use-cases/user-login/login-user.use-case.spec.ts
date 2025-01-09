@@ -9,7 +9,10 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { DomainRegistry } from '../../models/domain-registry';
 import { Role } from '../../models/role';
 import { AuthenticationService } from '../../services/authentication.service';
-import { LoginUserUseCase } from './login-user.use-case';
+import {
+  LoginUserUseCase,
+  LoginUserUseCaseResponse,
+} from './login-user.use-case';
 
 const currentDate = new Date(2030, 0, 1);
 const aUser = new User(
@@ -44,8 +47,12 @@ describe('Login User Use Case', () => {
   });
 
   it('logs in a user and generates a session ID', async () => {
-    const sessionId = await loginUser('user@example.com', 'password');
-    expect(sessionId).toEqual('session-user-id');
+    expect(
+      await loginUser('user@example.com', 'password'),
+    ).toEqual<LoginUserUseCaseResponse>({
+      sessionId: 'session-user-id',
+      userDescriptor: { firstName: 'John', lastName: 'Doe' },
+    });
     expectSession({
       sessionId: 'session-user-id',
       userId: 'user-id',

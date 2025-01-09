@@ -28,7 +28,12 @@ export class RealS3StorageProvider implements S3StorageProvider {
       mimeType,
       filePath,
     );
-    await this.s3Client.send(command);
+    try {
+      await this.s3Client.send(command);
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error uploading file to S3');
+    }
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {

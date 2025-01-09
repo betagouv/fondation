@@ -1,7 +1,8 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { FakeAuthenticationGateway } from "../authentication/adapters/secondary/gateways/fakeAuthentication.gateway";
+import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
+import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { ReportBuilder } from "../reports/core-logic/builders/Report.builder";
 import { retrieveReport } from "../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
@@ -27,11 +28,13 @@ const routeToComponentMap: RouteToComponentMap = {
 
 describe("App Router Component", () => {
   let store: ReduxStore;
-  let authenticationGateway: FakeAuthenticationGateway;
+  let authenticationGateway: ApiAuthenticationGateway;
   let routerProvider: TypeRouterProvider;
+  let apiClient: FakeAuthenticationApiClient;
 
   beforeEach(() => {
-    authenticationGateway = new FakeAuthenticationGateway();
+    apiClient = new FakeAuthenticationApiClient();
+    authenticationGateway = new ApiAuthenticationGateway(apiClient);
     routerProvider = new TypeRouterProvider();
 
     store = initReduxStore(

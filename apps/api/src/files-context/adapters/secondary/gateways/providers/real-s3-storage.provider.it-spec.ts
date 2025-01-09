@@ -44,9 +44,13 @@ describe.each`
       );
     });
 
-    afterEach(async () => {
-      await deleteS3Files(s3Client);
-    });
+    afterEach(
+      async () => {
+        await deleteS3Files(s3Client);
+        // Scaleway has high latency from time to time.
+      },
+      providerName === 'Scaleway' ? 40000 : undefined,
+    );
 
     const buildS3SignedUrl = (Key: string) => {
       const { scheme, baseDomain } = s3Config.endpoint;
@@ -77,17 +81,22 @@ describe.each`
           .with('signedUrl', buildS3SignedUrl(Key))
           .build();
 
-        it('saves a file', async () => {
-          await expect(
-            s3StorageProvider.uploadFile(
-              Buffer.from('file content'),
-              aFile.name,
-              'text/plain',
-              bucket,
-              aFile.path,
-            ),
-          ).resolves.toBeUndefined();
-        });
+        it(
+          'saves a file',
+          async () => {
+            expect(
+              await s3StorageProvider.uploadFile(
+                Buffer.from('file content'),
+                aFile.name,
+                'text/plain',
+                bucket,
+                aFile.path,
+              ),
+            ).toBeUndefined();
+          },
+          // Scaleway has high latency from time to time.
+          providerName === 'Scaleway' ? 30000 : undefined,
+        );
 
         it('fails to get a signed URL for a missing file', async () => {
           await expect(
@@ -109,40 +118,54 @@ describe.each`
         .with('signedUrl', buildS3SignedUrl(Key))
         .build();
 
-      beforeEach(async () => {
-        await givenSomeS3Files(s3Client, {
-          bucket,
-          Key,
-        });
-      });
-
-      it('gets the signed URL', async () => {
-        const filesVM = await s3StorageProvider.getSignedUrls([
-          FileDocument.fromSnapshot(aFile),
-        ]);
-        expect(filesVM.length).toBePositive();
-
-        expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
-        const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
-        for (const url of signedUrls) {
-          expectSignedUrl({
-            url,
-            expectedSignedUrl: aFile.signedUrl!,
+      beforeEach(
+        async () => {
+          await givenSomeS3Files(s3Client, {
+            bucket,
+            Key,
           });
-        }
-      });
+        },
+        // Scaleway has high latency from time to time.
+        providerName === 'Scaleway' ? 30000 : undefined,
+      );
 
-      it('deletes the file', async () => {
-        await s3StorageProvider.deleteFile(bucket, filePath, aFile.name);
-        await expect(
-          s3Client.send(
-            new HeadObjectCommand({
-              Bucket: bucket,
-              Key,
-            }),
-          ),
-        ).rejects.toBeDefined();
-      });
+      it(
+        'gets the signed URL',
+        async () => {
+          const filesVM = await s3StorageProvider.getSignedUrls([
+            FileDocument.fromSnapshot(aFile),
+          ]);
+          expect(filesVM.length).toBePositive();
+
+          expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
+          const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
+          for (const url of signedUrls) {
+            expectSignedUrl({
+              url,
+              expectedSignedUrl: aFile.signedUrl!,
+            });
+          }
+        },
+        // Scaleway has high latency from time to time.
+        providerName === 'Scaleway' ? 30000 : undefined,
+      );
+
+      it(
+        'deletes the file',
+        async () => {
+          await s3StorageProvider.deleteFile(bucket, filePath, aFile.name);
+          await expect(
+            s3Client.send(
+              new HeadObjectCommand({
+                Bucket: bucket,
+                Key,
+              }),
+            ),
+          ).rejects.toBeDefined();
+        },
+        // Scaleway has high latency from time to time.
+        providerName === 'Scaleway' ? 30000 : undefined,
+      );
 
       const expectSignedUrl = ({
         url,
@@ -165,4 +188,6 @@ describe.each`
       };
     });
   },
+  // Scaleway has high latency from time to time.
+  40000,
 );

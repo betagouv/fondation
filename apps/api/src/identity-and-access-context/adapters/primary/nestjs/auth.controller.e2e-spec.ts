@@ -16,6 +16,7 @@ import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-
 import { FakeSignatureProvider } from '../../secondary/gateways/providers/fake-signature.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
+import { AuthenticatedUser } from 'shared-models';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -67,6 +68,12 @@ describe('Auth Controller', () => {
         .send(loginDto)
         .expect(HttpStatus.OK)
         .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
+
+      const expectedUser: AuthenticatedUser = {
+        firstName: aUserDb.firstName,
+        lastName: aUserDb.lastName,
+      };
+      expect(response.body).toEqual(expectedUser);
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       const sessionCookie = cookies.find((cookie: string) =>
