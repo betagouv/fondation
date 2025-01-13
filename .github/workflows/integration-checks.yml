@@ -40,5 +40,6 @@ jobs:
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
           SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
           S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
       - name: Build
         run: pnpm build
