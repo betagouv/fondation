@@ -14,12 +14,14 @@ import { Writable } from 'stream';
 import { z } from 'zod';
 import { IdentityAndAccessModule } from '../../identity-and-access.module';
 
-const userSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.nativeEnum(Role),
-  email: z.string().email(),
-});
+const userSchema = z
+  .object({
+    firstName: z.string(),
+    lastName: z.string(),
+    role: z.nativeEnum(Role),
+    email: z.string().email(),
+  })
+  .strict();
 type UserJson = z.infer<typeof userSchema>;
 
 const promptForPassword = async (username: string): Promise<string> => {

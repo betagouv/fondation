@@ -1,23 +1,5 @@
 #!/bin/bash
 
-# Check if a file path argument is provided
-if [ -z "$1" ]; then
-  echo "Usage: $0 <file-path>"
-  exit 1
-fi
+source ./scripts/scalingo-utils.sh
 
-# Get the full file path from the argument
-FILE_PATH="$1"
-
-# Extract the file name from the file path
-FILE_NAME=$(basename "$FILE_PATH")
-
-SCALINGO_FILE_PATH="/tmp/uploads/$FILE_NAME"
-
-# Upload the file to Scalingo and run the import script
-scalingo \
-  --region $SCALINGO_APP_REGION \
-  --app $SCALINGO_APP_NAME \
-  run \
-  --file $FILE_PATH \
-  "node ./apps/api/dist/cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.js $SCALINGO_FILE_PATH"
+upload_and_run_scalingo "$1" "./apps/api/dist/cli/import-nominations-from-local-file/run-import-nominations-from-local-file-cli.js"
