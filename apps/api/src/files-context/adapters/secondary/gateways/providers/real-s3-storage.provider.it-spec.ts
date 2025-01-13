@@ -47,8 +47,8 @@ describe.each`
     afterEach(
       async () => {
         await deleteS3Files(s3Client);
-        // Scaleway has high latency from time to time.
       },
+      // Scaleway has high latency from time to time.
       providerName === 'Scaleway' ? 40000 : undefined,
     );
 
@@ -98,11 +98,18 @@ describe.each`
           providerName === 'Scaleway' ? 30000 : undefined,
         );
 
-        it('fails to get a signed URL for a missing file', async () => {
-          await expect(
-            s3StorageProvider.getSignedUrls([FileDocument.fromSnapshot(aFile)]),
-          ).rejects.toThrow();
-        });
+        it(
+          'fails to get a signed URL for a missing file',
+          async () => {
+            await expect(
+              s3StorageProvider.getSignedUrls([
+                FileDocument.fromSnapshot(aFile),
+              ]),
+            ).rejects.toThrow();
+          },
+          // Scaleway has high latency from time to time.
+          providerName === 'Scaleway' ? 30000 : undefined,
+        );
       },
     );
 

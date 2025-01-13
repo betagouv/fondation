@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import { Role } from './role';
-import { UserRegisteredEvent } from './user-registered.event';
 import { DomainRegistry } from './domain-registry';
+import { Role } from './role';
 
 export type UserSnapshot = {
   id: string;
@@ -79,14 +78,18 @@ export class User {
     return this._firstName;
   }
   private set firstName(value: string) {
-    this._firstName = z.string().min(1).parse(value);
+    this._firstName = z.string().min(1).parse(this.lowerCase(value));
   }
 
   public get lastName(): string {
     return this._lastName;
   }
   private set lastName(value: string) {
-    this._lastName = z.string().min(1).parse(value);
+    this._lastName = z.string().min(1).parse(this.lowerCase(value));
+  }
+
+  private lowerCase(value: string): string {
+    return value.toLowerCase();
   }
 
   toSnapshot(): UserSnapshot {
@@ -119,7 +122,7 @@ export class User {
     role: Role,
     firstName: string,
     lastName: string,
-  ): Promise<[User, UserRegisteredEvent]> {
+  ): Promise<User> {
     const uuidGenerator = DomainRegistry.uuidGenerator();
     const currentDate = DomainRegistry.dateTimeProvider().now();
     const encryptedPassword = await this.asEncryptedValue(password);
@@ -134,18 +137,7 @@ export class User {
       lastName,
     );
 
-    const event = new UserRegisteredEvent(
-      uuidGenerator.generate(),
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-      currentDate,
-    );
-    return [user, event];
+    return user;
   }
 
   private static async asEncryptedValue(password: string): Promise<string> {

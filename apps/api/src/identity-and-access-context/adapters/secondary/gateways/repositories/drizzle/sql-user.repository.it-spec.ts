@@ -8,27 +8,23 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { users } from './schema/user-pm';
 import { SqlUserRepository } from './sql-user.repository';
-import { User } from 'src/identity-and-access-context/business-logic/models/user';
+import { UserBuilder } from 'src/identity-and-access-context/business-logic/builders/user.builder';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { User } from 'src/identity-and-access-context/business-logic/models/user';
 
-const currentDate = new Date(2030, 0, 10);
-const aUser = new User(
-  'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e',
-  currentDate,
-  'user@example.fr',
-  'password',
-  Role.MEMBRE_DU_SIEGE,
-  'John',
-  'Doe',
+const aUser = User.fromSnapshot(
+  new UserBuilder().with('id', 'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e').build(),
 );
-const anotherUser = new User(
-  'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
-  currentDate,
-  'another-user@example.fr',
-  'another-password',
-  Role.MEMBRE_DU_SIEGE,
-  'Jane',
-  'Smith',
+
+const anotherUser = User.fromSnapshot(
+  new UserBuilder()
+    .with('id', 'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8')
+    .with('email', 'another-user@example.fr')
+    .with('password', 'another-password')
+    .with('role', Role.MEMBRE_COMMUN)
+    .with('firstName', 'Jane')
+    .with('lastName', 'Smith')
+    .build(),
 );
 
 describe('SQL User Repository', () => {
@@ -77,5 +73,18 @@ describe('SQL User Repository', () => {
         ).toEqual(expected);
       },
     );
+
+    it('should not allow two users with the same email', async () => {
+      const duplicateUser = User.fromSnapshot(
+        new UserBuilder()
+          .with('id', 'd8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8')
+          .with('email', aUser.email)
+          .build(),
+      );
+
+      await expect(
+        transactionPerformer.perform(sqlUserRepository.save(duplicateUser)),
+      ).rejects.toThrow();
+    });
   });
 });

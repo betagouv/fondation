@@ -1,13 +1,15 @@
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import { HmacSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 import { EncryptionProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/encryption.provider';
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
 import { AuthenticationService } from 'src/identity-and-access-context/business-logic/services/authentication.service';
+import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
+import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   DATE_TIME_PROVIDER,
-  DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
@@ -23,12 +25,9 @@ import {
   ENCRYPTION_PROVIDER,
   SESSION_PROVIDER,
   SESSION_REPOSITORY,
-  USER_REPOSITORY,
   SIGNATURE_PROVIDER,
+  USER_REPOSITORY,
 } from './tokens';
-import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
-import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
-import { HmacSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 
 @Module({
   imports: [SharedKernelModule],
@@ -43,11 +42,7 @@ import { HmacSignatureProvider } from 'src/identity-and-access-context/adapters/
       TRANSACTION_PERFORMER,
       AuthenticationService,
     ]),
-    generateProvider(RegisterUserUseCase, [
-      TRANSACTION_PERFORMER,
-      DOMAIN_EVENT_REPOSITORY,
-      USER_REPOSITORY,
-    ]),
+    generateProvider(RegisterUserUseCase, [USER_REPOSITORY]),
     generateProvider(LogoutUserUseCase, [
       SESSION_PROVIDER,
       TRANSACTION_PERFORMER,

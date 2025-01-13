@@ -11,6 +11,6 @@ export const users = identityAndAccessContextSchema.table('users', {
   firstName: varchar('first_name').notNull(),
   lastName: varchar('last_name').notNull(),
   role: roleEnum('role').notNull(),
-  email: varchar('email').notNull(),
+  email: varchar('email').notNull().unique(),
   password: text('password').notNull(),
 });

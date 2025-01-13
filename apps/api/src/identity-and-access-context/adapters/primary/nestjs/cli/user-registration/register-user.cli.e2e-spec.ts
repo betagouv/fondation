@@ -20,14 +20,14 @@ const usersJson: UserJson[] = [
   {
     email: 'user1@example.fr',
     role: Role.MEMBRE_DU_SIEGE,
-    firstName: 'John',
-    lastName: 'Doe',
+    firstName: 'john',
+    lastName: 'doe',
   },
   {
     email: 'user2@example.fr',
     role: Role.MEMBRE_DU_SIEGE,
-    firstName: 'Jane',
-    lastName: 'Doe',
+    firstName: 'jane',
+    lastName: 'doe',
   },
 ];
 

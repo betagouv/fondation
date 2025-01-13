@@ -92,6 +92,7 @@ export class AuthController implements IAuthController {
     res.cookie('sessionId', signedSessionId, {
       httpOnly: true,
       secure: true,
+      sameSite: 'strict',
     });
   }
 
@@ -99,6 +100,7 @@ export class AuthController implements IAuthController {
     res.clearCookie('sessionId', {
       httpOnly: true,
       secure: true,
+      sameSite: 'strict',
     });
   }
 

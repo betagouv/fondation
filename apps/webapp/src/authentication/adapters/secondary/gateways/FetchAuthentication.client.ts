@@ -31,6 +31,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Store sessionId cookie in the browser
     });
 
     return response.json();
@@ -62,7 +63,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
     };
     const url = this.resolveUrl(path);
     await this.fetch(url, {
-      method: method,
+      method,
       credentials: "include", // Send sessionId cookie with the request
     });
   }

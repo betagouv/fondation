@@ -3,91 +3,85 @@ import { FakeUserRepository } from 'src/identity-and-access-context/adapters/sec
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { UserBuilder } from '../../builders/user.builder';
 import { DomainRegistry } from '../../models/domain-registry';
-import { Role } from '../../models/role';
 import { UserSnapshot } from '../../models/user';
-import { UserRegisteredEvent } from '../../models/user-registered.event';
 import {
   RegisterUserCommand,
   RegisterUserUseCase,
 } from './register-user.use-case';
 
-const aUserId = 'user-id';
-const aUserToRegister: RegisterUserCommand = {
-  email: 'user@example.fr',
-  password: 'password',
-  role: Role.MEMBRE_DU_SIEGE,
-  firstName: 'John',
-  lastName: 'Doe',
-};
 const expectedEncryptedPassword = 'encrypted-password';
 const currentDate = new Date(2030, 0, 10);
-const anEventId: string = 'event-id';
+const userBuilder = new UserBuilder('fake', { createdAt: currentDate });
 
 describe('Register User', () => {
   let transactionPerformer: TransactionPerformer;
   let uuidGenerator: DeterministicUuidGenerator;
   let userRepository: FakeUserRepository;
-  let domainEventRepository: DomainEventRepository;
   let dateTimeProvider: DeterministicDateProvider;
+  let encryptionProvider: FakeEncryptionProvider;
 
   beforeEach(() => {
     transactionPerformer = new NullTransactionPerformer();
-    domainEventRepository = new FakeDomainEventRepository();
     userRepository = new FakeUserRepository();
 
     uuidGenerator = new DeterministicUuidGenerator();
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
-    const encryptionProvider = new FakeEncryptionProvider();
-    encryptionProvider.encryptionMap = {
-      [aUserToRegister.password]: expectedEncryptedPassword,
-    };
+    encryptionProvider = new FakeEncryptionProvider();
+
     DomainRegistry.setUuidGenerator(uuidGenerator);
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
     DomainRegistry.setEncryptionProvider(encryptionProvider);
   });
 
-  it.each`
-    testName                    | userId               | command
-    ${''}                       | ${aUserId}           | ${aUserToRegister}
-    ${'with other information'} | ${'another-user-id'} | ${{ ...aUserToRegister, email: 'other@example.fr' }}
-  `('should register a user $testName', async ({ userId, command }) => {
-    uuidGenerator.nextUuids = [userId, anEventId];
-    await registerUser(command);
-    expectRegisteredUser(userId, {
-      ...command,
-      password: expectedEncryptedPassword,
-    });
-  });
+  it.each([
+    {
+      testName: '',
+      userBuilder: userBuilder,
+      expectedUserBuilder: userBuilder,
+    },
+    {
+      testName: 'with capital letters and special characters in name',
+      userBuilder: userBuilder
+        .with('firstName', 'Adèle')
+        .with('lastName', 'PEREZ-LODEON'),
+      expectedUserBuilder: userBuilder
+        .with('firstName', 'adèle')
+        .with('lastName', 'perez-lodeon'),
+    },
+    {
+      testName: 'with other information',
+      userBuilder: userBuilder.with('email', 'other@example.fr'),
+      expectedUserBuilder: userBuilder.with('email', 'other@example.fr'),
+    },
+  ])(
+    'should register a user $testName',
+    async ({ userBuilder, expectedUserBuilder }) => {
+      const userCommand = userBuilder.buildRegisterUserCommand();
+      const userId = userBuilder.build().id;
 
-  it('informs about a new user', async () => {
-    uuidGenerator.nextUuids = [aUserId, anEventId];
-    await registerUser(aUserToRegister);
-    expect(domainEventRepository).toHaveDomainEvents(
-      new UserRegisteredEvent(
-        anEventId,
-        {
-          userId: aUserId,
-          email: aUserToRegister.email,
-          role: aUserToRegister.role,
-          firstName: aUserToRegister.firstName,
-          lastName: aUserToRegister.lastName,
-        },
-        currentDate,
-      ),
-    );
-  });
+      encryptionProvider.encryptionMap = {
+        [userCommand.password]: expectedEncryptedPassword,
+      };
+      uuidGenerator.nextUuids = [userId];
+
+      await registerUser(userCommand);
+
+      const expectedUser = expectedUserBuilder.build();
+      expectRegisteredUser(userId, {
+        ...expectedUser,
+        password: expectedEncryptedPassword,
+      });
+    },
+  );
 
   const registerUser = (command: RegisterUserCommand) =>
-    new RegisterUserUseCase(
-      transactionPerformer,
-      domainEventRepository,
-      userRepository,
-    ).execute(command);
+    transactionPerformer.perform(
+      new RegisterUserUseCase(userRepository).execute(command),
+    );
 
   const expectRegisteredUser = (
     userId: string,

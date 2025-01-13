@@ -21,8 +21,8 @@ const aUser = new User(
   'user@example.com',
   'encrypted-password',
   Role.MEMBRE_COMMUN,
-  'John',
-  'Doe',
+  'john',
+  'doe',
 );
 
 describe('Login User Use Case', () => {
@@ -51,7 +51,7 @@ describe('Login User Use Case', () => {
       await loginUser('user@example.com', 'password'),
     ).toEqual<LoginUserUseCaseResponse>({
       sessionId: 'session-user-id',
-      userDescriptor: { firstName: 'John', lastName: 'Doe' },
+      userDescriptor: { firstName: 'john', lastName: 'doe' },
     });
     expectSession({
       sessionId: 'session-user-id',

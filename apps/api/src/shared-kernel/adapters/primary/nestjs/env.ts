@@ -4,6 +4,7 @@ import { DevApiConfig, ProdApiConfig } from '../zod/api-config-schema';
 const baseScalewayDomain = 's3.fr-par.scw.cloud';
 
 export const apiConfig: ProdApiConfig = {
+  originUrl: process.env.ORIGIN_URL!,
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   database: {
@@ -34,6 +35,7 @@ export const apiConfig: ProdApiConfig = {
 };
 
 export const defaultApiConfig = {
+  originUrl: 'http://localhost:5173',
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   database: {

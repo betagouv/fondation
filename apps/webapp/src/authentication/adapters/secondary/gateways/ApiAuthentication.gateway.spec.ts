@@ -11,8 +11,8 @@ describe("Api Authentication Gateway", () => {
     apiClient.setEligibleAuthUser(
       "user@example.com",
       "password123",
-      "John",
-      "Doe",
+      "john",
+      "doe",
     );
 
     gateway = new ApiAuthenticationGateway(apiClient);

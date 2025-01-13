@@ -6,12 +6,17 @@ import { users } from 'src/identity-and-access-context/adapters/secondary/gatewa
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
+import {
+  DRIZZLE_DB,
+  TRANSACTION_PERFORMER,
+} from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import supertest from 'supertest';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
@@ -22,8 +27,8 @@ import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
 const aPassword = 'password-123';
 const aUserDb = {
   id: 'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
-  firstName: 'Luc',
-  lastName: 'Denan',
+  firstName: 'luc',
+  lastName: 'denan',
   email: 'user@example.com',
   password: 'encrypted-password-123',
   role: Role.MEMBRE_DU_PARQUET,
@@ -53,7 +58,6 @@ describe('Auth Controller', () => {
   describe('With real encryption', () => {
     beforeEach(async () => {
       const moduleFixture = await new AppTestingModule().compile();
-
       app = new MainAppConfigurator(moduleFixture.createNestApplication())
         .withCookies()
         .configure();
@@ -64,14 +68,19 @@ describe('Auth Controller', () => {
     it('registers a user and logs in successfully', async () => {
       const registerUserUseCase =
         app.get<RegisterUserUseCase>(RegisterUserUseCase);
+      const transactionPerformer = app.get<TransactionPerformer>(
+        TRANSACTION_PERFORMER,
+      );
 
-      await registerUserUseCase.execute({
-        email: 'new-user@example.com',
-        password: 'new-password-123',
-        role: Role.MEMBRE_DU_PARQUET,
-        firstName: 'New',
-        lastName: 'User',
-      });
+      await transactionPerformer.perform(
+        registerUserUseCase.execute({
+          email: 'new-user@example.com',
+          password: 'new-password-123',
+          role: Role.MEMBRE_DU_PARQUET,
+          firstName: 'New',
+          lastName: 'User',
+        }),
+      );
 
       const response = await supertest(app.getHttpServer())
         .post('/api/auth/login')
@@ -80,8 +89,8 @@ describe('Auth Controller', () => {
         .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
 
       const expectedAuthenticatedUser: AuthenticatedUser = {
-        firstName: 'New',
-        lastName: 'User',
+        firstName: 'new',
+        lastName: 'user',
       };
       expect(response.body).toEqual(expectedAuthenticatedUser);
     });
@@ -94,6 +103,7 @@ describe('Auth Controller', () => {
         .compile();
 
       app = new MainAppConfigurator(moduleFixture.createNestApplication())
+        .withCors()
         .withCookies()
         .configure();
 
@@ -105,7 +115,12 @@ describe('Auth Controller', () => {
         .post('/api/auth/login')
         .send(loginDto)
         .expect(HttpStatus.OK)
-        .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
+        .expect(
+          'set-cookie',
+          /sessionId=.*; Path=.*; HttpOnly; Secure; SameSite=Strict/,
+        )
+        .expect('Access-Control-Allow-Origin', defaultApiConfig.originUrl)
+        .expect('Access-Control-Allow-Credentials', 'true');
 
       const expectedAuthenticatedUser: AuthenticatedUser = {
         firstName: aUserDb.firstName,
