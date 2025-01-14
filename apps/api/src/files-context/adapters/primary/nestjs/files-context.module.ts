@@ -22,8 +22,10 @@ import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-sch
 import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isCi = process.env.CI === 'true';
-const isScalewayS3 = isProduction || isCi;
+// We don't use Scaleway in the CI at the moment, because we have a long latency
+// problem only in CI. It seems unrelated to rate limiting.
+// const isCi = process.env.CI === 'true';
+const isScalewayS3 = isProduction; //|| isCi;
 
 @Module({
   imports: [SharedKernelModule],

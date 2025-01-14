@@ -9,18 +9,18 @@ import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { MinioS3Commands } from './minio-s3-commands';
 import { minioS3StorageClient } from './minio-s3-sorage.client';
 import { RealS3StorageProvider } from './real-s3-storage.provider';
-import { ScalewayS3Commands } from './scaleway-s3-commands';
-import { scalewayS3StorageClient } from './scaleway-s3-sorage.client';
 
 const minioS3Commands = new MinioS3Commands();
-const scalewayS3Commands = new ScalewayS3Commands(defaultApiConfig);
 
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
 
+// We don't use Scaleway in the CI at the moment, because we have a long latency
+// problem only in CI. It seems unrelated to rate limiting.
+// const scalewayS3Commands = new ScalewayS3Commands(defaultApiConfig);
+// ${'Scaleway'} | ${scalewayS3StorageClient} | ${scalewayS3Commands} | ${defaultApiConfig.s3.scaleway}
 describe.each`
-  providerName  | s3Client                   | s3Commands            | s3Config
-  ${'MinIO'}    | ${minioS3StorageClient}    | ${minioS3Commands}    | ${defaultApiConfig.s3.minio}
-  ${'Scaleway'} | ${scalewayS3StorageClient} | ${scalewayS3Commands} | ${defaultApiConfig.s3.scaleway}
+  providerName | s3Client                | s3Commands         | s3Config
+  ${'MinIO'}   | ${minioS3StorageClient} | ${minioS3Commands} | ${defaultApiConfig.s3.minio}
 `(
   '$providerName S3 Storage Provider',
   ({
