@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
@@ -35,6 +35,7 @@ import {
 } from './tokens';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 
 @Module({
   imports: [SharedKernelModule],
@@ -112,4 +113,8 @@ import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-sch
     ),
   ],
 })
-export class ReportsModule {}
+export class ReportsModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SessionValidationMiddleware).forRoutes(ReportsController);
+  }
+}

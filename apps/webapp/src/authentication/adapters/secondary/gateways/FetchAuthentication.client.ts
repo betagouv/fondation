@@ -11,7 +11,7 @@ type ClientFetchOptions = {
   [K in keyof Endpoints]: Omit<Endpoints[K], "response">;
 };
 
-const basePath: IdentityAndAccessRestContract["basePath"] = "/api/auth";
+const basePath: IdentityAndAccessRestContract["basePath"] = "api/auth";
 
 export class FetchAuthenticationApiClient implements AuthenticationApiClient {
   constructor(private readonly baseUrl: string) {}
@@ -21,7 +21,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
     loginDtoSchema.parse(data);
     const { method, path, body }: ClientFetchOptions["login"] = {
       method: "POST",
-      path: "/login",
+      path: "login",
       body: data,
     };
     const url = this.resolveUrl(path);
@@ -42,7 +42,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
     validateSessionDtoSchema.parse(data);
     const { method, path, body }: ClientFetchOptions["validateSession"] = {
       method: "POST",
-      path: "/validate-session",
+      path: "validate-session",
       body: data,
     };
     const url = this.resolveUrl(path);
@@ -59,7 +59,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
   async logout() {
     const { method, path }: ClientFetchOptions["logout"] = {
       method: "POST",
-      path: "/logout",
+      path: "logout",
     };
     const url = this.resolveUrl(path);
     await this.fetch(url, {
@@ -69,7 +69,7 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
   }
 
   private resolveUrl(path: string, params?: Record<string, string>): string {
-    const fullPath = `${basePath}${path}`;
+    const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
     if (!params) return url.href;
     return interpolateUrlParams(url, params);

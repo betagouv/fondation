@@ -7,6 +7,9 @@ const commonBaseSchema = z.object({
     filesContext: z.object({
       baseUrl: z.string(),
     }),
+    identityAndAccessContext: z.object({
+      baseUrl: z.string(),
+    }),
   }),
 });
 

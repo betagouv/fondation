@@ -28,6 +28,7 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from './tokens';
+import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -42,6 +43,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     TRANSACTION_PERFORMER,
     DOMAIN_EVENT_REPOSITORY,
     FileReaderProvider,
+    SessionValidationService,
   ],
   controllers: [],
   providers: [
@@ -109,6 +111,14 @@ const isProduction = process.env.NODE_ENV === 'production';
     },
 
     FileReaderProvider,
+    {
+      provide: SessionValidationService,
+      // generateProvider function doesn't handle the union type in ApiConfig
+      useFactory: (apiConfig: ApiConfig) => {
+        return new SessionValidationService(apiConfig);
+      },
+      inject: [API_CONFIG],
+    },
   ],
 })
 export class SharedKernelModule {}

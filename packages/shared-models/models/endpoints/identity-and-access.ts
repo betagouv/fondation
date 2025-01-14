@@ -2,23 +2,23 @@ import { z } from "zod";
 import { RestContract, ZodDto } from "./common";
 
 export interface IdentityAndAccessRestContract extends RestContract {
-  basePath: "/api/auth";
+  basePath: "api/auth";
   endpoints: {
     login: {
       method: "POST";
-      path: "/login";
+      path: "login";
       body: LoginDto;
       response: AuthenticatedUser | null;
     };
     validateSession: {
       method: "POST";
-      path: "/validate-session";
+      path: "validate-session";
       body: ValidateSessionDto;
       response: string | null;
     };
     logout: {
       method: "POST";
-      path: "/logout";
+      path: "logout";
       response: void;
     };
   };

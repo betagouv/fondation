@@ -3,6 +3,10 @@ import { DevApiConfig, ProdApiConfig } from '../zod/api-config-schema';
 
 const baseScalewayDomain = 's3.fr-par.scw.cloud';
 
+// The DNS will resolve this url to a private IP.
+// APP env variable is set by scalingo.
+const baseUrl = `http://${process.env.APP}.osc-secnum-fr1.scalingo.io`;
+
 export const apiConfig: ProdApiConfig = {
   originUrl: process.env.ORIGIN_URL!,
   port: 3000,
@@ -12,9 +16,10 @@ export const apiConfig: ProdApiConfig = {
   },
   contextServices: {
     filesContext: {
-      // The DNS will resolve this url to a private IP.
-      // APP env variable is set by scalingo.
-      baseUrl: `http://${process.env.APP}.osc-secnum-fr1.scalingo.io`,
+      baseUrl,
+    },
+    identityAndAccessContext: {
+      baseUrl,
     },
   },
   s3: {
@@ -34,6 +39,8 @@ export const apiConfig: ProdApiConfig = {
   },
 };
 
+const defaultBaseUrl = 'http://localhost:3000';
+
 export const defaultApiConfig = {
   originUrl: 'http://localhost:5173',
   port: 3000,
@@ -48,7 +55,10 @@ export const defaultApiConfig = {
   },
   contextServices: {
     filesContext: {
-      baseUrl: 'http://localhost:3000',
+      baseUrl: defaultBaseUrl,
+    },
+    identityAndAccessContext: {
+      baseUrl: defaultBaseUrl,
     },
   },
   s3: {

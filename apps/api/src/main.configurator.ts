@@ -18,6 +18,7 @@ export class MainAppConfigurator {
     });
     return this;
   }
+
   withCookies(): MainAppConfigurator {
     // Parse Cookie header and populate req.cookies
     // with an object keyed by the cookie names.

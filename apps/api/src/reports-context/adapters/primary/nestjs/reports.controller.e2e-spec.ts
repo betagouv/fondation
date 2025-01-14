@@ -1,6 +1,5 @@
-import { HttpStatus } from '@nestjs/common';
-import { NestApplication } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
+import { S3Client } from '@aws-sdk/client-s3';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import PDF from 'pdfkit';
@@ -12,7 +11,7 @@ import {
   ReportRetrievalVM,
   Transparency,
 } from 'shared-models';
-import { AppModule } from 'src/app.module';
+import { MainAppConfigurator } from 'src/main.configurator';
 import { ReportRetrievalBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
 import {
   ReportRule,
@@ -21,13 +20,14 @@ import {
 import { ReportRuleBuilder } from 'src/reports-context/business-logic/models/report-rules.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import request from 'supertest';
+import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files } from 'test/minio';
 import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
@@ -35,49 +35,40 @@ import { reports } from '../../secondary/gateways/repositories/drizzle/schema/re
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
-import { S3Client } from '@aws-sdk/client-s3';
-import { ChangeRuleValidationStateDto } from './dto/report-update.dto';
+import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 
 describe('Reports Controller', () => {
-  let app: NestApplication;
+  let app: INestApplication;
   let db: DrizzleDb;
-  let s3Client: S3Client;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
   });
-
   beforeEach(async () => {
     await clearDB(db);
-
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(DRIZZLE_DB)
-      .useValue(db)
-      .compile();
-    app = moduleFixture.createNestApplication();
-    s3Client = app.get(S3Client);
-
-    await app.init();
   });
-
   afterEach(() => app.close());
   afterAll(() => db.$client.end());
 
-  describe('GET /api/reports', () => {
+  describe('List', () => {
     beforeEach(async () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
     });
 
-    it('lists reports', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/reports')
-        .expect(HttpStatus.OK);
-      expect(response.body.data).toEqual([aReportListingVM]);
+    it('requires a valid user session to list reports', async () => {
+      await initApp({ validatedSession: false });
+      await requestReportsList().expect(HttpStatus.UNAUTHORIZED);
     });
 
+    describe('With authenticated session', () => {
+      beforeEach(() => initApp({ validatedSession: true }));
+
+      it('lists reports', async () => {
+        const response = await requestReportsList().expect(HttpStatus.OK);
+        expect(response.body.data).toEqual([aReportListingVM]);
+      });
+    });
     const aReportListingVM: ReportListItemVM = {
       id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       folderNumber: 1,
@@ -98,9 +89,13 @@ describe('Reports Controller', () => {
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
+    const requestReportsList = () =>
+      request(app.getHttpServer())
+        .get('/api/reports')
+        .set('Cookie', 'sessionId=unused');
   });
 
-  describe('GET /api/reports/:id', () => {
+  describe('Report retrieval', () => {
     let reportRulesSaved: (readonly [
       NominationFile.RuleGroup,
       ReportRuleSnapshot,
@@ -129,27 +124,34 @@ describe('Reports Controller', () => {
       reportRulesSaved = await Promise.all(reportRulesPromises);
     });
 
-    it('retrieves a report', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/reports/${aReportRetrievedVM.id}`)
-        .expect(HttpStatus.OK);
-      expect(response.body).toEqual<ReportRetrievalVM>({
-        ...aReportRetrievedVM,
-        rules: reportRulesSaved.reduce(
-          (acc, [ruleGroup, reportRuleSnapshot]) => ({
-            ...acc,
-            [ruleGroup]: {
-              ...acc[ruleGroup],
-              [reportRuleSnapshot.ruleName]: {
-                id: reportRuleSnapshot.id,
-                preValidated: reportRuleSnapshot.preValidated,
-                validated: reportRuleSnapshot.validated,
-                comment: reportRuleSnapshot.comment,
+    it('requires a valid user session to list reports', async () => {
+      await initApp({ validatedSession: false });
+      await requestReport().expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    describe('With authenticated session', () => {
+      beforeEach(() => initApp({ validatedSession: true }));
+
+      it('retrieves a report', async () => {
+        const response = await requestReport().expect(HttpStatus.OK);
+        expect(response.body).toEqual<ReportRetrievalVM>({
+          ...aReportRetrievedVM,
+          rules: reportRulesSaved.reduce(
+            (acc, [ruleGroup, reportRuleSnapshot]) => ({
+              ...acc,
+              [ruleGroup]: {
+                ...acc[ruleGroup],
+                [reportRuleSnapshot.ruleName]: {
+                  id: reportRuleSnapshot.id,
+                  preValidated: reportRuleSnapshot.preValidated,
+                  validated: reportRuleSnapshot.validated,
+                  comment: reportRuleSnapshot.comment,
+                },
               },
-            },
-          }),
-          {} as ReportRetrievalVM['rules'],
-        ),
+            }),
+            {} as ReportRetrievalVM['rules'],
+          ),
+        });
       });
     });
 
@@ -159,65 +161,63 @@ describe('Reports Controller', () => {
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .build();
+    const requestReport = () =>
+      request(app.getHttpServer())
+        .get(`/api/reports/${aReportRetrievedVM.id}`)
+        .set('Cookie', 'sessionId=unused');
   });
 
-  describe('PUT /api/reports/rules/:id', () => {
+  describe('Rules validation state', () => {
     beforeEach(async () => {
       const reportRow =
         SqlReportRepository.mapSnapshotToDb(nominationFileReport);
       await db.insert(reports).values(reportRow).execute();
     });
 
-    it('forbids unvalidated rule id', async () => {
-      const body: ChangeRuleValidationStateDto = {
-        validated: false,
-      };
-      try {
-        await request(app.getHttpServer())
-          .put('/api/reports/rules/invalid-id')
+    it('requires a valid user session', async () => {
+      await initApp({ validatedSession: false });
+      await requestReportRule().expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    describe('With authenticated session', () => {
+      beforeEach(() => initApp({ validatedSession: true }));
+
+      it('forbids unvalidated body', async () => {
+        const wrongBody = {
+          validated: 'false',
+        };
+        await requestReportRule()
+          .send(wrongBody)
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+
+      it('unvalidates an overseas to overseas validation rule', async () => {
+        const ruleRow =
+          SqlReportRuleRepository.mapSnapshotToDb(reportRuleSnapshot);
+        await db.insert(reportRules).values(ruleRow).execute();
+
+        const body: ChangeRuleValidationStateDto = {
+          validated: false,
+        };
+        const response = await requestReportRule()
           .send(body)
           .expect(HttpStatus.OK);
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
-    });
+        expect(response.body).toEqual({});
 
-    const wrongBodies = [
-      {
-        validated: 'false',
-      },
-    ];
-    it.each(wrongBodies)('forbids unvalidated body', async (wrongBody) => {
-      await request(app.getHttpServer())
-        .put(`/api/reports/rules/${nominationFileReport.id}`)
-        .send(wrongBody)
-        .expect(HttpStatus.BAD_REQUEST);
-    });
-
-    it('unvalidates an overseas to overseas validation rule', async () => {
-      const ruleRow =
-        SqlReportRuleRepository.mapSnapshotToDb(reportRuleSnapshot);
-      await db.insert(reportRules).values(ruleRow).execute();
-
-      const body: ChangeRuleValidationStateDto = {
-        validated: false,
-      };
-      const response = await request(app.getHttpServer())
-        .put(`/api/reports/rules/${reportRuleSnapshot.id}`)
-        .send(body)
-        .expect(HttpStatus.OK);
-      expect(response.body).toEqual({});
-
-      const savedReportRules = await db
-        .select()
-        .from(reportRules)
-        .where(eq(reportRules.id, reportRuleSnapshot.id))
-        .execute();
-      expect(savedReportRules).toEqual([
-        SqlReportRuleRepository.mapToDb(
-          ReportRule.fromSnapshot({ ...reportRuleSnapshot, validated: false }),
-        ),
-      ]);
+        const savedReportRules = await db
+          .select()
+          .from(reportRules)
+          .where(eq(reportRules.id, reportRuleSnapshot.id))
+          .execute();
+        expect(savedReportRules).toEqual([
+          SqlReportRuleRepository.mapToDb(
+            ReportRule.fromSnapshot({
+              ...reportRuleSnapshot,
+              validated: false,
+            }),
+          ),
+        ]);
+      });
     });
 
     const nominationFileReport = new ReportBuilder()
@@ -228,55 +228,84 @@ describe('Reports Controller', () => {
       .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
       .with('reportId', nominationFileReport.id)
       .build();
+    const requestReportRule = () =>
+      request(app.getHttpServer())
+        .put(`/api/reports/rules/${nominationFileReport.id}`)
+        .set('Cookie', 'sessionId=unused');
   });
 
   describe('Files', () => {
+    let s3Client: S3Client;
+
     beforeEach(async () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
 
+      s3Client = app.get(S3Client);
+    });
+
+    it('requires a valid user session', async () => {
+      await initApp({ validatedSession: false });
       await app.listen(defaultApiConfig.port); // Run server to contact other contexts over REST
+      await uploadFile().expect(HttpStatus.UNAUTHORIZED);
     });
 
-    afterEach(async () => {
-      await deleteS3Files(s3Client);
-    });
+    describe('With authenticated session', () => {
+      beforeEach(async () => {
+        await initApp({ validatedSession: true });
+        await app.listen(defaultApiConfig.port); // Run server to contact other contexts over REST
+      });
 
-    it('uploads a file', async () => {
-      const response = await uploadFile().expect(201);
+      afterEach(async () => {
+        await deleteS3Files(s3Client);
+      });
 
-      expect(response.body).toEqual({});
+      it('uploads a file', async () => {
+        const response = await uploadFile().expect(201);
 
-      const savedFiles = await db.select().from(reportAttachedFiles).execute();
-      expect(savedFiles).toEqual<(typeof reportAttachedFiles.$inferSelect)[]>([
-        {
-          createdAt: expect.any(Date),
-          reportId: aReportSnapshot.id,
-          name: 'test-file.pdf',
-          fileId: expect.any(String),
-        },
-      ]);
-    });
+        expect(response.body).toEqual({});
 
-    it('get a file signed URL', async () => {
-      await uploadFile().expect(201);
+        const savedFiles = await db
+          .select()
+          .from(reportAttachedFiles)
+          .execute();
+        expect(savedFiles).toEqual<(typeof reportAttachedFiles.$inferSelect)[]>(
+          [
+            {
+              createdAt: expect.any(Date),
+              reportId: aReportSnapshot.id,
+              name: 'test-file.pdf',
+              fileId: expect.any(String),
+            },
+          ],
+        );
+      });
 
-      const response = await request(app.getHttpServer())
-        .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
-        .expect(HttpStatus.OK);
+      it('get a file signed URL', async () => {
+        await uploadFile().expect(201);
 
-      expect(response.text).toEqual(expect.stringMatching(/^http/));
-    });
+        const response = await request(app.getHttpServer())
+          .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .set('Cookie', 'sessionId=unused')
+          .expect(HttpStatus.OK);
 
-    it('deletes a file', async () => {
-      await uploadFile().expect(201);
+        expect(response.text).toEqual(expect.stringMatching(/^http/));
+      });
 
-      await request(app.getHttpServer())
-        .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
-        .expect(HttpStatus.OK);
+      it('deletes a file', async () => {
+        await uploadFile().expect(201);
 
-      const savedFiles = await db.select().from(reportAttachedFiles).execute();
-      expect(savedFiles).toEqual([]);
+        await request(app.getHttpServer())
+          .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .set('Cookie', 'sessionId=unused')
+          .expect(HttpStatus.OK);
+
+        const savedFiles = await db
+          .select()
+          .from(reportAttachedFiles)
+          .execute();
+        expect(savedFiles).toEqual([]);
+      });
     });
 
     const uploadFile = () => {
@@ -284,6 +313,7 @@ describe('Reports Controller', () => {
 
       return request(app.getHttpServer())
         .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
+        .set('Cookie', 'sessionId=unused')
         .attach('file', pdfBuffer, 'test-file.pdf');
     };
 
@@ -295,4 +325,37 @@ describe('Reports Controller', () => {
     };
     const aReportSnapshot = new ReportBuilder('uuid').build();
   });
+
+  const initApp = async ({
+    validatedSession,
+  }: {
+    validatedSession: boolean;
+  }) => {
+    const moduleFixture = await new AppTestingModule()
+      .withStubSessionValidationService(validatedSession)
+      .compile();
+
+    app = new MainAppConfigurator(moduleFixture.createNestApplication())
+      .withCookies()
+      .configure();
+
+    await app.init();
+  };
+
+  class AppTestingModule extends BaseAppTestingModule {
+    constructor() {
+      super(db);
+    }
+
+    withStubSessionValidationService(validated: boolean) {
+      this.moduleFixture.overrideProvider(SessionValidationService).useClass(
+        class StubSessionValidationService {
+          async validateSession(): Promise<boolean> {
+            return validated;
+          }
+        },
+      );
+      return this;
+    }
+  }
 });

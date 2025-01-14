@@ -22,10 +22,8 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import {
-  ChangeRuleValidationStateDto,
-  ReportUpdateDto,
-} from './dto/report-update.dto';
+import { ReportUpdateDto } from './dto/report-update.dto';
+import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 

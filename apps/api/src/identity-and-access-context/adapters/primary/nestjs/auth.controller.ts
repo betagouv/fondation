@@ -25,11 +25,11 @@ import { SIGNATURE_PROVIDER } from './tokens';
 
 type IAuthController = IController<IdentityAndAccessRestContract>;
 
-const baseRoute: IdentityAndAccessRestContract['basePath'] = '/api/auth';
+const baseRoute: IdentityAndAccessRestContract['basePath'] = 'api/auth';
 const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
-  login: '/login',
-  validateSession: '/validate-session',
-  logout: '/logout',
+  login: 'login',
+  validateSession: 'validate-session',
+  logout: 'logout',
 };
 
 @Controller(baseRoute)
@@ -61,6 +61,7 @@ export class AuthController implements IAuthController {
   ) {
     const signedSessionId = body.sessionId;
     const sessionId = this.unsignedSessionId(signedSessionId);
+
     if (sessionId === false) {
       return res
         .status(HttpStatus.UNAUTHORIZED)
@@ -68,7 +69,6 @@ export class AuthController implements IAuthController {
     }
 
     const userId = await this.validateSessionUseCase.execute(sessionId);
-
     return res.status(HttpStatus.OK).send(userId);
   }
 

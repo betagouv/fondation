@@ -128,7 +128,10 @@ export class FetchReportApiClient implements ReportApiClient {
   }
 
   private async fetch(url: string, requestInit: RequestInit) {
-    const response = await fetch(url, requestInit);
+    const response = await fetch(url, {
+      ...requestInit,
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }

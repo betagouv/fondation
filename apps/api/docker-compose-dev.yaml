@@ -66,6 +66,10 @@ services:
       echo \"Seeding with TSV file starting\" &&
       npm run cli:upload-nomination-files:local -- \"$NOMINATION_FILES_ABSOLUTE_PATH_DOCKER\"
       echo \"Seeding with TSV file done\"
+
+      echo \"Running npm cli:seed\" &&
+      npm run cli:seed &&
+      echo \"Seeding done\"
       "
     working_dir: /usr/src/fondation/apps/api
 
