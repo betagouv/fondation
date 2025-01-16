@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { interpolateUrlParams } from 'shared-models';
-import { FilesContextRestContract } from 'shared-models';
+import { FilesContextRestContract, interpolateUrlParams } from 'shared-models';
 import {
   ReportFileService,
   reportSignedUrlsSchema,

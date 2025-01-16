@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { NominationFile } from 'shared-models';
 import {
   ReportRetrievalQueried,
@@ -15,7 +15,10 @@ import { SqlReportAttachedFileRepository } from './sql-report-attached-file.repo
 export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
 
-  async retrieveReport(id: string): Promise<ReportRetrievalQueried | null> {
+  async retrieveReport(
+    id: string,
+    reporterId: string,
+  ): Promise<ReportRetrievalQueried | null> {
     const reportWithRules = await this.db
       .select({
         reportId: reports.id,
@@ -44,7 +47,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       })
       .from(reports)
       .innerJoin(reportRules, eq(reportRules.reportId, reports.id))
-      .where(eq(reports.id, id))
+      .where(and(eq(reports.id, id), eq(reports.reporterId, reporterId)))
       .execute();
 
     if (!reportWithRules.length) {

@@ -4,26 +4,21 @@ import {
   FakeSessionProvider,
 } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-session.provider';
 import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
-import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { UserBuilder } from '../../builders/user.builder';
 import { DomainRegistry } from '../../models/domain-registry';
-import { Role } from '../../models/role';
 import { AuthenticationService } from '../../services/authentication.service';
 import {
   LoginUserUseCase,
   LoginUserUseCaseResponse,
 } from './login-user.use-case';
 
-const currentDate = new Date(2030, 0, 1);
-const aUser = new User(
-  'user-id',
-  currentDate,
-  'user@example.com',
-  'encrypted-password',
-  Role.MEMBRE_COMMUN,
-  'john',
-  'doe',
-);
+const aUser = new UserBuilder()
+  .with('email', 'user@example.com')
+  .with('password', 'encrypted-password')
+  .with('firstName', 'john')
+  .with('lastName', 'doe')
+  .build();
 
 describe('Login User Use Case', () => {
   let userRepository: FakeUserRepository;
@@ -42,20 +37,20 @@ describe('Login User Use Case', () => {
 
   beforeEach(() => {
     userRepository.users = {
-      [aUser.id]: aUser.toSnapshot(),
+      [aUser.id]: aUser,
     };
   });
 
   it('logs in a user and generates a session ID', async () => {
     expect(
-      await loginUser('user@example.com', 'password'),
+      await loginUser(aUser.email, 'password'),
     ).toEqual<LoginUserUseCaseResponse>({
       sessionId: 'session-user-id',
-      userDescriptor: { firstName: 'john', lastName: 'doe' },
+      userDescriptor: { userId: aUser.id, firstName: 'john', lastName: 'doe' },
     });
     expectSession({
       sessionId: 'session-user-id',
-      userId: 'user-id',
+      userId: aUser.id,
       valid: true,
     });
   });

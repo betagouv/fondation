@@ -1,4 +1,5 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
@@ -24,17 +25,7 @@ export interface ReportToCreate {
   birthDate: DateOnlyJson;
   biography: string | null;
   observers: string[] | null;
-  rules: {
-    [NominationFile.RuleGroup.MANAGEMENT]: {
-      [key in NominationFile.ManagementRule]: boolean;
-    };
-    [NominationFile.RuleGroup.STATUTORY]: {
-      [key in NominationFile.StatutoryRule]: boolean;
-    };
-    [NominationFile.RuleGroup.QUALITATIVE]: {
-      [key in NominationFile.QualitativeRule]: boolean;
-    };
-  };
+  rules: NominationFile.Rules<boolean>;
 }
 
 export class CreateReportUseCase {
@@ -44,7 +35,9 @@ export class CreateReportUseCase {
     private readonly uuidGenerator: UuidGenerator,
     private readonly reportRuleRepository: ReportRuleRepository,
     private readonly datetimeProvider: DateTimeProvider,
+    private readonly reporterTranslatorService: ReporterTranslatorService,
   ) {}
+
   async execute(
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
@@ -53,12 +46,19 @@ export class CreateReportUseCase {
 
     const reportId = this.uuidGenerator.generate();
 
+    const reporter = createReportPayload.reporterName
+      ? await this.reporterTranslatorService.reporterFrom(
+          createReportPayload.reporterName,
+        )
+      : null;
+
     return this.transactionPerformer.perform(async (trx) => {
       const report = NominationFileReport.createFromImport(
         reportId,
         importedNominationFileId,
         createReportPayload,
         this.datetimeProvider.now(),
+        reporter,
       );
 
       await this.reportRepository.save(report)(trx);

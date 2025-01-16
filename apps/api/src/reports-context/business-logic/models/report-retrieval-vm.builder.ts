@@ -15,7 +15,8 @@ export class ReportRetrievalBuilder<
 > {
   private _report: ReportRetrievalVM & ReportRetrievalQueried;
 
-  constructor() {
+  constructor(idMode: 'fake' | 'uuid' = 'fake') {
+    const isFakeId = idMode === 'fake';
     const defaultValue: NominationFile.RuleValue = {
       id: 'rule-id',
       preValidated: true,
@@ -24,7 +25,7 @@ export class ReportRetrievalBuilder<
     };
 
     this._report = {
-      id: 'report-id',
+      id: isFakeId ? 'report-id' : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       folderNumber: 1,
       name: 'Ada Lovelace',
       biography: 'The biography',

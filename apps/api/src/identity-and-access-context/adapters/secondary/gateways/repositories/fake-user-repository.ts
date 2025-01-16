@@ -22,4 +22,16 @@ export class FakeUserRepository implements UserRepository {
       return user ? User.fromSnapshot(user) : null;
     };
   }
+
+  userWithFullName(
+    firstName: string,
+    lastName: string,
+  ): TransactionableAsync<User | null> {
+    return async () => {
+      const user = Object.values(this.users).find(
+        (user) => user.firstName === firstName && user.lastName === lastName,
+      );
+      return user ? User.fromSnapshot(user) : null;
+    };
+  }
 }

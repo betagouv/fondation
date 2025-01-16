@@ -22,6 +22,9 @@ export class ReportBuilder {
         ? 'nomination-file-id'
         : 'ca1619e2-263d-49b6-b928-6a04ee681138',
       createdAt: new Date(2021, 1, 1),
+      reporterId: isFakeId
+        ? 'reporter-id'
+        : 'bc2588b6-fcd9-46d1-9baf-306dd0704015',
       folderNumber: 1,
       name: 'John Doe',
       biography: 'Biography',
@@ -110,5 +113,26 @@ export class ReportBuilder {
       .with('comment', reportRetrievalVM.comment)
       .with('rank', reportRetrievalVM.rank)
       .with('observers', reportRetrievalVM.observers);
+  }
+
+  static duplicateReport(report: NominationFileReportSnapshot): ReportBuilder {
+    return new ReportBuilder()
+      .with('id', report.id)
+      .with('nominationFileId', report.nominationFileId)
+      .with('reporterId', report.reporterId)
+      .with('folderNumber', report.folderNumber)
+      .with('dueDate', report.dueDate)
+      .with('birthDate', report.birthDate)
+      .with('name', report.name)
+      .with('state', report.state)
+      .with('formation', report.formation)
+      .with('transparency', report.transparency)
+      .with('grade', report.grade)
+      .with('currentPosition', report.currentPosition)
+      .with('targettedPosition', report.targettedPosition)
+      .with('comment', report.comment)
+      .with('rank', report.rank)
+      .with('observers', report.observers)
+      .with('biography', report.biography);
   }
 }

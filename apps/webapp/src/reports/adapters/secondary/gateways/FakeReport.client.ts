@@ -67,9 +67,9 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async retrieveReport(id: string): Promise<ReportRetrievalVM | null> {
+  async retrieveReport(id: string): Promise<ReportRetrievalVM> {
     const fullReport = this.reports[id];
-    if (!fullReport) return null;
+    if (!fullReport) throw new Error("Report not found");
     this.VMGuard(fullReport);
 
     return fullReport;

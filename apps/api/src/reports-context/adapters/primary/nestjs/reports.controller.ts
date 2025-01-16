@@ -1,11 +1,15 @@
+import { Request } from 'express';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Post,
   Put,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -51,17 +55,25 @@ export class ReportsController implements IReportController {
   ) {}
 
   @Get(endpointsPaths.listReports)
-  async listReports() {
-    return this.listReportsUseCase.execute();
+  async listReports(@Req() req: Request) {
+    const userId = req.userId!;
+    return this.listReportsUseCase.execute(userId);
   }
 
   @Get(endpointsPaths.retrieveReport)
   async retrieveReport(
     @Param()
     params: ReportsContextRestContract['endpoints']['retrieveReport']['params'],
+    @Req() req: Request,
   ) {
     const { id } = params;
-    return this.retrieveReportUseCase.execute(id);
+    const reporterId = req.userId!;
+
+    const report = await this.retrieveReportUseCase.execute(id, reporterId);
+
+    if (!report)
+      throw new HttpException('Report not found', HttpStatus.NOT_FOUND);
+    return report;
   }
 
   @Put(endpointsPaths.updateReport)

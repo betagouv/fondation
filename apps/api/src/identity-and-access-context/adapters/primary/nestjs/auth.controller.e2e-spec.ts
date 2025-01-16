@@ -1,16 +1,11 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { AuthenticatedUser } from 'shared-models';
-import { AppModule } from 'src/app.module';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
-import {
-  DRIZZLE_DB,
-  TRANSACTION_PERFORMER,
-} from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { TRANSACTION_PERFORMER } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -18,11 +13,13 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import supertest from 'supertest';
+import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
 import { FakeSignatureProvider } from '../../secondary/gateways/providers/fake-signature.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -209,6 +206,22 @@ describe('Auth Controller', () => {
     });
   });
 
+  describe('User retrieval', () => {
+    it('retrieves a user by full name', async () => {
+      const response = await supertest(app.getHttpServer())
+        .get(
+          `/api/auth/user-with-full-name/${aUserDb.lastName} ${aUserDb.firstName}`,
+        )
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual<UserDescriptorSerialized>({
+        userId: aUserDb.id,
+        firstName: aUserDb.firstName,
+        lastName: aUserDb.lastName,
+      });
+    });
+  });
+
   const givenSomeSessions = async (
     ...sessionsToInsert: (typeof sessions.$inferInsert)[]
   ) => {
@@ -224,15 +237,9 @@ describe('Auth Controller', () => {
     );
   };
 
-  class AppTestingModule {
-    moduleFixture: TestingModuleBuilder;
-
+  class AppTestingModule extends BaseAppTestingModule {
     constructor() {
-      this.moduleFixture = Test.createTestingModule({
-        imports: [AppModule],
-      })
-        .overrideProvider(DRIZZLE_DB)
-        .useValue(db);
+      super(db);
     }
 
     withFakeEncryption() {
@@ -263,10 +270,6 @@ describe('Auth Controller', () => {
       });
 
       return this;
-    }
-
-    compile() {
-      return this.moduleFixture.compile();
     }
   }
 });

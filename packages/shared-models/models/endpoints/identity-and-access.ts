@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RestContract, ZodDto } from "./common";
+import { RestContract, ZodDto, ZodParamsDto } from "./common";
 
 export interface IdentityAndAccessRestContract extends RestContract {
   basePath: "api/auth";
@@ -21,6 +21,12 @@ export interface IdentityAndAccessRestContract extends RestContract {
       path: "logout";
       response: void;
     };
+    userWithFullName: {
+      method: "GET";
+      path: "user-with-full-name/:fullName";
+      params: UserFromFullNameParamsDto;
+      response: AuthenticatedUser | null;
+    };
   };
 }
 
@@ -38,6 +44,10 @@ export interface ValidateSessionDto {
   sessionId: string;
 }
 
+export interface UserFromFullNameParamsDto extends Record<string, string> {
+  fullName: string;
+}
+
 export const loginDtoSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -46,3 +56,7 @@ export const loginDtoSchema = z.object({
 export const validateSessionDtoSchema = z.object({
   sessionId: z.string(),
 }) satisfies ZodDto<IdentityAndAccessRestContract, "validateSession">;
+
+export const userWithFullNameParamsDtoSchema = z.object({
+  fullName: z.string().min(3),
+}) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithFullName">;

@@ -14,12 +14,14 @@ export class SessionValidationMiddleware implements NestMiddleware {
     }
 
     try {
-      const isValid = await this.sessionValidationService.validateSession(
+      const userId = await this.sessionValidationService.validateSession(
         this.sessionId(req),
       );
-      if (!isValid) {
+      if (!userId) {
         return res.status(HttpStatus.UNAUTHORIZED).send('Invalid session');
       }
+
+      req.userId = userId;
     } catch (error) {
       console.error('Error validating session', error);
       return res

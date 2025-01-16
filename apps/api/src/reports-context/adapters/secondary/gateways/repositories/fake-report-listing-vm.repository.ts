@@ -2,11 +2,16 @@ import { ReportListingVM, ReportListItemVM } from 'shared-models';
 import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 
 export class FakeReportListingVMRepository implements ReportListingQuery {
-  reportsList: ReportListItemVM[] = [];
+  reportsList: Record<string, ReportListItemVM[]> = {};
 
-  async listReports(): Promise<ReportListingVM> {
+  async listReports(reporterId: string): Promise<ReportListingVM> {
+    const userReports = Object.entries(this.reportsList)
+      .filter(([id]) => id === reporterId)
+      .map(([, reports]) => reports)
+      .flat();
+
     return {
-      data: this.reportsList,
+      data: userReports,
     };
   }
 }

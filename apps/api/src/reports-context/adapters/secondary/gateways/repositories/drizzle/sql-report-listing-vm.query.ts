@@ -3,12 +3,12 @@ import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 
 export class SqlReportListingQuery implements ReportListingQuery {
   constructor(private readonly db: DrizzleDb) {}
 
-  async listReports(): Promise<ReportListingVM> {
+  async listReports(reporterId: string): Promise<ReportListingVM> {
     const reportsData = await this.db
       .select({
         id: reports.id,
@@ -24,6 +24,7 @@ export class SqlReportListingQuery implements ReportListingQuery {
         observersCount: sql<number>`COALESCE(array_length(${reports.observers}, 1), 0)`,
       })
       .from(reports)
+      .where(eq(reports.reporterId, reporterId))
       .execute();
 
     return {

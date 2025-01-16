@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import {
   User,
@@ -33,6 +33,26 @@ export class SqlUserRepository implements UserRepository {
         .select()
         .from(users)
         .where(eq(users.email, email))
+        .limit(1);
+
+      if (result.length === 0) return null;
+
+      const userRow = result[0]!;
+      return SqlUserRepository.mapToDomain(userRow);
+    };
+  }
+
+  userWithFullName(
+    firstName: string,
+    lastName: string,
+  ): DrizzleTransactionableAsync<User | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(users)
+        .where(
+          and(eq(users.firstName, firstName), eq(users.lastName, lastName)),
+        )
         .limit(1);
 
       if (result.length === 0) return null;

@@ -3,10 +3,12 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 import { ReportAttachedFile } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
+import { Reporter } from './reporter';
 
 export type NominationFileReportSnapshot = {
   id: string;
   nominationFileId: string;
+  reporterId: string | null;
   createdAt: Date;
   folderNumber: number | null;
   biography: string | null;
@@ -31,6 +33,7 @@ export class NominationFileReport {
     private readonly _id: string,
     readonly nominationFileId: string,
     readonly createdAt: Date,
+    readonly reporter: Reporter | null,
     public folderNumber: number | null,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
@@ -82,6 +85,7 @@ export class NominationFileReport {
     return {
       id: this.id,
       nominationFileId: this.nominationFileId,
+      reporterId: this.reporter?.reporterId || null,
       createdAt: this.createdAt,
       folderNumber: this.folderNumber,
       biography: this.biography,
@@ -109,6 +113,7 @@ export class NominationFileReport {
       snapshot.id,
       snapshot.nominationFileId,
       snapshot.createdAt,
+      snapshot.reporterId ? new Reporter(snapshot.reporterId) : null,
       snapshot.folderNumber,
       snapshot.biography,
       snapshot.dueDate,
@@ -133,11 +138,13 @@ export class NominationFileReport {
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
     currentDate: Date,
+    reporter: Reporter | null,
   ): NominationFileReport {
     const report = new NominationFileReport(
       reportId,
       importedNominationFileId,
       currentDate,
+      reporter,
       createReportPayload.folderNumber,
       createReportPayload.biography,
       createReportPayload.dueDate

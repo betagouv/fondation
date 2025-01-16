@@ -11,7 +11,7 @@ export interface ReportsContextRestContract extends RestContract {
       method: "GET";
       path: ":id";
       params: { id: string };
-      response: ReportRetrievalVM | null;
+      response: ReportRetrievalVM;
     };
     updateReport: {
       method: "PUT";

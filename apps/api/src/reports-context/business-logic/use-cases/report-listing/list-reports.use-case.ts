@@ -3,7 +3,7 @@ import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.que
 export class ListReportsUseCase {
   constructor(private readonly reportListingVMRepository: ReportListingQuery) {}
 
-  async execute() {
-    return this.reportListingVMRepository.listReports();
+  async execute(reporterId: string) {
+    return this.reportListingVMRepository.listReports(reporterId);
   }
 }

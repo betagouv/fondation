@@ -1,15 +1,26 @@
-import {
-  ReportListingVM,
-  ReportRetrievalVM,
-  ReportUpdateDto,
-} from "shared-models";
+import { ReportsContextRestContract, ReportUpdateDto } from "shared-models";
+
+type EndpointResponse<T extends keyof ReportsContextRestContract["endpoints"]> =
+  Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
 
 export interface ReportApiClient {
-  generateFileUrl(reportId: string, fileName: string): Promise<string>;
-  list(): Promise<ReportListingVM>;
-  updateReport(reportId: string, data: ReportUpdateDto): Promise<void>;
-  updateRule(ruleId: string, validated: boolean): Promise<void>;
-  retrieveReport(id: string): Promise<ReportRetrievalVM | null>;
-  attachFile(reportId: string, file: File): Promise<void>;
-  deleteAttachedFile(reportId: string, fileName: string): Promise<void>;
+  generateFileUrl(
+    reportId: string,
+    fileName: string,
+  ): EndpointResponse<"generateFileUrl">;
+  list(): EndpointResponse<"listReports">;
+  updateReport(
+    reportId: string,
+    data: ReportUpdateDto,
+  ): EndpointResponse<"updateReport">;
+  updateRule(
+    ruleId: string,
+    validated: boolean,
+  ): EndpointResponse<"updateRule">;
+  retrieveReport(id: string): EndpointResponse<"retrieveReport">;
+  attachFile(reportId: string, file: File): EndpointResponse<"attachFile">;
+  deleteAttachedFile(
+    reportId: string,
+    fileName: string,
+  ): EndpointResponse<"deleteAttachedFile">;
 }

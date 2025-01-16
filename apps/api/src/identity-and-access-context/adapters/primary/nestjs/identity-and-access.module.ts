@@ -7,6 +7,7 @@ import { ValidateSessionUseCase } from 'src/identity-and-access-context/business
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
+import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   DATE_TIME_PROVIDER,
@@ -63,6 +64,10 @@ import {
       [DATE_TIME_PROVIDER],
       SESSION_REPOSITORY,
     ),
+    generateProvider(UserWithFullNameUseCase, [
+      USER_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
   ],
 })
 export class IdentityAndAccessModule implements OnModuleInit {

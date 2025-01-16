@@ -21,6 +21,7 @@ export class UpdateReportUseCase {
         id,
         report.nominationFileId,
         report.createdAt,
+        report.reporter,
         report.folderNumber,
         report.biography,
         report.dueDate,

@@ -10,6 +10,8 @@ import { ReportAttachedFiles } from '../../models/report-attached-files';
 import { ReportRetrievalBuilder } from '../../models/report-retrieval-vm.builder';
 import { RetrieveReportUseCase } from './retrieve-report.use-case';
 
+const reporterId = 'reporter-id';
+
 describe('Report Retrieval', () => {
   let fakeReportRetrievalVMQuery: FakeReportRetrievalVMQuery;
   let reportFileService: FakeReportFileService;
@@ -32,7 +34,9 @@ describe('Report Retrieval', () => {
       fakeReportRetrievalVMQuery,
       reportFileService,
     );
-    expect(await retrieveReport.execute(aReportQueried.id)).toEqual(aReportVM);
+    expect(await retrieveReport.execute(aReportQueried.id, reporterId)).toEqual(
+      aReportVM,
+    );
   });
 
   it('retrieves a report with a file', async () => {
@@ -40,9 +44,9 @@ describe('Report Retrieval', () => {
       fakeReportRetrievalVMQuery,
       reportFileService,
     );
-    expect(await retrieveReport.execute(aReportWithFileQueried.id)).toEqual(
-      aReportWithFileVM,
-    );
+    expect(
+      await retrieveReport.execute(aReportWithFileQueried.id, reporterId),
+    ).toEqual(aReportWithFileVM);
   });
 });
 

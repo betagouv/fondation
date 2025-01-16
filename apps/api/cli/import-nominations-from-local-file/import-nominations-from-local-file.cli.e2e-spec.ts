@@ -1,25 +1,26 @@
 import { NestApplication } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
 import { asc, eq } from 'drizzle-orm';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
-import { AppModule } from 'src/app.module';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/data-administration-context.module';
 import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
+import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import {
   reportRules,
   reports,
 } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 
 const fileToImportPath = path.resolve(
@@ -27,11 +28,15 @@ const fileToImportPath = path.resolve(
   './Nomination files (e2e test data).tsv',
 );
 
+const reportersMap: Record<string, string> = {
+  'ROUSSIN Jules': 'bc2588b6-fcd9-46d1-9baf-306dd0704015',
+  'JOSSELIN-MARTEL Martin-Luc': 'bb8b1056-9573-4b9d-8161-d8e2b8fee462',
+};
+
 describe('Import Nominations from local file', () => {
   let app: NestApplication;
-  let importNominationFileFromLocalFileCli: ImportNominationFileFromLocalFileCli;
-
   let db: DrizzleDb;
+  let importNominationFileFromLocalFileCli: ImportNominationFileFromLocalFileCli;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
@@ -40,20 +45,35 @@ describe('Import Nominations from local file', () => {
   beforeEach(async () => {
     await clearDB(db);
 
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(DRIZZLE_DB)
-      .useValue(db)
-      .compile();
+    const moduleFixture = await new BaseAppTestingModule(db).compile();
     app = moduleFixture.createNestApplication();
 
     await app.init();
+    await app.listen(defaultApiConfig.port);
 
     importNominationFileFromLocalFileCli =
       app.get<ImportNominationFileFromLocalFileCli>(
         IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
       );
+
+    await db.insert(users).values([
+      {
+        id: reportersMap['ROUSSIN Jules'],
+        lastName: 'roussin',
+        firstName: 'jules',
+        email: 'jules.roussin@example.fr',
+        password: 'some-password',
+        role: Role.MEMBRE_DU_PARQUET,
+      },
+      {
+        id: reportersMap['JOSSELIN-MARTEL Martin-Luc'],
+        firstName: 'martin-luc',
+        lastName: 'josselin-martel',
+        email: 'martin-luc@example.fr',
+        password: 'some-password',
+        role: Role.MEMBRE_DU_SIEGE,
+      },
+    ]);
   });
 
   afterEach(() => app.close());
@@ -106,6 +126,7 @@ describe('Import Nominations from local file', () => {
       await givenAReportPm({
         ...firstTsvContent,
         reporterName: firstTsvContent.reporters![0]!,
+        reporterId: reportersMap[firstTsvContent.reporters![0]!]!,
         ...oldContent,
       });
 
@@ -140,6 +161,7 @@ describe('Import Nominations from local file', () => {
       await givenAReportPm({
         ...firstTsvContent,
         reporterName: firstTsvContent.reporters![0]!,
+        reporterId: reportersMap[firstTsvContent.reporters![0]!]!,
       });
 
       await db.insert(reportRules).values({
@@ -180,6 +202,7 @@ describe('Import Nominations from local file', () => {
     const givenAReportPm = async (
       content: Omit<NominationFileRead['content'], 'reporters'> & {
         reporterName: string | null;
+        reporterId: string | null;
       },
     ) => {
       await db.insert(reports).values({
@@ -285,6 +308,7 @@ describe('Import Nominations from local file', () => {
     id: expect.any(String),
     nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
+    reporterId: reportersMap[content.reporterName!]!,
     folderNumber: content.folderNumber,
     state: content.state,
     dueDate: content.dueDate

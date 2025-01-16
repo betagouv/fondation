@@ -1,6 +1,8 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
+import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
+import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
@@ -14,6 +16,7 @@ import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
 const importedNominationFileId = 'imported-nomination-file-id';
+const userId = 'reporter-id';
 
 describe('Create Report Use Case', () => {
   let nominationFileReportRepository: FakeNominationFileReportRepository;
@@ -21,6 +24,7 @@ describe('Create Report Use Case', () => {
   let uuidGenerator: DeterministicUuidGenerator;
   let reportRuleRepository: FakeReportRuleRepository;
   let datetimeProvider: DeterministicDateProvider;
+  let reporterTranslatorService: ReporterTranslatorService;
 
   beforeEach(() => {
     nominationFileReportRepository = new FakeNominationFileReportRepository();
@@ -31,6 +35,11 @@ describe('Create Report Use Case', () => {
     reportRuleRepository = new FakeReportRuleRepository();
     datetimeProvider = new DeterministicDateProvider();
     datetimeProvider.currentDate = new Date(2021, 8, 22);
+    const userService = new StubUserService();
+    userService.user = {
+      userId,
+    };
+    reporterTranslatorService = new ReporterTranslatorService(userService);
   });
 
   it("doesn't create any report if there's a rules count mismatch", () => {
@@ -62,6 +71,7 @@ describe('Create Report Use Case', () => {
       biography: payload.biography,
       dueDate: new DateOnly(2035, 8, 22),
       name: payload.name,
+      reporterId: 'reporter-id',
       reporterName: payload.reporterName,
       birthDate: new DateOnly(1962, 8, 22),
       state: payload.state,
@@ -114,6 +124,7 @@ describe('Create Report Use Case', () => {
       uuidGenerator,
       reportRuleRepository,
       datetimeProvider,
+      reporterTranslatorService,
     ).execute(importedNominationFileId, payload);
 
   const expectReports = (...reports: NominationFileReportSnapshot[]) => {

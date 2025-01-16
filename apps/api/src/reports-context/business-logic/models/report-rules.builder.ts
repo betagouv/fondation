@@ -6,11 +6,15 @@ import { ReportRuleSnapshot } from './report-rules';
 export class ReportRuleBuilder {
   private _snapshot: ReportRuleSnapshot;
 
-  constructor() {
+  constructor(idMode: 'fake' | 'uuid' = 'fake') {
     this._snapshot = {
-      id: 'rule-id',
+      id:
+        idMode === 'fake' ? 'rule-id' : 'cd1619e2-263d-49b6-b928-6a04ee681132',
       createdAt: new Date(2021, 1, 1),
-      reportId: 'report-id',
+      reportId:
+        idMode === 'fake'
+          ? 'report-id'
+          : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
       ruleName: NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
       preValidated: true,

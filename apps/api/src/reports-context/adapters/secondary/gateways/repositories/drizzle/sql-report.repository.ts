@@ -8,6 +8,7 @@ import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondar
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
+import { Reporter } from 'src/reports-context/business-logic/models/reporter';
 
 export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
@@ -74,6 +75,7 @@ export class SqlReportRepository implements ReportRepository {
       id: report.id,
       nominationFileId: report.nominationFileId,
       createdAt: report.createdAt,
+      reporterId: report.reporter?.reporterId,
       folderNumber: report.folderNumber,
       biography: report.biography,
       dueDate: report.dueDate ? report.dueDate.toDbString() : null,
@@ -104,6 +106,7 @@ export class SqlReportRepository implements ReportRepository {
       row.id,
       row.nominationFileId,
       row.createdAt,
+      row.reporterId ? new Reporter(row.reporterId) : null,
       row.folderNumber,
       row.biography,
       row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,

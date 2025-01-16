@@ -14,7 +14,11 @@ export const endpointsPaths: Pick<
 export class SessionValidationService {
   constructor(private readonly apiConfig: ApiConfig) {}
 
-  async validateSession(signedSessionId: string): Promise<boolean> {
+  async validateSession(
+    signedSessionId: string,
+  ): Promise<
+    IdentityAndAccessRestContract['endpoints']['validateSession']['response']
+  > {
     const url = new URL(
       this.apiConfig.contextServices.identityAndAccessContext.baseUrl,
     );
@@ -26,13 +30,12 @@ export class SessionValidationService {
       },
       body: JSON.stringify({ sessionId: signedSessionId }),
     });
-    console.log('response', signedSessionId, response);
 
     if (!response.ok) {
-      return false;
+      return null;
     }
 
     const responseData = await response.text();
-    return !!responseData;
+    return responseData;
   }
 }

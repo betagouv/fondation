@@ -46,31 +46,42 @@ describe('SQL Report Retrieval VM Query', () => {
 
   it('throws an error if no report', async () => {
     await expect(
-      sqlReportRetrievalVMQuery.retrieveReport('unknown-id'),
+      sqlReportRetrievalVMQuery.retrieveReport('unknown-id', 'reporter-id'),
     ).rejects.toThrow();
   });
 
   describe('when there is a report', () => {
     let aReport: NominationFileReportSnapshot;
+    let aReportNotOwned: NominationFileReportSnapshot;
     let aReportRuleSnapshot: ReportRuleSnapshot;
 
     beforeEach(async () => {
-      aReport = new ReportBuilder()
-        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      aReport = new ReportBuilder('uuid')
         .with('dueDate', new DateOnly(2030, 10, 1))
-        .with('birthDate', new DateOnly(1980, 1, 1))
-
+        .with('observers', ['observer1'])
         .build();
+
+      aReportNotOwned = new ReportBuilder()
+        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
+        .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
+        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
+        .with('dueDate', new DateOnly(2040, 5, 1))
+        .build();
+
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      await db.insert(reports).values(reportRow).execute();
+      const anotherReportRow =
+        SqlReportRepository.mapSnapshotToDb(aReportNotOwned);
+      await db.insert(reports).values([reportRow, anotherReportRow]).execute();
 
       aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
     });
 
     it('retrieves a report', async () => {
       const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
-      const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(
+        aReport.id,
+        aReport.reporterId!,
+      );
       expect(result).toEqual<ReportRetrievalQueried>(
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
           aReport,
@@ -78,6 +89,14 @@ describe('SQL Report Retrieval VM Query', () => {
           .with('rules', expectedRules)
           .buildQueried(),
       );
+    });
+
+    it("doesn't return a report not owned by the reporter", async () => {
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(
+        aReportNotOwned.id,
+        aReport.reporterId!,
+      );
+      expect(result).toBeNull();
     });
 
     it('retrieves a report with its file', async () => {
@@ -98,7 +117,10 @@ describe('SQL Report Retrieval VM Query', () => {
         })
         .execute();
 
-      const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(
+        aReport.id,
+        aReport.reporterId!,
+      );
 
       const aReportQueried: ReportRetrievalQueried =
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
@@ -119,9 +141,7 @@ describe('SQL Report Retrieval VM Query', () => {
     let aReportRuleSnapshot: ReportRuleSnapshot;
 
     beforeEach(async () => {
-      aReport = new ReportBuilder()
-        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681132')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      aReport = new ReportBuilder('uuid')
         .with('dueDate', null)
         .with('comment', null)
         .build();
@@ -134,7 +154,10 @@ describe('SQL Report Retrieval VM Query', () => {
 
     it('retrieves with empty values', async () => {
       const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
-      const result = await sqlReportRetrievalVMQuery.retrieveReport(aReport.id);
+      const result = await sqlReportRetrievalVMQuery.retrieveReport(
+        aReport.id,
+        aReport.reporterId!,
+      );
       expect(result).toEqual<ReportRetrievalQueried>(
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
           aReport,

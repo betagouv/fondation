@@ -32,10 +32,13 @@ import {
   REPORT_REPOSITORY,
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
+  USER_SERVICE,
 } from './tokens';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
+import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
+import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
 
 @Module({
   imports: [SharedKernelModule],
@@ -57,6 +60,7 @@ import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/
       UUID_GENERATOR,
       REPORT_RULE_REPOSITORY,
       DATE_TIME_PROVIDER,
+      ReporterTranslatorService,
     ]),
     generateProvider(ChangeRuleValidationStateUseCase, [
       REPORT_RULE_REPOSITORY,
@@ -94,6 +98,15 @@ import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/
       // generateProvider function doesn't handle the union type in ApiConfig
       useFactory: (apiConfig: ApiConfig) => {
         return new HttpReportFileService(apiConfig);
+      },
+      inject: [API_CONFIG],
+    },
+    generateProvider(ReporterTranslatorService, [USER_SERVICE]),
+    {
+      provide: USER_SERVICE,
+      // generateProvider function doesn't handle the union type in ApiConfig
+      useFactory: (apiConfig: ApiConfig) => {
+        return new HttpUserService(apiConfig);
       },
       inject: [API_CONFIG],
     },

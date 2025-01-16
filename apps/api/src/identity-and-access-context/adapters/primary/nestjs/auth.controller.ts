@@ -1,16 +1,23 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Req,
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { IdentityAndAccessRestContract } from 'shared-models';
+import {
+  AuthenticatedUser,
+  IdentityAndAccessRestContract,
+} from 'shared-models';
 import { SignatureProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/signature.provider';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
+import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import {
@@ -20,6 +27,7 @@ import {
 import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { LoginNestDto } from './dto/login.dto';
+import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
 import { SIGNATURE_PROVIDER } from './tokens';
 
@@ -30,6 +38,7 @@ const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
   login: 'login',
   validateSession: 'validate-session',
   logout: 'logout',
+  userWithFullName: 'user-with-full-name/:fullName',
 };
 
 @Controller(baseRoute)
@@ -41,6 +50,7 @@ export class AuthController implements IAuthController {
     @Inject(SIGNATURE_PROVIDER)
     private readonly signatureProvider: SignatureProvider,
     @Inject(API_CONFIG) private readonly apiConfig: ApiConfig,
+    private readonly userWithFullNameUseCase: UserWithFullNameUseCase,
   ) {}
 
   @Post(endpointsPaths.login)
@@ -50,7 +60,11 @@ export class AuthController implements IAuthController {
       loginDto.password,
     );
     this.createSessionCookie(sessionId, res);
-    return res.status(HttpStatus.OK).send(userDescriptor);
+    const authenticatedUser: AuthenticatedUser = {
+      firstName: userDescriptor.firstName,
+      lastName: userDescriptor.lastName,
+    };
+    return res.status(HttpStatus.OK).send(authenticatedUser);
   }
 
   @Post(endpointsPaths.validateSession)
@@ -85,6 +99,13 @@ export class AuthController implements IAuthController {
     await this.logoutUser.execute(sessionId);
     this.clearSessionCookie(res);
     return res.status(HttpStatus.OK).send();
+  }
+
+  @Get(endpointsPaths.userWithFullName)
+  async userWithFullName(
+    @Param() params: UserWithFullNameParamsNestDto,
+  ): Promise<UserDescriptorSerialized | null> {
+    return this.userWithFullNameUseCase.execute(params.fullName);
   }
 
   private createSessionCookie(sessionId: string, res: Response) {

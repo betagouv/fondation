@@ -29,5 +29,8 @@ export interface ReportRetrievalQueried {
 }
 
 export interface ReportRetrievalQuery {
-  retrieveReport(id: string): Promise<ReportRetrievalQueried | null>;
+  retrieveReport(
+    id: string,
+    reporterId: string,
+  ): Promise<ReportRetrievalQueried | null>;
 }

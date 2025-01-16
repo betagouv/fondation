@@ -1,3 +1,6 @@
+import { UserBuilder } from 'src/identity-and-access-context/business-logic/builders/user.builder';
+import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -8,9 +11,6 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { users } from './schema/user-pm';
 import { SqlUserRepository } from './sql-user.repository';
-import { UserBuilder } from 'src/identity-and-access-context/business-logic/builders/user.builder';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
-import { User } from 'src/identity-and-access-context/business-logic/models/user';
 
 const aUser = User.fromSnapshot(
   new UserBuilder().with('id', 'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e').build(),
@@ -69,6 +69,20 @@ describe('SQL User Repository', () => {
         expect(
           await transactionPerformer.perform(
             sqlUserRepository.userWithEmail(email),
+          ),
+        ).toEqual(expected);
+      },
+    );
+
+    it.each([
+      { firstName: aUser.firstName, lastName: aUser.lastName, expected: aUser },
+      { firstName: 'Nonexistent', lastName: 'User', expected: null },
+    ])(
+      'finds a user by full name or return nothing',
+      async ({ firstName, lastName, expected }) => {
+        expect(
+          await transactionPerformer.perform(
+            sqlUserRepository.userWithFullName(firstName, lastName),
           ),
         ).toEqual(expected);
       },

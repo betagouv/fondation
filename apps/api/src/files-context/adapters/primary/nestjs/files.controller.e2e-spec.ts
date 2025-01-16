@@ -1,22 +1,19 @@
 import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { APP_PIPE, NestApplication } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { NestApplication } from '@nestjs/core';
+import { fileUploadQueryDtoSchema, FileVM } from 'shared-models';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
-import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import supertest from 'supertest';
+import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
-import { FilesContextModule } from './files-context.module';
-import { fileUploadQueryDtoSchema, FileVM } from 'shared-models';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
@@ -36,18 +33,7 @@ describe('Files Controller', () => {
   beforeEach(async () => {
     await clearDB(db);
 
-    const moduleFixture = await Test.createTestingModule({
-      imports: [FilesContextModule],
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ZodValidationPipe,
-        },
-      ],
-    })
-      .overrideProvider(DRIZZLE_DB)
-      .useValue(db)
-      .compile();
+    const moduleFixture = await new BaseAppTestingModule(db).compile();
     app = moduleFixture.createNestApplication();
     s3Client = app.get(S3Client);
 

@@ -37,6 +37,8 @@ import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/d
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 
+const reporterId = '123e4567-e89b-12d3-a456-426614174000';
+
 describe('Reports Controller', () => {
   let app: INestApplication;
   let db: DrizzleDb;
@@ -64,9 +66,10 @@ describe('Reports Controller', () => {
     describe('With authenticated session', () => {
       beforeEach(() => initApp({ validatedSession: true }));
 
-      it('lists reports', async () => {
+      it('lists reports owned by the reporter', async () => {
+        await givenAReportNotOwned();
         const response = await requestReportsList().expect(HttpStatus.OK);
-        expect(response.body.data).toEqual([aReportListingVM]);
+        expect(response.body).toEqual({ data: [aReportListingVM] });
       });
     });
     const aReportListingVM: ReportListItemVM = {
@@ -88,6 +91,7 @@ describe('Reports Controller', () => {
     };
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('reporterId', reporterId)
       .build();
     const requestReportsList = () =>
       request(app.getHttpServer())
@@ -132,6 +136,14 @@ describe('Reports Controller', () => {
     describe('With authenticated session', () => {
       beforeEach(() => initApp({ validatedSession: true }));
 
+      it("cannot retrieve another reporter's report", async () => {
+        const aReportNotOwned = await givenAReportNotOwned();
+        await request(app.getHttpServer())
+          .get(`/api/reports/${aReportNotOwned.id}`)
+          .set('Cookie', 'sessionId=unused')
+          .expect(HttpStatus.NOT_FOUND);
+      });
+
       it('retrieves a report', async () => {
         const response = await requestReport().expect(HttpStatus.OK);
         expect(response.body).toEqual<ReportRetrievalVM>({
@@ -155,11 +167,12 @@ describe('Reports Controller', () => {
       });
     });
 
-    const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalBuilder()
-      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .buildVM();
+    const aReportRetrievedVM: ReportRetrievalVM = new ReportRetrievalBuilder(
+      'uuid',
+    ).buildVM();
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
       .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('reporterId', reporterId)
       .build();
     const requestReport = () =>
       request(app.getHttpServer())
@@ -169,8 +182,7 @@ describe('Reports Controller', () => {
 
   describe('Rules validation state', () => {
     beforeEach(async () => {
-      const reportRow =
-        SqlReportRepository.mapSnapshotToDb(nominationFileReport);
+      const reportRow = SqlReportRepository.mapSnapshotToDb(report);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -192,8 +204,7 @@ describe('Reports Controller', () => {
       });
 
       it('unvalidates an overseas to overseas validation rule', async () => {
-        const ruleRow =
-          SqlReportRuleRepository.mapSnapshotToDb(reportRuleSnapshot);
+        const ruleRow = SqlReportRuleRepository.mapSnapshotToDb(reportRule);
         await db.insert(reportRules).values(ruleRow).execute();
 
         const body: ChangeRuleValidationStateDto = {
@@ -207,12 +218,12 @@ describe('Reports Controller', () => {
         const savedReportRules = await db
           .select()
           .from(reportRules)
-          .where(eq(reportRules.id, reportRuleSnapshot.id))
+          .where(eq(reportRules.id, reportRule.id))
           .execute();
         expect(savedReportRules).toEqual([
           SqlReportRuleRepository.mapToDb(
             ReportRule.fromSnapshot({
-              ...reportRuleSnapshot,
+              ...reportRule,
               validated: false,
             }),
           ),
@@ -220,17 +231,14 @@ describe('Reports Controller', () => {
       });
     });
 
-    const nominationFileReport = new ReportBuilder()
-      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+    const report = new ReportBuilder('uuid').build();
+    const reportRule = new ReportRuleBuilder('uuid')
+      .with('reportId', report.id)
       .build();
-    const reportRuleSnapshot = new ReportRuleBuilder()
-      .with('id', 'f6c92518-19a1-488d-b518-5c39d3ac26c7')
-      .with('reportId', nominationFileReport.id)
-      .build();
+
     const requestReportRule = () =>
       request(app.getHttpServer())
-        .put(`/api/reports/rules/${nominationFileReport.id}`)
+        .put(`/api/reports/rules/${reportRule.id}`)
         .set('Cookie', 'sessionId=unused');
   });
 
@@ -326,6 +334,19 @@ describe('Reports Controller', () => {
     const aReportSnapshot = new ReportBuilder('uuid').build();
   });
 
+  const givenAReportNotOwned = async () => {
+    const aReportNotOwned = new ReportBuilder('uuid')
+      .with('id', '10a4b056-dafa-4d28-93b5-e7dd51b9793d')
+      .with('reporterId', '1c3f4001-8e08-4359-a68d-55fbf9811534')
+      .build();
+    const anotherReportRow =
+      SqlReportRepository.mapSnapshotToDb(aReportNotOwned);
+
+    await db.insert(reports).values(anotherReportRow).execute();
+
+    return aReportNotOwned;
+  };
+
   const initApp = async ({
     validatedSession,
   }: {
@@ -350,8 +371,10 @@ describe('Reports Controller', () => {
     withStubSessionValidationService(validated: boolean) {
       this.moduleFixture.overrideProvider(SessionValidationService).useClass(
         class StubSessionValidationService {
-          async validateSession(): Promise<boolean> {
-            return validated;
+          async validateSession(): ReturnType<
+            SessionValidationService['validateSession']
+          > {
+            return validated ? reporterId : null;
           }
         },
       );

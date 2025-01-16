@@ -8,8 +8,14 @@ export class RetrieveReportUseCase {
     private reportFileService: ReportFileService,
   ) {}
 
-  async execute(id: string): Promise<ReportRetrievalVM | null> {
-    const report = await this.reportRetrievalVMQuery.retrieveReport(id);
+  async execute(
+    id: string,
+    reporterId: string,
+  ): Promise<ReportRetrievalVM | null> {
+    const report = await this.reportRetrievalVMQuery.retrieveReport(
+      id,
+      reporterId,
+    );
     if (!report) return null;
 
     const { attachedFilesVO, ...rest } = report;
