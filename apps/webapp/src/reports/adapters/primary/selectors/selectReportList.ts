@@ -18,7 +18,6 @@ export type ReportListItemVM = {
   dueDate: string | null;
   formation: ReturnType<typeof formationToLabel>;
   name: string;
-  reporterName: string | null;
   transparency: ReturnType<typeof transparencyToLabel>;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
@@ -38,10 +37,9 @@ export const selectReportList = createAppSelector(
   [
     (state) => state.reportList.data,
     (state) => state.router.anchorsAttributes.reportOverview,
-    (state) => state.authentication.user,
     (state) => state.reportList.filters,
   ],
-  (data, getAnchorAttributes, user, filters): ReportListVM => {
+  (data, getAnchorAttributes, filters): ReportListVM => {
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
@@ -62,16 +60,12 @@ export const selectReportList = createAppSelector(
     );
 
     const reports = sortedReports
-      .filter(({ reporterName }) =>
-        user ? reporterName === user.reporterName : false,
-      )
       .filter(({ state }) => (reportState ? state === reportState : true))
       .map(
         ({
           id,
           folderNumber,
           name,
-          reporterName,
           dueDate,
           state,
           formation,
@@ -93,7 +87,6 @@ export const selectReportList = createAppSelector(
           return {
             id,
             folderNumber: folderNumber ?? "Profilé",
-            reporterName,
             state: stateToLabel(state),
             dueDate: dueDateFormatted,
             formation: formationToLabel(formation),

@@ -1,15 +1,16 @@
 import { ApiAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
+import { AuthenticateParams } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { listReport } from "./listReport.use-case";
 
-describe("Nomination Files Listing", () => {
+describe("Reports Listing", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let authenticationGateway: ApiAuthenticationGateway;
@@ -42,10 +43,10 @@ describe("Nomination Files Listing", () => {
     describe("Authenticated user", () => {
       beforeEach(() => {
         apiClient.setEligibleAuthUser(
-          "user@example.fr",
-          "password",
-          userFirstName,
-          userLastName,
+          userCredentials.email,
+          userCredentials.password,
+          user.firstName,
+          user.lastName,
         );
       });
 
@@ -60,7 +61,6 @@ describe("Nomination Files Listing", () => {
                 id: aReport.id,
                 folderNumber: aReport.folderNumber,
                 name: aReport.name,
-                reporterName: user.reporterName,
                 dueDate: aReport.dueDate,
                 state: aReport.state,
                 formation: aReport.formation,
@@ -77,16 +77,18 @@ describe("Nomination Files Listing", () => {
   });
 });
 
-const userFirstName = "Name";
-const userLastName = "Reporter";
-const user = {
-  reporterName: "REPORTER Name",
-} satisfies AuthenticatedUser;
+const user: AuthenticatedUserSM = {
+  firstName: "John",
+  lastName: "Doe",
+};
+const userCredentials: AuthenticateParams = {
+  email: "user@example.fr",
+  password: "password",
+};
 
 const aReportApiModel = new ReportApiModelBuilder()
   .with("id", "user-report-id")
   .with("name", "Lucien Denan")
-  .with("reporterName", user.reporterName)
   .with("dueDate", { year: 2030, month: 10, day: 10 })
   .build();
 const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildListSM();

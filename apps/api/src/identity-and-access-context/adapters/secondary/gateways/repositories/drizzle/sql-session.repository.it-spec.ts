@@ -76,6 +76,21 @@ describe('SQL Session Repository', () => {
     ]);
   });
 
+  it('retrieves a session', async () => {
+    await givenAUser();
+    await givenASession({ createdAt: new Date(2029, 10, 1) });
+
+    const session = await transactionPerformer.perform(
+      sqlSessionRepository.session(aSessionId),
+    );
+
+    expect(session!.userId).toEqual(aUserId);
+    expect(session!.sessionId).toEqual(aSessionId);
+    expect(session!.createdAt).toEqual(new Date(2029, 10, 1));
+    expect(session!.expiresAt).toEqual(expiresAt);
+    expect(session!.invalidatedAt).toBeNull();
+  });
+
   const givenAUser = async () => {
     await db
       .insert(users)

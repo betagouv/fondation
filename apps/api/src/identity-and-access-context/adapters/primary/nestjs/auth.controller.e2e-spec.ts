@@ -86,10 +86,18 @@ describe('Auth Controller', () => {
         .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
 
       const expectedAuthenticatedUser: AuthenticatedUser = {
+        userId: expect.any(String),
         firstName: 'new',
         lastName: 'user',
       };
       expect(response.body).toEqual(expectedAuthenticatedUser);
+    });
+
+    it('says non-existing user are unauthorized to log in', async () => {
+      await supertest(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: 'nonexistent@example.com', password: 'wrong-password' })
+        .expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
@@ -120,6 +128,7 @@ describe('Auth Controller', () => {
         .expect('Access-Control-Allow-Credentials', 'true');
 
       const expectedAuthenticatedUser: AuthenticatedUser = {
+        userId: aUserDb.id,
         firstName: aUserDb.firstName,
         lastName: aUserDb.lastName,
       };
@@ -207,19 +216,32 @@ describe('Auth Controller', () => {
   });
 
   describe('User retrieval', () => {
-    it('retrieves a user by full name', async () => {
-      const response = await supertest(app.getHttpServer())
-        .get(
-          `/api/auth/user-with-full-name/${aUserDb.lastName} ${aUserDb.firstName}`,
-        )
-        .expect(HttpStatus.OK);
-
+    it.each`
+      description       | pathname
+      ${'by full name'} | ${`user-with-full-name/${aUserDb.lastName} ${aUserDb.firstName}`}
+      ${'by ID'}        | ${`user-with-id/${aUserDb.id}`}
+    `('retrieves a user $description', async ({ pathname }) => {
+      const response = await expectResponse(pathname, HttpStatus.OK);
       expect(response.body).toEqual<UserDescriptorSerialized>({
         userId: aUserDb.id,
         firstName: aUserDb.firstName,
         lastName: aUserDb.lastName,
       });
     });
+
+    it.each`
+      description    | pathname
+      ${'full name'} | ${`user-with-full-name/wrong_last_name ${aUserDb.firstName}`}
+      ${'ID'}        | ${`user-with-id/da4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b`}
+    `(
+      'says user is not found if no user matches the non-existing $description',
+      ({ pathname }) => expectResponse(pathname, HttpStatus.NOT_FOUND),
+    );
+
+    const expectResponse = (pathname: string, statusCode: HttpStatus) =>
+      supertest(app.getHttpServer())
+        .get(`/api/auth/${pathname}`)
+        .expect(statusCode);
   });
 
   const givenSomeSessions = async (

@@ -38,7 +38,6 @@ export class ReportBuilder {
       targettedPosition: 'Juge TJ -Marseille',
       comment: 'my comment',
       rank: '(2 sur une liste de 100)',
-      reporterName: 'EMILIEN Denis',
       observers: ['default observer'],
       attachedFiles: null,
     };
@@ -76,7 +75,6 @@ export class ReportBuilder {
       )
       .with('formation', reportListingVM.formation)
       .with('name', reportListingVM.name)
-      .with('reporterName', reportListingVM.reporterName)
       .with('transparency', reportListingVM.transparency)
       .with('grade', reportListingVM.grade)
       .with('targettedPosition', reportListingVM.targettedPosition);

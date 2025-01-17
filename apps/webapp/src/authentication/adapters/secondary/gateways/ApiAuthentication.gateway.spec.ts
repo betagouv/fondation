@@ -1,4 +1,4 @@
-import { AuthenticatedUser } from "../../../core-logic/gateways/Authentication.gateway";
+import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
 import { ApiAuthenticationGateway } from "./ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "./FakeAuthentication.client";
 
@@ -9,10 +9,10 @@ describe("Api Authentication Gateway", () => {
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
     apiClient.setEligibleAuthUser(
-      "user@example.com",
-      "password123",
-      "john",
-      "doe",
+      userCredentials.email,
+      userCredentials.password,
+      user.firstName,
+      user.lastName,
     );
 
     gateway = new ApiAuthenticationGateway(apiClient);
@@ -20,12 +20,10 @@ describe("Api Authentication Gateway", () => {
 
   it("authenticates a user and returns the reporter name", async () => {
     const authenticatedUser = await gateway.authenticate(
-      "user@example.com",
-      "password123",
+      userCredentials.email,
+      userCredentials.password,
     );
-    expect(authenticatedUser).toEqual<AuthenticatedUser>({
-      reporterName: "DOE John",
-    });
+    expect(authenticatedUser).toEqual<AuthenticatedUserSM>(user);
   });
 
   it("logs out a user", async () => {
@@ -33,3 +31,12 @@ describe("Api Authentication Gateway", () => {
     expect(apiClient.user).toBeNull();
   });
 });
+
+const user: AuthenticatedUserSM = {
+  firstName: "john",
+  lastName: "doe",
+};
+const userCredentials = {
+  email: "user@example.com",
+  password: "password123",
+};

@@ -32,7 +32,6 @@ export class ReportBuilder {
     this._report = {
       id: "report-id",
       name: "John Doe",
-      reporterName: "REPORTER Name",
       folderNumber: 1,
       biography: "John Doe's biography",
       dueDate: new DateOnly(2030, 10, 30),
@@ -64,7 +63,6 @@ export class ReportBuilder {
       id: this._report.id,
       folderNumber: this._report.folderNumber,
       name: this._report.name,
-      reporterName: this._report.reporterName,
       dueDate: this._report.dueDate?.toStoreModel() ?? null,
       state: this._report.state,
       formation: this._report.formation,

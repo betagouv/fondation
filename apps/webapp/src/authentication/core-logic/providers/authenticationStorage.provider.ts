@@ -1,8 +1,8 @@
-import { AuthenticatedUser } from "../gateways/Authentication.gateway";
+import { AuthenticatedUserSM } from "../gateways/Authentication.gateway";
 
 export interface AuthenticationStorageProvider {
-  storeAuthentication(payload: AuthenticatedUser): void;
+  storeAuthentication(payload: AuthenticatedUserSM): void;
   storeDisconnection(): void;
   isAuthenticated: () => boolean;
-  getUser: () => AuthenticatedUser;
+  getUser: () => AuthenticatedUserSM | null;
 }

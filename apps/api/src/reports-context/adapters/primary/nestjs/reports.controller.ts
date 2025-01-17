@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import {
   Body,
   Controller,
@@ -14,6 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Request } from 'express';
 import { ReportsContextRestContract } from 'shared-models';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
@@ -26,8 +26,8 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import { ReportUpdateDto } from './dto/report-update.dto';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
+import { ReportUpdateDto } from './dto/report-update.dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -100,11 +100,14 @@ export class ReportsController implements IReportController {
     @Param()
     { id }: ReportsContextRestContract['endpoints']['attachFile']['params'],
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
   ) {
+    const reporterId = req.userId!;
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,
       file.buffer,
+      reporterId,
     );
   }
 

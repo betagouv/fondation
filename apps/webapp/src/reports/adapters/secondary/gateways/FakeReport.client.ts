@@ -86,7 +86,6 @@ export class FakeReportApiClient implements ReportApiClient {
       dueDate: report.dueDate,
       formation: report.formation,
       name: report.name,
-      reporterName: report.reporterName,
       transparency: report.transparency,
       grade: report.grade,
       targettedPosition: report.targettedPosition,
@@ -159,7 +158,7 @@ export class FakeReportApiClient implements ReportApiClient {
   private listItemsGuard(
     report: ReportRetrievalVM | ReportListItemVM,
   ): asserts report is ReportListItemVM {
-    if (!("reporterName" in report))
+    if (!("observersCount" in report))
       throw new Error("Fake report should be a of type list item");
   }
 }

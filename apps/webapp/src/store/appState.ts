@@ -5,11 +5,11 @@ import {
   NominationFile,
   Transparency,
 } from "shared-models";
-import { AuthenticatedUser } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
 import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
-import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
 
 export interface ReportSM {
   id: string;
@@ -41,7 +41,7 @@ export type ReportListItem = Pick<
   | "transparency"
   | "grade"
   | "targettedPosition"
-> & { reporterName: string | null; observersCount: number };
+> & { observersCount: number };
 
 export interface AppState {
   sharedKernel: {
@@ -60,7 +60,7 @@ export interface AppState {
   };
   authentication: {
     authenticated: boolean;
-    user: AuthenticatedUser;
+    user: AuthenticatedUserSM | null;
   };
   router: {
     hrefs: {

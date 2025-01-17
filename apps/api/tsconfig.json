@@ -21,6 +21,15 @@
     "esModuleInterop": true,
     "lib": ["ESNext"],
   },
-  "include": ["src/**/*.ts","test/**/*.ts","cli/**/*.ts", "drizzle.config.ts"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "cli/**/*.ts",
+    "drizzle.config.ts"
+  ],
   "references":[{"path": "../../packages/shared-models"}],
+  "ts-node": {
+    // Can't have Express types override recognised
+    "transpileOnly": true,
+  },
 }

@@ -41,7 +41,7 @@ async function seed() {
 
     const reportSnapshot1 = new ReportBuilder('uuid')
       .with('name', 'John Doe')
-      .with('reporterName', 'DENAN Luc')
+      .with('reporterId', user.id!)
       .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
       .build();
 
@@ -71,7 +71,6 @@ async function seed() {
     const reportSnapshot2 = new ReportBuilder('uuid')
       .with('id', crypto.randomUUID())
       .with('name', 'Ada Lovelace')
-      .with('reporterName', 'DENAN Luc')
       .with('biography', '- Tribunal de grande instance de Paris')
       .with('birthDate', new DateOnly(1990, 1, 1))
       .with('dueDate', new DateOnly(2025, 10, 1))

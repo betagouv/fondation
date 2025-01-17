@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
   HttpStatus,
   Inject,
   Param,
@@ -15,11 +16,11 @@ import {
   IdentityAndAccessRestContract,
 } from 'shared-models';
 import { SignatureProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/signature.provider';
-import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
-import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
+import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
+import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
 import {
   IController,
   IControllerPaths,
@@ -28,6 +29,7 @@ import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { LoginNestDto } from './dto/login.dto';
 import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.dto';
+import { UserWithIdParamsNestDto } from './dto/user-with-id-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
 import { SIGNATURE_PROVIDER } from './tokens';
 
@@ -39,6 +41,7 @@ const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
   validateSession: 'validate-session',
   logout: 'logout',
   userWithFullName: 'user-with-full-name/:fullName',
+  userWithId: 'user-with-id/:userId',
 };
 
 @Controller(baseRoute)
@@ -51,20 +54,26 @@ export class AuthController implements IAuthController {
     private readonly signatureProvider: SignatureProvider,
     @Inject(API_CONFIG) private readonly apiConfig: ApiConfig,
     private readonly userWithFullNameUseCase: UserWithFullNameUseCase,
+    private readonly userWithIdUseCase: UserWithIdUseCase,
   ) {}
 
   @Post(endpointsPaths.login)
   async login(_: any, @Body() loginDto: LoginNestDto, @Res() res: Response) {
-    const { sessionId, userDescriptor } = await this.loginUser.execute(
-      loginDto.email,
-      loginDto.password,
-    );
-    this.createSessionCookie(sessionId, res);
-    const authenticatedUser: AuthenticatedUser = {
-      firstName: userDescriptor.firstName,
-      lastName: userDescriptor.lastName,
-    };
-    return res.status(HttpStatus.OK).send(authenticatedUser);
+    try {
+      const { sessionId, userDescriptor } = await this.loginUser.execute(
+        loginDto.email,
+        loginDto.password,
+      );
+      this.createSessionCookie(sessionId, res);
+      const authenticatedUser: AuthenticatedUser = {
+        userId: userDescriptor.userId,
+        firstName: userDescriptor.firstName,
+        lastName: userDescriptor.lastName,
+      };
+      return res.status(HttpStatus.OK).send(authenticatedUser);
+    } catch {
+      return res.status(HttpStatus.UNAUTHORIZED).send('Invalid credentials');
+    }
   }
 
   @Post(endpointsPaths.validateSession)
@@ -101,11 +110,25 @@ export class AuthController implements IAuthController {
     return res.status(HttpStatus.OK).send();
   }
 
+  @Get(endpointsPaths.userWithId)
+  async userWithId(@Param() params: UserWithIdParamsNestDto) {
+    const userDescriptor = await this.userWithIdUseCase.execute(params.userId);
+    return this.responseWithUserDescriptor(userDescriptor);
+  }
+
   @Get(endpointsPaths.userWithFullName)
-  async userWithFullName(
-    @Param() params: UserWithFullNameParamsNestDto,
-  ): Promise<UserDescriptorSerialized | null> {
-    return this.userWithFullNameUseCase.execute(params.fullName);
+  async userWithFullName(@Param() params: UserWithFullNameParamsNestDto) {
+    const userDescriptor = await this.userWithFullNameUseCase.execute(
+      params.fullName,
+    );
+    return this.responseWithUserDescriptor(userDescriptor);
+  }
+
+  private responseWithUserDescriptor(userDescriptor: AuthenticatedUser | null) {
+    if (!userDescriptor) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return userDescriptor;
   }
 
   private createSessionCookie(sessionId: string, res: Response) {

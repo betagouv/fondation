@@ -47,7 +47,7 @@ export class CreateReportUseCase {
     const reportId = this.uuidGenerator.generate();
 
     const reporter = createReportPayload.reporterName
-      ? await this.reporterTranslatorService.reporterFrom(
+      ? await this.reporterTranslatorService.reporterWithFullName(
           createReportPayload.reporterName,
         )
       : null;

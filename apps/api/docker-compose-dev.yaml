@@ -47,13 +47,10 @@ services:
       - ../../node_modules:/usr/src/fondation/node_modules
       - ../../pnpm-lock.yaml:/usr/src/fondation/pnpm-lock.yaml
       - ~/.pnpm-store:/root/.pnpm-store
-      - ${NOMINATION_FILES_ABSOLUTE_PATH_LOCAL}:${NOMINATION_FILES_ABSOLUTE_PATH_DOCKER}
     depends_on:
       - postgres
     command: |
       bash -c "
-      echo 'Docker nomination files path: $NOMINATION_FILES_ABSOLUTE_PATH_DOCKER' &&
-
       until node -e 'require(\"net\").connect(5432, \"postgres\").on(\"error\", () => process.exit(1)).on(\"connect\", () => process.exit(0))'; do
         echo 'Waiting for postgres...'
         sleep 1
@@ -62,10 +59,6 @@ services:
       echo \"Migration starting\" &&
       npm run drizzle:migrate &&
       echo \"Migration done\" &&
-
-      echo \"Seeding with TSV file starting\" &&
-      npm run cli:upload-nomination-files:local -- \"$NOMINATION_FILES_ABSOLUTE_PATH_DOCKER\"
-      echo \"Seeding with TSV file done\"
 
       echo \"Running npm cli:seed\" &&
       npm run cli:seed &&

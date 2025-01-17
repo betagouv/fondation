@@ -1,10 +1,10 @@
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
-import { AuthenticatedUser } from "../../gateways/Authentication.gateway";
+import { AuthenticatedUserSM } from "../../gateways/Authentication.gateway";
 
-type AuthenticateParams = { email: string; password: string };
+export type AuthenticateParams = { email: string; password: string };
 
 export const authenticate = createAppAsyncThunk<
-  AuthenticatedUser,
+  AuthenticatedUserSM,
   AuthenticateParams
 >(
   "authentication/authenticate",

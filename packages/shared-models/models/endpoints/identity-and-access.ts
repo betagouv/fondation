@@ -8,7 +8,7 @@ export interface IdentityAndAccessRestContract extends RestContract {
       method: "POST";
       path: "login";
       body: LoginDto;
-      response: AuthenticatedUser | null;
+      response: AuthenticatedUser;
     };
     validateSession: {
       method: "POST";
@@ -24,13 +24,20 @@ export interface IdentityAndAccessRestContract extends RestContract {
     userWithFullName: {
       method: "GET";
       path: "user-with-full-name/:fullName";
-      params: UserFromFullNameParamsDto;
-      response: AuthenticatedUser | null;
+      params: UserWithFullNameParamsDto;
+      response: AuthenticatedUser;
+    };
+    userWithId: {
+      method: "GET";
+      path: "user-with-id/:userId";
+      params: UserWithIdParamsDto;
+      response: AuthenticatedUser;
     };
   };
 }
 
 export interface AuthenticatedUser {
+  userId: string;
   firstName: string;
   lastName: string;
 }
@@ -44,8 +51,12 @@ export interface ValidateSessionDto {
   sessionId: string;
 }
 
-export interface UserFromFullNameParamsDto extends Record<string, string> {
+export interface UserWithFullNameParamsDto extends Record<string, string> {
   fullName: string;
+}
+
+export interface UserWithIdParamsDto extends Record<string, string> {
+  userId: string;
 }
 
 export const loginDtoSchema = z.object({
@@ -60,3 +71,7 @@ export const validateSessionDtoSchema = z.object({
 export const userWithFullNameParamsDtoSchema = z.object({
   fullName: z.string().min(3),
 }) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithFullName">;
+
+export const userWithIdParamsDtoSchema = z.object({
+  userId: z.string().uuid(),
+}) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithId">;

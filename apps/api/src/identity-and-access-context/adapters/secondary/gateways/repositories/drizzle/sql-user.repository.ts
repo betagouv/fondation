@@ -62,6 +62,21 @@ export class SqlUserRepository implements UserRepository {
     };
   }
 
+  userWithId(userId: string): DrizzleTransactionableAsync<User | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (result.length === 0) return null;
+
+      const userRow = result[0]!;
+      return SqlUserRepository.mapToDomain(userRow);
+    };
+  }
+
   static mapToDb(user: User): typeof users.$inferInsert {
     const snapshot = user.toSnapshot();
     return SqlUserRepository.mapSnapshotToDb(snapshot);

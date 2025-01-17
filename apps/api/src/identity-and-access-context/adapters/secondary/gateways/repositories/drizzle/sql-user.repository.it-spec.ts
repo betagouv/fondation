@@ -74,19 +74,30 @@ describe('SQL User Repository', () => {
       },
     );
 
-    it.each([
-      { firstName: aUser.firstName, lastName: aUser.lastName, expected: aUser },
-      { firstName: 'Nonexistent', lastName: 'User', expected: null },
-    ])(
-      'finds a user by full name or return nothing',
-      async ({ firstName, lastName, expected }) => {
-        expect(
-          await transactionPerformer.perform(
-            sqlUserRepository.userWithFullName(firstName, lastName),
-          ),
-        ).toEqual(expected);
-      },
-    );
+    const nonExistentId = 'dac7a3b1-dffb-44c4-a0e7-7e67bc46d61e';
+    it.each`
+      description                         | userId           | expected
+      ${'finds a user by ID'}             | ${aUser.id}      | ${aUser}
+      ${'returns nothing if no ID match'} | ${nonExistentId} | ${null}
+    `('$description', async ({ userId, expected }) => {
+      expect(
+        await transactionPerformer.perform(
+          sqlUserRepository.userWithId(userId),
+        ),
+      ).toEqual(expected);
+    });
+
+    it.each`
+      description                                | firstName          | lastName          | expected
+      ${'finds a user by full name'}             | ${aUser.firstName} | ${aUser.lastName} | ${aUser}
+      ${'returns nothing if no full name match'} | ${'Nonexistent'}   | ${aUser.lastName} | ${null}
+    `('$description', async ({ firstName, lastName, expected }) => {
+      expect(
+        await transactionPerformer.perform(
+          sqlUserRepository.userWithFullName(firstName, lastName),
+        ),
+      ).toEqual(expected);
+    });
 
     it('should not allow two users with the same email', async () => {
       const duplicateUser = User.fromSnapshot(

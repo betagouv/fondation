@@ -29,6 +29,7 @@ import {
   SIGNATURE_PROVIDER,
   USER_REPOSITORY,
 } from './tokens';
+import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
 
 @Module({
   imports: [SharedKernelModule],
@@ -48,8 +49,16 @@ import {
       SESSION_PROVIDER,
       TRANSACTION_PERFORMER,
     ]),
-    generateProvider(AuthenticationService, [USER_REPOSITORY]),
+    generateProvider(UserWithFullNameUseCase, [
+      USER_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
+    generateProvider(UserWithIdUseCase, [
+      USER_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
 
+    generateProvider(AuthenticationService, [USER_REPOSITORY]),
     generateProvider(BcryptEncryptionProvider, [], ENCRYPTION_PROVIDER),
     generateProvider(
       PersistentSessionProvider,
@@ -64,10 +73,6 @@ import {
       [DATE_TIME_PROVIDER],
       SESSION_REPOSITORY,
     ),
-    generateProvider(UserWithFullNameUseCase, [
-      USER_REPOSITORY,
-      TRANSACTION_PERFORMER,
-    ]),
   ],
 })
 export class IdentityAndAccessModule implements OnModuleInit {

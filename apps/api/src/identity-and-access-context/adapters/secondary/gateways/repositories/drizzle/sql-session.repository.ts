@@ -41,8 +41,8 @@ export class SqlSessionRepository implements SessionRepository {
     return new UserSession(
       sessionRow.createdAt,
       sessionRow.expiresAt,
-      sessionRow.userId,
       sessionRow.sessionId,
+      sessionRow.userId,
       sessionRow.invalidatedAt,
     );
   }

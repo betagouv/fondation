@@ -22,6 +22,10 @@ const aReport = new ReportBuilder('uuid')
   .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
   .with('grade', Magistrat.Grade.I)
   .build();
+const aReportDb = {
+  ...SqlReportRepository.mapSnapshotToDb(aReport),
+  reporterName: null,
+};
 
 const aReportUpdated = ReportBuilder.duplicateReport(aReport)
   .with('folderNumber', 10)
@@ -75,15 +79,12 @@ describe('SQL Report Repository', () => {
     );
 
     const existingReports = await db.select().from(reports).execute();
-    expect(existingReports).toEqual([
-      SqlReportRepository.mapSnapshotToDb(aReport),
-    ]);
+    expect(existingReports).toEqual([aReportDb]);
   });
 
   describe('when there is a report', () => {
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      await db.insert(reports).values(reportRow).execute();
+      await db.insert(reports).values(aReportDb).execute();
     });
 
     it.each`
@@ -97,7 +98,10 @@ describe('SQL Report Repository', () => {
 
       const existingReports = await db.select().from(reports).execute();
       expect(existingReports).toEqual([
-        SqlReportRepository.mapSnapshotToDb(updatedReportSnapshot),
+        {
+          ...SqlReportRepository.mapSnapshotToDb(updatedReportSnapshot),
+          reporterName: null,
+        },
       ]);
     });
 

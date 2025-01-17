@@ -1,6 +1,4 @@
 import { NominationFile, Transparency } from "shared-models";
-import { AuthenticatedUser } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
-import { authenticate } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
@@ -15,19 +13,9 @@ import {
 
 describe("Select Nomination Case List", () => {
   let store: ReduxStore;
-  // let apiClient: FakeAuthenticationApiClient;
   const onClick = () => null;
 
   beforeEach(() => {
-    // apiClient = new FakeAuthenticationApiClient();
-    // const authenticationGateway = new ApiAuthenticationGateway(apiClient);
-    // apiClient.setEligibleAuthUser(
-    //   user.email,
-    //   user.password,
-    //   user.firstName,
-    //   user.lastName,
-    // );
-
     const stubRouterProvider = new StubRouterProvider();
     stubRouterProvider.onClickAttribute = onClick;
     store = initReduxStore(
@@ -51,27 +39,15 @@ describe("Select Nomination Case List", () => {
   describe("when there are many reports", () => {
     beforeEach(() => {
       store.dispatch(
-        authenticate.fulfilled(user, "", {
-          email: user.email,
-          password: user.password,
-        }),
-      );
-      store.dispatch(
         listReport.fulfilled(
-          [
-            aReport,
-            aDifferentTransparencyReport,
-            aSecondReport,
-            aThirdReport,
-            anotherUserReport,
-          ],
+          [aReport, aDifferentTransparencyReport, aSecondReport, aThirdReport],
           "",
           undefined,
         ),
       );
     });
 
-    it("selects the sorted list by transparency then folder number for the auth user", () => {
+    it("selects the sorted list by transparency then folder number", () => {
       expect(selectReportList(store.getState())).toEqual<ReportListVM>({
         reports: [
           aReportVM,
@@ -122,7 +98,6 @@ describe("Select Nomination Case List", () => {
     .with("transparency", Transparency.AUTOMNE_2024)
     .with("folderNumber", 1)
     .with("name", "Banneau Louise")
-    .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
     .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
     .buildListSM();
@@ -130,7 +105,6 @@ describe("Select Nomination Case List", () => {
     id: aReport.id,
     folderNumber: 1,
     name: aReport.name,
-    reporterName: aReport.reporterName,
     dueDate: "30/10/2030",
     state: "Prêt à soutenir",
     formation: "Parquet",
@@ -147,14 +121,12 @@ describe("Select Nomination Case List", () => {
     .with("transparency", Transparency.AUTOMNE_2024)
     .with("folderNumber", null)
     .with("name", "Denan Lucien")
-    .with("reporterName", user.reporterName)
     .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListSM();
   const aSecondReportVM: ReportListItemVM = {
     id: aSecondReport.id,
     folderNumber: "Profilé",
     name: aSecondReport.name,
-    reporterName: aSecondReport.reporterName,
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
@@ -174,7 +146,6 @@ describe("Select Nomination Case List", () => {
     id: aThirdReport.id,
     folderNumber: 2,
     name: aThirdReport.name,
-    reporterName: aThirdReport.reporterName,
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
@@ -194,7 +165,6 @@ describe("Select Nomination Case List", () => {
     id: aDifferentTransparencyReport.id,
     folderNumber: 1,
     name: aDifferentTransparencyReport.name,
-    reporterName: aDifferentTransparencyReport.reporterName,
     dueDate: "30/10/2030",
     state: "Nouveau",
     formation: "Parquet",
@@ -205,24 +175,4 @@ describe("Select Nomination Case List", () => {
     href: `/dossier-de-nomination/${aDifferentTransparencyReport.id}`,
     onClick,
   };
-
-  const anotherUserReport = new ReportBuilder()
-    .with("id", "another-report-id")
-    .with("name", "Another name")
-    .with("reporterName", "ANOTHER REPORTER Name")
-    .with("dueDate", new DateOnly(2030, 10, 10))
-    .buildListSM();
 });
-
-const user = {
-  email: "username@example.fr",
-  password: "password",
-  firstName: "John",
-  lastName: "Doe",
-  reporterName: "REPORTER Name",
-} satisfies AuthenticatedUser & {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-};

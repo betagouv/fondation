@@ -3,7 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { authenticate } from "../authentication/core-logic/use-cases/authentication/authenticate";
+import {
+  authenticate,
+  AuthenticateParams,
+} from "../authentication/core-logic/use-cases/authentication/authenticate";
 import { ReportBuilder } from "../reports/core-logic/builders/Report.builder";
 import { retrieveReport } from "../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { initReduxStore, ReduxStore } from "../store/reduxStore";
@@ -19,6 +22,7 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
+import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
@@ -160,12 +164,7 @@ describe("App Router Component", () => {
   });
 
   const givenAnAuthenticatedUser = () => {
-    store.dispatch(
-      authenticate.fulfilled(null, "", {
-        email: "username@example.fr",
-        password: "password",
-      }),
-    );
+    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 
   function renderAppRouter() {
@@ -180,3 +179,11 @@ describe("App Router Component", () => {
 });
 
 const aNominationRetrieved = new ReportBuilder().buildRetrieveSM();
+const user: AuthenticatedUserSM = {
+  firstName: "John",
+  lastName: "Doe",
+};
+const userCredentials: AuthenticateParams = {
+  email: "user@example.fr",
+  password: "password",
+};

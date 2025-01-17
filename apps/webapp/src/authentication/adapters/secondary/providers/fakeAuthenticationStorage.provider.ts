@@ -1,17 +1,17 @@
-import { AuthenticatedUser } from "../../../core-logic/gateways/Authentication.gateway";
+import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
 import { AuthenticationStorageProvider } from "../../../core-logic/providers/authenticationStorage.provider";
 
 export class FakeAuthenticationStorageProvider
   implements AuthenticationStorageProvider
 {
   _isAuthenticated: boolean = false;
-  _user: AuthenticatedUser = null;
+  _user: AuthenticatedUserSM | null = null;
 
-  storeAuthentication(payload: AuthenticatedUser): void {
+  storeAuthentication(payload: AuthenticatedUserSM) {
     this._isAuthenticated = true;
     this._user = payload;
   }
-  storeDisconnection(): void {
+  storeDisconnection() {
     this._isAuthenticated = false;
     this._user = null;
   }
@@ -19,7 +19,7 @@ export class FakeAuthenticationStorageProvider
     return this._isAuthenticated;
   }
 
-  getUser(): AuthenticatedUser {
+  getUser() {
     return this._user;
   }
 }

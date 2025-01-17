@@ -34,4 +34,11 @@ export class FakeUserRepository implements UserRepository {
       return user ? User.fromSnapshot(user) : null;
     };
   }
+
+  userWithId(userId: string): TransactionableAsync<User | null> {
+    return async () => {
+      const user = this.users[userId];
+      return user ? User.fromSnapshot(user) : null;
+    };
+  }
 }

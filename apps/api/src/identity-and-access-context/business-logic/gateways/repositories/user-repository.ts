@@ -4,6 +4,7 @@ import { User } from '../../models/user';
 export interface UserRepository {
   save(user: User): TransactionableAsync;
   userWithEmail(email: string): TransactionableAsync<User | null>;
+  userWithId(userId: string): TransactionableAsync<User | null>;
   userWithFullName(
     firstName: string,
     lastName: string,

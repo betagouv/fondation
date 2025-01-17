@@ -16,6 +16,21 @@ const basePath: IdentityAndAccessRestContract['basePath'] = 'api/auth';
 export class HttpUserService implements UserService {
   constructor(private readonly apiConfig: ApiConfig) {}
 
+  async userWithId(userId: string): Promise<UserDescriptorSerialized> {
+    const { method, path, params }: ClientFetchOptions['userWithId'] = {
+      method: 'GET',
+      path: 'user-with-id/:userId',
+      params: { userId },
+    };
+
+    const response = await this.fetchUser(method, path, params);
+
+    return this.userDescriptorFromResponse<Endpoints['userWithId']['response']>(
+      response,
+      `User with ID ${userId} not found`,
+    );
+  }
+
   async userWithFullName(fullName: string): Promise<UserDescriptorSerialized> {
     const { method, path, params }: ClientFetchOptions['userWithFullName'] = {
       method: 'GET',
@@ -23,20 +38,34 @@ export class HttpUserService implements UserService {
       params: { fullName },
     };
 
+    const response = await this.fetchUser(method, path, params);
+
+    return this.userDescriptorFromResponse<
+      Endpoints['userWithFullName']['response']
+    >(response, `User with name ${fullName} not found`);
+  }
+
+  private async userDescriptorFromResponse<R>(
+    response: Response,
+    errorMessage: string,
+  ) {
+    try {
+      return (await response.json()) as R;
+    } catch (error) {
+      throw new Error(errorMessage, error.originalError);
+    }
+  }
+
+  private async fetchUser(
+    method: string,
+    path: string,
+    params?: Record<string, string>,
+  ) {
     const url = this.resolveUrl(path, params);
 
-    const response = await this.fetch(url, {
+    return this.fetch(url, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
-    const userDescriptor = await response.json();
-
-    if (!userDescriptor) {
-      throw new Error(`User with name ${fullName} not found`);
-    }
-    return userDescriptor as UserDescriptorSerialized;
   }
 
   private resolveUrl(path: string, params?: Record<string, string>): string {
@@ -49,7 +78,12 @@ export class HttpUserService implements UserService {
   }
 
   private async fetch(url: string, requestInit: RequestInit) {
-    const response = await fetch(url, requestInit);
+    const response = await fetch(url, {
+      ...requestInit,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { AuthenticationGateway } from "../../../core-logic/gateways/Authentication.gateway";
 import { AuthenticationApiClient } from "../../../core-logic/gateways/AuthenticationApi.client";
 
@@ -7,12 +6,9 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
 
   async authenticate(email: string, password: string) {
     const authenticatedUser = await this.apiClient.login(email, password);
-
-    if (!authenticatedUser) return null;
-
-    const reporterName = `${_.upperCase(authenticatedUser.lastName)} ${_.capitalize(authenticatedUser.firstName)}`;
     return {
-      reporterName,
+      firstName: authenticatedUser.firstName,
+      lastName: authenticatedUser.lastName,
     };
   }
 

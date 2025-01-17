@@ -1,7 +1,7 @@
 import 'express';
 
 declare module 'express' {
-  interface Request {
+  export interface Request {
     userId?: string;
   }
 }

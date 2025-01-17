@@ -78,7 +78,6 @@ describe('SQL Report Listing VM Query', () => {
             },
             formation: aReport.formation,
             name: aReport.name,
-            reporterName: aReport.reporterName,
             transparency: aReport.transparency,
             grade: aReport.grade,
             targettedPosition: aReport.targettedPosition,

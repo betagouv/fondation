@@ -14,7 +14,6 @@ export type NominationFileReportSnapshot = {
   biography: string | null;
   dueDate: DateOnly | null;
   name: string;
-  reporterName: string | null;
   birthDate: DateOnly;
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
@@ -33,12 +32,11 @@ export class NominationFileReport {
     private readonly _id: string,
     readonly nominationFileId: string,
     readonly createdAt: Date,
-    readonly reporter: Reporter | null,
+    readonly reporterId: string | null,
     public folderNumber: number | null,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
     readonly name: string,
-    readonly reporterName: string | null,
     readonly birthDate: DateOnly,
     readonly state: NominationFile.ReportState,
     readonly formation: Magistrat.Formation,
@@ -72,9 +70,9 @@ export class NominationFileReport {
     return new ReportAttachedFile(currentDate, this.id, fileName, fileId);
   }
 
-  generateAttachedFilePath(): string[] {
-    if (!this.reporterName) throw new Error('Reporter name is missing');
-    return [this.transparency, this.name, this.reporterName];
+  generateAttachedFilePath(reporter: Reporter): string[] {
+    if (!this.reporterId) throw new Error('Reporter is missing');
+    return [this.transparency, this.name, reporter.fullName.fullName()];
   }
 
   public get id(): string {
@@ -85,13 +83,12 @@ export class NominationFileReport {
     return {
       id: this.id,
       nominationFileId: this.nominationFileId,
-      reporterId: this.reporter?.reporterId || null,
+      reporterId: this.reporterId || null,
       createdAt: this.createdAt,
       folderNumber: this.folderNumber,
       biography: this.biography,
       dueDate: this.dueDate,
       name: this.name,
-      reporterName: this.reporterName,
       birthDate: this.birthDate,
       state: this.state,
       formation: this.formation,
@@ -113,12 +110,11 @@ export class NominationFileReport {
       snapshot.id,
       snapshot.nominationFileId,
       snapshot.createdAt,
-      snapshot.reporterId ? new Reporter(snapshot.reporterId) : null,
+      snapshot.reporterId,
       snapshot.folderNumber,
       snapshot.biography,
       snapshot.dueDate,
       snapshot.name,
-      snapshot.reporterName,
       snapshot.birthDate,
       snapshot.state,
       snapshot.formation,
@@ -144,7 +140,7 @@ export class NominationFileReport {
       reportId,
       importedNominationFileId,
       currentDate,
-      reporter,
+      reporter?.reporterId || null,
       createReportPayload.folderNumber,
       createReportPayload.biography,
       createReportPayload.dueDate
@@ -155,7 +151,6 @@ export class NominationFileReport {
           )
         : null,
       createReportPayload.name,
-      createReportPayload.reporterName,
       new DateOnly(
         createReportPayload.birthDate.year,
         createReportPayload.birthDate.month,

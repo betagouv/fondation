@@ -1,11 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { NominationFile } from "shared-models";
+import { AuthenticatedUser, NominationFile } from "shared-models";
 import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { AuthenticatedUser } from "../../../../../authentication/core-logic/gateways/Authentication.gateway";
-import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
+import {
+  authenticate,
+  AuthenticateParams,
+} from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
@@ -26,10 +28,10 @@ describe("Report List Component", () => {
     reportApiClient = new FakeReportApiClient();
     authenticationApiClient = new FakeAuthenticationApiClient();
     authenticationApiClient.setEligibleAuthUser(
-      "user@example.fr",
-      "password",
-      userFirstName,
-      userLastName,
+      userCredentials.email,
+      userCredentials.password,
+      user.firstName,
+      user.lastName,
     );
     authenticationGateway = new ApiAuthenticationGateway(
       authenticationApiClient,
@@ -116,7 +118,6 @@ describe("Report List Component", () => {
           new ReportApiModelBuilder()
             .with("id", "in-progress-report-id")
             .with("state", NominationFile.ReportState.IN_PROGRESS)
-            .with("reporterName", user.reporterName)
             .with("name", "In Progress Report")
             .build(),
         );
@@ -135,12 +136,7 @@ describe("Report List Component", () => {
   });
 
   const givenAnAuthenticatedUser = () => {
-    store.dispatch(
-      authenticate.fulfilled(user, "", {
-        email: "user@example.fr",
-        password: "password",
-      }),
-    );
+    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 
   const renderReportList = () => {
@@ -152,17 +148,20 @@ describe("Report List Component", () => {
   };
 });
 
-const userFirstName = "User";
-const userLastName = "Current";
-const user = {
-  reporterName: "CURRENT User",
-} satisfies AuthenticatedUser;
+const user: AuthenticatedUser = {
+  userId: "user-id",
+  firstName: "User",
+  lastName: "Current",
+};
+const userCredentials: AuthenticateParams = {
+  email: "user@example.fr",
+  password: "password",
+};
 
 const aReportFolderNumber = 1;
 const aReportObserversCount = 2;
 const aReport = new ReportApiModelBuilder()
   .with("state", NominationFile.ReportState.NEW)
-  .with("reporterName", user.reporterName)
   .with("folderNumber", aReportFolderNumber)
   .with("observersCount", aReportObserversCount)
   .build();

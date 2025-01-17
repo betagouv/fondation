@@ -21,7 +21,6 @@ describe("Api Report Gateway", () => {
         id: aReportListSM.id,
         folderNumber: aReportListSM.folderNumber,
         name: aReportListSM.name,
-        reporterName: aReportListSM.reporterName,
         state: aReportListSM.state,
         dueDate: aReportListSM.dueDate,
         formation: aReportListSM.formation,

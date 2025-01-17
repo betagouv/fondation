@@ -18,6 +18,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
       throw new Error("Invalid credentials");
     }
     const authenticatedUser: AuthenticatedUser = {
+      userId: "user-id",
       firstName: this.user.firstName,
       lastName: this.user.lastName,
     };

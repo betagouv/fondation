@@ -123,12 +123,13 @@ describe('Import Nominations from local file', () => {
         rowNumber: 1,
         content: { ...firstTsvContent, ...oldContent },
       });
-      await givenAReportPm({
-        ...firstTsvContent,
-        reporterName: firstTsvContent.reporters![0]!,
-        reporterId: reportersMap[firstTsvContent.reporters![0]!]!,
-        ...oldContent,
-      });
+      await givenAReportPm(
+        {
+          ...firstTsvContent,
+          ...oldContent,
+        },
+        reportersMap[firstTsvContent.reporters![0]!]!,
+      );
 
       await importNominationFileFromLocalFileCli.execute(fileToImportPath);
       await setTimeout(1500);
@@ -158,11 +159,10 @@ describe('Import Nominations from local file', () => {
           },
         },
       });
-      await givenAReportPm({
-        ...firstTsvContent,
-        reporterName: firstTsvContent.reporters![0]!,
-        reporterId: reportersMap[firstTsvContent.reporters![0]!]!,
-      });
+      await givenAReportPm(
+        firstTsvContent,
+        reportersMap[firstTsvContent.reporters![0]!]!,
+      );
 
       await db.insert(reportRules).values({
         id: transferTimeRuleId,
@@ -200,15 +200,14 @@ describe('Import Nominations from local file', () => {
     });
 
     const givenAReportPm = async (
-      content: Omit<NominationFileRead['content'], 'reporters'> & {
-        reporterName: string | null;
-        reporterId: string | null;
-      },
+      content: Omit<NominationFileRead['content'], 'reporters'>,
+      reporterId: string | null,
     ) => {
       await db.insert(reports).values({
         ...content,
         id: reportId,
         nominationFileId,
+        reporterId,
         createdAt: new Date(),
         dueDate: DateOnly.fromJson(content.dueDate!).toDbString(),
         birthDate: DateOnly.fromJson(content.birthDate).toDbString(),
@@ -290,15 +289,15 @@ describe('Import Nominations from local file', () => {
     const reportsPm = await db
       .select()
       .from(reports)
-      .orderBy(asc(reports.name), asc(reports.reporterName))
+      .orderBy(asc(reports.folderNumber), asc(reports.reporterId))
       .execute();
 
     expect(reportsPm.length).toBe(allReports.length);
     expect(reportsPm).toEqual([
+      allReports[0],
+      allReports[1],
       allReports[3],
       allReports[2],
-      allReports[1],
-      allReports[0],
     ]);
   };
 
@@ -309,6 +308,9 @@ describe('Import Nominations from local file', () => {
     nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
     reporterId: reportersMap[content.reporterName!]!,
+    // TODO Remove reporter name here,
+    // once removed from DB after a migration to a reporter id column
+    reporterName: null,
     folderNumber: content.folderNumber,
     state: content.state,
     dueDate: content.dueDate
@@ -316,7 +318,6 @@ describe('Import Nominations from local file', () => {
       : null,
     formation: content.formation,
     name: content.name,
-    reporterName: content.reporterName,
     transparency: content.transparency,
     grade: content.grade,
     currentPosition: content.currentPosition,

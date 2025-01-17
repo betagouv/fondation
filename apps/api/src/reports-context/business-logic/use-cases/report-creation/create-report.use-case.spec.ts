@@ -38,6 +38,8 @@ describe('Create Report Use Case', () => {
     const userService = new StubUserService();
     userService.user = {
       userId,
+      firstName: 'Loïc',
+      lastName: 'LUC',
     };
     reporterTranslatorService = new ReporterTranslatorService(userService);
   });
@@ -71,8 +73,7 @@ describe('Create Report Use Case', () => {
       biography: payload.biography,
       dueDate: new DateOnly(2035, 8, 22),
       name: payload.name,
-      reporterId: 'reporter-id',
-      reporterName: payload.reporterName,
+      reporterId: userId,
       birthDate: new DateOnly(1962, 8, 22),
       state: payload.state,
       formation: payload.formation,

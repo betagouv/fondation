@@ -1,10 +1,11 @@
 import { AppState } from "../../../../store/appState";
-import { storeAuthenticationOnLoginSuccess } from "../../listeners/authentication.listeners";
-import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../adapters/secondary/gateways/FakeAuthentication.client";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
-import { authenticate } from "./authenticate";
+import { AuthenticatedUserSM } from "../../gateways/Authentication.gateway";
+import { storeAuthenticationOnLoginSuccess } from "../../listeners/authentication.listeners";
+import { authenticate, AuthenticateParams } from "./authenticate";
 
 describe("Authenticate", () => {
   let store: ReduxStore;
@@ -15,7 +16,12 @@ describe("Authenticate", () => {
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
-    apiClient.setEligibleAuthUser("username", "password", "John", "Doe");
+    apiClient.setEligibleAuthUser(
+      userCredentials.email,
+      userCredentials.password,
+      user.firstName,
+      user.lastName,
+    );
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
@@ -32,29 +38,29 @@ describe("Authenticate", () => {
   });
 
   it("authenticates a user", async () => {
-    await store.dispatch(
-      authenticate({ email: "username", password: "password" }),
-    );
+    await store.dispatch(authenticate(userCredentials));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       authentication: {
         ...initialState.authentication,
         authenticated: true,
-        user: {
-          reporterName: "DOE John",
-        },
+        user,
       },
     });
   });
 
   it("persists the authenticated state", async () => {
-    store.dispatch(
-      authenticate.fulfilled(null, "", {
-        email: "username",
-        password: "password",
-      }),
-    );
+    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
 
     expect(authenticationStorageProvider.isAuthenticated()).toBe(true);
   });
 });
+
+const user: AuthenticatedUserSM = {
+  firstName: "John",
+  lastName: "Doe",
+};
+const userCredentials: AuthenticateParams = {
+  email: "username",
+  password: "password",
+};

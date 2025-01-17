@@ -1,11 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { Login } from "./Login";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { Provider } from "react-redux";
+import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
+import { AuthenticateParams } from "../../../core-logic/use-cases/authentication/authenticate";
 import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
+import { Login } from "./Login";
 
 describe("Login Component", () => {
   let store: ReduxStore;
@@ -28,10 +30,10 @@ describe("Login Component", () => {
 
   it("authenticates a user", async () => {
     apiClient.setEligibleAuthUser(
-      "username@example.fr",
-      "password",
-      "John",
-      "Doe",
+      userCredentials.email,
+      userCredentials.password,
+      user.firstName,
+      user.lastName,
     );
 
     renderLogin();
@@ -44,17 +46,18 @@ describe("Login Component", () => {
         authentication: {
           ...initialState.authentication,
           authenticated: true,
-          user: {
-            reporterName: "DOE John",
-          },
+          user,
         },
       });
     });
   });
 
   const submitLogin = async () => {
-    await userEvent.type(screen.getByLabelText("Email"), "username@example.fr");
-    await userEvent.type(screen.getByLabelText("Mot de passe"), "password");
+    await userEvent.type(screen.getByLabelText("Email"), userCredentials.email);
+    await userEvent.type(
+      screen.getByLabelText("Mot de passe"),
+      userCredentials.password,
+    );
     await userEvent.click(screen.getByRole("button"));
   };
 
@@ -66,3 +69,12 @@ describe("Login Component", () => {
     );
   };
 });
+
+const user: AuthenticatedUserSM = {
+  firstName: "John",
+  lastName: "Doe",
+};
+const userCredentials: AuthenticateParams = {
+  email: "user@example.fr",
+  password: "password",
+};

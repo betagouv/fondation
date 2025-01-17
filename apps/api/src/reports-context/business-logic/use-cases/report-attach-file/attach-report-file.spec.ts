@@ -1,4 +1,3 @@
-import { Transparency } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportAttachedFileRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-attached-file.repository';
 import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
@@ -13,17 +12,15 @@ import {
 import { ReportAttachedFiles } from '../../models/report-attached-files';
 import { ReportBuilder } from '../../models/report.builder';
 import { AttachReportFileUseCase } from './attach-report-file';
+import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
+import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
 
 const currentDate = new Date(2021, 10, 10);
 
-const aReportBuilder = new ReportBuilder()
-  .with('id', 'report-id')
-  .with('transparency', Transparency.AUTOMNE_2024)
-  .with('name', 'John Doe')
-  .with('reporterName', 'JULIEN Bresse ep. Danielle Lenoir');
+const aReportBuilder = new ReportBuilder();
 const aFile: ReportAttachedFileSnapshot = {
   createdAt: currentDate,
-  reportId: 'report-id',
+  reportId: aReportBuilder.build().id,
   name: 'image-1.png',
   fileId: 'file-id',
 };
@@ -35,6 +32,7 @@ describe('Attach Report File Use Case', () => {
   let transactionPerformer: NullTransactionPerformer;
   let reportRepository: FakeNominationFileReportRepository;
   let uuidGenerator: DeterministicUuidGenerator;
+  let reporterTranslatorService: ReporterTranslatorService;
 
   beforeEach(() => {
     reportAttachedFileRepository = new FakeReportAttachedFileRepository();
@@ -44,6 +42,9 @@ describe('Attach Report File Use Case', () => {
     reportRepository = new FakeNominationFileReportRepository();
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [aFile.fileId];
+    const userService = new StubUserService();
+    userService.user = aUser;
+    reporterTranslatorService = new ReporterTranslatorService(userService);
 
     transactionPerformer = new NullTransactionPerformer(() => {
       reportAttachedFileRepository = new FakeReportAttachedFileRepository();
@@ -122,6 +123,18 @@ describe('Attach Report File Use Case', () => {
       transactionPerformer,
       reportRepository,
       uuidGenerator,
-    ).execute(aFile.reportId, aFile.name, Buffer.from('Some content.'));
+      reporterTranslatorService,
+    ).execute(
+      aFile.reportId,
+      aFile.name,
+      Buffer.from('Some content.'),
+      aUser.userId,
+    );
   };
 });
+
+const aUser = {
+  userId: 'user-id',
+  firstName: 'john',
+  lastName: 'doe',
+};

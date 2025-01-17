@@ -36,6 +36,8 @@ import { reportRules } from '../../secondary/gateways/repositories/drizzle/schem
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
+import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
+import { USER_SERVICE } from './tokens';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -83,7 +85,6 @@ describe('Reports Controller', () => {
       },
       formation: Magistrat.Formation.PARQUET,
       name: 'a name',
-      reporterName: 'REPORTER Name',
       transparency: Transparency.MARCH_2025,
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
@@ -248,8 +249,6 @@ describe('Reports Controller', () => {
     beforeEach(async () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
-
-      s3Client = app.get(S3Client);
     });
 
     it('requires a valid user session', async () => {
@@ -261,6 +260,7 @@ describe('Reports Controller', () => {
     describe('With authenticated session', () => {
       beforeEach(async () => {
         await initApp({ validatedSession: true });
+        s3Client = app.get(S3Client);
         await app.listen(defaultApiConfig.port); // Run server to contact other contexts over REST
       });
 
@@ -269,7 +269,7 @@ describe('Reports Controller', () => {
       });
 
       it('uploads a file', async () => {
-        const response = await uploadFile().expect(201);
+        const response = await uploadFile().expect(HttpStatus.CREATED);
 
         expect(response.body).toEqual({});
 
@@ -290,7 +290,7 @@ describe('Reports Controller', () => {
       });
 
       it('get a file signed URL', async () => {
-        await uploadFile().expect(201);
+        await uploadFile().expect(HttpStatus.CREATED);
 
         const response = await request(app.getHttpServer())
           .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
@@ -301,7 +301,7 @@ describe('Reports Controller', () => {
       });
 
       it('deletes a file', async () => {
-        await uploadFile().expect(201);
+        await uploadFile().expect(HttpStatus.CREATED);
 
         await request(app.getHttpServer())
           .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
@@ -354,6 +354,7 @@ describe('Reports Controller', () => {
   }) => {
     const moduleFixture = await new AppTestingModule()
       .withStubSessionValidationService(validatedSession)
+      .withStubUserService()
       .compile();
 
     app = new MainAppConfigurator(moduleFixture.createNestApplication())
@@ -378,6 +379,21 @@ describe('Reports Controller', () => {
           }
         },
       );
+      return this;
+    }
+
+    withStubUserService() {
+      this.moduleFixture.overrideProvider(USER_SERVICE).useFactory({
+        factory: () => {
+          const userService = new StubUserService();
+          userService.user = {
+            userId: reporterId,
+            firstName: 'First-name',
+            lastName: 'REPORTER',
+          };
+          return userService;
+        },
+      });
       return this;
     }
   }

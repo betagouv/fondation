@@ -55,7 +55,6 @@ export class ApiReportGateway implements ReportGateway {
       id: item.id,
       folderNumber: item.folderNumber,
       name: item.name,
-      reporterName: item.reporterName,
       dueDate: item.dueDate,
       state: item.state,
       formation: item.formation,

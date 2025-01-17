@@ -1,9 +1,9 @@
+import { eq, sql } from 'drizzle-orm';
 import { ReportListingVM } from 'shared-models';
 import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
-import { sql, eq } from 'drizzle-orm';
 
 export class SqlReportListingQuery implements ReportListingQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -17,7 +17,6 @@ export class SqlReportListingQuery implements ReportListingQuery {
         dueDate: reports.dueDate,
         formation: reports.formation,
         name: reports.name,
-        reporterName: reports.reporterName,
         transparency: reports.transparency,
         grade: reports.grade,
         targettedPosition: reports.targettedPosition,
@@ -37,7 +36,6 @@ export class SqlReportListingQuery implements ReportListingQuery {
           : null,
         formation: report.formation,
         name: report.name,
-        reporterName: report.reporterName,
         transparency: report.transparency,
         grade: report.grade,
         targettedPosition: report.targettedPosition,

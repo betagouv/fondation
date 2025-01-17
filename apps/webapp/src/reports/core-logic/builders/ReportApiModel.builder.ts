@@ -26,7 +26,6 @@ export class ReportApiModelBuilder {
     this._report = {
       id: "report-id",
       name: "John Doe",
-      reporterName: "REPORTER Name",
       folderNumber: 1,
       biography: "John Doe's biography",
       dueDate: {

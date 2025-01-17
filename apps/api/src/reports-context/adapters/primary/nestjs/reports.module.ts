@@ -82,6 +82,7 @@ import { ReporterTranslatorService } from '../../secondary/gateways/services/rep
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
       UUID_GENERATOR,
+      ReporterTranslatorService,
     ]),
     generateProvider(GenerateReportFileUrlUseCase, [
       TRANSACTION_PERFORMER,
