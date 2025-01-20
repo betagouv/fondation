@@ -35,7 +35,7 @@ describe('Reporter Translator Service', () => {
 
   beforeEach(async () => {
     const moduleFixture = await new AppTestingModule()
-      .withStubbedReporterTranslatorService()
+      .withStubbedIdentityAndAccessContextUseCases()
       .compile();
     app = new MainAppConfigurator(
       moduleFixture.createNestApplication(),
@@ -74,7 +74,7 @@ describe('Reporter Translator Service', () => {
       super(db);
     }
 
-    withStubbedReporterTranslatorService() {
+    withStubbedIdentityAndAccessContextUseCases() {
       this.moduleFixture
         .overrideProvider(UserWithIdUseCase)
         .useFactory({

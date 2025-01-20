@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { FilesContextRestContract, interpolateUrlParams } from 'shared-models';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import {
   ReportFileService,
   reportSignedUrlsSchema,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
 import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 type Endpoints = FilesContextRestContract['endpoints'];
@@ -16,7 +18,10 @@ type ClientFetchOptions = {
 const basePath: FilesContextRestContract['basePath'] = 'api/files';
 
 export class HttpReportFileService implements ReportFileService {
-  constructor(private readonly apiConfig: ApiConfig) {}
+  constructor(
+    private readonly apiConfig: ApiConfig,
+    private readonly systemRequestSignatureProvider: SystemRequestSignatureProvider,
+  ) {}
 
   async uploadFile(
     file: ReportAttachedFile,
@@ -44,7 +49,10 @@ export class HttpReportFileService implements ReportFileService {
       url,
       method,
       data: body,
-      headers: body.getHeaders(),
+      headers: {
+        ...body.getHeaders(),
+        [systemRequestHeaderKey]: this.systemRequestSignatureProvider.sign(),
+      },
       timeout: 5000,
     });
 
@@ -122,7 +130,14 @@ export class HttpReportFileService implements ReportFileService {
   }
 
   private async fetch(url: string, requestInit: RequestInit) {
-    const response = await fetch(url, requestInit);
+    const response = await fetch(url, {
+      ...requestInit,
+      headers: {
+        ...requestInit.headers,
+        [systemRequestHeaderKey]: this.systemRequestSignatureProvider.sign(),
+      },
+    });
+
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }

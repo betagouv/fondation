@@ -37,6 +37,7 @@ export const apiConfig: ProdApiConfig = {
     },
     signedUrlExpiresIn: 60 * 60 * 24,
   },
+  sharedSecret: process.env.SHARED_SECRET!,
 };
 
 const defaultBaseUrl = 'http://localhost:3000';
@@ -89,4 +90,7 @@ export const defaultApiConfig = {
     },
     signedUrlExpiresIn: 3600,
   },
+  sharedSecret:
+    process.env.SHARED_SECRET ??
+    'very-very-very-very-very-very-long-shared-secret',
 } satisfies DevApiConfig;

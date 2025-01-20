@@ -2,8 +2,10 @@ import {
   IdentityAndAccessRestContract,
   interpolateUrlParams,
 } from 'shared-models';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { UserService } from 'src/reports-context/business-logic/gateways/services/user.service';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 type Endpoints = IdentityAndAccessRestContract['endpoints'];
@@ -14,7 +16,10 @@ type ClientFetchOptions = {
 const basePath: IdentityAndAccessRestContract['basePath'] = 'api/auth';
 
 export class HttpUserService implements UserService {
-  constructor(private readonly apiConfig: ApiConfig) {}
+  constructor(
+    private readonly apiConfig: ApiConfig,
+    private readonly systemRequestSignatureProvider: SystemRequestSignatureProvider,
+  ) {}
 
   async userWithId(userId: string): Promise<UserDescriptorSerialized> {
     const { method, path, params }: ClientFetchOptions['userWithId'] = {
@@ -81,12 +86,16 @@ export class HttpUserService implements UserService {
     const response = await fetch(url, {
       ...requestInit,
       headers: {
+        ...requestInit.headers,
+        [systemRequestHeaderKey]: this.systemRequestSignatureProvider.sign(),
         'Content-Type': 'application/json',
       },
     });
+
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
+
     return response;
   }
 }

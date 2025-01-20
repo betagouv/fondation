@@ -9,19 +9,12 @@ export class SessionValidationMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    if (!('sessionId' in req.cookies) || !this.sessionId(req)) {
+    if (this.invalidSession(req)) {
       return res.status(HttpStatus.UNAUTHORIZED).send('Session ID not found');
     }
 
     try {
-      const userId = await this.sessionValidationService.validateSession(
-        this.sessionId(req),
-      );
-      if (!userId) {
-        return res.status(HttpStatus.UNAUTHORIZED).send('Invalid session');
-      }
-
-      req.userId = userId;
+      await this.validateUserSession(req, res);
     } catch (error) {
       console.error('Error validating session', error);
       return res
@@ -30,6 +23,21 @@ export class SessionValidationMiddleware implements NestMiddleware {
     }
 
     next();
+  }
+
+  private invalidSession(req: Request) {
+    return !('sessionId' in req.cookies) || !this.sessionId(req);
+  }
+
+  private async validateUserSession(req: Request, res: Response) {
+    const userId = await this.sessionValidationService.validateSession(
+      this.sessionId(req),
+    );
+    if (!userId) {
+      return res.status(HttpStatus.UNAUTHORIZED).send('Invalid session');
+    }
+
+    req.userId = userId;
   }
 
   private sessionId(req: Request) {

@@ -29,6 +29,7 @@ import {
   UUID_GENERATOR,
 } from './tokens';
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -44,6 +45,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     DOMAIN_EVENT_REPOSITORY,
     FileReaderProvider,
     SessionValidationService,
+    SystemRequestSignatureProvider,
   ],
   controllers: [],
   providers: [
@@ -116,6 +118,13 @@ const isProduction = process.env.NODE_ENV === 'production';
       // generateProvider function doesn't handle the union type in ApiConfig
       useFactory: (apiConfig: ApiConfig) => {
         return new SessionValidationService(apiConfig);
+      },
+      inject: [API_CONFIG],
+    },
+    {
+      provide: SystemRequestSignatureProvider,
+      useFactory: (apiConfig: ApiConfig) => {
+        return new SystemRequestSignatureProvider(apiConfig);
       },
       inject: [API_CONFIG],
     },

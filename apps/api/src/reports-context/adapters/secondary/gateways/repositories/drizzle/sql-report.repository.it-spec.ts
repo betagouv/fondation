@@ -22,10 +22,7 @@ const aReport = new ReportBuilder('uuid')
   .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
   .with('grade', Magistrat.Grade.I)
   .build();
-const aReportDb = {
-  ...SqlReportRepository.mapSnapshotToDb(aReport),
-  reporterName: null,
-};
+const aReportDb = SqlReportRepository.mapSnapshotToDb(aReport);
 
 const aReportUpdated = ReportBuilder.duplicateReport(aReport)
   .with('folderNumber', 10)
@@ -43,6 +40,7 @@ const aReportUpdated = ReportBuilder.duplicateReport(aReport)
   .with('observers', ['Updated observer'])
   .with('biography', 'Updated biography')
   .build();
+const aReportDbUpdated = SqlReportRepository.mapSnapshotToDb(aReportUpdated);
 
 const aReportUpdatedWithNullValues = ReportBuilder.duplicateReport(aReport)
   .with('folderNumber', null)
@@ -51,6 +49,9 @@ const aReportUpdatedWithNullValues = ReportBuilder.duplicateReport(aReport)
   .with('observers', null)
   .with('biography', null)
   .build();
+const aReportDbUpdatedWithNullValues = SqlReportRepository.mapSnapshotToDb(
+  aReportUpdatedWithNullValues,
+);
 
 describe('SQL Report Repository', () => {
   let sqlNominationFileReportRepository: SqlReportRepository;
@@ -78,8 +79,26 @@ describe('SQL Report Repository', () => {
       ),
     );
 
-    const existingReports = await db.select().from(reports).execute();
-    expect(existingReports).toEqual([aReportDb]);
+    expectReports({
+      id: aReport.id,
+      nominationFileId: aReport.nominationFileId,
+      reporterId: aReport.reporterId,
+      createdAt: aReport.createdAt,
+      folderNumber: aReport.folderNumber,
+      biography: aReport.biography,
+      dueDate: aReportDb.dueDate!,
+      name: aReport.name,
+      birthDate: aReportDb.birthDate,
+      state: aReport.state,
+      formation: aReport.formation,
+      transparency: aReport.transparency,
+      observers: aReport.observers,
+      grade: aReport.grade,
+      comment: aReport.comment,
+      currentPosition: aReport.currentPosition,
+      targettedPosition: aReport.targettedPosition,
+      rank: aReport.rank,
+    });
   });
 
   describe('when there is a report', () => {
@@ -88,22 +107,39 @@ describe('SQL Report Repository', () => {
     });
 
     it.each`
-      testName                 | updatedReportSnapshot
-      ${'all values'}          | ${aReportUpdated}
-      ${'some values removed'} | ${aReportUpdatedWithNullValues}
-    `('updates a report with $testName', async ({ updatedReportSnapshot }) => {
-      await transactionPerformer.perform(
-        sqlNominationFileReportRepository.save(updatedReportSnapshot),
-      );
+      testName                 | updatedReportSnapshot           | updatedReportDb
+      ${'all values'}          | ${aReportUpdated}               | ${aReportDbUpdated}
+      ${'some values removed'} | ${aReportUpdatedWithNullValues} | ${aReportDbUpdatedWithNullValues}
+    `(
+      'updates a report with $testName',
+      async ({ updatedReportSnapshot, updatedReportDb }) => {
+        await transactionPerformer.perform(
+          sqlNominationFileReportRepository.save(updatedReportSnapshot),
+        );
 
-      const existingReports = await db.select().from(reports).execute();
-      expect(existingReports).toEqual([
-        {
-          ...SqlReportRepository.mapSnapshotToDb(updatedReportSnapshot),
-          reporterName: null,
-        },
-      ]);
-    });
+        expectReports({
+          id: updatedReportSnapshot.id,
+          nominationFileId: updatedReportSnapshot.nominationFileId,
+          reporterId: updatedReportSnapshot.reporterId,
+          createdAt: updatedReportSnapshot.createdAt,
+          folderNumber: updatedReportSnapshot.folderNumber,
+          biography: updatedReportSnapshot.biography,
+          name: updatedReportSnapshot.name,
+          state: updatedReportSnapshot.state,
+          formation: updatedReportSnapshot.formation,
+          transparency: updatedReportSnapshot.transparency,
+          observers: updatedReportSnapshot.observers,
+          grade: updatedReportSnapshot.grade,
+          comment: updatedReportSnapshot.comment,
+          currentPosition: updatedReportSnapshot.currentPosition,
+          targettedPosition: updatedReportSnapshot.targettedPosition,
+          rank: updatedReportSnapshot.rank,
+
+          dueDate: updatedReportDb.dueDate!,
+          birthDate: updatedReportDb.birthDate,
+        });
+      },
+    );
 
     it('finds a report by id', async () => {
       const result = await transactionPerformer.perform(
@@ -121,4 +157,13 @@ describe('SQL Report Repository', () => {
       expect(result).toEqual([NominationFileReport.fromSnapshot(aReport)]);
     });
   });
+
+  const expectReports = async (
+    ...expectedReports: (typeof reports.$inferSelect)[]
+  ) => {
+    const existingReports = await db.select().from(reports).execute();
+    expect(existingReports).toEqual<(typeof reports.$inferSelect)[]>(
+      expectedReports,
+    );
+  };
 });

@@ -39,6 +39,7 @@ import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-sch
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 
 @Module({
   imports: [SharedKernelModule],
@@ -97,19 +98,28 @@ import { ReporterTranslatorService } from '../../secondary/gateways/services/rep
     {
       provide: REPORT_FILE_SERVICE,
       // generateProvider function doesn't handle the union type in ApiConfig
-      useFactory: (apiConfig: ApiConfig) => {
-        return new HttpReportFileService(apiConfig);
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new HttpReportFileService(
+          apiConfig,
+          systemRequestSignatureProvider,
+        );
       },
-      inject: [API_CONFIG],
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
     generateProvider(ReporterTranslatorService, [USER_SERVICE]),
     {
       provide: USER_SERVICE,
       // generateProvider function doesn't handle the union type in ApiConfig
-      useFactory: (apiConfig: ApiConfig) => {
-        return new HttpUserService(apiConfig);
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new HttpUserService(apiConfig, systemRequestSignatureProvider);
       },
-      inject: [API_CONFIG],
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
 
     generateProvider(SqlReportListingQuery, [DRIZZLE_DB], REPORT_LISTING_QUERY),

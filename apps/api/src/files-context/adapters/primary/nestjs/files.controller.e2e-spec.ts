@@ -1,4 +1,5 @@
 import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { HttpStatus } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { fileUploadQueryDtoSchema, FileVM } from 'shared-models';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
@@ -14,6 +15,7 @@ import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
+import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
@@ -32,12 +34,6 @@ describe('Files Controller', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-
-    const moduleFixture = await new BaseAppTestingModule(db).compile();
-    app = moduleFixture.createNestApplication();
-    s3Client = app.get(S3Client);
-
-    await app.init();
   });
 
   afterEach(async () => {
@@ -46,98 +42,149 @@ describe('Files Controller', () => {
   });
   afterAll(() => db.$client.end());
 
-  it('uploads a file', async () => {
-    const query: z.infer<typeof fileUploadQueryDtoSchema> = {
-      bucket,
-      path: filePath,
-      fileId,
-    };
+  describe('Invalid system requests', () => {
+    beforeEach(async () => {
+      await initApp();
+    });
 
-    await supertest(app.getHttpServer())
-      .post(`/api/files/upload-one`)
-      .query(query)
-      .attach('file', Buffer.from('test file.'), fileName)
-      .expect(201);
+    it('requires a valid internal request token', async () => {
+      const query: z.infer<typeof fileUploadQueryDtoSchema> = {
+        bucket,
+        path: filePath,
+        fileId,
+      };
 
-    await expectFilesPm({
-      id: fileId,
-      createdAt: expect.any(Date),
-      name: fileName,
-      storageProvider: FilesStorageProvider.SCALEWAY,
-      path: filePath,
-      bucket,
+      await supertest(app.getHttpServer())
+        .post(`/api/files/upload-one`)
+        .query(query)
+        .attach('file', Buffer.from('test file.'), fileName)
+        .expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
-  it("generates a signed url for a file's download", async () => {
-    await givenSomeS3Files(
-      s3Client,
-      {
+  describe('Internal requests', () => {
+    beforeEach(async () => {
+      await initApp();
+    });
+
+    it('uploads a file', async () => {
+      const query: z.infer<typeof fileUploadQueryDtoSchema> = {
+        bucket,
+        path: filePath,
+        fileId,
+      };
+
+      await new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((testAgent) =>
+          testAgent
+            .post(`/api/files/upload-one`)
+            .query(query)
+            .attach('file', Buffer.from('test file.'), fileName)
+            .expect(HttpStatus.CREATED),
+        )
+        .request();
+
+      await expectFilesPm({
+        id: fileId,
+        createdAt: expect.any(Date),
+        name: fileName,
+        storageProvider: FilesStorageProvider.SCALEWAY,
+        path: filePath,
+        bucket,
+      });
+    });
+
+    it("generates a signed url for a file's download", async () => {
+      await givenSomeS3Files(
+        s3Client,
+        {
+          bucket,
+          Key: fileName,
+        },
+        {
+          bucket,
+          Key: 'another-file.pdf',
+        },
+      );
+      await db
+        .insert(filesPm)
+        .values({
+          id: fileId,
+          name: fileName,
+          storageProvider: FilesStorageProvider.SCALEWAY,
+          bucket,
+        })
+        .execute();
+
+      const response = await new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((testAgent) =>
+          testAgent
+            .get('/api/files/signed-urls')
+            .query({
+              ids: fileId,
+            })
+            .expect(HttpStatus.OK),
+        )
+        .request();
+
+      expect(response.body).toEqual<FileVM[]>([
+        {
+          name: fileName,
+          signedUrl: expect.stringMatching(/^http/),
+        },
+      ]);
+    });
+
+    it('deletes a file', async () => {
+      await givenSomeS3Files(s3Client, {
         bucket,
         Key: fileName,
-      },
-      {
-        bucket,
-        Key: 'another-file.pdf',
-      },
-    );
-    await db
-      .insert(filesPm)
-      .values({
-        id: fileId,
-        name: fileName,
-        storageProvider: FilesStorageProvider.SCALEWAY,
-        bucket,
-      })
-      .execute();
+      });
+      await db
+        .insert(filesPm)
+        .values({
+          id: fileId,
+          bucket,
+          path: null,
+          name: fileName,
+          storageProvider: FilesStorageProvider.SCALEWAY,
+        })
+        .execute();
 
-    const response = await supertest(app.getHttpServer())
-      .get('/api/files/signed-urls')
-      .query({
-        ids: fileId,
-      })
-      .expect(200);
+      await new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((testAgent) =>
+          testAgent.delete(`/api/files/${fileId}`).expect(HttpStatus.OK),
+        )
+        .request();
 
-    expect(response.body).toEqual<FileVM[]>([
-      {
-        name: fileName,
-        signedUrl: expect.stringMatching(/^http/),
-      },
-    ]);
-  });
-
-  it('deletes a file', async () => {
-    await givenSomeS3Files(s3Client, {
-      bucket,
-      Key: fileName,
+      await expectFilesPm();
+      await expect(
+        s3Client.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key: fileName,
+          }),
+        ),
+      ).rejects.toThrow();
     });
-    await db
-      .insert(filesPm)
-      .values({
-        id: fileId,
-        bucket,
-        path: null,
-        name: fileName,
-        storageProvider: FilesStorageProvider.SCALEWAY,
-      })
-      .execute();
 
-    await supertest(app.getHttpServer())
-      .delete(`/api/files/${fileId}`)
-      .expect(200);
-
-    await expectFilesPm();
-    await expect(
-      s3Client.send(
-        new HeadObjectCommand({
-          Bucket: bucket,
-          Key: fileName,
-        }),
-      ),
-    ).rejects.toThrow();
+    const expectFilesPm = async (...files: (typeof filesPm.$inferSelect)[]) => {
+      expect(await db.select().from(filesPm).execute()).toEqual(files);
+    };
   });
 
-  const expectFilesPm = async (...files: (typeof filesPm.$inferSelect)[]) => {
-    expect(await db.select().from(filesPm).execute()).toEqual(files);
+  const initApp = async () => {
+    const moduleFixture = await new AppTestingModule().compile();
+    app = moduleFixture.createNestApplication();
+
+    s3Client = app.get(S3Client);
+
+    await app.init();
   };
+
+  class AppTestingModule extends BaseAppTestingModule {
+    constructor() {
+      super(db);
+    }
+  }
 });

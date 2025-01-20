@@ -1,7 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import { join } from 'node:path/posix';
-import { SIGNATURE_PROVIDER } from 'src/identity-and-access-context/adapters/primary/nestjs/tokens';
-import { FakeSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-signature.provider';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
@@ -57,25 +55,10 @@ describe('Session Validation Service', () => {
     }
 
     withStubbedRemoteSessionValidation() {
-      this.withFakeSignature();
-      this.withStubbedValidateSessionUseCase();
-      return this;
-    }
-
-    private withFakeSignature() {
-      this.moduleFixture.overrideProvider(SIGNATURE_PROVIDER).useFactory({
-        factory: () => {
-          const signatureProvider = new FakeSignatureProvider();
-
-          signatureProvider.signedValuesMap = {
-            [sessionId]: sessionId,
-          };
-
-          return signatureProvider;
-        },
+      this.withFakeCookieSignature({
+        [sessionId]: sessionId,
       });
-
-      return this;
+      return this.withStubbedValidateSessionUseCase();
     }
 
     private withStubbedValidateSessionUseCase() {

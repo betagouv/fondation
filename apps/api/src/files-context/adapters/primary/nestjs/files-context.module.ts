@@ -1,25 +1,26 @@
 import { S3Client } from '@aws-sdk/client-s3';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { minioS3StorageClient } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { DeleteFileUseCase } from 'src/files-context/business-logic/use-cases/file-deletion/delete-file';
 import { UploadFileUseCase } from 'src/files-context/business-logic/use-cases/file-upload/upload-file';
 import { GenerateFilesUrlsUseCase } from 'src/files-context/business-logic/use-cases/files-url-generation/generate-files-urls';
+import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
   DATE_TIME_PROVIDER,
   TRANSACTION_PERFORMER,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
 import { MinioS3Commands } from '../../secondary/gateways/providers/minio-s3-commands';
 import { RealS3StorageProvider } from '../../secondary/gateways/providers/real-s3-storage.provider';
+import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
 import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
 import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
-import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
 
 const isProduction = process.env.NODE_ENV === 'production';
 // We don't use Scaleway in the CI at the moment, because we have a long latency
@@ -69,4 +70,10 @@ const isScalewayS3 = isProduction; //|| isCi;
   ],
   exports: [],
 })
-export class FilesContextModule {}
+export class FilesContextModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SystemRequestValidationMiddleware)
+      .forRoutes(FilesController);
+  }
+}

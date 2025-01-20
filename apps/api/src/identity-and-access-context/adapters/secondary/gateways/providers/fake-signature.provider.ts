@@ -3,9 +3,13 @@ import { SignatureProvider } from 'src/identity-and-access-context/business-logi
 type SignedValue = string;
 type OriginalValue = string;
 
-export class FakeSignatureProvider implements SignatureProvider {
+export class FakeSignatureProvider
+  implements Pick<SignatureProvider, 'sign' | 'unsign'>
+{
   signedValuesMap: Record<SignedValue, OriginalValue> = {};
   nextSignedValue: string;
+
+  constructor() {}
 
   sign(value: string): string {
     if (!this.nextSignedValue) throw new Error('No next signed value');

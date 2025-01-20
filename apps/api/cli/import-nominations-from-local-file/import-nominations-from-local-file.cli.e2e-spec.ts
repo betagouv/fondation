@@ -201,7 +201,7 @@ describe('Import Nominations from local file', () => {
 
     const givenAReportPm = async (
       content: Omit<NominationFileRead['content'], 'reporters'>,
-      reporterId: string | null,
+      reporterId: string,
     ) => {
       await db.insert(reports).values({
         ...content,
@@ -308,9 +308,6 @@ describe('Import Nominations from local file', () => {
     nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
     reporterId: reportersMap[content.reporterName!]!,
-    // TODO Remove reporter name here,
-    // once removed from DB after a migration to a reporter id column
-    reporterName: null,
     folderNumber: content.folderNumber,
     state: content.state,
     dueDate: content.dueDate

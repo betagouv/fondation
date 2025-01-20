@@ -8,7 +8,7 @@ import { Reporter } from './reporter';
 export type NominationFileReportSnapshot = {
   id: string;
   nominationFileId: string;
-  reporterId: string | null;
+  reporterId: string;
   createdAt: Date;
   folderNumber: number | null;
   biography: string | null;
@@ -32,7 +32,7 @@ export class NominationFileReport {
     private readonly _id: string,
     readonly nominationFileId: string,
     readonly createdAt: Date,
-    readonly reporterId: string | null,
+    readonly reporterId: string,
     public folderNumber: number | null,
     readonly biography: string | null,
     readonly dueDate: DateOnly | null,
@@ -71,7 +71,6 @@ export class NominationFileReport {
   }
 
   generateAttachedFilePath(reporter: Reporter): string[] {
-    if (!this.reporterId) throw new Error('Reporter is missing');
     return [this.transparency, this.name, reporter.fullName.fullName()];
   }
 
@@ -83,7 +82,7 @@ export class NominationFileReport {
     return {
       id: this.id,
       nominationFileId: this.nominationFileId,
-      reporterId: this.reporterId || null,
+      reporterId: this.reporterId,
       createdAt: this.createdAt,
       folderNumber: this.folderNumber,
       biography: this.biography,
@@ -134,13 +133,13 @@ export class NominationFileReport {
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
     currentDate: Date,
-    reporter: Reporter | null,
+    reporter: Reporter,
   ): NominationFileReport {
     const report = new NominationFileReport(
       reportId,
       importedNominationFileId,
       currentDate,
-      reporter?.reporterId || null,
+      reporter.reporterId,
       createReportPayload.folderNumber,
       createReportPayload.biography,
       createReportPayload.dueDate

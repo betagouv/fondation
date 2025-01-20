@@ -20,7 +20,7 @@ export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  reporterId: uuid('reporter_id'),
+  reporterId: uuid('reporter_id').notNull(),
   nominationFileId: uuid('nomination_file_id').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   folderNumber: integer('folder_number'),
@@ -38,6 +38,5 @@ export const reports = reportsContextSchema.table('reports', {
   targettedPosition: varchar('targetted_position').notNull(),
   comment: text('comment'),
   rank: varchar('rank').notNull(),
-  reporterName: text('reporter_name'),
   observers: text().array(),
 });

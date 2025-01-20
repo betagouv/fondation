@@ -4,7 +4,6 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Req,
@@ -15,7 +14,6 @@ import {
   AuthenticatedUser,
   IdentityAndAccessRestContract,
 } from 'shared-models';
-import { SignatureProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/signature.provider';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
@@ -25,18 +23,16 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { CookieSignatureProvider } from '../../secondary/gateways/providers/hmac-signature.provider';
 import { LoginNestDto } from './dto/login.dto';
 import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.dto';
 import { UserWithIdParamsNestDto } from './dto/user-with-id-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
-import { SIGNATURE_PROVIDER } from './tokens';
 
 type IAuthController = IController<IdentityAndAccessRestContract>;
 
-const baseRoute: IdentityAndAccessRestContract['basePath'] = 'api/auth';
-const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
+export const baseRoute: IdentityAndAccessRestContract['basePath'] = 'api/auth';
+export const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
   login: 'login',
   validateSession: 'validate-session',
   logout: 'logout',
@@ -50,9 +46,7 @@ export class AuthController implements IAuthController {
     private readonly loginUser: LoginUserUseCase,
     private readonly validateSessionUseCase: ValidateSessionUseCase,
     private readonly logoutUser: LogoutUserUseCase,
-    @Inject(SIGNATURE_PROVIDER)
-    private readonly signatureProvider: SignatureProvider,
-    @Inject(API_CONFIG) private readonly apiConfig: ApiConfig,
+    private readonly signatureProvider: CookieSignatureProvider,
     private readonly userWithFullNameUseCase: UserWithFullNameUseCase,
     private readonly userWithIdUseCase: UserWithIdUseCase,
   ) {}
@@ -149,8 +143,7 @@ export class AuthController implements IAuthController {
   }
 
   private signedSessionId(sessionId: string) {
-    const secret = this.apiConfig.cookieSecret;
-    return this.signatureProvider.sign(sessionId, secret);
+    return this.signatureProvider.sign(sessionId);
   }
 
   private unsignedSessionIdFromCookies(cookies: Request['cookies']) {
@@ -160,8 +153,7 @@ export class AuthController implements IAuthController {
   }
 
   private unsignedSessionId(signedSessionId: string) {
-    const secret = this.apiConfig.cookieSecret;
-    const sessionId = this.signatureProvider.unsign(signedSessionId, secret);
+    const sessionId = this.signatureProvider.unsign(signedSessionId);
     return sessionId;
   }
 }

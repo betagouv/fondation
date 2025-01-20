@@ -13,7 +13,7 @@ import { ReportRule } from '../../models/report-rules';
 export interface ReportToCreate {
   folderNumber: number | null;
   name: string;
-  reporterName: string | null;
+  reporterName: string;
   formation: Magistrat.Formation;
   dueDate: DateOnlyJson | null;
   state: NominationFile.ReportState;
@@ -46,11 +46,9 @@ export class CreateReportUseCase {
 
     const reportId = this.uuidGenerator.generate();
 
-    const reporter = createReportPayload.reporterName
-      ? await this.reporterTranslatorService.reporterWithFullName(
-          createReportPayload.reporterName,
-        )
-      : null;
+    const reporter = await this.reporterTranslatorService.reporterWithFullName(
+      createReportPayload.reporterName,
+    );
 
     return this.transactionPerformer.perform(async (trx) => {
       const report = NominationFileReport.createFromImport(

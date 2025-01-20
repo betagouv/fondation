@@ -1,4 +1,8 @@
 export interface SignatureProvider {
-  sign(value: string, secret: string): string;
-  unsign(value: string, secret: string): string | false;
+  sign(value: string): string;
+  unsign(value: string): string | false;
+  validateSignature(
+    signedValue: string,
+    expectedUnsignedValue: string,
+  ): boolean;
 }

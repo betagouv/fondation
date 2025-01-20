@@ -1,5 +1,10 @@
-import { Inject, Module, OnModuleInit } from '@nestjs/common';
-import { HmacSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  OnModuleInit,
+} from '@nestjs/common';
+import { CookieSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 import { EncryptionProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/encryption.provider';
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
 import { AuthenticationService } from 'src/identity-and-access-context/business-logic/services/authentication.service';
@@ -8,28 +13,30 @@ import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
+import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
+  API_CONFIG,
   DATE_TIME_PROVIDER,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { BcryptEncryptionProvider } from '../../secondary/gateways/providers/bcrypt-encryption.provider';
 import { PersistentSessionProvider } from '../../secondary/gateways/providers/persistent-session.provider';
 import { SqlSessionRepository } from '../../secondary/gateways/repositories/drizzle/sql-session.repository';
 import { SqlUserRepository } from '../../secondary/gateways/repositories/drizzle/sql-user.repository';
-import { AuthController } from './auth.controller';
+import { AuthController, baseRoute, endpointsPaths } from './auth.controller';
 import { generateIdentityAndAccessProvider as generateProvider } from './provider-generator';
 import {
   ENCRYPTION_PROVIDER,
   SESSION_PROVIDER,
   SESSION_REPOSITORY,
-  SIGNATURE_PROVIDER,
   USER_REPOSITORY,
 } from './tokens';
-import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
+import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
 
 @Module({
   imports: [SharedKernelModule],
@@ -65,7 +72,12 @@ import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logi
       [SESSION_REPOSITORY],
       SESSION_PROVIDER,
     ),
-    generateProvider(HmacSignatureProvider, [], SIGNATURE_PROVIDER),
+    {
+      provide: CookieSignatureProvider,
+      useFactory: (apiConfig: ApiConfig) =>
+        new CookieSignatureProvider(apiConfig),
+      inject: [API_CONFIG],
+    },
 
     generateProvider(SqlUserRepository, [], USER_REPOSITORY),
     generateProvider(
@@ -89,5 +101,14 @@ export class IdentityAndAccessModule implements OnModuleInit {
     DomainRegistry.setUuidGenerator(this.uuidGenerator);
     DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
     DomainRegistry.setEncryptionProvider(this.encryptionProvider);
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SystemRequestValidationMiddleware)
+      .forRoutes(
+        `${baseRoute}/${endpointsPaths.userWithId}`,
+        `${baseRoute}/${endpointsPaths.userWithFullName}`,
+      );
   }
 }

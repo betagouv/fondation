@@ -15,6 +15,7 @@ const setup = async (): Promise<void> => {
       await trx.execute(sql`CREATE SCHEMA data_administration_context;`);
       await trx.execute(sql`CREATE SCHEMA reports_context;`);
       await trx.execute(sql`CREATE SCHEMA shared_kernel_context;`);
+      await trx.execute(sql`CREATE SCHEMA identity_and_access_context;`);
     });
     await db.$client.end();
   } catch {

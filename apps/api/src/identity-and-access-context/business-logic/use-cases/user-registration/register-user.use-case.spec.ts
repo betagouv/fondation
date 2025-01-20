@@ -61,38 +61,33 @@ describe('Register User', () => {
     'should register a user $testName',
     async ({ userBuilder, expectedUserBuilder }) => {
       const userCommand = userBuilder.buildRegisterUserCommand();
-      const userId = userBuilder.build().id;
-
-      encryptionProvider.encryptionMap = {
-        [userCommand.password]: expectedEncryptedPassword,
-      };
-      uuidGenerator.nextUuids = [userId];
+      givenADeterministicUserId();
+      givenAPasswordEncryption();
 
       await registerUser(userCommand);
 
-      const expectedUser = expectedUserBuilder.build();
-      expectRegisteredUser(userId, {
-        ...expectedUser,
-        password: expectedEncryptedPassword,
-      });
+      const expectedUser = expectedUserBuilder
+        .with('password', expectedEncryptedPassword)
+        .build();
+      expectRegisteredUser(expectedUser);
     },
   );
+
+  const givenADeterministicUserId = () => {
+    uuidGenerator.nextUuids = [userBuilder.build().id];
+  };
+
+  const givenAPasswordEncryption = () => {
+    encryptionProvider.encryptionMap = {
+      [userBuilder.build().password]: expectedEncryptedPassword,
+    };
+  };
 
   const registerUser = (command: RegisterUserCommand) =>
     transactionPerformer.perform(
       new RegisterUserUseCase(userRepository).execute(command),
     );
 
-  const expectRegisteredUser = (
-    userId: string,
-    command: RegisterUserCommand,
-  ) => {
-    expect(Object.values(userRepository.users)).toEqual<UserSnapshot[]>([
-      {
-        id: userId,
-        createdAt: currentDate,
-        ...command,
-      },
-    ]);
-  };
+  const expectRegisteredUser = (user: UserSnapshot) =>
+    expect(Object.values(userRepository.users)).toEqual<UserSnapshot[]>([user]);
 });

@@ -2,6 +2,7 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { AuthenticatedUser } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
@@ -16,10 +17,9 @@ import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
-import { FakeSignatureProvider } from '../../secondary/gateways/providers/fake-signature.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
-import { ENCRYPTION_PROVIDER, SIGNATURE_PROVIDER } from './tokens';
-import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
+import { ENCRYPTION_PROVIDER } from './tokens';
+import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -160,10 +160,8 @@ describe('Auth Controller', () => {
     beforeEach(async () => {
       const moduleFixture = await new AppTestingModule()
         .withFakeEncryption()
-        .withFakeSignature({
-          signedValuesMap: {
-            [signedSessionId]: sessionId,
-          },
+        .withFakeCookieSignature({
+          [signedSessionId]: sessionId,
         })
         .compile();
 
@@ -217,17 +215,16 @@ describe('Auth Controller', () => {
 
   describe('User retrieval', () => {
     it.each`
-      description       | pathname
-      ${'by full name'} | ${`user-with-full-name/${aUserDb.lastName} ${aUserDb.firstName}`}
-      ${'by ID'}        | ${`user-with-id/${aUserDb.id}`}
-    `('retrieves a user $description', async ({ pathname }) => {
-      const response = await expectResponse(pathname, HttpStatus.OK);
-      expect(response.body).toEqual<UserDescriptorSerialized>({
-        userId: aUserDb.id,
-        firstName: aUserDb.firstName,
-        lastName: aUserDb.lastName,
-      });
-    });
+      description    | pathname
+      ${'full name'} | ${`user-with-full-name/wrong_last_name ${aUserDb.firstName}`}
+      ${'ID'}        | ${`user-with-id/da4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b`}
+    `(
+      'requires authenticated requests from other bounded contexts to get a user by $description',
+      ({ pathname }) =>
+        supertest(app.getHttpServer())
+          .get(`/api/auth/${pathname}`)
+          .expect(HttpStatus.UNAUTHORIZED),
+    );
 
     it.each`
       description    | pathname
@@ -235,13 +232,28 @@ describe('Auth Controller', () => {
       ${'ID'}        | ${`user-with-id/da4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b`}
     `(
       'says user is not found if no user matches the non-existing $description',
-      ({ pathname }) => expectResponse(pathname, HttpStatus.NOT_FOUND),
+      ({ pathname }) => requestEndpoint(pathname, HttpStatus.NOT_FOUND),
     );
 
-    const expectResponse = (pathname: string, statusCode: HttpStatus) =>
-      supertest(app.getHttpServer())
-        .get(`/api/auth/${pathname}`)
-        .expect(statusCode);
+    it.each`
+      description       | pathname
+      ${'by full name'} | ${`user-with-full-name/${aUserDb.lastName} ${aUserDb.firstName}`}
+      ${'by ID'}        | ${`user-with-id/${aUserDb.id}`}
+    `('retrieves a user $description', async ({ pathname }) => {
+      const response = await requestEndpoint(pathname, HttpStatus.OK);
+      expect(response.body).toEqual<UserDescriptorSerialized>({
+        userId: aUserDb.id,
+        firstName: aUserDb.firstName,
+        lastName: aUserDb.lastName,
+      });
+    });
+
+    const requestEndpoint = (pathname: string, statusCode: HttpStatus) =>
+      new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((agent) =>
+          agent.get(`/api/auth/${pathname}`).expect(statusCode),
+        )
+        .request();
   });
 
   const givenSomeSessions = async (
@@ -272,22 +284,6 @@ describe('Auth Controller', () => {
             [aPassword]: 'encrypted-password-123',
           };
           return encryptionProvider;
-        },
-      });
-
-      return this;
-    }
-
-    withFakeSignature(options?: { signedValuesMap?: Record<string, string> }) {
-      this.moduleFixture.overrideProvider(SIGNATURE_PROVIDER).useFactory({
-        factory: () => {
-          const signatureProvider = new FakeSignatureProvider();
-
-          if (options?.signedValuesMap) {
-            signatureProvider.signedValuesMap = options.signedValuesMap;
-          }
-
-          return signatureProvider;
         },
       });
 
