@@ -17,32 +17,11 @@ export class UpdateReportUseCase {
     return this.transactionPerformer.perform(async (trx) => {
       const report = await this.reportRepository.byId(id)(trx);
       if (!report) return;
-      const newReport = new NominationFileReport(
-        id,
-        report.nominationFileId,
-        report.createdAt,
-        report.reporterId,
-        report.folderNumber,
-        report.biography,
-        report.dueDate,
-        report.name,
-        report.birthDate,
-        newData.state || report.state,
-        report.formation,
-        report.transparency,
-        report.grade,
-        report.currentPosition,
-        report.targettedPosition,
-        'comment' in newData
-          ? newData.comment === ''
-            ? null
-            : newData.comment || null
-          : report.comment,
-        report.rank,
-        report.observers,
-        null,
-      );
-      await this.reportRepository.save(newReport)(trx);
+
+      if ('comment' in newData) report.updateComment(newData.comment);
+      if (newData.state) report.updateState(newData.state);
+
+      await this.reportRepository.save(report)(trx);
     });
   }
 }

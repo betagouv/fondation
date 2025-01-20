@@ -4,6 +4,7 @@ import { ReportToCreate } from '../use-cases/report-creation/create-report.use-c
 import { ReportAttachedFile } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
+import { z } from 'zod';
 
 export type NominationFileReportSnapshot = {
   id: string;
@@ -30,32 +31,124 @@ export type NominationFileReportSnapshot = {
 export class NominationFileReport {
   constructor(
     private readonly _id: string,
-    readonly nominationFileId: string,
-    readonly createdAt: Date,
-    readonly reporterId: string,
-    public folderNumber: number | null,
-    readonly biography: string | null,
-    readonly dueDate: DateOnly | null,
-    readonly name: string,
-    readonly birthDate: DateOnly,
-    readonly state: NominationFile.ReportState,
-    readonly formation: Magistrat.Formation,
-    readonly transparency: Transparency,
-    readonly grade: Magistrat.Grade,
-    readonly currentPosition: string,
-    readonly targettedPosition: string,
-    readonly comment: string | null,
-    readonly rank: string,
-    public observers: string[] | null,
-    readonly attachedFiles: ReportAttachedFiles | null,
+    private readonly _nominationFileId: string,
+    private readonly _createdAt: Date,
+    private readonly _reporterId: string,
+    private _folderNumber: number | null,
+    private readonly _biography: string | null,
+    private readonly _dueDate: DateOnly | null,
+    private readonly _name: string,
+    private readonly _birthDate: DateOnly,
+    private _state: NominationFile.ReportState,
+    private readonly _formation: Magistrat.Formation,
+    private readonly _transparency: Transparency,
+    private readonly _grade: Magistrat.Grade,
+    private readonly _currentPosition: string,
+    private readonly _targettedPosition: string,
+    private _comment: string | null,
+    private readonly _rank: string,
+    private _observers: string[] | null,
+    private readonly _attachedFiles: ReportAttachedFiles | null,
   ) {}
 
+  public get nominationFileId(): string {
+    return this._nominationFileId;
+  }
+
+  public get createdAt(): Date {
+    return this._createdAt;
+  }
+
+  public get reporterId(): string {
+    return this._reporterId;
+  }
+
+  public get folderNumber(): number | null {
+    return this._folderNumber;
+  }
+  private set folderNumber(value: number | null) {
+    this._folderNumber = z.number().int().min(1).nullable().parse(value);
+  }
+
+  public get biography(): string | null {
+    return this._biography;
+  }
+
+  public get dueDate(): DateOnly | null {
+    return this._dueDate;
+  }
+
+  public get name(): string {
+    return this._name;
+  }
+
+  public get birthDate(): DateOnly {
+    return this._birthDate;
+  }
+
+  public get state(): NominationFile.ReportState {
+    return this._state;
+  }
+  private set state(value: NominationFile.ReportState) {
+    this._state = z.nativeEnum(NominationFile.ReportState).parse(value);
+  }
+
+  public get formation(): Magistrat.Formation {
+    return this._formation;
+  }
+
+  public get transparency(): Transparency {
+    return this._transparency;
+  }
+
+  public get grade(): Magistrat.Grade {
+    return this._grade;
+  }
+
+  public get currentPosition(): string {
+    return this._currentPosition;
+  }
+
+  public get targettedPosition(): string {
+    return this._targettedPosition;
+  }
+
+  public get comment(): string | null {
+    return this._comment;
+  }
+  private set comment(value: string | null) {
+    this._comment = z.string().nullable().parse(value);
+  }
+
+  public get rank(): string {
+    return this._rank;
+  }
+
+  public get observers(): string[] | null {
+    return this._observers;
+  }
+  private set observers(value: string[] | null) {
+    this._observers = z.array(z.string().min(3)).nullable().parse(value);
+  }
+
+  public get attachedFiles(): ReportAttachedFiles | null {
+    return this._attachedFiles;
+  }
+
+  updateComment(comment?: string | null) {
+    this.comment = comment || null;
+  }
+
+  updateState(state: NominationFile.ReportState) {
+    this.state = state;
+  }
+
   replaceFolderNumber(folderNumber: number | null) {
-    this.folderNumber = folderNumber;
+    this._folderNumber = folderNumber;
   }
 
   replaceObservers(observers: string[]) {
-    this.observers = observers;
+    this._observers = observers;
   }
 
   alreadyHasAttachedFile(file: ReportAttachedFile): boolean {
