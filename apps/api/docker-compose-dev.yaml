@@ -16,7 +16,7 @@ services:
   minio:
     container_name: minio
     image: 'minio/minio:latest'
-    command: server /data
+    entrypoint: sh -c "mkdir -p /data/sandbox-csm-fondation-reports-context && minio server /data"
     ports:
       - '9000:9000' # API
       - '9001:9001' # Web interface

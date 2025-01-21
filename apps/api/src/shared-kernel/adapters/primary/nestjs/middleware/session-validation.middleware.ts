@@ -17,11 +17,10 @@ export class SessionValidationMiddleware implements NestMiddleware {
       await this.validateUserSession(req, res);
     } catch (error) {
       console.error('Error validating session', error);
-      return res
+      res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send('Error validating session');
     }
-
     next();
   }
 
