@@ -28,6 +28,7 @@ import { LoginNestDto } from './dto/login.dto';
 import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.dto';
 import { UserWithIdParamsNestDto } from './dto/user-with-id-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
+import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 
 type IAuthController = IController<IdentityAndAccessRestContract>;
 
@@ -59,11 +60,7 @@ export class AuthController implements IAuthController {
         loginDto.password,
       );
       this.createSessionCookie(sessionId, res);
-      const authenticatedUser: AuthenticatedUser = {
-        userId: userDescriptor.userId,
-        firstName: userDescriptor.firstName,
-        lastName: userDescriptor.lastName,
-      };
+      const authenticatedUser: AuthenticatedUser = userDescriptor.serialize();
       return res.status(HttpStatus.OK).send(authenticatedUser);
     } catch {
       return res.status(HttpStatus.UNAUTHORIZED).send('Invalid credentials');
@@ -118,11 +115,13 @@ export class AuthController implements IAuthController {
     return this.responseWithUserDescriptor(userDescriptor);
   }
 
-  private responseWithUserDescriptor(userDescriptor: AuthenticatedUser | null) {
+  private responseWithUserDescriptor(
+    userDescriptor: UserDescriptor | null,
+  ): AuthenticatedUser {
     if (!userDescriptor) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    return userDescriptor;
+    return userDescriptor.serialize();
   }
 
   private createSessionCookie(sessionId: string, res: Response) {

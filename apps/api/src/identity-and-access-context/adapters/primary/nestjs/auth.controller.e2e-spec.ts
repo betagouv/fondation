@@ -20,6 +20,7 @@ import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER } from './tokens';
 import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -29,6 +30,7 @@ const aUserDb = {
   email: 'user@example.com',
   password: 'encrypted-password-123',
   role: Role.MEMBRE_DU_PARQUET,
+  gender: Gender.M,
 } satisfies typeof users.$inferInsert;
 
 const loginDto = {
@@ -76,6 +78,7 @@ describe('Auth Controller', () => {
           role: Role.MEMBRE_DU_PARQUET,
           firstName: 'New',
           lastName: 'User',
+          gender: Gender.F,
         }),
       );
 

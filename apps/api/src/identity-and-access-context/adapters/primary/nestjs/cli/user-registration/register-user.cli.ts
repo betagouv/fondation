@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import {
   RegisterUserCommand,
@@ -20,6 +21,7 @@ const userSchema = z
     lastName: z.string(),
     role: z.nativeEnum(Role),
     email: z.string().email(),
+    gender: z.nativeEnum(Gender),
   })
   .strict();
 type UserJson = z.infer<typeof userSchema>;
@@ -70,6 +72,7 @@ async function registerUser(
     lastName: user.lastName,
     role: user.role,
     email: user.email,
+    gender: user.gender,
     password,
   };
 

@@ -1,10 +1,7 @@
 import { FullName } from 'src/identity-and-access-context/business-logic/models/full-name';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
-import {
-  UserDescriptor,
-  UserDescriptorSerialized,
-} from '../../models/user-descriptor';
+import { UserDescriptor } from '../../models/user-descriptor';
 
 export class UserWithFullNameUseCase {
   constructor(
@@ -12,7 +9,7 @@ export class UserWithFullNameUseCase {
     private readonly transactionPerformer: TransactionPerformer,
   ) {}
 
-  async execute(fullName: string): Promise<UserDescriptorSerialized | null> {
+  async execute(fullName: string): Promise<UserDescriptor | null> {
     const name = FullName.unaccentedFromString(fullName);
 
     return this.transactionPerformer.perform(async (trx) => {
@@ -21,7 +18,7 @@ export class UserWithFullNameUseCase {
         name.lastName,
       )(trx);
 
-      return user ? UserDescriptor.fromUser(user).serialize() : null;
+      return user ? UserDescriptor.fromUser(user) : null;
     });
   }
 }

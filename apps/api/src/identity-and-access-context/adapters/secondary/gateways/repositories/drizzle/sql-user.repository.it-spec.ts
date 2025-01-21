@@ -99,7 +99,7 @@ describe('SQL User Repository', () => {
         await transactionPerformer.perform(
           sqlUserRepository.userWithFullName(
             firstName,
-            aUser.fullName.lastName,
+            aUser.person.fullName.lastName,
           ),
         ),
       ).toEqual(expected);

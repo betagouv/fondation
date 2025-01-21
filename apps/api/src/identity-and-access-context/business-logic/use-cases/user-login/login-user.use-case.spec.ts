@@ -8,10 +8,8 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { UserBuilder } from '../../builders/user.builder';
 import { DomainRegistry } from '../../models/domain-registry';
 import { AuthenticationService } from '../../services/authentication.service';
-import {
-  LoginUserUseCase,
-  LoginUserUseCaseResponse,
-} from './login-user.use-case';
+import { LoginUserUseCase } from './login-user.use-case';
+import { expectUserDescriptor } from 'test/bounded-contexts/identity-and-access';
 
 const aUser = new UserBuilder()
   .with('email', 'user@example.com')
@@ -42,12 +40,13 @@ describe('Login User Use Case', () => {
   });
 
   it('logs in a user and generates a session ID', async () => {
-    expect(
-      await loginUser(aUser.email, 'password'),
-    ).toEqual<LoginUserUseCaseResponse>({
-      sessionId: 'session-user-id',
-      userDescriptor: { userId: aUser.id, firstName: 'john', lastName: 'doe' },
-    });
+    const { sessionId, userDescriptor } = await loginUser(
+      aUser.email,
+      'password',
+    );
+    expect(sessionId).toEqual('session-user-id');
+    expectUserDescriptor(userDescriptor, aUser);
+
     expectSession({
       sessionId: 'session-user-id',
       userId: aUser.id,

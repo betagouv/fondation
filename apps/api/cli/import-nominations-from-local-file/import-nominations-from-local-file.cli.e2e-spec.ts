@@ -8,6 +8,7 @@ import { nominationFiles } from 'src/data-administration-context/adapters/second
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import {
   reportRules,
@@ -64,6 +65,7 @@ describe('Import Nominations from local file', () => {
         email: 'jules.roussin@example.fr',
         password: 'some-password',
         role: Role.MEMBRE_DU_PARQUET,
+        gender: Gender.M,
       },
       {
         id: reportersMap['JOSSELIN-MARTEL Martin-Luc'],
@@ -72,6 +74,7 @@ describe('Import Nominations from local file', () => {
         email: 'martin-luc@example.fr',
         password: 'some-password',
         role: Role.MEMBRE_DU_SIEGE,
+        gender: Gender.M,
       },
     ]);
   });

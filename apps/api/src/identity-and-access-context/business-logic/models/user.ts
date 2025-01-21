@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { Role } from './role';
+import { Person } from './person';
+import { Gender } from './gender';
 import { FullName } from './full-name';
 
 export type UserSnapshot = {
@@ -11,6 +13,7 @@ export type UserSnapshot = {
   role: Role;
   firstName: string;
   lastName: string;
+  gender: Gender | null;
 };
 
 export class User {
@@ -19,7 +22,7 @@ export class User {
   private _email: string;
   private _password: string;
   private _role: Role;
-  private _fullName: FullName;
+  private _person: Person;
 
   constructor(
     id: string,
@@ -27,14 +30,14 @@ export class User {
     email: string,
     password: string,
     role: Role,
-    fullName: FullName,
+    person: Person,
   ) {
     this.id = id;
     this.createdAt = createdAt;
     this.email = email;
     this.password = password;
     this.role = role;
-    this.fullName = fullName;
+    this.person = person;
   }
 
   public get id(): string {
@@ -72,11 +75,11 @@ export class User {
     this._role = z.nativeEnum(Role).parse(value);
   }
 
-  public get fullName(): FullName {
-    return this._fullName;
+  public get person(): Person {
+    return this._person;
   }
-  private set fullName(value: FullName) {
-    this._fullName = value;
+  private set person(value: Person) {
+    this._person = value;
   }
 
   toSnapshot(): UserSnapshot {
@@ -86,8 +89,9 @@ export class User {
       email: this._email,
       password: this._password,
       role: this._role,
-      firstName: this._fullName.firstName,
-      lastName: this._fullName.lastName,
+      firstName: this._person.fullName.firstName,
+      lastName: this._person.fullName.lastName,
+      gender: this._person.gender,
     };
   }
 
@@ -98,7 +102,10 @@ export class User {
       snapshot.email,
       snapshot.password,
       snapshot.role,
-      new FullName(snapshot.firstName, snapshot.lastName),
+      new Person(
+        new FullName(snapshot.firstName, snapshot.lastName),
+        snapshot.gender,
+      ),
     );
   }
 
@@ -108,6 +115,7 @@ export class User {
     role: Role,
     firstName: string,
     lastName: string,
+    gender: Gender | null,
   ): Promise<User> {
     const uuidGenerator = DomainRegistry.uuidGenerator();
     const currentDate = DomainRegistry.dateTimeProvider().now();
@@ -119,7 +127,7 @@ export class User {
       email,
       encryptedPassword,
       role,
-      new FullName(firstName, lastName),
+      new Person(new FullName(firstName, lastName), gender),
     );
 
     return user;

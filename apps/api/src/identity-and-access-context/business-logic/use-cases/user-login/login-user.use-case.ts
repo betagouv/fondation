@@ -1,14 +1,11 @@
 import { SessionProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/session-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import {
-  UserDescriptor,
-  UserDescriptorSerialized,
-} from '../../models/user-descriptor';
+import { UserDescriptor } from '../../models/user-descriptor';
 import { AuthenticationService } from '../../services/authentication.service';
 
 export type LoginUserUseCaseResponse = {
   sessionId: string;
-  userDescriptor: UserDescriptorSerialized;
+  userDescriptor: UserDescriptor;
 };
 
 export class LoginUserUseCase {
@@ -39,7 +36,7 @@ export class LoginUserUseCase {
 
       return {
         sessionId,
-        userDescriptor: UserDescriptor.fromUser(user).serialize(),
+        userDescriptor: UserDescriptor.fromUser(user),
       };
     });
   }

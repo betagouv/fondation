@@ -1,8 +1,7 @@
 import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { expectUserDescriptor } from 'test/bounded-contexts/identity-and-access';
 import { UserBuilder } from '../../builders/user.builder';
-import { UserSnapshot } from '../../models/user';
-import { UserDescriptorSerialized } from '../../models/user-descriptor';
 import { UserWithIdUseCase } from './user-with-id.use-case';
 
 const aUser = new UserBuilder()
@@ -23,7 +22,7 @@ describe('User With ID Use Case', () => {
 
   it('should return a user when found for given ID', async () => {
     const userFound = await userWithId(aUser.id);
-    expectUser(userFound!, aUser);
+    expectUserDescriptor(userFound!, aUser);
   });
 
   it('should return nothing when user is not found for given ID', async () => {
@@ -36,15 +35,4 @@ describe('User With ID Use Case', () => {
       userRepository,
       new NullTransactionPerformer(),
     ).execute(id);
-
-  const expectUser = (
-    userFound: UserDescriptorSerialized,
-    expectedUser: UserSnapshot,
-  ) => {
-    expect(userFound).toEqual<UserDescriptorSerialized>({
-      userId: expectedUser.id,
-      firstName: expectedUser.firstName,
-      lastName: expectedUser.lastName,
-    });
-  };
 });

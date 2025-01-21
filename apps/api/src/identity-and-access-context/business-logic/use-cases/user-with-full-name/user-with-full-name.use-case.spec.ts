@@ -1,8 +1,7 @@
 import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { expectUserDescriptor } from 'test/bounded-contexts/identity-and-access';
 import { UserBuilder } from '../../builders/user.builder';
-import { UserSnapshot } from '../../models/user';
-import { UserDescriptorSerialized } from '../../models/user-descriptor';
 import { UserWithFullNameUseCase } from './user-with-full-name.use-case';
 
 const aUser = new UserBuilder()
@@ -36,7 +35,7 @@ describe('User With Full Name Use Case', () => {
     ['PREGENT JOHN'],
   ])('should return a user when found for full name %s', async (fullName) => {
     const userFound = await userByFullName(fullName);
-    expectUser(userFound!, aUser);
+    expectUserDescriptor(userFound!, aUser);
   });
 
   it.each([['John Prégent'], ['john prégent'], ['JOHN PREGENT']])(
@@ -49,7 +48,7 @@ describe('User With Full Name Use Case', () => {
 
   it('should return a user when found for a composed last name', async () => {
     const userFound = await userByFullName('doe smith jane');
-    expectUser(userFound!, composedLastNameUser);
+    expectUserDescriptor(userFound!, composedLastNameUser);
   });
 
   const userByFullName = (fullName: string) =>
@@ -57,15 +56,4 @@ describe('User With Full Name Use Case', () => {
       userRepository,
       new NullTransactionPerformer(),
     ).execute(fullName);
-
-  const expectUser = (
-    userFound: UserDescriptorSerialized,
-    expectedUser: UserSnapshot,
-  ) => {
-    expect(userFound).toEqual<UserDescriptorSerialized>({
-      userId: expectedUser.id,
-      firstName: expectedUser.firstName,
-      lastName: expectedUser.lastName,
-    });
-  };
 });

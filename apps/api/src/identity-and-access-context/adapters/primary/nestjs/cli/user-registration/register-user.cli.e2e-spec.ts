@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import { RegisterUserCommand } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -22,12 +23,14 @@ const usersJson: UserJson[] = [
     role: Role.MEMBRE_DU_SIEGE,
     firstName: 'john',
     lastName: 'doe',
+    gender: Gender.M,
   },
   {
     email: 'user2@example.fr',
     role: Role.MEMBRE_DU_SIEGE,
     firstName: 'jane',
     lastName: 'doe',
+    gender: Gender.F,
   },
 ];
 

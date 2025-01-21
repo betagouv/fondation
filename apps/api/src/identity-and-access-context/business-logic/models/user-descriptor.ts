@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { User } from './user';
-import { FullName } from './full-name';
+import { Gender } from './gender';
 
 export type UserDescriptorSerialized = {
   userId: string;
@@ -9,9 +9,11 @@ export type UserDescriptorSerialized = {
 };
 
 export class UserDescriptor {
-  private constructor(
+  constructor(
     private _userId: string,
-    private _fullName: FullName,
+    private _firstName: string,
+    private _lastName: string,
+    private _gender: Gender | null,
   ) {}
 
   public get userId(): string {
@@ -21,15 +23,41 @@ export class UserDescriptor {
     this._userId = z.string().min(1).parse(value);
   }
 
+  public get firstName(): string {
+    return this._firstName;
+  }
+  private set firstName(value: string) {
+    this._firstName = z.string().min(1).parse(value);
+  }
+
+  public get lastName(): string {
+    return this._lastName;
+  }
+  private set lastName(value: string) {
+    this._lastName = z.string().min(1).parse(value);
+  }
+
+  public get gender(): Gender | null {
+    return this._gender;
+  }
+  private set gender(value: Gender | null) {
+    this._gender = value;
+  }
+
   serialize(): UserDescriptorSerialized {
     return {
       userId: this.userId,
-      firstName: this._fullName.firstName,
-      lastName: this._fullName.lastName,
+      firstName: this.firstName,
+      lastName: this.lastName,
     };
   }
 
   static fromUser(user: User) {
-    return new UserDescriptor(user.id, user.fullName);
+    return new UserDescriptor(
+      user.id,
+      user.person.fullName.firstName,
+      user.person.fullName.lastName,
+      user.person.gender,
+    );
   }
 }

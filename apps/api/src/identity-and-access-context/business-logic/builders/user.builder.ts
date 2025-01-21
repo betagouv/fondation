@@ -3,6 +3,7 @@ import { Get, Paths } from 'type-fest';
 import { Role } from '../models/role';
 import { UserSnapshot } from '../models/user';
 import { RegisterUserCommand } from '../use-cases/user-registration/register-user.use-case';
+import { Gender } from '../models/gender';
 
 export class UserBuilder {
   private _snapshot: UserSnapshot;
@@ -21,6 +22,7 @@ export class UserBuilder {
       role: Role.MEMBRE_DU_SIEGE,
       firstName: 'john',
       lastName: 'doe',
+      gender: Gender.F,
       ...override,
     };
   }
@@ -44,6 +46,7 @@ export class UserBuilder {
       role: this._snapshot.role,
       firstName: this._snapshot.firstName,
       lastName: this._snapshot.lastName,
+      gender: this._snapshot.gender,
     };
   }
 }

@@ -13,6 +13,7 @@ import { clearDB } from 'test/docker-postgresql-manager';
 import { sessions } from './schema/session-pm';
 import { users } from './schema/user-pm';
 import { SqlSessionRepository } from './sql-session.repository';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 
 const currentDate = new Date(2030, 0, 10);
 const expiryTimeInDays = 10;
@@ -102,6 +103,7 @@ describe('SQL Session Repository', () => {
         email: 'jane.smith@example.com',
         password: 'securepassword',
         role: Role.MEMBRE_COMMUN,
+        gender: Gender.M,
       })
       .execute();
   };

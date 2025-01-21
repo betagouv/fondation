@@ -7,6 +7,7 @@ import {
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
 import { FullName } from 'src/identity-and-access-context/business-logic/models/full-name';
+import { Person } from 'src/identity-and-access-context/business-logic/models/person';
 
 export class SqlUserRepository implements UserRepository {
   save(user: User): DrizzleTransactionableAsync<void> {
@@ -95,6 +96,7 @@ export class SqlUserRepository implements UserRepository {
       role: snapshot.role,
       firstName: snapshot.firstName,
       lastName: snapshot.lastName,
+      gender: snapshot.gender,
     };
   }
 
@@ -105,7 +107,7 @@ export class SqlUserRepository implements UserRepository {
       row.email,
       row.password,
       row.role,
-      new FullName(row.firstName, row.lastName),
+      new Person(new FullName(row.firstName, row.lastName), row.gender),
     );
   }
 }

@@ -2,6 +2,7 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 import { UserRepository } from '../../gateways/repositories/user-repository';
 import { Role } from '../../models/role';
 import { User } from '../../models/user';
+import { Gender } from '../../models/gender';
 
 export type RegisterUserCommand = {
   email: string;
@@ -9,6 +10,7 @@ export type RegisterUserCommand = {
   role: Role;
   firstName: string;
   lastName: string;
+  gender: Gender | null;
 };
 
 export class RegisterUserUseCase {
@@ -22,6 +24,7 @@ export class RegisterUserUseCase {
         userToRegister.role,
         userToRegister.firstName,
         userToRegister.lastName,
+        userToRegister.gender,
       );
 
       await this.userRepository.save(user)(trx);

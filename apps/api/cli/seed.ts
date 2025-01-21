@@ -7,6 +7,7 @@ import {
   Transparency,
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { Role } from 'src/identity-and-access-context/business-logic/models/role';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
@@ -33,6 +34,7 @@ async function seed() {
       lastName: 'Denan',
       email: 'luc.denan@example.fr',
       role: Role.MEMBRE_DU_SIEGE,
+      gender: Gender.M,
       // Unencrypted password is 'password+00'
       password: '$2b$10$ZsZ6Q01IdeksH/XkaZhzJuMLVCJC6TT2RbYkZ3oZDo85XkkOB5Ina',
     };
