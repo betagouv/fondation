@@ -7,7 +7,7 @@ import { UserWithFullNameUseCase } from './user-with-full-name.use-case';
 
 const aUser = new UserBuilder()
   .with('firstName', 'john')
-  .with('lastName', 'doe')
+  .with('lastName', 'prégent')
   .build();
 
 const composedLastNameUser = new UserBuilder()
@@ -16,7 +16,7 @@ const composedLastNameUser = new UserBuilder()
   .with('lastName', 'doe smith')
   .build();
 
-describe('User From Full Name Use Case', () => {
+describe('User With Full Name Use Case', () => {
   let userRepository: FakeUserRepository;
 
   beforeEach(() => {
@@ -27,15 +27,19 @@ describe('User From Full Name Use Case', () => {
     };
   });
 
-  it.each([['doe john'], ['  doe   john  '], ['Doe John'], ['DOE JOHN']])(
-    'should return a user when found for full name %s',
-    async (fullName) => {
-      const userFound = await userByFullName(fullName);
-      expectUser(userFound!, aUser);
-    },
-  );
+  it.each([
+    ['pregent john'],
+    ['prégent john'],
+    ['  prégent   john  '],
+    ['Prégent John'],
+    ['PRÉGENT JOHN'],
+    ['PREGENT JOHN'],
+  ])('should return a user when found for full name %s', async (fullName) => {
+    const userFound = await userByFullName(fullName);
+    expectUser(userFound!, aUser);
+  });
 
-  it.each([['John Doe'], ['john doe'], ['JOHN DOE']])(
+  it.each([['John Prégent'], ['john prégent'], ['JOHN PREGENT']])(
     'should return nothing when user is not found for full name %s',
     async (fullName) => {
       const userFound = await userByFullName(fullName);

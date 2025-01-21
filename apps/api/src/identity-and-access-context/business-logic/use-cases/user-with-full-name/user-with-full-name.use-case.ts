@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { FullName } from 'src/identity-and-access-context/business-logic/models/full-name';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
@@ -7,7 +6,6 @@ import {
   UserDescriptorSerialized,
 } from '../../models/user-descriptor';
 
-@Injectable()
 export class UserWithFullNameUseCase {
   constructor(
     private readonly userRepository: UserRepository,
@@ -15,7 +13,7 @@ export class UserWithFullNameUseCase {
   ) {}
 
   async execute(fullName: string): Promise<UserDescriptorSerialized | null> {
-    const name = FullName.fromString(fullName);
+    const name = FullName.unaccentedFromString(fullName);
 
     return this.transactionPerformer.perform(async (trx) => {
       const user = await this.userRepository.userWithFullName(

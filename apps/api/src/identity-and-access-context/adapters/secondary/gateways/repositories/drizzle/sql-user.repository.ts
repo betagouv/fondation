@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import {
   User,
@@ -6,6 +6,7 @@ import {
 } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
+import { FullName } from 'src/identity-and-access-context/business-logic/models/full-name';
 
 export class SqlUserRepository implements UserRepository {
   save(user: User): DrizzleTransactionableAsync<void> {
@@ -51,7 +52,10 @@ export class SqlUserRepository implements UserRepository {
         .select()
         .from(users)
         .where(
-          and(eq(users.firstName, firstName), eq(users.lastName, lastName)),
+          and(
+            sql`unaccent(${users.firstName}) = ${firstName}`,
+            sql`unaccent(${users.lastName}) = ${lastName}`,
+          ),
         )
         .limit(1);
 
@@ -101,8 +105,7 @@ export class SqlUserRepository implements UserRepository {
       row.email,
       row.password,
       row.role,
-      row.firstName,
-      row.lastName,
+      new FullName(row.firstName, row.lastName),
     );
   }
 }

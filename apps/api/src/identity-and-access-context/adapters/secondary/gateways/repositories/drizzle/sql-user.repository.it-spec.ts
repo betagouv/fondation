@@ -13,7 +13,10 @@ import { users } from './schema/user-pm';
 import { SqlUserRepository } from './sql-user.repository';
 
 const aUser = User.fromSnapshot(
-  new UserBuilder().with('id', 'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e').build(),
+  new UserBuilder()
+    .with('id', 'e7b8a9d6-4f5b-4c8b-9b2d-2f8e4f8e4f8e')
+    .with('firstName', 'adèle')
+    .build(),
 );
 
 const anotherUser = User.fromSnapshot(
@@ -88,13 +91,16 @@ describe('SQL User Repository', () => {
     });
 
     it.each`
-      description                                | firstName          | lastName          | expected
-      ${'finds a user by full name'}             | ${aUser.firstName} | ${aUser.lastName} | ${aUser}
-      ${'returns nothing if no full name match'} | ${'Nonexistent'}   | ${aUser.lastName} | ${null}
-    `('$description', async ({ firstName, lastName, expected }) => {
+      description                                       | firstName        | expected
+      ${'finds a user by full name with accents in it'} | ${'adele'}       | ${aUser}
+      ${'returns nothing if no full name match'}        | ${'Nonexistent'} | ${null}
+    `('$description', async ({ firstName, expected }) => {
       expect(
         await transactionPerformer.perform(
-          sqlUserRepository.userWithFullName(firstName, lastName),
+          sqlUserRepository.userWithFullName(
+            firstName,
+            aUser.fullName.lastName,
+          ),
         ),
       ).toEqual(expected);
     });

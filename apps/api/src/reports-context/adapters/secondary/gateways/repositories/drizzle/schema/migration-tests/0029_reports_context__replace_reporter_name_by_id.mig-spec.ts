@@ -27,21 +27,21 @@ const users = identityAndAccessContextSchema.table('users', {
 
 const firstReport: typeof reports.$inferInsert = {
   id: 'ca1619e2-263d-49b6-b928-6a04ee681138',
-  reporterName: 'DOE John',
+  reporterName: 'ELISABETH Rémi',
 };
 const secondReport: typeof reports.$inferInsert = {
   id: '53492bf1-b48c-4960-a171-87a57657079a',
-  reporterName: 'DOE Jane',
+  reporterName: 'DOE Adele',
 };
 
 const firstReportUser: typeof users.$inferInsert = {
   id: 'ad7b3b1b-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
-  firstName: 'john',
-  lastName: 'doe',
+  firstName: 'rémi',
+  lastName: 'élisabeth',
 };
 const secondReportUser: typeof users.$inferInsert = {
   id: '65bfdcb3-048b-4668-9561-b74af5332583',
-  firstName: 'jane',
+  firstName: 'adèle',
   lastName: 'doe',
 };
 

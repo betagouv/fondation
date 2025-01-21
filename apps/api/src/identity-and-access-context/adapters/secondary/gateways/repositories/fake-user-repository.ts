@@ -1,3 +1,4 @@
+import { deburr } from 'lodash';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import {
   User,
@@ -29,7 +30,9 @@ export class FakeUserRepository implements UserRepository {
   ): TransactionableAsync<User | null> {
     return async () => {
       const user = Object.values(this.users).find(
-        (user) => user.firstName === firstName && user.lastName === lastName,
+        (user) =>
+          deburr(user.firstName) === firstName &&
+          deburr(user.lastName) === lastName,
       );
       return user ? User.fromSnapshot(user) : null;
     };

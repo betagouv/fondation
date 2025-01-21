@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
 import {
@@ -6,7 +5,6 @@ import {
   UserDescriptorSerialized,
 } from '../../models/user-descriptor';
 
-@Injectable()
 export class UserWithIdUseCase {
   constructor(
     private readonly userRepository: UserRepository,

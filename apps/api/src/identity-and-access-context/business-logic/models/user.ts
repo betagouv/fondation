@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { Role } from './role';
+import { FullName } from './full-name';
 
 export type UserSnapshot = {
   id: string;
@@ -18,8 +19,7 @@ export class User {
   private _email: string;
   private _password: string;
   private _role: Role;
-  private _firstName: string;
-  private _lastName: string;
+  private _fullName: FullName;
 
   constructor(
     id: string,
@@ -27,16 +27,14 @@ export class User {
     email: string,
     password: string,
     role: Role,
-    firstName: string,
-    lastName: string,
+    fullName: FullName,
   ) {
     this.id = id;
     this.createdAt = createdAt;
     this.email = email;
     this.password = password;
     this.role = role;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.fullName = fullName;
   }
 
   public get id(): string {
@@ -74,22 +72,11 @@ export class User {
     this._role = z.nativeEnum(Role).parse(value);
   }
 
-  public get firstName(): string {
-    return this._firstName;
+  public get fullName(): FullName {
+    return this._fullName;
   }
-  private set firstName(value: string) {
-    this._firstName = z.string().min(1).parse(this.lowerCase(value));
-  }
-
-  public get lastName(): string {
-    return this._lastName;
-  }
-  private set lastName(value: string) {
-    this._lastName = z.string().min(1).parse(this.lowerCase(value));
-  }
-
-  private lowerCase(value: string): string {
-    return value.toLowerCase();
+  private set fullName(value: FullName) {
+    this._fullName = value;
   }
 
   toSnapshot(): UserSnapshot {
@@ -99,8 +86,8 @@ export class User {
       email: this._email,
       password: this._password,
       role: this._role,
-      firstName: this._firstName,
-      lastName: this._lastName,
+      firstName: this._fullName.firstName,
+      lastName: this._fullName.lastName,
     };
   }
 
@@ -111,8 +98,7 @@ export class User {
       snapshot.email,
       snapshot.password,
       snapshot.role,
-      snapshot.firstName,
-      snapshot.lastName,
+      new FullName(snapshot.firstName, snapshot.lastName),
     );
   }
 
@@ -133,8 +119,7 @@ export class User {
       email,
       encryptedPassword,
       role,
-      firstName,
-      lastName,
+      new FullName(firstName, lastName),
     );
 
     return user;

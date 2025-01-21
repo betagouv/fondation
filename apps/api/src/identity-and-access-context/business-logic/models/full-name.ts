@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export class FullName {
-  private constructor(
+  constructor(
     private _firstName: string,
     private _lastName: string,
   ) {
@@ -29,10 +29,10 @@ export class FullName {
     return value.toLowerCase();
   }
 
-  static fromString(fullName: string): FullName {
+  static unaccentedFromString(fullName: string): FullName {
     const sanitizedFullName = fullName.trim();
     const [firstName, lastName] = FullName.firstAndLastName(sanitizedFullName);
-    return new FullName(firstName, lastName);
+    return new FullName(this.unaccent(firstName), this.unaccent(lastName));
   }
 
   private static firstAndLastName(fullName: string): [string, string] {
@@ -41,5 +41,12 @@ export class FullName {
     const firstName = fullName.substring(lastSpaceIndex + 1).trim();
 
     return [firstName, lastName];
+  }
+
+  private static unaccent(value: string): string {
+    // Split characters into the base character plus their diacritic mark,
+    // then remove the diacritic mark with a regex.
+    // https://en.wikipedia.org/wiki/Combining_Diacritical_Marks
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 }
