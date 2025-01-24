@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
+import { FakeAuthenticationStorageProvider } from "../authentication/adapters/secondary/providers/fakeAuthenticationStorage.provider";
+import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 import {
   authenticate,
   AuthenticateParams,
@@ -22,7 +24,8 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
-import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { sleep } from "../shared-kernel/core-logic/sleep";
+import { storeDisconnectionOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
@@ -35,21 +38,28 @@ describe("App Router Component", () => {
   let authenticationGateway: ApiAuthenticationGateway;
   let routerProvider: TypeRouterProvider;
   let apiClient: FakeAuthenticationApiClient;
+  let authenticationStorageProvider: FakeAuthenticationStorageProvider;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     routerProvider = new TypeRouterProvider();
+    authenticationStorageProvider = new FakeAuthenticationStorageProvider();
 
     store = initReduxStore(
       { authenticationGateway },
-      { routerProvider },
+      { routerProvider, authenticationStorageProvider },
       {
         routeToComponentFactory: useRouteToComponentFactory,
         routeChangedHandler: useRouteChanged,
       },
 
-      { redirectOnRouteChange, redirectOnLogin, redirectOnLogout },
+      {
+        redirectOnRouteChange,
+        redirectOnLogin,
+        redirectOnLogout,
+        storeDisconnectionOnLogout,
+      },
       routeToComponentMap,
     );
   });
@@ -127,6 +137,8 @@ describe("App Router Component", () => {
         store.dispatch(retrieveReport.fulfilled(aNominationRetrieved, "", ""));
       });
 
+      await waitListenersCompletion();
+
       act(() => {
         routerProvider.gotToReportOverview(aNominationRetrieved.id);
       });
@@ -152,18 +164,25 @@ describe("App Router Component", () => {
           givenAnAuthenticatedUser();
           routerProvider.goToReportList();
         });
+
         await screen.findByText("a list");
 
         await userEvent.click(
           screen.getAllByText("Se déconnecter")[elementIndex]!,
         );
 
+        await waitListenersCompletion();
+
         await screen.findByText("a login");
       },
     );
   });
 
+  const waitListenersCompletion = () => sleep(50);
+
   const givenAnAuthenticatedUser = () => {
+    authenticationStorageProvider._isAuthenticated = true;
+    authenticationStorageProvider._user = user;
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 

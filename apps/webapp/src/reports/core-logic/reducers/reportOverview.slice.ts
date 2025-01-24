@@ -7,6 +7,7 @@ import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
+import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 
 export const createReportOverviewSlice = (
   summarySections: SummarySection[],
@@ -114,6 +115,10 @@ export const createReportOverviewSlice = (
             (file) => file.name !== fileName,
           );
         }
+      });
+
+      builder.addCase(logout.fulfilled, (state) => {
+        state.byIds = null;
       });
     },
   });

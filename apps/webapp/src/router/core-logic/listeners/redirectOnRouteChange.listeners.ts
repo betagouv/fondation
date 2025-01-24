@@ -7,18 +7,24 @@ export const redirectOnRouteChange: Listener = (startAppListening) =>
     predicate: (action) =>
       action.type === routeChanged.type ||
       action.type === authenticationStateInitFromStore.type,
-    effect: (
+    effect: async (
       action,
       {
         getState,
         extra: {
-          providers: { routerProvider },
+          providers: { routerProvider, authenticationStorageProvider },
         },
       },
     ) => {
       if (!routerProvider) throw new Error("routerProvider is not defined");
       const state = getState();
-      const { authenticated } = state.authentication;
+
+      // We use the stored authentication state because it could
+      // have changed in another tab or window.
+      const authenticated = authenticationStorageProvider
+        ? await authenticationStorageProvider.isAuthenticated()
+        : state.authentication.authenticated;
+
       const { current: currentHref } = state.router.hrefs;
 
       if (action.type === authenticationStateInitFromStore.type) {

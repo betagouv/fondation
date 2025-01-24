@@ -1,3 +1,6 @@
+import { ReportBuilder } from "../../../../reports/core-logic/builders/Report.builder";
+import { listReport } from "../../../../reports/core-logic/use-cases/report-listing/listReport.use-case";
+import { retrieveReport } from "../../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
@@ -33,6 +36,29 @@ describe("Logout", () => {
 
   it("disconnects a user", async () => {
     await store.dispatch(logout());
+    expectUnauthenticatedStore();
+  });
+
+  it("persists the disconnection", async () => {
+    authenticationStorageProvider._isAuthenticated = true;
+    store.dispatch(logout.fulfilled(undefined, "", undefined));
+    expect(await authenticationStorageProvider.isAuthenticated()).toBe(false);
+  });
+
+  it("clears the reports from the store on logout", async () => {
+    givenSomeReport();
+    await store.dispatch(logout());
+    expectUnauthenticatedStore();
+  });
+
+  const givenSomeReport = () => {
+    store.dispatch(listReport.fulfilled([aReportListSM], "", undefined));
+    store.dispatch(
+      retrieveReport.fulfilled(aReportRetrieveSM, "", aReportRetrieveSM.id),
+    );
+  };
+
+  const expectUnauthenticatedStore = () => {
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
       authentication: {
@@ -40,13 +66,8 @@ describe("Logout", () => {
         authenticated: false,
       },
     });
-  });
-
-  it("persists the disconnection", async () => {
-    authenticationStorageProvider._isAuthenticated = true;
-
-    store.dispatch(logout.fulfilled(undefined, "", undefined));
-
-    expect(await authenticationStorageProvider.isAuthenticated()).toBe(false);
-  });
+  };
 });
+
+const aReportListSM = new ReportBuilder().buildListSM();
+const aReportRetrieveSM = new ReportBuilder().buildRetrieveSM();
