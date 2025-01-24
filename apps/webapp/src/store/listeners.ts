@@ -6,6 +6,7 @@ export type Listener = (startAppListening: StartAppListening) => void;
 
 export type AppListeners = {
   storeAuthenticationOnLoginSuccess: Listener;
+  initializeAuthenticationState: Listener;
   storeDisconnectionOnLogout: Listener;
   redirectOnRouteChange: Listener;
   redirectOnLogout: Listener;

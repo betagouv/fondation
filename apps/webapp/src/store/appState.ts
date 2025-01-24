@@ -59,6 +59,7 @@ export interface AppState {
     };
   };
   authentication: {
+    initializedFromStore: boolean;
     authenticated: boolean;
     user: AuthenticatedUserSM | null;
   };

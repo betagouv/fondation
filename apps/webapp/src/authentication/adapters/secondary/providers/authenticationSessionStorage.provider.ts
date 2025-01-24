@@ -4,18 +4,17 @@ import { AuthenticationStorageProvider } from "../../../core-logic/providers/aut
 export class AuthenticationSessionStorageProvider
   implements AuthenticationStorageProvider
 {
-  storeAuthentication(payload: AuthenticatedUserSM): void {
+  async storeAuthentication(payload: AuthenticatedUserSM) {
     sessionStorage.setItem("authenticated", "true");
     if (payload) sessionStorage.setItem("user", JSON.stringify(payload));
   }
-  storeDisconnection(): void {
+  async storeDisconnection() {
     sessionStorage.setItem("authenticated", "false");
   }
-  isAuthenticated() {
+  async isAuthenticated() {
     return sessionStorage.getItem("authenticated") === "true";
   }
-
-  getUser(): AuthenticatedUserSM {
+  async getUser() {
     return JSON.parse(sessionStorage.getItem("user") || "null");
   }
 }

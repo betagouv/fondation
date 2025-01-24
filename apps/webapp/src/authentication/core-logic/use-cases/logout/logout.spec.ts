@@ -47,6 +47,6 @@ describe("Logout", () => {
 
     store.dispatch(logout.fulfilled(undefined, "", undefined));
 
-    expect(authenticationStorageProvider.isAuthenticated()).toBe(false);
+    expect(await authenticationStorageProvider.isAuthenticated()).toBe(false);
   });
 });

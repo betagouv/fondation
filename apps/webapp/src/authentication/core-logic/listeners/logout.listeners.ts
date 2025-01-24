@@ -4,7 +4,7 @@ import { logout } from "../use-cases/logout/logout";
 export const storeDisconnectionOnLogout: Listener = (startAppListening) =>
   startAppListening({
     actionCreator: logout.fulfilled,
-    effect: (
+    effect: async (
       _,
       {
         extra: {
@@ -12,6 +12,6 @@ export const storeDisconnectionOnLogout: Listener = (startAppListening) =>
         },
       },
     ) => {
-      authenticationStorageProvider?.storeDisconnection();
+      await authenticationStorageProvider?.storeDisconnection();
     },
   });

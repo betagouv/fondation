@@ -7,19 +7,18 @@ export class FakeAuthenticationStorageProvider
   _isAuthenticated: boolean = false;
   _user: AuthenticatedUserSM | null = null;
 
-  storeAuthentication(payload: AuthenticatedUserSM) {
+  async storeAuthentication(payload: AuthenticatedUserSM) {
     this._isAuthenticated = true;
     this._user = payload;
   }
-  storeDisconnection() {
+  async storeDisconnection() {
     this._isAuthenticated = false;
     this._user = null;
   }
-  isAuthenticated() {
+  async isAuthenticated() {
     return this._isAuthenticated;
   }
-
-  getUser() {
+  async getUser() {
     return this._user;
   }
 }

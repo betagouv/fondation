@@ -14,7 +14,8 @@
     "test": "DEBUG_PRINT_LIMIT=10000 vitest",
     "test:all": "vitest run",
     "postinstall": "pnpm dsfr:build",
-    "dsfr:build": "react-dsfr update-icons"
+    "dsfr:build": "react-dsfr update-icons",
+    "test:ct": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "^1.15.0",
@@ -22,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "file-type": "^19.6.0",
+    "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -31,11 +33,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@playwright/experimental-ct-react": "^1.49.1",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/blob-stream": "^0.1.33",
     "@types/lodash": "^4.17.13",
+    "@types/node": "^20.3.1",
     "@types/pdfkit": "^0.13.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

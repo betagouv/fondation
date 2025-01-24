@@ -1,22 +1,24 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
 import { AppState } from "../../../store/appState";
-import { PartialAppDependencies } from "../../../store/reduxStore";
 import { authenticate } from "../use-cases/authentication/authenticate";
 import { logout } from "../use-cases/logout/logout";
 
-export const createAuthenticationSlice = ({
-  authenticationStorageProvider,
-}: Pick<
-  PartialAppDependencies["providers"],
-  "authenticationStorageProvider"
->) =>
+const initialState: AppState["authentication"] = {
+  authenticated: false,
+  user: null,
+  initializedFromStore: false,
+};
+
+export const createAuthenticationSlice = () =>
   createSlice({
     name: "authentication",
-    initialState: (): AppState["authentication"] => ({
-      authenticated: !!authenticationStorageProvider?.isAuthenticated(),
-      user: authenticationStorageProvider?.getUser() || null,
-    }),
-    reducers: {},
+    initialState,
+    reducers: {
+      setAuthentication: (state, action) => {
+        state.authenticated = action.payload.authenticated;
+        state.user = action.payload.user;
+      },
+    },
     extraReducers: (builder) => {
       builder.addCase(authenticate.fulfilled, (state, action) => {
         state.authenticated = true;
@@ -26,5 +28,14 @@ export const createAuthenticationSlice = ({
         state.authenticated = false;
         state.user = null;
       });
+      builder.addCase(authenticationStateInitFromStore, (state, action) => {
+        state.authenticated = action.payload.authenticated;
+        state.user = action.payload.user;
+        state.initializedFromStore = true;
+      });
     },
   });
+
+export const authenticationStateInitFromStore = createAction<
+  Omit<AppState["authentication"], "initializedFromStore">
+>("AUTHENTICATION_STATE_INIT_FROM_STORE");

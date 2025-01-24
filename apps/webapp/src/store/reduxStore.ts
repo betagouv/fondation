@@ -107,9 +107,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
         rulesTuple,
       ).reducer,
       reportList,
-      authentication: createAuthenticationSlice({
-        authenticationStorageProvider: providers?.authenticationStorageProvider,
-      }).reducer,
+      authentication: createAuthenticationSlice().reducer,
       router: createRouterSlice({
         routerProvider: providers.routerProvider,
         routeToComponent:

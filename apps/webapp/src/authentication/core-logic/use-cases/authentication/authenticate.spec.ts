@@ -51,8 +51,7 @@ describe("Authenticate", () => {
 
   it("persists the authenticated state", async () => {
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
-
-    expect(authenticationStorageProvider.isAuthenticated()).toBe(true);
+    expect(await authenticationStorageProvider.isAuthenticated()).toBe(true);
   });
 });
 
