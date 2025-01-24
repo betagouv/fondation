@@ -6,7 +6,7 @@ import { allRulesMap } from "shared-models";
 import App from "./App.tsx";
 import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
 import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
-import { IndexedDbAuthenticationStorageProvider } from "./authentication/adapters/secondary/providers/indexedDbAuthenticationStorage.provider.ts";
+import { IndexedDbAuthenticationStorageProvider } from "./authentication/adapters/secondary/providers/indexed-db/indexedDbAuthenticationStorage.provider.ts";
 import {
   initializeAuthenticationState,
   storeAuthenticationOnLoginSuccess,
@@ -27,7 +27,7 @@ import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.l
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/authenticationSessionStorage.provider.ts";
+import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/session-storage/authenticationSessionStorage.provider.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 

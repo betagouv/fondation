@@ -11,6 +11,7 @@ import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFile } from "./attach-report-file";
+import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
@@ -137,7 +138,3 @@ describe("Attach Report File", () => {
 const signedUrl = "https://example.fr/file.txt";
 const aReportApiModel = new ReportApiModelBuilder().build();
 const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}

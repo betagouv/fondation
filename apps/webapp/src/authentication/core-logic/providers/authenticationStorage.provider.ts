@@ -5,4 +5,5 @@ export interface AuthenticationStorageProvider {
   storeDisconnection(): Promise<void>;
   isAuthenticated: () => Promise<boolean>;
   getUser: () => Promise<AuthenticatedUserSM | null>;
+  isReady: () => boolean;
 }

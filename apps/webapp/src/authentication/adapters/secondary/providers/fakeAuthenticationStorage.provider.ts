@@ -21,4 +21,7 @@ export class FakeAuthenticationStorageProvider
   async getUser() {
     return this._user;
   }
+  isReady() {
+    return true;
+  }
 }

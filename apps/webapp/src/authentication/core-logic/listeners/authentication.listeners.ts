@@ -1,4 +1,6 @@
 import { Listener } from "../../../store/listeners";
+import { sleep } from "../../../shared-kernel/core-logic/sleep";
+import { AuthenticationStorageProvider } from "../providers/authenticationStorage.provider";
 import { authenticationStateInitFromStore } from "../reducers/authentication.slice";
 import { authenticate } from "../use-cases/authentication/authenticate";
 
@@ -19,8 +21,26 @@ export const storeAuthenticationOnLoginSuccess: Listener = (
     },
   });
 
-export const initializeAuthenticationState: Listener = (startAppListening) =>
-  startAppListening({
+export const initializeAuthenticationState: Listener = (startAppListening) => {
+  let tries = 0;
+  const trialLimit = 10;
+
+  const waitForStorageProvider = async (
+    authenticationStorageProvider: AuthenticationStorageProvider,
+  ) => {
+    if (authenticationStorageProvider.isReady()) return;
+    if (tries > trialLimit) {
+      console.warn("Readiness trial limit reached for storage provider");
+      return;
+    }
+
+    await sleep(200);
+    tries++;
+
+    await waitForStorageProvider(authenticationStorageProvider);
+  };
+
+  return startAppListening({
     predicate: (_, state) =>
       state.authentication.initializedFromStore === false,
     effect: async (
@@ -32,11 +52,12 @@ export const initializeAuthenticationState: Listener = (startAppListening) =>
         },
       },
     ) => {
-      // There is no retry mechanism here, but it could be useful
-      // because the IndexedDB instance access could take some time.
+      if (!authenticationStorageProvider) return;
+      await waitForStorageProvider(authenticationStorageProvider);
+
       const authenticated =
-        await authenticationStorageProvider?.isAuthenticated();
-      const user = await authenticationStorageProvider?.getUser();
+        await authenticationStorageProvider.isAuthenticated();
+      const user = await authenticationStorageProvider.getUser();
 
       dispatch(
         authenticationStateInitFromStore({
@@ -46,3 +67,4 @@ export const initializeAuthenticationState: Listener = (startAppListening) =>
       );
     },
   });
+};
