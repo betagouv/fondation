@@ -14,29 +14,28 @@ export class SessionValidationMiddleware implements NestMiddleware {
     }
 
     try {
-      await this.validateUserSession(req, res);
+      const userId = await this.validateUserSession(req);
+      if (!userId) {
+        return res.status(HttpStatus.UNAUTHORIZED).send('Invalid session');
+      }
+
+      req.userId = userId;
+      next();
     } catch (error) {
       console.error('Error validating session', error);
-      res
+      return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send('Error validating session');
     }
-    next();
   }
 
   private invalidSession(req: Request) {
     return !('sessionId' in req.cookies) || !this.sessionId(req);
   }
 
-  private async validateUserSession(req: Request, res: Response) {
-    const userId = await this.sessionValidationService.validateSession(
-      this.sessionId(req),
-    );
-    if (!userId) {
-      return res.status(HttpStatus.UNAUTHORIZED).send('Invalid session');
-    }
-
-    req.userId = userId;
+  private async validateUserSession(req: Request) {
+    console.log('Validating session', this.sessionId(req));
+    return this.sessionValidationService.validateSession(this.sessionId(req));
   }
 
   private sessionId(req: Request) {

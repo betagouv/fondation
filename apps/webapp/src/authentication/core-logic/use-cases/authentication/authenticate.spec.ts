@@ -17,11 +17,9 @@ describe("Authenticate", () => {
   let authenticationStorageProvider: FakeAuthenticationStorageProvider;
   let initialState: AppState;
   let apiClient: FakeAuthenticationApiClient;
-  let loginNotifierProvider: StubLoginNotifierProvider;
+  let loginNotifierProvider: LoginNotifierProvider;
 
   beforeEach(() => {
-    localStorage.clear();
-
     apiClient = new FakeAuthenticationApiClient();
     apiClient.setEligibleAuthUser(
       userCredentials.email,
@@ -32,8 +30,70 @@ describe("Authenticate", () => {
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
-    loginNotifierProvider = new StubLoginNotifierProvider();
+  });
 
+  describe("With fake storage provider", () => {
+    beforeEach(() => {
+      loginNotifierProvider = new StubLoginNotifierProvider();
+      initStore();
+    });
+
+    it("authenticates a user", async () => {
+      await store.dispatch(authenticate(userCredentials));
+      expect(store.getState()).toEqual<AppState>({
+        ...initialState,
+        authentication: {
+          ...initialState.authentication,
+          authenticated: true,
+          user,
+        },
+      });
+    });
+
+    it("persists the authenticated state", async () => {
+      store.dispatch(authenticate.fulfilled(user, "", userCredentials));
+      expect(await authenticationStorageProvider.isAuthenticated()).toBe(true);
+    });
+
+    it("informs the browser about a logged-in user", async () => {
+      await store.dispatch(authenticate(userCredentials));
+      expect(
+        (loginNotifierProvider as StubLoginNotifierProvider).hasNotified,
+      ).toBe(true);
+    });
+  });
+
+  describe("With local storage provider", () => {
+    beforeEach(() => {
+      localStorage.clear();
+      loginNotifierProvider = new LocalStorageLoginNotifierProvider();
+      initStore();
+    });
+
+    afterAll(() => localStorage.clear());
+
+    it("informs the browser about a logged-in user", async () => {
+      await store.dispatch(authenticate(userCredentials));
+
+      expectLocalStorageNotification();
+      await expectEndOfLocalStorageNotification();
+    });
+
+    const expectLocalStorageNotification = () => {
+      expect(
+        localStorage.getItem(LocalStorageLoginNotifierProvider.loginKey),
+      ).toEqual("true");
+    };
+
+    const expectEndOfLocalStorageNotification = async () => {
+      await sleep(LocalStorageLoginNotifierProvider.notificationDelay + 10);
+      expect(
+        localStorage.getItem(LocalStorageLoginNotifierProvider.loginKey),
+      ).toBeNull();
+    };
+  });
+
+  const initStore = () => {
     store = initReduxStore(
       {
         authenticationGateway,
@@ -43,82 +103,6 @@ describe("Authenticate", () => {
       { storeAuthenticationOnLoginSuccess },
     );
     initialState = store.getState();
-  });
-
-  it("authenticates a user", async () => {
-    await store.dispatch(authenticate(userCredentials));
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      authentication: {
-        ...initialState.authentication,
-        authenticated: true,
-        user,
-      },
-    });
-  });
-
-  it("persists the authenticated state", async () => {
-    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
-    expect(await authenticationStorageProvider.isAuthenticated()).toBe(true);
-  });
-
-  it("informs the browser about a logged-in user", async () => {
-    await store.dispatch(authenticate(userCredentials));
-    expect(loginNotifierProvider.hasNotified).toBe(true);
-  });
-});
-
-describe("Authenticate with local storage provider", () => {
-  let store: ReduxStore;
-  let authenticationGateway: ApiAuthenticationGateway;
-  let authenticationStorageProvider: FakeAuthenticationStorageProvider;
-  let apiClient: FakeAuthenticationApiClient;
-  let loginNotifierProvider: LoginNotifierProvider;
-
-  beforeEach(() => {
-    localStorage.clear();
-
-    apiClient = new FakeAuthenticationApiClient();
-    apiClient.setEligibleAuthUser(
-      userCredentials.email,
-      userCredentials.password,
-      user.firstName,
-      user.lastName,
-    );
-
-    authenticationGateway = new ApiAuthenticationGateway(apiClient);
-    authenticationStorageProvider = new FakeAuthenticationStorageProvider();
-    loginNotifierProvider = new LocalStorageLoginNotifierProvider();
-
-    store = initReduxStore(
-      {
-        authenticationGateway,
-      },
-      { authenticationStorageProvider, loginNotifierProvider },
-      {},
-      { storeAuthenticationOnLoginSuccess },
-    );
-  });
-
-  it("informs the browser about a logged-in user", async () => {
-    await store.dispatch(authenticate(userCredentials));
-
-    expectLocalStorageNotification();
-
-    await sleep(LocalStorageLoginNotifierProvider.notificationDelay + 10);
-    expectClearedLocalStorageItem();
-  });
-
-  const expectLocalStorageNotification = () => {
-    expect(
-      localStorage.getItem(LocalStorageLoginNotifierProvider.loginKey),
-    ).toEqual("true");
-  };
-
-  const expectClearedLocalStorageItem = () => {
-    expect(
-      localStorage.getItem(LocalStorageLoginNotifierProvider.loginKey),
-    ).toBeNull();
   };
 });
 

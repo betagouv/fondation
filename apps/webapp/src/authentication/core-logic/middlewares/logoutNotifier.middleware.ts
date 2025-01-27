@@ -6,9 +6,7 @@ export const logoutNotifierMiddlewareFactory: (
   logoutNotifierProvider?: LogoutNotifierProvider,
 ) => Middleware =
   (logoutNotifierProvider) =>
-  ({ dispatch }) =>
-  (next) =>
-  (action) => {
+  ({ dispatch }) => {
     if (logoutNotifierProvider) {
       const onNotification = () =>
         dispatch(logout.fulfilled(undefined, "", undefined));
@@ -16,5 +14,5 @@ export const logoutNotifierMiddlewareFactory: (
       logoutNotifierProvider.listen(onNotification);
     }
 
-    return next(action);
+    return (next) => (action) => next(action);
   };

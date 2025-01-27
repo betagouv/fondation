@@ -105,6 +105,13 @@ export const initReduxStore = <IsTest extends boolean = true>(
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
   currentDate = new Date(),
 ) => {
+  const loginNotifierMiddleware = loginNotifierMiddlewareFactory(
+    providers.loginNotifierProvider,
+  );
+
+  const logoutNotifierMiddleware = logoutNotifierMiddlewareFactory(
+    providers.logoutNotifierProvider,
+  );
   return configureStore({
     reducer: {
       sharedKernel: createSharedKernelSlice(currentDate).reducer,
@@ -141,10 +148,8 @@ export const initReduxStore = <IsTest extends boolean = true>(
           .middleware,
       );
       return middlewareWithListeners
-        .concat(loginNotifierMiddlewareFactory(providers.loginNotifierProvider))
-        .concat(
-          logoutNotifierMiddlewareFactory(providers.logoutNotifierProvider),
-        );
+        .concat(loginNotifierMiddleware)
+        .concat(logoutNotifierMiddleware);
     },
     devTools: true,
   });

@@ -3,7 +3,7 @@ import { LoginNotifierProvider } from "../providers/loginNotifier.provider";
 
 export const loginNotifierMiddlewareFactory: (
   loginNotifierProvider?: LoginNotifierProvider,
-) => Middleware = (loginNotifierProvider) => () => (next) => (action) => {
+) => Middleware = (loginNotifierProvider) => () => {
   if (loginNotifierProvider) loginNotifierProvider.listen();
-  return next(action);
+  return (next) => (action) => next(action);
 };
