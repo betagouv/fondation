@@ -3,9 +3,11 @@ import { listReport } from "../../../../reports/core-logic/use-cases/report-list
 import { retrieveReport } from "../../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { expectUnauthenticatedStoreFactory } from "../../../../test/authentication";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../adapters/secondary/gateways/FakeAuthentication.client";
 import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
+import { StubLogoutNotifierProvider } from "../../../adapters/secondary/providers/stubLogoutNotifier.provider";
 import { storeDisconnectionOnLogout } from "../../listeners/logout.listeners";
 import { logout } from "./logout";
 
@@ -15,6 +17,8 @@ describe("Logout", () => {
   let authenticationStorageProvider: FakeAuthenticationStorageProvider;
   let initialState: AppState;
   let apiClient: FakeAuthenticationApiClient;
+  let logoutNotifierProvider: StubLogoutNotifierProvider;
+  let expectUnauthenticatedStore: () => void;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
@@ -22,16 +26,22 @@ describe("Logout", () => {
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
+    logoutNotifierProvider = new StubLogoutNotifierProvider();
 
     store = initReduxStore(
       {
         authenticationGateway,
       },
-      { authenticationStorageProvider },
+      { authenticationStorageProvider, logoutNotifierProvider },
       {},
       { storeDisconnectionOnLogout },
     );
     initialState = store.getState();
+
+    expectUnauthenticatedStore = expectUnauthenticatedStoreFactory(
+      store,
+      initialState,
+    );
   });
 
   it("disconnects a user", async () => {
@@ -51,21 +61,17 @@ describe("Logout", () => {
     expectUnauthenticatedStore();
   });
 
+  it("informs the browser about a disconnected user", async () => {
+    await store.dispatch(logout());
+    expect(logoutNotifierProvider.hasNotified).toBe(true);
+    expect(initialState).toBe(store.getState());
+  });
+
   const givenSomeReport = () => {
     store.dispatch(listReport.fulfilled([aReportListSM], "", undefined));
     store.dispatch(
       retrieveReport.fulfilled(aReportRetrieveSM, "", aReportRetrieveSM.id),
     );
-  };
-
-  const expectUnauthenticatedStore = () => {
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      authentication: {
-        ...initialState.authentication,
-        authenticated: false,
-      },
-    });
   };
 });
 

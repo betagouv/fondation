@@ -7,9 +7,11 @@ export const logout = createAppAsyncThunk(
     {
       extra: {
         gateways: { authenticationGateway },
+        providers: { logoutNotifierProvider },
       },
     },
   ) => {
-    return authenticationGateway.logout();
+    await authenticationGateway.logout();
+    logoutNotifierProvider.notifyLogout();
   },
 );

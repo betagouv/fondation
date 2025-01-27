@@ -8,17 +8,25 @@ import { AuthenticateParams } from "../../../core-logic/use-cases/authentication
 import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
 import { Login } from "./Login";
+import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
 
 describe("Login Component", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let authenticationGateway: ApiAuthenticationGateway;
   let apiClient: FakeAuthenticationApiClient;
+  let loginNotifierProvider: LocalStorageLoginNotifierProvider;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
-    store = initReduxStore({ authenticationGateway }, {}, {});
+    loginNotifierProvider = new LocalStorageLoginNotifierProvider();
+
+    store = initReduxStore(
+      { authenticationGateway },
+      { loginNotifierProvider },
+      {},
+    );
     initialState = store.getState();
   });
 

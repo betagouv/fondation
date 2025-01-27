@@ -28,6 +28,8 @@ import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
 import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/session-storage/authenticationSessionStorage.provider.ts";
+import { LocalStorageLogoutNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLogoutNotifier.provider.ts";
+import { LocalStorageLoginNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLoginNotifier.provider.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -45,10 +47,17 @@ const authenticationStorageProvider =
   IndexedDbAuthenticationStorageProvider.browserSupportsIndexedDB()
     ? new IndexedDbAuthenticationStorageProvider()
     : new AuthenticationSessionStorageProvider();
+const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
+const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
 const store = initReduxStore<false>(
   { reportGateway, authenticationGateway },
-  { authenticationStorageProvider, routerProvider: new TypeRouterProvider() },
+  {
+    authenticationStorageProvider,
+    routerProvider: new TypeRouterProvider(),
+    logoutNotifierProvider,
+    loginNotifierProvider,
+  },
   {
     routeToComponentFactory: useRouteToComponentFactory,
     routeChangedHandler: useRouteChanged,

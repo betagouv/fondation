@@ -28,6 +28,16 @@ export default defineConfig({
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
+    ctViteConfig: {
+      optimizeDeps: {
+        include: ["shared-models"],
+      },
+      build: {
+        commonjsOptions: {
+          include: [/shared-models/, /node_modules/],
+        },
+      },
+    },
   },
 
   /* Configure projects for major browsers */

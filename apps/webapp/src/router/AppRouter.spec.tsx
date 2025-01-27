@@ -26,6 +26,7 @@ import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listen
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 import { sleep } from "../shared-kernel/core-logic/sleep";
 import { storeDisconnectionOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
+import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
@@ -39,16 +40,18 @@ describe("App Router Component", () => {
   let routerProvider: TypeRouterProvider;
   let apiClient: FakeAuthenticationApiClient;
   let authenticationStorageProvider: FakeAuthenticationStorageProvider;
+  let logoutNotifierProvider: StubLogoutNotifierProvider;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     routerProvider = new TypeRouterProvider();
     authenticationStorageProvider = new FakeAuthenticationStorageProvider();
+    logoutNotifierProvider = new StubLogoutNotifierProvider();
 
     store = initReduxStore(
       { authenticationGateway },
-      { routerProvider, authenticationStorageProvider },
+      { routerProvider, authenticationStorageProvider, logoutNotifierProvider },
       {
         routeToComponentFactory: useRouteToComponentFactory,
         routeChangedHandler: useRouteChanged,

@@ -13,9 +13,12 @@ export const authenticate = createAppAsyncThunk<
     {
       extra: {
         gateways: { authenticationGateway },
+        providers: { loginNotifierProvider },
       },
     },
   ) => {
-    return authenticationGateway.authenticate(email, password);
+    const user = await authenticationGateway.authenticate(email, password);
+    loginNotifierProvider.notifyLogin();
+    return user;
   },
 );
