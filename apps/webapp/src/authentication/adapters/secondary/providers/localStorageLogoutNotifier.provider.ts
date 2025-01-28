@@ -6,10 +6,12 @@ export class LocalStorageLogoutNotifierProvider
   static logoutKey = "notifying-all-tabs-of-logout";
   static notificationDelay = 1000;
 
+  private endOfNotificationTimeout: number | undefined;
+
   notifyLogout(): void {
     localStorage.setItem(LocalStorageLogoutNotifierProvider.logoutKey, "true");
 
-    setTimeout(() => {
+    this.endOfNotificationTimeout = window.setTimeout(() => {
       localStorage.removeItem(LocalStorageLogoutNotifierProvider.logoutKey);
     }, LocalStorageLogoutNotifierProvider.notificationDelay);
   }
@@ -17,6 +19,7 @@ export class LocalStorageLogoutNotifierProvider
   listen(onNotification: () => void): void {
     window.addEventListener("storage", (event) => {
       if (event.key === LocalStorageLogoutNotifierProvider.logoutKey) {
+        window.clearTimeout(this.endOfNotificationTimeout);
         onNotification();
       }
     });
