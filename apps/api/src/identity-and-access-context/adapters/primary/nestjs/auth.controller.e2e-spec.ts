@@ -190,10 +190,36 @@ describe('Auth Controller', () => {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
       });
 
-      await supertest(app.getHttpServer())
+      const response = await supertest(app.getHttpServer())
         .post('/api/auth/validate-session')
         .send({ sessionId: signedSessionId })
         .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual<UserDescriptorSerialized>({
+        userId: aUserDb.id,
+        firstName: aUserDb.firstName,
+        lastName: aUserDb.lastName,
+      });
+    });
+
+    it('validates a session id from cookie', async () => {
+      await givenSomeSessions({
+        sessionId,
+        userId: aUserDb.id,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
+      });
+
+      const response = await supertest(app.getHttpServer())
+        .post('/api/auth/validate-session-from-cookie')
+        .set('Cookie', `sessionId=${signedSessionId}`)
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual<UserDescriptorSerialized>({
+        userId: aUserDb.id,
+        firstName: aUserDb.firstName,
+        lastName: aUserDb.lastName,
+      });
     });
 
     it('logs out a user and invalidates the session', async () => {

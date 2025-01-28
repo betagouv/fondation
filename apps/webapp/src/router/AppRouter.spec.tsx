@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { FakeAuthenticationStorageProvider } from "../authentication/adapters/secondary/providers/fakeAuthenticationStorage.provider";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 import {
   authenticate,
@@ -25,7 +24,6 @@ import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listener
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 import { sleep } from "../shared-kernel/core-logic/sleep";
-import { storeDisconnectionOnLogout } from "../authentication/core-logic/listeners/logout.listeners";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
 
 const routeToComponentMap: RouteToComponentMap = {
@@ -39,19 +37,17 @@ describe("App Router Component", () => {
   let authenticationGateway: ApiAuthenticationGateway;
   let routerProvider: TypeRouterProvider;
   let apiClient: FakeAuthenticationApiClient;
-  let authenticationStorageProvider: FakeAuthenticationStorageProvider;
   let logoutNotifierProvider: StubLogoutNotifierProvider;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     routerProvider = new TypeRouterProvider();
-    authenticationStorageProvider = new FakeAuthenticationStorageProvider();
     logoutNotifierProvider = new StubLogoutNotifierProvider();
 
     store = initReduxStore(
       { authenticationGateway },
-      { routerProvider, authenticationStorageProvider, logoutNotifierProvider },
+      { routerProvider, logoutNotifierProvider },
       {
         routeToComponentFactory: useRouteToComponentFactory,
         routeChangedHandler: useRouteChanged,
@@ -61,7 +57,6 @@ describe("App Router Component", () => {
         redirectOnRouteChange,
         redirectOnLogin,
         redirectOnLogout,
-        storeDisconnectionOnLogout,
       },
       routeToComponentMap,
     );
@@ -184,8 +179,12 @@ describe("App Router Component", () => {
   const waitListenersCompletion = () => sleep(50);
 
   const givenAnAuthenticatedUser = () => {
-    authenticationStorageProvider._isAuthenticated = true;
-    authenticationStorageProvider._user = user;
+    apiClient.setEligibleAuthUser(
+      userCredentials.email,
+      userCredentials.password,
+      user.firstName,
+      user.lastName,
+    );
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 

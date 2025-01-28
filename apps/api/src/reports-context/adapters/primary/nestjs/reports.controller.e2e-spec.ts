@@ -375,7 +375,7 @@ describe('Reports Controller', () => {
           async validateSession(): ReturnType<
             SessionValidationService['validateSession']
           > {
-            return validated ? reporterId : null;
+            return validated ? stubUser : null;
           }
         },
       );
@@ -386,11 +386,7 @@ describe('Reports Controller', () => {
       this.moduleFixture.overrideProvider(USER_SERVICE).useFactory({
         factory: () => {
           const userService = new StubUserService();
-          userService.user = {
-            userId: reporterId,
-            firstName: 'First-name',
-            lastName: 'REPORTER',
-          };
+          userService.user = stubUser;
           return userService;
         },
       });
@@ -398,3 +394,9 @@ describe('Reports Controller', () => {
     }
   }
 });
+
+const stubUser = {
+  userId: reporterId,
+  firstName: 'First-name',
+  lastName: 'REPORTER',
+};

@@ -10,11 +10,16 @@ export interface IdentityAndAccessRestContract extends RestContract {
       body: LoginDto;
       response: AuthenticatedUser;
     };
+    validateSessionFromCookie: {
+      method: "POST";
+      path: "validate-session-from-cookie";
+      response: AuthenticatedUser | null;
+    };
     validateSession: {
       method: "POST";
       path: "validate-session";
       body: ValidateSessionDto;
-      response: string | null;
+      response: AuthenticatedUser | null;
     };
     logout: {
       method: "POST";

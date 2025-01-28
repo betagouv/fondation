@@ -1,5 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { join } from 'node:path/posix';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
+import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
@@ -13,7 +15,12 @@ import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { baseRoute, endpointsPaths } from './session-validation.service';
 
 const sessionId = 'valid-session-id';
-const userId = 'valid-user-id';
+
+const stubUser = {
+  userId: 'valid-user-id',
+  firstName: 'John',
+  lastName: 'Doe',
+};
 
 describe('Session Validation Service', () => {
   let app: INestApplication;
@@ -46,7 +53,7 @@ describe('Session Validation Service', () => {
       .send({ sessionId })
       .expect(200);
 
-    expect(response.text).toEqual(userId);
+    expect(response.body).toEqual(stubUser);
   });
 
   class AppTestingModule extends BaseAppTestingModule {
@@ -64,8 +71,13 @@ describe('Session Validation Service', () => {
     private withStubbedValidateSessionUseCase() {
       this.moduleFixture.overrideProvider(ValidateSessionUseCase).useClass(
         class StubbedValidateSessionUseCase {
-          async execute() {
-            return userId;
+          async execute(): ReturnType<ValidateSessionUseCase['execute']> {
+            return new UserDescriptor(
+              stubUser.userId,
+              stubUser.firstName,
+              stubUser.lastName,
+              Gender.M,
+            );
           }
         },
       );

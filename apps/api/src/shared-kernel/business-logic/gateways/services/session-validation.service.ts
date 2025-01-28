@@ -35,7 +35,8 @@ export class SessionValidationService {
       return null;
     }
 
-    const responseData = await response.text();
+    const responseData =
+      (await response.json()) as IdentityAndAccessRestContract['endpoints']['validateSession']['response'];
     return responseData;
   }
 }

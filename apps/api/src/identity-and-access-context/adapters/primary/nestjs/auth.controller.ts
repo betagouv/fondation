@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
   HttpStatus,
   Inject,
@@ -39,6 +40,7 @@ export const baseRoute: IdentityAndAccessRestContract['basePath'] = 'api/auth';
 export const endpointsPaths: IControllerPaths<IdentityAndAccessRestContract> = {
   login: 'login',
   validateSession: 'validate-session',
+  validateSessionFromCookie: 'validate-session-from-cookie',
   logout: 'logout',
   userWithFullName: 'user-with-full-name/:fullName',
   userWithId: 'user-with-id/:userId',
@@ -72,22 +74,36 @@ export class AuthController implements IAuthController {
   }
 
   @Post(endpointsPaths.validateSession)
-  async validateSession(
-    _: any,
-    @Body() body: ValidateSessionNestDto,
-    @Res() res: Response,
-  ) {
+  @HttpCode(HttpStatus.OK)
+  async validateSession(_: any, @Body() body: ValidateSessionNestDto) {
     const signedSessionId = body.sessionId;
     const sessionId = this.unsignedSessionId(signedSessionId);
 
     if (sessionId === false) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .send('Cannot logout with this session ID');
+      throw new HttpException(
+        'Cannot logout with this session ID',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
-    const userId = await this.validateSessionUseCase.execute(sessionId);
-    return res.status(HttpStatus.OK).send(userId);
+    const userDescriptor = await this.validateSessionUseCase.execute(sessionId);
+    return this.responseWithUserDescriptor(userDescriptor);
+  }
+
+  @Post(endpointsPaths.validateSessionFromCookie)
+  @HttpCode(HttpStatus.OK)
+  async validateSessionFromCookie(_: any, __: any, @Req() req: Request) {
+    const sessionId = this.unsignedSessionIdFromCookies(req.cookies);
+
+    if (sessionId === false) {
+      throw new HttpException(
+        'Cannot validate session with this session ID in Cookie',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const userDescriptor = await this.validateSessionUseCase.execute(sessionId);
+    return this.responseWithUserDescriptor(userDescriptor);
   }
 
   @Post(endpointsPaths.logout)
@@ -152,7 +168,11 @@ export class AuthController implements IAuthController {
 
   private unsignedSessionIdFromCookies(cookies: Request['cookies']) {
     const signedSessionId = cookies['sessionId'];
-    if (!signedSessionId) throw new Error('Session ID not found in cookies');
+    if (!signedSessionId)
+      throw new HttpException(
+        'Session ID not found in cookies',
+        HttpStatus.UNAUTHORIZED,
+      );
     return this.unsignedSessionId(signedSessionId);
   }
 

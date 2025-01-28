@@ -8,5 +8,6 @@ export interface AuthenticationGateway {
     username: string,
     password: string,
   ): Promise<AuthenticatedUserSM>;
+  validateSession(): Promise<AuthenticatedUserSM | null>;
   logout(): Promise<void>;
 }

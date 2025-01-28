@@ -6,12 +6,9 @@ import { allRulesMap } from "shared-models";
 import App from "./App.tsx";
 import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
 import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
-import { IndexedDbAuthenticationStorageProvider } from "./authentication/adapters/secondary/providers/indexed-db/indexedDbAuthenticationStorage.provider.ts";
-import {
-  initializeAuthenticationState,
-  storeAuthenticationOnLoginSuccess,
-} from "./authentication/core-logic/listeners/authentication.listeners.ts";
-import { storeDisconnectionOnLogout } from "./authentication/core-logic/listeners/logout.listeners.ts";
+import { LocalStorageLoginNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLoginNotifier.provider.ts";
+import { LocalStorageLogoutNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLogoutNotifier.provider.ts";
+import { initializeAuthenticationState } from "./authentication/core-logic/listeners/authentication.listeners.ts";
 import "./index.css";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
@@ -27,9 +24,6 @@ import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.l
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { AuthenticationSessionStorageProvider } from "./authentication/adapters/secondary/providers/session-storage/authenticationSessionStorage.provider.ts";
-import { LocalStorageLogoutNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLogoutNotifier.provider.ts";
-import { LocalStorageLoginNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLoginNotifier.provider.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -43,17 +37,12 @@ const authenticationGateway = new ApiAuthenticationGateway(
 const reportApiClient = new FetchReportApiClient(import.meta.env.VITE_API_URL);
 const reportGateway = new ApiReportGateway(reportApiClient);
 
-const authenticationStorageProvider =
-  IndexedDbAuthenticationStorageProvider.browserSupportsIndexedDB()
-    ? new IndexedDbAuthenticationStorageProvider()
-    : new AuthenticationSessionStorageProvider();
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
 const store = initReduxStore<false>(
   { reportGateway, authenticationGateway },
   {
-    authenticationStorageProvider,
     routerProvider: new TypeRouterProvider(),
     logoutNotifierProvider,
     loginNotifierProvider,
@@ -64,9 +53,7 @@ const store = initReduxStore<false>(
   },
 
   {
-    storeAuthenticationOnLoginSuccess,
     initializeAuthenticationState,
-    storeDisconnectionOnLogout,
     redirectOnRouteChange,
     redirectOnLogout,
     redirectOnLogin,

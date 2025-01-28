@@ -12,6 +12,16 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
     };
   }
 
+  async validateSession() {
+    const user = await this.apiClient.validateSession();
+    return user
+      ? {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      : null;
+  }
+
   logout() {
     return this.apiClient.logout();
   }

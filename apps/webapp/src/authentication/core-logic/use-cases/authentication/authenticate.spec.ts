@@ -3,18 +3,15 @@ import { AppState } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../adapters/secondary/gateways/FakeAuthentication.client";
-import { FakeAuthenticationStorageProvider } from "../../../adapters/secondary/providers/fakeAuthenticationStorage.provider";
 import { LocalStorageLoginNotifierProvider } from "../../../adapters/secondary/providers/localStorageLoginNotifier.provider";
 import { StubLoginNotifierProvider } from "../../../adapters/secondary/providers/stubLoginNotifier.provider";
 import { AuthenticatedUserSM } from "../../gateways/Authentication.gateway";
-import { storeAuthenticationOnLoginSuccess } from "../../listeners/authentication.listeners";
 import { LoginNotifierProvider } from "../../providers/loginNotifier.provider";
 import { authenticate, AuthenticateParams } from "./authenticate";
 
 describe("Authenticate", () => {
   let store: ReduxStore;
   let authenticationGateway: ApiAuthenticationGateway;
-  let authenticationStorageProvider: FakeAuthenticationStorageProvider;
   let initialState: AppState;
   let apiClient: FakeAuthenticationApiClient;
   let loginNotifierProvider: LoginNotifierProvider;
@@ -29,7 +26,6 @@ describe("Authenticate", () => {
     );
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
-    authenticationStorageProvider = new FakeAuthenticationStorageProvider();
   });
 
   describe("With fake storage provider", () => {
@@ -48,11 +44,6 @@ describe("Authenticate", () => {
           user,
         },
       });
-    });
-
-    it("persists the authenticated state", async () => {
-      store.dispatch(authenticate.fulfilled(user, "", userCredentials));
-      expect(await authenticationStorageProvider.isAuthenticated()).toBe(true);
     });
 
     it("informs the browser about a logged-in user", async () => {
@@ -98,9 +89,8 @@ describe("Authenticate", () => {
       {
         authenticationGateway,
       },
-      { authenticationStorageProvider, loginNotifierProvider },
+      { loginNotifierProvider },
       {},
-      { storeAuthenticationOnLoginSuccess },
     );
     initialState = store.getState();
   };

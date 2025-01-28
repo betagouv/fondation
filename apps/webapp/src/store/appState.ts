@@ -59,7 +59,7 @@ export interface AppState {
     };
   };
   authentication: {
-    initializedFromStore: boolean;
+    initializedFromPersistence: boolean;
     authenticated: boolean;
     user: AuthenticatedUserSM | null;
   };

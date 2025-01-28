@@ -8,5 +8,6 @@ type EndpointResponse<T extends keyof Endpoints> = Promise<
 
 export interface AuthenticationApiClient {
   login(email: string, password: string): EndpointResponse<"login">;
+  validateSession(): EndpointResponse<"validateSessionFromCookie">;
   logout(): EndpointResponse<"logout">;
 }

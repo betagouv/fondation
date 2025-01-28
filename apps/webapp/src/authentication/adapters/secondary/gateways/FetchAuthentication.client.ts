@@ -2,7 +2,6 @@ import {
   IdentityAndAccessRestContract,
   interpolateUrlParams,
   loginDtoSchema,
-  validateSessionDtoSchema,
 } from "shared-models";
 import { AuthenticationApiClient } from "../../../core-logic/gateways/AuthenticationApi.client";
 
@@ -37,21 +36,15 @@ export class FetchAuthenticationApiClient implements AuthenticationApiClient {
     return response.json();
   }
 
-  async validateSession(sessionId: string) {
-    const data = { sessionId };
-    validateSessionDtoSchema.parse(data);
-    const { method, path, body }: ClientFetchOptions["validateSession"] = {
+  async validateSession() {
+    const { method, path }: ClientFetchOptions["validateSessionFromCookie"] = {
       method: "POST",
-      path: "validate-session",
-      body: data,
+      path: "validate-session-from-cookie",
     };
     const url = this.resolveUrl(path);
     const response = await this.fetch(url, {
       method: method,
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include",
     });
     return response.json();
   }

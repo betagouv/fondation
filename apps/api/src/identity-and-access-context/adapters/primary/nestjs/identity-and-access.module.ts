@@ -45,6 +45,7 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
     generateProvider(ValidateSessionUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
+      USER_REPOSITORY,
     ]),
     generateProvider(LoginUserUseCase, [
       SESSION_PROVIDER,

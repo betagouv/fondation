@@ -25,6 +25,15 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
     return authenticatedUser;
   }
 
+  async validateSession(): Promise<AuthenticatedUser | null> {
+    if (!this.user) return null;
+    return {
+      userId: "user-id",
+      firstName: this.user.firstName,
+      lastName: this.user.lastName,
+    };
+  }
+
   async logout() {
     this.user = null;
   }

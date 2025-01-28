@@ -6,7 +6,7 @@ import { logout } from "../use-cases/logout/logout";
 const initialState: AppState["authentication"] = {
   authenticated: false,
   user: null,
-  initializedFromStore: false,
+  initializedFromPersistence: false,
 };
 
 export const createAuthenticationSlice = () =>
@@ -31,11 +31,11 @@ export const createAuthenticationSlice = () =>
       builder.addCase(authenticationStateInitFromStore, (state, action) => {
         state.authenticated = action.payload.authenticated;
         state.user = action.payload.user;
-        state.initializedFromStore = true;
+        state.initializedFromPersistence = true;
       });
     },
   });
 
 export const authenticationStateInitFromStore = createAction<
-  Omit<AppState["authentication"], "initializedFromStore">
+  Omit<AppState["authentication"], "initializedFromPersistence">
 >("AUTHENTICATION_STATE_INIT_FROM_STORE");

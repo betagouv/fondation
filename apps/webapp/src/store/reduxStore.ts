@@ -1,8 +1,9 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
 import { AuthenticationGateway } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { loginNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/loginNotifier.middleware";
 import { logoutNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/logoutNotifier.middleware";
-import { AuthenticationStorageProvider } from "../authentication/core-logic/providers/authenticationStorage.provider";
+import { LoginNotifierProvider } from "../authentication/core-logic/providers/loginNotifier.provider";
 import { LogoutNotifierProvider } from "../authentication/core-logic/providers/logoutNotifier.provider";
 import { createAuthenticationSlice } from "../authentication/core-logic/reducers/authentication.slice";
 import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";
@@ -25,8 +26,6 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { LoginNotifierProvider } from "../authentication/core-logic/providers/loginNotifier.provider";
-import { loginNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/loginNotifier.middleware";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -34,7 +33,6 @@ export interface Gateways {
 }
 
 export interface Providers {
-  authenticationStorageProvider: AuthenticationStorageProvider;
   routerProvider: RouterProvider;
   logoutNotifierProvider: LogoutNotifierProvider;
   loginNotifierProvider: LoginNotifierProvider;
