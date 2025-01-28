@@ -24,6 +24,7 @@ export class FakeReportApiClient implements ReportApiClient {
   }
 
   async updateReport(reportId: string, data: ReportUpdateDto): Promise<void> {
+    console.log("updateReport", reportId, data);
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);

@@ -149,7 +149,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
         .concat(loginNotifierMiddleware)
         .concat(logoutNotifierMiddleware);
     },
-    devTools: true,
+    devTools: { trace: true },
   });
 };
 

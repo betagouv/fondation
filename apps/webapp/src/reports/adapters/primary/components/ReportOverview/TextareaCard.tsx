@@ -2,6 +2,7 @@ import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "./Card";
 import { debounce } from "lodash";
+import { TipTapEditor } from "./TipTapEditor";
 
 export type TextareaCardProps = {
   cardId: string;
@@ -12,6 +13,8 @@ export type TextareaCardProps = {
   placeholder?: string;
   onContentChange: (content: string) => void;
 };
+
+const TEXT_AREA_DEBOUNCE_TIME = 400;
 
 export const TextareaCard: React.FC<TextareaCardProps> = ({
   cardId,
@@ -25,14 +28,16 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   const [textareaContent, setTextareaContent] = useState(content);
 
   const debouncedOnContentChange = useMemo(
-    () => debounce(onContentChange, 400),
+    () => debounce(onContentChange, TEXT_AREA_DEBOUNCE_TIME),
     [onContentChange],
   );
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setTextareaContent(e.target.value);
-      debouncedOnContentChange(e.target.value);
+    (value: string) => {
+      console.log("handle change", value);
+
+      setTextareaContent(value);
+      debouncedOnContentChange(value);
     },
     [debouncedOnContentChange],
   );
@@ -48,13 +53,12 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
       <h2 className={cx("fr-h2")} id={titleId}>
         {label}
       </h2>
-      <textarea
-        aria-labelledby={titleId}
-        className="w-full whitespace-pre-line"
+      <TipTapEditor
         value={textareaContent ?? undefined}
-        rows={rowsCount || 10}
         onChange={handleChange}
-        placeholder={placeholder}
+        ariaLabelledby={titleId}
+        // rows={rowsCount || 10}
+        // placeholder={placeholder}
       />
     </Card>
   );
