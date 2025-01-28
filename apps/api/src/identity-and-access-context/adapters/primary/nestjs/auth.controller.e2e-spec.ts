@@ -6,7 +6,10 @@ import { UserDescriptorSerialized } from 'src/identity-and-access-context/busine
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
-import { TRANSACTION_PERFORMER } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import {
+  API_CONFIG,
+  TRANSACTION_PERFORMER,
+} from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -21,6 +24,7 @@ import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/s
 import { ENCRYPTION_PROVIDER } from './tokens';
 import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
+import { DevApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -86,7 +90,7 @@ describe('Auth Controller', () => {
         .post('/api/auth/login')
         .send({ email: 'new-user@example.com', password: 'new-password-123' })
         .expect(HttpStatus.OK)
-        .expect('set-cookie', /sessionId=.*; Path=.*; HttpOnly; Secure/);
+        .expect('set-cookie', new SetCookieRegex().build());
 
       const expectedAuthenticatedUser: AuthenticatedUser = {
         userId: expect.any(String),
@@ -105,9 +109,12 @@ describe('Auth Controller', () => {
   });
 
   describe('With fake encryption', () => {
+    const cookieAgeInSeconds = 10;
+
     beforeEach(async () => {
       const moduleFixture = await new AppTestingModule()
         .withFakeEncryption()
+        .withCookieMaxAgeInSeconds(cookieAgeInSeconds)
         .compile();
 
       app = new MainAppConfigurator(moduleFixture.createNestApplication())
@@ -125,7 +132,7 @@ describe('Auth Controller', () => {
         .expect(HttpStatus.OK)
         .expect(
           'set-cookie',
-          /sessionId=.*; Path=.*; HttpOnly; Secure; SameSite=Strict/,
+          new SetCookieRegex().withMaxAge(cookieAgeInSeconds).build(),
         )
         .expect('Access-Control-Allow-Origin', defaultApiConfig.originUrl)
         .expect('Access-Control-Allow-Credentials', 'true');
@@ -201,10 +208,7 @@ describe('Auth Controller', () => {
         .post('/api/auth/logout')
         .set('Cookie', `sessionId=${signedSessionId}`)
         .expect(HttpStatus.OK)
-        .expect(
-          'set-cookie',
-          /sessionId=; Path=.*; Expires=Thu, 01 Jan 1970 .*; HttpOnly; Secure/,
-        );
+        .expect('set-cookie', new SetCookieRegex('cleared').build());
 
       await expectSessions({
         sessionId,
@@ -279,6 +283,15 @@ describe('Auth Controller', () => {
       super(db);
     }
 
+    withCookieMaxAgeInSeconds(maxAge: number) {
+      this.moduleFixture.overrideProvider(API_CONFIG).useValue({
+        ...defaultApiConfig,
+        cookieMaxAgeInMs: maxAge * 1000,
+      } satisfies DevApiConfig);
+
+      return this;
+    }
+
     withFakeEncryption() {
       this.moduleFixture.overrideProvider(ENCRYPTION_PROVIDER).useFactory({
         factory: () => {
@@ -294,3 +307,37 @@ describe('Auth Controller', () => {
     }
   }
 });
+
+class SetCookieRegex {
+  private mode: 'new' | 'cleared';
+  private cookieAge: number | undefined;
+
+  constructor(mode: 'new' | 'cleared' = 'new') {
+    this.mode = mode;
+  }
+
+  withMaxAge(cookieAgeInSeconds: number) {
+    this.cookieAge = cookieAgeInSeconds;
+    return this;
+  }
+
+  build(): RegExp {
+    const sessionId = this.cleared ? `sessionId=` : `sessionId=.*`;
+    const cookieAge = this.cookieAge ? `; Max-Age=${this.cookieAge}` : '';
+    const expires = this.cleared ? `; Expires=Thu, 01 Jan 1970 .*` : `; .*`;
+
+    return new RegExp(
+      sessionId +
+        cookieAge +
+        `; Path=.*` +
+        expires +
+        `; HttpOnly` +
+        `; Secure` +
+        `; SameSite=Strict`,
+    );
+  }
+
+  private get cleared() {
+    return this.mode === 'cleared';
+  }
+}

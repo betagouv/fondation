@@ -11,6 +11,7 @@ export const apiConfig: ProdApiConfig = {
   originUrl: process.env.ORIGIN_URL!,
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
+  cookieMaxAgeInMs: Number(process.env.COOKIE_MAX_AGE_IN_MS!),
   database: {
     connectionString: process.env.DATABASE_URL!,
   },
@@ -46,6 +47,7 @@ export const defaultApiConfig = {
   originUrl: 'http://localhost:5173',
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
+  cookieMaxAgeInMs: 1000 * 60 * 60 * 24 * 90,
   database: {
     // env variable used by docker compose
     host: process.env.DATABASE_HOST || 'localhost',

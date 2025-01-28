@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Inject,
   Param,
   Post,
   Req,
@@ -29,6 +30,8 @@ import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.
 import { UserWithIdParamsNestDto } from './dto/user-with-id-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
 import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 
 type IAuthController = IController<IdentityAndAccessRestContract>;
 
@@ -50,6 +53,7 @@ export class AuthController implements IAuthController {
     private readonly signatureProvider: CookieSignatureProvider,
     private readonly userWithFullNameUseCase: UserWithFullNameUseCase,
     private readonly userWithIdUseCase: UserWithIdUseCase,
+    @Inject(API_CONFIG) private readonly apiConfig: ApiConfig,
   ) {}
 
   @Post(endpointsPaths.login)
@@ -130,6 +134,7 @@ export class AuthController implements IAuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
+      maxAge: this.apiConfig.cookieMaxAgeInMs,
     });
   }
 
