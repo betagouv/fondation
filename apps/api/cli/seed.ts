@@ -30,8 +30,8 @@ async function seed() {
 
     const user: typeof users.$inferInsert = {
       id: 'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
-      firstName: 'Luc',
-      lastName: 'Denan',
+      firstName: 'luc',
+      lastName: 'denan',
       email: 'luc.denan@example.fr',
       role: Role.MEMBRE_DU_SIEGE,
       gender: Gender.M,
