@@ -44,7 +44,7 @@ async function seed() {
     const reportSnapshot1 = new ReportBuilder('uuid')
       .with('name', 'John Doe')
       .with('reporterId', user.id!)
-      .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+      .with('transparency', Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025)
       .build();
 
     const reportRow1 = SqlReportRepository.mapToDb(

@@ -245,6 +245,8 @@ export class NominationFileTsvBuilder {
         'Transparence PG 25/11',
       [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
         'Tableau général T du 25/11',
+      [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
+        'Transparence 21/01/25',
     };
 
     const stateMap = {

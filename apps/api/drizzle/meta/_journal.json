@@ -218,6 +218,13 @@
       "when": 1737469202645,
       "tag": "0030_identity_and_access_context__add_user_gender",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1738228056142,
+      "tag": "0031_data_administration_context__add_cabinet_21_01_2025_to_transparency",
+      "breakpoints": true
     }
   ]
 }

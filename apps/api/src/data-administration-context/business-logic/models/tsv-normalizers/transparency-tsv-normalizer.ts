@@ -16,6 +16,8 @@ export class TransparencyTsvNormalizer {
         return Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024;
       case 'Tableau général T du 25/11':
         return Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024;
+      case 'Transparence 21/01/25':
+        return Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025;
       default:
         throw new InvalidRowValueError('transparency', transparency, rowIndex);
     }
