@@ -16,7 +16,6 @@ export interface ReportToCreate {
   reporterName: string;
   formation: Magistrat.Formation;
   dueDate: DateOnlyJson | null;
-  state: NominationFile.ReportState;
   transparency: Transparency;
   grade: Magistrat.Grade;
   currentPosition: string;

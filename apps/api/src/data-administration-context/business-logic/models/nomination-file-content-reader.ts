@@ -11,7 +11,6 @@ import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normaliz
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
-import { StateTsvNormalizer } from './tsv-normalizers/state-tsv-normalizer';
 import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
@@ -78,10 +77,6 @@ export class NominationFileContentReader {
           name: this.findValue('Magistrat', rowIndex)!,
           formation: FormationTsvNormalizer.normalize(
             this.findValue('Formation', rowIndex)!,
-            rowIndex,
-          ),
-          state: StateTsvNormalizer.normalize(
-            this.findValue('Etat', rowIndex)!,
             rowIndex,
           ),
           transparency: TransparencyTsvNormalizer.normalize(

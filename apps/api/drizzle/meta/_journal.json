@@ -225,6 +225,13 @@
       "when": 1738228056142,
       "tag": "0031_data_administration_context__add_cabinet_21_01_2025_to_transparency",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1738338103395,
+      "tag": "0032_data_administration_context__remove_state",
+      "breakpoints": true
     }
   ]
 }

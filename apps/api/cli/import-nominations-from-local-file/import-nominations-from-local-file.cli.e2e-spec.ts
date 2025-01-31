@@ -312,7 +312,7 @@ describe('Import Nominations from local file', () => {
     createdAt: expect.any(Date),
     reporterId: reportersMap[content.reporterName!]!,
     folderNumber: content.folderNumber,
-    state: content.state,
+    state: NominationFile.ReportState.NEW,
     dueDate: content.dueDate
       ? DateOnly.fromJson(content.dueDate).toDbString()
       : null,
@@ -385,7 +385,6 @@ function getExpectedContents(): NominationFileRead['content'][] {
           HH_NOMINATION_CONDITIONS: false,
         },
       },
-      state: NominationFile.ReportState.NEW,
       targettedPosition:
         "Premier vice-président chargé de l'instruction TJ MARSEILLE - I",
       transparency: Transparency.AUTOMNE_2024,
@@ -441,7 +440,6 @@ function getExpectedContents(): NominationFileRead['content'][] {
           MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS: false,
         },
       },
-      state: NominationFile.ReportState.SUPPORTED,
       targettedPosition: 'Premier vice-président adjoint TJ RENNES - I',
       transparency: Transparency.AUTOMNE_2024,
     },
@@ -491,7 +489,6 @@ function getExpectedContents(): NominationFileRead['content'][] {
           MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS: false,
         },
       },
-      state: NominationFile.ReportState.NEW,
       targettedPosition:
         "Premier substitut à l'administration centrale du ministère de la justice AC PARIS - I",
       transparency: Transparency.MARCH_2025,

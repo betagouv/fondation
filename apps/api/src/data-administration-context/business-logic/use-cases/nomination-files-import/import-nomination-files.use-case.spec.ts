@@ -79,16 +79,6 @@ describe('Import Nomination Files Use Case', () => {
       value: '1 (Siège) (Parquet)',
     },
     {
-      testName: 'existing state "ready to support" value forbidden in gsheet',
-      column: 'state',
-      value: 'Prêt à soutenir',
-    },
-    {
-      testName: 'existing state "in progress" value forbidden in gsheet',
-      column: 'state',
-      value: 'En cours',
-    },
-    {
       testName: 'formation',
       column: 'formation',
       value: 'Sièège',
@@ -520,7 +510,6 @@ describe('Import Nomination Files Use Case', () => {
         month: 11,
         day: 10,
       },
-      state: NominationFile.ReportState.NEW,
       transparency: Transparency.AUTOMNE_2024,
       reporters: [
         'LUC Loïc',
@@ -551,7 +540,6 @@ describe('Import Nomination Files Use Case', () => {
       name: 'Lucien Pierre',
       formation: Magistrat.Formation.PARQUET,
       dueDate: null,
-      state: NominationFile.ReportState.SUPPORTED,
       transparency: Transparency.AUTOMNE_2024,
       reporters: null,
       grade: Magistrat.Grade.HH,

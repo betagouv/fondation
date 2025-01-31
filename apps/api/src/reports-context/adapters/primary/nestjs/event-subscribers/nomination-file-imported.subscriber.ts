@@ -27,7 +27,6 @@ export class NominationFileImportedSubscriber {
                 reporterName,
                 formation: content.formation,
                 dueDate: content.dueDate,
-                state: content.state,
                 transparency: content.transparency,
                 grade: content.grade,
                 currentPosition: content.currentPosition,

@@ -248,7 +248,7 @@ export class NominationFileReport {
         createReportPayload.birthDate.month,
         createReportPayload.birthDate.day,
       ),
-      createReportPayload.state,
+      NominationFile.ReportState.NEW,
       createReportPayload.formation,
       createReportPayload.transparency,
       createReportPayload.grade,

@@ -15,9 +15,6 @@ export type NominationFileRead = {
     name: string;
     formation: Magistrat.Formation;
     dueDate: DateOnlyJson | null;
-    state:
-      | NominationFile.ReportState.NEW
-      | NominationFile.ReportState.SUPPORTED;
     transparency: Transparency;
     reporters: string[] | null;
     grade: Magistrat.Grade;
@@ -80,10 +77,6 @@ export const nominationFileReadContentSchema = z.object({
       day: z.number(),
     })
     .nullable(),
-  state: z.enum([
-    NominationFile.ReportState.NEW,
-    NominationFile.ReportState.SUPPORTED,
-  ]),
   transparency: z.nativeEnum(Transparency),
   reporters: z.array(z.string()).nullable(),
   grade: z.nativeEnum(Magistrat.Grade),
