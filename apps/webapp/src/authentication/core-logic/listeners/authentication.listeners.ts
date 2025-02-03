@@ -28,6 +28,12 @@ export const initializeAuthenticationState: Listener = (startAppListening) => {
       } catch {
         // We quietly ignore the error if the user doesn't have a valid cookie,
         // the user being unauthenticated in the state by default.
+        dispatch(
+          authenticationStateInitFromStore({
+            authenticated: false,
+            user: null,
+          }),
+        );
       }
     },
   });

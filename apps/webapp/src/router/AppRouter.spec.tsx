@@ -25,6 +25,7 @@ import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listen
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 import { sleep } from "../shared-kernel/core-logic/sleep";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
+import { initializeAuthenticationState } from "../authentication/core-logic/listeners/authentication.listeners";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
@@ -57,6 +58,7 @@ describe("App Router Component", () => {
         redirectOnRouteChange,
         redirectOnLogin,
         redirectOnLogout,
+        initializeAuthenticationState,
       },
       routeToComponentMap,
     );

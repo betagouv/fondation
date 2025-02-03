@@ -26,12 +26,21 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
       const { current: currentHref } = state.router.hrefs;
 
       if (action.type === authenticationStateInitFromStore.type) {
+        if (!state.authentication.initializedFromPersistence) return;
+
+        if (!authenticated) {
+          routerProvider.goToLogin();
+          return;
+        }
+
         const userOnLoginPage = currentHref === routerProvider.getLoginHref();
         if (authenticated && userOnLoginPage) routerProvider.goToReportList();
         return;
       }
 
       if (action.type === routeChanged.type) {
+        if (!state.authentication.initializedFromPersistence) return;
+
         switch (action.payload) {
           case "/":
             if (authenticated) routerProvider.goToReportList();
