@@ -18,29 +18,30 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
     ) => {
       if (!routerProvider) throw new Error("routerProvider is not defined");
       const state = getState();
+      if (!state.authentication.initializedFromPersistence) return;
 
       // We use the stored authentication state because it could
       // have changed in another tab or window.
       const authenticated = state.authentication.authenticated;
 
-      const { current: currentHref } = state.router.hrefs;
-
       if (action.type === authenticationStateInitFromStore.type) {
-        if (!state.authentication.initializedFromPersistence) return;
+        const { current: currentHref } = state.router.hrefs;
 
-        if (!authenticated) {
+        if (authenticated) {
+          const userOnLoginPage = currentHref === routerProvider.getLoginHref();
+          if (userOnLoginPage) routerProvider.goToReportList();
+
+          const rootPage = currentHref === "/";
+          if (rootPage) routerProvider.goToReportList();
+
+          return;
+        } else {
           routerProvider.goToLogin();
           return;
         }
-
-        const userOnLoginPage = currentHref === routerProvider.getLoginHref();
-        if (authenticated && userOnLoginPage) routerProvider.goToReportList();
-        return;
       }
 
       if (action.type === routeChanged.type) {
-        if (!state.authentication.initializedFromPersistence) return;
-
         switch (action.payload) {
           case "/":
             if (authenticated) routerProvider.goToReportList();
