@@ -6,7 +6,8 @@ export const IndentIncreaseButton = () => {
     editor.chain().focus().sinkListItem("listItem").run();
 
   const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleBulletList().run() ||
+    (!editor.can().chain().focus().toggleBulletList().run() &&
+      !editor.can().chain().focus().toggleOrderedList().run()) ||
     !editor.can().chain().focus().sinkListItem("listItem").run();
 
   return (

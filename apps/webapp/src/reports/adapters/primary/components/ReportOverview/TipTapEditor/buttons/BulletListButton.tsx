@@ -12,7 +12,7 @@ export const BulletListButton = () => {
     <EditorButton
       iconId="fr-icon-list-unordered"
       title="Liste à puces"
-      mark="listItem"
+      mark="bulletList"
       onClickFactory={toggleBulletList}
       disabledFactory={getDisabled}
     />
