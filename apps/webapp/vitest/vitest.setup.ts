@@ -34,3 +34,20 @@ global.IntersectionObserver = vi.fn((callback, options) => {
 });
 
 Element.prototype.scrollIntoView = vi.fn();
+
+// Mock for Tip Tap Editor
+Object.defineProperty(HTMLElement.prototype, "getClientRects", {
+  writable: true,
+  value: vi.fn().mockImplementation(() => [
+    {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      top: 0,
+      left: 0,
+      right: 100,
+      bottom: 100,
+    },
+  ]),
+});

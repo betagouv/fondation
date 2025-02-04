@@ -17,7 +17,7 @@ import { selectReport } from "../../selectors/selectReport";
 import { AttachedFileUpload } from "./AttachedFileUpload";
 import { AutoSaveNotice } from "./AutoSaveNotice";
 import { Biography } from "./Biography";
-import { Comment } from "./Comment";
+import { ReportEditor } from "./ReportEditor";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { Observers } from "./Observers";
 import { ReportOverviewState } from "./ReportOverviewState";
@@ -130,7 +130,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             rank={report.rank}
           />
           <Biography biography={report.biography} />
-          <Comment comment={report.comment} onUpdate={onUpdateComment} />
+          <ReportEditor comment={report.comment} onUpdate={onUpdateComment} />
           <Observers observers={report.observers} />
           <ReportRules
             rulesChecked={report.rulesChecked}

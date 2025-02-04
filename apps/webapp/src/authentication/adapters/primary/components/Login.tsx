@@ -32,6 +32,10 @@ export const Login = () => {
           nativeInputProps={{
             name: "username",
             type: "email",
+            autoCorrect: "off",
+            autoCapitalize: "off",
+            autoComplete: "email",
+            spellCheck: false,
           }}
         />
         <Input

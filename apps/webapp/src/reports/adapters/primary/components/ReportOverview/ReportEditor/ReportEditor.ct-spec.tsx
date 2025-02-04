@@ -1,0 +1,310 @@
+import { expect, MountResult, test } from "@playwright/experimental-ct-react";
+import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
+import { AppState } from "../../../../../../store/appState";
+import { ReduxStore } from "../../../../../../store/reduxStore";
+import {
+  Locator,
+  logPlaywrightBrowser,
+  Mount,
+  Page,
+} from "../../../../../../test/playwright";
+import { ReportEditorForTest } from "./ReportEditor.story";
+
+declare const window: {
+  store: ReduxStore;
+} & Window;
+
+const label = "Rapport";
+
+test.describe("Report Editor", () => {
+  let component: MountResult | null;
+  let initialState: AppState;
+  let editor: Locator;
+  let page: Page;
+  let mount: Mount;
+
+  test.beforeEach(({ page: aPage, mount: aMount }) => {
+    component = null;
+    page = aPage;
+    logPlaywrightBrowser(page);
+    mount = aMount;
+  });
+
+  test("should show a basic report", async () => {
+    await renderReport("Some content");
+
+    await expectContent("Some content");
+    await expectStoredReport("Some content");
+  });
+
+  test("should remove the report content", async () => {
+    await renderReport("Some content");
+
+    await editor.clear();
+
+    await expectContent("");
+    await expectStoredReport("<p></p>");
+  });
+
+  test("should write content to an empty report", async () => {
+    await renderReport(null);
+
+    await editor.fill("New content");
+
+    await expectContent("New content");
+    await expectStoredReport("<p>New content</p>");
+  });
+
+  test("should keep the cursor position after typing and saves the new content", async () => {
+    await renderReport(null);
+
+    await editor.fill("Prefix !");
+    await expectStoredReport("<p>Prefix !</p>");
+
+    await editor.press("ArrowLeft");
+    await editor.pressSequentially("the content");
+    await expectContent("Prefix the content!");
+    await expectStoredReport("<p>Prefix the content!</p>");
+  });
+
+  const testParams: {
+    testTitle: string;
+    action: () => Promise<void>;
+    previousContent?: string;
+    expectedContent?: string;
+    getHtmlContent: () => Promise<string | null | undefined>;
+    expectHtmlContent?: (content: string) => Promise<void>;
+    expectedStoredHtmlContent: string;
+  }[] = [
+    {
+      testTitle: "Mark text in bold",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Gras");
+      },
+      getHtmlContent: () => queryHtmlContent("strong"),
+      expectedStoredHtmlContent: "<p><strong>content</strong></p>",
+    },
+    {
+      testTitle: "Mark text in italic",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Italique");
+      },
+      getHtmlContent: () => queryHtmlContent("em"),
+      expectedStoredHtmlContent: "<p><em>content</em></p>",
+    },
+    {
+      testTitle: "Underline text",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Souligner");
+      },
+      getHtmlContent: () => queryHtmlContent("u"),
+      expectedStoredHtmlContent: "<p><u>content</u></p>",
+    },
+    [1, 2, 3].map((level) => ({
+      testTitle: `Put text in Title ${level}`,
+      action: async () => {
+        await selectText();
+        await clickOnMark("H" + level);
+      },
+      getHtmlContent: () =>
+        editor!.getByRole("heading", { level }).textContent(),
+      expectedStoredHtmlContent: `<h${level}>content</h${level}>`,
+    })),
+    {
+      testTitle: "Highlight text",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Surligner");
+      },
+      getHtmlContent: () => queryHtmlContent("mark"),
+      expectedStoredHtmlContent: "<p><mark>content</mark></p>",
+    },
+    {
+      testTitle: "Add a bullet point",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Liste à puces");
+      },
+      getHtmlContent: () => queryHtmlContent("ul > li > p"),
+      expectedStoredHtmlContent: "<ul><li><p>content</p></li></ul>",
+    },
+    {
+      testTitle: "Increase bullet point indentation",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Augmenter le retrait");
+      },
+      previousContent:
+        "<ul><li><p>prev-item-</p></li><li><p>content</p></li></ul>",
+      expectedContent: "prev-item-content",
+      getHtmlContent: () => queryHtmlContent("ul > li > ul > li > p"),
+      expectedStoredHtmlContent:
+        "<ul><li><p>prev-item-</p><ul><li><p>content</p></li></ul></li></ul>",
+    },
+    {
+      testTitle: "Decrease bullet point indentation",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Diminuer le retrait");
+      },
+      previousContent: "<ul><li><p>content</p></li></ul>",
+      getHtmlContent: () => queryHtmlContent(".ProseMirror p"),
+      expectedStoredHtmlContent: "<p>content</p>",
+    },
+    {
+      testTitle: "Add an ordered list",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Liste ordonnée");
+      },
+      getHtmlContent: () => queryHtmlContent("ol > li > p"),
+      expectedStoredHtmlContent: "<ol><li><p>content</p></li></ol>",
+    },
+    {
+      testTitle: "Add color to a text",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Couleur du texte");
+        await page
+          .locator("input[type=color]")
+          // L'input est caché, on force donc le remplissage
+          .fill("#18753c", { force: true });
+      },
+      getHtmlContent: () => queryHtmlContent(".ProseMirror span"),
+      expectHtmlContent: async (content: string) => {
+        expect(content).toEqual("content");
+        await expectGreenCss();
+      },
+      expectedStoredHtmlContent:
+        '<p><span style="color: #18753c">content</span></p>',
+    },
+    {
+      testTitle: "Higlight with colored text",
+      action: async () => {
+        await selectText();
+        await clickOnMark("Surligner");
+      },
+      previousContent: '<p><span style="color: #18753c">content</span></p>',
+      // Ordre important : le span doit être dans le mark
+      // pour que la couleur soit visible
+      getHtmlContent: () => queryHtmlContent(".ProseMirror mark > span"),
+      expectHtmlContent: async (content: string) => {
+        expect(content).toEqual("content");
+        await expectGreenCss();
+      },
+      expectedStoredHtmlContent:
+        '<p><mark><span style="color: rgb(24, 117, 60)">content</span></mark></p>',
+    },
+  ].flat();
+
+  testParams.forEach(
+    ({
+      testTitle,
+      action,
+      expectedContent,
+      getHtmlContent,
+      previousContent,
+      expectHtmlContent,
+      expectedStoredHtmlContent,
+    }) => {
+      test(testTitle, async () => {
+        await renderReport(previousContent || "content");
+
+        await editor.focus();
+        await action();
+
+        await expectContent(expectedContent || "content");
+        await expectStoredReport(expectedStoredHtmlContent);
+
+        const htmlContent = (await getHtmlContent())!;
+        if (expectHtmlContent) {
+          await expectHtmlContent(htmlContent);
+        } else {
+          expect(htmlContent).toEqual("content");
+        }
+      });
+    },
+  );
+
+  test("disable the bold mark on a Title 2 line", async () => {
+    await renderReport("<h2>content</h2>");
+    await selectText();
+    await expect(component!.getByTitle("Gras")).toBeDisabled();
+  });
+
+  test("all buttons are disabled when editor isn't focused", async () => {
+    await renderReport("<h2>content</h2>");
+
+    const titles = [
+      "Gras",
+      "Italique",
+      "Souligner",
+      "H1",
+      "H2",
+      "H3",
+      "Surligner",
+      "Liste à puces",
+      "Liste ordonnée",
+      "Couleur du texte",
+      "Augmenter le retrait",
+      "Diminuer le retrait",
+    ];
+    for (const title of titles)
+      await expect(component!.getByTitle(title)).toBeDisabled();
+  });
+
+  const selectText = async () => {
+    const text = editor.getByText("content");
+    await text.selectText();
+  };
+
+  const clickOnMark = async (testTitle: string) =>
+    component!.getByTitle(testTitle).click();
+
+  const queryHtmlContent = (queryString: string) =>
+    page.evaluate(
+      (query) => document.querySelector(query)?.innerHTML,
+      queryString,
+    );
+
+  const expectGreenCss = () =>
+    expect(component!.getByText("content")).toHaveCSS(
+      "color",
+      "rgb(24, 117, 60)",
+    );
+
+  const expectContent = (content: string) => expect(editor).toHaveText(content);
+
+  const expectStoredReport = async (content: string | null) => {
+    await sleep(400); // Wait for debouced store update
+
+    const state = await page.evaluate(() => window.store.getState());
+
+    const expecteState: AppState = {
+      ...initialState,
+      reportOverview: {
+        ...initialState.reportOverview,
+        byIds: {
+          "report-id": {
+            ...initialState.reportOverview.byIds!["report-id"]!,
+            comment: content,
+          },
+        },
+      },
+    };
+
+    expect(state).toEqual(expecteState);
+  };
+
+  const renderReport = async (content: string | null) => {
+    component = await mount(<ReportEditorForTest content={content} />);
+    editor = reportEditor();
+
+    initialState = await page.evaluate(() => window.store.getState());
+  };
+
+  const reportEditor = () => component!.getByLabel(label, { exact: true });
+});

@@ -6,7 +6,7 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "./retrieveReport.use-case";
 
-describe("Retrieve Nomination Case", () => {
+describe("Retrieve report", () => {
   let store: ReduxStore;
   let initialState: AppState;
   let reportApiClient: FakeReportApiClient;
