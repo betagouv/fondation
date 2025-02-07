@@ -1,7 +1,8 @@
 import { Magistrat } from 'shared-models';
+import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
 
 export class GradeTsvNormalizer {
-  static normalize(grade: string): Magistrat.Grade {
+  static normalize(grade: string, rowIndex: number): Magistrat.Grade {
     switch (grade) {
       case 'I':
         return Magistrat.Grade.I;
@@ -10,7 +11,7 @@ export class GradeTsvNormalizer {
       case 'HH':
         return Magistrat.Grade.HH;
       default:
-        throw new Error('Invalid grade: ' + grade);
+        throw new InvalidRowValueError('grade', grade, rowIndex);
     }
   }
 }

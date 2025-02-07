@@ -16,6 +16,10 @@ export const transparencyToLabel = (transparency: Transparency) => {
       return "Tableau général T 25/11/2024";
     case Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025:
       return "Cabinet 21/01/2025";
+    case Transparency.SIEGE_DU_06_FEVRIER_2025:
+      return "Siège 06/02/2025";
+    case Transparency.PARQUET_DU_06_FEVRIER_2025:
+      return "Parquet 06/02/2025";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

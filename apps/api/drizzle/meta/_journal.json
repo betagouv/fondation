@@ -232,6 +232,13 @@
       "when": 1738338103395,
       "tag": "0032_data_administration_context__remove_state",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1738926446637,
+      "tag": "0033_data_administration_context__add_06_02_2025_to_transparency",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,5 @@
 import _ from 'lodash';
-import {
-  Magistrat,
-  NominationFile,
-  RulesBuilder,
-  Transparency,
-} from 'shared-models';
+import { Magistrat, NominationFile, RulesBuilder } from 'shared-models';
 import {
   DateOnly,
   gsheetDateFormat,
@@ -16,6 +11,7 @@ import {
   GSHEET_CELL_LINE_BREAK_TOKEN,
 } from './nomination-file-content-reader';
 import { NominationFileRead } from './nomination-file-read';
+import { transparencyMap } from './tsv-normalizers/transparency-tsv-normalizer';
 
 export type Line = {
   folderNumber: number | null;
@@ -226,20 +222,6 @@ export class NominationFileTsvBuilder {
 
   fromModelSnapshot(nominationFileSnapshot: NominationFileModelSnapshot) {
     const content = nominationFileSnapshot.content;
-
-    const transparencyMap = {
-      [Transparency.AUTOMNE_2024]: 'Automne 2024',
-      [Transparency.MARCH_2025]: 'Mars 2025',
-      [Transparency.MARCH_2026]: 'Mars 2026',
-      [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
-        'Transparence PG 08/11',
-      [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
-        'Transparence PG 25/11',
-      [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
-        'Tableau général T du 25/11',
-      [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
-        'Transparence 21/01/25',
-    };
 
     const gradeMap = {
       [Magistrat.Grade.I]: ' I',

@@ -88,6 +88,7 @@ export class NominationFileContentReader {
             : null,
           grade: GradeTsvNormalizer.normalize(
             this.findValue('Grade actuel', rowIndex)!,
+            rowIndex,
           ),
           currentPosition: this.findValue('Poste actuel', rowIndex)!,
           targettedPosition: this.findValue('Poste pressenti', rowIndex)!,

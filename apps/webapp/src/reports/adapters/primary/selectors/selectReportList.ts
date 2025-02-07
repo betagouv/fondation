@@ -46,6 +46,8 @@ export const selectReportList = createAppSelector(
       Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024,
       Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024,
       Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025,
+      Transparency.SIEGE_DU_06_FEVRIER_2025,
+      Transparency.PARQUET_DU_06_FEVRIER_2025,
       Transparency.MARCH_2025,
       Transparency.MARCH_2026,
     ];
