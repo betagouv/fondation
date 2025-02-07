@@ -1,7 +1,6 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "./Card";
-import { debounce } from "lodash";
 import { TipTapEditor } from "./TipTapEditor";
 
 export type TextareaCardProps = {
@@ -44,9 +43,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
 
   return (
     <Card id={cardId}>
-      <h2 className={cx("fr-h2")} id={titleId}>
-        {label}
-      </h2>
+      <h2 id={titleId}>{label}</h2>
       <TipTapEditor
         value={textareaContent ?? undefined}
         onChange={handleChange}

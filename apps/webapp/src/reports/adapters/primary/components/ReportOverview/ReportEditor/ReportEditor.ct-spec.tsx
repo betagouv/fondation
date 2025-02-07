@@ -229,6 +229,29 @@ test.describe("Report Editor", () => {
     },
   );
 
+  test("Undo a text modification", async () => {
+    await renderReport("content");
+    await writeAtTheEnd(" with modification");
+    await expectStoredReport("<p>content with modification</p>");
+
+    await editor.press("Control+z");
+
+    await expectContent("content");
+    await expectStoredReport("<p>content</p>");
+  });
+
+  test("Redo a text modification", async () => {
+    await renderReport("content");
+    await writeAtTheEnd(" with modification");
+    await expectStoredReport("<p>content with modification</p>");
+
+    await editor.press("Control+z");
+    await expectContent("content");
+    await editor.press("Control+Shift+z");
+
+    await expectStoredReport("<p>content with modification</p>");
+  });
+
   test("disable the bold mark on a Title 2 line", async () => {
     await renderReport("<h2>content</h2>");
     await selectText();
@@ -255,6 +278,12 @@ test.describe("Report Editor", () => {
     for (const title of titles)
       await expect(component!.getByTitle(title)).toBeDisabled();
   });
+
+  const writeAtTheEnd = async (text: string) => {
+    await editor.focus();
+    await editor.press("End");
+    await editor.pressSequentially(text);
+  };
 
   const selectText = async () => {
     const text = editor.getByText("content");
