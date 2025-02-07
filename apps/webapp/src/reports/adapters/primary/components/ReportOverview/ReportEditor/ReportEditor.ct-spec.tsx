@@ -259,7 +259,7 @@ test.describe("Report Editor", () => {
   });
 
   test("all buttons are disabled when editor isn't focused", async () => {
-    await renderReport("<h2>content</h2>");
+    await renderReport("content");
 
     const titles = [
       "Gras",
@@ -278,6 +278,20 @@ test.describe("Report Editor", () => {
     for (const title of titles)
       await expect(component!.getByTitle(title)).toBeDisabled();
   });
+
+  test("Text color button is gray when editor isn't focused", async () => {
+    await renderReport(
+      '<p><span style="color: rgb(24, 117, 60)">content</span></p>',
+    );
+    await selectText();
+    await expect(getColorButton()).toHaveCSS("color", "rgb(24, 117, 60)");
+
+    await component?.getByRole("heading", { name: "Rapport" }).click();
+
+    await expect(getColorButton()).toHaveCSS("color", "rgb(146, 146, 146)");
+  });
+
+  const getColorButton = () => component!.getByTitle("Couleur du texte");
 
   const writeAtTheEnd = async (text: string) => {
     await editor.focus();

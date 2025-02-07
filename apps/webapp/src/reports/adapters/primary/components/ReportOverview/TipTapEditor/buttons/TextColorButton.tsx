@@ -1,6 +1,6 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { colors } from "@codegouvfr/react-dsfr/fr/colors";
-import { useCurrentEditor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
 import { ChangeEvent, useRef } from "react";
 import { useIsBlurred } from "../useIsBlurred";
 
@@ -8,16 +8,23 @@ export const TextColorButton = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
+  const textColors = colors.getHex({ isDark: false }).decisions.text;
+  const currentTextColor = useEditorState({
+    editor,
+    selector: (ctx) =>
+      isBlurred
+        ? textColors.disabled.grey.default
+        : ctx.editor?.getAttributes("textStyle").color,
+  });
 
   if (!editor) {
     return null;
   }
 
-  const textColors = colors.getHex({ isDark: false }).decisions.text.default;
   const predefinedColors = [
-    textColors.grey.default,
-    textColors.success.default,
-    textColors.error.default,
+    textColors.default.grey.default,
+    textColors.default.success.default,
+    textColors.default.error.default,
   ];
 
   const setColor = (event: ChangeEvent<HTMLInputElement>) =>
@@ -36,7 +43,7 @@ export const TextColorButton = () => {
         priority="tertiary"
         title="Couleur du texte"
         style={{
-          color: editor.getAttributes("textStyle").color,
+          color: currentTextColor,
         }}
       />
       <input
@@ -47,7 +54,7 @@ export const TextColorButton = () => {
         type="color"
         list="presetColors"
         onInput={setColor}
-        value={editor.getAttributes("textStyle").color}
+        value={currentTextColor}
         id="input-color"
       />
       <datalist id="presetColors">
