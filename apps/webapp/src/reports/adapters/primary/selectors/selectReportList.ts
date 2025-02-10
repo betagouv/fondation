@@ -6,6 +6,7 @@ import { createAppSelector } from "../../../../store/createAppSelector";
 import {
   formationToLabel,
   gradeToLabel,
+  TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
 import { stateToLabel } from "../labels/state-label.mapper";
@@ -18,7 +19,7 @@ export type ReportListItemVM = {
   dueDate: string | null;
   formation: ReturnType<typeof formationToLabel>;
   name: string;
-  transparency: ReturnType<typeof transparencyToLabel>;
+  transparency: TransparencyLabel;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
   observersCount: number;

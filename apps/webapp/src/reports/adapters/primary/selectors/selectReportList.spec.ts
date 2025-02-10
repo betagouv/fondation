@@ -11,7 +11,7 @@ import {
   selectReportList,
 } from "./selectReportList";
 
-describe("Select Nomination Case List", () => {
+describe("Select Report List", () => {
   let store: ReduxStore;
   const onClick = () => null;
 

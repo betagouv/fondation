@@ -1,5 +1,7 @@
 import { Magistrat, Transparency } from "shared-models";
 
+export type TransparencyLabel = ReturnType<typeof transparencyToLabel>;
+
 export const transparencyToLabel = (transparency: Transparency) => {
   switch (transparency) {
     case Transparency.AUTOMNE_2024:
