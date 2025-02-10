@@ -21,7 +21,7 @@ export const MenuBar = () => {
   }
 
   return (
-    <div className={cx("fr-my-4v")}>
+    <div className={clsx("sticky top-2 z-10 bg-white", cx("fr-my-4v"))}>
       <div className={clsx("gap-3", cx("fr-grid-row"))}>
         <TextColorButton />
         <HighlightButton />
@@ -35,21 +35,6 @@ export const MenuBar = () => {
         <BulletListButton />
         <IndentDecreaseButton />
         <IndentIncreaseButton />
-        {/*
-
-     
-        <button
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().chain().focus().undo().run()}
-        >
-          Undo
-        </button>
-        <button
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().chain().focus().redo().run()}
-        >
-          Redo
-        </button> */}
       </div>
     </div>
   );
