@@ -9,8 +9,9 @@ import {
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import { stateToLabel } from "../labels/state-label.mapper";
 import { ReportListStateFilter } from "../labels/report-list-state-filter-labels.mapper";
+import { stateToLabel } from "../labels/state-label.mapper";
+import { reportListTableLabels } from "../labels/report-list-table-labels";
 
 export type ReportListItemVM = {
   id: string;
@@ -32,6 +33,7 @@ export type ReportListVM = {
   filters: {
     state: ReportListStateFilter;
   };
+  headers: string[];
 };
 
 export const selectReportList = createAppSelector(
@@ -39,8 +41,9 @@ export const selectReportList = createAppSelector(
     (state) => state.reportList.data,
     (state) => state.router.anchorsAttributes.reportOverview,
     (state) => state.reportList.filters,
+    (_, transparencyFilter?: Transparency) => transparencyFilter,
   ],
-  (data, getAnchorAttributes, filters): ReportListVM => {
+  (data, getAnchorAttributes, filters, transparencyFilter): ReportListVM => {
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
@@ -65,6 +68,9 @@ export const selectReportList = createAppSelector(
 
     const reports = sortedReports
       .filter(({ state }) => (reportState ? state === reportState : true))
+      .filter(({ transparency }) =>
+        transparencyFilter ? transparency === transparencyFilter : true,
+      )
       .map(
         ({
           id,
@@ -106,6 +112,9 @@ export const selectReportList = createAppSelector(
       );
 
     return {
+      headers: Object.entries(reportListTableLabels.headers)
+        .filter(([key]) => (transparencyFilter ? key !== "transparency" : true))
+        .map(([, value]) => value),
       reports,
       filters: {
         state: reportState ?? "all",

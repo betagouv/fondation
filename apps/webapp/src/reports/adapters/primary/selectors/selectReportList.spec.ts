@@ -10,6 +10,7 @@ import {
   ReportListVM,
   selectReportList,
 } from "./selectReportList";
+import { reportListTableLabels } from "../labels/report-list-table-labels";
 
 describe("Select Report List", () => {
   let store: ReduxStore;
@@ -28,12 +29,7 @@ describe("Select Report List", () => {
   });
 
   it("shows an empty list", () => {
-    expect(selectReportList(store.getState())).toEqual<ReportListVM>({
-      reports: [],
-      filters: {
-        state: "all",
-      },
-    });
+    expectReports([]);
   });
 
   describe("when there are many reports", () => {
@@ -47,29 +43,40 @@ describe("Select Report List", () => {
       );
     });
 
+    it("filters out the reports of a transparency", () => {
+      const headers: ReportListVM["headers"] = [
+        reportListTableLabels.headers.folderNumber,
+        reportListTableLabels.headers.formation,
+        reportListTableLabels.headers.status,
+        reportListTableLabels.headers.deadline,
+        reportListTableLabels.headers.magistrate,
+        reportListTableLabels.headers.currentGrade,
+        reportListTableLabels.headers.targetedPosition,
+        reportListTableLabels.headers.observers,
+      ];
+      expectReports(
+        [aReportVM, aThirdReportVM, aSecondReportVM],
+        undefined,
+        headers,
+        aReport.transparency,
+      );
+    });
+
     it("selects the sorted list by transparency then folder number", () => {
-      expect(selectReportList(store.getState())).toEqual<ReportListVM>({
-        reports: [
-          aReportVM,
-          aThirdReportVM,
-          aSecondReportVM,
-          aFourthDifferentTransparencyReportVM,
-        ],
-        filters: {
-          state: "all",
-        },
-      });
+      expectReports([
+        aReportVM,
+        aThirdReportVM,
+        aSecondReportVM,
+        aFourthDifferentTransparencyReportVM,
+      ]);
     });
 
     it("filters the reports ready to support", () => {
       store.dispatch(
         reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
       );
-      expect(selectReportList(store.getState())).toEqual<ReportListVM>({
-        reports: [aReportVM],
-        filters: {
-          state: NominationFile.ReportState.READY_TO_SUPPORT,
-        },
+      expectReports([aReportVM], {
+        state: NominationFile.ReportState.READY_TO_SUPPORT,
       });
     });
 
@@ -79,19 +86,31 @@ describe("Select Report List", () => {
       );
       store.dispatch(reportsFilteredByState("all"));
 
-      expect(selectReportList(store.getState())).toEqual<ReportListVM>({
-        reports: [
-          aReportVM,
-          aThirdReportVM,
-          aSecondReportVM,
-          aFourthDifferentTransparencyReportVM,
-        ],
-        filters: {
-          state: "all",
-        },
-      });
+      expectReports([
+        aReportVM,
+        aThirdReportVM,
+        aSecondReportVM,
+        aFourthDifferentTransparencyReportVM,
+      ]);
     });
   });
+
+  const expectReports = (
+    reports: ReportListItemVM[],
+    filters: ReportListVM["filters"] = {
+      state: "all",
+    },
+    headers: ReportListVM["headers"] = allHeaders,
+    transparency?: Transparency,
+  ) => {
+    expect(
+      selectReportList(store.getState(), transparency),
+    ).toEqual<ReportListVM>({
+      headers,
+      reports,
+      filters,
+    });
+  };
 
   const aReport = new ReportBuilder()
     .with("id", "report-id")
@@ -176,3 +195,5 @@ describe("Select Report List", () => {
     onClick,
   };
 });
+
+const allHeaders = Object.values(reportListTableLabels.headers);

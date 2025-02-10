@@ -1,10 +1,15 @@
+import { Transparency } from "shared-models";
+
 export interface RouterProvider {
   goToLogin(): void;
-  goToReportList(): void;
-  gotToReportOverview(id: string): void;
+  goToTransparencies(): void;
   getLoginHref(): string;
-  getReportListHref(): string;
-  getReportOverviewAnchorAttributes: (id: string) => {
+  getTransparenciesHref(): string;
+  getReportListHref(transparency: Transparency): string;
+  getReportOverviewAnchorAttributes: (
+    transparency: Transparency,
+    id: string,
+  ) => {
     href: string;
     onClick: () => void;
   };

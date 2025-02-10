@@ -4,10 +4,12 @@ import {
   LazyLogin,
   ReportListPage,
   LazyReportOverview,
+  LazyTransparencies,
 } from "./lazyRouteComponents";
 
 export const routeToReactComponentMap = {
   login: LazyLogin,
+  transparencies: LazyTransparencies,
   reportList: ReportListPage,
   reportOverview: LazyReportOverview,
 };

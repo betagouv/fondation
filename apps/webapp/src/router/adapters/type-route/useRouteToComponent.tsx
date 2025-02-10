@@ -31,6 +31,10 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
           const Component = routeToComponentMap[route.name];
           return suspensed(<Component />);
         }
+        case "transparencies": {
+          const Component = routeToComponentMap[route.name];
+          return suspensed(protectedComponent(<Component />));
+        }
         case "reportList": {
           const Component = routeToComponentMap[route.name];
           return suspensed(protectedComponent(<Component />));
@@ -38,7 +42,7 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
         case "reportOverview": {
           const Component = routeToComponentMap[route.name];
           return suspensed(
-            protectedComponent(<Component id={route.params.id} />),
+            protectedComponent(<Component id={route.params.name} />),
           );
         }
 

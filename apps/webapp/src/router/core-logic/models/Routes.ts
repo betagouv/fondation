@@ -1,1 +1,5 @@
-export type RouteName = "login" | "reportList" | "reportOverview";
+export type RouteName =
+  | "login"
+  | "transparencies"
+  | "reportList"
+  | "reportOverview";

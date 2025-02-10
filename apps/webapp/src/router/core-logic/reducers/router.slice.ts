@@ -18,7 +18,6 @@ export const createRouterSlice = ({
       hrefs: {
         current: window.location.href,
         login: routerProvider?.getLoginHref() ?? "login",
-        reportList: routerProvider?.getReportListHref() ?? "report-list-href",
       },
       anchorsAttributes: {
         reportOverview:

@@ -33,3 +33,5 @@ export const Transparencies = () => {
     </div>
   );
 };
+
+export default Transparencies;

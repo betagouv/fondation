@@ -13,6 +13,6 @@ export const redirectOnLogin: Listener = (startAppListening) =>
       },
     ) => {
       if (!routerProvider) throw new Error("routerProvider is not defined");
-      routerProvider.goToReportList();
+      routerProvider.goToTransparencies();
     },
   });

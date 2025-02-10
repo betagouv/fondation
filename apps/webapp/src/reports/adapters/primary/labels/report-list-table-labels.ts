@@ -1,13 +1,13 @@
 export const reportListTableLabels = {
-  headers: [
-    "N° dossier",
-    "Formation",
-    "Statut",
-    "Echéance",
-    "Magistrat concerné",
-    "Transparence",
-    "Grade actuel",
-    "Poste ciblé",
-    "Observants",
-  ],
+  headers: {
+    folderNumber: "N° dossier",
+    formation: "Formation",
+    status: "Statut",
+    deadline: "Echéance",
+    magistrate: "Magistrat concerné",
+    transparency: "Transparence",
+    currentGrade: "Grade actuel",
+    targetedPosition: "Poste ciblé",
+    observers: "Observants",
+  },
 };

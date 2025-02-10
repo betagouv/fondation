@@ -3,6 +3,12 @@ import { lazy } from "react";
 export const LazyLogin = lazy(
   () => import("../../authentication/adapters/primary/components/Login"),
 );
+export const LazyTransparencies = lazy(
+  () =>
+    import(
+      "../../reports/adapters/primary/components/Transparencies/Transparencies"
+    ),
+);
 export const ReportListPage = lazy(
   () =>
     import(

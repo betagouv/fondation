@@ -29,10 +29,10 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
 
         if (authenticated) {
           const userOnLoginPage = currentHref === routerProvider.getLoginHref();
-          if (userOnLoginPage) routerProvider.goToReportList();
+          if (userOnLoginPage) routerProvider.goToTransparencies();
 
           const rootPage = currentHref === "/";
-          if (rootPage) routerProvider.goToReportList();
+          if (rootPage) routerProvider.goToTransparencies();
 
           return;
         } else {
@@ -44,11 +44,11 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
       if (action.type === routeChanged.type) {
         switch (action.payload) {
           case "/":
-            if (authenticated) routerProvider.goToReportList();
+            if (authenticated) routerProvider.goToTransparencies();
             else routerProvider.goToLogin();
             break;
           case routerProvider.getLoginHref():
-            if (authenticated) routerProvider.goToReportList();
+            if (authenticated) routerProvider.goToTransparencies();
             break;
           default:
             if (!authenticated) routerProvider.goToLogin();

@@ -3,13 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
+import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { initializeAuthenticationState } from "../authentication/core-logic/listeners/authentication.listeners";
 import {
   authenticate,
   AuthenticateParams,
 } from "../authentication/core-logic/use-cases/authentication/authenticate";
-import { ReportBuilder } from "../reports/core-logic/builders/Report.builder";
-import { retrieveReport } from "../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
+import { sleep } from "../shared-kernel/core-logic/sleep";
 import { initReduxStore, ReduxStore } from "../store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
@@ -23,12 +24,10 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
-import { sleep } from "../shared-kernel/core-logic/sleep";
-import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
-import { initializeAuthenticationState } from "../authentication/core-logic/listeners/authentication.listeners";
 
 const routeToComponentMap: RouteToComponentMap = {
   login: () => <div>a login</div>,
+  transparencies: () => <div>transparencies</div>,
   reportList: () => <div>a list</div>,
   reportOverview: () => <div>an overview</div>,
 };
@@ -66,19 +65,13 @@ describe("App Router Component", () => {
 
   it("visits the login page by default", async () => {
     renderAppRouter();
-    await screen.findByText("a login");
-    expect(window.location.pathname).toBe(routerProvider.getLoginHref());
+    await expectLoginPage();
   });
 
-  it("cannot visit the report list page", async () => {
+  it("cannot visit the transparencies page", async () => {
     renderAppRouter();
-
-    act(() => {
-      routerProvider.goToReportList();
-    });
-
-    await screen.findByText("a login");
-    expect(window.location.pathname).toBe(routerProvider.getLoginHref());
+    visitPage("/transparences");
+    await expectLoginPage();
   });
 
   it("cannot show the report list page before the redirection", async () => {
@@ -95,58 +88,62 @@ describe("App Router Component", () => {
     renderAppRouter();
 
     act(() => {
-      routerProvider.goToReportList();
+      routerProvider.goToTransparencies();
     });
 
-    expect(screen.findByText("a list")).rejects.toThrow();
+    expect(screen.findByText("transparencies")).rejects.toThrow();
   });
 
   describe("Authenticated user", () => {
-    it("visits the reports list page by default", async () => {
+    it("visits the transparencies page by default", async () => {
       renderAppRouter();
-      act(() => {
-        givenAnAuthenticatedUser();
-      });
-
-      act(() => {
-        sessionForTestingPurpose.push("/");
-      });
-
-      await screen.findByText("a list");
-      expect(window.location.pathname).toBe(routerProvider.getReportListHref());
+      await givenAnAuthenticatedUser();
+      await expectTransparenciesPage();
     });
 
-    it("redirects from login to the reports list page", async () => {
+    it("redirects root url to the transparencies page", async () => {
       renderAppRouter();
-      act(() => {
-        givenAnAuthenticatedUser();
-      });
+      await givenAnAuthenticatedUser();
 
-      act(() => {
-        routerProvider.goToLogin();
-      });
+      visitPage("/");
 
-      await screen.findByText("a list");
-      expect(window.location.pathname).toBe(routerProvider.getReportListHref());
+      await expectTransparenciesPage();
+    });
+
+    it("redirects from login to the transparencies page", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+
+      visitPage("/login");
+
+      await expectTransparenciesPage();
     });
 
     it("visits the report overview page", async () => {
       renderAppRouter();
-      act(() => {
-        givenAnAuthenticatedUser();
-        store.dispatch(retrieveReport.fulfilled(aNominationRetrieved, "", ""));
-      });
+      await givenAnAuthenticatedUser();
 
-      await waitListenersCompletion();
+      visitPage(`/transparences/transpa-test/dossiers-de-nomination/john-doe`);
 
-      act(() => {
-        routerProvider.gotToReportOverview(aNominationRetrieved.id);
-      });
+      await expectGdsReportPage();
+    });
 
-      expect(await screen.findByText("Mes rapports")).toHaveStyle({
-        color: "--text-active-blue-france",
-      });
-      await screen.findByText("an overview");
+    it("visits the report list page filtered by transparency", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+
+      visitPage(`/transparences/transpa-test/dossiers-de-nomination`);
+
+      await expectGdsReportsListPage();
+    });
+
+    it("redirects from '/dossiers-de-nomination' to the transparencies page", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+
+      visitPage("/dossiers-de-nomination");
+
+      await expectTransparenciesPage();
     });
 
     const logoutTestData: {
@@ -160,37 +157,62 @@ describe("App Router Component", () => {
       "on $device, it disconnects the user and redirects it to the login page",
       async ({ elementIndex }) => {
         renderAppRouter();
-        act(() => {
-          givenAnAuthenticatedUser();
-          routerProvider.goToReportList();
-        });
-
-        await screen.findByText("a list");
+        await givenAnAuthenticatedUser();
 
         await userEvent.click(
           screen.getAllByText("Se déconnecter")[elementIndex]!,
         );
-
         await waitListenersCompletion();
 
-        await screen.findByText("a login");
+        await expectLoginPage();
       },
     );
+
+    const expectTransparenciesPage = async () => {
+      await screen.findByText("transparencies");
+      expect(window.location.pathname).toBe("/transparences");
+    };
+    const expectGdsReportsListPage = async () => {
+      await screen.findByText("a list");
+      expect(window.location.pathname).toBe(
+        `/transparences/transpa-test/dossiers-de-nomination`,
+      );
+    };
+    const expectGdsReportPage = async () => {
+      await screen.findByText("an overview");
+      expect(window.location.pathname).toBe(
+        `/transparences/transpa-test/dossiers-de-nomination/john-doe`,
+      );
+    };
   });
+
+  const visitPage = async (urlPath: string) => {
+    act(() => {
+      sessionForTestingPurpose.push(urlPath);
+    });
+  };
+
+  const expectLoginPage = async () => {
+    await screen.findByText("a login");
+    expect(window.location.pathname).toBe(routerProvider.getLoginHref());
+  };
 
   const waitListenersCompletion = () => sleep(50);
 
-  const givenAnAuthenticatedUser = () => {
-    apiClient.setEligibleAuthUser(
-      userCredentials.email,
-      userCredentials.password,
-      user.firstName,
-      user.lastName,
-    );
-    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
+  const givenAnAuthenticatedUser = async () => {
+    await act(async () => {
+      apiClient.setEligibleAuthUser(
+        userCredentials.email,
+        userCredentials.password,
+        user.firstName,
+        user.lastName,
+      );
+      store.dispatch(authenticate.fulfilled(user, "", userCredentials));
+      await waitListenersCompletion();
+    });
   };
 
-  function renderAppRouter() {
+  const renderAppRouter = () => {
     return render(
       <Provider store={store}>
         <RouteProvider>
@@ -198,10 +220,9 @@ describe("App Router Component", () => {
         </RouteProvider>
       </Provider>,
     );
-  }
+  };
 });
 
-const aNominationRetrieved = new ReportBuilder().buildRetrieveSM();
 const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",

@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AuthenticatedUser, NominationFile } from "shared-models";
+import { AuthenticatedUser, NominationFile, Transparency } from "shared-models";
 import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import {
@@ -75,7 +75,7 @@ describe("Report List Component", () => {
 
     it("shows the table header", async () => {
       renderReportList();
-      for (const header of reportListTableLabels.headers) {
+      for (const header of Object.values(reportListTableLabels.headers)) {
         await screen.findByText(header);
       }
     });
@@ -132,6 +132,28 @@ describe("Report List Component", () => {
         await screen.findByText("In Progress Report");
         expect(screen.queryByText("John Doe")).toBeNull();
       });
+
+      it("hides the transparency column for a single transparency", async () => {
+        renderReportList(aReport.transparency);
+        await screen.findByText("John Doe");
+        expect(screen.queryByText("Transparence")).toBeNull();
+      });
+
+      it("shows reports for a single transparency", async () => {
+        reportApiClient.addReport(
+          new ReportApiModelBuilder()
+            .with("id", "other-report-id")
+            .with("name", "Another magistrate name")
+            .with("state", NominationFile.ReportState.IN_PROGRESS)
+            .with("transparency", Transparency.PARQUET_DU_06_FEVRIER_2025)
+            .build(),
+        );
+
+        renderReportList(aReport.transparency);
+
+        await screen.findByText("John Doe");
+        expect(screen.queryByText("Another magistrate name")).toBeNull();
+      });
     });
   });
 
@@ -139,10 +161,10 @@ describe("Report List Component", () => {
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 
-  const renderReportList = () => {
+  const renderReportList = (transparency?: Transparency) => {
     render(
       <Provider store={store}>
-        <ReportList />
+        <ReportList transparency={transparency} />
       </Provider>,
     );
   };

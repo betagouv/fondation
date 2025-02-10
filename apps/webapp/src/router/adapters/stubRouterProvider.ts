@@ -4,10 +4,10 @@ export class StubRouterProvider implements RouterProvider {
   onClickAttribute = () => null;
 
   goToLogin = () => {};
-  goToReportList = () => {};
-  gotToReportOverview = () => {};
+  goToTransparencies = () => {};
 
   getLoginHref = () => "";
+  getTransparenciesHref = () => "stub-transparencies-href";
   getReportListHref = () => "stub-report-list-href";
 
   getReportOverviewAnchorAttributes = (id: string) => {

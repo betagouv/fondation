@@ -1,29 +1,42 @@
 import { Table } from "@codegouvfr/react-dsfr/Table";
-import { ReportListItemVM } from "../../selectors/selectReportList";
+import { Transparency } from "shared-models";
+import {
+  ReportListItemVM,
+  ReportListVM,
+} from "../../selectors/selectReportList";
 import "./ReportsTable.css";
-import { reportListTableLabels } from "../../labels/report-list-table-labels";
 
 export type ReportsTableProps = {
+  transparency?: Transparency;
+  headers: ReportListVM["headers"];
   reports: ReportListItemVM[];
 };
 
-export const ReportsTable: React.FC<ReportsTableProps> = ({ reports }) => (
+export const ReportsTable: React.FC<ReportsTableProps> = ({
+  transparency,
+  headers,
+  reports,
+}) => (
   <Table
     id="reports-table"
-    headers={reportListTableLabels.headers}
+    headers={headers}
     bordered
-    data={reports.map((report) => [
-      <div>{report.folderNumber}</div>,
-      <div>{report.formation}</div>,
-      <div>{report.state}</div>,
-      <div>{report.dueDate}</div>,
-      <a href={report.href} onClick={report.onClick}>
-        {report.name}
-      </a>,
-      <div>{report.transparency}</div>,
-      <div className="text-center">{report.grade}</div>,
-      <div>{report.targettedPosition}</div>,
-      <div className="text-center">{report.observersCount}</div>,
-    ])}
+    data={reports.map((report) =>
+      [
+        <div>{report.folderNumber}</div>,
+        <div>{report.formation}</div>,
+        <div>{report.state}</div>,
+        <div>{report.dueDate}</div>,
+        <a href={report.href} onClick={report.onClick}>
+          {report.name}
+        </a>,
+      ]
+        .concat(transparency ? [] : [<div>{report.transparency}</div>])
+        .concat([
+          <div className="text-center">{report.grade}</div>,
+          <div>{report.targettedPosition}</div>,
+          <div className="text-center">{report.observersCount}</div>,
+        ]),
+    )}
   />
 );

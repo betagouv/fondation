@@ -67,7 +67,6 @@ export interface AppState {
     hrefs: {
       current: string;
       login: string;
-      reportList: string;
     };
     anchorsAttributes: {
       reportOverview: (id: string) => {
