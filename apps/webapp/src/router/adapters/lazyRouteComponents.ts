@@ -18,6 +18,6 @@ export const ReportListPage = lazy(
 export const LazyReportOverview = lazy(
   () =>
     import(
-      "../../reports/adapters/primary/components/ReportOverview/ReportOverview"
+      "../../reports/adapters/primary/components/ReportOverview/ReportOverviewPage"
     ),
 );

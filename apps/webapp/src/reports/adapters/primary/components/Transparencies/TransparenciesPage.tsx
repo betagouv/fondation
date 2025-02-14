@@ -1,11 +1,9 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
 import Transparencies from "./Transparencies";
 
-export const TransparenciesPage = () => {
-  return (
-    <div className={cx("fr-px-15w", "fr-py-5w")}>
-      <Transparencies />
-    </div>
-  );
-};
+export const TransparenciesPage = () => (
+  <PageContentLayout>
+    <Transparencies />
+  </PageContentLayout>
+);
 export default TransparenciesPage;

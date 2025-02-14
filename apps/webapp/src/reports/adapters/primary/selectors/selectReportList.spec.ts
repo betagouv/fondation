@@ -12,6 +12,8 @@ import {
   selectReportList,
 } from "./selectReportList";
 
+type ReportListItemVMSerializable = Omit<ReportListItemVM, "onClick">;
+
 describe("Select Report List", () => {
   let store: ReduxStore;
   const onClick = () => null;
@@ -46,13 +48,13 @@ describe("Select Report List", () => {
     it("filters out the reports of a transparency", () => {
       const headers: ReportListVM["headers"] = [
         reportListTableLabels.headers.folderNumber,
-        reportListTableLabels.headers.formation,
-        reportListTableLabels.headers.status,
-        reportListTableLabels.headers.deadline,
         reportListTableLabels.headers.magistrate,
         reportListTableLabels.headers.currentGrade,
         reportListTableLabels.headers.targetedPosition,
+        reportListTableLabels.headers.status,
         reportListTableLabels.headers.observers,
+        reportListTableLabels.headers.deadline,
+        reportListTableLabels.headers.formation,
       ];
       expectReports(
         [aReportVM, aThirdReportVM, aSecondReportVM],
@@ -96,7 +98,7 @@ describe("Select Report List", () => {
   });
 
   const expectReports = (
-    reports: Omit<ReportListItemVM, "onClick">[],
+    reports: ReportListItemVMSerializable[],
     filters: ReportListVM["filters"] = {
       state: "all",
     },
@@ -107,12 +109,10 @@ describe("Select Report List", () => {
     expect({
       ...state,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      reports: state.reports.map(({ onClick, ...report }) => ({
-        ...report,
-      })),
+      reports: state.reports.map(({ onClick, ...report }) => report),
     }).toEqual<
       Omit<ReportListVM, "reports"> & {
-        reports: Omit<ReportListItemVM, "onClick">[];
+        reports: ReportListItemVMSerializable[];
       }
     >({
       headers,
@@ -129,7 +129,7 @@ describe("Select Report List", () => {
     .with("dueDate", new DateOnly(2030, 10, 30))
     .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
     .buildListSM();
-  const aReportVM: Omit<ReportListItemVM, "onClick"> = {
+  const aReportVM: ReportListItemVMSerializable = {
     id: aReport.id,
     folderNumber: 1,
     name: aReport.name,
@@ -150,7 +150,7 @@ describe("Select Report List", () => {
     .with("name", "Denan Lucien")
     .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListSM();
-  const aSecondReportVM: Omit<ReportListItemVM, "onClick"> = {
+  const aSecondReportVM: ReportListItemVMSerializable = {
     id: aSecondReport.id,
     folderNumber: "Profilé",
     name: aSecondReport.name,
@@ -168,7 +168,7 @@ describe("Select Report List", () => {
     .with("folderNumber", 2)
     .with("transparency", Transparency.AUTOMNE_2024)
     .buildListSM();
-  const aThirdReportVM: Omit<ReportListItemVM, "onClick"> = {
+  const aThirdReportVM: ReportListItemVMSerializable = {
     id: aThirdReport.id,
     folderNumber: 2,
     name: aThirdReport.name,
@@ -186,10 +186,7 @@ describe("Select Report List", () => {
     .with("folderNumber", 1)
     .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
     .buildListSM();
-  const aFourthDifferentTransparencyReportVM: Omit<
-    ReportListItemVM,
-    "onClick"
-  > = {
+  const aFourthDifferentTransparencyReportVM: ReportListItemVMSerializable = {
     id: aDifferentTransparencyReport.id,
     folderNumber: 1,
     name: aDifferentTransparencyReport.name,

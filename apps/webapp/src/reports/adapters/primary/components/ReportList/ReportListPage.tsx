@@ -1,10 +1,10 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { FC } from "react";
+import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
 import ReportList, { ReportListProps } from "./ReportList";
 
 export const ReportListPage: FC<ReportListProps> = (props) => (
-  <div className={cx("fr-px-15w", "fr-py-5w")}>
+  <PageContentLayout>
     <ReportList {...props} />
-  </div>
+  </PageContentLayout>
 );
 export default ReportListPage;

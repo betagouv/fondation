@@ -84,12 +84,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
 
   if (!report) return <div>Rapport non trouvé.</div>;
   return (
-    <div
-      className={clsx(
-        "flex-col items-center bg-light-orange",
-        cx("fr-grid-row"),
-      )}
-    >
+    <div className={clsx("flex-col items-center", cx("fr-grid-row"))}>
       <AutoSaveNotice />
       <div
         className={clsx(

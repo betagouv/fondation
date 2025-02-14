@@ -24,19 +24,17 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
     data={reports.map((report) =>
       [
         <div>{report.folderNumber}</div>,
-        <div>{report.formation}</div>,
-        <div>{report.state}</div>,
-        <div>{report.dueDate}</div>,
         <a href={report.href} onClick={report.onClick}>
           {report.name}
         </a>,
+        <div>{report.grade}</div>,
+        <div>{report.targettedPosition}</div>,
+        <div>{report.state}</div>,
+        <div>{report.observersCount}</div>,
+        <div>{report.dueDate}</div>,
       ]
         .concat(transparency ? [] : [<div>{report.transparency}</div>])
-        .concat([
-          <div className="text-center">{report.grade}</div>,
-          <div>{report.targettedPosition}</div>,
-          <div className="text-center">{report.observersCount}</div>,
-        ]),
+        .concat([<div>{report.formation}</div>]),
     )}
   />
 );
