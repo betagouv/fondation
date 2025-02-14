@@ -19,16 +19,20 @@ import {
   TypeRouterProvider,
 } from "./adapters/type-route/typeRouter";
 import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
-import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponent";
+import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponentFactory";
 import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
+import { ReportListProps } from "../reports/adapters/primary/components/ReportList/ReportList";
+import { Transparency } from "shared-models";
 
-const routeToComponentMap: RouteToComponentMap = {
+const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
   transparencies: () => <div>transparencies</div>,
-  reportList: () => <div>a list</div>,
+  reportList: (props: ReportListProps) => (
+    <div>a list with transparency: {props.transparency}</div>
+  ),
   reportOverview: () => <div>an overview</div>,
 };
 
@@ -70,7 +74,7 @@ describe("App Router Component", () => {
 
   it("cannot visit the transparencies page", async () => {
     renderAppRouter();
-    visitPage("/transparences");
+    visit("/transparences");
     await expectLoginPage();
   });
 
@@ -105,7 +109,7 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visitPage("/");
+      visit("/");
 
       await expectTransparenciesPage();
     });
@@ -114,25 +118,16 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visitPage("/login");
+      visit("/login");
 
       await expectTransparenciesPage();
-    });
-
-    it("visits the report overview page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
-
-      visitPage(`/transparences/transpa-test/dossiers-de-nomination/john-doe`);
-
-      await expectGdsReportPage();
     });
 
     it("visits the report list page filtered by transparency", async () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visitPage(`/transparences/transpa-test/dossiers-de-nomination`);
+      visit(`/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination`);
 
       await expectGdsReportsListPage();
     });
@@ -141,9 +136,20 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visitPage("/dossiers-de-nomination");
+      visit("/dossiers-de-nomination");
 
       await expectTransparenciesPage();
+    });
+
+    it("visits the report overview page", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+
+      visit(
+        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination/some-report-id`,
+      );
+
+      await expectGdsReportPage();
     });
 
     const logoutTestData: {
@@ -173,20 +179,22 @@ describe("App Router Component", () => {
       expect(window.location.pathname).toBe("/transparences");
     };
     const expectGdsReportsListPage = async () => {
-      await screen.findByText("a list");
+      await screen.findByText(
+        `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
+      );
       expect(window.location.pathname).toBe(
-        `/transparences/transpa-test/dossiers-de-nomination`,
+        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination`,
       );
     };
     const expectGdsReportPage = async () => {
       await screen.findByText("an overview");
       expect(window.location.pathname).toBe(
-        `/transparences/transpa-test/dossiers-de-nomination/john-doe`,
+        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination/some-report-id`,
       );
     };
   });
 
-  const visitPage = async (urlPath: string) => {
+  const visit = async (urlPath: string) => {
     act(() => {
       sessionForTestingPurpose.push(urlPath);
     });

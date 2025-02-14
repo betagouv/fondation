@@ -37,7 +37,7 @@ describe("Reports Listing", () => {
 
   describe("when there is a report", () => {
     beforeEach(() => {
-      reportApiClient.addReport(aReportApiModel);
+      reportApiClient.addReports(aReportApiModel);
     });
 
     describe("Authenticated user", () => {

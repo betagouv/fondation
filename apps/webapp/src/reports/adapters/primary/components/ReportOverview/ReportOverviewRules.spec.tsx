@@ -182,7 +182,7 @@ describe("Report Overview Component - Rules use cases", () => {
         .with("rules.management.TRANSFER_TIME.validated", false)
         .with("rules.management.CASSATION_COURT_NOMINATION.validated", false)
         .build();
-      reportApiClient.addReport(reportApiModel);
+      reportApiClient.addReports(reportApiModel);
       renderReport(reportApiModel);
 
       await clickCheckboxAndExpectChange(anotherRuleLabel, {
@@ -204,7 +204,7 @@ describe("Report Overview Component - Rules use cases", () => {
     );
 
   const renderReport = (report: ReportApiModel) => {
-    reportApiClient.addReport(report);
+    reportApiClient.addReports(report);
     return render(
       <Provider store={store}>
         <ReportOverview id={report.id} />

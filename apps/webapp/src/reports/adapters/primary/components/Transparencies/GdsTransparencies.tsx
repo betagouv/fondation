@@ -1,6 +1,12 @@
-import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
+import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { Tabs, TabsProps } from "@codegouvfr/react-dsfr/Tabs";
+import { Tag } from "@codegouvfr/react-dsfr/Tag";
+import clsx from "clsx";
 import { Magistrat } from "shared-models";
 import { ReportTransparenciesVM } from "../../selectors/selectTransparencies";
+import { TransparencyBlock } from "./TransparencyBlock";
+import { useState } from "react";
+import { formationToLabel } from "../../labels/labels-mappers";
 
 export type IGdsTransparencies = {
   gdsTransparencies: ReportTransparenciesVM["GARDE DES SCEAUX"];
@@ -9,17 +15,38 @@ export type IGdsTransparencies = {
 export const GdsTransparencies = ({
   gdsTransparencies,
 }: IGdsTransparencies) => {
-  const genTabFor = (formation: Magistrat.Formation) => {
-    const { label, values: transparenciesLabels } =
-      gdsTransparencies[formation];
+  const [selectedTabLabel, setSelectedTabLabel] = useState<string>();
+  const formationsCount = gdsTransparencies.formationsCount;
 
-    return transparenciesLabels?.length
+  const genTabFor = (
+    formation: Magistrat.Formation,
+  ): TabsProps.Uncontrolled["tabs"][number] | [] => {
+    const { formationLabel, transparencies } = gdsTransparencies[formation];
+
+    const isDefaultTab =
+      !selectedTabLabel &&
+      (formationsCount === 1 ||
+        formationLabel === formationToLabel(Magistrat.Formation.SIEGE));
+    const isTabSelected = selectedTabLabel === formationLabel;
+
+    return transparencies?.length
       ? {
-          label,
+          label: formationLabel,
+          iconId:
+            isDefaultTab || isTabSelected
+              ? "fr-icon-arrow-right-line"
+              : undefined,
+          isDefault:
+            transparencies.length === 1
+              ? true
+              : selectedTabLabel ===
+                formationToLabel(Magistrat.Formation.SIEGE),
           content: (
-            <ul>
-              {transparenciesLabels.map((transparencyLabel) => (
-                <li key={transparencyLabel}>{transparencyLabel}</li>
+            <ul className={clsx("list-none", cx("fr-grid-row"))}>
+              {transparencies.map(({ label, href, onClick }) => (
+                <li key={label}>
+                  <Tag linkProps={{ href, onClick }}>{label}</Tag>
+                </li>
               ))}
             </ul>
           ),
@@ -32,14 +59,21 @@ export const GdsTransparencies = ({
     genTabFor(Magistrat.Formation.PARQUET),
   ].flat();
 
+  const handleTabChange: TabsProps.Uncontrolled["onTabChange"] = (tab) =>
+    setSelectedTabLabel(tab.tab.label as string);
+
   return (
-    <div
-      style={{
-        display: gdsTransparencies.noGdsTransparencies ? "none" : "block",
-      }}
+    <TransparencyBlock
+      hidden={gdsTransparencies.noGdsTransparencies}
+      title="Pouvoir de proposition du garde des Sceaux"
     >
-      <h2>Pouvoir de proposition du garde des Sceaux</h2>
-      <Tabs tabs={tabs} />
-    </div>
+      <Tabs
+        style={{
+          height: "auto",
+        }}
+        tabs={tabs}
+        onTabChange={handleTabChange}
+      />
+    </TransparencyBlock>
   );
 };

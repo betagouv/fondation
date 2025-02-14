@@ -11,7 +11,7 @@ describe("Api Report Gateway", () => {
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     apiReportGateway = new ApiReportGateway(reportApiClient);
   });
 

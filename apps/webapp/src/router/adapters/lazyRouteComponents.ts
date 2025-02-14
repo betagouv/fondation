@@ -6,7 +6,7 @@ export const LazyLogin = lazy(
 export const LazyTransparencies = lazy(
   () =>
     import(
-      "../../reports/adapters/primary/components/Transparencies/Transparencies"
+      "../../reports/adapters/primary/components/Transparencies/TransparenciesPage"
     ),
 );
 export const ReportListPage = lazy(

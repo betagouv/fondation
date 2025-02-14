@@ -17,15 +17,16 @@ import { reportListTableLabels } from "../../labels/report-list-table-labels";
 import { reportStateFilterTitle } from "../../labels/state-filter-labels";
 import { stateToLabel } from "../../labels/state-label.mapper";
 import { ReportList } from "./ReportList";
+import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
+  let routerProvider: StubRouterProvider;
   let reportApiClient: FakeReportApiClient;
   let authenticationGateway: ApiAuthenticationGateway;
   let authenticationApiClient: FakeAuthenticationApiClient;
 
   beforeEach(() => {
-    reportApiClient = new FakeReportApiClient();
     authenticationApiClient = new FakeAuthenticationApiClient();
     authenticationApiClient.setEligibleAuthUser(
       userCredentials.email,
@@ -37,14 +38,18 @@ describe("Report List Component", () => {
       authenticationApiClient,
     );
 
+    reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+
+    routerProvider = new StubRouterProvider();
+    routerProvider.onReportOverviewClick = vi.fn();
 
     store = initReduxStore(
       {
         reportGateway,
         authenticationGateway,
       },
-      {},
+      { routerProvider },
       {},
       {},
       undefined,
@@ -64,7 +69,7 @@ describe("Report List Component", () => {
   describe("when there is a report", () => {
     beforeEach(() => {
       givenAnAuthenticatedUser();
-      reportApiClient.addReport(aReport);
+      reportApiClient.addReports(aReport);
     });
 
     it("has the state filter set to all by default", async () => {
@@ -95,6 +100,12 @@ describe("Report List Component", () => {
       await screen.findByText(aReportObserversCount.toString());
     });
 
+    it("clicks to go to the report overview page", async () => {
+      renderReportList();
+      await userEvent.click(await screen.findByText(aReport.name));
+      expect(routerProvider.onReportOverviewClick).toHaveBeenCalled();
+    });
+
     describe("when there are multiple reports", () => {
       it("shows the filter options in the right order", async () => {
         renderReportList();
@@ -114,7 +125,7 @@ describe("Report List Component", () => {
       });
 
       it("filters the 'in progress' report", async () => {
-        reportApiClient.addReport(
+        reportApiClient.addReports(
           new ReportApiModelBuilder()
             .with("id", "in-progress-report-id")
             .with("state", NominationFile.ReportState.IN_PROGRESS)
@@ -140,7 +151,7 @@ describe("Report List Component", () => {
       });
 
       it("shows reports for a single transparency", async () => {
-        reportApiClient.addReport(
+        reportApiClient.addReports(
           new ReportApiModelBuilder()
             .with("id", "other-report-id")
             .with("name", "Another magistrate name")

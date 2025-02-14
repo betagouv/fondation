@@ -65,7 +65,7 @@ describe("Report Overview Component - Magistrate identity", () => {
 
   const givenARenderedReport = (report: ReportApiModel) => {
     reportApiClient.reports = {};
-    reportApiClient.addReport(report);
+    reportApiClient.addReports(report);
     return renderReportId(report.id);
   };
 

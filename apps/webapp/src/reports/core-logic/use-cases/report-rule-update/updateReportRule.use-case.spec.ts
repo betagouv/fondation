@@ -26,7 +26,7 @@ describe("Report Rule Update", () => {
   });
 
   it("switch the transfer time rule from unvalidated to validated", async () => {
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
     await store.dispatch(
       updateReportRule({

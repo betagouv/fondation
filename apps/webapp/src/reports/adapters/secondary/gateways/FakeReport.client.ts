@@ -15,12 +15,14 @@ export class FakeReportApiClient implements ReportApiClient {
   reports: Record<string, Readonly<ReportApiModel>> = {};
   currentReportId: string | null = null;
 
-  addReport(report: ReportApiModel): void {
-    this.currentReportId = report.id;
-    this.reports = {
-      ...this.reports,
-      [report.id]: report,
-    };
+  addReports(...reports: ReportApiModel[]): void {
+    for (const report of reports) {
+      this.currentReportId = report.id;
+      this.reports = {
+        ...this.reports,
+        [report.id]: report,
+      };
+    }
   }
 
   async updateReport(reportId: string, data: ReportUpdateDto): Promise<void> {

@@ -14,6 +14,5 @@ export const routeToReactComponentMap = {
   reportOverview: LazyReportOverview,
 };
 
-export type RouteToComponentMap =
-  | typeof routeToReactComponentMap
-  | Record<RouteName, FC>;
+export type RouteToComponentMap<Prod extends boolean = boolean> =
+  Prod extends true ? typeof routeToReactComponentMap : Record<RouteName, FC>;

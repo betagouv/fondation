@@ -25,7 +25,7 @@ describe("Retrieve report", () => {
   });
 
   it("retrieve a report", async () => {
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     await store.dispatch(retrieveReport("report-id"));
     expect(store.getState()).toEqual<AppState>({
       ...initialState,
@@ -37,7 +37,7 @@ describe("Retrieve report", () => {
   });
 
   it("has two reports in the store after retrieving a second one", async () => {
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(anotherNomination, "", ""));
 
     await store.dispatch(retrieveReport("report-id"));

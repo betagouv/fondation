@@ -7,15 +7,28 @@ import {
   transparencyToLabel,
 } from "../labels/labels-mappers";
 import {
+  GdsFormationVM,
   ReportTransparenciesVM,
   selectTransparencies,
 } from "./selectTransparencies";
+import { ReportListItem } from "../../../../store/appState";
+import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 
 describe("Select Transparencies", () => {
   let store: ReduxStore;
+  let routerProvider: StubRouterProvider;
 
   beforeEach(() => {
-    store = initReduxStore({}, {}, {});
+    routerProvider = new StubRouterProvider();
+    routerProvider.onTransparencyClickAttribute = vi.fn();
+
+    store = initReduxStore(
+      {},
+      {
+        routerProvider,
+      },
+      {},
+    );
   });
 
   it("shows no transparency", () => {
@@ -25,64 +38,133 @@ describe("Select Transparencies", () => {
       noTransparencies: true,
       "GARDE DES SCEAUX": {
         noGdsTransparencies: true,
+        formationsCount: 0,
         [Magistrat.Formation.PARQUET]: {
-          label: formationToLabel(Magistrat.Formation.PARQUET),
-          values: null,
+          formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
+          transparencies: null,
         },
         [Magistrat.Formation.SIEGE]: {
-          label: formationToLabel(Magistrat.Formation.SIEGE),
-          values: null,
+          formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
+          transparencies: null,
         },
       },
     });
   });
 
   describe("GDS transparencies", () => {
-    describe.each`
-      description                                       | reports                                      | expectedTransparencies
-      ${"reports for the parquet with a supported one"} | ${[aParquetReport, aSupportedParquetReport]} | ${{ PARQUET: [transparencyToLabel(aParquetReport.transparency)], SIEGE: null }}
-      ${"reports for the parquet and siège"}            | ${[aParquetReport, aSiegeReport]}            | ${{ PARQUET: [transparencyToLabel(aParquetReport.transparency)], SIEGE: [transparencyToLabel(aSiegeReport.transparency)] }}
-    `("Given $description", ({ reports, expectedTransparencies }) => {
-      beforeEach(() => {
-        store.dispatch(listReport.fulfilled(reports, "", undefined));
-      });
+    const testCases: {
+      description: string;
+      reports: ReportListItem[];
+      formationsCount: 0 | 1 | 2;
+      expectedTransparencies: Record<
+        Magistrat.Formation,
+        GdsFormationVM["transparencies"]
+      >;
+    }[] = [
+      {
+        description: "reports for the parquet with a supported one",
+        reports: [aParquetReport, aSupportedParquetReport],
+        formationsCount: 1,
+        expectedTransparencies: {
+          PARQUET: [
+            {
+              label: transparencyToLabel(aParquetReport.transparency),
+              href: `/transparences/${aParquetReport.transparency}`,
+              onClick: expect.any(Function),
+            },
+          ],
 
-      it("selects the list of transparencies aggregated per formation", () => {
-        expect(
-          selectTransparencies(store.getState()),
-        ).toEqual<ReportTransparenciesVM>({
-          noTransparencies: false,
-          "GARDE DES SCEAUX": {
-            noGdsTransparencies: false,
-            [Magistrat.Formation.PARQUET]: {
-              label: formationToLabel(Magistrat.Formation.PARQUET),
-              values: expectedTransparencies[Magistrat.Formation.PARQUET],
+          SIEGE: null,
+        },
+      },
+      {
+        description: "reports for the parquet and siège",
+        reports: [aParquetReport, aSiegeReport],
+        formationsCount: 2,
+        expectedTransparencies: {
+          PARQUET: [
+            {
+              label: transparencyToLabel(aParquetReport.transparency),
+              href: `/transparences/${aParquetReport.transparency}`,
+              onClick: expect.any(Function),
             },
-            [Magistrat.Formation.SIEGE]: {
-              label: formationToLabel(Magistrat.Formation.SIEGE),
-              values: expectedTransparencies[Magistrat.Formation.SIEGE],
+          ],
+          SIEGE: [
+            {
+              label: transparencyToLabel(aSiegeReport.transparency),
+              href: `/transparences/${aSiegeReport.transparency}`,
+              onClick: expect.any(Function),
             },
-          },
+          ],
+        },
+      },
+    ];
+
+    describe.each(testCases)(
+      `Given $description`,
+      ({ reports, formationsCount, expectedTransparencies }) => {
+        beforeEach(() => {
+          store.dispatch(listReport.fulfilled(reports, "", undefined));
         });
-      });
+
+        it("selects the list of transparencies aggregated per formation", () => {
+          expect(
+            selectTransparencies(store.getState()),
+          ).toEqual<ReportTransparenciesVM>({
+            noTransparencies: false,
+            "GARDE DES SCEAUX": {
+              noGdsTransparencies: false,
+              formationsCount,
+              [Magistrat.Formation.PARQUET]: {
+                formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
+                transparencies:
+                  expectedTransparencies[Magistrat.Formation.PARQUET],
+              },
+              [Magistrat.Formation.SIEGE]: {
+                formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
+                transparencies:
+                  expectedTransparencies[Magistrat.Formation.SIEGE],
+              },
+            },
+          });
+        });
+      },
+    );
+
+    it("returns an onClick function to redirect to the reports list", () => {
+      store.dispatch(listReport.fulfilled([aParquetReport], "", undefined));
+
+      const clickOnTransparency = getOnClickFromState();
+      clickOnTransparency({
+        preventDefault: vi.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+      expect(routerProvider.onTransparencyClickAttribute).toHaveBeenCalledWith(
+        aParquetReport.transparency,
+      );
     });
+
+    const getOnClickFromState = () =>
+      selectTransparencies(store.getState())["GARDE DES SCEAUX"]["PARQUET"]
+        .transparencies![0]!.onClick;
   });
-
-  const aParquetReport = new ReportBuilder()
-    .with("state", NominationFile.ReportState.IN_PROGRESS)
-    .with("formation", Magistrat.Formation.PARQUET)
-    .with("transparency", Transparency.PARQUET_DU_06_FEVRIER_2025)
-    .buildListSM();
-
-  const aSiegeReport = new ReportBuilder()
-    .with("state", NominationFile.ReportState.NEW)
-    .with("formation", Magistrat.Formation.SIEGE)
-    .with("transparency", Transparency.SIEGE_DU_06_FEVRIER_2025)
-    .buildListSM();
-
-  const aSupportedParquetReport = new ReportBuilder()
-    .with("state", NominationFile.ReportState.SUPPORTED)
-    .with("formation", Magistrat.Formation.PARQUET)
-    .with("transparency", Transparency.AUTOMNE_2024)
-    .buildListSM();
 });
+
+const aParquetReport = new ReportBuilder()
+  .with("state", NominationFile.ReportState.IN_PROGRESS)
+  .with("formation", Magistrat.Formation.PARQUET)
+  .with("transparency", Transparency.PARQUET_DU_06_FEVRIER_2025)
+  .buildListSM();
+
+const aSiegeReport = new ReportBuilder()
+  .with("state", NominationFile.ReportState.NEW)
+  .with("formation", Magistrat.Formation.SIEGE)
+  .with("transparency", Transparency.SIEGE_DU_06_FEVRIER_2025)
+  .buildListSM();
+
+const aSupportedParquetReport = new ReportBuilder()
+  .with("state", NominationFile.ReportState.SUPPORTED)
+  .with("formation", Magistrat.Formation.PARQUET)
+  .with("transparency", Transparency.AUTOMNE_2024)
+  .buildListSM();

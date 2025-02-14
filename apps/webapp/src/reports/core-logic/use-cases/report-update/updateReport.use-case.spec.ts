@@ -15,7 +15,7 @@ describe("Report Update", () => {
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
 
     store = initReduxStore(
@@ -44,7 +44,7 @@ describe("Report Update", () => {
     },
   ];
   it.each(testData)("updates with: %s", async (newData) => {
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
 
     await store.dispatch(

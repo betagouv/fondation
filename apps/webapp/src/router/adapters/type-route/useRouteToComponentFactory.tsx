@@ -6,6 +6,7 @@ import {
   routeToReactComponentMap,
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
+import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
@@ -37,12 +38,20 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
         }
         case "reportList": {
           const Component = routeToComponentMap[route.name];
-          return suspensed(protectedComponent(<Component />));
+          return suspensed(
+            protectedComponent(
+              <Component
+                transparency={GdsTransparenciesRoutesMapper.toTransparency(
+                  route.params.transparency,
+                )}
+              />,
+            ),
+          );
         }
         case "reportOverview": {
           const Component = routeToComponentMap[route.name];
           return suspensed(
-            protectedComponent(<Component id={route.params.name} />),
+            protectedComponent(<Component id={route.params.id} />),
           );
         }
 

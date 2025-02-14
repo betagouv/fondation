@@ -124,7 +124,7 @@ describe("Report Overview Component - Summary use cases", () => {
 
   const givenARenderedReport = (report: ReportApiModel) => {
     reportApiClient.reports = {};
-    reportApiClient.addReport(report);
+    reportApiClient.addReports(report);
 
     return renderReportId(report.id);
   };

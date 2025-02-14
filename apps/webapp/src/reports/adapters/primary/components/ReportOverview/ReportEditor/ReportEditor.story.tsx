@@ -33,7 +33,7 @@ export function ReportEditorForTest({ content }: ReportEditorForTestProps) {
     .build();
 
   const reportApiClient = new FakeReportApiClient();
-  reportApiClient.addReport(reportApiModel);
+  reportApiClient.addReports(reportApiModel);
   const reportGateway = new ApiReportGateway(reportApiClient);
 
   const store = initReduxStore(

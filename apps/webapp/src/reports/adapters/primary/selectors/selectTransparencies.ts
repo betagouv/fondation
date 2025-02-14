@@ -5,44 +5,56 @@ import {
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import { ReportListItem } from "../../../../store/appState";
+import { AppState, ReportListItem } from "../../../../store/appState";
+
+export type GdsFormationVM = {
+  formationLabel: string;
+  transparencies:
+    | {
+        label: TransparencyLabel;
+        href: string;
+        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+      }[]
+    | null;
+};
 
 export type ReportTransparenciesVM = {
   noTransparencies: boolean;
   "GARDE DES SCEAUX": {
     noGdsTransparencies: boolean;
-
-    [Magistrat.Formation.PARQUET]: {
-      label: string;
-      values: TransparencyLabel[] | null;
-    };
-    [Magistrat.Formation.SIEGE]: {
-      label: string;
-      values: TransparencyLabel[] | null;
-    };
+    formationsCount: 0 | 1 | 2;
+    [Magistrat.Formation.PARQUET]: GdsFormationVM;
+    [Magistrat.Formation.SIEGE]: GdsFormationVM;
   };
 };
 
 export const selectTransparencies = createAppSelector(
-  [(state) => state.reportList.data],
-  (data): ReportTransparenciesVM => {
+  [
+    (state) => state.reportList.data,
+    (state) => state.reportList.anchorsAttributes.perTransparency,
+  ],
+  (data, getTransparencyOnClickAttributes): ReportTransparenciesVM => {
     if (!data)
       return {
         noTransparencies: true,
         "GARDE DES SCEAUX": {
           noGdsTransparencies: true,
+          formationsCount: 0,
           [Magistrat.Formation.PARQUET]: {
-            label: formationToLabel(Magistrat.Formation.PARQUET),
-            values: null,
+            formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
+            transparencies: null,
           },
           [Magistrat.Formation.SIEGE]: {
-            label: formationToLabel(Magistrat.Formation.SIEGE),
-            values: null,
+            formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
+            transparencies: null,
           },
         },
       };
 
-    const gdsTransparencies = formatGdsTransparencies(data);
+    const gdsTransparencies = formatGdsTransparencies(
+      data,
+      getTransparencyOnClickAttributes,
+    );
     const noParquetGdsTransparency =
       !gdsTransparencies[Magistrat.Formation.PARQUET] ||
       gdsTransparencies[Magistrat.Formation.PARQUET].length === 0;
@@ -54,29 +66,44 @@ export const selectTransparencies = createAppSelector(
       !gdsTransparencies ||
       (noParquetGdsTransparency && noSiegeGdsTransparency);
 
+    const formationsCount = ((gdsTransparencies[Magistrat.Formation.PARQUET]
+      ? 1
+      : 0) + (gdsTransparencies[Magistrat.Formation.SIEGE] ? 1 : 0)) as
+      | 0
+      | 1
+      | 2;
+
     return {
       noTransparencies: noGdsTransparencies,
       "GARDE DES SCEAUX": {
         noGdsTransparencies,
+        formationsCount: formationsCount,
         [Magistrat.Formation.PARQUET]: {
-          label: formationToLabel(Magistrat.Formation.PARQUET),
-          values: gdsTransparencies[Magistrat.Formation.PARQUET],
+          formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
+          transparencies: gdsTransparencies[Magistrat.Formation.PARQUET],
         },
         [Magistrat.Formation.SIEGE]: {
-          label: formationToLabel(Magistrat.Formation.SIEGE),
-          values: gdsTransparencies[Magistrat.Formation.SIEGE],
+          formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
+          transparencies: gdsTransparencies[Magistrat.Formation.SIEGE],
         },
       },
     };
   },
 );
 
-function formatGdsTransparencies(data: ReportListItem[]) {
+function formatGdsTransparencies(
+  data: ReportListItem[],
+  getTransparencyOnClickAttributes: AppState["reportList"]["anchorsAttributes"]["perTransparency"],
+) {
   const transparencies = data.reduce(
     (
       acc: {
-        [Magistrat.Formation.PARQUET]: TransparencyLabel[];
-        [Magistrat.Formation.SIEGE]: TransparencyLabel[];
+        [Magistrat.Formation.PARQUET]: NonNullable<
+          GdsFormationVM["transparencies"]
+        >;
+        [Magistrat.Formation.SIEGE]: NonNullable<
+          GdsFormationVM["transparencies"]
+        >;
       },
       report,
     ) => {
@@ -85,18 +112,27 @@ function formatGdsTransparencies(data: ReportListItem[]) {
         report.state !== NominationFile.ReportState.SUPPORTED;
 
       if (activeReportInTransparency) {
-        accumulateTransparency(Magistrat.Formation.PARQUET);
-        accumulateTransparency(Magistrat.Formation.SIEGE);
+        if (report.formation === Magistrat.Formation.PARQUET)
+          accumulateTransparency(Magistrat.Formation.PARQUET);
+        if (report.formation === Magistrat.Formation.SIEGE)
+          accumulateTransparency(Magistrat.Formation.SIEGE);
       }
 
       return acc;
 
       function accumulateTransparency(formation: Magistrat.Formation) {
         if (
-          report.formation === formation &&
-          !acc[formation].includes(transparencyLabel)
+          acc[formation].findIndex(
+            ({ label }) => label === transparencyLabel,
+          ) === -1
         ) {
-          acc[formation].push(transparencyLabel);
+          const anchorAttributes = getTransparencyOnClickAttributes(
+            report.transparency,
+          );
+          acc[formation].push({
+            label: transparencyLabel,
+            ...anchorAttributes,
+          });
         }
       }
     },

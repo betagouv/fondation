@@ -20,7 +20,7 @@ describe("Attach Report File", () => {
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReport(aReportApiModel);
+    reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
 
     store = initReduxStore(

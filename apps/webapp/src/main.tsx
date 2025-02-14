@@ -19,7 +19,7 @@ import {
   TypeRouterProvider,
 } from "./router/adapters/type-route/typeRouter.ts";
 import { useRouteChanged } from "./router/adapters/type-route/useRouteChanged.tsx";
-import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponent.tsx";
+import { useRouteToComponentFactory } from "./router/adapters/type-route/useRouteToComponentFactory.tsx";
 import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.listeners.ts";
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";

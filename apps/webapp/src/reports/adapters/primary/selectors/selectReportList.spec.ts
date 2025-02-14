@@ -5,12 +5,12 @@ import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { reportsFilteredByState } from "../../../core-logic/reducers/reportList.slice";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
+import { reportListTableLabels } from "../labels/report-list-table-labels";
 import {
   ReportListItemVM,
   ReportListVM,
   selectReportList,
 } from "./selectReportList";
-import { reportListTableLabels } from "../labels/report-list-table-labels";
 
 describe("Select Report List", () => {
   let store: ReduxStore;
@@ -18,7 +18,7 @@ describe("Select Report List", () => {
 
   beforeEach(() => {
     const stubRouterProvider = new StubRouterProvider();
-    stubRouterProvider.onClickAttribute = onClick;
+    stubRouterProvider.onReportOverviewClick = onClick;
     store = initReduxStore(
       {},
       {
@@ -96,16 +96,25 @@ describe("Select Report List", () => {
   });
 
   const expectReports = (
-    reports: ReportListItemVM[],
+    reports: Omit<ReportListItemVM, "onClick">[],
     filters: ReportListVM["filters"] = {
       state: "all",
     },
     headers: ReportListVM["headers"] = allHeaders,
     transparency?: Transparency,
   ) => {
-    expect(
-      selectReportList(store.getState(), transparency),
-    ).toEqual<ReportListVM>({
+    const state = selectReportList(store.getState(), transparency);
+    expect({
+      ...state,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      reports: state.reports.map(({ onClick, ...report }) => ({
+        ...report,
+      })),
+    }).toEqual<
+      Omit<ReportListVM, "reports"> & {
+        reports: Omit<ReportListItemVM, "onClick">[];
+      }
+    >({
       headers,
       reports,
       filters,
@@ -120,7 +129,7 @@ describe("Select Report List", () => {
     .with("dueDate", new DateOnly(2030, 10, 30))
     .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
     .buildListSM();
-  const aReportVM: ReportListItemVM = {
+  const aReportVM: Omit<ReportListItemVM, "onClick"> = {
     id: aReport.id,
     folderNumber: 1,
     name: aReport.name,
@@ -131,8 +140,7 @@ describe("Select Report List", () => {
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
-    href: `/dossier-de-nomination/${aReport.id}`,
-    onClick,
+    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aReport.id}`,
   };
 
   const aSecondReport = new ReportBuilder()
@@ -142,7 +150,7 @@ describe("Select Report List", () => {
     .with("name", "Denan Lucien")
     .with("dueDate", new DateOnly(2030, 10, 30))
     .buildListSM();
-  const aSecondReportVM: ReportListItemVM = {
+  const aSecondReportVM: Omit<ReportListItemVM, "onClick"> = {
     id: aSecondReport.id,
     folderNumber: "Profilé",
     name: aSecondReport.name,
@@ -153,15 +161,14 @@ describe("Select Report List", () => {
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
-    href: `/dossier-de-nomination/${aSecondReport.id}`,
-    onClick,
+    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aSecondReport.id}`,
   };
 
   const aThirdReport = new ReportBuilder()
     .with("folderNumber", 2)
     .with("transparency", Transparency.AUTOMNE_2024)
     .buildListSM();
-  const aThirdReportVM: ReportListItemVM = {
+  const aThirdReportVM: Omit<ReportListItemVM, "onClick"> = {
     id: aThirdReport.id,
     folderNumber: 2,
     name: aThirdReport.name,
@@ -172,15 +179,17 @@ describe("Select Report List", () => {
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
-    href: `/dossier-de-nomination/${aThirdReport.id}`,
-    onClick,
+    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aThirdReport.id}`,
   };
 
   const aDifferentTransparencyReport = new ReportBuilder()
     .with("folderNumber", 1)
     .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
     .buildListSM();
-  const aFourthDifferentTransparencyReportVM: ReportListItemVM = {
+  const aFourthDifferentTransparencyReportVM: Omit<
+    ReportListItemVM,
+    "onClick"
+  > = {
     id: aDifferentTransparencyReport.id,
     folderNumber: 1,
     name: aDifferentTransparencyReport.name,
@@ -191,8 +200,7 @@ describe("Select Report List", () => {
     grade: "I",
     targettedPosition: "PG TJ Marseille",
     observersCount: aReport.observersCount,
-    href: `/dossier-de-nomination/${aDifferentTransparencyReport.id}`,
-    onClick,
+    href: `/transparences/PROCUREURS_GENERAUX_8_NOVEMBRE_2024/dossiers-de-nomination/${aDifferentTransparencyReport.id}`,
   };
 });
 

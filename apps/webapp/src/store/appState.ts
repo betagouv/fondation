@@ -10,6 +10,7 @@ import { SummarySection } from "../reports/adapters/primary/labels/summary-label
 import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
+import { RouterProvider } from "../router/core-logic/providers/router";
 
 export interface ReportSM {
   id: string;
@@ -53,6 +54,9 @@ export interface AppState {
     rulesMap: AllRulesMap;
   };
   reportList: {
+    anchorsAttributes: {
+      perTransparency: RouterProvider["getTransparencyReportsAnchorAttributes"];
+    };
     data: ReportListItem[] | null;
     filters: {
       state?: NominationFile.ReportState;
@@ -69,10 +73,7 @@ export interface AppState {
       login: string;
     };
     anchorsAttributes: {
-      reportOverview: (id: string) => {
-        href: string;
-        onClick: () => void;
-      };
+      reportOverview: RouterProvider["getReportOverviewAnchorAttributes"];
     };
     routeToComponent: ReturnType<RouteToComponentFactory>;
     routeChangedHandler: RouteChangedHandler;

@@ -1,11 +1,11 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { FC, useEffect } from "react";
-import { listReport } from "../../../../core-logic/use-cases/report-listing/listReport.use-case";
-import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
+import { FC } from "react";
+import { Transparency } from "shared-models";
+import { useAppSelector } from "../../hooks/react-redux";
+import { useReportsList } from "../../hooks/use-reports-list";
 import { selectReportList } from "../../selectors/selectReportList";
 import { ReportListFilters } from "./ReportListFilters";
 import { ReportsTable } from "./ReportsTable";
-import { Transparency } from "shared-models";
 
 export interface ReportListProps {
   transparency?: Transparency;
@@ -15,11 +15,7 @@ export const ReportList: FC<ReportListProps> = ({ transparency }) => {
   const { headers, reports, filters } = useAppSelector((state) =>
     selectReportList(state, transparency),
   );
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    dispatch(listReport());
-  }, [dispatch]);
+  useReportsList();
 
   return (
     <div className="flex flex-col">

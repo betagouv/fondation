@@ -25,7 +25,7 @@ export type ReportListItemVM = {
   targettedPosition: string;
   observersCount: number;
   href: string;
-  onClick: () => void;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 export type ReportListVM = {
@@ -84,7 +84,7 @@ export const selectReportList = createAppSelector(
           targettedPosition,
           observersCount,
         }) => {
-          const { href, onClick } = getAnchorAttributes(id);
+          const { href, onClick } = getAnchorAttributes(transparency, id);
 
           const dueDateFormatted = dueDate
             ? new DateOnly(

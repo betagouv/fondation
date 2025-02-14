@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMap, NominationFile } from "shared-models";
@@ -10,7 +10,7 @@ import {
 } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { AppState } from "../../../../../store/appState";
+import { AppState, ReportSM } from "../../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
@@ -57,7 +57,7 @@ describe("Report Overview Component", () => {
   describe("when there is a report", () => {
     it("shows a message to explain autosave feature", async () => {
       const report = reportApiModelBuilder.build();
-      givenARenderedReport(report);
+      await givenARenderedReport(report);
       await screen.findByText(
         "L'enregistrement des modifications est automatique.",
       );
@@ -67,10 +67,10 @@ describe("Report Overview Component", () => {
       const reportApiModel = reportApiModelBuilder
         .with("state", NominationFile.ReportState.IN_PROGRESS)
         .build();
-      const expectedRportVM = ReportBuilder.fromApiModel(reportApiModel)
+      const expectedReportVM = ReportBuilder.fromApiModel(reportApiModel)
         .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
         .buildRetrieveSM();
-      givenARenderedReport(reportApiModel);
+      await givenARenderedReport(reportApiModel);
 
       const select = await screen.findByLabelText(ReportVM.stateSelectLabel);
       await userEvent.selectOptions(
@@ -81,15 +81,7 @@ describe("Report Overview Component", () => {
       );
 
       await waitFor(() => {
-        expect(store.getState()).toEqual<AppState>({
-          ...initialState,
-          reportOverview: {
-            ...initialState.reportOverview,
-            byIds: {
-              [reportApiModel.id]: expectedRportVM,
-            },
-          },
-        });
+        expectReport(expectedReportVM);
       });
     });
 
@@ -102,7 +94,7 @@ describe("Report Overview Component", () => {
         .build();
       const aReportVM =
         ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
-      givenARenderedReport(reportApiModel);
+      await givenARenderedReport(reportApiModel);
 
       await screen.findByText("Observants", {
         selector: "h2",
@@ -127,7 +119,7 @@ describe("Report Overview Component", () => {
           "  - John Doe's biography - second line  - third line ",
         )
         .build();
-      givenARenderedReport(reportApiModel);
+      await givenARenderedReport(reportApiModel);
 
       await screen.findByText(
         /- John Doe's biography\s- second line\s- third line/,
@@ -137,7 +129,8 @@ describe("Report Overview Component", () => {
     describe("Files", () => {
       it("uploads a file", async () => {
         const reportApiModel = reportApiModelBuilder.build();
-        givenARenderedReport(reportApiModel);
+        await givenARenderedReport(reportApiModel);
+
         const aReportVM =
           ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
         const fileBuffer = await givenAPngBuffer();
@@ -150,16 +143,14 @@ describe("Report Overview Component", () => {
         const input = await screen.findByLabelText(/^Formats supportés.*/);
         await userEvent.upload(input, file);
 
-        expect(store.getState().reportOverview.byIds).toEqual({
-          [reportApiModel.id]: {
-            ...aReportVM,
-            attachedFiles: [
-              {
-                name: "image.png",
-                signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
-              },
-            ],
-          },
+        expectReport({
+          ...aReportVM,
+          attachedFiles: [
+            {
+              name: "image.png",
+              signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
+            },
+          ],
         });
       });
 
@@ -176,7 +167,7 @@ describe("Report Overview Component", () => {
             },
           ])
           .build();
-        givenARenderedReport(reportApiModel);
+        await givenARenderedReport(reportApiModel);
 
         await screen.findByText("file1.png");
         await screen.findByText("file2.png");
@@ -195,7 +186,7 @@ describe("Report Overview Component", () => {
             },
           ])
           .build();
-        givenARenderedReport(reportApiModel);
+        await givenARenderedReport(reportApiModel);
 
         await screen.findByText("file1.png");
         const deleteButton = screen.getByRole("button", {
@@ -220,11 +211,32 @@ describe("Report Overview Component", () => {
         .toBuffer();
   });
 
-  const givenARenderedReport = (report: ReportApiModel) => {
-    reportApiClient.reports = {};
-    reportApiClient.addReport(report);
+  const givenARenderedReport = async (report: ReportApiModel) => {
+    act(() => {
+      reportApiClient.reports = {};
+      reportApiClient.addReports(report);
+    });
 
-    return renderReportId(report.id);
+    // Hack car React Testing Library se plaint parfois qu'un update du state n'est pas wrappé dans un act.
+    // L'utilisation de 'act' ne suffisant pas, on vérifie que le composant est prêt
+    // en vérifiant le texte de la notice.
+    const rendered = renderReportId(report.id);
+    await screen.findByText(
+      "L'enregistrement des modifications est automatique.",
+    );
+    return rendered;
+  };
+
+  const expectReport = (reportSM: ReportSM) => {
+    expect(store.getState()).toEqual<AppState>({
+      ...initialState,
+      reportOverview: {
+        ...initialState.reportOverview,
+        byIds: {
+          [reportSM.id]: reportSM,
+        },
+      },
+    });
   };
 
   const renderReportId = (reportId: string) => {

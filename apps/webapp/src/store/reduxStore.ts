@@ -12,7 +12,7 @@ import {
   SummarySection,
 } from "../reports/adapters/primary/labels/summary-labels";
 import { ReportGateway } from "../reports/core-logic/gateways/Report.gateway";
-import { reportListReducer as reportList } from "../reports/core-logic/reducers/reportList.slice";
+import { createReportListSlice } from "../reports/core-logic/reducers/reportList.slice";
 import { createReportOverviewSlice } from "../reports/core-logic/reducers/reportOverview.slice";
 import {
   RouteToComponentMap,
@@ -26,6 +26,7 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { listReport } from "../reports/core-logic/use-cases/report-listing/listReport.use-case";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -110,6 +111,11 @@ export const initReduxStore = <IsTest extends boolean = true>(
   const logoutNotifierMiddleware = logoutNotifierMiddlewareFactory(
     providers.logoutNotifierProvider,
   );
+
+  const reportListSlice = createReportListSlice({
+    routerProvider: providers.routerProvider,
+  });
+
   return configureStore({
     reducer: {
       sharedKernel: createSharedKernelSlice(currentDate).reducer,
@@ -117,7 +123,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
         reportSummarySections,
         rulesTuple,
       ).reducer,
-      reportList,
+      reportList: reportListSlice.reducer,
       authentication: createAuthenticationSlice().reducer,
       router: createRouterSlice({
         routerProvider: providers.routerProvider,
@@ -149,7 +155,12 @@ export const initReduxStore = <IsTest extends boolean = true>(
         .concat(loginNotifierMiddleware)
         .concat(logoutNotifierMiddleware);
     },
-    devTools: { trace: true },
+    devTools: {
+      trace: true,
+      actionCreators: {
+        listReportFulfilled: listReport.fulfilled,
+      },
+    },
   });
 };
 
