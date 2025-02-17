@@ -4,7 +4,8 @@ import { RouterProvider } from "../../core-logic/providers/router";
 import { createRouter, defineRoute, param } from "type-route";
 import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 
-const routeSegments = {
+export const routeSegments = {
+  propositionduGardeDesSceaux: "pouvoir-de-proposition-du-garde-des-sceaux",
   transparences: "transparences",
   dossierDeNomination: "dossiers-de-nomination",
 };
@@ -20,7 +21,7 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
       transparency: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${p.transparency}/${routeSegments.dossierDeNomination}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.dossierDeNomination}`,
   ),
   reportOverview: defineRoute(
     {
@@ -28,7 +29,7 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
       id: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${p.transparency}/${routeSegments.dossierDeNomination}/${p.id}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.dossierDeNomination}/${p.id}`,
   ),
 });
 

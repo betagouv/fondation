@@ -1,6 +1,7 @@
 import { Accordion } from "@codegouvfr/react-dsfr/Accordion";
 import { NominationFile } from "shared-models";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
+import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { Card } from "./Card";
 import { RuleCheckNotice } from "./RuleCheckNotice";
@@ -9,6 +10,7 @@ import {
   VMReportRuleValue,
 } from "../../../../core-logic/view-models/ReportVM";
 import _ from "lodash";
+import clsx from "clsx";
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {
   id: string;
@@ -27,22 +29,33 @@ export const ReportRule = <R extends NominationFile.RuleName>({
 }: ReportRuleProps<R>) => {
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
     const checkboxes = Object.entries(rules).map(
-      ([ruleName, { label, checked, highlighted }]) => (
-        <Checkbox
-          id={ruleName}
-          key={ruleName}
-          options={[
-            {
-              label,
-              nativeInputProps: {
-                name: ruleName,
-                checked,
-                onChange: onUpdateReportRule(ruleName as R),
+      ([ruleName, { label, hint, checked, highlighted }]) => (
+        <div key={ruleName} className={clsx("flex-nowrap", cx("fr-grid-row"))}>
+          <Checkbox
+            id={ruleName}
+            options={[
+              {
+                label,
+                nativeInputProps: {
+                  name: ruleName,
+                  checked,
+                  onChange: onUpdateReportRule(ruleName as R),
+                },
               },
-            },
-          ]}
-          className={highlighted ? cx("fr-fieldset--error") : undefined}
-        />
+            ]}
+            className={highlighted ? cx("fr-fieldset--error") : undefined}
+          />
+          <div>
+            <Tooltip
+              kind="hover"
+              id={`${ruleName}-hint`}
+              title={hint}
+              style={{
+                alignSelf: "flex-end",
+              }}
+            />
+          </div>
+        </div>
       ),
     );
     return checkboxes;

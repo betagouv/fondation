@@ -12,10 +12,18 @@ export const selectReport = createSelector(
     (state: AppState) => state.reportOverview.byIds,
     (_, id: string) => id,
     (state: AppState) => state.reportOverview.rulesMap,
+    (state: AppState) => state.reportOverview.rulesLabelsMap,
     (state: AppState) => state.reportOverview.summarySections,
     (state: AppState) => state.sharedKernel.currentDate,
   ],
-  (byIds, id, rulesMap, summarySections, currentDate): ReportVM | null => {
+  (
+    byIds,
+    id,
+    rulesMap,
+    rulesLabelsMap,
+    summarySections,
+    currentDate,
+  ): ReportVM | null => {
     const report = byIds?.[id];
     if (!report) return null;
 
@@ -49,6 +57,7 @@ export const selectReport = createSelector(
       rulesChecked: ReportVMRulesBuilder.buildFromStoreModel(
         report.rules,
         rulesMap,
+        rulesLabelsMap,
       ),
       attachedFiles: report.attachedFiles,
       summary: summarySections.filter(filterOutObserversInSummary),

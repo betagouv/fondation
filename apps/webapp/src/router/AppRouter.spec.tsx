@@ -1,6 +1,8 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { join } from "node:path";
 import { Provider } from "react-redux";
+import { Transparency } from "shared-models";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
@@ -10,11 +12,13 @@ import {
   authenticate,
   AuthenticateParams,
 } from "../authentication/core-logic/use-cases/authentication/authenticate";
+import { ReportListProps } from "../reports/adapters/primary/components/ReportList/ReportList";
 import { sleep } from "../shared-kernel/core-logic/sleep";
 import { initReduxStore, ReduxStore } from "../store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,
+  routeSegments,
   sessionForTestingPurpose,
   TypeRouterProvider,
 } from "./adapters/type-route/typeRouter";
@@ -24,8 +28,6 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
-import { ReportListProps } from "../reports/adapters/primary/components/ReportList/ReportList";
-import { Transparency } from "shared-models";
 
 const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
@@ -127,7 +129,7 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visit(`/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination`);
+      visit(baseTransaparencySegment);
 
       await expectGdsReportsListPage();
     });
@@ -145,9 +147,7 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visit(
-        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination/some-report-id`,
-      );
+      visit(join(baseTransaparencySegment, "some-report-id"));
 
       await expectGdsReportPage();
     });
@@ -182,14 +182,12 @@ describe("App Router Component", () => {
       await screen.findByText(
         `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
       );
-      expect(window.location.pathname).toBe(
-        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination`,
-      );
+      expect(window.location.pathname).toBe(baseTransaparencySegment);
     };
     const expectGdsReportPage = async () => {
       await screen.findByText("an overview");
       expect(window.location.pathname).toBe(
-        `/transparences/parquet-du-06-fevrier-2025/dossiers-de-nomination/some-report-id`,
+        join(baseTransaparencySegment, "some-report-id"),
       );
     };
   });
@@ -230,6 +228,8 @@ describe("App Router Component", () => {
     );
   };
 });
+
+const baseTransaparencySegment = `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/parquet-du-06-fevrier-2025/${routeSegments.dossierDeNomination}`;
 
 const user: AuthenticatedUserSM = {
   firstName: "John",

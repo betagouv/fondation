@@ -1,5 +1,6 @@
 import { AllRulesMap, NominationFile } from "shared-models";
 import { ConditionalExcept } from "type-fest";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
@@ -14,10 +15,10 @@ import {
   ReportVM,
   VMReportRuleValue,
 } from "../../../core-logic/view-models/ReportVM";
-import { selectReport } from "./selectReport";
-import { SummarySection } from "../labels/summary-labels";
 import { reportHtmlIds } from "../dom/html-ids";
-import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { RulesLabelsMap } from "../labels/rules-labels";
+import { SummarySection } from "../labels/summary-labels";
+import { selectReport } from "./selectReport";
 
 describe("Select Report", () => {
   let store: ReduxStore;
@@ -30,6 +31,16 @@ describe("Select Report", () => {
     [NominationFile.RuleGroup.STATUTORY]: [],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
   } satisfies AllRulesMap;
+  const labelsRulesMap: RulesLabelsMap<typeof testRulesMap> = {
+    [NominationFile.RuleGroup.MANAGEMENT]: {
+      [NominationFile.ManagementRule.TRANSFER_TIME]: {
+        label: "TRANSFER_TIME",
+        hint: "Hint : TRANSFER_TIME",
+      },
+    },
+    [NominationFile.RuleGroup.STATUTORY]: {},
+    [NominationFile.RuleGroup.QUALITATIVE]: {},
+  };
   const summarySections: SummarySection[] = [
     { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
   ];
@@ -48,6 +59,7 @@ describe("Select Report", () => {
       undefined,
       undefined,
       testRulesMap,
+      labelsRulesMap,
       summarySections,
     );
     reportBuilder = new ReportBuilder(testRulesMap);
@@ -140,7 +152,8 @@ describe("Select Report", () => {
           highlighted: expectHighlighted,
           checked: false,
           id: aHighlightedReport.rules.management.TRANSFER_TIME.id,
-          label: ReportVM.rulesToLabels.management.TRANSFER_TIME,
+          label: labelsRulesMap.management.TRANSFER_TIME.label,
+          hint: labelsRulesMap.management.TRANSFER_TIME.hint,
           comment: null,
         };
 
@@ -175,7 +188,8 @@ describe("Select Report", () => {
   const givenATransferTimeRuleVM = (aReport: ReportSM) =>
     ({
       id: aReport.rules.management.TRANSFER_TIME.id,
-      label: ReportVM.rulesToLabels.management.TRANSFER_TIME,
+      label: labelsRulesMap.management.TRANSFER_TIME.label,
+      hint: labelsRulesMap.management.TRANSFER_TIME.hint,
       checked: false,
       highlighted: false,
       comment: null,
@@ -222,7 +236,13 @@ describe("Select Report - Summary and Age", () => {
     [NominationFile.RuleGroup.MANAGEMENT]: [],
     [NominationFile.RuleGroup.STATUTORY]: [],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
+  } as const satisfies AllRulesMap;
+  const emptyLabelsRulesMap: RulesLabelsMap<typeof emptyTestRulesMap> = {
+    [NominationFile.RuleGroup.MANAGEMENT]: {},
+    [NominationFile.RuleGroup.STATUTORY]: {},
+    [NominationFile.RuleGroup.QUALITATIVE]: {},
   };
+
   const summarySections: SummarySection[] = [
     { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
     { anchorId: reportHtmlIds.overview.observersSection, label: "Observants" },
@@ -242,6 +262,7 @@ describe("Select Report - Summary and Age", () => {
       undefined,
       undefined,
       emptyTestRulesMap,
+      emptyLabelsRulesMap,
       summarySections,
       currentDate.toDate(),
     );
@@ -304,6 +325,7 @@ describe("Select Report - Summary and Age", () => {
         undefined,
         undefined,
         emptyTestRulesMap,
+        emptyLabelsRulesMap,
         summarySections,
         currentDate,
       );

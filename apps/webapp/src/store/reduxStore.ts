@@ -8,12 +8,17 @@ import { LogoutNotifierProvider } from "../authentication/core-logic/providers/l
 import { createAuthenticationSlice } from "../authentication/core-logic/reducers/authentication.slice";
 import { reportHtmlIds } from "../reports/adapters/primary/dom/html-ids";
 import {
+  allRulesLabelsMap,
+  RulesLabelsMap,
+} from "../reports/adapters/primary/labels/rules-labels";
+import {
   summaryLabels,
   SummarySection,
 } from "../reports/adapters/primary/labels/summary-labels";
 import { ReportGateway } from "../reports/core-logic/gateways/Report.gateway";
 import { createReportListSlice } from "../reports/core-logic/reducers/reportList.slice";
 import { createReportOverviewSlice } from "../reports/core-logic/reducers/reportOverview.slice";
+import { listReport } from "../reports/core-logic/use-cases/report-listing/listReport.use-case";
 import {
   RouteToComponentMap,
   routeToReactComponentMap,
@@ -26,7 +31,6 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { listReport } from "../reports/core-logic/use-cases/report-listing/listReport.use-case";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -94,13 +98,26 @@ export const initReduxStore = <IsTest extends boolean = true>(
     : NestedPrimaryAdapters,
   listeners?: IsTest extends true ? Partial<AppListeners> : AppListeners,
   routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
-  rulesTuple: AllRulesMap = isProduction
+  rulesMap: AllRulesMap = isProduction
     ? allRulesMap
     : {
         [NominationFile.RuleGroup.MANAGEMENT]: [],
         [NominationFile.RuleGroup.STATUTORY]: [],
         [NominationFile.RuleGroup.QUALITATIVE]: [],
       },
+  rulesLabelsMap: IsTest extends true
+    ? RulesLabelsMap<{
+        [NominationFile.RuleGroup.MANAGEMENT]: [];
+        [NominationFile.RuleGroup.STATUTORY]: [];
+        [NominationFile.RuleGroup.QUALITATIVE]: [];
+      }>
+    : RulesLabelsMap = isProduction
+    ? allRulesLabelsMap
+    : ({
+        [NominationFile.RuleGroup.MANAGEMENT]: {},
+        [NominationFile.RuleGroup.STATUTORY]: {},
+        [NominationFile.RuleGroup.QUALITATIVE]: {},
+      } as RulesLabelsMap),
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
   currentDate = new Date(),
 ) => {
@@ -121,7 +138,8 @@ export const initReduxStore = <IsTest extends boolean = true>(
       sharedKernel: createSharedKernelSlice(currentDate).reducer,
       reportOverview: createReportOverviewSlice(
         reportSummarySections,
-        rulesTuple,
+        rulesMap,
+        rulesLabelsMap,
       ).reducer,
       reportList: reportListSlice.reducer,
       authentication: createAuthenticationSlice().reducer,

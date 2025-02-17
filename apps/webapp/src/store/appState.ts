@@ -11,6 +11,7 @@ import { RouteChangedHandler } from "../router/core-logic/components/routeChange
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 import { RouterProvider } from "../router/core-logic/providers/router";
+import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 
 export interface ReportSM {
   id: string;
@@ -44,7 +45,7 @@ export type ReportListItem = Pick<
   | "targettedPosition"
 > & { observersCount: number };
 
-export interface AppState {
+export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {
     currentDate: Date;
   };
@@ -52,6 +53,13 @@ export interface AppState {
     summarySections: SummarySection[];
     byIds: Record<string, ReportSM> | null;
     rulesMap: AllRulesMap;
+    rulesLabelsMap: IsTest extends true
+      ? RulesLabelsMap<{
+          [NominationFile.RuleGroup.MANAGEMENT]: [];
+          [NominationFile.RuleGroup.STATUTORY]: [];
+          [NominationFile.RuleGroup.QUALITATIVE]: [];
+        }>
+      : RulesLabelsMap;
   };
   reportList: {
     anchorsAttributes: {

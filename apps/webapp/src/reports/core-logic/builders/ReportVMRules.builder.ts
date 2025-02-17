@@ -3,6 +3,7 @@ import { AppState, ReportSM } from "../../../store/appState";
 import { VMReportRuleValue, ReportVM } from "../view-models/ReportVM";
 import { UnionToIntersection } from "type-fest";
 import _ from "lodash";
+import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
 
 export class ReportVMRulesBuilder extends RulesBuilder<
   VMReportRuleValue<boolean>
@@ -10,18 +11,21 @@ export class ReportVMRulesBuilder extends RulesBuilder<
   static buildFromStoreModel(
     rules: ReportSM["rules"],
     rulesMap: AppState["reportOverview"]["rulesMap"],
+    rulesLabelsMap: RulesLabelsMap<AppState["reportOverview"]["rulesMap"]>,
   ): ReportVM["rulesChecked"] {
     const builtRules = new ReportVMRulesBuilder(
       ({ ruleGroup, ruleName }) => {
         const rule = rules[ruleGroup];
         const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
-        const rulesLabels = ReportVM.rulesToLabels[ruleGroup];
+        const rulesLabels = rulesLabelsMap[ruleGroup] as UnionToIntersection<
+          (typeof rulesLabelsMap)[NominationFile.RuleGroup]
+        >;
+        const ruleLabels = rulesLabels[ruleName];
 
         return {
           id: ruleValue.id,
-          label: (rulesLabels as UnionToIntersection<typeof rulesLabels>)[
-            ruleName
-          ],
+          label: ruleLabels.label,
+          hint: ruleLabels.hint,
           checked: !ruleValue.validated,
           highlighted: ruleValue.preValidated,
           comment: ruleValue.comment,

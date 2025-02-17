@@ -11,6 +11,7 @@ import { reportStateFilterTitle } from "../../adapters/primary/labels/state-filt
 export type VMReportRuleValue<Selected extends boolean = boolean> = {
   id: string;
   label: string;
+  hint: string;
   checked: boolean;
   highlighted: boolean;
   comment: string | null;
@@ -20,10 +21,6 @@ export type VMReportRuleValue<Selected extends boolean = boolean> = {
       | { checked: false; highlighted: true }
       | { checked: true; highlighted: false }
   : { checked: false; highlighted: false });
-
-export type RuleGroupToLabelIntersection = {
-  [G in keyof typeof ReportVM.rulesToLabels]: (typeof ReportVM.rulesToLabels)[G];
-};
 
 export class ReportVM<
   RulesMap extends AllRulesMap = AllRulesMap,

@@ -15,8 +15,16 @@ window.matchMedia = vi.fn().mockImplementation((query: string) => ({
   dispatchEvent: vi.fn(),
 }));
 
-// We need to start the DSFR with this import, not using 'startReactDsfr' function
-import "@codegouvfr/react-dsfr/start.js";
+// We need to start the DSFR with this import to await for its loading,
+// not using 'startReactDsfr' function
+const dsfr = await import("@codegouvfr/react-dsfr/start.js");
+await dsfr.start({
+  defaultColorScheme: "light",
+  verbose: false,
+  nextParams: undefined,
+  doCheckNonce: false,
+  trustedTypesPolicyName: "default",
+});
 
 global.IntersectionObserver = vi.fn((callback, options) => {
   return {

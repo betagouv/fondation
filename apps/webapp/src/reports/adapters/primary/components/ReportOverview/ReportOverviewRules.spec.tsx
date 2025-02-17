@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, RenderResult, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMap, NominationFile } from "shared-models";
@@ -11,6 +11,7 @@ import { getReportAccordionLabel } from "../../../../core-logic/builders/ReportV
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
+import { RulesLabelsMap } from "../../labels/rules-labels";
 import { ReportOverview } from "./ReportOverview";
 
 describe("Report Overview Component - Rules use cases", () => {
@@ -34,47 +35,112 @@ describe("Report Overview Component - Rules use cases", () => {
     expect(messages).toHaveLength(2);
   });
 
-  describe.each([
+  const rulesMapWithTransferTime = {
+    [NominationFile.RuleGroup.MANAGEMENT]: [
+      NominationFile.ManagementRule.TRANSFER_TIME,
+    ],
+    [NominationFile.RuleGroup.STATUTORY]: [],
+    [NominationFile.RuleGroup.QUALITATIVE]: [],
+  } as const satisfies AllRulesMap;
+
+  const rulesMapWithMinisterCabinet = {
+    [NominationFile.RuleGroup.MANAGEMENT]: [],
+    [NominationFile.RuleGroup.STATUTORY]: [
+      NominationFile.StatutoryRule.MINISTER_CABINET,
+    ],
+    [NominationFile.RuleGroup.QUALITATIVE]: [],
+  } as const satisfies AllRulesMap;
+
+  const testParams = [
     {
       testName: "Management rule",
       ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
-      testRulesMap: {
-        [NominationFile.RuleGroup.MANAGEMENT]: [
-          NominationFile.ManagementRule.TRANSFER_TIME,
-        ],
-        [NominationFile.RuleGroup.STATUTORY]: [],
-        [NominationFile.RuleGroup.QUALITATIVE]: [],
-      } as const satisfies AllRulesMap,
+      ruleName: NominationFile.ManagementRule.TRANSFER_TIME,
+      testRulesMap: rulesMapWithTransferTime,
+      ruleLabels: {
+        label: "Label : TRANSFER_TIME",
+        hint: "Hint : TRANSFER_TIME",
+      },
       testedRuleBuilderPath: `rules.${NominationFile.RuleGroup.MANAGEMENT}.${NominationFile.ManagementRule.TRANSFER_TIME}`,
-      ruleLabel:
-        ReportVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
-          NominationFile.ManagementRule.TRANSFER_TIME
-        ],
     },
     {
       testName: "Statutory rule",
       ruleGroup: NominationFile.RuleGroup.STATUTORY,
-      testRulesMap: {
-        [NominationFile.RuleGroup.MANAGEMENT]: [],
-        [NominationFile.RuleGroup.STATUTORY]: [
-          NominationFile.StatutoryRule.MINISTER_CABINET,
-        ],
-        [NominationFile.RuleGroup.QUALITATIVE]: [],
-      } as const satisfies AllRulesMap,
+      ruleName: NominationFile.StatutoryRule.MINISTER_CABINET,
+      testRulesMap: rulesMapWithMinisterCabinet,
+      ruleLabels: {
+        label: "Label : MINISTER_CABINET",
+        hint: "Hint : MINISTER_CABINET",
+      },
       testedRuleBuilderPath: `rules.${NominationFile.RuleGroup.STATUTORY}.${NominationFile.StatutoryRule.MINISTER_CABINET}`,
       ruleLabel:
         ReportVM.rulesToLabels[NominationFile.RuleGroup.STATUTORY][
           NominationFile.StatutoryRule.MINISTER_CABINET
         ],
+      ruleHint: "Hint pour : MINISTER_CABINET",
     },
-  ] as const)(
+  ] as const;
+  describe.each(testParams)(
     "$testName",
-    ({ ruleGroup, testRulesMap, testedRuleBuilderPath, ruleLabel }) => {
+    ({
+      ruleGroup,
+      ruleName,
+      testRulesMap,
+      testedRuleBuilderPath,
+      ruleLabels,
+    }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rulesLabelsMap: RulesLabelsMap<any> = {
+        [NominationFile.RuleGroup.MANAGEMENT]:
+          ruleGroup !== NominationFile.RuleGroup.MANAGEMENT
+            ? {}
+            : {
+                [ruleName]: ruleLabels,
+              },
+
+        [NominationFile.RuleGroup.STATUTORY]:
+          ruleGroup !== NominationFile.RuleGroup.STATUTORY
+            ? {}
+            : {
+                [ruleName]: ruleLabels,
+              },
+        [NominationFile.RuleGroup.QUALITATIVE]: {},
+      };
+
       let reportApiModelBuilder: ReportApiModelBuilder;
 
       beforeEach(() => {
         reportApiModelBuilder = new ReportApiModelBuilder(testRulesMap);
-        store = initStore(testRulesMap);
+        store = initStore(testRulesMap, rulesLabelsMap);
+      });
+
+      describe("Tooltip", () => {
+        let container: RenderResult;
+
+        it("has a tooltip icon and a hidden rule hint by default", async () => {
+          container = givenAReportWithOneTooltip();
+          await findTooltip();
+        });
+
+        it("shows the rule hint on hover", async () => {
+          container = givenAReportWithOneTooltip();
+
+          await userEvent.hover(await findTooltip());
+
+          // On teste la présence de cette classe car un 'aria-hidden' à 'true'
+          // persiste lorsque le tooltip est visible.
+          expect(await screen.findByText(ruleLabels.hint)).toHaveClass(
+            "fr-tooltip--shown",
+          );
+        });
+
+        const findTooltip = () =>
+          container.findByRole("tooltip", { hidden: true });
+
+        const givenAReportWithOneTooltip = () => {
+          const reportApiModel = reportApiModelBuilder.build();
+          return renderReport(reportApiModel);
+        };
       });
 
       it("hides the accordion if all its rules are out", async () => {
@@ -100,8 +166,9 @@ describe("Report Overview Component - Rules use cases", () => {
           .build();
         renderReport(reportApiModel);
 
-        const checkboxInput =
-          await screen.findByLabelText<HTMLInputElement>(ruleLabel);
+        const checkboxInput = await screen.findByLabelText<HTMLInputElement>(
+          ruleLabels.label,
+        );
 
         if (expectChecked) {
           expectRuleChecked(checkboxInput);
@@ -122,7 +189,7 @@ describe("Report Overview Component - Rules use cases", () => {
             .build();
           renderReport(reportApiModel);
 
-          const labelComponent = await screen.findByText(ruleLabel);
+          const labelComponent = await screen.findByText(ruleLabels.label);
 
           if (expectHighlighted) {
             expect(labelComponent).toBeVisible();
@@ -146,7 +213,7 @@ describe("Report Overview Component - Rules use cases", () => {
           .build();
         renderReport(reportApiModel);
 
-        await clickCheckboxAndExpectChange(ruleLabel, {
+        await clickCheckboxAndExpectChange(ruleLabels.label, {
           expectedCheckedState: expectChecked,
         });
       });
@@ -191,7 +258,10 @@ describe("Report Overview Component - Rules use cases", () => {
     });
   });
 
-  const initStore = (rulesMap?: AllRulesMap) =>
+  const initStore = <T extends AllRulesMap>(
+    rulesMap?: T,
+    rulesLabelsMap?: RulesLabelsMap<T>,
+  ) =>
     initReduxStore(
       {
         reportGateway,
@@ -201,6 +271,7 @@ describe("Report Overview Component - Rules use cases", () => {
       {},
       undefined,
       rulesMap,
+      rulesLabelsMap,
     );
 
   const renderReport = (report: ReportApiModel) => {

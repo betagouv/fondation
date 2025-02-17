@@ -28,21 +28,21 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
     <>
       <ReportRule<NominationFile.ManagementRule>
         id={reportHtmlIds.overview.managementSection}
-        title="Règles de gestion"
+        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
         rulesChecked={rulesChecked.management}
         onUpdateReportRule={onUpdateManagementRule}
         showNotice={true}
       />
       <ReportRule<NominationFile.StatutoryRule>
         id={reportHtmlIds.overview.statutorySection}
-        title="Règles statutaires"
+        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.STATUTORY]}
         rulesChecked={rulesChecked.statutory}
         onUpdateReportRule={onUpdateStatutoryRule}
         showNotice={true}
       />
       <ReportRule<NominationFile.QualitativeRule>
         id={reportHtmlIds.overview.qualitativeSection}
-        title="Les autres éléments qualitatifs à vérifier"
+        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.QUALITATIVE]}
         rulesChecked={rulesChecked.qualitative}
         onUpdateReportRule={onUpdateQualitativeRule}
       />

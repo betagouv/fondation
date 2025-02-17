@@ -1,21 +1,30 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AllRulesMap, NominationFile, allRulesMap } from "shared-models";
+import { AllRulesMap, NominationFile } from "shared-models";
+import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 import { AppState } from "../../../store/appState";
+import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
+import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
-import { SummarySection } from "../../adapters/primary/labels/summary-labels";
-import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 
-export const createReportOverviewSlice = (
+export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
-  rulesMap: AllRulesMap = allRulesMap,
+  rulesMap: AllRulesMap,
+  rulesLabelsMap: IsTest extends true
+    ? RulesLabelsMap<{
+        [NominationFile.RuleGroup.MANAGEMENT]: [];
+        [NominationFile.RuleGroup.STATUTORY]: [];
+        [NominationFile.RuleGroup.QUALITATIVE]: [];
+      }>
+    : RulesLabelsMap,
 ) => {
-  const initialState: AppState["reportOverview"] = {
+  const initialState: AppState<IsTest>["reportOverview"] = {
     byIds: null,
     rulesMap,
+    rulesLabelsMap,
     summarySections,
   };
 

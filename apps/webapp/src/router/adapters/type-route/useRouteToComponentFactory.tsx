@@ -1,12 +1,13 @@
 import React from "react";
+import { PageContentLayout } from "../../../shared-kernel/adapters/primary/react/PageContentLayout";
 import { RouteToComponentFactory } from "../../core-logic/components/routeToComponent";
+import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 import { RouterAccessControl } from "../../core-logic/models/RouterAccessControl";
 import {
   RouteToComponentMap,
   routeToReactComponentMap,
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
-import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
@@ -27,7 +28,7 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
 
       switch (route.name) {
         case false:
-          return <section>Page non trouvée.</section>;
+          return <PageContentLayout>Page non trouvée.</PageContentLayout>;
         case "login": {
           const Component = routeToComponentMap[route.name];
           return suspensed(<Component />);
