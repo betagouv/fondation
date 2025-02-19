@@ -9,13 +9,18 @@ import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentica
 import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
 import { Login } from "./Login";
 import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
+import {
+  ExpectAuthenticatedUser,
+  expectAuthenticatedUserFactory,
+} from "../../../../test/authentication";
 
 describe("Login Component", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let authenticationGateway: ApiAuthenticationGateway;
   let apiClient: FakeAuthenticationApiClient;
   let loginNotifierProvider: LocalStorageLoginNotifierProvider;
+  let expectAuthenticatedUser: ExpectAuthenticatedUser;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
@@ -28,6 +33,11 @@ describe("Login Component", () => {
       {},
     );
     initialState = store.getState();
+
+    expectAuthenticatedUser = expectAuthenticatedUserFactory(
+      store,
+      initialState,
+    );
   });
 
   it("shows a login form", async () => {
@@ -49,14 +59,7 @@ describe("Login Component", () => {
 
     await waitFor(async () => {
       expect(store.getState()).not.toBe(initialState);
-      expect(store.getState()).toEqual<AppState>({
-        ...initialState,
-        authentication: {
-          ...initialState.authentication,
-          authenticated: true,
-          user,
-        },
-      });
+      expectAuthenticatedUser(user);
     });
   });
 

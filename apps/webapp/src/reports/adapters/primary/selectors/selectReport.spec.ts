@@ -20,206 +20,279 @@ import { RulesLabelsMap } from "../labels/rules-labels";
 import { SummarySection } from "../labels/summary-labels";
 import { selectReport } from "./selectReport";
 
+const summarySections: SummarySection[] = [
+  { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
+];
+
 describe("Select Report", () => {
   let store: ReduxStore;
   let reportBuilder: ReportBuilder;
 
-  const testRulesMap = {
-    [NominationFile.RuleGroup.MANAGEMENT]: [
-      NominationFile.ManagementRule.TRANSFER_TIME,
-    ],
-    [NominationFile.RuleGroup.STATUTORY]: [],
-    [NominationFile.RuleGroup.QUALITATIVE]: [],
-  } satisfies AllRulesMap;
-  const labelsRulesMap: RulesLabelsMap<typeof testRulesMap> = {
-    [NominationFile.RuleGroup.MANAGEMENT]: {
-      [NominationFile.ManagementRule.TRANSFER_TIME]: {
-        label: "TRANSFER_TIME",
-        hint: "Hint : TRANSFER_TIME",
+  describe("With one rule", () => {
+    const testRulesMap = {
+      [NominationFile.RuleGroup.MANAGEMENT]: [
+        NominationFile.ManagementRule.TRANSFER_TIME,
+      ],
+      [NominationFile.RuleGroup.STATUTORY]: [],
+      [NominationFile.RuleGroup.QUALITATIVE]: [],
+    } satisfies AllRulesMap;
+    const labelsRulesMap: RulesLabelsMap<typeof testRulesMap> = {
+      [NominationFile.RuleGroup.MANAGEMENT]: {
+        [NominationFile.ManagementRule.TRANSFER_TIME]: {
+          label: "TRANSFER_TIME",
+          hint: "Hint : TRANSFER_TIME",
+        },
       },
-    },
-    [NominationFile.RuleGroup.STATUTORY]: {},
-    [NominationFile.RuleGroup.QUALITATIVE]: {},
-  };
-  const summarySections: SummarySection[] = [
-    { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
-  ];
-
-  const reportVMBuilder = (report: ReportSM) =>
-    ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
-      report,
-      summarySections,
-    );
-
-  beforeEach(() => {
-    store = initReduxStore(
-      {},
-      {},
-      {},
-      undefined,
-      undefined,
-      testRulesMap,
-      labelsRulesMap,
-      summarySections,
-    );
-    reportBuilder = new ReportBuilder(testRulesMap);
-  });
-
-  it("selects the whole report with rules unchecked", async () => {
-    const aReport = reportBuilder
-      .with("observers", [
-        "observer 1",
-        "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
-      ])
-      .with("rules.management.TRANSFER_TIME.validated", true)
-      .with("rules.management.TRANSFER_TIME.preValidated", false)
-      .with("attachedFiles", [
-        { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
-      ])
-      .buildRetrieveSM();
-    givenAReport(aReport);
-
-    const aRuleVM = givenATransferTimeRuleVM(aReport);
-    const aReportVM = reportVMBuilder(aReport)
-      .with("observers", [
-        ["observer 1"],
-        ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],
-      ])
-      .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
-      .build();
-    expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
-  });
-
-  it("after checking a validation rule, it has its rule checked", () => {
-    const aReport = reportBuilder
-      .with("rules.management.TRANSFER_TIME.validated", true)
-      .with("rules.management.TRANSFER_TIME.preValidated", false)
-      .buildRetrieveSM();
-    givenAReport(aReport);
-
-    const updateReportRuleParams: UpdateReportRuleParams = {
-      reportId: aReport.id,
-      ruleId: aReport.rules.management.TRANSFER_TIME.id,
-      validated: false,
+      [NominationFile.RuleGroup.STATUTORY]: {},
+      [NominationFile.RuleGroup.QUALITATIVE]: {},
     };
-    store.dispatch(
-      updateReportRule.fulfilled(
-        updateReportRuleParams,
-        "",
-        updateReportRuleParams,
-      ),
-    );
 
-    const aRuleVM = givenATransferTimeRuleVM(aReport);
-    const aReportVM = reportVMBuilder(aReport)
-      .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
-      .build();
+    const reportVMBuilder = (report: ReportSM) =>
+      ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
+        report,
+        summarySections,
+      );
 
-    expectReportVMToHaveRuleChecked(
-      aReport.id,
-      aReportVM,
-      NominationFile.RuleGroup.MANAGEMENT,
-      {
-        selected: {
-          TRANSFER_TIME: {
-            ...aRuleVM,
-            checked: true,
-          },
-        },
-        others: {},
-      },
-    );
-  });
-
-  describe("Pre validation", () => {
-    it.each`
-      testName               | preValidated | expectHighlighted
-      ${"highlights"}        | ${true}      | ${true}
-      ${"doesn't highlight"} | ${false}     | ${false}
-    `(
-      "puts a higlighted rule in the selected section",
-      ({ preValidated, expectHighlighted }) => {
-        const aHighlightedReport = new ReportBuilder(testRulesMap)
-          .with("id", "highlight-test-report-id")
-          .with("rules.management.TRANSFER_TIME.preValidated", preValidated)
-          .with("rules.management.TRANSFER_TIME.validated", true)
-          .buildRetrieveSM();
-        store.dispatch(retrieveReport.fulfilled(aHighlightedReport, "", ""));
-
-        const aHighlightedReportVMBuilder = reportVMBuilder(aHighlightedReport);
-
-        const aRuleVM: VMReportRuleValue = {
-          highlighted: expectHighlighted,
-          checked: false,
-          id: aHighlightedReport.rules.management.TRANSFER_TIME.id,
-          label: labelsRulesMap.management.TRANSFER_TIME.label,
-          hint: labelsRulesMap.management.TRANSFER_TIME.hint,
-          comment: null,
-        };
-
-        aHighlightedReportVMBuilder.with(
-          `rulesChecked.management.${expectHighlighted ? "selected" : "others"}.TRANSFER_TIME`,
-          aRuleVM,
-        );
-
-        const aHighlightedReportVM = aHighlightedReportVMBuilder.build();
-
-        expectReportVMToHaveRuleChecked(
-          aHighlightedReport.id,
-          aHighlightedReportVM,
-          NominationFile.RuleGroup.MANAGEMENT,
-          {
-            selected: expectHighlighted
-              ? {
-                  TRANSFER_TIME: aRuleVM as VMReportRuleValue<true>,
-                }
-              : {},
-            others: expectHighlighted
-              ? {}
-              : {
-                  TRANSFER_TIME: aRuleVM as VMReportRuleValue<false>,
-                },
-          },
-        );
-      },
-    );
-  });
-
-  const givenATransferTimeRuleVM = (aReport: ReportSM) =>
-    ({
-      id: aReport.rules.management.TRANSFER_TIME.id,
-      label: labelsRulesMap.management.TRANSFER_TIME.label,
-      hint: labelsRulesMap.management.TRANSFER_TIME.hint,
-      checked: false,
-      highlighted: false,
-      comment: null,
-    }) satisfies VMReportRuleValue;
-
-  const expectReportVMToHaveRuleChecked = <
-    G extends keyof ConditionalExcept<typeof testRulesMap, never[]>,
-    RulesChecked extends Omit<
-      GroupRulesChecked<G, (typeof testRulesMap)[G][number]>[G],
-      "accordionLabel"
-    >,
-  >(
-    reportId: string,
-    reportVM: ReportVM,
-    ruleGroup: G,
-    rulesChecked: RulesChecked,
-  ) => {
-    expect(selectReport(store.getState(), reportId)).toEqual<
-      ReportVM<typeof testRulesMap>
-    >({
-      ...reportVM,
-      rulesChecked: {
-        ...reportVM.rulesChecked,
-        [ruleGroup]: {
-          ...reportVM.rulesChecked[ruleGroup],
-          ...rulesChecked,
-        },
-      },
+    beforeEach(() => {
+      store = initReduxStore(
+        {},
+        {},
+        {},
+        undefined,
+        undefined,
+        testRulesMap,
+        labelsRulesMap,
+        summarySections,
+      );
+      reportBuilder = new ReportBuilder(testRulesMap);
     });
-  };
+
+    it("selects the whole report with rules unchecked", async () => {
+      const aReport = reportBuilder
+        .with("observers", [
+          "observer 1",
+          "observer 2\nVPI TJ Rennes\n(1 sur une liste de 2)",
+        ])
+        .with("rules.management.TRANSFER_TIME.validated", true)
+        .with("rules.management.TRANSFER_TIME.preValidated", false)
+        .with("attachedFiles", [
+          { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
+        ])
+        .buildRetrieveSM();
+      givenAReport(aReport);
+
+      const aRuleVM = givenATransferTimeRuleVM(aReport);
+      const aReportVM = reportVMBuilder(aReport)
+        .with("observers", [
+          ["observer 1"],
+          ["observer 2", "VPI TJ Rennes", "(1 sur une liste de 2)"],
+        ])
+        .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
+        .build();
+      expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
+    });
+
+    it("after checking a validation rule, it has its rule checked", () => {
+      const aReport = reportBuilder
+        .with("rules.management.TRANSFER_TIME.validated", true)
+        .with("rules.management.TRANSFER_TIME.preValidated", false)
+        .buildRetrieveSM();
+      givenAReport(aReport);
+
+      const updateReportRuleParams: UpdateReportRuleParams = {
+        reportId: aReport.id,
+        ruleId: aReport.rules.management.TRANSFER_TIME.id,
+        validated: false,
+      };
+      store.dispatch(
+        updateReportRule.fulfilled(
+          updateReportRuleParams,
+          "",
+          updateReportRuleParams,
+        ),
+      );
+
+      const aRuleVM = givenATransferTimeRuleVM(aReport);
+      const aReportVM = reportVMBuilder(aReport)
+        .with("rulesChecked.management.others.TRANSFER_TIME", aRuleVM)
+        .build();
+
+      expectReportVMToHaveRuleChecked(
+        aReport.id,
+        aReportVM,
+        NominationFile.RuleGroup.MANAGEMENT,
+        {
+          selected: {
+            TRANSFER_TIME: {
+              ...aRuleVM,
+              checked: true,
+            },
+          },
+          others: {},
+        },
+      );
+    });
+
+    describe("Pre validation", () => {
+      it.each`
+        testName               | preValidated | expectHighlighted
+        ${"highlights"}        | ${true}      | ${true}
+        ${"doesn't highlight"} | ${false}     | ${false}
+      `(
+        "puts a higlighted rule in the selected section",
+        ({ preValidated, expectHighlighted }) => {
+          const aHighlightedReport = new ReportBuilder(testRulesMap)
+            .with("id", "highlight-test-report-id")
+            .with("rules.management.TRANSFER_TIME.preValidated", preValidated)
+            .with("rules.management.TRANSFER_TIME.validated", true)
+            .buildRetrieveSM();
+          store.dispatch(retrieveReport.fulfilled(aHighlightedReport, "", ""));
+
+          const aHighlightedReportVMBuilder =
+            reportVMBuilder(aHighlightedReport);
+
+          const aRuleVM: VMReportRuleValue = {
+            highlighted: expectHighlighted,
+            checked: false,
+            id: aHighlightedReport.rules.management.TRANSFER_TIME.id,
+            label: labelsRulesMap.management.TRANSFER_TIME.label,
+            hint: labelsRulesMap.management.TRANSFER_TIME.hint,
+            comment: null,
+          };
+
+          aHighlightedReportVMBuilder.with(
+            `rulesChecked.management.${expectHighlighted ? "selected" : "others"}.TRANSFER_TIME`,
+            aRuleVM,
+          );
+
+          const aHighlightedReportVM = aHighlightedReportVMBuilder.build();
+
+          expectReportVMToHaveRuleChecked(
+            aHighlightedReport.id,
+            aHighlightedReportVM,
+            NominationFile.RuleGroup.MANAGEMENT,
+            {
+              selected: expectHighlighted
+                ? {
+                    TRANSFER_TIME: aRuleVM as VMReportRuleValue<true>,
+                  }
+                : {},
+              others: expectHighlighted
+                ? {}
+                : {
+                    TRANSFER_TIME: aRuleVM as VMReportRuleValue<false>,
+                  },
+            },
+          );
+        },
+      );
+    });
+
+    const givenATransferTimeRuleVM = (aReport: ReportSM) =>
+      ({
+        id: aReport.rules.management.TRANSFER_TIME.id,
+        label: labelsRulesMap.management.TRANSFER_TIME.label,
+        hint: labelsRulesMap.management.TRANSFER_TIME.hint,
+        checked: false,
+        highlighted: false,
+        comment: null,
+      }) satisfies VMReportRuleValue;
+
+    const expectReportVMToHaveRuleChecked = <
+      G extends keyof ConditionalExcept<typeof testRulesMap, never[]>,
+      RulesChecked extends Omit<
+        GroupRulesChecked<G, (typeof testRulesMap)[G][number]>[G],
+        "accordionLabel"
+      >,
+    >(
+      reportId: string,
+      reportVM: ReportVM,
+      ruleGroup: G,
+      rulesChecked: RulesChecked,
+    ) => {
+      expect(selectReport(store.getState(), reportId)).toEqual<
+        ReportVM<typeof testRulesMap>
+      >({
+        ...reportVM,
+        rulesChecked: {
+          ...reportVM.rulesChecked,
+          [ruleGroup]: {
+            ...reportVM.rulesChecked[ruleGroup],
+            ...rulesChecked,
+          },
+        },
+      });
+    };
+  });
+
+  describe("Merge of JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE with JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT", () => {
+    const testRulesMap = {
+      [NominationFile.RuleGroup.MANAGEMENT]: [
+        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
+      ],
+      [NominationFile.RuleGroup.STATUTORY]: [],
+      [NominationFile.RuleGroup.QUALITATIVE]: [],
+    } satisfies AllRulesMap;
+
+    const mergedReportVMBuilder = (report: ReportSM) =>
+      ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
+        report,
+        summarySections,
+      );
+
+    beforeEach(() => {
+      store = initReduxStore({}, {}, {}, undefined, undefined, testRulesMap);
+      reportBuilder = new ReportBuilder(testRulesMap);
+    });
+
+    it.each`
+      description                                        | mergedRule                                   | rule                                         | expectedRule
+      ${"first rule not validated"}                      | ${{ validated: true, preValidated: false }}  | ${{ validated: false, preValidated: false }} | ${{ checked: true, highlighted: false }}
+      ${"second rule not validated"}                     | ${{ validated: false, preValidated: false }} | ${{ validated: true, preValidated: false }}  | ${{ checked: true, highlighted: false }}
+      ${"first rule not pre-validated"}                  | ${{ validated: true, preValidated: true }}   | ${{ validated: true, preValidated: false }}  | ${{ checked: false, highlighted: true }}
+      ${"second rule not pre-validated"}                 | ${{ validated: true, preValidated: false }}  | ${{ validated: true, preValidated: true }}   | ${{ checked: false, highlighted: true }}
+      ${"all rules not pre-validated and not validated"} | ${{ validated: false, preValidated: true }}  | ${{ validated: false, preValidated: true }}  | ${{ checked: true, highlighted: true }}
+    `("$description", async ({ mergedRule, rule, expectedRule }) => {
+      const aReport = new ReportBuilder(testRulesMap)
+        .with(
+          "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated",
+          mergedRule.validated,
+        )
+        .with(
+          "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.preValidated",
+          mergedRule.preValidated,
+        )
+        .with(
+          "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated",
+          rule.validated,
+        )
+        .with(
+          "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.preValidated",
+          rule.preValidated,
+        )
+        .buildRetrieveSM();
+
+      givenAReport(aReport);
+
+      const aJudiciaryRoleChangeInSameRessortVM: VMReportRuleValue<true> = {
+        id: aReport.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.id,
+        label: "",
+        hint: "",
+        comment: null,
+        ...expectedRule,
+      };
+
+      const aReportVM = mergedReportVMBuilder(aReport)
+        .with(
+          "rulesChecked.management.selected.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
+          aJudiciaryRoleChangeInSameRessortVM,
+        )
+        .build();
+      expect(selectReport(store.getState(), aReport.id)?.rulesChecked).toEqual(
+        aReportVM.rulesChecked,
+      );
+    });
+  });
 
   const givenAReport = (report: ReportSM) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));

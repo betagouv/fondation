@@ -1,5 +1,5 @@
 import {
-  allRulesMap,
+  allRulesMapOld,
   Magistrat,
   Month,
   NominationFile,
@@ -57,7 +57,7 @@ const createZodGroupRules = () => {
         ...acc,
         [group]: z.object(
           Object.fromEntries(
-            allRulesMap[group].map((ruleName) => [ruleName, z.boolean()]),
+            allRulesMapOld[group].map((ruleName) => [ruleName, z.boolean()]),
           ),
         ),
       }),

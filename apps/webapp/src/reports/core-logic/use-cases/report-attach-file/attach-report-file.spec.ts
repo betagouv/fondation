@@ -12,11 +12,13 @@ import { reportFileAttached } from "../../listeners/report-file-attached.listene
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFile } from "./attach-report-file";
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
+import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let expectReports: ExpectReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -33,6 +35,8 @@ describe("Attach Report File", () => {
     );
     initialState = store.getState();
 
+    expectReports = expectReportsFactory(store, initialState);
+
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
   });
 
@@ -47,22 +51,14 @@ describe("Attach Report File", () => {
     );
     await sleep(100); // wait for listener to resolve
 
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      reportOverview: {
-        ...initialState.reportOverview,
-        byIds: {
-          [aReport.id]: {
-            ...aReport,
-            attachedFiles: [
-              {
-                signedUrl,
-                name: "file.txt",
-              },
-            ],
-          },
+    expectReports({
+      ...aReport,
+      attachedFiles: [
+        {
+          signedUrl,
+          name: "file.txt",
         },
-      },
+      ],
     });
   });
 

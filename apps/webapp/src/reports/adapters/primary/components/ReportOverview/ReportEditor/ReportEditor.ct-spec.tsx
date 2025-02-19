@@ -18,7 +18,7 @@ const label = "Rapport";
 
 test.describe("Report Editor", () => {
   let component: MountResult | null;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let editor: Locator;
   let page: Page;
   let mount: Mount;
@@ -326,7 +326,7 @@ test.describe("Report Editor", () => {
 
     const state = await page.evaluate(() => window.store.getState());
 
-    const expecteState: AppState = {
+    const expecteState: AppState<true> = {
       ...initialState,
       reportOverview: {
         ...initialState.reportOverview,

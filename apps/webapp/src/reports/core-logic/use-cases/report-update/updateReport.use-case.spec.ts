@@ -7,11 +7,13 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { updateReport, UpdateReportParams } from "./updateReport.use-case";
+import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
 
 describe("Report Update", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let expectReports: ExpectReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -26,6 +28,8 @@ describe("Report Update", () => {
       {},
     );
     initialState = store.getState();
+
+    expectReports = expectReportsFactory(store, initialState);
   });
 
   const testData: UpdateReportParams["data"][] = [
@@ -53,17 +57,10 @@ describe("Report Update", () => {
         data: newData,
       }),
     );
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      reportOverview: {
-        ...initialState.reportOverview,
-        byIds: {
-          [aReport.id]: {
-            ...aReport,
-            ...newData,
-          },
-        },
-      },
+
+    expectReports({
+      ...aReport,
+      ...newData,
     });
   });
 });

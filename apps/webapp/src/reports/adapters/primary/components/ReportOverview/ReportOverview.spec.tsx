@@ -3,6 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMap, NominationFile } from "shared-models";
 import sharp from "sharp";
+import { AppState } from "../../../../../store/appState";
+import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
+import {
+  ExpectReports,
+  expectReportsFactory,
+} from "../../../../../test/reports";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
 import {
   ReportApiModel,
@@ -10,26 +16,41 @@ import {
 } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { AppState, ReportSM } from "../../../../../store/appState";
-import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
+import { RulesLabelsMap } from "../../labels/rules-labels";
 import { ReportOverview } from "./ReportOverview";
 
 const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [
     NominationFile.ManagementRule.TRANSFER_TIME,
-    NominationFile.ManagementRule.CASSATION_COURT_NOMINATION,
+    NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
   ],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],
 } as const satisfies AllRulesMap;
 
+const testRulesLabelsMap: RulesLabelsMap<typeof testRulesMap> = {
+  [NominationFile.RuleGroup.MANAGEMENT]: {
+    [NominationFile.ManagementRule.TRANSFER_TIME]: {
+      label: "TRANSFER_TIME label",
+      hint: "TRANSFER_TIME hint",
+    },
+    [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]: {
+      label: "GETTING_GRADE_IN_PLACE label",
+      hint: "GETTING_GRADE_IN_PLACE hint",
+    },
+  },
+  [NominationFile.RuleGroup.STATUTORY]: {},
+  [NominationFile.RuleGroup.QUALITATIVE]: {},
+};
+
 describe("Report Overview Component", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let reportApiModelBuilder: ReportApiModelBuilder;
+  let expectReports: ExpectReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -43,10 +64,12 @@ describe("Report Overview Component", () => {
       { reportFileAttached },
       undefined,
       testRulesMap,
+      testRulesLabelsMap,
     );
     initialState = store.getState();
 
     reportApiModelBuilder = new ReportApiModelBuilder(testRulesMap);
+    expectReports = expectReportsFactory(store, initialState);
   });
 
   it("shows a message if no report found", async () => {
@@ -81,7 +104,7 @@ describe("Report Overview Component", () => {
       );
 
       await waitFor(() => {
-        expectReport(expectedReportVM);
+        expectReports(expectedReportVM);
       });
     });
 
@@ -143,7 +166,7 @@ describe("Report Overview Component", () => {
         const input = await screen.findByLabelText(/^Formats supportés.*/);
         await userEvent.upload(input, file);
 
-        expectReport({
+        expectReports({
           ...aReportVM,
           attachedFiles: [
             {
@@ -225,18 +248,6 @@ describe("Report Overview Component", () => {
       "L'enregistrement des modifications est automatique.",
     );
     return rendered;
-  };
-
-  const expectReport = (reportSM: ReportSM) => {
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      reportOverview: {
-        ...initialState.reportOverview,
-        byIds: {
-          [reportSM.id]: reportSM,
-        },
-      },
-    });
   };
 
   const renderReportId = (reportId: string) => {

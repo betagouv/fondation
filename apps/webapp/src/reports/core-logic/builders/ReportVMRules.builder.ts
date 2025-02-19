@@ -1,31 +1,63 @@
-import { RulesBuilder, NominationFile } from "shared-models";
-import { AppState, ReportSM } from "../../../store/appState";
-import { VMReportRuleValue, ReportVM } from "../view-models/ReportVM";
-import { UnionToIntersection } from "type-fest";
 import _ from "lodash";
-import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
+import { NominationFile, RulesBuilder } from "shared-models";
+import { UnionToIntersection } from "type-fest";
+import { AppState, ReportSM } from "../../../store/appState";
+import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
 
+//! La persistence des règles va être supprimée,
+//! et par conséquent cette classe également.
+//! On s'autorise à patcher cette classe en attendant l'UX simplifiée pour les règles.
 export class ReportVMRulesBuilder extends RulesBuilder<
   VMReportRuleValue<boolean>
 > {
   static buildFromStoreModel(
     rules: ReportSM["rules"],
     rulesMap: AppState["reportOverview"]["rulesMap"],
-    rulesLabelsMap: RulesLabelsMap<AppState["reportOverview"]["rulesMap"]>,
+    rulesLabelsMap: AppState["reportOverview"]["rulesLabelsMap"],
   ): ReportVM["rulesChecked"] {
     const builtRules = new ReportVMRulesBuilder(
       ({ ruleGroup, ruleName }) => {
-        const rule = rules[ruleGroup];
-        const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
         const rulesLabels = rulesLabelsMap[ruleGroup] as UnionToIntersection<
           (typeof rulesLabelsMap)[NominationFile.RuleGroup]
         >;
-        const ruleLabels = rulesLabels[ruleName];
+
+        if (!Object.values(rulesMap).flat().includes(ruleName))
+          return {
+            id: "",
+            label: "",
+            hint: "",
+            checked: false,
+            highlighted: false,
+            comment: "",
+          };
+
+        const rule = rules[ruleGroup];
+        const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
+        const ruleLabels = rulesLabels[ruleName as keyof typeof rulesLabels];
+
+        if (
+          ruleName ===
+          NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+        ) {
+          const mergedRule = (rule as UnionToIntersection<typeof rule>)[
+            NominationFile.ManagementRule
+              .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
+          ];
+
+          return {
+            id: ruleValue.id,
+            label: ruleLabels?.label || "",
+            hint: ruleLabels?.hint || "",
+            checked: !ruleValue.validated || !mergedRule.validated,
+            highlighted: ruleValue.preValidated || mergedRule.preValidated,
+            comment: ruleValue.comment,
+          };
+        }
 
         return {
           id: ruleValue.id,
-          label: ruleLabels.label,
-          hint: ruleLabels.hint,
+          label: ruleLabels?.label || "",
+          hint: ruleLabels?.hint || "",
           checked: !ruleValue.validated,
           highlighted: ruleValue.preValidated,
           comment: ruleValue.comment,
