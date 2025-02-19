@@ -15,7 +15,7 @@ import { logout } from "./logout";
 describe("Logout", () => {
   let store: ReduxStore;
   let authenticationGateway: ApiAuthenticationGateway;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let apiClient: FakeAuthenticationApiClient;
   let logoutNotifierProvider: LogoutNotifierProvider;
   let expectUnauthenticatedStore: () => void;

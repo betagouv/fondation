@@ -8,7 +8,6 @@ import {
   ReportApiModelBuilder,
 } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { getReportAccordionLabel } from "../../../../core-logic/builders/ReportVMRules.builder";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../labels/rules-labels";
@@ -73,11 +72,6 @@ describe("Report Overview Component - Rules use cases", () => {
         hint: "Hint : MINISTER_CABINET",
       },
       testedRuleBuilderPath: `rules.${NominationFile.RuleGroup.STATUTORY}.${NominationFile.StatutoryRule.MINISTER_CABINET}`,
-      ruleLabel:
-        ReportVM.rulesToLabels[NominationFile.RuleGroup.STATUTORY][
-          NominationFile.StatutoryRule.MINISTER_CABINET
-        ],
-      ruleHint: "Hint pour : MINISTER_CABINET",
     },
   ] as const;
   describe.each(testParams)(
@@ -223,31 +217,42 @@ describe("Report Overview Component - Rules use cases", () => {
   describe("Multiple rules in same group", () => {
     let reportApiModelBuilder: ReportApiModelBuilder;
 
-    const anotherRuleName: NominationFile.RuleName =
-      NominationFile.ManagementRule.CASSATION_COURT_NOMINATION;
-    const anotherRuleLabel =
-      ReportVM.rulesToLabels[NominationFile.RuleGroup.MANAGEMENT][
-        anotherRuleName
-      ];
+    const anotherRuleName =
+      NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE;
+    const anotherRuleLabel = "Other rule label";
 
     const multipleRulesMap = {
       [NominationFile.RuleGroup.MANAGEMENT]: [
         NominationFile.ManagementRule.TRANSFER_TIME,
-        NominationFile.ManagementRule.CASSATION_COURT_NOMINATION,
+        NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
       ],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
     } as const satisfies AllRulesMap;
+    const multipleRulesLabelsMap: RulesLabelsMap<typeof multipleRulesMap> = {
+      [NominationFile.RuleGroup.MANAGEMENT]: {
+        [NominationFile.ManagementRule.TRANSFER_TIME]: {
+          label: "Label : TRANSFER_TIME",
+          hint: "Hint : TRANSFER_TIME",
+        },
+        [anotherRuleName]: {
+          label: anotherRuleLabel,
+          hint: `Hint : ${anotherRuleLabel}`,
+        },
+      },
+      [NominationFile.RuleGroup.STATUTORY]: {},
+      [NominationFile.RuleGroup.QUALITATIVE]: {},
+    };
 
     beforeEach(() => {
       reportApiModelBuilder = new ReportApiModelBuilder(multipleRulesMap);
-      store = initStore(multipleRulesMap);
+      store = initStore(multipleRulesMap, multipleRulesLabelsMap);
     });
 
     it(`when checked, '${anotherRuleLabel}' can also be checked`, async () => {
       const reportApiModel = reportApiModelBuilder
         .with("rules.management.TRANSFER_TIME.validated", false)
-        .with("rules.management.CASSATION_COURT_NOMINATION.validated", false)
+        .with("rules.management.GETTING_GRADE_IN_PLACE.validated", false)
         .build();
       reportApiClient.addReports(reportApiModel);
       renderReport(reportApiModel);

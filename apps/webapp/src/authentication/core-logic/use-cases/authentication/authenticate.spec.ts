@@ -1,6 +1,10 @@
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import {
+  ExpectAuthenticatedUser,
+  expectAuthenticatedUserFactory,
+} from "../../../../test/authentication";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../adapters/secondary/gateways/FakeAuthentication.client";
 import { LocalStorageLoginNotifierProvider } from "../../../adapters/secondary/providers/localStorageLoginNotifier.provider";
@@ -12,9 +16,10 @@ import { authenticate, AuthenticateParams } from "./authenticate";
 describe("Authenticate", () => {
   let store: ReduxStore;
   let authenticationGateway: ApiAuthenticationGateway;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let apiClient: FakeAuthenticationApiClient;
   let loginNotifierProvider: LoginNotifierProvider;
+  let expectAuthenticatedUser: ExpectAuthenticatedUser;
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
@@ -36,14 +41,7 @@ describe("Authenticate", () => {
 
     it("authenticates a user", async () => {
       await store.dispatch(authenticate(userCredentials));
-      expect(store.getState()).toEqual<AppState>({
-        ...initialState,
-        authentication: {
-          ...initialState.authentication,
-          authenticated: true,
-          user,
-        },
-      });
+      expectAuthenticatedUser(user);
     });
 
     it("informs the browser about a logged-in user", async () => {
@@ -93,6 +91,11 @@ describe("Authenticate", () => {
       {},
     );
     initialState = store.getState();
+
+    expectAuthenticatedUser = expectAuthenticatedUserFactory(
+      store,
+      initialState,
+    );
   };
 });
 

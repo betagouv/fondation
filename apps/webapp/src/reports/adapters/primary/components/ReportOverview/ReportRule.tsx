@@ -49,7 +49,11 @@ export const ReportRule = <R extends NominationFile.RuleName>({
             <Tooltip
               kind="hover"
               id={`${ruleName}-hint`}
-              title={hint}
+              title={
+                <div className="whitespace-pre-line">
+                  {typeof hint === "string" ? <p>{hint}</p> : hint}
+                </div>
+              }
               style={{
                 alignSelf: "flex-end",
               }}

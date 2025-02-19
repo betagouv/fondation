@@ -6,11 +6,13 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "./updateReportRule.use-case";
+import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
 
 describe("Report Rule Update", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let expectReports: ExpectReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -23,6 +25,8 @@ describe("Report Rule Update", () => {
       {},
     );
     initialState = store.getState();
+
+    expectReports = expectReportsFactory(store, initialState);
   });
 
   it("switch the transfer time rule from unvalidated to validated", async () => {
@@ -35,23 +39,15 @@ describe("Report Rule Update", () => {
         validated: true,
       }),
     );
-    expect(store.getState()).toEqual<AppState>({
-      ...initialState,
-      reportOverview: {
-        ...initialState.reportOverview,
-        byIds: {
-          [aReport.id]: {
-            ...aReport,
-            rules: {
-              ...aReport.rules,
-              management: {
-                ...aReport.rules.management,
-                TRANSFER_TIME: {
-                  ...aReport.rules.management.TRANSFER_TIME,
-                  validated: true,
-                },
-              },
-            },
+    expectReports({
+      ...aReport,
+      rules: {
+        ...aReport.rules,
+        management: {
+          ...aReport.rules.management,
+          TRANSFER_TIME: {
+            ...aReport.rules.management.TRANSFER_TIME,
+            validated: true,
           },
         },
       },

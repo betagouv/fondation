@@ -10,12 +10,18 @@ import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";
+import { RulesLabelsMap } from "../../labels/rules-labels";
 
 const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],
 } as const satisfies AllRulesMap;
+const testRulesLabelsMap: RulesLabelsMap<typeof testRulesMap> = {
+  [NominationFile.RuleGroup.MANAGEMENT]: {},
+  [NominationFile.RuleGroup.STATUTORY]: {},
+  [NominationFile.RuleGroup.QUALITATIVE]: {},
+};
 
 describe("Report Overview Component - Magistrate identity", () => {
   let store: ReduxStore;
@@ -34,6 +40,7 @@ describe("Report Overview Component - Magistrate identity", () => {
       {},
       undefined,
       testRulesMap,
+      testRulesLabelsMap,
       [],
       new Date(2020, 0, 1),
     );

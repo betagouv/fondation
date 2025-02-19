@@ -12,7 +12,7 @@ import { listReport } from "./listReport.use-case";
 
 describe("Reports Listing", () => {
   let store: ReduxStore;
-  let initialState: AppState;
+  let initialState: AppState<true>;
   let authenticationGateway: ApiAuthenticationGateway;
   let reportApiClient: FakeReportApiClient;
   let apiClient: FakeAuthenticationApiClient;
@@ -52,7 +52,7 @@ describe("Reports Listing", () => {
 
       it("lists the report", async () => {
         await store.dispatch(listReport());
-        expect(store.getState()).toEqual<AppState>({
+        expect(store.getState()).toEqual<AppState<true>>({
           ...initialState,
           reportList: {
             ...initialState.reportList,
