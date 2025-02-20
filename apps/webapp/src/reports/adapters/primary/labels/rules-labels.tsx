@@ -42,16 +42,6 @@ export type RulesLabelsMap<RulesMap extends AllRulesMap = AllRulesMap> = {
 
 export const allRulesLabelsMap: RulesLabelsMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: {
-    // supprimé ?
-    // [NominationFile.ManagementRule.CASSATION_COURT_NOMINATION]: {
-    //   label: "Nomination à la cour de cassation",
-    //   hint: ``,
-    // },
-    // supprimé ?
-    // [NominationFile.ManagementRule.GETTING_FIRST_GRADE]: {
-    //   label: "Passer au 1er grade",
-    //   hint: ``,
-    // },
     [NominationFile.ManagementRule.TRANSFER_TIME]: {
       label: "Mutation avant 3 ans",
       hint: (
@@ -72,62 +62,10 @@ export const allRulesLabelsMap: RulesLabelsMap = {
         </div>
       ),
     },
-    // supprimé ?
-    // [NominationFile.ManagementRule.GETTING_GRADE_HH]: {
-    //   label: "Proposition de nomination à un poste HH",
-    //   hint: (
-    //     <div>
-    //       <p>
-    //         <ul>
-    //           <li>
-    //             Pour les magistrats ayant pris leur premier poste avant le 1er
-    //             septembre 2020 :
-    //           </li>
-    //         </ul>
-    //         Le magistrat proposé doit avoir exercé au moins deux fonctions au
-    //         1er grade. Si ces deux fonctions sont juridictionnelles, elles
-    //         doivent avoir été exercées dans deux juridictions différentes, a
-    //         l'exception des conseillers référendaires et avocats généraux
-    //         référendaires.
-    //       </p>
-    //       <p>
-    //         <ul>
-    //           <li>
-    //             Pour les magistrats ayant pris leur premier poste après le 1er
-    //             septembre 2020 :
-    //           </li>
-    //         </ul>
-    //         Le magistrat proposé doit également avoir effectué une mobilité non
-    //         juridictionnelle (mise à disposition, détachement).
-    //       </p>
-    //       <p>Cf. liste des fonctions dans la magistrature.</p>
-    //     </div>
-    //   ),
-    // },
     [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]: {
       label: "Avancement sur place",
       hint: `Par principe, la mobilité géographique est privilégiée pour réaliser un avancement (1er grade, HH). Les motivations des dérogations sont à vérifier dans la note de présentation DSJ.`,
     },
-    // supprimé ?
-    //     [NominationFile.ManagementRule.PROFILED_POSITION]: {
-    //       label: "Proposition d'avancement sans inscription au tableau",
-    //       hint: `Le magistrat proposé doit être inscrit au tableau pour prendre son grade.
-
-    // A vérifier dans l'espace LOLFI du magistrat proposé`,
-    //     },
-    // supprimé ?
-    // [NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS]: {
-    //   label: 'Être muté "d\'Outremer sur Outremer"',
-    //   hint: ``,
-    // },
-    // supprimé ?
-    // fusionné avec NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-    // [NominationFile.ManagementRule
-    //   .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: {
-    //   label:
-    //     "Passer du siège au parquet tout en passant d'un TJ à une CA (ou l'inverse)",
-    //   hint: ``,
-    // },
     [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]: {
       label: "Passage parquet / siège ou inversement au sein d'un même ressort",
       hint: `Au sein d'une même cour d'appel, passage du siège au parquet entre le TJ et la CA et inversement.
@@ -287,10 +225,5 @@ Voir rubrique dossier > E - Evaluations dans LOLFI.`,
       label: "Éléments disciplinaires",
       hint: `Voir rubrique dossier > C - incidents, discipline dans LOLFI.`,
     },
-    // supprimé ?
-    // [NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS]: {
-    //   label: "Conditions de nomination HH",
-    //   hint: ``,
-    // },
   },
 };

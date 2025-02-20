@@ -68,7 +68,6 @@ export class ReportVM<
   };
 
   static commentLabel = "Rapport";
-  static commentPlaceholder = "Pas de commentaire";
   static biographyLabel = "Biographie";
   static observersLabel = "Observants";
   static attachedFilesLabel = "Ajouter des pièces jointes";

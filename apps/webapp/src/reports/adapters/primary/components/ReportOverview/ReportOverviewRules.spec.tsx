@@ -121,11 +121,10 @@ describe("Report Overview Component - Rules use cases", () => {
 
           await userEvent.hover(await findTooltip());
 
-          // On teste la présence de cette classe car un 'aria-hidden' à 'true'
-          // persiste lorsque le tooltip est visible.
-          expect(await screen.findByText(ruleLabels.hint)).toHaveClass(
-            "fr-tooltip--shown",
-          );
+          await screen.findByText(ruleLabels.hint);
+          // On teste la présence de cette classe car un 'aria-hidden'
+          // à 'true' persiste lorsque le tooltip est visible.
+          expect(await findTooltip()).toHaveClass("fr-tooltip--shown");
         });
 
         const findTooltip = () =>
