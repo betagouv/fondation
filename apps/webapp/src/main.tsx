@@ -52,7 +52,6 @@ const store = initReduxStore<false>(
     routeToComponentFactory: useRouteToComponentFactory,
     routeChangedHandler: useRouteChanged,
   },
-
   {
     initializeAuthenticationState,
     redirectOnRouteChange,

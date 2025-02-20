@@ -36,6 +36,7 @@ export const ReportStateTag: FC<ReportStateTagProps> = ({ state }) => {
 
   return (
     <Tag
+      className="text-nowrap"
       style={{
         backgroundColor: activeSpec.backgroundColor,
       }}
