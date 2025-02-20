@@ -8,6 +8,7 @@ export const AutoSaveNotice: React.FC = () => (
     className={cx(
       "fr-col-11",
       "fr-col-md-10",
+      "fr-col-xl-11",
       "fr-px-4w",
       "fr-py-3w",
       "fr-my-7w",

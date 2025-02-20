@@ -1,5 +1,5 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
-import { allRulesMap, AllRulesMap, NominationFile } from "shared-models";
+import { allRulesMapV2, AllRulesMapV2, NominationFile } from "shared-models";
 import { AuthenticationGateway } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { loginNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/loginNotifier.middleware";
 import { logoutNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/logoutNotifier.middleware";
@@ -98,8 +98,8 @@ export const initReduxStore = <IsTest extends boolean = true>(
     : NestedPrimaryAdapters,
   listeners?: IsTest extends true ? Partial<AppListeners> : AppListeners,
   routeToComponentMap: RouteToComponentMap = routeToReactComponentMap,
-  rulesMap: AllRulesMap = isProduction
-    ? allRulesMap
+  rulesMap: AllRulesMapV2 = isProduction
+    ? allRulesMapV2
     : {
         [NominationFile.RuleGroup.MANAGEMENT]: [],
         [NominationFile.RuleGroup.STATUTORY]: [],

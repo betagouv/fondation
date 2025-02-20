@@ -1,6 +1,6 @@
 import _ from "lodash";
 import {
-  AllRulesMap,
+  AllRulesMapV2,
   Magistrat,
   NominationFile,
   RulesBuilder,
@@ -23,7 +23,7 @@ export class ReportBuilder {
   private _report: InternalReport;
 
   constructor(
-    rulesMap: AllRulesMap = {
+    rulesMap: AllRulesMapV2 = {
       [NominationFile.RuleGroup.MANAGEMENT]: [],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
@@ -126,7 +126,7 @@ export class ReportBuilder {
 }
 
 class RulesFromMapBuilder extends RulesBuilder {
-  constructor(rulesMap: AllRulesMap) {
+  constructor(rulesMap: AllRulesMapV2) {
     super(
       ({ ruleName }) => ({
         id: `${ruleName}-id`,

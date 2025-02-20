@@ -1,3 +1,4 @@
+import { NominationFile } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 export type UpdateReportRuleParams = {
@@ -15,13 +16,38 @@ export const updateReportRule = createAppAsyncThunk<
   async (
     { reportId, ruleId, validated },
     {
+      getState,
       extra: {
-        gateways: { reportGateway: reportGateway },
+        gateways: { reportGateway },
       },
     },
   ) => {
+    console.log("getting state");
+    const report = getState().reportOverview.byIds?.[reportId];
+    console.log(
+      "report",
+      report?.rules[NominationFile.RuleGroup.MANAGEMENT][
+        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+      ].id,
+      ruleId,
+    );
+    if (
+      report &&
+      report.rules[NominationFile.RuleGroup.MANAGEMENT][
+        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+      ].id === ruleId
+    ) {
+      console.log("merging");
+      const mergedRuleId =
+        report.rules[NominationFile.RuleGroup.MANAGEMENT][
+          NominationFile.ManagementRule
+            .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
+        ].id;
+      await reportGateway.updateRule(mergedRuleId, validated);
+    }
+
+    console.log("updating");
     await reportGateway.updateRule(ruleId, validated);
-    // TODO: React to the updateReport.fulfilled action to dispath a retrieve use case with a listener
     return { reportId, ruleId, validated };
   },
 );

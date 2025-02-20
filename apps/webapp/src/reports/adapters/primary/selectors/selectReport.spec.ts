@@ -1,4 +1,4 @@
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { ConditionalExcept } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../../store/appState";
@@ -35,7 +35,7 @@ describe("Select Report", () => {
       ],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
-    } satisfies AllRulesMap;
+    } satisfies AllRulesMapV2;
     const labelsRulesMap: RulesLabelsMap<typeof testRulesMap> = {
       [NominationFile.RuleGroup.MANAGEMENT]: {
         [NominationFile.ManagementRule.TRANSFER_TIME]: {
@@ -232,7 +232,7 @@ describe("Select Report", () => {
       ],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
-    } satisfies AllRulesMap;
+    } satisfies AllRulesMapV2;
 
     const mergedReportVMBuilder = (report: ReportSM) =>
       ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
@@ -309,7 +309,7 @@ describe("Select Report - Summary and Age", () => {
     [NominationFile.RuleGroup.MANAGEMENT]: [],
     [NominationFile.RuleGroup.STATUTORY]: [],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
-  } as const satisfies AllRulesMap;
+  } as const satisfies AllRulesMapV2;
   const emptyLabelsRulesMap: RulesLabelsMap<typeof emptyTestRulesMap> = {
     [NominationFile.RuleGroup.MANAGEMENT]: {},
     [NominationFile.RuleGroup.STATUTORY]: {},

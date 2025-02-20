@@ -1,4 +1,4 @@
-import { allRulesMap } from "./nomination-file";
+import { allRulesMapV2, allRulesMapV1 } from "./nomination-file";
 import { NominationFile } from "./nomination-file.namespace";
 import { Get, Paths } from "type-fest";
 import _ from "lodash";
@@ -14,7 +14,7 @@ export abstract class RulesBuilder<T = NominationFile.RuleValue> {
   constructor(
     defaultRuleValue: T | RuleFunction<T>,
     initialRules?: NominationFile.Rules<T>,
-    rulesMap = allRulesMap
+    rulesMap = allRulesMapV1
   ) {
     const rules = Object.entries(rulesMap).reduce(
       (acc, [ruleGroup, ruleNames]) => {

@@ -7,13 +7,16 @@ import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { deleteReportAttachedFile } from "./delete-report-attached-file";
-import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
+import {
+  ExpectStoredReports,
+  expectStoredReportsFactory,
+} from "../../../../test/reports";
 
 describe("Delete Report Attached File", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
-  let expectReports: ExpectReports;
+  let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -29,7 +32,7 @@ describe("Delete Report Attached File", () => {
     );
     initialState = store.getState();
 
-    expectReports = expectReportsFactory(store, initialState);
+    expectStoredReports = expectStoredReportsFactory(store, initialState);
 
     store.dispatch(retrieveReport.fulfilled(aReport, "", aReport.id));
   });
@@ -42,7 +45,7 @@ describe("Delete Report Attached File", () => {
       }),
     );
 
-    expectReports({
+    expectStoredReports({
       ...aReport,
       attachedFiles: [],
     });

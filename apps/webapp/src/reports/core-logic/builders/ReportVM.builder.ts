@@ -1,6 +1,6 @@
 import _ from "lodash";
 import {
-  AllRulesMap,
+  AllRulesMapV2,
   Magistrat,
   NominationFile,
   Transparency,
@@ -12,14 +12,14 @@ import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
 import { getReportAccordionLabel } from "./ReportVMRules.builder";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 
-type InternalReportVM<RulesMap extends AllRulesMap> = Omit<
+type InternalReportVM<RulesMap extends AllRulesMapV2> = Omit<
   SetOptional<ReportVM<RulesMap>, "rulesChecked">,
   "dueDate"
 > & {
   dueDate: DateOnly | null;
 };
 
-export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
+export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
   private _reportVM: InternalReportVM<RulesMap>;
 
   constructor(summarySections?: SummarySection[]) {
@@ -121,7 +121,7 @@ export class ReportBuilderVM<RulesMap extends AllRulesMap = AllRulesMap> {
     } as Record<G, typeof rulesGroup>;
   }
 
-  static fromStoreModel<R extends AllRulesMap = AllRulesMap>(
+  static fromStoreModel<R extends AllRulesMapV2 = AllRulesMapV2>(
     reportStoreModel: ReportSM,
     summarySections?: SummarySection[],
     currentDate: DateOnly = DateOnly.now(),

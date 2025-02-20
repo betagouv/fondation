@@ -2,7 +2,7 @@ import { startReactDsfr } from "@codegouvfr/react-dsfr/spa";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { allRulesMap } from "shared-models";
+import { allRulesMapV2 } from "shared-models";
 import App from "./App.tsx";
 import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
 import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
@@ -61,7 +61,7 @@ const store = initReduxStore<false>(
     reportFileAttached,
   },
   routeToReactComponentMap,
-  allRulesMap,
+  allRulesMapV2,
   allRulesLabelsMap,
 );
 

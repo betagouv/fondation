@@ -1,7 +1,7 @@
 import { render, RenderResult, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
   ReportApiModel,
@@ -40,7 +40,7 @@ describe("Report Overview Component - Rules use cases", () => {
     ],
     [NominationFile.RuleGroup.STATUTORY]: [],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
-  } as const satisfies AllRulesMap;
+  } as const satisfies AllRulesMapV2;
 
   const rulesMapWithMinisterCabinet = {
     [NominationFile.RuleGroup.MANAGEMENT]: [],
@@ -48,7 +48,7 @@ describe("Report Overview Component - Rules use cases", () => {
       NominationFile.StatutoryRule.MINISTER_CABINET,
     ],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
-  } as const satisfies AllRulesMap;
+  } as const satisfies AllRulesMapV2;
 
   const testParams = [
     {
@@ -227,7 +227,7 @@ describe("Report Overview Component - Rules use cases", () => {
       ],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
-    } as const satisfies AllRulesMap;
+    } as const satisfies AllRulesMapV2;
     const multipleRulesLabelsMap: RulesLabelsMap<typeof multipleRulesMap> = {
       [NominationFile.RuleGroup.MANAGEMENT]: {
         [NominationFile.ManagementRule.TRANSFER_TIME]: {
@@ -262,7 +262,7 @@ describe("Report Overview Component - Rules use cases", () => {
     });
   });
 
-  const initStore = <T extends AllRulesMap>(
+  const initStore = <T extends AllRulesMapV2>(
     rulesMap?: T,
     rulesLabelsMap?: RulesLabelsMap<T>,
   ) =>

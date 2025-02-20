@@ -31,7 +31,7 @@ describe("Select Report List", () => {
   });
 
   it("shows an empty list", () => {
-    expectReports([]);
+    expectStoredReports([]);
   });
 
   describe("when there are many reports", () => {
@@ -56,7 +56,7 @@ describe("Select Report List", () => {
         reportListTableLabels.headers.deadline,
         reportListTableLabels.headers.formation,
       ];
-      expectReports(
+      expectStoredReports(
         [aReportVM, aThirdReportVM, aSecondReportVM],
         undefined,
         headers,
@@ -65,7 +65,7 @@ describe("Select Report List", () => {
     });
 
     it("selects the sorted list by transparency then folder number", () => {
-      expectReports([
+      expectStoredReports([
         aReportVM,
         aThirdReportVM,
         aSecondReportVM,
@@ -77,7 +77,7 @@ describe("Select Report List", () => {
       store.dispatch(
         reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
       );
-      expectReports([aReportVM], {
+      expectStoredReports([aReportVM], {
         state: NominationFile.ReportState.READY_TO_SUPPORT,
       });
     });
@@ -88,7 +88,7 @@ describe("Select Report List", () => {
       );
       store.dispatch(reportsFilteredByState("all"));
 
-      expectReports([
+      expectStoredReports([
         aReportVM,
         aThirdReportVM,
         aSecondReportVM,
@@ -97,7 +97,7 @@ describe("Select Report List", () => {
     });
   });
 
-  const expectReports = (
+  const expectStoredReports = (
     reports: ReportListItemVMSerializable[],
     filters: ReportListVM["filters"] = {
       state: "all",

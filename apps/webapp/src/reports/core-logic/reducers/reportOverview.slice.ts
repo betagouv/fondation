@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 import { AppState } from "../../../store/appState";
 import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
@@ -12,7 +12,7 @@ import { updateReport } from "../use-cases/report-update/updateReport.use-case";
 
 export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
-  rulesMap: AllRulesMap,
+  rulesMap: AllRulesMapV2,
   rulesLabelsMap: IsTest extends true
     ? RulesLabelsMap<{
         [NominationFile.RuleGroup.MANAGEMENT]: [];
@@ -59,6 +59,36 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
           Object.entries(report.rules).forEach(([ruleGroup, ruleEntry]) => {
             Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
               if (rule.id === ruleId) {
+                console.log(
+                  ruleName,
+                  (
+                    report.rules[
+                      ruleGroup as NominationFile.RuleGroup
+                    ] as Record<
+                      NominationFile.RuleName,
+                      NominationFile.RuleValue
+                    >
+                  )[ruleName as NominationFile.RuleName].id,
+                  validated,
+                );
+
+                if (
+                  ruleName ===
+                  NominationFile.ManagementRule
+                    .JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+                ) {
+                  if (!state.byIds![reportId]) return;
+
+                  const mergedRuleValue =
+                    state.byIds![reportId].rules[
+                      NominationFile.RuleGroup.MANAGEMENT
+                    ][
+                      NominationFile.ManagementRule
+                        .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
+                    ];
+                  mergedRuleValue.validated = validated;
+                }
+
                 state.byIds![reportId] = {
                   ...report,
                   rules: {

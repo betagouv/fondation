@@ -1,8 +1,8 @@
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { NonEmptyTuple } from "type-fest";
 
 type GroupLabels<
-  RulesMap extends AllRulesMap,
+  RulesMap extends AllRulesMapV2,
   RuleGroup extends NominationFile.RuleGroup,
   ExcludedRules extends NominationFile.RuleName = never,
 > =
@@ -18,7 +18,7 @@ type GroupLabels<
       }
     : undefined;
 
-export type RulesLabelsMap<RulesMap extends AllRulesMap = AllRulesMap> = {
+export type RulesLabelsMap<RulesMap extends AllRulesMapV2 = AllRulesMapV2> = {
   [NominationFile.RuleGroup.MANAGEMENT]: GroupLabels<
     RulesMap,
     NominationFile.RuleGroup.MANAGEMENT,
@@ -46,19 +46,23 @@ export const allRulesLabelsMap: RulesLabelsMap = {
       label: "Mutation avant 3 ans",
       hint: (
         <div>
-          <p>
+          <p key="p1">
             Un magistrat est, par principe, dans l'obligation de rester 3 ans
             dans ses fonctions avant nouvelle mobilité. Exceptions possibles à
             justifier (voir note de présentation DSJ).
           </p>
-          <p>
+          <p key="p2">
             Date de prise de poste pressentie - Date de prise de poste ≥ 3 ans
-            <ul>
-              <li>Si OK pas d'erreur</li>
-              <li>Si KO erreur</li>
-            </ul>
           </p>
-          <p>Non bloquant car exceptions possibles à justifier.</p>
+          <ul key="ul">
+            <li key="no-error">
+              <p>Si OK pas d'erreur</p>
+            </li>
+            <li key="error">
+              <p>Si KO erreur</p>
+            </li>
+          </ul>
+          <p key="p3">Non bloquant car exceptions possibles à justifier.</p>
         </div>
       ),
     },
@@ -79,11 +83,21 @@ Passage du siège au parquet (ou inversement) entre 2 TJ du ressort d'une même 
     [NominationFile.StatutoryRule.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION]: {
       label:
         "Passage parquet / siège ou inversement au sein d'une même juridiction en moins de 5 ans",
-      hint: `Passage du siège au parquet ou inversement au sein d'une même juridiction, sans l'avoir quitté dans les 5 ans.
-
-⚠️ biographie.
-
-Cf. liste des fonctions dans la magistrature.`,
+      hint: (
+        <div>
+          <p key="p1">
+            Passage du siège au parquet ou inversement au sein d'une même
+            juridiction, sans l'avoir quitté dans les 5 ans.
+          </p>
+          <p key="p2">
+            <span key="warning" role="img" aria-label="warning">
+              ⚠️
+            </span>{" "}
+            biographie.
+          </p>
+          <p key="p3">Cf. liste des fonctions dans la magistrature.</p>
+        </div>
+      ),
     },
     [NominationFile.StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS]: {
       label: "Avancement sur place après 7 ans",
@@ -111,30 +125,34 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       label: "Proposition de nomination à un poste HH",
       hint: (
         <div>
-          <p>
-            <ul>
-              <li>
+          <ul key="ul1">
+            <li>
+              <p>
                 Pour les magistrats ayant pris leur premier poste avant le 1er
                 septembre 2020 :
-              </li>
-            </ul>
+              </p>
+            </li>
+          </ul>
+          <p key="p1">
             Le magistrat proposé doit avoir exercé au moins deux fonctions au
             1er grade. Si ces deux fonctions sont juridictionnelles, elles
             doivent avoir été exercées dans deux juridictions différentes, a
             l'exception des conseillers référendaires et avocats généraux
             référendaires.
           </p>
-          <p>
-            <ul>
-              <li>
+          <ul key="ul2">
+            <li>
+              <p>
                 Pour les magistrats ayant pris leur premier poste après le 1er
                 septembre 2020 :
-              </li>
-            </ul>
+              </p>
+            </li>
+          </ul>
+          <p key="p2">
             Le magistrat proposé doit également avoir effectué une mobilité non
             juridictionnelle (mise à disposition, détachement).
           </p>
-          <p>Cf. liste des fonctions dans la magistrature.</p>
+          <p key="p3">Cf. liste des fonctions dans la magistrature.</p>
         </div>
       ),
     },
@@ -150,26 +168,28 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       label: "Conflit d'intérêt avec parcours pré-magistrature",
       hint: (
         <div>
-          <p>
+          <p key="p1">
             On s'assure qu'il n'y a pas de proximité sectorielle et géographique
             avec un précédent poste exercé par le magistrat proposé, hors de la
             magistrature.
           </p>
-          <p>
-            Exemples de conflits d'intérêt :
-            <ul>
-              <li>
+          <p key="p2">Exemples de conflits d'intérêt :</p>
+          <ul key="ul">
+            <li key="li1">
+              <p>
                 Un ancien directeur de centre pénitentiaire sera difficilement
                 proposé pour un poste de juge d'application des peines dans la
                 même région.
-              </li>
-              <li>
+              </p>
+            </li>
+            <li key="li2">
+              <p>
                 Un ancien éducateur de la protection judiciaire de la jeunesse
                 sera difficilement proposé pour un poste de juge des enfants
                 dans la même région.
-              </li>
-            </ul>
-          </p>
+              </p>
+            </li>
+          </ul>
         </div>
       ),
     },
@@ -178,35 +198,43 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       label: "Conflit d'intérêt avec la profession d'un proche",
       hint: (
         <div>
-          <p>
-            <ul>
-              <li>Professions para-judiciaires :</li>
-            </ul>
+          <ul key="ul1">
+            <li>
+              <p>Professions para-judiciaires :</p>
+            </li>
+          </ul>
+          <p key="p1">
             On s'assure qu'il n'y a pas de proximité sectorielle et géographique
             avec un précédent poste exercé par le proche, hors de la
             magistrature.
           </p>
-          <p>Exemples de conflits d'intérêt :</p>
-          <p>
-            <ul>
-              <li>
-                <li>
-                  Une personne dont le proche est directeur de centre
-                  pénitentiaire sera difficilement proposé pour un poste de juge
-                  d'application des peines dans la même région.
-                </li>
-                <li>
-                  Une personne dont le proche est éducateur de la protection
-                  judiciaire de la jeunesse sera difficilement proposé pour un
-                  poste de juge des enfants dans la même région.
-                </li>
-              </li>
-            </ul>
-          </p>
-          <p>
-            <ul>
-              <li>Proche en poste dans le ressort de la cour d'appel :</li>
-            </ul>
+          <p key="p2">Exemples de conflits d'intérêt :</p>
+          <ul
+            key="ul2"
+            // Indentation de second niveau
+            style={{ listStyleType: "circle", paddingInlineStart: 40 }}
+          >
+            <li key="li1">
+              <p>
+                Une personne dont le proche est directeur de centre
+                pénitentiaire sera difficilement proposé pour un poste de juge
+                d'application des peines dans la même région.
+              </p>
+            </li>
+            <li key="li2">
+              <p>
+                Une personne dont le proche est éducateur de la protection
+                judiciaire de la jeunesse sera difficilement proposé pour un
+                poste de juge des enfants dans la même région.
+              </p>
+            </li>
+          </ul>
+          <ul key="ul3">
+            <li>
+              <p>Proche en poste dans le ressort de la cour d'appel :</p>
+            </li>
+          </ul>
+          <p key="p3">
             Si le magistrat proposé est pressenti pour un poste dans une
             juridiction du même ressort que celui où son proche est en poste, on
             s'assure de l'absence d'un lien hiérarchique.

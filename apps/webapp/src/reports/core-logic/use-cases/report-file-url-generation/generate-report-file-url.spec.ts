@@ -6,13 +6,16 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { generateReportFileUrl } from "./generate-report-file-url";
-import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
+import {
+  ExpectStoredReports,
+  expectStoredReportsFactory,
+} from "../../../../test/reports";
 
 describe("Generate Report File Url", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
-  let expectReports: ExpectReports;
+  let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -28,7 +31,7 @@ describe("Generate Report File Url", () => {
     );
     initialState = store.getState();
 
-    expectReports = expectReportsFactory(store, initialState);
+    expectStoredReports = expectStoredReportsFactory(store, initialState);
   });
 
   it("generates a report file url", async () => {
@@ -39,7 +42,7 @@ describe("Generate Report File Url", () => {
         fileName: "file.txt",
       }),
     );
-    expectReports({
+    expectStoredReports({
       ...aReport,
       attachedFiles: [
         {

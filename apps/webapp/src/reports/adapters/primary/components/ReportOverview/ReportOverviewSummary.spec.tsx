@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
   ReportApiModel,
@@ -17,7 +17,7 @@ const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],
-} as const satisfies AllRulesMap;
+} as const satisfies AllRulesMapV2;
 
 describe("Report Overview Component - Summary use cases", () => {
   let store: ReduxStore;

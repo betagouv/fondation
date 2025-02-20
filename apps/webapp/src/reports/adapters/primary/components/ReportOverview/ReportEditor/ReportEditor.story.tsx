@@ -1,5 +1,5 @@
 import { Provider } from "react-redux";
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../../../store/reduxStore";
 import { ReportBuilder } from "../../../../../core-logic/builders/Report.builder";
 import { ReportApiModelBuilder } from "../../../../../core-logic/builders/ReportApiModel.builder";
@@ -17,7 +17,7 @@ declare const window: {
  * Because playwright runs a production build,
  * We need to explicitely provide an empty rules map.
  */
-const testRulesMap: AllRulesMap = {
+const testRulesMap: AllRulesMapV2 = {
   [NominationFile.RuleGroup.MANAGEMENT]: [],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],

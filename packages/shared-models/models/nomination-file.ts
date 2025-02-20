@@ -13,8 +13,8 @@ export const allRulesTuple = [
 ];
 
 //! La persistence des règles va être supprimée,
-//! et par conséquent le code dans l'API dépendant de cette constante.
-export const allRulesMapOld = {
+//! et par conséquent le code dans l'API dépendant des rules map.
+export const allRulesMapV1 = {
   [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
     NominationFile.ManagementRule
   ),
@@ -24,23 +24,6 @@ export const allRulesMapOld = {
   [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
     NominationFile.QualitativeRule
   ),
-};
-export const allRulesMap = {
-  [NominationFile.RuleGroup.MANAGEMENT]: [
-    NominationFile.ManagementRule.TRANSFER_TIME,
-    NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
-    NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
-  ],
-  [NominationFile.RuleGroup.STATUTORY]: Object.values(
-    NominationFile.StatutoryRule
-  ),
-  [NominationFile.RuleGroup.QUALITATIVE]: [
-    NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE,
-    NominationFile.QualitativeRule
-      .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION,
-    NominationFile.QualitativeRule.EVALUATIONS,
-    NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS,
-  ],
 };
 
 export const allRulesMapV2 = {
@@ -61,5 +44,5 @@ export const allRulesMapV2 = {
   ],
 };
 
-export type AllRulesMap = typeof allRulesMapV2;
+export type AllRulesMapV1 = typeof allRulesMapV1;
 export type AllRulesMapV2 = typeof allRulesMapV2;

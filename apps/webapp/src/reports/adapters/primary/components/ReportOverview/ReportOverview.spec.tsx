@@ -1,13 +1,13 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AllRulesMap, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import sharp from "sharp";
 import { AppState } from "../../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
-  ExpectReports,
-  expectReportsFactory,
+  ExpectStoredReports,
+  expectStoredReportsFactory,
 } from "../../../../../test/reports";
 import { ReportBuilder } from "../../../../core-logic/builders/Report.builder";
 import {
@@ -28,7 +28,7 @@ const testRulesMap = {
   ],
   [NominationFile.RuleGroup.STATUTORY]: [],
   [NominationFile.RuleGroup.QUALITATIVE]: [],
-} as const satisfies AllRulesMap;
+} as const satisfies AllRulesMapV2;
 
 const testRulesLabelsMap: RulesLabelsMap<typeof testRulesMap> = {
   [NominationFile.RuleGroup.MANAGEMENT]: {
@@ -50,7 +50,7 @@ describe("Report Overview Component", () => {
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let reportApiModelBuilder: ReportApiModelBuilder;
-  let expectReports: ExpectReports;
+  let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -69,7 +69,7 @@ describe("Report Overview Component", () => {
     initialState = store.getState();
 
     reportApiModelBuilder = new ReportApiModelBuilder(testRulesMap);
-    expectReports = expectReportsFactory(store, initialState);
+    expectStoredReports = expectStoredReportsFactory(store, initialState);
   });
 
   it("shows a message if no report found", async () => {
@@ -104,7 +104,7 @@ describe("Report Overview Component", () => {
       );
 
       await waitFor(() => {
-        expectReports(expectedReportVM);
+        expectStoredReports(expectedReportVM);
       });
     });
 
@@ -166,7 +166,7 @@ describe("Report Overview Component", () => {
         const input = await screen.findByLabelText(/^Formats supportés.*/);
         await userEvent.upload(input, file);
 
-        expectReports({
+        expectStoredReports({
           ...aReportVM,
           attachedFiles: [
             {

@@ -5,13 +5,16 @@ import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "./retrieveReport.use-case";
-import { ExpectReports, expectReportsFactory } from "../../../../test/reports";
+import {
+  ExpectStoredReports,
+  expectStoredReportsFactory,
+} from "../../../../test/reports";
 
 describe("Retrieve report", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
-  let expectReports: ExpectReports;
+  let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -25,13 +28,13 @@ describe("Retrieve report", () => {
     );
     initialState = store.getState();
 
-    expectReports = expectReportsFactory(store, initialState);
+    expectStoredReports = expectStoredReportsFactory(store, initialState);
   });
 
   it("retrieve a report", async () => {
     reportApiClient.addReports(aReportApiModel);
     await store.dispatch(retrieveReport("report-id"));
-    expectReports(aReport);
+    expectStoredReports(aReport);
   });
 
   it("has two reports in the store after retrieving a second one", async () => {
@@ -40,7 +43,7 @@ describe("Retrieve report", () => {
 
     await store.dispatch(retrieveReport("report-id"));
 
-    expectReports(aReport, anotherReport);
+    expectStoredReports(aReport, anotherReport);
   });
 });
 

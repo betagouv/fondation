@@ -1,5 +1,10 @@
 import _ from 'lodash';
-import { Magistrat, NominationFile, RulesBuilder } from 'shared-models';
+import {
+  allRulesMapV1,
+  Magistrat,
+  NominationFile,
+  RulesBuilder,
+} from 'shared-models';
 import {
   DateOnly,
   gsheetDateFormat,
@@ -261,12 +266,16 @@ class NominationFileTsvRulesBuilder extends RulesBuilder<string> {
   static fromRead(
     rules: NominationFileRead['content']['rules'],
   ): NominationFileTsvRulesBuilder {
-    return new NominationFileTsvRulesBuilder(({ ruleGroup, ruleName }) => {
-      const ruleValue = (
-        rules[ruleGroup] as Record<NominationFile.RuleName, boolean>
-      )[ruleName];
+    return new NominationFileTsvRulesBuilder(
+      ({ ruleGroup, ruleName }) => {
+        const ruleValue = (
+          rules[ruleGroup] as Record<NominationFile.RuleName, boolean>
+        )[ruleName];
 
-      return ruleValue ? 'TRUE' : 'FALSE';
-    });
+        return ruleValue ? 'TRUE' : 'FALSE';
+      },
+      undefined,
+      allRulesMapV1,
+    );
   }
 }

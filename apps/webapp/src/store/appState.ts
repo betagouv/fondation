@@ -1,5 +1,5 @@
 import {
-  AllRulesMap,
+  AllRulesMapV2,
   AttachedFileVM,
   Magistrat,
   NominationFile,
@@ -52,7 +52,7 @@ export interface AppState<IsTest extends boolean = false> {
   reportOverview: {
     summarySections: SummarySection[];
     byIds: Record<string, ReportSM> | null;
-    rulesMap: AllRulesMap;
+    rulesMap: AllRulesMapV2;
     rulesLabelsMap: IsTest extends true
       ? RulesLabelsMap<{
           [NominationFile.RuleGroup.MANAGEMENT]: [];

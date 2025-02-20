@@ -1,6 +1,6 @@
 import _ from "lodash";
 import {
-  AllRulesMap,
+  AllRulesMapV2,
   Magistrat,
   NominationFile,
   ReportListItemVM,
@@ -17,7 +17,7 @@ export class ReportApiModelBuilder {
   private _report: ReportApiModel;
 
   constructor(
-    rulesMap: AllRulesMap = {
+    rulesMap: AllRulesMapV2 = {
       [NominationFile.RuleGroup.MANAGEMENT]: [],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
@@ -134,13 +134,13 @@ export class ReportApiModelBuilder {
     } as Record<G, typeof rulesGroup>;
   }
 
-  static fromRulesMap(rulesMap: AllRulesMap) {
+  static fromRulesMap(rulesMap: AllRulesMapV2) {
     return new ReportApiModelBuilder(rulesMap);
   }
 }
 
 class RulesFromMapBuilder extends RulesBuilder {
-  constructor(rulesMap: AllRulesMap) {
+  constructor(rulesMap: AllRulesMapV2) {
     super(
       ({ ruleName }) => ({
         id: `${ruleName}-id`,
