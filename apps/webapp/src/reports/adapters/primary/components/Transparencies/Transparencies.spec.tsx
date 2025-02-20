@@ -166,7 +166,7 @@ describe("Transparencies Component", () => {
     it("always shows the CSM title", async () => {
       renderTransparencies();
       await screen.findByText("Pouvoir de proposition du CSM");
-      screen.getByText("En cours de construction");
+      screen.getByText("En cours de construction.");
     });
   });
 

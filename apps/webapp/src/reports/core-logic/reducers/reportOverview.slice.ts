@@ -59,19 +59,6 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
           Object.entries(report.rules).forEach(([ruleGroup, ruleEntry]) => {
             Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
               if (rule.id === ruleId) {
-                console.log(
-                  ruleName,
-                  (
-                    report.rules[
-                      ruleGroup as NominationFile.RuleGroup
-                    ] as Record<
-                      NominationFile.RuleName,
-                      NominationFile.RuleValue
-                    >
-                  )[ruleName as NominationFile.RuleName].id,
-                  validated,
-                );
-
                 if (
                   ruleName ===
                   NominationFile.ManagementRule

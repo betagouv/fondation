@@ -82,6 +82,7 @@ export interface AppState<IsTest extends boolean = false> {
     };
     anchorsAttributes: {
       reportOverview: RouterProvider["getReportOverviewAnchorAttributes"];
+      login: RouterProvider["getLoginAnchorAttributes"];
     };
     routeToComponent: ReturnType<RouteToComponentFactory>;
     routeChangedHandler: RouteChangedHandler;

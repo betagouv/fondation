@@ -26,6 +26,12 @@ export const createRouterSlice = ({
             href: "",
             onClick: () => {},
           })),
+        login:
+          routerProvider?.getLoginAnchorAttributes ??
+          (() => ({
+            href: "",
+            onClick: () => {},
+          })),
       },
       routeToComponent: routeToComponent ?? (() => () => null),
       routeChangedHandler: routeChangedHandler ?? (() => {}),

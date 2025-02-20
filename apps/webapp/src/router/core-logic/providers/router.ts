@@ -15,4 +15,8 @@ export interface RouterProvider {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
+  getLoginAnchorAttributes: () => {
+    href: string;
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  };
 }

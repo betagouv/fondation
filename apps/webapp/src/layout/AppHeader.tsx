@@ -4,12 +4,12 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../reports/adapters/primary/hooks/react-redux";
-import { selectLoginHref } from "../router/adapters/selectors/selectLoginHref";
+import { selectLoginAnchorAttributes } from "../router/adapters/selectors/selectLoginAnchorAttributes";
 
 export const AppHeader = () => {
   const dispatch = useAppDispatch();
 
-  const loginHref = useAppSelector(selectLoginHref);
+  const loginHref = useAppSelector(selectLoginAnchorAttributes);
 
   const onClickLogout = () => {
     dispatch(logout());
@@ -26,7 +26,7 @@ export const AppHeader = () => {
         </>
       }
       homeLinkProps={{
-        href: loginHref,
+        ...loginHref,
         title: "Mes rapports",
       }}
       quickAccessItems={[

@@ -7,21 +7,22 @@ import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-trans
 export const routeSegments = {
   propositionduGardeDesSceaux: "pouvoir-de-proposition-du-garde-des-sceaux",
   transparences: "transparences",
-  dossierDeNomination: "dossiers-de-nomination",
+  dossiersDeNomination: "dossiers-de-nomination",
+  rapports: "rapports",
 };
 
 const { RouteProvider, useRoute, routes, session } = createRouter({
   login: defineRoute("/login"),
   transparencies: defineRoute([
     `/${routeSegments.transparences}`,
-    `/${routeSegments.dossierDeNomination}`,
+    `/${routeSegments.dossiersDeNomination}`,
   ]),
   reportList: defineRoute(
     {
       transparency: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.dossierDeNomination}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}`,
   ),
   reportOverview: defineRoute(
     {
@@ -29,7 +30,7 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
       id: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.dossierDeNomination}/${p.id}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}/${p.id}`,
   ),
 });
 
@@ -58,5 +59,8 @@ export class TypeRouterProvider implements RouterProvider {
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
       id,
     }).link;
+  }
+  getLoginAnchorAttributes() {
+    return routes.login().link;
   }
 }

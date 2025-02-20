@@ -229,7 +229,7 @@ describe("App Router Component", () => {
   };
 });
 
-const baseTransaparencySegment = `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/parquet-du-06-fevrier-2025/${routeSegments.dossierDeNomination}`;
+const baseTransaparencySegment = `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/parquet-du-06-fevrier-2025/${routeSegments.rapports}`;
 
 const user: AuthenticatedUserSM = {
   firstName: "John",
