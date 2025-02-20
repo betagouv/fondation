@@ -5,6 +5,7 @@ import {
   ReportListVM,
 } from "../../selectors/selectReportList";
 import "./ReportsTable.css";
+import { ReportStateTag } from "./ReportStateTag";
 
 export type ReportsTableProps = {
   transparency?: Transparency;
@@ -29,7 +30,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
         </a>,
         <div>{report.grade}</div>,
         <div>{report.targettedPosition}</div>,
-        <div>{report.state}</div>,
+        <ReportStateTag state={report.state} />,
         <div>{report.observersCount}</div>,
         <div>{report.dueDate}</div>,
       ]

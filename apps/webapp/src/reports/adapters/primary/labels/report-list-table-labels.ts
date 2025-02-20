@@ -1,9 +1,9 @@
 export const reportListTableLabels = {
   headers: {
     folderNumber: "N° dossier",
-    magistrate: "Magistrat concerné",
+    magistrate: "Magistrat",
     currentGrade: "Grade actuel",
-    targetedPosition: "Poste ciblé",
+    targetedPosition: "Poste cible",
     status: "Statut",
     observers: "Observants",
     deadline: "Echéance",
