@@ -8,16 +8,13 @@ import {
   authenticate,
   AuthenticateParams,
 } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
+import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
-import { reportListFilters } from "../../labels/report-list-state-filter-labels.mapper";
 import { reportListTableLabels } from "../../labels/report-list-table-labels";
-import { reportStateFilterTitle } from "../../labels/state-filter-labels";
-import { stateToLabel } from "../../labels/state-label.mapper";
 import { ReportList } from "./ReportList";
-import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
@@ -61,21 +58,10 @@ describe("Report List Component", () => {
     await screen.findByText("Aucun rapport.");
   });
 
-  it("shows the state filters", async () => {
-    renderReportList();
-    await screen.findByText(reportListFilters.state.title);
-  });
-
   describe("when there is a report", () => {
     beforeEach(() => {
       givenAnAuthenticatedUser();
       reportApiClient.addReports(aReport);
-    });
-
-    it("has the state filter set to all by default", async () => {
-      renderReportList();
-      const select = await screen.findByLabelText(reportStateFilterTitle);
-      expect(select).toHaveValue("all");
     });
 
     it("shows the table header", async () => {
@@ -107,43 +93,6 @@ describe("Report List Component", () => {
     });
 
     describe("when there are multiple reports", () => {
-      it("shows the filter options in the right order", async () => {
-        renderReportList();
-        const select = await screen.findByLabelText(reportStateFilterTitle);
-        const options = Array.from(select.querySelectorAll("option")).map(
-          (option) => option.textContent,
-        );
-        expect(options).toEqual([
-          "Tous",
-          ...[
-            NominationFile.ReportState.NEW,
-            NominationFile.ReportState.IN_PROGRESS,
-            NominationFile.ReportState.READY_TO_SUPPORT,
-            NominationFile.ReportState.SUPPORTED,
-          ].map(stateToLabel),
-        ]);
-      });
-
-      it("filters the 'in progress' report", async () => {
-        reportApiClient.addReports(
-          new ReportApiModelBuilder()
-            .with("id", "in-progress-report-id")
-            .with("state", NominationFile.ReportState.IN_PROGRESS)
-            .with("name", "In Progress Report")
-            .build(),
-        );
-        renderReportList();
-        const select = await screen.findByLabelText(reportStateFilterTitle);
-
-        await userEvent.selectOptions(
-          select,
-          NominationFile.ReportState.IN_PROGRESS,
-        );
-        expect(select).toHaveValue(NominationFile.ReportState.IN_PROGRESS);
-        await screen.findByText("In Progress Report");
-        expect(screen.queryByText("John Doe")).toBeNull();
-      });
-
       it("hides the transparency column for a single transparency", async () => {
         renderReportList(aReport.transparency);
         await screen.findByText("John Doe");

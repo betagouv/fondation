@@ -9,9 +9,8 @@ import {
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import { ReportListStateFilter } from "../labels/report-list-state-filter-labels.mapper";
-import { stateToLabel } from "../labels/state-label.mapper";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
+import { stateToLabel } from "../labels/state-label.mapper";
 
 export type ReportListItemVM = {
   id: string;
@@ -30,9 +29,6 @@ export type ReportListItemVM = {
 
 export type ReportListVM = {
   reports: ReportListItemVM[];
-  filters: {
-    state: ReportListStateFilter;
-  };
   headers: string[];
 };
 
@@ -40,10 +36,9 @@ export const selectReportList = createAppSelector(
   [
     (state) => state.reportList.data,
     (state) => state.router.anchorsAttributes.reportOverview,
-    (state) => state.reportList.filters,
     (_, transparencyFilter?: Transparency) => transparencyFilter,
   ],
-  (data, getAnchorAttributes, filters, transparencyFilter): ReportListVM => {
+  (data, getAnchorAttributes, transparencyFilter): ReportListVM => {
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
@@ -56,8 +51,6 @@ export const selectReportList = createAppSelector(
       Transparency.MARCH_2026,
     ];
 
-    const { state: reportState } = filters;
-
     const sortedReports = _.orderBy(
       [...(data || [])],
       [
@@ -67,7 +60,6 @@ export const selectReportList = createAppSelector(
     );
 
     const reports = sortedReports
-      .filter(({ state }) => (reportState ? state === reportState : true))
       .filter(({ transparency }) =>
         transparencyFilter ? transparency === transparencyFilter : true,
       )
@@ -116,9 +108,6 @@ export const selectReportList = createAppSelector(
         .filter(([key]) => (transparencyFilter ? key !== "transparency" : true))
         .map(([, value]) => value),
       reports,
-      filters: {
-        state: reportState ?? "all",
-      },
     };
   },
 );

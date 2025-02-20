@@ -4,7 +4,6 @@ import { Transparency } from "shared-models";
 import { useAppSelector } from "../../hooks/react-redux";
 import { useReportsList } from "../../hooks/use-reports-list";
 import { selectReportList } from "../../selectors/selectReportList";
-import { ReportListFilters } from "./ReportListFilters";
 import { ReportsTable } from "./ReportsTable";
 
 export interface ReportListProps {
@@ -12,7 +11,7 @@ export interface ReportListProps {
 }
 
 export const ReportList: FC<ReportListProps> = ({ transparency }) => {
-  const { headers, reports, filters } = useAppSelector((state) =>
+  const { headers, reports } = useAppSelector((state) =>
     selectReportList(state, transparency),
   );
   useReportsList();
@@ -20,7 +19,6 @@ export const ReportList: FC<ReportListProps> = ({ transparency }) => {
   return (
     <div className="flex flex-col">
       <div className={cx("fr-h1", "fr-text--bold")}>Mes rapports</div>
-      <ReportListFilters filters={filters} />
       {reports.length ? (
         <ReportsTable
           transparency={transparency}

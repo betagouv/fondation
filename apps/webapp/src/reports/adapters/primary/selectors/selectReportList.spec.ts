@@ -3,7 +3,6 @@ import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvid
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
-import { reportsFilteredByState } from "../../../core-logic/reducers/reportList.slice";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import {
@@ -58,7 +57,6 @@ describe("Select Report List", () => {
       ];
       expectStoredReports(
         [aReportVM, aThirdReportVM, aSecondReportVM],
-        undefined,
         headers,
         aReport.transparency,
       );
@@ -72,36 +70,10 @@ describe("Select Report List", () => {
         aFourthDifferentTransparencyReportVM,
       ]);
     });
-
-    it("filters the reports ready to support", () => {
-      store.dispatch(
-        reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
-      );
-      expectStoredReports([aReportVM], {
-        state: NominationFile.ReportState.READY_TO_SUPPORT,
-      });
-    });
-
-    it("resets the state filter", () => {
-      store.dispatch(
-        reportsFilteredByState(NominationFile.ReportState.READY_TO_SUPPORT),
-      );
-      store.dispatch(reportsFilteredByState("all"));
-
-      expectStoredReports([
-        aReportVM,
-        aThirdReportVM,
-        aSecondReportVM,
-        aFourthDifferentTransparencyReportVM,
-      ]);
-    });
   });
 
   const expectStoredReports = (
     reports: ReportListItemVMSerializable[],
-    filters: ReportListVM["filters"] = {
-      state: "all",
-    },
     headers: ReportListVM["headers"] = allHeaders,
     transparency?: Transparency,
   ) => {
@@ -117,7 +89,6 @@ describe("Select Report List", () => {
     >({
       headers,
       reports,
-      filters,
     });
   };
 
