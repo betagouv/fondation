@@ -1,4 +1,3 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { FC } from "react";
 import { Transparency } from "shared-models";
 import { useAppSelector } from "../../hooks/react-redux";
@@ -11,14 +10,24 @@ export interface ReportListProps {
 }
 
 export const ReportList: FC<ReportListProps> = ({ transparency }) => {
-  const { headers, reports } = useAppSelector((state) =>
+  const { title, headers, reports } = useAppSelector((state) =>
     selectReportList(state, transparency),
   );
   useReportsList();
 
   return (
     <div className="flex flex-col">
-      <div className={cx("fr-h1", "fr-text--bold")}>Mes rapports</div>
+      <h1>
+        {title.map(({ text, color }) => (
+          <span
+            style={{
+              color,
+            }}
+          >
+            {text}
+          </span>
+        ))}
+      </h1>
       {reports.length ? (
         <ReportsTable
           transparency={transparency}

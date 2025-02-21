@@ -11,6 +11,7 @@ import {
 } from "../labels/labels-mappers";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
+import { colors } from "@codegouvfr/react-dsfr";
 
 export type ReportListItemVM = {
   id: string;
@@ -30,6 +31,7 @@ export type ReportListItemVM = {
 export type ReportListVM = {
   reports: ReportListItemVM[];
   headers: string[];
+  title: { text: string; color?: string }[];
 };
 
 export const selectReportList = createAppSelector(
@@ -37,8 +39,18 @@ export const selectReportList = createAppSelector(
     (state) => state.reportList.data,
     (state) => state.router.anchorsAttributes.reportOverview,
     (_, transparencyFilter?: Transparency) => transparencyFilter,
+    (
+      _,
+      __,
+      aTransparencyTitleMap: typeof transparencyTitleMap = transparencyTitleMap,
+    ) => aTransparencyTitleMap,
   ],
-  (data, getAnchorAttributes, transparencyFilter): ReportListVM => {
+  (
+    data,
+    getAnchorAttributes,
+    transparencyFilter,
+    aTransparencyTitleMap,
+  ): ReportListVM => {
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
@@ -108,6 +120,34 @@ export const selectReportList = createAppSelector(
         .filter(([key]) => (transparencyFilter ? key !== "transparency" : true))
         .map(([, value]) => value),
       reports,
+      title: transparencyFilter
+        ? [
+            {
+              text: "Rapports sur la ",
+            },
+            {
+              text: aTransparencyTitleMap[transparencyFilter],
+              color: colors.options.yellowTournesol.sun407moon922.hover,
+            },
+          ]
+        : [{ text: "Mes rapports" }],
     };
   },
 );
+
+const transparencyTitleMap: { [key in Transparency]: string } = {
+  [Transparency.AUTOMNE_2024]: "transparence d'automne 2024",
+  [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
+    "transparence PG du 08/11/2024",
+  [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
+    "transparence PG du 25/11/2024",
+  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
+    "transparence du 25/11/2024",
+  [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
+    "transparence du 21/01/2025",
+  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "transparence siège du 06/02/2025",
+  [Transparency.PARQUET_DU_06_FEVRIER_2025]:
+    "transparence parquet du 06/02/2025",
+  [Transparency.MARCH_2025]: "transparence de mars 2025",
+  [Transparency.MARCH_2026]: "transparence de mars 2026",
+};

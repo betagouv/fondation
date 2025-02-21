@@ -30,7 +30,12 @@ describe("Select Report List", () => {
   });
 
   it("shows an empty list", () => {
-    expectStoredReports([]);
+    expectStoredReports(selectReports(), []);
+  });
+
+  it("shows a report title", () => {
+    store.dispatch(listReport.fulfilled([aReport], "", undefined));
+    expectStoredReports(selectReports(), [aReportVM]);
   });
 
   describe("when there are many reports", () => {
@@ -45,25 +50,16 @@ describe("Select Report List", () => {
     });
 
     it("filters out the reports of a transparency", () => {
-      const headers: ReportListVM["headers"] = [
-        reportListTableLabels.headers.folderNumber,
-        reportListTableLabels.headers.magistrate,
-        reportListTableLabels.headers.currentGrade,
-        reportListTableLabels.headers.targetedPosition,
-        reportListTableLabels.headers.status,
-        reportListTableLabels.headers.observers,
-        reportListTableLabels.headers.deadline,
-        reportListTableLabels.headers.formation,
-      ];
       expectStoredReports(
+        selectReports(aReport.transparency),
         [aReportVM, aThirdReportVM, aSecondReportVM],
-        headers,
-        aReport.transparency,
+        perTransparencyHeaders,
+        expectedTransparencyTitle,
       );
     });
 
     it("selects the sorted list by transparency then folder number", () => {
-      expectStoredReports([
+      expectStoredReports(selectReports(), [
         aReportVM,
         aThirdReportVM,
         aSecondReportVM,
@@ -72,16 +68,19 @@ describe("Select Report List", () => {
     });
   });
 
+  const selectReports = (transparency?: Transparency) =>
+    selectReportList(store.getState(), transparency, transparencyTitleMap);
+
   const expectStoredReports = (
+    selectedReports: ReportListVM,
     reports: ReportListItemVMSerializable[],
     headers: ReportListVM["headers"] = allHeaders,
-    transparency?: Transparency,
+    title = [{ text: "Mes rapports" }],
   ) => {
-    const state = selectReportList(store.getState(), transparency);
     expect({
-      ...state,
+      ...selectedReports,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      reports: state.reports.map(({ onClick, ...report }) => report),
+      reports: selectedReports.reports.map(({ onClick, ...report }) => report),
     }).toEqual<
       Omit<ReportListVM, "reports"> & {
         reports: ReportListItemVMSerializable[];
@@ -89,6 +88,7 @@ describe("Select Report List", () => {
     >({
       headers,
       reports,
+      title,
     });
   };
 
@@ -173,3 +173,36 @@ describe("Select Report List", () => {
 });
 
 const allHeaders = Object.values(reportListTableLabels.headers);
+
+const perTransparencyHeaders: ReportListVM["headers"] = [
+  reportListTableLabels.headers.folderNumber,
+  reportListTableLabels.headers.magistrate,
+  reportListTableLabels.headers.currentGrade,
+  reportListTableLabels.headers.targetedPosition,
+  reportListTableLabels.headers.status,
+  reportListTableLabels.headers.observers,
+  reportListTableLabels.headers.deadline,
+  reportListTableLabels.headers.formation,
+];
+
+const transparencyTitleMap: { [key in Transparency]: string } = {
+  [Transparency.AUTOMNE_2024]: "transpa automne 2024",
+  [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]: "",
+  [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]: "",
+  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]: "",
+  [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]: "",
+  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "",
+  [Transparency.PARQUET_DU_06_FEVRIER_2025]: "",
+  [Transparency.MARCH_2025]: "",
+  [Transparency.MARCH_2026]: "",
+};
+
+const expectedTransparencyTitle = [
+  {
+    text: "Rapports sur la ",
+  },
+  {
+    text: "transpa automne 2024",
+    color: expect.any(String),
+  },
+];
