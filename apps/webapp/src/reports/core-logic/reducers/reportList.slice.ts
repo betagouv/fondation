@@ -1,23 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 import { AppState } from "../../../store/appState";
-import { PartialAppDependencies } from "../../../store/reduxStore";
 import { listReport } from "../use-cases/report-listing/listReport.use-case";
 
-export const createReportListSlice = ({
-  routerProvider,
-}: Pick<PartialAppDependencies["providers"], "routerProvider">) => {
+export const createReportListSlice = () => {
   const initialState: AppState["reportList"] = {
     data: null,
     filters: {},
-    anchorsAttributes: {
-      perTransparency:
-        routerProvider?.getTransparencyReportsAnchorAttributes ??
-        (() => ({
-          href: "",
-          onClick: () => {},
-        })),
-    },
   };
 
   return createSlice({

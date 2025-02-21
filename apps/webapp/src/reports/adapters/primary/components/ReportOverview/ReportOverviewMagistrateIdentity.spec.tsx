@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { AllRulesMapV2, NominationFile } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
@@ -62,12 +62,15 @@ describe("Report Overview Component - Magistrate identity", () => {
 
   const expectMagistratIdentity = async () => {
     const labels = ReportVM.magistratIdentityLabels;
-    await screen.findByText("John Doe");
-    await screen.findByText(`${labels.currentPosition} : PG TJ Paris`);
-    await screen.findByText(`${labels.grade} : I`);
-    await screen.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
-    await screen.findByText(`${labels.rank} : (2 sur une liste de 3)`);
-    await screen.findByText(`${labels.birthDate} : 01/01/1980 (40 ans)`);
+    const section = within(
+      await screen.findByRole("region", { name: "Identité du magistrat" }),
+    );
+    await section.findByText("John Doe");
+    await section.findByText(`${labels.currentPosition} : PG TJ Paris`);
+    await section.findByText(`${labels.grade} : I`);
+    await section.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
+    await section.findByText(`${labels.rank} : (2 sur une liste de 3)`);
+    await section.findByText(`${labels.birthDate} : 01/01/1980 (40 ans)`);
   };
 
   const givenARenderedReport = (report: ReportApiModel) => {

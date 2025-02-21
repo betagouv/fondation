@@ -19,7 +19,10 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   onAttachedFileDeleted,
 }) => {
   return (
-    <Card id={reportHtmlIds.overview.attachedFilesSection}>
+    <Card
+      id={reportHtmlIds.overview.attachedFilesSection}
+      label="Pièces jointes"
+    >
       <h2>{summaryLabels.attachedFiles}</h2>
       <div className={clsx("flex flex-col gap-6")}>
         <Upload

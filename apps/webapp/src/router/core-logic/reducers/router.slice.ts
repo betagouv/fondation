@@ -4,6 +4,11 @@ import { PartialAppDependencies } from "../../../store/reduxStore";
 import { RouteChangedHandler } from "../components/routeChangedHandler";
 import { RouteToComponentFactory } from "../components/routeToComponent";
 
+const getStubAnchorAttributes = () => ({
+  href: "",
+  onClick: () => {},
+});
+
 export const createRouterSlice = ({
   routerProvider,
   routeToComponent,
@@ -20,18 +25,17 @@ export const createRouterSlice = ({
         login: routerProvider?.getLoginHref() ?? "login",
       },
       anchorsAttributes: {
+        login:
+          routerProvider?.getLoginAnchorAttributes ?? getStubAnchorAttributes,
+        transparencies:
+          routerProvider?.getTransparenciesAnchorAttributes ??
+          getStubAnchorAttributes,
+        perTransparency:
+          routerProvider?.getTransparencyReportsAnchorAttributes ??
+          getStubAnchorAttributes,
         reportOverview:
           routerProvider?.getReportOverviewAnchorAttributes ??
-          (() => ({
-            href: "",
-            onClick: () => {},
-          })),
-        login:
-          routerProvider?.getLoginAnchorAttributes ??
-          (() => ({
-            href: "",
-            onClick: () => {},
-          })),
+          getStubAnchorAttributes,
       },
       routeToComponent: routeToComponent ?? (() => () => null),
       routeChangedHandler: routeChangedHandler ?? (() => {}),

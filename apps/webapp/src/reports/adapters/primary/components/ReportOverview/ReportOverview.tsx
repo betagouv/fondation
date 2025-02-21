@@ -23,6 +23,11 @@ import { Observers } from "./Observers";
 import { ReportOverviewState } from "./ReportOverviewState";
 import { ReportRules } from "./ReportRules";
 import { Summary } from "./Summary";
+import {
+  BreadcrumCurrentPage,
+  selectBreadcrumb,
+} from "../../../../../router/adapters/selectors/selectBreadcrumb";
+import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 
 export type ReportOverviewProps = {
   id: string;
@@ -30,6 +35,13 @@ export type ReportOverviewProps = {
 
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const report = useAppSelector((state) => selectReport(state, id));
+  const currentPage = {
+    name: BreadcrumCurrentPage.gdsReport,
+    reportId: id,
+  } as const;
+  const breadcrumb = useAppSelector((state) =>
+    selectBreadcrumb(state, currentPage),
+  );
   const dispatch = useAppDispatch();
 
   const onUpdateReport = <T extends keyof UpdateReportParams["data"]>(data: {
@@ -82,14 +94,31 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     dispatch(retrieveReport(id));
   }, [dispatch, id]);
 
-  if (!report) return <div>Rapport non trouvé.</div>;
+  if (!report)
+    return (
+      <div>
+        <Breadcrumb
+          id="report-breadcrumb"
+          ariaLabel="Fil d'Ariane du rapport"
+          breadcrumb={breadcrumb}
+        />
+        Rapport non trouvé.
+      </div>
+    );
   return (
     <div className={clsx("flex-col items-center", cx("fr-grid-row"))}>
+      <div className="w-full">
+        <Breadcrumb
+          id="report-breadcrumb"
+          ariaLabel="Fil d'Ariane du rapport"
+          breadcrumb={breadcrumb}
+        />
+      </div>
       <AutoSaveNotice />
       <div
         className={clsx(
           "scroll-smooth",
-          cx("fr-grid-row", "fr-grid-row--center", "fr-py-5v"),
+          cx("fr-grid-row", "fr-grid-row--center", "fr-py-12v"),
         )}
       >
         <div

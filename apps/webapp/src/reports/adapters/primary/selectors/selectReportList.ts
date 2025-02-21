@@ -41,13 +41,14 @@ export const selectReportList = createAppSelector(
     (_, transparencyFilter?: Transparency) => transparencyFilter,
     (
       _,
-      __,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      __: Transparency | undefined = undefined,
       aTransparencyTitleMap: typeof transparencyTitleMap = transparencyTitleMap,
     ) => aTransparencyTitleMap,
   ],
   (
     data,
-    getAnchorAttributes,
+    getReportAnchorAttributes,
     transparencyFilter,
     aTransparencyTitleMap,
   ): ReportListVM => {
@@ -88,7 +89,7 @@ export const selectReportList = createAppSelector(
           targettedPosition,
           observersCount,
         }) => {
-          const { href, onClick } = getAnchorAttributes(transparency, id);
+          const { href, onClick } = getReportAnchorAttributes(transparency, id);
 
           const dueDateFormatted = dueDate
             ? new DateOnly(
@@ -130,7 +131,7 @@ export const selectReportList = createAppSelector(
               color: colors.options.yellowTournesol.sun407moon922.hover,
             },
           ]
-        : [{ text: "Mes rapports" }],
+        : [{ text: "Rapports" }],
     };
   },
 );

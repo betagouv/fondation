@@ -129,9 +129,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
     providers.logoutNotifierProvider,
   );
 
-  const reportListSlice = createReportListSlice({
-    routerProvider: providers.routerProvider,
-  });
+  const reportListSlice = createReportListSlice();
 
   return configureStore({
     reducer: {

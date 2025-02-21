@@ -22,7 +22,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   rank,
 }) => {
   return (
-    <Card>
+    <Card label="Identité du magistrat">
       <h1>{name}</h1>
       <div className={cx("fr-text--bold")}>
         {`${ReportVM.magistratIdentityLabels.currentPosition} : ${currentPosition}`}

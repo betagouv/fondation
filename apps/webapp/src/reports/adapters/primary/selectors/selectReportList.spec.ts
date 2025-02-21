@@ -15,27 +15,36 @@ type ReportListItemVMSerializable = Omit<ReportListItemVM, "onClick">;
 
 describe("Select Report List", () => {
   let store: ReduxStore;
+  let routerProvider: StubRouterProvider;
   const onClick = () => null;
+  let selectedReport: ReportListVM;
 
   beforeEach(() => {
-    const stubRouterProvider = new StubRouterProvider();
-    stubRouterProvider.onReportOverviewClick = onClick;
+    routerProvider = new StubRouterProvider();
+    routerProvider.onReportOverviewClick = onClick;
     store = initReduxStore(
       {},
       {
-        routerProvider: stubRouterProvider,
+        routerProvider,
       },
       {},
     );
   });
 
   it("shows an empty list", () => {
-    expectStoredReports(selectReports(), []);
+    selectedReport = selectReports();
+    expectStoredReports([]);
   });
 
   it("shows a report title", () => {
     store.dispatch(listReport.fulfilled([aReport], "", undefined));
-    expectStoredReports(selectReports(), [aReportVM]);
+    selectedReport = selectReports();
+    expectTitle([{ text: "Rapports" }]);
+  });
+
+  it("shows the table headers", () => {
+    selectedReport = selectReports();
+    expectHeaders(allHeaders);
   });
 
   describe("when there are many reports", () => {
@@ -50,16 +59,16 @@ describe("Select Report List", () => {
     });
 
     it("filters out the reports of a transparency", () => {
-      expectStoredReports(
-        selectReports(aReport.transparency),
-        [aReportVM, aThirdReportVM, aSecondReportVM],
-        perTransparencyHeaders,
-        expectedTransparencyTitle,
-      );
+      selectedReport = selectReports(aReport.transparency);
+
+      expectStoredReports([aReportVM, aThirdReportVM, aSecondReportVM]);
+      expectHeaders(perTransparencyHeaders);
+      expectTitle(expectedTransparencyTitle);
     });
 
     it("selects the sorted list by transparency then folder number", () => {
-      expectStoredReports(selectReports(), [
+      selectedReport = selectReports();
+      expectStoredReports([
         aReportVM,
         aThirdReportVM,
         aSecondReportVM,
@@ -71,26 +80,18 @@ describe("Select Report List", () => {
   const selectReports = (transparency?: Transparency) =>
     selectReportList(store.getState(), transparency, transparencyTitleMap);
 
-  const expectStoredReports = (
-    selectedReports: ReportListVM,
-    reports: ReportListItemVMSerializable[],
-    headers: ReportListVM["headers"] = allHeaders,
-    title = [{ text: "Mes rapports" }],
-  ) => {
-    expect({
-      ...selectedReports,
+  const expectStoredReports = (reports: ReportListItemVMSerializable[]) => {
+    expect(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      reports: selectedReports.reports.map(({ onClick, ...report }) => report),
-    }).toEqual<
-      Omit<ReportListVM, "reports"> & {
-        reports: ReportListItemVMSerializable[];
-      }
-    >({
-      headers,
-      reports,
-      title,
-    });
+      selectedReport.reports.map(({ onClick, ...report }) => report),
+    ).toEqual<ReportListItemVMSerializable[]>(reports);
   };
+
+  const expectTitle = (title: ReportListVM["title"]) =>
+    expect(selectedReport.title).toEqual(title);
+
+  const expectHeaders = (headers: ReportListVM["headers"]) =>
+    expect(selectedReport.headers).toEqual(headers);
 
   const aReport = new ReportBuilder()
     .with("id", "report-id")

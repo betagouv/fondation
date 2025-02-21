@@ -49,6 +49,12 @@ export class TypeRouterProvider implements RouterProvider {
   getLoginHref(): string {
     return routes.login().href;
   }
+  getLoginAnchorAttributes() {
+    return routes.login().link;
+  }
+  getTransparenciesAnchorAttributes() {
+    return routes.transparencies().link;
+  }
   getTransparencyReportsAnchorAttributes(transparency: Transparency) {
     return routes.reportList({
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
@@ -59,8 +65,5 @@ export class TypeRouterProvider implements RouterProvider {
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
       id,
     }).link;
-  }
-  getLoginAnchorAttributes() {
-    return routes.login().link;
   }
 }

@@ -62,9 +62,6 @@ export interface AppState<IsTest extends boolean = false> {
       : RulesLabelsMap;
   };
   reportList: {
-    anchorsAttributes: {
-      perTransparency: RouterProvider["getTransparencyReportsAnchorAttributes"];
-    };
     data: ReportListItem[] | null;
     filters: {
       state?: NominationFile.ReportState;
@@ -81,6 +78,8 @@ export interface AppState<IsTest extends boolean = false> {
       login: string;
     };
     anchorsAttributes: {
+      transparencies: RouterProvider["getTransparenciesAnchorAttributes"];
+      perTransparency: RouterProvider["getTransparencyReportsAnchorAttributes"];
       reportOverview: RouterProvider["getReportOverviewAnchorAttributes"];
       login: RouterProvider["getLoginAnchorAttributes"];
     };

@@ -31,7 +31,7 @@ export type ReportTransparenciesVM = {
 export const selectTransparencies = createAppSelector(
   [
     (state) => state.reportList.data,
-    (state) => state.reportList.anchorsAttributes.perTransparency,
+    (state) => state.router.anchorsAttributes.perTransparency,
   ],
   (data, getTransparencyOnClickAttributes): ReportTransparenciesVM => {
     if (!data)
@@ -93,7 +93,7 @@ export const selectTransparencies = createAppSelector(
 
 function formatGdsTransparencies(
   data: ReportListItem[],
-  getTransparencyOnClickAttributes: AppState["reportList"]["anchorsAttributes"]["perTransparency"],
+  getTransparencyOnClickAttributes: AppState["router"]["anchorsAttributes"]["perTransparency"],
 ) {
   const transparencies = data.reduce(
     (

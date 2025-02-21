@@ -51,8 +51,7 @@ describe("Report Overview Component - Summary use cases", () => {
       const report = reportApiModelBuilder.build();
       givenARenderedReport(report);
 
-      const summaryContainer = await screen.findByRole("navigation");
-      const withinSummary = within(summaryContainer);
+      const withinSummary = await withinSummarySection();
 
       for (const heading of summaryHeadings) {
         expect(withinSummary.getByText(heading)).toBeDefined();
@@ -83,12 +82,10 @@ describe("Report Overview Component - Summary use cases", () => {
         const report = reportApiModelBuilder.build();
         givenARenderedReport(report);
 
-        const summaryContainer = await screen.findByRole("navigation");
+        const withinSummary = await withinSummarySection();
 
-        const withinSummary = within(summaryContainer);
-
-        const summarySection = withinSummary.getByText(sectionTitle);
-        await userEvent.click(summarySection);
+        const sectionTitleTag = withinSummary.getByText(sectionTitle);
+        await userEvent.click(sectionTitleTag);
         expect(window.location.hash).toEqual(`#${anchorId}`);
       },
     );
@@ -103,9 +100,7 @@ describe("Report Overview Component - Summary use cases", () => {
         const report = reportApiModelBuilder.build();
         givenARenderedReport(report);
 
-        const summaryContainer = await screen.findByRole("navigation");
-
-        const withinSummary = within(summaryContainer);
+        const withinSummary = await withinSummarySection();
 
         const sectionToClick = withinSummary.getByText(sectionLabelToClick);
         await userEvent.click(sectionToClick);
@@ -121,6 +116,13 @@ describe("Report Overview Component - Summary use cases", () => {
       },
     );
   });
+
+  const withinSummarySection = async () =>
+    within(
+      await screen.findByRole("navigation", {
+        name: "SOMMAIRE",
+      }),
+    );
 
   const givenARenderedReport = (report: ReportApiModel) => {
     reportApiClient.reports = {};

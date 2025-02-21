@@ -4,12 +4,14 @@ import clsx from "clsx";
 
 export type CardProps = {
   id?: string;
+  label?: string;
 } & PropsWithChildren;
 
-export const Card: React.FC<CardProps> = ({ id, children }) => {
+export const Card: React.FC<CardProps> = ({ id, label, children }) => {
   return (
     <section
       id={id}
+      aria-label={label}
       className={clsx("rounded-lg bg-white", cx("fr-px-3w", "fr-py-2w"))}
     >
       {children}

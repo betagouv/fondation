@@ -4,6 +4,10 @@ export interface RouterProvider {
   goToLogin(): void;
   goToTransparencies(): void;
   getLoginHref(): string;
+  getTransparenciesAnchorAttributes: () => {
+    href: string;
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  };
   getTransparencyReportsAnchorAttributes: (transparency: Transparency) => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;

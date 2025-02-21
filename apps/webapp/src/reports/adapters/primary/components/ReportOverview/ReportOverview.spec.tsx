@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMapV2, NominationFile } from "shared-models";
@@ -20,6 +20,7 @@ import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway"
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../labels/rules-labels";
 import { ReportOverview } from "./ReportOverview";
+import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 
 const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [
@@ -51,15 +52,18 @@ describe("Report Overview Component", () => {
   let reportApiClient: FakeReportApiClient;
   let reportApiModelBuilder: ReportApiModelBuilder;
   let expectStoredReports: ExpectStoredReports;
+  let routerProvider: StubRouterProvider;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+    routerProvider = new StubRouterProvider();
+
     store = initReduxStore(
       {
         reportGateway,
       },
-      {},
+      { routerProvider },
       {},
       { reportFileAttached },
       undefined,
@@ -75,6 +79,42 @@ describe("Report Overview Component", () => {
   it("shows a message if no report found", async () => {
     renderReportId("invalid-id");
     await screen.findByText("Rapport non trouvé.");
+  });
+
+  describe("Breadcrumb", () => {
+    it("shows an invalid report's breadcrumb", async () => {
+      renderReportId("invalid-id");
+      within(
+        await screen.findByRole("navigation", {
+          name: "Fil d'Ariane du rapport",
+        }),
+      ).getByText("Rapport non trouvé");
+    });
+
+    it("shows a valid report's breadcrumb", async () => {
+      const report = reportApiModelBuilder.build();
+      await givenARenderedReport(report);
+      within(
+        await screen.findByRole("navigation", {
+          name: "Fil d'Ariane du rapport",
+        }),
+      ).getByText(report.name);
+    });
+
+    it("redirects to the transparency page", async () => {
+      const report = reportApiModelBuilder.build();
+      await givenARenderedReport(report);
+
+      const transparencesLink = await screen.findByText("Transparences", {
+        selector: "a",
+      });
+
+      expect(transparencesLink).toHaveAttribute(
+        "href",
+        routerProvider.transparenciesHref,
+      );
+      expect(transparencesLink).toHaveProperty("onclick");
+    });
   });
 
   describe("when there is a report", () => {
@@ -162,7 +202,6 @@ describe("Report Overview Component", () => {
           type: "image/png",
         });
 
-        await screen.findByText(aReportVM.name);
         const input = await screen.findByLabelText(/^Formats supportés.*/);
         await userEvent.upload(input, file);
 

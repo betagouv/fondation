@@ -58,6 +58,26 @@ describe("Report List Component", () => {
     await screen.findByText("Aucun rapport.");
   });
 
+  describe("Breadcrumb", () => {
+    it("shows the current page", async () => {
+      renderReportList();
+      within(await screen.findByRole("navigation")).getByText("Rapports");
+    });
+
+    it("redirects to the transparency page", async () => {
+      renderReportList();
+      const transparencesLink = await screen.findByText("Transparences", {
+        selector: "a",
+      });
+
+      expect(transparencesLink).toHaveAttribute(
+        "href",
+        routerProvider.transparenciesHref,
+      );
+      expect(transparencesLink).toHaveProperty("onclick");
+    });
+  });
+
   describe("when there is a report", () => {
     beforeEach(() => {
       givenAnAuthenticatedUser();

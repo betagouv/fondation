@@ -2,19 +2,38 @@ import { Transparency } from "shared-models";
 import { RouterProvider } from "../core-logic/providers/router";
 
 export class StubRouterProvider implements RouterProvider {
-  onReportOverviewClick = () => null;
+  readonly loginHref = "/login";
+  readonly transparenciesHref = "/transparences";
+
+  onGoToLoginClick = () => null;
+  onGoToTransparenciesClick = () => null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onTransparencyClickAttribute = (_: Transparency) => null;
-  onGoToLoginClick = () => null;
+  onReportOverviewClick = () => null;
 
   goToLogin = () => {};
   goToTransparencies = () => {};
 
-  readonly loginHref = "/login";
   getLoginHref = () => this.loginHref;
+  getTransparencyReportsHref = (transparency: Transparency) =>
+    `/transparences/${transparency}`;
 
+  getLoginAnchorAttributes = () => ({
+    href: this.loginHref,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      this.onGoToLoginClick();
+    },
+  });
+  getTransparenciesAnchorAttributes = () => ({
+    href: this.transparenciesHref,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      this.onGoToTransparenciesClick();
+    },
+  });
   getTransparencyReportsAnchorAttributes = (transparency: Transparency) => ({
-    href: `/transparences/${transparency}`,
+    href: this.getTransparencyReportsHref(transparency),
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       this.onTransparencyClickAttribute(transparency);
@@ -28,13 +47,6 @@ export class StubRouterProvider implements RouterProvider {
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       this.onReportOverviewClick();
-    },
-  });
-  getLoginAnchorAttributes = () => ({
-    href: this.loginHref,
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault();
-      this.onGoToLoginClick();
     },
   });
 }
