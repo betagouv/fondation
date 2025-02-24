@@ -9,6 +9,7 @@ import {
   selectBreadcrumb,
 } from "../../../../../router/adapters/selectors/selectBreadcrumb";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
+import { NewReportsCount } from "./NewReportsCount";
 
 export interface ReportListProps {
   transparency?: Transparency;
@@ -19,7 +20,7 @@ const currentPage = {
 } as const;
 
 export const ReportList: FC<ReportListProps> = ({ transparency }) => {
-  const { title, headers, reports } = useAppSelector((state) =>
+  const { title, headers, reports, newReportsCount } = useAppSelector((state) =>
     selectReportList(state, transparency),
   );
   const breadcrumb = useAppSelector((state) =>
@@ -46,6 +47,11 @@ export const ReportList: FC<ReportListProps> = ({ transparency }) => {
           </span>
         ))}
       </h1>
+
+      {newReportsCount > 0 && (
+        <NewReportsCount newReportsCount={newReportsCount} />
+      )}
+
       {reports.length ? (
         <ReportsTable
           transparency={transparency}

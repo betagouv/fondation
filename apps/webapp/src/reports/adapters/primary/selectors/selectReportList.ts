@@ -29,6 +29,7 @@ export type ReportListItemVM = {
 };
 
 export type ReportListVM = {
+  newReportsCount: number;
   reports: ReportListItemVM[];
   headers: string[];
   title: { text: string; color?: string }[];
@@ -117,6 +118,9 @@ export const selectReportList = createAppSelector(
       );
 
     return {
+      newReportsCount: _.sumBy(reports, (report) =>
+        report.state === "Nouveau" ? 1 : 0,
+      ),
       headers: Object.entries(reportListTableLabels.headers)
         .filter(([key]) => (transparencyFilter ? key !== "transparency" : true))
         .map(([, value]) => value),

@@ -15,6 +15,11 @@ import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway"
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { reportListTableLabels } from "../../labels/report-list-table-labels";
 import { ReportList } from "./ReportList";
+import _ from "lodash";
+import {
+  ExpectTransparenciesBreadcrumb,
+  expectTransparenciesBreadcrumbFactory,
+} from "../../../../../test/breadcrumb";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
@@ -22,6 +27,7 @@ describe("Report List Component", () => {
   let reportApiClient: FakeReportApiClient;
   let authenticationGateway: ApiAuthenticationGateway;
   let authenticationApiClient: FakeAuthenticationApiClient;
+  let expectTransparenciesBreadcrumb: ExpectTransparenciesBreadcrumb;
 
   beforeEach(() => {
     authenticationApiClient = new FakeAuthenticationApiClient();
@@ -51,12 +57,53 @@ describe("Report List Component", () => {
       {},
       undefined,
     );
+
+    expectTransparenciesBreadcrumb =
+      expectTransparenciesBreadcrumbFactory(routerProvider);
   });
 
   it("shows an empty list message", async () => {
     renderReportList();
     await screen.findByText("Aucun rapport.");
   });
+
+  it("doesn't show the new reports count", async () => {
+    renderReportList();
+    await expect(screen.findByText(/nouveau(x)? rapport/i)).rejects.toThrow();
+  });
+
+  describe.each`
+    count                  | newReportsCount
+    ${"one new report"}    | ${1}
+    ${"three new reports"} | ${3}
+  `(
+    "when there is $description",
+    ({ newReportsCount }: { newReportsCount: number }) => {
+      beforeEach(() => {
+        givenAnAuthenticatedUser();
+        reportApiClient.addReports(
+          ..._.range(newReportsCount).map((count) =>
+            new ReportApiModelBuilder()
+              .with("id", `report-id-${count}`)
+              .with("state", NominationFile.ReportState.NEW)
+              .build(),
+          ),
+        );
+      });
+
+      it("shows the new reports count", async () => {
+        renderReportList();
+
+        await screen.findByText("Vous avez ", { exact: false });
+        await screen.findByText(
+          newReportsCount > 1
+            ? `${newReportsCount} nouveaux rapports`
+            : "1 nouveau rapport",
+        );
+        await screen.findByText("sur cette transparence.", { exact: false });
+      });
+    },
+  );
 
   describe("Breadcrumb", () => {
     it("shows the current page", async () => {
@@ -66,15 +113,7 @@ describe("Report List Component", () => {
 
     it("redirects to the transparency page", async () => {
       renderReportList();
-      const transparencesLink = await screen.findByText("Transparences", {
-        selector: "a",
-      });
-
-      expect(transparencesLink).toHaveAttribute(
-        "href",
-        routerProvider.transparenciesHref,
-      );
-      expect(transparencesLink).toHaveProperty("onclick");
+      await expectTransparenciesBreadcrumb();
     });
   });
 

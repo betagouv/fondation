@@ -47,6 +47,40 @@ describe("Select Report List", () => {
     expectHeaders(allHeaders);
   });
 
+  it("shows that there is no new report", () => {
+    selectedReport = selectReports();
+    expectNewReportsCount(0);
+  });
+
+  describe("When there is two new reports and an in-progress report", () => {
+    beforeEach(() => {
+      store.dispatch(
+        listReport.fulfilled(
+          [
+            new ReportBuilder()
+              .with("state", NominationFile.ReportState.NEW)
+              .buildListSM(),
+            new ReportBuilder()
+              .with("id", "second-new-report-id")
+              .with("state", NominationFile.ReportState.NEW)
+              .buildListSM(),
+            new ReportBuilder()
+              .with("id", "in-progress-report-id")
+              .with("state", NominationFile.ReportState.IN_PROGRESS)
+              .buildListSM(),
+          ],
+          "",
+          undefined,
+        ),
+      );
+    });
+
+    it("shows the number of new reports", () => {
+      selectedReport = selectReports();
+      expectNewReportsCount(2);
+    });
+  });
+
   describe("when there are many reports", () => {
     beforeEach(() => {
       store.dispatch(
@@ -86,6 +120,9 @@ describe("Select Report List", () => {
       selectedReport.reports.map(({ onClick, ...report }) => report),
     ).toEqual<ReportListItemVMSerializable[]>(reports);
   };
+
+  const expectNewReportsCount = (count: number) =>
+    expect(selectedReport.newReportsCount).toBe(count);
 
   const expectTitle = (title: ReportListVM["title"]) =>
     expect(selectedReport.title).toEqual(title);

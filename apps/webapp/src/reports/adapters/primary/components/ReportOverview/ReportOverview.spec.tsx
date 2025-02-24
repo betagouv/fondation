@@ -21,6 +21,10 @@ import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.clie
 import { RulesLabelsMap } from "../../labels/rules-labels";
 import { ReportOverview } from "./ReportOverview";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
+import {
+  ExpectTransparenciesBreadcrumb,
+  expectTransparenciesBreadcrumbFactory,
+} from "../../../../../test/breadcrumb";
 
 const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [
@@ -53,6 +57,7 @@ describe("Report Overview Component", () => {
   let reportApiModelBuilder: ReportApiModelBuilder;
   let expectStoredReports: ExpectStoredReports;
   let routerProvider: StubRouterProvider;
+  let expectTransparenciesBreadcrumb: ExpectTransparenciesBreadcrumb;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -74,6 +79,8 @@ describe("Report Overview Component", () => {
 
     reportApiModelBuilder = new ReportApiModelBuilder(testRulesMap);
     expectStoredReports = expectStoredReportsFactory(store, initialState);
+    expectTransparenciesBreadcrumb =
+      expectTransparenciesBreadcrumbFactory(routerProvider);
   });
 
   it("shows a message if no report found", async () => {
@@ -104,16 +111,7 @@ describe("Report Overview Component", () => {
     it("redirects to the transparency page", async () => {
       const report = reportApiModelBuilder.build();
       await givenARenderedReport(report);
-
-      const transparencesLink = await screen.findByText("Transparences", {
-        selector: "a",
-      });
-
-      expect(transparencesLink).toHaveAttribute(
-        "href",
-        routerProvider.transparenciesHref,
-      );
-      expect(transparencesLink).toHaveProperty("onclick");
+      await expectTransparenciesBreadcrumb();
     });
   });
 
