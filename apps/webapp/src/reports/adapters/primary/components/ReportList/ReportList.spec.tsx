@@ -1,7 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AuthenticatedUser, NominationFile, Transparency } from "shared-models";
+import {
+  AuthenticatedUser,
+  Magistrat,
+  NominationFile,
+  Transparency,
+} from "shared-models";
 import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import {
@@ -139,7 +144,7 @@ describe("Report List Component", () => {
       await screen.findByText("30/10/2030");
       await screen.findByText("Parquet");
       await screen.findByText("John Doe");
-      await screen.findByText("Mars 2025");
+      await screen.findByText("PG 8/11/2024");
       await screen.findByText("I");
       await screen.findByText("PG TJ Marseille");
       await screen.findByText(aReportObserversCount.toString());
@@ -152,26 +157,43 @@ describe("Report List Component", () => {
     });
 
     describe("when there are multiple reports", () => {
+      const anotherReport = new ReportApiModelBuilder()
+        .with("id", "siege-report-id")
+        .with("name", "Another magistrate name")
+        .with("transparency", Transparency.AUTOMNE_2024)
+        .with("formation", Magistrat.Formation.SIEGE)
+        .build();
+
+      beforeEach(() => {
+        reportApiClient.addReports(anotherReport);
+      });
+
       it("hides the transparency column for a single transparency", async () => {
-        renderReportList(aReport.transparency);
-        await screen.findByText("John Doe");
+        renderReportList(anotherReport.transparency);
+        await screen.findByText(anotherReport.name);
         expect(screen.queryByText("Transparence")).toBeNull();
       });
 
       it("shows reports for a single transparency", async () => {
+        renderReportList(anotherReport.transparency);
+        await screen.findByText(anotherReport.name);
+        expect(screen.queryByText(aReport.name)).toBeNull();
+      });
+
+      it("doesn't show 'Parquet' reports when we filter transparency reports on 'Siège'", async () => {
         reportApiClient.addReports(
           new ReportApiModelBuilder()
-            .with("id", "other-report-id")
-            .with("name", "Another magistrate name")
-            .with("state", NominationFile.ReportState.IN_PROGRESS)
-            .with("transparency", Transparency.PARQUET_DU_06_FEVRIER_2025)
+            .with("id", "parquet-report-id")
+            .with("name", "Parquet magistrate name")
+            .with("transparency", anotherReport.transparency)
+            .with("formation", Magistrat.Formation.PARQUET)
             .build(),
         );
-
-        renderReportList(aReport.transparency);
-
-        await screen.findByText("John Doe");
-        expect(screen.queryByText("Another magistrate name")).toBeNull();
+        renderReportList(
+          anotherReport.transparency,
+          Magistrat.Formation.PARQUET,
+        );
+        await expect(screen.findByText(anotherReport.name)).rejects.toThrow();
       });
     });
   });
@@ -180,10 +202,14 @@ describe("Report List Component", () => {
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 
-  const renderReportList = (transparency?: Transparency) => {
+  const renderReportList = (
+    transparency?: Transparency,
+
+    formation?: Magistrat.Formation,
+  ) => {
     render(
       <Provider store={store}>
-        <ReportList transparency={transparency} />
+        <ReportList transparency={transparency} formation={formation} />
       </Provider>,
     );
   };
@@ -205,4 +231,6 @@ const aReport = new ReportApiModelBuilder()
   .with("state", NominationFile.ReportState.NEW)
   .with("folderNumber", aReportFolderNumber)
   .with("observersCount", aReportObserversCount)
+  .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+  .with("formation", Magistrat.Formation.PARQUET)
   .build();

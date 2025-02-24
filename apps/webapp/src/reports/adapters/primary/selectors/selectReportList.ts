@@ -1,5 +1,6 @@
+import { colors } from "@codegouvfr/react-dsfr";
 import _ from "lodash";
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 import { UnionToTuple } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../../store/createAppSelector";
@@ -11,7 +12,6 @@ import {
 } from "../labels/labels-mappers";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
-import { colors } from "@codegouvfr/react-dsfr";
 
 export type ReportListItemVM = {
   id: string;
@@ -39,20 +39,20 @@ export const selectReportList = createAppSelector(
   [
     (state) => state.reportList.data,
     (state) => state.router.anchorsAttributes.reportOverview,
-    (_, transparencyFilter?: Transparency) => transparencyFilter,
     (
       _,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      __: Transparency | undefined = undefined,
-      aTransparencyTitleMap: typeof transparencyTitleMap = transparencyTitleMap,
-    ) => aTransparencyTitleMap,
+      args?: {
+        transparencyFilter?: Transparency;
+        aTransparencyTitleMap?: typeof transparencyTitleMap;
+        formationFilter?: Magistrat.Formation;
+      },
+    ) => args,
   ],
-  (
-    data,
-    getReportAnchorAttributes,
-    transparencyFilter,
-    aTransparencyTitleMap,
-  ): ReportListVM => {
+  (data, getReportAnchorAttributes, args): ReportListVM => {
+    const { transparencyFilter, formationFilter } = args || {};
+    let { aTransparencyTitleMap } = args || {};
+    if (!aTransparencyTitleMap) aTransparencyTitleMap = transparencyTitleMap;
+
     const transparencyOrder: UnionToTuple<Transparency> = [
       Transparency.AUTOMNE_2024,
       Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
@@ -76,6 +76,9 @@ export const selectReportList = createAppSelector(
     const reports = sortedReports
       .filter(({ transparency }) =>
         transparencyFilter ? transparency === transparencyFilter : true,
+      )
+      .filter(({ formation }) =>
+        formationFilter ? formation === formationFilter : true,
       )
       .map(
         ({

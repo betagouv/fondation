@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 import { useAppSelector } from "../../hooks/react-redux";
 import { useReportsList } from "../../hooks/use-reports-list";
 import { selectReportList } from "../../selectors/selectReportList";
@@ -13,15 +13,22 @@ import { NewReportsCount } from "./NewReportsCount";
 
 export interface ReportListProps {
   transparency?: Transparency;
+  formation?: Magistrat.Formation;
 }
 
 const currentPage = {
   name: BreadcrumCurrentPage.perGdsTransparencyReports,
 } as const;
 
-export const ReportList: FC<ReportListProps> = ({ transparency }) => {
+export const ReportList: FC<ReportListProps> = ({
+  transparency,
+  formation,
+}) => {
   const { title, headers, reports, newReportsCount } = useAppSelector((state) =>
-    selectReportList(state, transparency),
+    selectReportList(state, {
+      transparencyFilter: transparency,
+      formationFilter: formation,
+    }),
   );
   const breadcrumb = useAppSelector((state) =>
     selectBreadcrumb(state, currentPage),

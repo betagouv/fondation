@@ -1,4 +1,4 @@
-import { NominationFile, Transparency } from "shared-models";
+import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
@@ -81,6 +81,40 @@ describe("Select Report List", () => {
     });
   });
 
+  describe("When there is one report with SIEGE formation", () => {
+    const aSiegeReport = new ReportBuilder()
+      .with("transparency", Transparency.AUTOMNE_2024)
+      .with("formation", Magistrat.Formation.SIEGE)
+      .buildListSM();
+
+    beforeEach(() => {
+      store.dispatch(listReport.fulfilled([aSiegeReport], "", undefined));
+    });
+
+    it("filters out the reports of a transparency per a formation SIEGE", () => {
+      selectedReport = selectReports({
+        transparencyFilter: aSiegeReport.transparency,
+        formationFilter: Magistrat.Formation.SIEGE,
+      });
+
+      expectStoredReports([
+        {
+          id: aSiegeReport.id,
+          folderNumber: 1,
+          name: aSiegeReport.name,
+          dueDate: "30/10/2030",
+          state: "Nouveau",
+          formation: "Siège",
+          transparency: "Octobre 2024",
+          grade: "I",
+          targettedPosition: "PG TJ Marseille",
+          observersCount: aSiegeReport.observersCount,
+          href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aSiegeReport.id}`,
+        },
+      ]);
+    });
+  });
+
   describe("when there are many reports", () => {
     beforeEach(() => {
       store.dispatch(
@@ -93,7 +127,9 @@ describe("Select Report List", () => {
     });
 
     it("filters out the reports of a transparency", () => {
-      selectedReport = selectReports(aReport.transparency);
+      selectedReport = selectReports({
+        transparencyFilter: aReport.transparency,
+      });
 
       expectStoredReports([aReportVM, aThirdReportVM, aSecondReportVM]);
       expectHeaders(perTransparencyHeaders);
@@ -111,8 +147,14 @@ describe("Select Report List", () => {
     });
   });
 
-  const selectReports = (transparency?: Transparency) =>
-    selectReportList(store.getState(), transparency, transparencyTitleMap);
+  const selectReports = (args?: {
+    transparencyFilter?: Transparency;
+    formationFilter?: Magistrat.Formation;
+  }) =>
+    selectReportList(store.getState(), {
+      aTransparencyTitleMap: transparencyTitleMap,
+      ...args,
+    });
 
   const expectStoredReports = (reports: ReportListItemVMSerializable[]) => {
     expect(
