@@ -12,13 +12,9 @@ import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/
 import { NewReportsCount } from "./NewReportsCount";
 
 export interface ReportListProps {
-  transparency?: Transparency;
-  formation?: Magistrat.Formation;
+  transparency: Transparency | null;
+  formation: Magistrat.Formation | null;
 }
-
-const currentPage = {
-  name: BreadcrumCurrentPage.perGdsTransparencyReports,
-} as const;
 
 export const ReportList: FC<ReportListProps> = ({
   transparency,
@@ -26,10 +22,14 @@ export const ReportList: FC<ReportListProps> = ({
 }) => {
   const { title, headers, reports, newReportsCount } = useAppSelector((state) =>
     selectReportList(state, {
-      transparencyFilter: transparency,
-      formationFilter: formation,
+      transparencyFilter: transparency || undefined,
+      formationFilter: formation || undefined,
     }),
   );
+  const currentPage = {
+    name: BreadcrumCurrentPage.perGdsTransparencyReports,
+    formation,
+  } as const;
   const breadcrumb = useAppSelector((state) =>
     selectBreadcrumb(state, currentPage),
   );
@@ -62,6 +62,7 @@ export const ReportList: FC<ReportListProps> = ({
       {reports.length ? (
         <ReportsTable
           transparency={transparency}
+          formation={formation}
           headers={headers}
           reports={reports}
         />

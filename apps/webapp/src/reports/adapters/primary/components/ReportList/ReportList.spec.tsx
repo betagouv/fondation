@@ -144,7 +144,7 @@ describe("Report List Component", () => {
       await screen.findByText("30/10/2030");
       await screen.findByText("Parquet");
       await screen.findByText("John Doe");
-      await screen.findByText("PG 8/11/2024");
+      await screen.findByText("T 8/11/2024 (PG/PR)");
       await screen.findByText("I");
       await screen.findByText("PG TJ Marseille");
       await screen.findByText(aReportObserversCount.toString());
@@ -204,12 +204,14 @@ describe("Report List Component", () => {
 
   const renderReportList = (
     transparency?: Transparency,
-
     formation?: Magistrat.Formation,
   ) => {
     render(
       <Provider store={store}>
-        <ReportList transparency={transparency} formation={formation} />
+        <ReportList
+          transparency={transparency || null}
+          formation={formation || null}
+        />
       </Provider>,
     );
   };

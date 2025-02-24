@@ -1,5 +1,5 @@
 import { Table } from "@codegouvfr/react-dsfr/Table";
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 import {
   ReportListItemVM,
   ReportListVM,
@@ -8,13 +8,15 @@ import "./ReportsTable.css";
 import { ReportStateTag } from "./ReportStateTag";
 
 export type ReportsTableProps = {
-  transparency?: Transparency;
+  transparency: Transparency | null;
+  formation: Magistrat.Formation | null;
   headers: ReportListVM["headers"];
   reports: ReportListItemVM[];
 };
 
 export const ReportsTable: React.FC<ReportsTableProps> = ({
   transparency,
+  formation,
   headers,
   reports,
 }) => (
@@ -35,7 +37,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
         <div>{report.dueDate}</div>,
       ]
         .concat(transparency ? [] : [<div>{report.transparency}</div>])
-        .concat([<div>{report.formation}</div>]),
+        .concat(formation ? [] : [<div>{report.formation}</div>]),
     )}
   />
 );

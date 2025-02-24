@@ -2,17 +2,15 @@ import { Transparency } from "shared-models";
 
 export class GdsTransparenciesRoutesMapper {
   static transparencyToPathSegmentMap: { [key in Transparency]: string } = {
-    [Transparency.AUTOMNE_2024]: "automne-2024",
-    [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
-      "procureurs-generaux-8-novembre-2024",
-    [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
-      "procureurs-generaux-25-novembre-2024",
+    [Transparency.AUTOMNE_2024]: "18-10-2024-automne",
+    [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]: "08-11-2024-pg-pr",
+    [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]: "25-11-2024",
     [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
-      "tableau-general-t-du-25-novembre-2024",
+      "25-11-2024-mamoudzou",
     [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
-      "cabinet-du-ministre-du-21-janvier-2025",
-    [Transparency.SIEGE_DU_06_FEVRIER_2025]: "siege-du-06-fevrier-2025",
-    [Transparency.PARQUET_DU_06_FEVRIER_2025]: "parquet-du-06-fevrier-2025",
+      "21-01-2025-cabinet-gds",
+    [Transparency.SIEGE_DU_06_FEVRIER_2025]: "06-02-2025-siege",
+    [Transparency.PARQUET_DU_06_FEVRIER_2025]: "06-02-2025-parquet",
     [Transparency.MARCH_2025]: "march-2025",
     [Transparency.MARCH_2026]: "march-2026",
   };

@@ -10,7 +10,10 @@ import {
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import { reportListTableLabels } from "../labels/report-list-table-labels";
+import {
+  ReportListTableLabels,
+  reportListTableLabels,
+} from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
 
 export type ReportListItemVM = {
@@ -27,6 +30,8 @@ export type ReportListItemVM = {
   href: string;
   onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
+
+type HeadersKey = keyof ReportListTableLabels["headers"];
 
 export type ReportListVM = {
   newReportsCount: number;
@@ -125,7 +130,12 @@ export const selectReportList = createAppSelector(
         report.state === "Nouveau" ? 1 : 0,
       ),
       headers: Object.entries(reportListTableLabels.headers)
-        .filter(([key]) => (transparencyFilter ? key !== "transparency" : true))
+        .filter(([key]) =>
+          transparencyFilter ? (key as HeadersKey) !== "transparency" : true,
+        )
+        .filter(([key]) =>
+          formationFilter ? (key as HeadersKey) !== "formation" : true,
+        )
         .map(([, value]) => value),
       reports,
       title: transparencyFilter
@@ -144,18 +154,17 @@ export const selectReportList = createAppSelector(
 );
 
 const transparencyTitleMap: { [key in Transparency]: string } = {
-  [Transparency.AUTOMNE_2024]: "transparence d'automne 2024",
+  [Transparency.AUTOMNE_2024]: "transparence du 18/10/2024",
   [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
-    "transparence PG du 08/11/2024",
+    "transparence du 08/11/2024 (PG/PR)",
   [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
-    "transparence PG du 25/11/2024",
-  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
     "transparence du 25/11/2024",
+  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
+    "transparence du 25/11/2024 (Mamoudzou)",
   [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
-    "transparence du 21/01/2025",
-  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "transparence siège du 06/02/2025",
-  [Transparency.PARQUET_DU_06_FEVRIER_2025]:
-    "transparence parquet du 06/02/2025",
+    "transparence du 21/01/2025 (cabinet GDS)",
+  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
+  [Transparency.PARQUET_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
   [Transparency.MARCH_2025]: "transparence de mars 2025",
   [Transparency.MARCH_2026]: "transparence de mars 2026",
 };

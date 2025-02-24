@@ -5,23 +5,23 @@ export type TransparencyLabel = ReturnType<typeof transparencyToLabel>;
 export const transparencyToLabel = (transparency: Transparency) => {
   switch (transparency) {
     case Transparency.AUTOMNE_2024:
-      return "Octobre 2024";
+      return "T 18/10/2024 (automne)";
     case Transparency.MARCH_2025:
       return "Mars 2025";
     case Transparency.MARCH_2026:
       return "Mars 2026";
     case Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024:
-      return "PG 8/11/2024";
+      return "T 8/11/2024 (PG/PR)";
     case Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024:
-      return "PG 25/11/2024";
+      return "T 25/11/2024";
     case Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024:
-      return "Tableau général T 25/11/2024";
+      return "T 25/11/2024 (Mamoudzou)";
     case Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025:
-      return "Cabinet 21/01/2025";
+      return "T 21/01/2025 (cabinet GDS)";
     case Transparency.SIEGE_DU_06_FEVRIER_2025:
-      return "Siège 06/02/2025";
+      return "T 06/02/2025 (siège)";
     case Transparency.PARQUET_DU_06_FEVRIER_2025:
-      return "Parquet 06/02/2025";
+      return "T 06/02/2025 (parquet)";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

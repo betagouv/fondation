@@ -131,10 +131,10 @@ describe("Select Transparencies", () => {
       },
     );
 
-    it("returns an onClick function to redirect to the reports list", () => {
+    it("can redirect to the 'Parquet' reports", () => {
       store.dispatch(listReport.fulfilled([aParquetReport], "", undefined));
-
       const clickOnTransparency = getOnClickFromState();
+
       clickOnTransparency({
         preventDefault: vi.fn(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

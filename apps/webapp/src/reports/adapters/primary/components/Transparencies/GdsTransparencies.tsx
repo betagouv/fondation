@@ -42,7 +42,7 @@ export const GdsTransparencies = ({
               : selectedTabLabel ===
                 formationToLabel(Magistrat.Formation.SIEGE),
           content: (
-            <ul className={clsx("list-none", cx("fr-grid-row"))}>
+            <ul className={clsx("list-none gap-2", cx("fr-grid-row"))}>
               {transparencies.map(({ label, href, onClick }) => (
                 <li key={label}>
                   <Tag linkProps={{ href, onClick }}>{label}</Tag>

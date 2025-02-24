@@ -1,6 +1,8 @@
+import { Magistrat } from "shared-models";
+import { transparencyToLabel } from "../../../reports/adapters/primary/labels/labels-mappers";
 import { ReportBuilder } from "../../../reports/core-logic/builders/Report.builder";
 import { retrieveReport } from "../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
-import { ReduxStore, initReduxStore } from "../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { StubRouterProvider } from "../stubRouterProvider";
 import {
   BreadcrumbVM,
@@ -24,15 +26,15 @@ describe("Breadcrumb", () => {
     );
   });
 
-  describe("per transparecy reports list", () => {
+  describe("per transparency reports list", () => {
     beforeEach(() => {
       routerProvider.onGoToTransparenciesClick = vi.fn();
     });
 
     it("shows a breadcrumb", async () => {
-      selectPerTransparencyBreadcrumb();
+      selectPerTransparencyBreadcrumb(Magistrat.Formation.SIEGE);
       expectBreadcrumb({
-        currentPageLabel: "Rapports",
+        currentPageLabel: "Formation Siège",
         segments: [
           {
             label: "Transparences",
@@ -55,15 +57,18 @@ describe("Breadcrumb", () => {
     `(
       "redirects to the transparency page when clicking on segment: $segmentName",
       async ({ segmentIndex }) => {
-        selectPerTransparencyBreadcrumb();
+        selectPerTransparencyBreadcrumb(Magistrat.Formation.SIEGE);
         clickOnSegment(segmentIndex);
         expect(routerProvider.onGoToTransparenciesClick).toHaveBeenCalled();
       },
     );
 
-    const selectPerTransparencyBreadcrumb = () => {
+    const selectPerTransparencyBreadcrumb = (
+      formation: Magistrat.Formation,
+    ) => {
       breadcrumb = selectBreadcrumb(store.getState(), {
         name: BreadcrumCurrentPage.perGdsTransparencyReports,
+        formation,
       });
     };
   });
@@ -98,7 +103,7 @@ describe("Breadcrumb", () => {
         segments: [
           ...baseGdsReportSegments,
           {
-            label: "Rapports",
+            label: transparencyToLabel(aReport.transparency),
             href: routerProvider.getTransparencyReportsHref(
               aReport.transparency,
             ),

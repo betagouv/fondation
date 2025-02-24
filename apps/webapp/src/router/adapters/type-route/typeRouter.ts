@@ -1,8 +1,9 @@
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 import { RouterProvider } from "../../core-logic/providers/router";
 
 import { createRouter, defineRoute, param } from "type-route";
 import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
+import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 
 export const routeSegments = {
   propositionduGardeDesSceaux: "pouvoir-de-proposition-du-garde-des-sceaux",
@@ -20,9 +21,10 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
   reportList: defineRoute(
     {
       transparency: param.path.string,
+      formation: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${p.formation}/${routeSegments.rapports}`,
   ),
   reportOverview: defineRoute(
     {
@@ -55,9 +57,13 @@ export class TypeRouterProvider implements RouterProvider {
   getTransparenciesAnchorAttributes() {
     return routes.transparencies().link;
   }
-  getTransparencyReportsAnchorAttributes(transparency: Transparency) {
+  getTransparencyReportsAnchorAttributes(
+    transparency: Transparency,
+    formation: Magistrat.Formation,
+  ) {
     return routes.reportList({
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
+      formation: FormationsRoutesMapper.toPathSegment(formation),
     }).link;
   }
   getReportOverviewAnchorAttributes(transparency: Transparency, id: string) {

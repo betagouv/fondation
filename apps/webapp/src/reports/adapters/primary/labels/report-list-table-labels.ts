@@ -11,3 +11,5 @@ export const reportListTableLabels = {
     formation: "Formation",
   },
 };
+
+export type ReportListTableLabels = typeof reportListTableLabels;

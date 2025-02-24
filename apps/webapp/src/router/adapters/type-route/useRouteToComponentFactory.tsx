@@ -8,6 +8,7 @@ import {
   routeToReactComponentMap,
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
+import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
@@ -44,6 +45,9 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
               <Component
                 transparency={GdsTransparenciesRoutesMapper.toTransparency(
                   route.params.transparency,
+                )}
+                formation={FormationsRoutesMapper.toFormation(
+                  route.params.formation,
                 )}
               />,
             ),

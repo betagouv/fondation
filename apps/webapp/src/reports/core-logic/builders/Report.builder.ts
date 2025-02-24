@@ -123,6 +123,23 @@ export class ReportBuilder {
       .with("rules", aValidatedReportApiModel.rules)
       .with("attachedFiles", aValidatedReportApiModel.attachedFiles);
   }
+
+  static duplicate(report: ReportListItem) {
+    const builder = new ReportBuilder();
+    return builder
+      .with("id", `duplicated-${report.id}`)
+      .with("folderNumber", report.folderNumber)
+      .with("name", report.name)
+      .with(
+        "dueDate",
+        report.dueDate ? DateOnly.fromStoreModel(report.dueDate) : null,
+      )
+      .with("state", report.state)
+      .with("formation", report.formation)
+      .with("transparency", report.transparency)
+      .with("grade", report.grade)
+      .with("targettedPosition", report.targettedPosition);
+  }
 }
 
 class RulesFromMapBuilder extends RulesBuilder {

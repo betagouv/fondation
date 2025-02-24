@@ -1,8 +1,9 @@
 import { Magistrat, NominationFile, Transparency } from "shared-models";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
-import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { ReportListItem } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
+import { ReportListItemVMBuilder } from "../../../core-logic/builders/ReportListItemVM.builder";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import {
@@ -32,131 +33,127 @@ describe("Select Report List", () => {
   });
 
   it("shows an empty list", () => {
-    selectedReport = selectReports();
-    expectStoredReports([]);
+    selectReports();
+    expectStoredReports();
   });
 
   it("shows a report title", () => {
-    store.dispatch(listReport.fulfilled([aReport], "", undefined));
-    selectedReport = selectReports();
+    givenSomeReports(reportBuilder.buildListSM());
+    selectReports();
     expectTitle([{ text: "Rapports" }]);
   });
 
   it("shows the table headers", () => {
-    selectedReport = selectReports();
+    selectReports();
     expectHeaders(allHeaders);
   });
 
   it("shows that there is no new report", () => {
-    selectedReport = selectReports();
+    selectReports();
     expectNewReportsCount(0);
   });
 
   describe("When there is two new reports and an in-progress report", () => {
     beforeEach(() => {
-      store.dispatch(
-        listReport.fulfilled(
-          [
-            new ReportBuilder()
-              .with("state", NominationFile.ReportState.NEW)
-              .buildListSM(),
-            new ReportBuilder()
-              .with("id", "second-new-report-id")
-              .with("state", NominationFile.ReportState.NEW)
-              .buildListSM(),
-            new ReportBuilder()
-              .with("id", "in-progress-report-id")
-              .with("state", NominationFile.ReportState.IN_PROGRESS)
-              .buildListSM(),
-          ],
-          "",
-          undefined,
-        ),
+      givenSomeReports(
+        reportBuilder
+          .with("state", NominationFile.ReportState.NEW)
+          .buildListSM(),
+        reportBuilder
+          .with("id", "second-new-report-id")
+          .with("state", NominationFile.ReportState.NEW)
+          .buildListSM(),
+        reportBuilder
+          .with("id", "in-progress-report-id")
+          .with("state", NominationFile.ReportState.IN_PROGRESS)
+          .buildListSM(),
       );
     });
 
     it("shows the number of new reports", () => {
-      selectedReport = selectReports();
+      selectReports();
       expectNewReportsCount(2);
     });
   });
 
   describe("When there is one report with SIEGE formation", () => {
-    const aSiegeReport = new ReportBuilder()
+    const aSiegeReport = reportBuilder
       .with("transparency", Transparency.AUTOMNE_2024)
       .with("formation", Magistrat.Formation.SIEGE)
       .buildListSM();
 
     beforeEach(() => {
-      store.dispatch(listReport.fulfilled([aSiegeReport], "", undefined));
+      givenSomeReports(aSiegeReport);
     });
 
     it("filters out the reports of a transparency per a formation SIEGE", () => {
-      selectedReport = selectReports({
+      selectReports({
         transparencyFilter: aSiegeReport.transparency,
         formationFilter: Magistrat.Formation.SIEGE,
       });
-
-      expectStoredReports([
-        {
-          id: aSiegeReport.id,
-          folderNumber: 1,
-          name: aSiegeReport.name,
-          dueDate: "30/10/2030",
-          state: "Nouveau",
-          formation: "Siège",
-          transparency: "Octobre 2024",
-          grade: "I",
-          targettedPosition: "PG TJ Marseille",
-          observersCount: aSiegeReport.observersCount,
-          href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aSiegeReport.id}`,
-        },
-      ]);
+      expectStoredReports(viewModelFromStoreModel(aSiegeReport));
     });
   });
 
   describe("when there are many reports", () => {
-    beforeEach(() => {
-      store.dispatch(
-        listReport.fulfilled(
-          [aReport, aDifferentTransparencyReport, aSecondReport, aThirdReport],
-          "",
-          undefined,
-        ),
-      );
-    });
-
     it("filters out the reports of a transparency", () => {
-      selectedReport = selectReports({
+      const aReport = reportBuilder
+        .with("transparency", Transparency.AUTOMNE_2024)
+        .buildListSM();
+      const aDifferentTransparencyReport = ReportBuilder.duplicate(aReport)
+        .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+        .buildListSM();
+      givenSomeReports(aReport, aDifferentTransparencyReport);
+
+      selectReports({
         transparencyFilter: aReport.transparency,
+        formationFilter: aReport.formation,
       });
 
-      expectStoredReports([aReportVM, aThirdReportVM, aSecondReportVM]);
-      expectHeaders(perTransparencyHeaders);
+      expectStoredReports(viewModelFromStoreModel(aReport));
+      expectHeaders(perTransparencyAndFormationHeaders);
       expectTitle(expectedTransparencyTitle);
     });
 
     it("selects the sorted list by transparency then folder number", () => {
-      selectedReport = selectReports();
-      expectStoredReports([
-        aReportVM,
-        aThirdReportVM,
-        aSecondReportVM,
-        aFourthDifferentTransparencyReportVM,
-      ]);
+      const aReport = reportBuilder
+        .with("folderNumber", 1)
+        .with("transparency", Transparency.AUTOMNE_2024)
+        .buildListSM();
+      const aDifferentTransparencyReport = reportBuilder
+        .with("id", "different-transparency-report-id")
+        .with("folderNumber", 1)
+        .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
+        .buildListSM();
+      const aProfiledReport = ReportBuilder.duplicate(aReport)
+        .with("folderNumber", null)
+        .buildListSM();
+      givenSomeReports(aProfiledReport, aReport, aDifferentTransparencyReport);
+
+      selectReports();
+
+      expectStoredReports(
+        viewModelFromStoreModel(aReport),
+        viewModelFromStoreModel(aProfiledReport),
+        viewModelFromStoreModel(aDifferentTransparencyReport),
+      );
     });
   });
+
+  const givenSomeReports = (...reports: ReportListItem[]) =>
+    store.dispatch(listReport.fulfilled(reports, "", undefined));
 
   const selectReports = (args?: {
     transparencyFilter?: Transparency;
     formationFilter?: Magistrat.Formation;
-  }) =>
-    selectReportList(store.getState(), {
+  }) => {
+    selectedReport = selectReportList(store.getState(), {
       aTransparencyTitleMap: transparencyTitleMap,
       ...args,
     });
+  };
 
-  const expectStoredReports = (reports: ReportListItemVMSerializable[]) => {
+  const expectStoredReports = (...reports: ReportListItemVMSerializable[]) => {
     expect(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       selectedReport.reports.map(({ onClick, ...report }) => report),
@@ -172,89 +169,13 @@ describe("Select Report List", () => {
   const expectHeaders = (headers: ReportListVM["headers"]) =>
     expect(selectedReport.headers).toEqual(headers);
 
-  const aReport = new ReportBuilder()
-    .with("id", "report-id")
-    .with("transparency", Transparency.AUTOMNE_2024)
-    .with("folderNumber", 1)
-    .with("name", "Banneau Louise")
-    .with("dueDate", new DateOnly(2030, 10, 30))
-    .with("state", NominationFile.ReportState.READY_TO_SUPPORT)
-    .buildListSM();
-  const aReportVM: ReportListItemVMSerializable = {
-    id: aReport.id,
-    folderNumber: 1,
-    name: aReport.name,
-    dueDate: "30/10/2030",
-    state: "Prêt à soutenir",
-    formation: "Parquet",
-    transparency: "Octobre 2024",
-    grade: "I",
-    targettedPosition: "PG TJ Marseille",
-    observersCount: aReport.observersCount,
-    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aReport.id}`,
-  };
-
-  const aSecondReport = new ReportBuilder()
-    .with("id", "report-id")
-    .with("transparency", Transparency.AUTOMNE_2024)
-    .with("folderNumber", null)
-    .with("name", "Denan Lucien")
-    .with("dueDate", new DateOnly(2030, 10, 30))
-    .buildListSM();
-  const aSecondReportVM: ReportListItemVMSerializable = {
-    id: aSecondReport.id,
-    folderNumber: "Profilé",
-    name: aSecondReport.name,
-    dueDate: "30/10/2030",
-    state: "Nouveau",
-    formation: "Parquet",
-    transparency: "Octobre 2024",
-    grade: "I",
-    targettedPosition: "PG TJ Marseille",
-    observersCount: aReport.observersCount,
-    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aSecondReport.id}`,
-  };
-
-  const aThirdReport = new ReportBuilder()
-    .with("folderNumber", 2)
-    .with("transparency", Transparency.AUTOMNE_2024)
-    .buildListSM();
-  const aThirdReportVM: ReportListItemVMSerializable = {
-    id: aThirdReport.id,
-    folderNumber: 2,
-    name: aThirdReport.name,
-    dueDate: "30/10/2030",
-    state: "Nouveau",
-    formation: "Parquet",
-    transparency: "Octobre 2024",
-    grade: "I",
-    targettedPosition: "PG TJ Marseille",
-    observersCount: aReport.observersCount,
-    href: `/transparences/AUTOMNE_2024/dossiers-de-nomination/${aThirdReport.id}`,
-  };
-
-  const aDifferentTransparencyReport = new ReportBuilder()
-    .with("folderNumber", 1)
-    .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
-    .buildListSM();
-  const aFourthDifferentTransparencyReportVM: ReportListItemVMSerializable = {
-    id: aDifferentTransparencyReport.id,
-    folderNumber: 1,
-    name: aDifferentTransparencyReport.name,
-    dueDate: "30/10/2030",
-    state: "Nouveau",
-    formation: "Parquet",
-    transparency: "PG 8/11/2024",
-    grade: "I",
-    targettedPosition: "PG TJ Marseille",
-    observersCount: aReport.observersCount,
-    href: `/transparences/PROCUREURS_GENERAUX_8_NOVEMBRE_2024/dossiers-de-nomination/${aDifferentTransparencyReport.id}`,
-  };
+  const viewModelFromStoreModel = (report: ReportListItem) =>
+    ReportListItemVMBuilder.fromStoreModel(report).buildSerializable();
 });
 
 const allHeaders = Object.values(reportListTableLabels.headers);
 
-const perTransparencyHeaders: ReportListVM["headers"] = [
+const perTransparencyAndFormationHeaders: ReportListVM["headers"] = [
   reportListTableLabels.headers.folderNumber,
   reportListTableLabels.headers.magistrate,
   reportListTableLabels.headers.currentGrade,
@@ -262,7 +183,6 @@ const perTransparencyHeaders: ReportListVM["headers"] = [
   reportListTableLabels.headers.status,
   reportListTableLabels.headers.observers,
   reportListTableLabels.headers.deadline,
-  reportListTableLabels.headers.formation,
 ];
 
 const transparencyTitleMap: { [key in Transparency]: string } = {
@@ -286,3 +206,5 @@ const expectedTransparencyTitle = [
     color: expect.any(String),
   },
 ];
+
+const reportBuilder = new ReportBuilder();

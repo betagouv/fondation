@@ -128,6 +128,7 @@ function formatGdsTransparencies(
         ) {
           const anchorAttributes = getTransparencyOnClickAttributes(
             report.transparency,
+            formation,
           );
           acc[formation].push({
             label: transparencyLabel,

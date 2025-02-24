@@ -2,7 +2,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { join } from "node:path";
 import { Provider } from "react-redux";
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
@@ -28,11 +28,13 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
+import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
+import { FormationsRoutesMapper } from "./core-logic/models/formations-routes-mapper";
 
 const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
   transparencies: () => <div>transparencies</div>,
-  reportList: (props: ReportListProps) => (
+  reportList: (props: Partial<ReportListProps>) => (
     <div>a list with transparency: {props.transparency}</div>
   ),
   reportOverview: () => <div>an overview</div>,
@@ -129,7 +131,7 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visit(baseTransaparencySegment);
+      visitTransparencyPerFormationReports();
 
       await expectGdsReportsListPage();
     });
@@ -147,7 +149,7 @@ describe("App Router Component", () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
 
-      visit(join(baseTransaparencySegment, "some-report-id"));
+      visitSomeReport();
 
       await expectGdsReportPage();
     });
@@ -182,15 +184,43 @@ describe("App Router Component", () => {
       await screen.findByText(
         `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
       );
-      expect(window.location.pathname).toBe(baseTransaparencySegment);
+      expect(window.location.pathname).toBe(
+        join(
+          baseTransaparencySegment,
+          FormationsRoutesMapper.formationToPathSegmentMap[
+            Magistrat.Formation.PARQUET
+          ],
+          routeSegments.rapports,
+        ),
+      );
     };
     const expectGdsReportPage = async () => {
       await screen.findByText("an overview");
       expect(window.location.pathname).toBe(
-        join(baseTransaparencySegment, "some-report-id"),
+        join(
+          baseTransaparencySegment,
+          routeSegments.rapports,
+          "some-report-id",
+        ),
       );
     };
   });
+
+  const visitTransparencyPerFormationReports = async () =>
+    visit(
+      join(
+        baseTransaparencySegment,
+        FormationsRoutesMapper.formationToPathSegmentMap[
+          Magistrat.Formation.PARQUET
+        ],
+        routeSegments.rapports,
+      ),
+    );
+
+  const visitSomeReport = async () =>
+    visit(
+      join(baseTransaparencySegment, routeSegments.rapports, "some-report-id"),
+    );
 
   const visit = async (urlPath: string) => {
     act(() => {
@@ -229,7 +259,13 @@ describe("App Router Component", () => {
   };
 });
 
-const baseTransaparencySegment = `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/parquet-du-06-fevrier-2025/${routeSegments.rapports}`;
+const baseTransaparencySegment = join(
+  `/${routeSegments.transparences}`,
+  routeSegments.propositionduGardeDesSceaux,
+  GdsTransparenciesRoutesMapper.transparencyToPathSegmentMap[
+    Transparency.PARQUET_DU_06_FEVRIER_2025
+  ],
+);
 
 const user: AuthenticatedUserSM = {
   firstName: "John",

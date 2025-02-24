@@ -1,4 +1,4 @@
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 
 export interface RouterProvider {
   goToLogin(): void;
@@ -8,7 +8,10 @@ export interface RouterProvider {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
-  getTransparencyReportsAnchorAttributes: (transparency: Transparency) => {
+  getTransparencyReportsAnchorAttributes: (
+    transparency: Transparency,
+    formation: Magistrat.Formation,
+  ) => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };

@@ -1,4 +1,9 @@
+import { Magistrat } from "shared-models";
 import { createAppSelector } from "../../../store/createAppSelector";
+import {
+  formationToLabel,
+  transparencyToLabel,
+} from "../../../reports/adapters/primary/labels/labels-mappers";
 
 export enum BreadcrumCurrentPage {
   perGdsTransparencyReports = "per-gds-transparency-reports",
@@ -17,6 +22,7 @@ export type BreadcrumbVM = {
 type CurrentPage =
   | {
       name: BreadcrumCurrentPage.perGdsTransparencyReports;
+      formation: Magistrat.Formation | null;
     }
   | {
       name: BreadcrumCurrentPage.gdsReport;
@@ -44,12 +50,13 @@ export const selectBreadcrumb = createAppSelector(
       label: "Pouvoir de proposition du garde des Sceaux",
       ...getTransparenciesAnchorAttributes(),
     };
-    const reportsPagelabel = "Rapports";
 
     switch (currentPage.name) {
       case BreadcrumCurrentPage.perGdsTransparencyReports:
         return {
-          currentPageLabel: reportsPagelabel,
+          currentPageLabel: currentPage.formation
+            ? `Formation ${formationToLabel(currentPage.formation)}`
+            : "Rapports",
           segments: [transparenciesSegment, gdsTransparenciesSegment],
         };
 
@@ -63,9 +70,10 @@ export const selectBreadcrumb = createAppSelector(
                 transparenciesSegment,
                 gdsTransparenciesSegment,
                 {
-                  label: reportsPagelabel,
+                  label: transparencyToLabel(report.transparency),
                   ...getTransparencyReportsAnchorAttributes(
                     report.transparency,
+                    report.formation,
                   ),
                 },
               ],
