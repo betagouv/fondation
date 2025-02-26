@@ -8,7 +8,6 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesContextRestContract } from 'shared-models';
 import { DeleteFileUseCase } from 'src/files-context/business-logic/use-cases/file-deletion/delete-file';
 import { UploadFileUseCase } from 'src/files-context/business-logic/use-cases/file-upload/upload-file';
@@ -20,6 +19,7 @@ import {
 import { FileDeletionParamDto } from '../dto/file-deletion.dto';
 import { FileUploadQueryDto } from '../dto/file-upload-query.dto';
 import { FilesUrlsQueryDto } from '../dto/files-urls-query.dto';
+import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 
 type IReportController = IController<FilesContextRestContract>;
 

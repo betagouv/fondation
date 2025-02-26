@@ -63,6 +63,7 @@ export class S3Commands {
   }
 
   private genKey(filePath: string[] | null, fileName: string) {
-    return join(...(filePath || []), fileName);
+    const key = join(...(filePath || []), encodeURIComponent(fileName));
+    return key;
   }
 }

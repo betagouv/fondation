@@ -75,7 +75,8 @@ export class RealS3StorageProvider implements S3StorageProvider {
 
   private async ensureBucketExists(bucket: string): Promise<void> {
     try {
-      await this.s3Client.send(this.s3Commands.headBucket(bucket));
+      const command = this.s3Commands.headBucket(bucket);
+      await this.s3Client.send(command);
     } catch (error) {
       console.error(error);
       if (error.name === 'NotFound') {
@@ -91,13 +92,21 @@ export class RealS3StorageProvider implements S3StorageProvider {
     filePath: string[] | null,
     fileName: string,
   ) {
-    const fileExists = await this.s3Client.send(
-      this.s3Commands.headObject(bucket, filePath, fileName),
-    );
-
-    if (!fileExists)
-      throw new Error(
-        `File not found in bucket ${bucket} with name ${fileName} and path ${filePath}`,
+    try {
+      const fileExists = await this.s3Client.send(
+        this.s3Commands.headObject(bucket, filePath, fileName),
       );
+      if (!fileExists)
+        throw new Error(
+          `File not found in bucket ${bucket} with name ${fileName} and path ${filePath}`,
+        );
+    } catch (error) {
+      console.error('error', error);
+
+      throw new Error(
+        `S3 error while searching in bucket ${bucket} for the file name ${fileName} with path ${filePath}`,
+        error,
+      );
+    }
   }
 }

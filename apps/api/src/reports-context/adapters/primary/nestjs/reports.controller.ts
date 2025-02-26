@@ -12,7 +12,6 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ReportsContextRestContract } from 'shared-models';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
@@ -26,6 +25,7 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
+import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
 

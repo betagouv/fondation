@@ -3,8 +3,8 @@ import { join } from 'path';
 import { FileDocumentBuilder } from 'src/files-context/business-logic/builders/file-document.builder';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { FileDocument } from 'src/files-context/business-logic/models/file-document';
-import { S3Config } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
+import { S3Config } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { MinioS3Commands } from './minio-s3-commands';
 import { minioS3StorageClient } from './minio-s3-sorage.client';
@@ -52,8 +52,12 @@ describe.each`
       providerName === 'Scaleway' ? 40000 : undefined,
     );
 
-    const buildS3SignedUrl = (Key: string) => {
+    const buildS3SignedUrl = (
+      fileName: string,
+      filePath: string[] | null = null,
+    ) => {
       const { scheme, baseDomain } = s3Config.endpoint;
+      const Key = join(...(filePath || []), encodeURIComponent(fileName));
 
       switch (providerName) {
         case 'Scaleway':
@@ -78,21 +82,14 @@ describe.each`
           .with('bucket', bucket)
           .with('name', 'file-name.txt')
           .with('path', filePath)
-          .with('signedUrl', buildS3SignedUrl(Key))
+          .with('signedUrl', buildS3SignedUrl('file-name.txt', filePath))
           .build();
 
         it(
-          'saves a file',
+          'uploads a file',
           async () => {
-            expect(
-              await s3StorageProvider.uploadFile(
-                Buffer.from('file content'),
-                aFile.name,
-                'text/plain',
-                bucket,
-                aFile.path,
-              ),
-            ).toBeUndefined();
+            expect(await uploadFile(aFile.name, aFile.path)).toBeUndefined();
+            await expectUploadedFile(Key);
           },
           // Scaleway has high latency from time to time.
           providerName === 'Scaleway' ? 30000 : undefined,
@@ -113,6 +110,63 @@ describe.each`
       },
     );
 
+    describe('With accents in file name', () => {
+      const aFile = new FileDocumentBuilder()
+        .with('bucket', bucket)
+        .with('path', null)
+        .with('name', 'file-ÉéèàùïôâŒ-name.txt')
+        .build();
+      const encodedFileName =
+        'file-%C3%89%C3%A9%C3%A8%C3%A0%C3%B9%C3%AF%C3%B4%C3%A2%C5%92-name.txt';
+
+      it('uploads it', async () => {
+        expect(await uploadFile(aFile.name)).toBeUndefined();
+        await expectUploadedFile(encodedFileName);
+      });
+
+      describe('File already uploaded', () => {
+        beforeEach(async () => {
+          await givenSomeS3Files(s3Client, {
+            bucket,
+            Key: encodedFileName,
+          });
+        });
+
+        it('gets the signed URL', async () => {
+          const filesVM = await s3StorageProvider.getSignedUrls([
+            FileDocument.fromSnapshot(aFile),
+          ]);
+          expect(filesVM.length).toBePositive();
+
+          expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
+          const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
+          for (const url of signedUrls) {
+            expectSignedUrl({
+              url,
+              expectedSignedUrl: buildS3SignedUrl(encodedFileName),
+            });
+          }
+        });
+
+        it(
+          'deletes the file',
+          async () => {
+            await s3StorageProvider.deleteFile(bucket, null, aFile.name);
+            await expect(
+              s3Client.send(
+                new HeadObjectCommand({
+                  Bucket: bucket,
+                  Key: aFile.name,
+                }),
+              ),
+            ).rejects.toBeDefined();
+          },
+          // Scaleway has high latency from time to time.
+          providerName === 'Scaleway' ? 30000 : undefined,
+        );
+      });
+    });
+
     describe('When there is already one file', () => {
       const filePath = ['folder'];
       const Key = join(...filePath, 'file-name.txt');
@@ -122,7 +176,7 @@ describe.each`
         .with('bucket', bucket)
         .with('name', 'file-name.txt')
         .with('path', ['folder'])
-        .with('signedUrl', buildS3SignedUrl(Key))
+        .with('signedUrl', buildS3SignedUrl('file-name.txt', filePath))
         .build();
 
       beforeEach(
@@ -173,27 +227,44 @@ describe.each`
         // Scaleway has high latency from time to time.
         providerName === 'Scaleway' ? 30000 : undefined,
       );
-
-      const expectSignedUrl = ({
-        url,
-        expectedSignedUrl,
-      }: {
-        url: URL;
-        expectedSignedUrl: string;
-      }) => {
-        expect(url.origin + url.pathname).toEqual(expectedSignedUrl);
-        expect(url.searchParams.get('X-Amz-Algorithm')).toEqual(
-          'AWS4-HMAC-SHA256',
-        );
-        expect(url.searchParams.get('X-Amz-Credential')).toEqual(
-          expect.anything(),
-        );
-        expect(url.searchParams.get('X-Amz-Expires')).toEqual('3600');
-        expect(url.searchParams.get('X-Amz-Signature')).toEqual(
-          expect.any(String),
-        );
-      };
     });
+
+    const uploadFile = (fileName: string, filePath: string[] | null = null) =>
+      s3StorageProvider.uploadFile(
+        Buffer.from('file content'),
+        fileName,
+        'text/plain',
+        bucket,
+        filePath,
+      );
+
+    const expectSignedUrl = ({
+      url,
+      expectedSignedUrl,
+    }: {
+      url: URL;
+      expectedSignedUrl: string;
+    }) => {
+      expect(url.origin + url.pathname).toEqual(expectedSignedUrl);
+      expect(url.searchParams.get('X-Amz-Algorithm')).toEqual(
+        'AWS4-HMAC-SHA256',
+      );
+      expect(url.searchParams.get('X-Amz-Credential')).toEqual(
+        expect.anything(),
+      );
+      expect(url.searchParams.get('X-Amz-Expires')).toEqual('3600');
+      expect(url.searchParams.get('X-Amz-Signature')).toEqual(
+        expect.any(String),
+      );
+    };
+
+    const expectUploadedFile = (Key: string) =>
+      s3Client.send(
+        new HeadObjectCommand({
+          Bucket: bucket,
+          Key,
+        }),
+      );
   },
   // Scaleway has high latency from time to time.
   40000,
