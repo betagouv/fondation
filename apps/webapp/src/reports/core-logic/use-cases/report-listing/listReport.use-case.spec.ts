@@ -2,17 +2,21 @@ import { ApiAuthenticationGateway } from "../../../../authentication/adapters/se
 import { FakeAuthenticationApiClient } from "../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import { AuthenticateParams } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
-import { AppState } from "../../../../store/appState";
+import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import {
+  expectStoredReportsFactory,
+  expectStoredReportsListFactory,
+} from "../../../../test/reports";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
+import { preloadReportsRetrieval } from "../../listeners/preload-reports-retrieval.listeners";
 import { listReport } from "./listReport.use-case";
 
 describe("Reports Listing", () => {
   let store: ReduxStore;
-  let initialState: AppState<true>;
   let authenticationGateway: ApiAuthenticationGateway;
   let reportApiClient: FakeReportApiClient;
   let apiClient: FakeAuthenticationApiClient;
@@ -31,8 +35,8 @@ describe("Reports Listing", () => {
       },
       {},
       {},
+      { preloadReportsRetrieval },
     );
-    initialState = store.getState();
   });
 
   describe("when there is a report", () => {
@@ -52,26 +56,35 @@ describe("Reports Listing", () => {
 
       it("lists the report", async () => {
         await store.dispatch(listReport());
-        expect(store.getState()).toEqual<AppState<true>>({
-          ...initialState,
-          reportList: {
-            ...initialState.reportList,
-            data: [
-              {
-                id: aReport.id,
-                folderNumber: aReport.folderNumber,
-                name: aReport.name,
-                dueDate: aReport.dueDate,
-                state: aReport.state,
-                formation: aReport.formation,
-                transparency: aReport.transparency,
-                grade: aReport.grade,
-                targettedPosition: aReport.targettedPosition,
-                observersCount: aReport.observersCount,
-              },
-            ],
+        const stateWithPendingReportOverview = store.getState();
+        expectStoredReportsListFactory(
+          store,
+          stateWithPendingReportOverview,
+        )([
+          {
+            id: aReport.id,
+            folderNumber: aReport.folderNumber,
+            name: aReport.name,
+            dueDate: aReport.dueDate,
+            state: aReport.state,
+            formation: aReport.formation,
+            transparency: aReport.transparency,
+            grade: aReport.grade,
+            targettedPosition: aReport.targettedPosition,
+            observersCount: aReport.observersCount,
           },
-        });
+        ]);
+      });
+
+      it("preloads the reports overviews", async () => {
+        await store.dispatch(listReport());
+        const stateBeforePreload = store.getState();
+        await sleep(50);
+
+        expectStoredReportsFactory(
+          store,
+          stateBeforePreload,
+        )(ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM());
       });
     });
   });

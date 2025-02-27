@@ -10,6 +10,7 @@ export type AppListeners = {
   redirectOnLogout: Listener;
   redirectOnLogin: Listener;
   reportFileAttached: Listener;
+  preloadReportsRetrieval: Listener;
 };
 
 export type StartAppListening = TypedStartListening<

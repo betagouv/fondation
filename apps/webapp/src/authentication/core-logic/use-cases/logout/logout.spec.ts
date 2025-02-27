@@ -5,6 +5,7 @@ import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import { expectUnauthenticatedStoreFactory } from "../../../../test/authentication";
+import { expectStoredReportsFactory } from "../../../../test/reports";
 import { ApiAuthenticationGateway } from "../../../adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../adapters/secondary/gateways/FakeAuthentication.client";
 import { LocalStorageLogoutNotifierProvider } from "../../../adapters/secondary/providers/localStorageLogoutNotifier.provider";
@@ -42,7 +43,7 @@ describe("Logout", () => {
     it("clears the reports from the store on logout", async () => {
       givenSomeReport();
       await store.dispatch(logout());
-      expectUnauthenticatedStore();
+      expectStoredReportsFactory(store, initialState)();
     });
 
     it("informs the browser about a disconnected user", async () => {
@@ -50,7 +51,6 @@ describe("Logout", () => {
       expect(
         (logoutNotifierProvider as StubLogoutNotifierProvider).hasNotified,
       ).toBe(true);
-      expect(initialState).toBe(store.getState());
     });
   });
 

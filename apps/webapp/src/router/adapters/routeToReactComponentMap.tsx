@@ -2,7 +2,7 @@ import { FC } from "react";
 import { RouteName } from "../core-logic/models/Routes";
 import {
   LazyLogin,
-  ReportListPage,
+  LazyReportListPage,
   LazyReportOverview,
   LazyTransparencies,
 } from "./lazyRouteComponents";
@@ -10,7 +10,7 @@ import {
 export const routeToReactComponentMap = {
   login: LazyLogin,
   transparencies: LazyTransparencies,
-  reportList: ReportListPage,
+  reportList: LazyReportListPage,
   reportOverview: LazyReportOverview,
 };
 

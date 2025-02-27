@@ -51,6 +51,7 @@ export interface AppState<IsTest extends boolean = false> {
   };
   reportOverview: {
     summarySections: SummarySection[];
+    queryStatus: Record<string, "idle" | "pending" | "fulfilled" | "rejected">;
     byIds: Record<string, ReportSM> | null;
     rulesMap: AllRulesMapV2;
     rulesLabelsMap: IsTest extends true

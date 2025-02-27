@@ -6,7 +6,7 @@ export const retrieveReport = createAppAsyncThunk(
     id: string,
     {
       extra: {
-        gateways: { reportGateway: reportGateway },
+        gateways: { reportGateway },
       },
     },
   ) => {

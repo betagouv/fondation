@@ -22,6 +22,7 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
     : RulesLabelsMap,
 ) => {
   const initialState: AppState<IsTest>["reportOverview"] = {
+    queryStatus: {},
     byIds: null,
     rulesMap,
     rulesLabelsMap,
@@ -126,9 +127,17 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
+      builder.addCase(retrieveReport.pending, (state, action) => {
+        state.queryStatus[action.meta.arg] = action.meta.requestStatus;
+      });
       builder.addCase(retrieveReport.fulfilled, (state, action) => {
-        if (action.payload)
+        if (action.payload) {
           state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
+          state.queryStatus[action.payload.id] = action.meta.requestStatus;
+        }
+      });
+      builder.addCase(retrieveReport.rejected, (state, action) => {
+        state.queryStatus[action.meta.arg] = action.meta.requestStatus;
       });
 
       builder.addCase(deleteReportAttachedFile.fulfilled, (state, action) => {
@@ -145,6 +154,7 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
 
       builder.addCase(logout.fulfilled, (state) => {
         state.byIds = null;
+        state.queryStatus = {};
       });
     },
   });

@@ -17,7 +17,7 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
       const route = useRoute();
 
       const suspensed = (element: JSX.Element | null) => (
-        <React.Suspense fallback={<div>Loading</div>}>{element}</React.Suspense>
+        <React.Suspense>{element}</React.Suspense>
       );
 
       const protectedComponent = (component: JSX.Element) => {

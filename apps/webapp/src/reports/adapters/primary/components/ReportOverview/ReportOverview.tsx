@@ -28,6 +28,7 @@ import {
   selectBreadcrumb,
 } from "../../../../../router/adapters/selectors/selectBreadcrumb";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
+import { selectFetchingReport } from "../../selectors/selectReportQueryStatus";
 
 export type ReportOverviewProps = {
   id: string;
@@ -41,6 +42,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   } as const;
   const breadcrumb = useAppSelector((state) =>
     selectBreadcrumb(state, currentPage),
+  );
+  const isFetching = useAppSelector((state) =>
+    selectFetchingReport(state, {
+      reportId: id,
+    }),
   );
   const dispatch = useAppDispatch();
 
@@ -95,7 +101,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   }, [dispatch, id]);
 
   if (!report)
-    return (
+    return isFetching ? null : (
       <div>
         <Breadcrumb
           id="report-breadcrumb"

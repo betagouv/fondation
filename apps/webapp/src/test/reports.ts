@@ -3,6 +3,17 @@ import { ReportApiModel } from "../reports/core-logic/builders/ReportApiModel.bu
 import { AppState, ReportSM } from "../store/appState";
 import { ReduxStore } from "../store/reduxStore";
 
+export const expectStoredReportsListFactory =
+  (store: ReduxStore, initialState: AppState<true>) =>
+  (reports: AppState["reportList"]["data"]) =>
+    expect(store.getState()).toEqual<AppState<true>>({
+      ...initialState,
+      reportList: {
+        ...initialState.reportList,
+        data: reports,
+      },
+    });
+
 export const expectStoredReportsFactory =
   (store: ReduxStore, initialState: AppState<true>) =>
   (...reports: ReportSM[]) =>
@@ -10,13 +21,22 @@ export const expectStoredReportsFactory =
       ...initialState,
       reportOverview: {
         ...initialState.reportOverview,
-        byIds: reports.reduce(
+        queryStatus: reports.reduce(
           (acc, report) => ({
             ...acc,
-            [report.id]: report,
+            [report.id]: "fulfilled",
           }),
           {},
         ),
+        byIds: reports.length
+          ? reports.reduce(
+              (acc, report) => ({
+                ...acc,
+                [report.id]: report,
+              }),
+              {},
+            )
+          : null,
       },
     });
 

@@ -3,8 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AllRulesMapV2, NominationFile } from "shared-models";
 import sharp from "sharp";
+import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { AppState } from "../../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
+import {
+  ExpectTransparenciesBreadcrumb,
+  expectTransparenciesBreadcrumbFactory,
+} from "../../../../../test/breadcrumb";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
@@ -20,11 +25,6 @@ import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway"
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../labels/rules-labels";
 import { ReportOverview } from "./ReportOverview";
-import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
-import {
-  ExpectTransparenciesBreadcrumb,
-  expectTransparenciesBreadcrumbFactory,
-} from "../../../../../test/breadcrumb";
 
 const testRulesMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: [

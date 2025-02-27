@@ -1,23 +1,19 @@
 import { lazy } from "react";
 
-export const LazyLogin = lazy(
-  () => import("../../authentication/adapters/primary/components/Login"),
+const Login = import("../../authentication/adapters/primary/components/Login");
+export const LazyLogin = lazy(() => Login);
+
+const TransparenciesPage = import(
+  "../../reports/adapters/primary/components/Transparencies/TransparenciesPage"
 );
-export const LazyTransparencies = lazy(
-  () =>
-    import(
-      "../../reports/adapters/primary/components/Transparencies/TransparenciesPage"
-    ),
+export const LazyTransparencies = lazy(() => TransparenciesPage);
+
+const ReportListPage = import(
+  "../../reports/adapters/primary/components/ReportList/ReportListPage"
 );
-export const ReportListPage = lazy(
-  () =>
-    import(
-      "../../reports/adapters/primary/components/ReportList/ReportListPage"
-    ),
+export const LazyReportListPage = lazy(() => ReportListPage);
+
+const ReportOverviewPage = import(
+  "../../reports/adapters/primary/components/ReportOverview/ReportOverviewPage"
 );
-export const LazyReportOverview = lazy(
-  () =>
-    import(
-      "../../reports/adapters/primary/components/ReportOverview/ReportOverviewPage"
-    ),
-);
+export const LazyReportOverview = lazy(() => ReportOverviewPage);
