@@ -9,11 +9,13 @@ export type ReportRulesProps = {
     ruleGroup: NominationFile.RuleGroup,
     ruleName: NominationFile.RuleName,
   ) => () => void;
+  reportId: string;
 };
 
 export const ReportRules: React.FC<ReportRulesProps> = ({
   rulesChecked,
   onUpdateReportRule,
+  reportId,
 }) => {
   const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
     onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
@@ -32,6 +34,8 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         rulesChecked={rulesChecked.management}
         onUpdateReportRule={onUpdateManagementRule}
         showNotice={true}
+        reportId={reportId}
+        ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
       />
       <ReportRule<NominationFile.StatutoryRule>
         id={reportHtmlIds.overview.statutorySection}
@@ -39,12 +43,16 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         rulesChecked={rulesChecked.statutory}
         onUpdateReportRule={onUpdateStatutoryRule}
         showNotice={true}
+        reportId={reportId}
+        ruleGroup={NominationFile.RuleGroup.STATUTORY}
       />
       <ReportRule<NominationFile.QualitativeRule>
         id={reportHtmlIds.overview.qualitativeSection}
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.QUALITATIVE]}
         rulesChecked={rulesChecked.qualitative}
         onUpdateReportRule={onUpdateQualitativeRule}
+        reportId={reportId}
+        ruleGroup={NominationFile.RuleGroup.QUALITATIVE}
       />
     </>
   );

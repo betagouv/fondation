@@ -5,7 +5,7 @@ export const summaryLabels = {
   biography: "Biographie",
   observers: "Observants",
   rules: {
-    [NominationFile.RuleGroup.MANAGEMENT]: "Règles de gestion",
+    [NominationFile.RuleGroup.MANAGEMENT]: "Lignes directrices de gestion",
     [NominationFile.RuleGroup.STATUTORY]: "Règles statutaires",
     [NominationFile.RuleGroup.QUALITATIVE]: "Éléments qualitatifs à vérifier",
   },

@@ -9,7 +9,6 @@ import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../store/appState";
 import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
-import { getReportAccordionLabel } from "./ReportVMRules.builder";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 
 type InternalReportVM<RulesMap extends AllRulesMapV2> = Omit<
@@ -111,7 +110,6 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
           VMReportRuleValue<false>
         >),
       },
-      accordionLabel: getReportAccordionLabel(group),
     };
 
     // Typescript generalizes the group type to string because it's a dynamic value,

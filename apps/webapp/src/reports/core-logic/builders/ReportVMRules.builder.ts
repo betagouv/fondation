@@ -4,9 +4,6 @@ import { UnionToIntersection } from "type-fest";
 import { AppState, ReportSM } from "../../../store/appState";
 import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
 
-//! La persistence des règles va être supprimée,
-//! et par conséquent cette classe également.
-//! On s'autorise à patcher cette classe en attendant l'UX simplifiée pour les règles.
 export class ReportVMRulesBuilder extends RulesBuilder<
   VMReportRuleValue<boolean>
 > {
@@ -101,7 +98,6 @@ export class ReportVMRulesBuilder extends RulesBuilder<
               (ruleValue) => !isRuleSelected(ruleValue),
               acc[group]?.others,
             ),
-            accordionLabel: getReportAccordionLabel(group),
           },
         };
       },
@@ -111,21 +107,3 @@ export class ReportVMRulesBuilder extends RulesBuilder<
     return rulesVM;
   }
 }
-
-export const getReportAccordionLabel = (
-  group: NominationFile.RuleGroup,
-): string => {
-  switch (group) {
-    case NominationFile.RuleGroup.MANAGEMENT:
-      return "Autres règles de gestion";
-    case NominationFile.RuleGroup.STATUTORY:
-      return "Autres règles statutaires";
-    case NominationFile.RuleGroup.QUALITATIVE:
-      return "Autres éléments qualitatifs";
-    default: {
-      const _exhaustiveCheck: never = group;
-      console.info(_exhaustiveCheck);
-      throw new Error("Unhandled rule group");
-    }
-  }
-};

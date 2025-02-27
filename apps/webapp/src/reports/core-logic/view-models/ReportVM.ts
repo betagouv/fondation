@@ -79,10 +79,9 @@ export class ReportVM<
 
     [NominationFile.RuleGroup.QUALITATIVE]: string;
   } = {
-    [NominationFile.RuleGroup.MANAGEMENT]: "Règles de gestion",
+    [NominationFile.RuleGroup.MANAGEMENT]: "Lignes directrices de gestion",
     [NominationFile.RuleGroup.STATUTORY]: "Règles statutaires",
-    [NominationFile.RuleGroup.QUALITATIVE]:
-      "Les autres éléments qualitatifs à vérifier",
+    [NominationFile.RuleGroup.QUALITATIVE]: "Éléments qualitatifs à vérifier",
   };
 
   constructor(
@@ -122,6 +121,5 @@ export type GroupRulesChecked<
   {
     selected: Partial<Record<R, VMReportRuleValue<true>>>;
     others: Partial<Record<R, VMReportRuleValue<false>>>;
-    accordionLabel: string;
   }
 >;

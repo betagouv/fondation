@@ -159,6 +159,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           <ReportRules
             rulesChecked={report.rulesChecked}
             onUpdateReportRule={onUpdateReportRule}
+            reportId={id}
           />
           <AttachedFileUpload
             attachedFiles={report.attachedFiles}

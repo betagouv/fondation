@@ -11,6 +11,8 @@ import {
 } from "../../../../core-logic/view-models/ReportVM";
 import _ from "lodash";
 import clsx from "clsx";
+import { useAppSelector } from "../../hooks/react-redux";
+import { selectRuleGroupLabel } from "../../selectors/selectRuleGroupLabel";
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {
   id: string;
@@ -18,6 +20,8 @@ export type ReportRuleProps<R extends NominationFile.RuleName> = {
   rulesChecked: ReportVM["rulesChecked"][NominationFile.RuleGroup];
   onUpdateReportRule: (ruleName: R) => () => void;
   showNotice?: boolean;
+  reportId: string;
+  ruleGroup: NominationFile.RuleGroup;
 };
 
 export const ReportRule = <R extends NominationFile.RuleName>({
@@ -26,7 +30,16 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   rulesChecked,
   onUpdateReportRule,
   showNotice = false,
+  reportId,
+  ruleGroup,
 }: ReportRuleProps<R>) => {
+  const accordionLabel = useAppSelector((state) =>
+    selectRuleGroupLabel(state, {
+      reportId,
+      ruleGroup,
+    }),
+  );
+
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
     const checkboxes = Object.entries(rules).map(
       ([ruleName, { label, hint, checked, highlighted }]) => (
@@ -73,7 +86,7 @@ export const ReportRule = <R extends NominationFile.RuleName>({
       {createCheckboxes(rulesChecked.selected)}
 
       <Accordion
-        label={rulesChecked.accordionLabel}
+        label={accordionLabel}
         style={{
           display: _.isEmpty(rulesChecked.others) ? "none" : undefined,
         }}

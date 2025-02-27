@@ -7,7 +7,6 @@ import {
   ReportApiModel,
   ReportApiModelBuilder,
 } from "../../../../core-logic/builders/ReportApiModel.builder";
-import { getReportAccordionLabel } from "../../../../core-logic/builders/ReportVMRules.builder";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../labels/rules-labels";
@@ -49,6 +48,38 @@ describe("Report Overview Component - Rules use cases", () => {
     ],
     [NominationFile.RuleGroup.QUALITATIVE]: [],
   } as const satisfies AllRulesMapV2;
+
+  describe("Accordion", () => {
+    let reportApiModelBuilder: ReportApiModelBuilder;
+
+    beforeEach(() => {
+      reportApiModelBuilder = new ReportApiModelBuilder(
+        rulesMapWithTransferTime,
+      );
+      store = initStore(rulesMapWithTransferTime);
+    });
+
+    it("shows the accordion if it contains a rule", async () => {
+      const reportApiModel = reportApiModelBuilder
+        .with("rules.management.TRANSFER_TIME.validated", true)
+        .build();
+      renderReport(reportApiModel);
+
+      await screen.findByText("Afficher les lignes directrices à vérifier");
+    });
+
+    it("hides the accordion if all its rules are out", async () => {
+      const reportApiModel = reportApiModelBuilder
+        .with("rules.management.TRANSFER_TIME.validated", false)
+        .build();
+      renderReport(reportApiModel);
+
+      const accordion = await screen.findByText(
+        "Autres lignes directrices à vérifier",
+      );
+      expect(accordion).not.toBeVisible();
+    });
+  });
 
   const testParams = [
     {
@@ -134,18 +165,6 @@ describe("Report Overview Component - Rules use cases", () => {
           const reportApiModel = reportApiModelBuilder.build();
           return renderReport(reportApiModel);
         };
-      });
-
-      it("hides the accordion if all its rules are out", async () => {
-        const reportApiModel = reportApiModelBuilder
-          .with(`${testedRuleBuilderPath}.validated`, false)
-          .build();
-        renderReport(reportApiModel);
-
-        const accordion = await screen.findByText(
-          getReportAccordionLabel(ruleGroup),
-        );
-        expect(accordion).not.toBeVisible();
       });
 
       it.each`

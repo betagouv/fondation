@@ -20,11 +20,12 @@ export const ReportList: FC<ReportListProps> = ({
   transparency,
   formation,
 }) => {
+  const reportListArgs = {
+    transparencyFilter: transparency || undefined,
+    formationFilter: formation || undefined,
+  };
   const { title, headers, reports, newReportsCount } = useAppSelector((state) =>
-    selectReportList(state, {
-      transparencyFilter: transparency || undefined,
-      formationFilter: formation || undefined,
-    }),
+    selectReportList(state, reportListArgs),
   );
   const currentPage = {
     name: BreadcrumCurrentPage.perGdsTransparencyReports,

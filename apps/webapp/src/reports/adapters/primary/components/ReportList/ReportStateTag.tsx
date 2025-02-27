@@ -50,14 +50,14 @@ export const ReportStateTag: FC<ReportStateTagProps> = ({ state }) => {
       }}
       iconId={activeSpec.iconId}
     >
-      <div
+      <span
         className={cx("fr-text--bold", "fr-ml-1v")}
         style={{
           color: activeSpec.color,
         }}
       >
         {state}
-      </div>
+      </span>
     </Tag>
   );
 };
