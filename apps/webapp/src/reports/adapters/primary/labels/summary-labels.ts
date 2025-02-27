@@ -7,7 +7,7 @@ export const summaryLabels = {
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: "Lignes directrices de gestion",
     [NominationFile.RuleGroup.STATUTORY]: "Règles statutaires",
-    [NominationFile.RuleGroup.QUALITATIVE]: "Éléments qualitatifs à vérifier",
+    [NominationFile.RuleGroup.QUALITATIVE]: "Éléments qualitatifs",
   },
   attachedFiles: "Pièce(s) jointe(s)",
 };

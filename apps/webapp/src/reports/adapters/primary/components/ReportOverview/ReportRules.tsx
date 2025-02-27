@@ -33,7 +33,6 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
         rulesChecked={rulesChecked.management}
         onUpdateReportRule={onUpdateManagementRule}
-        showNotice={true}
         reportId={reportId}
         ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
       />
@@ -42,7 +41,6 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.STATUTORY]}
         rulesChecked={rulesChecked.statutory}
         onUpdateReportRule={onUpdateStatutoryRule}
-        showNotice={true}
         reportId={reportId}
         ruleGroup={NominationFile.RuleGroup.STATUTORY}
       />

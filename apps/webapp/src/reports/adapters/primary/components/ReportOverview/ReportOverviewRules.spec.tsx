@@ -23,16 +23,6 @@ describe("Report Overview Component - Rules use cases", () => {
     store = initStore();
   });
 
-  it("shows a message to explain rules checked and red meaning", async () => {
-    const aReport = new ReportApiModelBuilder().build();
-    renderReport(aReport);
-
-    const messages = await screen.findAllByText(
-      "Case cochée = la règle n'est pas respectée. Si le texte est rouge, cela signifie que notre outil de pré-analyse a détecté un risque de non-respect de la règle.",
-    );
-    expect(messages).toHaveLength(2);
-  });
-
   const rulesMapWithTransferTime = {
     [NominationFile.RuleGroup.MANAGEMENT]: [
       NominationFile.ManagementRule.TRANSFER_TIME,
@@ -189,6 +179,10 @@ describe("Report Overview Component - Rules use cases", () => {
         }
       });
 
+      // On ne voit plus les règles "highlighted" en couleur car on teste
+      // l'UX sans la pré-validation, en se laissant la possibilité
+      // de le ré-introduire en fonction des retours utilisateurs.
+      // expect(labelComponent).toBeVisible();
       it.each`
         testName               | preValidated | expectHighlighted
         ${"highlights"}        | ${true}      | ${true}
@@ -204,12 +198,15 @@ describe("Report Overview Component - Rules use cases", () => {
           const labelComponent = await screen.findByText(ruleLabels.label);
 
           if (expectHighlighted) {
-            expect(labelComponent).toBeVisible();
+            // L'élément n'est pas visible car on n'affiche plus
+            // les règles "highlighted"
+            expect(labelComponent).toBeInTheDocument();
           } else {
             expect(labelComponent).not.toBeVisible();
           }
           expect(labelComponent).toHaveStyle({
-            color: expectHighlighted ? "var(--text-default-error)" : "",
+            // color: expectHighlighted ? "var(--text-default-error)" : "",
+            color: "",
           });
         },
       );

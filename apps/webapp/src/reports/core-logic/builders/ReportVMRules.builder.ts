@@ -88,7 +88,10 @@ export class ReportVMRulesBuilder extends RulesBuilder<
         };
 
         const isRuleSelected = (value: VMReportRuleValue<boolean>) =>
-          value.checked || value.highlighted;
+          // On ne prend plus en compte "highlighted" car on teste
+          // l'UX sans la pré-validation, en se laissant la possibilité
+          // de le ré-introduire en fonction des retours utilisateurs.
+          value.checked;
 
         return {
           ...acc,

@@ -134,7 +134,10 @@ describe("Select Report", () => {
     });
 
     describe("Pre validation", () => {
-      it.each`
+      // On ne prend plus en compte "highlighted" car on teste
+      // l'UX sans la pré-validation, en se laissant la possibilité
+      // de le ré-introduire en fonction des retours utilisateurs.
+      it.skip.each`
         testName               | preValidated | expectHighlighted
         ${"highlights"}        | ${true}      | ${true}
         ${"doesn't highlight"} | ${false}     | ${false}
@@ -245,53 +248,59 @@ describe("Select Report", () => {
       reportBuilder = new ReportBuilder(testRulesMap);
     });
 
+    // Les règles "highlighted" apparaissent dans la section "others"
+    // car on teste l'UX sans la pré-validation, en se laissant la possibilité
+    // de le ré-introduire en fonction des retours utilisateurs.
     it.each`
-      description                                        | mergedRule                                   | rule                                         | expectedRule
-      ${"first rule not validated"}                      | ${{ validated: true, preValidated: false }}  | ${{ validated: false, preValidated: false }} | ${{ checked: true, highlighted: false }}
-      ${"second rule not validated"}                     | ${{ validated: false, preValidated: false }} | ${{ validated: true, preValidated: false }}  | ${{ checked: true, highlighted: false }}
-      ${"first rule not pre-validated"}                  | ${{ validated: true, preValidated: true }}   | ${{ validated: true, preValidated: false }}  | ${{ checked: false, highlighted: true }}
-      ${"second rule not pre-validated"}                 | ${{ validated: true, preValidated: false }}  | ${{ validated: true, preValidated: true }}   | ${{ checked: false, highlighted: true }}
-      ${"all rules not pre-validated and not validated"} | ${{ validated: false, preValidated: true }}  | ${{ validated: false, preValidated: true }}  | ${{ checked: true, highlighted: true }}
-    `("$description", async ({ mergedRule, rule, expectedRule }) => {
-      const aReport = new ReportBuilder(testRulesMap)
-        .with(
-          "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated",
-          mergedRule.validated,
-        )
-        .with(
-          "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.preValidated",
-          mergedRule.preValidated,
-        )
-        .with(
-          "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated",
-          rule.validated,
-        )
-        .with(
-          "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.preValidated",
-          rule.preValidated,
-        )
-        .buildRetrieveSM();
+      description                                        | mergedRule                                   | rule                                         | expectedRule                             | isSelected
+      ${"first rule not validated"}                      | ${{ validated: true, preValidated: false }}  | ${{ validated: false, preValidated: false }} | ${{ checked: true, highlighted: false }} | ${true}
+      ${"second rule not validated"}                     | ${{ validated: false, preValidated: false }} | ${{ validated: true, preValidated: false }}  | ${{ checked: true, highlighted: false }} | ${true}
+      ${"first rule not pre-validated"}                  | ${{ validated: true, preValidated: true }}   | ${{ validated: true, preValidated: false }}  | ${{ checked: false, highlighted: true }} | ${false}
+      ${"second rule not pre-validated"}                 | ${{ validated: true, preValidated: false }}  | ${{ validated: true, preValidated: true }}   | ${{ checked: false, highlighted: true }} | ${false}
+      ${"all rules not pre-validated and not validated"} | ${{ validated: false, preValidated: true }}  | ${{ validated: false, preValidated: true }}  | ${{ checked: true, highlighted: true }}  | ${true}
+    `(
+      "$description",
+      async ({ mergedRule, rule, expectedRule, isSelected }) => {
+        const aReport = new ReportBuilder(testRulesMap)
+          .with(
+            "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.validated",
+            mergedRule.validated,
+          )
+          .with(
+            "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE.preValidated",
+            mergedRule.preValidated,
+          )
+          .with(
+            "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.validated",
+            rule.validated,
+          )
+          .with(
+            "rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.preValidated",
+            rule.preValidated,
+          )
+          .buildRetrieveSM();
 
-      givenAReport(aReport);
+        givenAReport(aReport);
 
-      const aJudiciaryRoleChangeInSameRessortVM: VMReportRuleValue<true> = {
-        id: aReport.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.id,
-        label: "",
-        hint: "",
-        comment: null,
-        ...expectedRule,
-      };
+        const aJudiciaryRoleChangeInSameRessortVM: VMReportRuleValue<true> = {
+          id: aReport.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.id,
+          label: "",
+          hint: "",
+          comment: null,
+          ...expectedRule,
+        };
 
-      const aReportVM = mergedReportVMBuilder(aReport)
-        .with(
-          "rulesChecked.management.selected.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
-          aJudiciaryRoleChangeInSameRessortVM,
-        )
-        .build();
-      expect(selectReport(store.getState(), aReport.id)?.rulesChecked).toEqual(
-        aReportVM.rulesChecked,
-      );
-    });
+        const aReportVM = mergedReportVMBuilder(aReport)
+          .with(
+            `rulesChecked.management.${isSelected ? "selected" : "others"}.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT`,
+            aJudiciaryRoleChangeInSameRessortVM,
+          )
+          .build();
+        expect(
+          selectReport(store.getState(), aReport.id)?.rulesChecked,
+        ).toEqual(aReportVM.rulesChecked);
+      },
+    );
   });
 
   const givenAReport = (report: ReportSM) => {
