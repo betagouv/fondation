@@ -11,6 +11,7 @@ export class GdsTransparenciesRoutesMapper {
       "21-01-2025-cabinet-gds",
     [Transparency.SIEGE_DU_06_FEVRIER_2025]: "06-02-2025-siege",
     [Transparency.PARQUET_DU_06_FEVRIER_2025]: "06-02-2025-parquet",
+    [Transparency.PARQUET_DU_20_FEVRIER_2025]: "20-02-2025-parquet",
     [Transparency.MARCH_2025]: "march-2025",
     [Transparency.MARCH_2026]: "march-2026",
   };

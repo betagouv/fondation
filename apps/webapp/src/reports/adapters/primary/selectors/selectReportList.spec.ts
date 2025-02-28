@@ -193,6 +193,7 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]: "",
   [Transparency.SIEGE_DU_06_FEVRIER_2025]: "",
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: "",
+  [Transparency.PARQUET_DU_20_FEVRIER_2025]: "",
   [Transparency.MARCH_2025]: "",
   [Transparency.MARCH_2026]: "",
 };

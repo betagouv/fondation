@@ -13,6 +13,7 @@ export const transparencyMap: { [key in Transparency]: string } = {
     'Transparence 21/01/25',
   [Transparency.SIEGE_DU_06_FEVRIER_2025]: 'Transparence S06/02/25',
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: 'Transparence P06/02/25',
+  [Transparency.PARQUET_DU_20_FEVRIER_2025]: 'Transparence P20/02/2025',
 };
 
 export class TransparencyTsvNormalizer {
