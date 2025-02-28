@@ -1,18 +1,18 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
-import { AuthenticateParams } from "../../../core-logic/use-cases/authentication/authenticate";
-import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentication.gateway";
-import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
-import { Login } from "./Login";
-import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
 import {
   ExpectAuthenticatedUser,
   expectAuthenticatedUserFactory,
 } from "../../../../test/authentication";
+import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
+import { AuthenticateParams } from "../../../core-logic/use-cases/authentication/authenticate";
+import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentication.gateway";
+import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
+import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
+import { Login } from "./Login";
 
 describe("Login Component", () => {
   let store: ReduxStore;
@@ -46,28 +46,39 @@ describe("Login Component", () => {
     await screen.findByLabelText("Mot de passe");
   });
 
-  it("authenticates a user", async () => {
-    apiClient.setEligibleAuthUser(
-      userCredentials.email,
-      userCredentials.password,
-      user.firstName,
-      user.lastName,
-    );
-
+  it("doesn't show an alert message by default", async () => {
     renderLogin();
-    await submitLogin();
+    await expect(screen.findByText("Échec de la connexion")).rejects.toThrow();
+  });
 
-    await waitFor(async () => {
-      expect(store.getState()).not.toBe(initialState);
+  describe("Given an allowed user", () => {
+    beforeEach(() => {
+      apiClient.setEligibleAuthUser(
+        userCredentials.email,
+        userCredentials.password,
+        user.firstName,
+        user.lastName,
+      );
+    });
+
+    it("authenticates a user", async () => {
+      renderLogin();
+      await submitLogin();
       expectAuthenticatedUser(user);
+    });
+
+    it("shows an alert message when authentication fails", async () => {
+      renderLogin();
+      await submitLogin({ ...userCredentials, password: "wrong-password" });
+      screen.getByText("Échec de la connexion");
     });
   });
 
-  const submitLogin = async () => {
-    await userEvent.type(screen.getByLabelText("Email"), userCredentials.email);
+  const submitLogin = async (credentials = userCredentials) => {
+    await userEvent.type(screen.getByLabelText("Email"), credentials.email);
     await userEvent.type(
       screen.getByLabelText("Mot de passe"),
-      userCredentials.password,
+      credentials.password,
     );
     await userEvent.click(screen.getByRole("button"));
   };
