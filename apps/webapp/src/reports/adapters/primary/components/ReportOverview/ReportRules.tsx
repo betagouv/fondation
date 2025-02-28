@@ -28,14 +28,6 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
 
   return (
     <>
-      <ReportRule<NominationFile.ManagementRule>
-        id={reportHtmlIds.overview.managementSection}
-        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
-        rulesChecked={rulesChecked.management}
-        onUpdateReportRule={onUpdateManagementRule}
-        reportId={reportId}
-        ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
-      />
       <ReportRule<NominationFile.StatutoryRule>
         id={reportHtmlIds.overview.statutorySection}
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.STATUTORY]}
@@ -43,6 +35,14 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         onUpdateReportRule={onUpdateStatutoryRule}
         reportId={reportId}
         ruleGroup={NominationFile.RuleGroup.STATUTORY}
+      />
+      <ReportRule<NominationFile.ManagementRule>
+        id={reportHtmlIds.overview.managementSection}
+        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
+        rulesChecked={rulesChecked.management}
+        onUpdateReportRule={onUpdateManagementRule}
+        reportId={reportId}
+        ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
       />
       <ReportRule<NominationFile.QualitativeRule>
         id={reportHtmlIds.overview.qualitativeSection}
