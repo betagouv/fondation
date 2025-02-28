@@ -45,13 +45,15 @@ export type ReportListItem = Pick<
   | "targettedPosition"
 > & { observersCount: number };
 
+type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
+
 export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {
     currentDate: Date;
   };
   reportOverview: {
     summarySections: SummarySection[];
-    queryStatus: Record<string, "idle" | "pending" | "fulfilled" | "rejected">;
+    queryStatus: Record<string, QueryStatus>;
     byIds: Record<string, ReportSM> | null;
     rulesMap: AllRulesMapV2;
     rulesLabelsMap: IsTest extends true
@@ -72,6 +74,7 @@ export interface AppState<IsTest extends boolean = false> {
     initializedFromPersistence: boolean;
     authenticated: boolean;
     user: AuthenticatedUserSM | null;
+    authenticateQueryStatus: QueryStatus;
   };
   router: {
     hrefs: {

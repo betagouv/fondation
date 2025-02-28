@@ -19,6 +19,7 @@ export const expectAuthenticatedUserFactory =
       ...initialState,
       authentication: {
         ...initialState.authentication,
+        authenticateQueryStatus: "fulfilled",
         authenticated: true,
         user,
       },

@@ -7,6 +7,7 @@ const initialState: AppState["authentication"] = {
   authenticated: false,
   user: null,
   initializedFromPersistence: false,
+  authenticateQueryStatus: "idle",
 };
 
 export const createAuthenticationSlice = () =>
@@ -23,6 +24,10 @@ export const createAuthenticationSlice = () =>
       builder.addCase(authenticate.fulfilled, (state, action) => {
         state.authenticated = true;
         state.user = action.payload;
+        state.authenticateQueryStatus = "fulfilled";
+      });
+      builder.addCase(authenticate.rejected, (state) => {
+        state.authenticateQueryStatus = "rejected";
       });
       builder.addCase(logout.fulfilled, (state) => {
         state.authenticated = false;
@@ -37,5 +42,5 @@ export const createAuthenticationSlice = () =>
   });
 
 export const authenticationStateInitFromStore = createAction<
-  Omit<AppState["authentication"], "initializedFromPersistence">
+  Pick<AppState["authentication"], "authenticated" | "user">
 >("AUTHENTICATION_STATE_INIT_FROM_STORE");
