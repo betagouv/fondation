@@ -12,8 +12,8 @@ export class GdsTransparenciesRoutesMapper {
     [Transparency.SIEGE_DU_06_FEVRIER_2025]: "06-02-2025-siege",
     [Transparency.PARQUET_DU_06_FEVRIER_2025]: "06-02-2025-parquet",
     [Transparency.PARQUET_DU_20_FEVRIER_2025]: "20-02-2025-parquet",
-    [Transparency.MARCH_2025]: "march-2025",
-    [Transparency.MARCH_2026]: "march-2026",
+    [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "21-03-2025",
+    [Transparency.MARCH_2026]: "21-03-2026",
   };
 
   static toPathSegment(transparency: Transparency): string {

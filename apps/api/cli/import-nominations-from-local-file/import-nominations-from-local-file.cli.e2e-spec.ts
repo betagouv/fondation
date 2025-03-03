@@ -491,7 +491,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       },
       targettedPosition:
         "Premier substitut à l'administration centrale du ministère de la justice AC PARIS - I",
-      transparency: Transparency.MARCH_2025,
+      transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
     },
   ];
 }

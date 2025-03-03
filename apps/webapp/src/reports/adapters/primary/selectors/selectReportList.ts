@@ -67,7 +67,7 @@ export const selectReportList = createAppSelector(
       Transparency.SIEGE_DU_06_FEVRIER_2025,
       Transparency.PARQUET_DU_06_FEVRIER_2025,
       Transparency.PARQUET_DU_20_FEVRIER_2025,
-      Transparency.MARCH_2025,
+      Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
       Transparency.MARCH_2026,
     ];
 
@@ -167,6 +167,6 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.SIEGE_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
   [Transparency.PARQUET_DU_20_FEVRIER_2025]: "transparence du 20/02/2025",
-  [Transparency.MARCH_2025]: "transparence de mars 2025",
-  [Transparency.MARCH_2026]: "transparence de mars 2026",
+  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "transparence du 21/03/2025",
+  [Transparency.MARCH_2026]: "transparence du 21/03/2026",
 };

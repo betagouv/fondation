@@ -32,7 +32,7 @@ export class ReportBuilder {
       birthDate: new DateOnly(1980, 1, 1),
       state: NominationFile.ReportState.NEW,
       formation: Magistrat.Formation.SIEGE,
-      transparency: Transparency.MARCH_2025,
+      transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
       grade: Magistrat.Grade.I,
       currentPosition: 'Procureur TJ -Lyon',
       targettedPosition: 'Juge TJ -Marseille',

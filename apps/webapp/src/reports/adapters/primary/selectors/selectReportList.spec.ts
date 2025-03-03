@@ -194,7 +194,7 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.SIEGE_DU_06_FEVRIER_2025]: "",
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: "",
   [Transparency.PARQUET_DU_20_FEVRIER_2025]: "",
-  [Transparency.MARCH_2025]: "",
+  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "",
   [Transparency.MARCH_2026]: "",
 };
 

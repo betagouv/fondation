@@ -6,10 +6,6 @@ export const transparencyToLabel = (transparency: Transparency) => {
   switch (transparency) {
     case Transparency.AUTOMNE_2024:
       return "T 18/10/2024 (automne)";
-    case Transparency.MARCH_2025:
-      return "Mars 2025";
-    case Transparency.MARCH_2026:
-      return "Mars 2026";
     case Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024:
       return "T 8/11/2024 (PG/PR)";
     case Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024:
@@ -24,6 +20,10 @@ export const transparencyToLabel = (transparency: Transparency) => {
       return "T 06/02/2025 (parquet)";
     case Transparency.PARQUET_DU_20_FEVRIER_2025:
       return "T 20/02/2025";
+    case Transparency.GRANDE_TRANSPA_DU_21_MARS_2025:
+      return "T 21/03/2025";
+    case Transparency.MARCH_2026:
+      return "T 21/03/2026";
     default: {
       const _exhaustiveCheck: never = transparency;
       console.info(_exhaustiveCheck);

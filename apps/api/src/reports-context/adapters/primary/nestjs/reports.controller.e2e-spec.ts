@@ -85,7 +85,7 @@ describe('Reports Controller', () => {
       },
       formation: Magistrat.Formation.PARQUET,
       name: 'a name',
-      transparency: Transparency.MARCH_2025,
+      transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
       observersCount: 1,
