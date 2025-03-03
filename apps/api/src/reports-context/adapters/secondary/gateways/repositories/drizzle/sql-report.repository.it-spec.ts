@@ -54,7 +54,7 @@ const aReportDbUpdatedWithNullValues = SqlReportRepository.mapSnapshotToDb(
 );
 
 describe('SQL Report Repository', () => {
-  let sqlNominationFileReportRepository: SqlReportRepository;
+  let sqlReportRepository: SqlReportRepository;
   let transactionPerformer: TransactionPerformer;
   let db: DrizzleDb;
 
@@ -64,7 +64,7 @@ describe('SQL Report Repository', () => {
 
   beforeEach(async () => {
     await clearDB(db);
-    sqlNominationFileReportRepository = new SqlReportRepository();
+    sqlReportRepository = new SqlReportRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
   });
 
@@ -74,12 +74,10 @@ describe('SQL Report Repository', () => {
 
   it('saves a report', async () => {
     await transactionPerformer.perform(
-      sqlNominationFileReportRepository.save(
-        NominationFileReport.fromSnapshot(aReport),
-      ),
+      sqlReportRepository.save(NominationFileReport.fromSnapshot(aReport)),
     );
 
-    expectReports({
+    await expectReports({
       id: aReport.id,
       nominationFileId: aReport.nominationFileId,
       reporterId: aReport.reporterId,
@@ -114,10 +112,10 @@ describe('SQL Report Repository', () => {
       'updates a report with $testName',
       async ({ updatedReportSnapshot, updatedReportDb }) => {
         await transactionPerformer.perform(
-          sqlNominationFileReportRepository.save(updatedReportSnapshot),
+          sqlReportRepository.save(updatedReportSnapshot),
         );
 
-        expectReports({
+        await expectReports({
           id: updatedReportSnapshot.id,
           nominationFileId: updatedReportSnapshot.nominationFileId,
           reporterId: updatedReportSnapshot.reporterId,
@@ -143,16 +141,14 @@ describe('SQL Report Repository', () => {
 
     it('finds a report by id', async () => {
       const result = await transactionPerformer.perform(
-        sqlNominationFileReportRepository.byId(aReport.id),
+        sqlReportRepository.byId(aReport.id),
       );
       expect(result).toEqual(NominationFileReport.fromSnapshot(aReport));
     });
 
     it('finds a report by nomination file id', async () => {
       const result = await transactionPerformer.perform(
-        sqlNominationFileReportRepository.byNominationFileId(
-          aReport.nominationFileId,
-        ),
+        sqlReportRepository.byNominationFileId(aReport.nominationFileId),
       );
       expect(result).toEqual([NominationFileReport.fromSnapshot(aReport)]);
     });
