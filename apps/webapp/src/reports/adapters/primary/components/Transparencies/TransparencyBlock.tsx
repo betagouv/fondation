@@ -11,10 +11,14 @@ export const TransparencyBlock: FC<TransparencyBlockProps> = ({
   title,
   children,
 }) => (
-  <div className="flex-[1_1_0]">
+  <div
+    style={{
+      display: hidden ? "none" : undefined,
+    }}
+    className="flex-[1_1_0]"
+  >
     <h2
       style={{
-        display: hidden ? "none" : undefined,
         color: colors.decisions.text.title.blueFrance.default,
       }}
     >
