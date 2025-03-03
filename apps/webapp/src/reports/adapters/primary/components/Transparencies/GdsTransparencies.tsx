@@ -36,11 +36,7 @@ export const GdsTransparencies = ({
             isDefaultTab || isTabSelected
               ? "fr-icon-arrow-right-line"
               : undefined,
-          isDefault:
-            transparencies.length === 1
-              ? true
-              : selectedTabLabel ===
-                formationToLabel(Magistrat.Formation.SIEGE),
+          isDefault: isDefaultTab || isTabSelected,
           content: (
             <ul className={clsx("list-none gap-2", cx("fr-grid-row"))}>
               {transparencies.map(({ label, href, onClick }) => (

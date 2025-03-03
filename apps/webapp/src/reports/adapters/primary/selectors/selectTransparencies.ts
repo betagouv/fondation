@@ -6,6 +6,8 @@ import {
   transparencyToLabel,
 } from "../labels/labels-mappers";
 import { AppState, ReportListItem } from "../../../../store/appState";
+import { transparenciesOrder } from "../../../core-logic/transparencies-order";
+import _ from "lodash";
 
 export type GdsFormationVM = {
   formationLabel: string;
@@ -55,6 +57,7 @@ export const selectTransparencies = createAppSelector(
       data,
       getTransparencyOnClickAttributes,
     );
+
     const noParquetGdsTransparency =
       !gdsTransparencies[Magistrat.Formation.PARQUET] ||
       gdsTransparencies[Magistrat.Formation.PARQUET].length === 0;
@@ -77,7 +80,7 @@ export const selectTransparencies = createAppSelector(
       noTransparencies: noGdsTransparencies,
       "GARDE DES SCEAUX": {
         noGdsTransparencies,
-        formationsCount: formationsCount,
+        formationsCount,
         [Magistrat.Formation.PARQUET]: {
           formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
           transparencies: gdsTransparencies[Magistrat.Formation.PARQUET],
@@ -143,15 +146,29 @@ function formatGdsTransparencies(
     },
   );
 
-  const toNullableTransparencyGroup = (formation: Magistrat.Formation) =>
-    transparencies[formation].length ? transparencies[formation] : null;
+  const sortedSiegeTransparencies = sortTransparencies(
+    transparencies[Magistrat.Formation.SIEGE],
+  );
+  const sortedParquetTransparencies = sortTransparencies(
+    transparencies[Magistrat.Formation.PARQUET],
+  );
 
   return {
     [Magistrat.Formation.PARQUET]: toNullableTransparencyGroup(
-      Magistrat.Formation.PARQUET,
+      sortedParquetTransparencies,
     ),
     [Magistrat.Formation.SIEGE]: toNullableTransparencyGroup(
-      Magistrat.Formation.SIEGE,
+      sortedSiegeTransparencies,
     ),
   };
 }
+
+const sortTransparencies = (transparencies: GdsFormationVM["transparencies"]) =>
+  _.orderBy(transparencies, [
+    (transparency) =>
+      transparenciesOrder.map(transparencyToLabel).indexOf(transparency.label),
+  ]);
+
+const toNullableTransparencyGroup = (
+  transparencies: ReportTransparenciesVM["GARDE DES SCEAUX"][Magistrat.Formation]["transparencies"],
+) => (transparencies?.length ? transparencies : null);

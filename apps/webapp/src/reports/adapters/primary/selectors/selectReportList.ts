@@ -1,9 +1,9 @@
 import { colors } from "@codegouvfr/react-dsfr";
 import _ from "lodash";
 import { Magistrat, Transparency } from "shared-models";
-import { UnionToTuple } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../../store/createAppSelector";
+import { transparenciesOrder } from "../../../core-logic/transparencies-order";
 import {
   formationToLabel,
   gradeToLabel,
@@ -58,23 +58,10 @@ export const selectReportList = createAppSelector(
     let { aTransparencyTitleMap } = args || {};
     if (!aTransparencyTitleMap) aTransparencyTitleMap = transparencyTitleMap;
 
-    const transparencyOrder: UnionToTuple<Transparency> = [
-      Transparency.AUTOMNE_2024,
-      Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
-      Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024,
-      Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024,
-      Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025,
-      Transparency.SIEGE_DU_06_FEVRIER_2025,
-      Transparency.PARQUET_DU_06_FEVRIER_2025,
-      Transparency.PARQUET_DU_20_FEVRIER_2025,
-      Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
-      Transparency.MARCH_2026,
-    ];
-
     const sortedReports = _.orderBy(
       [...(data || [])],
       [
-        (item) => transparencyOrder.indexOf(item.transparency),
+        (item) => transparenciesOrder.indexOf(item.transparency),
         (item) => item.folderNumber,
       ],
     );
