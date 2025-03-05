@@ -1,10 +1,13 @@
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
-import { FakeReportAttachedFileRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-attached-file.repository';
 import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
+import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
+import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
+import { DomainRegistry } from '../../models/domain-registry';
+import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import {
   ReportAttachedFile,
   ReportAttachedFileSnapshot,
@@ -12,21 +15,18 @@ import {
 import { ReportAttachedFiles } from '../../models/report-attached-files';
 import { ReportBuilder } from '../../models/report.builder';
 import { AttachReportFileUseCase } from './attach-report-file';
-import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
-import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
 
 const currentDate = new Date(2021, 10, 10);
 
 const aReportBuilder = new ReportBuilder();
 const aFile: ReportAttachedFileSnapshot = {
-  createdAt: currentDate,
   reportId: aReportBuilder.build().id,
   name: 'image-1.png',
   fileId: 'file-id',
 };
+const aReportSnapshot = aReportBuilder.build();
 
 describe('Attach Report File Use Case', () => {
-  let reportAttachedFileRepository: FakeReportAttachedFileRepository;
   let reportFileService: FakeReportFileService;
   let dateTimeProvider: DeterministicDateProvider;
   let transactionPerformer: NullTransactionPerformer;
@@ -35,7 +35,6 @@ describe('Attach Report File Use Case', () => {
   let reporterTranslatorService: ReporterTranslatorService;
 
   beforeEach(() => {
-    reportAttachedFileRepository = new FakeReportAttachedFileRepository();
     reportFileService = new FakeReportFileService();
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
@@ -45,10 +44,10 @@ describe('Attach Report File Use Case', () => {
     const userService = new StubUserService();
     userService.user = aUser;
     reporterTranslatorService = new ReporterTranslatorService(userService);
+    transactionPerformer = new NullTransactionPerformer();
 
-    transactionPerformer = new NullTransactionPerformer(() => {
-      reportAttachedFileRepository = new FakeReportAttachedFileRepository();
-    });
+    DomainRegistry.setUuidGenerator(uuidGenerator);
+    DomainRegistry.setDateTimeProvider(dateTimeProvider);
   });
 
   it('refuses to add a file to a non-existing report', async () => {
@@ -56,38 +55,35 @@ describe('Attach Report File Use Case', () => {
   });
 
   describe('when a report exists', () => {
-    const aReportSnapshot = aReportBuilder.build();
-
     beforeEach(() => {
       reportRepository.reports = {
         [aReportSnapshot.id]: aReportSnapshot,
       };
       reportFileService.currentReport = aReportSnapshot;
+
+      transactionPerformer = new NullTransactionPerformer(() => {
+        reportRepository.reports = {
+          [aReportSnapshot.id]: aReportSnapshot,
+        };
+      });
     });
 
     it('attaches a new file', async () => {
       await uploadFile();
-
-      expect(Object.values(reportAttachedFileRepository.files)).toEqual<
-        ReportAttachedFileSnapshot[]
-      >([aFile]);
-      expect(Object.values(reportFileService.files)).toEqual([
-        {
-          name: aFile.name,
-        },
-      ]);
+      expecReportWithFile(aFile);
+      expectUploadedFile(aFile);
     });
 
     it("doesn't upload the file if its metadata cannot be saved", async () => {
-      reportAttachedFileRepository.saveError = new Error('Failed to save file');
+      reportRepository.saveError = new Error('Failed to save file');
       await expect(uploadFile()).rejects.toThrow('Failed to save file');
-      expect(reportFileService.files).toEqual({});
+      expectUploadedFile();
     });
 
     it("doesn't save file's metadata if upload failed", async () => {
       reportFileService.uploadError = new Error('Failed to upload file');
       await expect(uploadFile()).rejects.toThrow('Failed to upload file');
-      expect(reportAttachedFileRepository.files).toEqual({});
+      expecReportWithFile();
     });
 
     describe('with an attached file', () => {
@@ -98,31 +94,24 @@ describe('Attach Report File Use Case', () => {
             new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(aFile)]),
           )
           .build();
+
         reportRepository.reports = {
           [aReportSnapshot.id]: aReportSnapshot,
-        };
-        reportAttachedFileRepository.files = {
-          [aFile.name]: aFile,
         };
       });
 
       it("doesn't duplicate file names", async () => {
         await uploadFile();
-        expect(Object.values(reportAttachedFileRepository.files)).toEqual<
-          ReportAttachedFileSnapshot[]
-        >([aFile]);
+        expecReportWithFile(aFile);
       });
     });
   });
 
   const uploadFile = async () => {
     await new AttachReportFileUseCase(
-      reportAttachedFileRepository,
       reportFileService,
-      dateTimeProvider,
       transactionPerformer,
       reportRepository,
-      uuidGenerator,
       reporterTranslatorService,
     ).execute(
       aFile.reportId,
@@ -131,6 +120,29 @@ describe('Attach Report File Use Case', () => {
       aUser.userId,
     );
   };
+
+  const expecReportWithFile = (file?: ReportAttachedFileSnapshot) =>
+    expect(Object.values(reportRepository.reports)).toEqual<
+      NominationFileReportSnapshot[]
+    >([
+      {
+        ...aReportSnapshot,
+        attachedFiles: file
+          ? new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(file)])
+          : null,
+      },
+    ]);
+
+  const expectUploadedFile = (file?: ReportAttachedFileSnapshot) =>
+    expect(Object.values(reportFileService.files)).toEqual(
+      file
+        ? [
+            {
+              name: file.name,
+            },
+          ]
+        : [],
+    );
 });
 
 const aUser = {

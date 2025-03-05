@@ -1,7 +1,6 @@
 import FormData from 'form-data';
 
 export type ReportAttachedFileSnapshot = {
-  createdAt: Date;
   reportId: string;
   name: string;
   fileId: string;
@@ -9,7 +8,6 @@ export type ReportAttachedFileSnapshot = {
 
 export class ReportAttachedFile {
   constructor(
-    private readonly createdAt: Date,
     private readonly _reportId: string,
     private readonly _name: string,
     private readonly _fileId: string,
@@ -56,7 +54,6 @@ export class ReportAttachedFile {
 
   toSnapshot(): ReportAttachedFileSnapshot {
     return {
-      createdAt: this.createdAt,
       reportId: this._reportId,
       name: this.name,
       fileId: this.fileId,
@@ -67,7 +64,6 @@ export class ReportAttachedFile {
     snapshot: ReportAttachedFileSnapshot,
   ): ReportAttachedFile {
     return new ReportAttachedFile(
-      snapshot.createdAt,
       snapshot.reportId,
       snapshot.name,
       snapshot.fileId,

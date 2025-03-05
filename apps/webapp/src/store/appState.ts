@@ -52,6 +52,10 @@ export interface AppState<IsTest extends boolean = false> {
     currentDate: Date;
   };
   reportOverview: {
+    acceptedMimeTypes: {
+      embeddedScreenshots: string[];
+      attachedFiles: string[];
+    };
     summarySections: SummarySection[];
     queryStatus: Record<string, QueryStatus>;
     byIds: Record<string, ReportSM> | null;

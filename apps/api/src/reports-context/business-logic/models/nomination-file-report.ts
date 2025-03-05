@@ -5,6 +5,7 @@ import { ReportAttachedFile } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
 import { z } from 'zod';
+import { DomainRegistry } from './domain-registry';
 
 export type NominationFileReportSnapshot = {
   id: string;
@@ -48,7 +49,7 @@ export class NominationFileReport {
     private _comment: string | null,
     private readonly _rank: string,
     private _observers: string[] | null,
-    private readonly _attachedFiles: ReportAttachedFiles | null,
+    private _attachedFiles: ReportAttachedFiles | null,
   ) {}
 
   public get nominationFileId(): string {
@@ -151,16 +152,22 @@ export class NominationFileReport {
     this._observers = observers;
   }
 
-  alreadyHasAttachedFile(file: ReportAttachedFile): boolean {
-    return !!this.attachedFiles?.alreadyExists(file);
+  createAttachedFile(fileName: string) {
+    const attachedFile = new ReportAttachedFile(
+      this.id,
+      fileName,
+      DomainRegistry.uuidGenerator().generate(),
+    );
+
+    if (!this._attachedFiles) this._attachedFiles = new ReportAttachedFiles();
+    if (!this.alreadyHasAttachedFile(attachedFile))
+      this._attachedFiles.addFile(attachedFile);
+
+    return attachedFile;
   }
 
-  createAttachedFile(
-    fileName: string,
-    fileId: string,
-    currentDate: Date,
-  ): ReportAttachedFile {
-    return new ReportAttachedFile(currentDate, this.id, fileName, fileId);
+  alreadyHasAttachedFile(file: ReportAttachedFile): boolean {
+    return !!this.attachedFiles?.alreadyExists(file);
   }
 
   generateAttachedFilePath(reporter: Reporter): string[] {

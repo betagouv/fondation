@@ -198,6 +198,27 @@ test.describe("Report Editor", () => {
       expectedStoredHtmlContent:
         '<p><mark><span style="color: rgb(24, 117, 60)">content</span></mark></p>',
     },
+    {
+      testTitle: "Add screenshot",
+      action: async () => {
+        await selectText();
+        const fileChooserPromise = page.waitForEvent("filechooser");
+        await clickOnMark("Ajouter une capture d'écran");
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles({
+          name: "capture d'écran.png",
+          mimeType: "image/png",
+          buffer: Buffer.from(""),
+        });
+      },
+      expectedContent: "",
+      getHtmlContent: () => queryHtmlContent(".ProseMirror img"),
+      expectHtmlContent: async (content: string) => {
+        expect(content).toEqual('<p></p><img src="data:image/png;base64,">');
+      },
+
+      expectedStoredHtmlContent: '<p></p><img src="data:image/png;base64,">',
+    },
   ].flat();
 
   testParams.forEach(
@@ -216,7 +237,7 @@ test.describe("Report Editor", () => {
         await editor.focus();
         await action();
 
-        await expectContent(expectedContent || "content");
+        await expectContent(expectedContent ?? "content");
         await expectStoredReport(expectedStoredHtmlContent);
 
         const htmlContent = (await getHtmlContent())!;

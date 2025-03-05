@@ -7,6 +7,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Italic from "@tiptap/extension-italic";
 import ListItem from "@tiptap/extension-list-item";
 import OrderedList from "@tiptap/extension-ordered-list";
+import Image from "@tiptap/extension-image";
 import History from "@tiptap/extension-history";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { Text } from "@tiptap/extension-text";
@@ -37,6 +38,7 @@ const extensions = [
   Color,
   OrderedList,
   History,
+  Image,
 ];
 
 export const TipTapEditor = ({

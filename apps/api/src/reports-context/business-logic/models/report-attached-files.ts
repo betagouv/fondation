@@ -21,4 +21,9 @@ export class ReportAttachedFiles {
   getFileIds() {
     return this._files.map((f) => f.fileId);
   }
+
+  addFile(file: ReportAttachedFile): ReportAttachedFiles {
+    this._files.push(file);
+    return new ReportAttachedFiles(this._files);
+  }
 }

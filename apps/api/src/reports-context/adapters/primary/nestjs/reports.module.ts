@@ -1,12 +1,21 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  OnModuleInit,
+} from '@nestjs/common';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
+import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportOnImportChangeUseCase } from 'src/reports-context/business-logic/use-cases/report-update-on-import-change/update-report-on-import-change.use-case';
 import { UpdateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-update/update-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reports-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
+import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
@@ -15,12 +24,17 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
+import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { SqlReportAttachedFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-attached-file.repository';
 import { SqlReportListingQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
 import { SqlReportRetrievalQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { HttpReportFileService } from '../../secondary/gateways/services/http-report-file-service';
+import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
+import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
 import { NominationFileImportedSubscriber } from './event-subscribers/nomination-file-imported.subscriber';
 import { NominationFileUpdatedSubscriber } from './event-subscribers/nomination-file-updated.subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
@@ -34,12 +48,7 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
-import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
-import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
-import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
-import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 
 @Module({
   imports: [SharedKernelModule],
@@ -137,7 +146,19 @@ import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/
     ),
   ],
 })
-export class ReportsModule implements NestModule {
+export class ReportsModule implements NestModule, OnModuleInit {
+  constructor(
+    @Inject(UUID_GENERATOR)
+    private readonly uuidGenerator: UuidGenerator,
+    @Inject(DATE_TIME_PROVIDER)
+    private readonly dateTimeProvider: DateTimeProvider,
+  ) {}
+
+  onModuleInit() {
+    DomainRegistry.setUuidGenerator(this.uuidGenerator);
+    DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
+  }
+
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SessionValidationMiddleware).forRoutes(ReportsController);
   }

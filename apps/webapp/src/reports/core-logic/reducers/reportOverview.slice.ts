@@ -27,6 +27,15 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
     rulesMap,
     rulesLabelsMap,
     summarySections,
+    acceptedMimeTypes: {
+      attachedFiles: ["application/pdf", "image/jpeg", "image/png"],
+      embeddedScreenshots: [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ],
+    },
   };
 
   return createSlice({

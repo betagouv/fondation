@@ -10,29 +10,32 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { attachReportFile } from "./attach-report-file";
+import { attachReportFile, AttachReportFileParams } from "./attach-report-file";
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { FileProvider } from "../../../../shared-kernel/core-logic/providers/fileProvider";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let expectStoredReports: ExpectStoredReports;
+  let uploadMode: AttachReportFileParams["mode"];
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
+    const fileProvider = new FileProvider();
 
     store = initReduxStore(
       {
         reportGateway,
       },
-      {},
+      { fileProvider },
       {},
       { reportFileAttached },
     );
@@ -43,49 +46,75 @@ describe("Attach Report File", () => {
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
   });
 
-  it("generates a signed url when a file is attached", async () => {
-    const file = await givenAnImageBuffer("png");
+  const testCases: {
+    description: string;
+    mode: AttachReportFileParams["mode"];
+  }[] = [
+    {
+      description: "Attach files",
+      mode: "attached",
+    },
+    {
+      description: "Embed screenshots in report content",
+      mode: "embedded-screenshot",
+    },
+  ];
+  describe.each(testCases)("$description", ({ mode }) => {
+    uploadMode = mode;
+    it("generates a signed url when a file is attached", async () => {
+      const file = await givenAnImageBuffer("png");
 
-    await store.dispatch(
-      attachReportFile({
-        reportId: "report-id",
-        file: new File([file], "file.txt", { type: "image/png" }),
-      }),
-    );
-    await sleep(100); // wait for listener to resolve
+      await store.dispatch(
+        attachReportFile({
+          reportId: "report-id",
+          file: new File([file], "file.txt", { type: "image/png" }),
+          mode,
+        }),
+      );
+      await sleep(100); // wait for listener to resolve
 
-    expectStoredReports({
-      ...aReport,
-      attachedFiles: [
-        {
-          signedUrl,
-          name: "file.txt",
-        },
-      ],
+      expectStoredReports({
+        ...aReport,
+        attachedFiles: [
+          {
+            signedUrl,
+            name: "file.txt",
+          },
+        ],
+      });
+    });
+
+    it("refuses to upload a .txt file", async () => {
+      const file = genFile("", "file.txt", "text/plain");
+      expectUploadError(await attachFile(file), "Invalid mime type: ");
+    });
+
+    it.each`
+      format
+      ${"png"}
+      ${"jpg"}
+    `("attaches a $format image", async ({ format }) => {
+      const fileBuffer = await givenAnImageBuffer(format);
+      const file = genFile(fileBuffer, `file.${format}`, `images/${format}`);
+      await expect(attachFile(file)).resolves.toBeDefined();
     });
   });
 
-  it("refuses to upload a .txt file", async () => {
-    const file = genFile("", "file.txt", "text/plain");
-    expect(await attachFile(file)).toMatchObject({
-      error: expect.objectContaining({ message: "Invalid file type" }),
-    });
-  });
-
-  it.each`
-    format
-    ${"png"}
-    ${"jpg"}
-  `("attaches a $format image", async ({ format }) => {
-    const fileBuffer = await givenAnImageBuffer(format);
-    const file = genFile(fileBuffer, `file.${format}`, `images/${format}`);
-    expect(attachFile(file)).resolves.toBeDefined();
-  });
-
-  it("attaches a pdf", async () => {
+  it("attaches a PDF", async () => {
+    uploadMode = "attached";
     const fileBuffer = await givenAPdf();
     const file = genFile(fileBuffer, "file.pdf", "application/pdf");
-    expect(attachFile(file)).resolves.toBeDefined();
+    await expect(attachFile(file)).resolves.toBeDefined();
+  });
+
+  it("cannot embed PDF files", async () => {
+    uploadMode = "embedded-screenshot";
+    const fileBuffer = await givenAPdf();
+    const file = genFile(fileBuffer, "file.pdf", "application/pdf");
+    expectUploadError(
+      await attachFile(file),
+      "Invalid mime type: application/pdf",
+    );
   });
 
   const genFile = (
@@ -99,6 +128,7 @@ describe("Attach Report File", () => {
       attachReportFile({
         reportId: aReport.id,
         file,
+        mode: uploadMode,
       }),
     );
 
@@ -132,6 +162,16 @@ describe("Attach Report File", () => {
 
     return fileBuffer;
   };
+
+  const expectUploadError = (
+    resp: Awaited<ReturnType<typeof attachFile>>,
+    message: string,
+  ) =>
+    expect(resp).toMatchObject({
+      error: expect.objectContaining({
+        message,
+      }),
+    });
 });
 
 const signedUrl = "https://example.fr/file.txt";

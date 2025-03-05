@@ -1,9 +1,10 @@
-import { fileTypeFromBuffer } from "file-type";
+import { AppState } from "../../../../store/appState";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
-type AttachReportFileParams = {
+export type AttachReportFileParams = {
   reportId: string;
   file: File;
+  mode: "attached" | "embedded-screenshot";
 };
 
 export const attachReportFile = createAppAsyncThunk<
@@ -12,31 +13,43 @@ export const attachReportFile = createAppAsyncThunk<
 >(
   "report/attachFile",
   async (
-    { reportId, file },
+    { reportId, file, mode },
     {
+      getState,
       extra: {
         gateways: { reportGateway },
+        providers: { fileProvider },
       },
     },
   ) => {
-    const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsArrayBuffer(file);
-    });
+    const fileBuffer = await fileProvider.bufferFromBrowserFile(file);
+    const mimeType = await fileProvider.mimeTypeFromBuffer(fileBuffer);
 
-    const fileType = await fileTypeFromBuffer(fileBuffer);
+    const acceptedMimeTypes = getAcceptedMimeType(
+      getState().reportOverview.acceptedMimeTypes,
+      mode,
+    );
 
-    if (!fileType) {
-      throw new Error("Invalid file type");
-    }
-
-    const acceptedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
-    if (!fileType || !acceptedMimeTypes.includes(fileType.mime)) {
-      throw new Error("Invalid file type");
+    if (!mimeType || !acceptedMimeTypes.includes(mimeType)) {
+      throw new Error(`Invalid mime type: ${mimeType || ""}`);
     }
 
     return reportGateway.attachFile(reportId, file);
   },
 );
+
+const getAcceptedMimeType = (
+  acceptedMimeTypes: AppState["reportOverview"]["acceptedMimeTypes"],
+  mode: AttachReportFileParams["mode"],
+) => {
+  switch (mode) {
+    case "attached":
+      return acceptedMimeTypes.attachedFiles;
+    case "embedded-screenshot":
+      return acceptedMimeTypes.embeddedScreenshots;
+    default: {
+      const _exhaustiveCheck: never = mode;
+      return _exhaustiveCheck;
+    }
+  }
+};

@@ -26,6 +26,7 @@ import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnR
 import { initReduxStore } from "./store/reduxStore.ts";
 import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-labels.tsx";
 import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
+import { FileProvider } from "./shared-kernel/core-logic/providers/fileProvider.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -42,12 +43,15 @@ const reportGateway = new ApiReportGateway(reportApiClient);
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
+const fileProvider = new FileProvider();
+
 const store = initReduxStore<false>(
   { reportGateway, authenticationGateway },
   {
     routerProvider: new TypeRouterProvider(),
     logoutNotifierProvider,
     loginNotifierProvider,
+    fileProvider,
   },
   {
     routeToComponentFactory: useRouteToComponentFactory,

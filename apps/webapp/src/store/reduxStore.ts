@@ -31,6 +31,7 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { FileProvider } from "../shared-kernel/core-logic/providers/fileProvider";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -41,6 +42,7 @@ export interface Providers {
   routerProvider: RouterProvider;
   logoutNotifierProvider: LogoutNotifierProvider;
   loginNotifierProvider: LoginNotifierProvider;
+  fileProvider: FileProvider;
 }
 
 export interface NestedPrimaryAdapters {
