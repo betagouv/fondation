@@ -4,6 +4,11 @@ import {
   NominationFileReport,
   NominationFileReportSnapshot,
 } from 'src/reports-context/business-logic/models/nomination-file-report';
+import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
+import {
+  attachedFilesValidationSchema,
+  ReportAttachedFiles,
+} from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
@@ -33,6 +38,7 @@ export class SqlReportRepository implements ReportRepository {
             'comment',
             'rank',
             'observers',
+            'attachedFiles',
           ]),
         });
     };
@@ -70,6 +76,8 @@ export class SqlReportRepository implements ReportRepository {
   }
 
   static mapToDb(report: NominationFileReport): typeof reports.$inferInsert {
+    const attachedFiles = report.attachedFiles?.serialize();
+
     return {
       id: report.id,
       nominationFileId: report.nominationFileId,
@@ -89,6 +97,7 @@ export class SqlReportRepository implements ReportRepository {
       comment: report.comment,
       rank: report.rank,
       observers: report.observers,
+      attachedFiles,
     };
   }
 
@@ -100,6 +109,10 @@ export class SqlReportRepository implements ReportRepository {
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
+    const attachedFiles = attachedFilesValidationSchema.parse(
+      row.attachedFiles,
+    );
+
     return new NominationFileReport(
       row.id,
       row.nominationFileId,
@@ -119,7 +132,13 @@ export class SqlReportRepository implements ReportRepository {
       row.comment,
       row.rank,
       row.observers,
-      null,
+      attachedFiles?.length
+        ? new ReportAttachedFiles(
+            attachedFiles.map(
+              (file) => new ReportAttachedFile(row.id, file.name, file.fileId),
+            ),
+          )
+        : null,
     );
   }
 }

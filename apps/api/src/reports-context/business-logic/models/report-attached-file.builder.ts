@@ -5,12 +5,8 @@ import { ReportAttachedFileSnapshot } from './report-attached-file';
 export class ReportAttachedFileBuilder {
   private _snapshot: ReportAttachedFileSnapshot;
 
-  constructor(idMode: 'fake' | 'uuid' = 'fake') {
-    const isFakeId = idMode === 'fake';
-
+  constructor() {
     this._snapshot = {
-      createdAt: new Date(2021, 1, 1),
-      reportId: isFakeId ? 'report-id' : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       name: 'some-file.pdf',
       fileId: 'file-id',
     };

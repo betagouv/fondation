@@ -1,14 +1,12 @@
 import FormData from 'form-data';
 
 export type ReportAttachedFileSnapshot = {
-  reportId: string;
   name: string;
   fileId: string;
 };
 
 export class ReportAttachedFile {
   constructor(
-    private readonly _reportId: string,
     private readonly _name: string,
     private readonly _fileId: string,
   ) {}
@@ -48,13 +46,9 @@ export class ReportAttachedFile {
   public get fileId(): string {
     return this._fileId;
   }
-  public get reportId(): string {
-    return this._reportId;
-  }
 
   toSnapshot(): ReportAttachedFileSnapshot {
     return {
-      reportId: this._reportId,
       name: this.name,
       fileId: this.fileId,
     };
@@ -63,10 +57,6 @@ export class ReportAttachedFile {
   static fromSnapshot(
     snapshot: ReportAttachedFileSnapshot,
   ): ReportAttachedFile {
-    return new ReportAttachedFile(
-      snapshot.reportId,
-      snapshot.name,
-      snapshot.fileId,
-    );
+    return new ReportAttachedFile(snapshot.name, snapshot.fileId);
   }
 }

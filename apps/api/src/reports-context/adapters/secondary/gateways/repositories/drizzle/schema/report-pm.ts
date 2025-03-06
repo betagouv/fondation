@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   date,
   integer,
+  jsonb,
   text,
   timestamp,
   uuid,
@@ -39,4 +40,5 @@ export const reports = reportsContextSchema.table('reports', {
   comment: text('comment'),
   rank: varchar('rank').notNull(),
   observers: text().array(),
+  attachedFiles: jsonb('attached_files'),
 });

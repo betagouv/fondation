@@ -30,6 +30,17 @@ export type NominationFileReportSnapshot = {
 };
 
 export class NominationFileReport {
+  deleteAttachedFileByName(fileName: string) {
+    if (!this.attachedFiles) {
+      throw new Error('No attached files');
+    }
+    const [attachedFiles, removedAttachedFile] =
+      this.attachedFiles.removeFileByName(fileName);
+
+    this._attachedFiles = attachedFiles;
+
+    return removedAttachedFile;
+  }
   constructor(
     private readonly _id: string,
     private readonly _nominationFileId: string,
@@ -154,7 +165,6 @@ export class NominationFileReport {
 
   createAttachedFile(fileName: string) {
     const attachedFile = new ReportAttachedFile(
-      this.id,
       fileName,
       DomainRegistry.uuidGenerator().generate(),
     );

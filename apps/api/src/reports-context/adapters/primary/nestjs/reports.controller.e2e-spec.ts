@@ -30,7 +30,6 @@ import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files } from 'test/minio';
-import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
 import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
@@ -245,9 +244,10 @@ describe('Reports Controller', () => {
 
   describe('Files', () => {
     let s3Client: S3Client;
+    let reportRow: typeof reports.$inferInsert;
 
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
+      reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
       await db.insert(reports).values(reportRow).execute();
     });
 
@@ -273,20 +273,18 @@ describe('Reports Controller', () => {
 
         expect(response.body).toEqual({});
 
-        const savedFiles = await db
-          .select()
-          .from(reportAttachedFiles)
-          .execute();
-        expect(savedFiles).toEqual<(typeof reportAttachedFiles.$inferSelect)[]>(
-          [
-            {
-              createdAt: expect.any(Date),
-              reportId: aReportSnapshot.id,
-              name: 'test-file.pdf',
-              fileId: expect.any(String),
-            },
-          ],
-        );
+        const savedFiles = await db.select().from(reports).execute();
+        expect(savedFiles).toEqual<(typeof reports.$inferSelect)[]>([
+          {
+            ...(reportRow as typeof reports.$inferSelect),
+            attachedFiles: [
+              {
+                name: 'test-file.pdf',
+                fileId: expect.any(String),
+              },
+            ],
+          },
+        ]);
       });
 
       it('get a file signed URL', async () => {
@@ -308,11 +306,8 @@ describe('Reports Controller', () => {
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
-        const savedFiles = await db
-          .select()
-          .from(reportAttachedFiles)
-          .execute();
-        expect(savedFiles).toEqual([]);
+        const savedFiles = await db.select().from(reports).execute();
+        expect(savedFiles).toEqual([{ ...reportRow, attachedFiles: null }]);
       });
     });
 
