@@ -8,23 +8,24 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { DomainRegistry } from '../../models/domain-registry';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
-import {
-  ReportAttachedFile,
-  ReportAttachedFileSnapshot,
-} from '../../models/report-attached-file';
-import { ReportAttachedFiles } from '../../models/report-attached-files';
+import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
+import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
 import { ReportBuilder } from '../../models/report.builder';
 import { AttachReportFileUseCase } from './attach-report-file';
+import { ReportFileUsage } from 'shared-models';
 
 const currentDate = new Date(2021, 10, 10);
 
-const aReportBuilder = new ReportBuilder();
-const aFile: ReportAttachedFileSnapshot = {
-  reportId: aReportBuilder.build().id,
-  name: 'image-1.png',
-  fileId: 'file-id',
-};
-const aReportSnapshot = aReportBuilder.build();
+const fileId = 'file-id';
+const anAttachedFile = new ReportAttachedFileBuilder()
+  .with('fileId', fileId)
+  .with('usage', ReportFileUsage.ATTACHMENT)
+  .build();
+const anEmbeddedScreenshot = new ReportAttachedFileBuilder()
+  .with('fileId', fileId)
+  .with('usage', ReportFileUsage.EMBEDDED_SCREENSHOT)
+  .build();
+const aReportSnapshot = new ReportBuilder().build();
 
 describe('Attach Report File Use Case', () => {
   let reportFileService: FakeReportFileService;
@@ -40,7 +41,7 @@ describe('Attach Report File Use Case', () => {
     dateTimeProvider.currentDate = currentDate;
     reportRepository = new FakeNominationFileReportRepository();
     uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [aFile.fileId];
+    uuidGenerator.nextUuids = [fileId];
     const userService = new StubUserService();
     userService.user = aUser;
     reporterTranslatorService = new ReporterTranslatorService(userService);
@@ -51,7 +52,9 @@ describe('Attach Report File Use Case', () => {
   });
 
   it('refuses to add a file to a non-existing report', async () => {
-    await expect(uploadFile()).rejects.toThrow(NonExistingReportError);
+    await expect(uploadFile(anAttachedFile)).rejects.toThrow(
+      NonExistingReportError,
+    );
   });
 
   describe('when a report exists', () => {
@@ -68,31 +71,36 @@ describe('Attach Report File Use Case', () => {
       });
     });
 
-    it('attaches a new file', async () => {
-      await uploadFile();
-      expecReportWithFile(aFile);
-      expectUploadedFile(aFile);
+    it.each`
+      description                         | file
+      ${'uploads an attached file'}       | ${anAttachedFile}
+      ${'uploads an embedded screenshot'} | ${anEmbeddedScreenshot}
+    `('$description', async ({ file }) => {
+      await uploadFile(file);
+      expecReportWithFile(file);
+      expectUploadedFile(file);
     });
 
     it("doesn't upload the file if its metadata cannot be saved", async () => {
       reportRepository.saveError = new Error('Failed to save file');
-      await expect(uploadFile()).rejects.toThrow('Failed to save file');
+      await expect(uploadFile(anAttachedFile)).rejects.toThrow(
+        'Failed to save file',
+      );
       expectUploadedFile();
     });
 
     it("doesn't save file's metadata if upload failed", async () => {
       reportFileService.uploadError = new Error('Failed to upload file');
-      await expect(uploadFile()).rejects.toThrow('Failed to upload file');
+      await expect(uploadFile(anAttachedFile)).rejects.toThrow(
+        'Failed to upload file',
+      );
       expecReportWithFile();
     });
 
     describe('with an attached file', () => {
       beforeEach(() => {
-        const aReportSnapshot = aReportBuilder
-          .with(
-            'attachedFiles',
-            new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(aFile)]),
-          )
+        const aReportSnapshot = new ReportBuilder()
+          .with('attachedFiles', [anAttachedFile])
           .build();
 
         reportRepository.reports = {
@@ -101,23 +109,24 @@ describe('Attach Report File Use Case', () => {
       });
 
       it("doesn't duplicate file names", async () => {
-        await uploadFile();
-        expecReportWithFile(aFile);
+        await uploadFile(anAttachedFile);
+        expecReportWithFile(anAttachedFile);
       });
     });
   });
 
-  const uploadFile = async () => {
+  const uploadFile = async (aFile: ReportAttachedFileSnapshot) => {
     await new AttachReportFileUseCase(
       reportFileService,
       transactionPerformer,
       reportRepository,
       reporterTranslatorService,
     ).execute(
-      aFile.reportId,
+      aReportSnapshot.id,
       aFile.name,
       Buffer.from('Some content.'),
       aUser.userId,
+      aFile.usage,
     );
   };
 
@@ -127,9 +136,7 @@ describe('Attach Report File Use Case', () => {
     >([
       {
         ...aReportSnapshot,
-        attachedFiles: file
-          ? new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(file)])
-          : null,
+        attachedFiles: file ? [file] : null,
       },
     ]);
 

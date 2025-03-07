@@ -4,6 +4,7 @@ import {
   ReportUpdateDto,
   reportUpdateDto,
   interpolateUrlParams,
+  ReportFileUsage,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
 
@@ -78,17 +79,24 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  async attachFile(id: string, file: File) {
+  async attachFile(id: string, file: File, usage: ReportFileUsage) {
     const formData = new FormData();
     formData.append("file", file, file.name);
 
-    const { method, path, params, body }: ClientFetchOptions["attachFile"] = {
+    const {
+      method,
+      path,
+      params,
+      body,
+      queryParams,
+    }: ClientFetchOptions["attachFile"] = {
       method: "POST",
       path: ":id/files/upload-one",
       params: { id },
       body: formData,
+      queryParams: { usage },
     };
-    const url = this.resolveUrl(path, params);
+    const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {
       method: method,
       body: body,
@@ -120,9 +128,18 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  private resolveUrl(path: string, params?: Record<string, string>): string {
+  private resolveUrl(
+    path: string,
+    params?: Record<string, string>,
+    queryParams?: Record<string, string>,
+  ): string {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
+    if (queryParams) {
+      for (const [key, value] of Object.entries(queryParams)) {
+        url.searchParams.set(key, value);
+      }
+    }
     if (!params) return url.href;
     return interpolateUrlParams(url, params);
   }

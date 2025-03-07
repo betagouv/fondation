@@ -1,4 +1,8 @@
-import { ReportsContextRestContract, ReportUpdateDto } from "shared-models";
+import {
+  ReportFileUsage,
+  ReportsContextRestContract,
+  ReportUpdateDto,
+} from "shared-models";
 
 type EndpointResponse<T extends keyof ReportsContextRestContract["endpoints"]> =
   Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
@@ -18,7 +22,11 @@ export interface ReportApiClient {
     validated: boolean,
   ): EndpointResponse<"updateRule">;
   retrieveReport(id: string): EndpointResponse<"retrieveReport">;
-  attachFile(reportId: string, file: File): EndpointResponse<"attachFile">;
+  attachFile(
+    reportId: string,
+    file: File,
+    usage: ReportFileUsage,
+  ): EndpointResponse<"attachFile">;
   deleteAttachedFile(
     reportId: string,
     fileName: string,

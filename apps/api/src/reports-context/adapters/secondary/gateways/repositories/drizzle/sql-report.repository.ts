@@ -97,7 +97,7 @@ export class SqlReportRepository implements ReportRepository {
       comment: report.comment,
       rank: report.rank,
       observers: report.observers,
-      attachedFiles,
+      attachedFiles: attachedFiles?.length ? attachedFiles : null,
     };
   }
 
@@ -105,7 +105,7 @@ export class SqlReportRepository implements ReportRepository {
     reportSnapshot: NominationFileReportSnapshot,
   ): typeof reports.$inferInsert {
     const report = NominationFileReport.fromSnapshot(reportSnapshot);
-    return this.mapToDb(report);
+    return SqlReportRepository.mapToDb(report);
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
@@ -135,7 +135,8 @@ export class SqlReportRepository implements ReportRepository {
       attachedFiles?.length
         ? new ReportAttachedFiles(
             attachedFiles.map(
-              (file) => new ReportAttachedFile(row.id, file.name, file.fileId),
+              (file) =>
+                new ReportAttachedFile(file.name, file.fileId, file.usage),
             ),
           )
         : null,

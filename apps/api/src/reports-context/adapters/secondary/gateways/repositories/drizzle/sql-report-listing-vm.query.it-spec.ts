@@ -7,17 +7,21 @@ import {
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import {
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { reports } from './schema/report-pm';
-import { SqlReportRepository } from './sql-report.repository';
 import { SqlReportListingQuery } from './sql-report-listing-vm.query';
 
 describe('SQL Report Listing VM Query', () => {
   let sqlReportListingVMRepository: SqlReportListingQuery;
   let db: DrizzleDb;
+  let givenSomeReports: GivenSomeReports;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
   });
 
   beforeEach(async () => {
@@ -55,10 +59,7 @@ describe('SQL Report Listing VM Query', () => {
         .with('dueDate', new DateOnly(2040, 5, 1))
         .build();
 
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      const anotherReportRow =
-        SqlReportRepository.mapSnapshotToDb(anotherReport);
-      await db.insert(reports).values([reportRow, anotherReportRow]).execute();
+      await givenSomeReports(aReport, anotherReport);
     });
 
     it('lists reports owned by a reporter', async () => {

@@ -1,9 +1,10 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AllRulesMapV2, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
 import sharp from "sharp";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
+import { FileProvider } from "../../../../../shared-kernel/core-logic/providers/fileProvider";
 import { AppState } from "../../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
@@ -68,7 +69,7 @@ describe("Report Overview Component", () => {
       {
         reportGateway,
       },
-      { routerProvider },
+      { routerProvider, fileProvider: new FileProvider() },
       {},
       { reportFileAttached },
       undefined,
@@ -207,6 +208,7 @@ describe("Report Overview Component", () => {
           ...aReportVM,
           attachedFiles: [
             {
+              usage: ReportFileUsage.ATTACHMENT,
               name: "image.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
             },
@@ -218,10 +220,12 @@ describe("Report Overview Component", () => {
         const reportApiModel = reportApiModelBuilder
           .with("attachedFiles", [
             {
+              usage: ReportFileUsage.ATTACHMENT,
               name: "file1.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
             },
             {
+              usage: ReportFileUsage.ATTACHMENT,
               name: "file2.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
             },
@@ -237,10 +241,12 @@ describe("Report Overview Component", () => {
         const reportApiModel = reportApiModelBuilder
           .with("attachedFiles", [
             {
+              usage: ReportFileUsage.ATTACHMENT,
               name: "file1.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
             },
             {
+              usage: ReportFileUsage.ATTACHMENT,
               name: "file2.png",
               signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
             },

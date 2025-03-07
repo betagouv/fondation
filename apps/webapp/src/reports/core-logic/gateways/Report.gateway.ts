@@ -1,4 +1,4 @@
-import { NominationFile } from "shared-models";
+import { NominationFile, ReportFileUsage } from "shared-models";
 import { ReportListItem, ReportSM } from "../../../store/appState";
 
 export interface UpdateReportParams {
@@ -12,6 +12,10 @@ export interface ReportGateway {
   updateReport(reportId: string, data: UpdateReportParams): Promise<void>;
   updateRule(ruleId: string, validated: boolean): Promise<void>;
   retrieveReport(id: string): Promise<ReportSM | null>;
-  attachFile(reportId: string, file: File): Promise<void>;
+  attachFile(
+    reportId: string,
+    file: File,
+    usage: ReportFileUsage,
+  ): Promise<void>;
   deleteAttachedFile(reportId: string, fileName: string): Promise<void>;
 }

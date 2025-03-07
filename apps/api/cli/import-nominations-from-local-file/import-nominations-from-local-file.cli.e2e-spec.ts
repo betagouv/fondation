@@ -327,6 +327,7 @@ describe('Import Nominations from local file', () => {
     biography: content.biography,
     comment: null,
     observers: content.observers,
+    attachedFiles: null,
   });
 });
 

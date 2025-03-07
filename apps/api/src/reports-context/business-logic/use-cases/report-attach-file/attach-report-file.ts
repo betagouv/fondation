@@ -3,6 +3,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { ReportFileService } from '../../gateways/services/report-file-service';
+import { ReportFileUsage } from 'shared-models';
 
 export class AttachReportFileUseCase {
   constructor(
@@ -17,6 +18,7 @@ export class AttachReportFileUseCase {
     name: string,
     fileBuffer: Buffer,
     reporterId: string,
+    usage: ReportFileUsage,
   ): Promise<void> {
     return this.transactionPerformer.perform(async (trx) => {
       const report = await this.reportRepository.byId(reportId)(trx);
@@ -26,7 +28,7 @@ export class AttachReportFileUseCase {
         await this.reporterTranslatorService.reporterWithId(reporterId);
 
       const filePath = report.generateAttachedFilePath(reporter);
-      const attachedFile = report.createAttachedFile(name);
+      const attachedFile = report.createAttachedFile(name, usage);
 
       // Order matters, file isn't attached if saving in repository fails
       await this.reportRepository.save(report)(trx);

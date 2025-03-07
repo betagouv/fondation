@@ -1,6 +1,10 @@
 import { ReportRetrievalVM } from 'shared-models';
-import { ReportRetrievalQuery } from '../../gateways/queries/report-retrieval-vm.query';
+import {
+  ReportRetrievalQueried,
+  ReportRetrievalQuery,
+} from '../../gateways/queries/report-retrieval-vm.query';
 import { ReportFileService } from '../../gateways/services/report-file-service';
+import { ReportAttachedFiles } from '../../models/report-attached-files';
 
 export class RetrieveReportUseCase {
   constructor(
@@ -18,14 +22,25 @@ export class RetrieveReportUseCase {
     );
     if (!report) return null;
 
-    const { attachedFilesVO, ...rest } = report;
-    const attachedFiles = attachedFilesVO.hasFiles()
-      ? await this.reportFileService.getSignedUrls(attachedFilesVO)
-      : null;
+    const { files, ...rest } = report;
+    const attachedFiles = files?.length ? await this.genFiles(files) : null;
 
     return {
       ...rest,
       attachedFiles,
     };
+  }
+
+  private async genFiles(
+    files: NonNullable<ReportRetrievalQueried['files']>,
+  ): Promise<ReportRetrievalVM['attachedFiles']> {
+    const signedUrls = await this.reportFileService.getSignedUrls(
+      ReportAttachedFiles.deserialize(files),
+    );
+    return signedUrls.map(({ signedUrl, name }) => ({
+      usage: files.find((f) => f.name === name)!.usage,
+      name,
+      signedUrl,
+    }));
   }
 }

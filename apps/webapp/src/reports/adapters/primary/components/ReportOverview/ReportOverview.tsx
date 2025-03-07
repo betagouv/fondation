@@ -1,7 +1,7 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { useEffect } from "react";
-import { NominationFile } from "shared-models";
+import { NominationFile, ReportFileUsage } from "shared-models";
 import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
 import { deleteReportAttachedFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { retrieveReport } from "../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
@@ -89,7 +89,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     };
 
   const onFileAttached = (file: File) => {
-    dispatch(attachReportFile({ reportId: id, file }));
+    dispatch(
+      attachReportFile({
+        reportId: id,
+        file,
+        usage: ReportFileUsage.ATTACHMENT,
+      }),
+    );
   };
 
   const onAttachedFileDeleted = (fileName: string) => {

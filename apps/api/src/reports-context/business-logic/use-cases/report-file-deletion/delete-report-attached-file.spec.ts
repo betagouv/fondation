@@ -2,9 +2,8 @@ import { FakeNominationFileReportRepository } from 'src/reports-context/adapters
 import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { ReportAttachedFile } from '../../models/report-attached-file';
+import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
-import { ReportAttachedFiles } from '../../models/report-attached-files';
 import { ReportBuilder } from '../../models/report.builder';
 import { DeleteReportAttachedFileUseCase } from './delete-report-attached-file';
 
@@ -35,10 +34,12 @@ describe('Delete Report Attached File Use Case', () => {
   it('deletes a report attached file', async () => {
     await deleteFile();
     expect(reportFileService.files).toEqual({});
-    expect(Object.values(reportRepository.reports)).toEqual([
+    expect(Object.values(reportRepository.reports)).toEqual<
+      NominationFileReportSnapshot[]
+    >([
       {
         ...report,
-        attachedFiles: new ReportAttachedFiles([]),
+        attachedFiles: [],
       },
     ]);
   });
@@ -69,10 +70,5 @@ describe('Delete Report Attached File Use Case', () => {
 
 const reportAttachedFile = new ReportAttachedFileBuilder().build();
 const report = new ReportBuilder()
-  .with(
-    'attachedFiles',
-    new ReportAttachedFiles([
-      ReportAttachedFile.fromSnapshot(reportAttachedFile),
-    ]),
-  )
+  .with('attachedFiles', [reportAttachedFile])
   .build();

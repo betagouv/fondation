@@ -6,6 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
@@ -27,7 +28,6 @@ import {
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import { SqlReportAttachedFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-attached-file.repository';
 import { SqlReportListingQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
 import { SqlReportRetrievalQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
@@ -40,7 +40,6 @@ import { NominationFileUpdatedSubscriber } from './event-subscribers/nomination-
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
-  REPORT_ATTACHED_FILE_REPOSITORY,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
   REPORT_REPOSITORY,
@@ -48,7 +47,6 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
-import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 
 @Module({
   imports: [SharedKernelModule],
@@ -86,21 +84,18 @@ import { DomainRegistry } from 'src/reports-context/business-logic/models/domain
       TRANSACTION_PERFORMER,
     ]),
     generateProvider(AttachReportFileUseCase, [
-      REPORT_ATTACHED_FILE_REPOSITORY,
       REPORT_FILE_SERVICE,
-      DATE_TIME_PROVIDER,
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
-      UUID_GENERATOR,
       ReporterTranslatorService,
     ]),
     generateProvider(GenerateReportFileUrlUseCase, [
       TRANSACTION_PERFORMER,
-      REPORT_ATTACHED_FILE_REPOSITORY,
+      REPORT_REPOSITORY,
       REPORT_FILE_SERVICE,
     ]),
     generateProvider(DeleteReportAttachedFileUseCase, [
-      REPORT_ATTACHED_FILE_REPOSITORY,
+      REPORT_REPOSITORY,
       REPORT_FILE_SERVICE,
       TRANSACTION_PERFORMER,
     ]),
@@ -139,11 +134,6 @@ import { DomainRegistry } from 'src/reports-context/business-logic/models/domain
     ),
     generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
     generateProvider(SqlReportRuleRepository, [], REPORT_RULE_REPOSITORY),
-    generateProvider(
-      SqlReportAttachedFileRepository,
-      [],
-      REPORT_ATTACHED_FILE_REPOSITORY,
-    ),
   ],
 })
 export class ReportsModule implements NestModule, OnModuleInit {

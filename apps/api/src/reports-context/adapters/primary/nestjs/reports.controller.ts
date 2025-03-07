@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -28,6 +29,7 @@ import {
 import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
+import { AttachFileQueryParams } from './dto/attach-file-query-params.dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -100,14 +102,17 @@ export class ReportsController implements IReportController {
     @Param()
     { id }: ReportsContextRestContract['endpoints']['attachFile']['params'],
     @UploadedFile() file: Express.Multer.File,
+    @Query() query: AttachFileQueryParams,
     @Req() req: Request,
   ) {
     const reporterId = req.userId!;
+    const { usage } = query;
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,
       file.buffer,
       reporterId,
+      usage,
     );
   }
 

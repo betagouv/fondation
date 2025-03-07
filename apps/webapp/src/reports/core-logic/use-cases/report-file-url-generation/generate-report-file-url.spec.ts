@@ -10,6 +10,7 @@ import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { ReportFileUsage } from "shared-models";
 
 describe("Generate Report File Url", () => {
   let store: ReduxStore;
@@ -46,6 +47,7 @@ describe("Generate Report File Url", () => {
       ...aReport,
       attachedFiles: [
         {
+          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: signedUrl,
           name: "file.txt",
         },
@@ -59,6 +61,7 @@ const signedUrl = "https://example.fr/file.txt";
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [
     {
+      usage: ReportFileUsage.ATTACHMENT,
       name: "file.txt",
       signedUrl: signedUrl,
     },

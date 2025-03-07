@@ -1,15 +1,23 @@
 import FormData from 'form-data';
+import { ReportFileUsage } from 'shared-models';
+import { z } from 'zod';
 
 export type ReportAttachedFileSnapshot = {
   name: string;
   fileId: string;
+  usage: ReportFileUsage;
 };
 
 export class ReportAttachedFile {
-  constructor(
-    private readonly _name: string,
-    private readonly _fileId: string,
-  ) {}
+  private _name: string;
+  private _fileId: string;
+  private _usage: ReportFileUsage;
+
+  constructor(name: string, fileId: string, usage: ReportFileUsage) {
+    this.name = name;
+    this.fileId = fileId;
+    this.usage = usage;
+  }
 
   isSameFile(file: ReportAttachedFile): boolean {
     return this._fileId === file._fileId;
@@ -43,20 +51,39 @@ export class ReportAttachedFile {
   public get name(): string {
     return this._name;
   }
+  private set name(value: string) {
+    this._name = z.string().parse(value);
+  }
+
   public get fileId(): string {
     return this._fileId;
+  }
+  private set fileId(value: string) {
+    this._fileId = z.string().parse(value);
+  }
+
+  public get usage(): ReportFileUsage {
+    return this._usage;
+  }
+  private set usage(value: ReportFileUsage) {
+    this._usage = z.nativeEnum(ReportFileUsage).parse(value);
   }
 
   toSnapshot(): ReportAttachedFileSnapshot {
     return {
       name: this.name,
       fileId: this.fileId,
+      usage: this._usage,
     };
   }
 
   static fromSnapshot(
     snapshot: ReportAttachedFileSnapshot,
   ): ReportAttachedFile {
-    return new ReportAttachedFile(snapshot.name, snapshot.fileId);
+    return new ReportAttachedFile(
+      snapshot.name,
+      snapshot.fileId,
+      snapshot.usage,
+    );
   }
 }

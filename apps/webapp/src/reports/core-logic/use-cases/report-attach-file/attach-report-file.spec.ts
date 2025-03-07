@@ -1,29 +1,30 @@
 import "@testing-library/jest-dom/vitest";
 import blobStream from "blob-stream";
 import PDF from "pdfkit";
+import { ReportFileUsage } from "shared-models";
 import sharp, { FormatEnum } from "sharp";
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { FileProvider } from "../../../../shared-kernel/core-logic/providers/fileProvider";
+import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
-import { ReportBuilder } from "../../builders/Report.builder";
-import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
-import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { attachReportFile, AttachReportFileParams } from "./attach-report-file";
-import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
-import { FileProvider } from "../../../../shared-kernel/core-logic/providers/fileProvider";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportBuilder } from "../../builders/Report.builder";
+import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
+import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
+import { attachReportFile, AttachReportFileParams } from "./attach-report-file";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let expectStoredReports: ExpectStoredReports;
-  let uploadMode: AttachReportFileParams["mode"];
+  let uploadUsage: AttachReportFileParams["usage"];
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -48,19 +49,19 @@ describe("Attach Report File", () => {
 
   const testCases: {
     description: string;
-    mode: AttachReportFileParams["mode"];
+    usage: AttachReportFileParams["usage"];
   }[] = [
     {
       description: "Attach files",
-      mode: "attached",
+      usage: ReportFileUsage.ATTACHMENT,
     },
     {
       description: "Embed screenshots in report content",
-      mode: "embedded-screenshot",
+      usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
     },
   ];
-  describe.each(testCases)("$description", ({ mode }) => {
-    uploadMode = mode;
+  describe.each(testCases)("$description", ({ usage }) => {
+    uploadUsage = usage;
     it("generates a signed url when a file is attached", async () => {
       const file = await givenAnImageBuffer("png");
 
@@ -68,7 +69,7 @@ describe("Attach Report File", () => {
         attachReportFile({
           reportId: "report-id",
           file: new File([file], "file.txt", { type: "image/png" }),
-          mode,
+          usage,
         }),
       );
       await sleep(100); // wait for listener to resolve
@@ -77,6 +78,7 @@ describe("Attach Report File", () => {
         ...aReport,
         attachedFiles: [
           {
+            usage,
             signedUrl,
             name: "file.txt",
           },
@@ -101,14 +103,14 @@ describe("Attach Report File", () => {
   });
 
   it("attaches a PDF", async () => {
-    uploadMode = "attached";
+    uploadUsage = ReportFileUsage.ATTACHMENT;
     const fileBuffer = await givenAPdf();
     const file = genFile(fileBuffer, "file.pdf", "application/pdf");
     await expect(attachFile(file)).resolves.toBeDefined();
   });
 
   it("cannot embed PDF files", async () => {
-    uploadMode = "embedded-screenshot";
+    uploadUsage = ReportFileUsage.EMBEDDED_SCREENSHOT;
     const fileBuffer = await givenAPdf();
     const file = genFile(fileBuffer, "file.pdf", "application/pdf");
     expectUploadError(
@@ -128,7 +130,7 @@ describe("Attach Report File", () => {
       attachReportFile({
         reportId: aReport.id,
         file,
-        mode: uploadMode,
+        usage: uploadUsage,
       }),
     );
 

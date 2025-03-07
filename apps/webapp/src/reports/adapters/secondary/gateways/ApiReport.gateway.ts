@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  Magistrat,
+  NominationFile,
+  ReportFileUsage,
+  Transparency,
+} from "shared-models";
 import {
   ReportGateway,
   UpdateReportParams,
@@ -65,8 +70,12 @@ export class ApiReportGateway implements ReportGateway {
     }));
   }
 
-  attachFile(reportId: string, file: File): Promise<void> {
-    return this.reportApiClient.attachFile(reportId, file);
+  attachFile(
+    reportId: string,
+    file: File,
+    usage: ReportFileUsage,
+  ): Promise<void> {
+    return this.reportApiClient.attachFile(reportId, file, usage);
   }
 
   generateFileUrl(reportId: string, fileName: string): Promise<string> {

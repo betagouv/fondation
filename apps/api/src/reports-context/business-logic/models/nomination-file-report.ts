@@ -1,7 +1,15 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile,
+  ReportFileUsage,
+  Transparency,
+} from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
-import { ReportAttachedFile } from './report-attached-file';
+import {
+  ReportAttachedFile,
+  ReportAttachedFileSnapshot,
+} from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
 import { z } from 'zod';
@@ -26,7 +34,7 @@ export type NominationFileReportSnapshot = {
   comment: string | null;
   rank: string;
   observers: string[] | null;
-  attachedFiles: ReportAttachedFiles | null;
+  attachedFiles: ReportAttachedFileSnapshot[] | null;
 };
 
 export class NominationFileReport {
@@ -163,10 +171,14 @@ export class NominationFileReport {
     this._observers = observers;
   }
 
-  createAttachedFile(fileName: string) {
+  createAttachedFile(
+    fileName: string,
+    usage: ReportFileUsage,
+  ): ReportAttachedFile {
     const attachedFile = new ReportAttachedFile(
       fileName,
       DomainRegistry.uuidGenerator().generate(),
+      usage,
     );
 
     if (!this._attachedFiles) this._attachedFiles = new ReportAttachedFiles();
@@ -208,7 +220,7 @@ export class NominationFileReport {
       comment: this.comment,
       rank: this.rank,
       observers: this.observers,
-      attachedFiles: this.attachedFiles,
+      attachedFiles: this.attachedFiles?.toSnapshot() || null,
     };
   }
 
@@ -234,7 +246,11 @@ export class NominationFileReport {
       snapshot.comment,
       snapshot.rank,
       snapshot.observers,
-      snapshot.attachedFiles,
+      snapshot.attachedFiles
+        ? new ReportAttachedFiles(
+            snapshot.attachedFiles.map(ReportAttachedFile.fromSnapshot),
+          )
+        : null,
     );
   }
 

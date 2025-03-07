@@ -7,6 +7,7 @@ import {
   allRulesTuple,
   Magistrat,
   NominationFile,
+  ReportFileUsage,
   ReportListItemVM,
   ReportRetrievalVM,
   Transparency,
@@ -28,14 +29,18 @@ import {
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
+import {
+  ExpectReportsInDb,
+  expectReportsInDbFactory,
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files } from 'test/minio';
-import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
-import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
-import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
+import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { USER_SERVICE } from './tokens';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
@@ -43,9 +48,13 @@ const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 describe('Reports Controller', () => {
   let app: INestApplication;
   let db: DrizzleDb;
+  let givenSomeReports: GivenSomeReports;
+  let expectReportsInDb: ExpectReportsInDb;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
+    expectReportsInDb = expectReportsInDbFactory(db);
   });
   beforeEach(async () => {
     await clearDB(db);
@@ -55,8 +64,7 @@ describe('Reports Controller', () => {
 
   describe('List', () => {
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReportSnapshot);
     });
 
     it('requires a valid user session to list reports', async () => {
@@ -106,8 +114,7 @@ describe('Reports Controller', () => {
     ])[];
 
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReport);
 
       const reportRulesPromises = allRulesTuple.map(
         async ([ruleGroup, ruleName]) => {
@@ -182,8 +189,7 @@ describe('Reports Controller', () => {
 
   describe('Rules validation state', () => {
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(report);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(report);
     });
 
     it('requires a valid user session', async () => {
@@ -244,11 +250,9 @@ describe('Reports Controller', () => {
 
   describe('Files', () => {
     let s3Client: S3Client;
-    let reportRow: typeof reports.$inferInsert;
 
     beforeEach(async () => {
-      reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReportSnapshot);
     });
 
     it('requires a valid user session', async () => {
@@ -273,18 +277,16 @@ describe('Reports Controller', () => {
 
         expect(response.body).toEqual({});
 
-        const savedFiles = await db.select().from(reports).execute();
-        expect(savedFiles).toEqual<(typeof reports.$inferSelect)[]>([
-          {
-            ...(reportRow as typeof reports.$inferSelect),
-            attachedFiles: [
-              {
-                name: 'test-file.pdf',
-                fileId: expect.any(String),
-              },
-            ],
-          },
-        ]);
+        await expectReportsInDb({
+          ...aReportSnapshot,
+          attachedFiles: [
+            {
+              usage: ReportFileUsage.ATTACHMENT,
+              name: 'test-file.pdf',
+              fileId: expect.any(String),
+            },
+          ],
+        });
       });
 
       it('get a file signed URL', async () => {
@@ -306,8 +308,7 @@ describe('Reports Controller', () => {
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
-        const savedFiles = await db.select().from(reports).execute();
-        expect(savedFiles).toEqual([{ ...reportRow, attachedFiles: null }]);
+        await expectReportsInDb({ ...aReportSnapshot, attachedFiles: null });
       });
     });
 
@@ -315,7 +316,9 @@ describe('Reports Controller', () => {
       const pdfBuffer = givenAPdfBuffer();
 
       return request(app.getHttpServer())
-        .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
+        .post(
+          `/api/reports/${aReportSnapshot.id}/files/upload-one?usage=${ReportFileUsage.ATTACHMENT}`,
+        )
         .set('Cookie', 'sessionId=unused')
         .attach('file', pdfBuffer, 'test-file.pdf');
     };
@@ -334,11 +337,7 @@ describe('Reports Controller', () => {
       .with('id', '10a4b056-dafa-4d28-93b5-e7dd51b9793d')
       .with('reporterId', '1c3f4001-8e08-4359-a68d-55fbf9811534')
       .build();
-    const anotherReportRow =
-      SqlReportRepository.mapSnapshotToDb(aReportNotOwned);
-
-    await db.insert(reports).values(anotherReportRow).execute();
-
+    await givenSomeReports(aReportNotOwned);
     return aReportNotOwned;
   };
 

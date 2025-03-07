@@ -36,7 +36,8 @@
     "scalingo:upload-nomination-files:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/import-nominations-from-local-file-to-scalingo.sh",
     "cli:register-users": "dotenvx run -- ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/register-user.cli.ts",
     "scalingo:register-users:staging": "dotenvx run -f .env.scalingo-upload.staging -f .env.scalingo-upload -- ./scripts/register-users-to-scalingo.sh",
-    "scalingo:register-users:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/register-users-to-scalingo.sh"
+    "scalingo:register-users:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/register-users-to-scalingo.sh",
+    "cli:gen-password-hash": "dotenvx run -- ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/gen-password-hash.cli.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.697.0",

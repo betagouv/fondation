@@ -1,6 +1,6 @@
 import type FormData from "form-data";
 import { z } from "zod";
-import { RestContract, ZodParamsDto } from "./common";
+import { RestContract, ZodParamsDto, ZodQueryParamsDto } from "./common";
 
 export type FileVM = { name: string; signedUrl: string };
 
@@ -40,10 +40,10 @@ export const fileUploadQueryDtoSchema = z.object({
     .transform<string[]>((value) => (Array.isArray(value) ? value : [value]))
     .optional(),
   fileId: z.string(),
-}) satisfies ZodParamsDto<FilesContextRestContract, "uploadFile">;
+}) satisfies ZodQueryParamsDto<FilesContextRestContract, "uploadFile">;
 
 export const fileUrlsQuerySchema = z.object({
   ids: z
     .union([z.string(), z.string().array()])
     .transform((v) => (Array.isArray(v) ? v : [v])),
-}) satisfies ZodParamsDto<FilesContextRestContract, "getSignedUrls">;
+}) satisfies ZodQueryParamsDto<FilesContextRestContract, "getSignedUrls">;

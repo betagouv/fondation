@@ -1,4 +1,4 @@
-import { NominationFile } from "shared-models";
+import { NominationFile, ReportFileUsage } from "shared-models";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportListItem, ReportSM } from "../../../../store/appState";
 import { ApiReportGateway } from "./ApiReport.gateway";
@@ -90,7 +90,11 @@ describe("Api Report Gateway", () => {
     const aFile = new File([""], "some-file.pdf");
 
     it("attaches a file", async () => {
-      await apiReportGateway.attachFile(aReportRetrievedSM.id, aFile);
+      await apiReportGateway.attachFile(
+        aReportRetrievedSM.id,
+        aFile,
+        ReportFileUsage.ATTACHMENT,
+      );
       expect(
         reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles![0]!.name,
       ).toEqual(aFile.name);
@@ -100,7 +104,13 @@ describe("Api Report Gateway", () => {
       beforeEach(() => {
         reportApiClient.reports[aReportRetrievedSM.id]! = {
           ...reportApiClient.reports[aReportRetrievedSM.id]!,
-          attachedFiles: [{ name: aFile.name, signedUrl: "some-url" }],
+          attachedFiles: [
+            {
+              usage: ReportFileUsage.ATTACHMENT,
+              name: aFile.name,
+              signedUrl: "some-url",
+            },
+          ],
         };
       });
 

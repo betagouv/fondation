@@ -1,5 +1,6 @@
 import {
   NominationFile,
+  ReportFileUsage,
   ReportListingVM,
   ReportListItemVM,
   ReportRetrievalVM,
@@ -99,7 +100,11 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async attachFile(reportId: string, file: File): Promise<void> {
+  async attachFile(
+    reportId: string,
+    file: File,
+    usage: ReportFileUsage,
+  ): Promise<void> {
     const uri = `${FakeReportApiClient.BASE_URI}/${file.name}`;
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
@@ -112,6 +117,7 @@ export class FakeReportApiClient implements ReportApiClient {
         attachedFiles: [
           ...(report.attachedFiles || []),
           {
+            usage,
             name: file.name,
             signedUrl: uri,
           },

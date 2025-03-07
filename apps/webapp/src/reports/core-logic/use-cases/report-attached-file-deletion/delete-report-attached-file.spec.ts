@@ -11,6 +11,7 @@ import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { ReportFileUsage } from "shared-models";
 
 describe("Delete Report Attached File", () => {
   let store: ReduxStore;
@@ -55,6 +56,7 @@ describe("Delete Report Attached File", () => {
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [
     {
+      usage: ReportFileUsage.ATTACHMENT,
       signedUrl: "https://example.fr",
       name: "file.pdf",
     },

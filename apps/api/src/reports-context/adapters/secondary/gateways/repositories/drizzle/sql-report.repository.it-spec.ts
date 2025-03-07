@@ -1,10 +1,6 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
-import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
-import {
-  attachedFilesValidationSchema,
-  ReportAttachedFiles,
-} from 'src/reports-context/business-logic/models/report-attached-files';
+import { ReportAttachedFileBuilder } from 'src/reports-context/business-logic/models/report-attached-file.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -15,17 +11,22 @@ import {
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { z } from 'zod';
 import { reports } from './schema/report-pm';
 import { SqlReportRepository } from './sql-report.repository';
+import {
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 
 describe('SQL Report Repository', () => {
   let sqlReportRepository: SqlReportRepository;
   let transactionPerformer: TransactionPerformer;
   let db: DrizzleDb;
+  let givenSomeReports: GivenSomeReports;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
   });
 
   beforeEach(async () => {
@@ -81,10 +82,9 @@ describe('SQL Report Repository', () => {
       .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
       .with('grade', Magistrat.Grade.I)
       .build();
-    const aReportDb = SqlReportRepository.mapSnapshotToDb(aReport);
 
     beforeEach(async () => {
-      await db.insert(reports).values(aReportDb).execute();
+      await givenSomeReports(aReport);
     });
 
     describe('Updates', () => {
@@ -160,13 +160,9 @@ describe('SQL Report Repository', () => {
     });
 
     it('attaches a file to a report', async () => {
+      const attachedFile = new ReportAttachedFileBuilder().build();
       const aReportWithFile = ReportBuilder.duplicateReport(aReport)
-        .with(
-          'attachedFiles',
-          new ReportAttachedFiles([
-            new ReportAttachedFile('file1.pdf', 'other-context-file-id'),
-          ]),
-        )
+        .with('attachedFiles', [attachedFile])
         .build();
 
       await transactionPerformer.perform(
@@ -177,13 +173,6 @@ describe('SQL Report Repository', () => {
 
       const aReportWithFileDb =
         SqlReportRepository.mapSnapshotToDb(aReportWithFile);
-      const attachedFiles: z.infer<typeof attachedFilesValidationSchema> = [
-        {
-          usage: 'attachement',
-          name: 'file1.pdf',
-          fileId: 'other-context-file-id',
-        },
-      ];
       await expectReports({
         id: aReportWithFile.id,
         nominationFileId: aReportWithFile.nominationFileId,
@@ -203,7 +192,7 @@ describe('SQL Report Repository', () => {
         targettedPosition: aReportWithFile.targettedPosition,
         rank: aReportWithFile.rank,
         observers: aReportWithFile.observers,
-        attachedFiles,
+        attachedFiles: [attachedFile],
       });
     });
 
@@ -224,12 +213,7 @@ describe('SQL Report Repository', () => {
 
   describe('Given a saved report with a file', () => {
     const aReport = new ReportBuilder('uuid')
-      .with(
-        'attachedFiles',
-        new ReportAttachedFiles([
-          new ReportAttachedFile('file1.pdf', 'other-context-file-id'),
-        ]),
-      )
+      .with('attachedFiles', [new ReportAttachedFileBuilder().build()])
       .build();
     const aReportDb = SqlReportRepository.mapSnapshotToDb(aReport);
 

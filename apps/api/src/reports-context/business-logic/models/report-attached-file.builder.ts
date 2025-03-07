@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { Get, Paths } from 'type-fest';
 import { ReportAttachedFileSnapshot } from './report-attached-file';
+import { ReportFileUsage } from 'shared-models';
 
 export class ReportAttachedFileBuilder {
   private _snapshot: ReportAttachedFileSnapshot;
@@ -9,6 +10,7 @@ export class ReportAttachedFileBuilder {
     this._snapshot = {
       name: 'some-file.pdf',
       fileId: 'file-id',
+      usage: ReportFileUsage.ATTACHMENT,
     };
   }
 

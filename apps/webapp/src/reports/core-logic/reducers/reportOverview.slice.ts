@@ -9,6 +9,7 @@ import { generateReportFileUrl } from "../use-cases/report-file-url-generation/g
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
+import { attachReportFile } from "../use-cases/report-attach-file/attach-report-file";
 
 export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
@@ -112,6 +113,31 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
+      builder.addCase(attachReportFile.fulfilled, (state, action) => {
+        const { reportId, file, usage } = action.meta.arg;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          const attachedFiles = (report.attachedFiles || []).concat({
+            usage,
+            name: file.name,
+          });
+          report.attachedFiles = attachedFiles;
+        }
+      });
+
+      builder.addCase(attachReportFile.rejected, (state, action) => {
+        const { reportId, file } = action.meta.arg;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          const attachedFiles = (report.attachedFiles || []).filter(
+            (attachedFile) => attachedFile.name !== file.name,
+          );
+          report.attachedFiles = attachedFiles;
+        }
+      });
+
       builder.addCase(generateReportFileUrl.fulfilled, (state, action) => {
         const { reportId, fileName } = action.meta.arg;
         const fileUri = action.payload;
@@ -119,20 +145,14 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
 
         if (report) {
           const attachedFiles = report.attachedFiles || [];
-          const existingFile = attachedFiles.findIndex(
+          const existingFile = attachedFiles.find(
             (file) => file.name === fileName,
           );
-          const otherAttachedFiles =
-            existingFile === -1
-              ? attachedFiles
-              : attachedFiles.filter((file) => file.name !== fileName);
-          report.attachedFiles = [
-            ...otherAttachedFiles,
-            {
-              signedUrl: fileUri,
-              name: fileName,
-            },
-          ];
+          if (!existingFile) {
+            console.error(`File ${fileName} not found in report ${reportId}`);
+            return;
+          }
+          existingFile.signedUrl = fileUri;
         }
       });
 

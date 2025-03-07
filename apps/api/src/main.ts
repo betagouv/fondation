@@ -5,6 +5,7 @@ import { MainAppConfigurator } from './main.configurator';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configuredApp = new MainAppConfigurator(app)
+    .withFilters()
     .withCors()
     .withCookies()
     .configure();

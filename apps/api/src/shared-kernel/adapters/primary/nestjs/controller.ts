@@ -8,6 +8,7 @@ export type IController<C extends RestContract> = {
     body: C['endpoints'][K]['body'] extends FormData | FormDataLib
       ? Express.Multer.File
       : C['endpoints'][K]['body'],
+    query: C['endpoints'][K]['queryParams'],
     ...args: any[]
   ) =>
     | Promise<C['endpoints'][K]['response']>
