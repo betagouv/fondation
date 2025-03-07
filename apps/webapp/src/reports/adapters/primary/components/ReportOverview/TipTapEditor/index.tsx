@@ -38,7 +38,11 @@ const extensions = [
   Color,
   OrderedList,
   History,
-  Image,
+  Image.configure({
+    HTMLAttributes: {
+      width: "100%",
+    },
+  }),
 ];
 
 export const TipTapEditor = ({
@@ -61,6 +65,7 @@ export const TipTapEditor = ({
       },
     }}
     onUpdate={(content) => {
+      console.log("content", content.editor.getHTML());
       onChange(content.editor.getHTML());
     }}
   />

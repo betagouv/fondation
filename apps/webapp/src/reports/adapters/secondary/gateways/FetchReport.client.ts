@@ -123,6 +123,7 @@ export class FetchReportApiClient implements ReportApiClient {
       params: { id: reportId, fileName },
     };
     const url = this.resolveUrl(path, params);
+
     await this.fetch(url, {
       method: method,
     });
