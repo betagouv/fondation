@@ -140,6 +140,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
         reportSummarySections,
         rulesMap,
         rulesLabelsMap,
+        gateways,
       ).reducer,
       reportList: reportListSlice.reducer,
       authentication: createAuthenticationSlice().reducer,

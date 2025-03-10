@@ -1,11 +1,17 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
-export const HighlightButton = () => {
-  const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleHighlight().run();
+export const HighlightButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) =>
+      !ctx.editor || !ctx.editor.can().chain().focus().toggleHighlight().run(),
+  });
 
-  const toggleHighlight = (editor: Editor) => () => {
+  const toggleHighlight = () => {
+    if (!editor) return;
     editor.chain().focus().toggleHighlight().run();
   };
 
@@ -14,8 +20,8 @@ export const HighlightButton = () => {
       iconId="fr-icon-mark-pen-line"
       title="Surligner"
       mark="highlight"
-      disabledFactory={getDisabled}
-      onClickFactory={toggleHighlight}
+      disabled={!!disabled}
+      onClick={toggleHighlight}
     />
   );
 };

@@ -1,9 +1,9 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent, FC, useRef } from "react";
 import { useIsBlurred } from "../useIsBlurred";
 
-export const ImageUploadButton = () => {
+export const ImageUploadButton: FC = () => {
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
   const fileInputRef = useRef<HTMLInputElement>(null);

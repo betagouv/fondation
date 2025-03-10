@@ -62,10 +62,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       }),
     );
   };
-  const onUpdateComment = (comment: string) => {
-    return onUpdateReport<"comment">({ comment });
-  };
-
   const onUpdateState = (state: ReportStateUpdateParam) => {
     return onUpdateReport<"state">({ state });
   };
@@ -166,7 +162,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             rank={report.rank}
           />
           <Biography biography={report.biography} />
-          <ReportEditor comment={report.comment} onUpdate={onUpdateComment} />
+          <ReportEditor reportId={id} />
           <Observers observers={report.observers} />
           <ReportRules
             rulesChecked={report.rulesChecked}

@@ -1,54 +1,47 @@
-import { debounce } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useAppSelector } from "../../hooks/react-redux";
 import { Card } from "./Card";
 import { TipTapEditor } from "./TipTapEditor";
+import { selectEditor } from "../../selectors/selectEditor";
 
 export type TextareaCardProps = {
   cardId: string;
   titleId: string;
   label: string;
-  content: string | null;
-  onContentChange: (content: string) => void;
+  reportId: string;
 };
-
-const TEXT_AREA_DEBOUNCE_TIME = 400;
 
 export const TextareaCard: React.FC<TextareaCardProps> = ({
   cardId,
   titleId,
   label,
-  content,
-  onContentChange,
+  reportId,
 }) => {
-  const [textareaContent, setTextareaContent] = useState(content);
-
-  const debouncedOnContentChange = useMemo(
-    () => debounce(onContentChange, TEXT_AREA_DEBOUNCE_TIME),
-    [onContentChange],
-  );
-
-  const handleChange = useCallback(
-    (value: string) => {
-      setTextareaContent(value);
-      debouncedOnContentChange(value);
-    },
-    [debouncedOnContentChange],
+  const editorContainerRef = useRef<HTMLElement>(null);
+  const selectEditorArgs = {
+    reportId,
+  };
+  const editor = useAppSelector((state) =>
+    selectEditor(state, selectEditorArgs),
   );
 
   useEffect(() => {
-    return () => {
-      debouncedOnContentChange.cancel();
-    };
-  }, [debouncedOnContentChange]);
+    if (
+      editor &&
+      editorContainerRef.current &&
+      !editorContainerRef.current.contains(
+        // L'utilisationde "contains(editor.options.element)" ne fonctionne pas.
+        document.getElementById(editor.options.element.id),
+      )
+    ) {
+      editorContainerRef.current.append(editor.options.element);
+    }
+  }, [editor]);
 
   return (
-    <Card id={cardId}>
+    <Card ref={editorContainerRef} id={cardId}>
       <h2 id={titleId}>{label}</h2>
-      <TipTapEditor
-        value={textareaContent ?? undefined}
-        onChange={handleChange}
-        ariaLabelledby={titleId}
-      />
+      {editor && <TipTapEditor editor={editor} />}
     </Card>
   );
 };

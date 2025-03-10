@@ -1,7 +1,6 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { Node, useCurrentEditor } from "@tiptap/react";
 import clsx from "clsx";
-import { useEffect } from "react";
+import { FC, useEffect } from "react";
 import { ReportFileUsage } from "shared-models";
 import { attachReportFile } from "../../../../../core-logic/use-cases/report-attach-file/attach-report-file";
 import { deleteReportAttachedFile } from "../../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
@@ -18,9 +17,12 @@ import { OrderedListButton } from "./buttons/OrderedListButton";
 import { TextColorButton } from "./buttons/TextColorButton";
 import { UnderlineButton } from "./buttons/UnderlineButton";
 import { headingLevels } from "./constant";
+import { Editor } from "@tiptap/react";
 
-export const MenuBar = () => {
-  const { editor } = useCurrentEditor();
+export type MenuBarProps = {
+  editor: Editor;
+};
+export const MenuBar: FC<MenuBarProps> = ({ editor }) => {
   const dispatch = useAppDispatch();
   const lastFile = useAppSelector((state) =>
     state.reportOverview
@@ -74,6 +76,7 @@ export const MenuBar = () => {
             "fileSMToDelete",
             filesSM?.find((f) => f.signedUrl === node.attrs.src),
           );
+
           dispatch(
             deleteReportAttachedFile({
               fileName: fileSMToDelete,

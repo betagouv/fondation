@@ -1,16 +1,28 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { headingLevels } from "../constant";
 import { EditorButton } from "./EditorButton";
 
-export const BoldButton = () => {
-  const getDisabled = (editor: Editor) => {
-    const isHeadingActive = !!headingLevels.find((level) =>
-      editor.isActive("heading", { level }),
-    );
-    return !editor.can().chain().focus().toggleBold().run() || isHeadingActive;
-  };
+export const BoldButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) => {
+      const currentEditor = ctx.editor;
+      if (!currentEditor) return true;
 
-  const toggleBold = (editor: Editor) => () => {
+      const isHeadingActive = !!headingLevels.find((level) =>
+        currentEditor.isActive("heading", { level }),
+      );
+      return (
+        !currentEditor.can().chain().focus().toggleBold().run() ||
+        isHeadingActive
+      );
+    },
+  });
+
+  const toggleBold = () => {
+    if (!editor) return;
     editor.chain().focus().toggleBold().run();
   };
 
@@ -19,8 +31,8 @@ export const BoldButton = () => {
       iconId="fr-icon-bold"
       title="Gras"
       mark="bold"
-      disabledFactory={getDisabled}
-      onClickFactory={toggleBold}
+      disabled={!!disabled}
+      onClick={toggleBold}
     />
   );
 };
