@@ -107,7 +107,6 @@ export class ReportsController implements IReportController {
   ) {
     const reporterId = req.userId!;
     const { usage } = query;
-    console.log('usage', usage, file);
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,

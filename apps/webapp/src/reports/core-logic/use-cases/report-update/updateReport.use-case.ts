@@ -16,7 +16,7 @@ export const updateReport = createAppAsyncThunk<
   UpdateReportPayload,
   UpdateReportParams
 >(
-  "report/update",
+  "report/updateFile",
   async (
     { reportId, data },
     {

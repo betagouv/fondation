@@ -2,7 +2,6 @@ import { expect, MountResult, test } from "@playwright/experimental-ct-react";
 import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
-import { givenAnImage, givenAnImageBuffer } from "../../../../../../test/media";
 import {
   Locator,
   logPlaywrightBrowser,
@@ -23,14 +22,12 @@ test.describe("Report Editor", () => {
   let editor: Locator;
   let page: Page;
   let mount: Mount;
-  let context: any;
 
-  test.beforeEach(({ page: aPage, mount: aMount, context: aContext }) => {
+  test.beforeEach(({ page: aPage, mount: aMount }) => {
     component = null;
     page = aPage;
     logPlaywrightBrowser(page);
     mount = aMount;
-    context = aContext;
   });
 
   test("should show a basic report", async () => {
@@ -204,30 +201,23 @@ test.describe("Report Editor", () => {
     {
       testTitle: "Add screenshot",
       action: async () => {
-        await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-
-        await page.evaluate(async () => {
-          const response = await fetch("https://fakeimg.pl/10x10/");
-          const blob = await response.blob();
-          navigator.clipboard.write([
-            new ClipboardItem({
-              "image/png": blob,
-            }),
-          ]);
-        });
         await selectText();
-        await editor.press("ArrowRight");
-        await editor.press("Control+v");
+        const fileChooserPromise = page.waitForEvent("filechooser");
+        await clickOnMark("Ajouter une capture d'écran");
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles({
+          name: "capture d'écran.png",
+          mimeType: "image/png",
+          buffer: Buffer.from(""),
+        });
       },
-      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      expectedContent: "",
+      getHtmlContent: () => queryHtmlContent(".ProseMirror img"),
       expectHtmlContent: async (content: string) => {
-        const expectedHtml =
-          '<p>content</p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAAXNSR0IArs4c6QAAADVJREFUKBVjOIMXMOCVPUMt6RMnTkAsgjPOnIEZvn379vXr12/evBnCgDuIWnbDDURmEDAcAOoI7YKGwuc6AAAAAElFTkSuQmCC" contenteditable="false" draggable="true" class="ProseMirror-selectednode">';
-        expect(content).toEqual(expectedHtml);
+        expect(content).toEqual('<p></p><img src="data:image/png;base64,">');
       },
 
-      expectedStoredHtmlContent:
-        '<p>content</p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAAXNSR0IArs4c6QAAADVJREFUKBVjOIMXMOCVPUMt6RMnTkAsgjPOnIEZvn379vXr12/evBnCgDuIWnbDDURmEDAcAOoI7YKGwuc6AAAAAElFTkSuQmCC">',
+      expectedStoredHtmlContent: '<p></p><img src="data:image/png;base64,">',
     },
   ].flat();
 

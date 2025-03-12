@@ -1,26 +1,28 @@
+import { EditorProvider } from "@tiptap/react";
 import { MenuBar } from "./MenuBar";
+import { extensions } from "./extensions";
 
-import {
-  Editor,
-  EditorConsumer,
-  EditorContent,
-  EditorContext,
-} from "@tiptap/react";
-import { FC } from "react";
-
-export type TipTapEditorProps = {
-  editor: Editor;
-};
-
-export const TipTapEditor: FC<TipTapEditorProps> = ({ editor }) => {
-  return (
-    <EditorContext.Provider value={{ editor }}>
-      <MenuBar editor={editor} />
-      <EditorConsumer>
-        {({ editor: currentEditor }) => (
-          <EditorContent editor={currentEditor} />
-        )}
-      </EditorConsumer>
-    </EditorContext.Provider>
-  );
-};
+export const TipTapEditor = ({
+  value,
+  onChange,
+  ariaLabelledby,
+}: {
+  value: string | undefined;
+  onChange: (value: string) => void;
+  ariaLabelledby: string;
+}) => (
+  <EditorProvider
+    slotBefore={<MenuBar />}
+    extensions={extensions}
+    content={value}
+    editable
+    editorProps={{
+      attributes: {
+        "aria-labelledby": ariaLabelledby,
+      },
+    }}
+    onUpdate={(content) => {
+      onChange(content.editor.getHTML());
+    }}
+  />
+);
