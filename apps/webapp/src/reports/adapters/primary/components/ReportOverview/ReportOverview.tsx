@@ -62,6 +62,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       }),
     );
   };
+
+  const onUpdateContent = (comment: string) => {
+    return onUpdateReport<"comment">({ comment });
+  };
   const onUpdateState = (state: ReportStateUpdateParam) => {
     return onUpdateReport<"state">({ state });
   };
@@ -95,7 +99,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   };
 
   const onAttachedFileDeleted = (fileName: string) => {
-    dispatch(deleteReportAttachedFile({ reportId: id, fileName }));
+    dispatch(
+      deleteReportAttachedFile({
+        reportId: id,
+        fileName,
+        usage: ReportFileUsage.ATTACHMENT,
+      }),
+    );
   };
 
   useEffect(() => {
@@ -162,7 +172,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             rank={report.rank}
           />
           <Biography biography={report.biography} />
-          <ReportEditor reportId={id} />
+          <ReportEditor
+            comment={report.comment}
+            onUpdate={onUpdateContent}
+            reportId={id}
+          />
           <Observers observers={report.observers} />
           <ReportRules
             rulesChecked={report.rulesChecked}

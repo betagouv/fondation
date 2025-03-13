@@ -116,6 +116,20 @@ export class FetchReportApiClient implements ReportApiClient {
     return await response.text();
   }
 
+  async generateFileUrlEndpoint(reportId: string, fileName: string) {
+    const { method, path, params }: ClientFetchOptions["generateFileUrl"] = {
+      method: "GET",
+      path: ":reportId/files/:fileName",
+      params: { reportId, fileName },
+    };
+    const url = this.resolveUrl(path, params);
+
+    return {
+      urlEndpoint: url,
+      method,
+    };
+  }
+
   async deleteAttachedFile(reportId: string, fileName: string) {
     const { method, path, params }: ClientFetchOptions["deleteAttachedFile"] = {
       method: "DELETE",

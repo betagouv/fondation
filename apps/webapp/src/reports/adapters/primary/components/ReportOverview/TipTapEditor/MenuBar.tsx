@@ -1,6 +1,6 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { useCurrentEditor } from "@tiptap/react";
 import clsx from "clsx";
+import { FC } from "react";
 import { BoldButton } from "./buttons/BoldButton";
 import { BulletListButton } from "./buttons/BulletListButton";
 import { HeadingButton } from "./buttons/HeadingButton";
@@ -13,13 +13,14 @@ import { OrderedListButton } from "./buttons/OrderedListButton";
 import { TextColorButton } from "./buttons/TextColorButton";
 import { UnderlineButton } from "./buttons/UnderlineButton";
 import { headingLevels } from "./constant";
+import { useScreenshotPaste } from "./useScreenshotPaste";
 
-export const MenuBar = () => {
-  const { editor } = useCurrentEditor();
+export interface MenuBarProps {
+  reportId: string;
+}
 
-  if (!editor) {
-    return null;
-  }
+export const MenuBar: FC<MenuBarProps> = ({ reportId }) => {
+  useScreenshotPaste(reportId);
 
   return (
     <div className={clsx("sticky top-2 z-10 bg-white", cx("fr-my-4v"))}>

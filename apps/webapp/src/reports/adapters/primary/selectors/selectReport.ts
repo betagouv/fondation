@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { DateOnlyJson } from "shared-models";
+import { DateOnlyJson, ReportFileUsage } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { AppState, ReportSM } from "../../../../store/appState";
 import { ReportVMRulesBuilder } from "../../../core-logic/builders/ReportVMRules.builder";
@@ -59,7 +59,10 @@ export const selectReport = createSelector(
         rulesMap,
         rulesLabelsMap,
       ),
-      attachedFiles: report.attachedFiles,
+      attachedFiles:
+        report.attachedFiles?.filter(
+          (file) => file.usage === ReportFileUsage.ATTACHMENT,
+        ) ?? null,
       summary: summarySections.filter(filterOutObserversInSummary),
     };
   },

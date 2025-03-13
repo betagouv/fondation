@@ -6,13 +6,12 @@ import {
   Transparency,
 } from "shared-models";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
 import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
-import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 import { RouterProvider } from "../router/core-logic/providers/router";
-import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
-import { Editor } from "@tiptap/react";
+import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 export interface ReportSM {
   id: string;
   folderNumber: number | null;
@@ -50,6 +49,7 @@ type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {
     currentDate: Date;
+    currentTimestamp: number;
   };
   reportOverview: {
     acceptedMimeTypes: {
@@ -59,7 +59,6 @@ export interface AppState<IsTest extends boolean = false> {
     summarySections: SummarySection[];
     queryStatus: Record<string, QueryStatus>;
     byIds: Record<string, ReportSM> | null;
-    editorsByIds: Record<string, Editor> | null;
     rulesMap: AllRulesMapV2;
     rulesLabelsMap: IsTest extends true
       ? RulesLabelsMap<{

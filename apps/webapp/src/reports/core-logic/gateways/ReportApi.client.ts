@@ -12,6 +12,13 @@ export interface ReportApiClient {
     reportId: string,
     fileName: string,
   ): EndpointResponse<"generateFileUrl">;
+  generateFileUrlEndpoint(
+    reportId: string,
+    fileName: string,
+  ): Promise<{
+    urlEndpoint: string;
+    method: "GET";
+  }>;
   list(): EndpointResponse<"listReports">;
   updateReport(
     reportId: string,

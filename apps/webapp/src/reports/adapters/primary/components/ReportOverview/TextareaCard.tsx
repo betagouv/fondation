@@ -1,47 +1,54 @@
-import { useEffect, useRef } from "react";
-import { useAppSelector } from "../../hooks/react-redux";
+import { debounce } from "lodash";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
 import { TipTapEditor } from "./TipTapEditor";
-import { selectEditor } from "../../selectors/selectEditor";
 
 export type TextareaCardProps = {
   cardId: string;
   titleId: string;
   label: string;
+  content: string | null;
+  onContentChange: (content: string) => void;
   reportId: string;
 };
+
+const TEXT_AREA_DEBOUNCE_TIME = 400;
 
 export const TextareaCard: React.FC<TextareaCardProps> = ({
   cardId,
   titleId,
   label,
+  content,
+  onContentChange,
   reportId,
 }) => {
-  const editorContainerRef = useRef<HTMLElement>(null);
-  const selectEditorArgs = {
-    reportId,
-  };
-  const editor = useAppSelector((state) =>
-    selectEditor(state, selectEditorArgs),
+  const [textareaContent, setTextareaContent] = useState(content);
+
+  const debouncedOnContentChange = useRef(
+    debounce(onContentChange, TEXT_AREA_DEBOUNCE_TIME),
   );
 
+  const handleChange = useCallback((value: string) => {
+    setTextareaContent(value);
+    debouncedOnContentChange.current(value);
+  }, []);
+
   useEffect(() => {
-    if (
-      editor &&
-      editorContainerRef.current &&
-      !editorContainerRef.current.contains(
-        // L'utilisationde "contains(editor.options.element)" ne fonctionne pas.
-        document.getElementById(editor.options.element.id),
-      )
-    ) {
-      editorContainerRef.current.append(editor.options.element);
-    }
-  }, [editor]);
+    debouncedOnContentChange.current = debounce(
+      onContentChange,
+      TEXT_AREA_DEBOUNCE_TIME,
+    );
+  }, [onContentChange]);
 
   return (
-    <Card ref={editorContainerRef} id={cardId}>
+    <Card id={cardId}>
       <h2 id={titleId}>{label}</h2>
-      {editor && <TipTapEditor editor={editor} />}
+      <TipTapEditor
+        value={textareaContent ?? undefined}
+        onChange={handleChange}
+        ariaLabelledby={titleId}
+        reportId={reportId}
+      />
     </Card>
   );
 };

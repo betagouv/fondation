@@ -1,14 +1,17 @@
 import { expect, MountResult, test } from "@playwright/experimental-ct-react";
 import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
-import { AppState } from "../../../../../../store/appState";
+import { AppState, ReportSM } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
 import {
+  Context,
   Locator,
   logPlaywrightBrowser,
   Mount,
   Page,
 } from "../../../../../../test/playwright";
+import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
 import { ReportEditorForTest } from "./ReportEditor.story";
+import { ReportFileUsage } from "shared-models";
 
 declare const window: {
   store: ReduxStore;
@@ -22,12 +25,15 @@ test.describe("Report Editor", () => {
   let editor: Locator;
   let page: Page;
   let mount: Mount;
+  let context: Context;
 
-  test.beforeEach(({ page: aPage, mount: aMount }) => {
+  test.beforeEach(({ page: aPage, mount: aMount, context: aContext }) => {
     component = null;
     page = aPage;
     logPlaywrightBrowser(page);
     mount = aMount;
+    aContext.grantPermissions(["clipboard-read", "clipboard-write"]);
+    context = aContext;
   });
 
   test("should show a basic report", async () => {
@@ -71,10 +77,12 @@ test.describe("Report Editor", () => {
     testTitle: string;
     action: () => Promise<void>;
     previousContent?: string;
+    previousFiles?: ReportSM["attachedFiles"];
     expectedContent?: string;
     getHtmlContent: () => Promise<string | null | undefined>;
     expectHtmlContent?: (content: string) => Promise<void>;
     expectedStoredHtmlContent: string;
+    expectedStoredFiles?: ReportSM["attachedFiles"];
   }[] = [
     {
       testTitle: "Mark text in bold",
@@ -201,23 +209,58 @@ test.describe("Report Editor", () => {
     {
       testTitle: "Add screenshot",
       action: async () => {
-        await selectText();
-        const fileChooserPromise = page.waitForEvent("filechooser");
-        await clickOnMark("Ajouter une capture d'écran");
-        const fileChooser = await fileChooserPromise;
-        await fileChooser.setFiles({
-          name: "capture d'écran.png",
-          mimeType: "image/png",
-          buffer: Buffer.from(""),
-        });
-      },
-      expectedContent: "",
-      getHtmlContent: () => queryHtmlContent(".ProseMirror img"),
-      expectHtmlContent: async (content: string) => {
-        expect(content).toEqual('<p></p><img src="data:image/png;base64,">');
-      },
+        await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
-      expectedStoredHtmlContent: '<p></p><img src="data:image/png;base64,">',
+        await page.evaluate(async () => {
+          const response = await fetch("https://fakeimg.pl/10x10/");
+          const blob = await response.blob();
+          if (!navigator.userActivation.isActive)
+            console.warn(
+              "Transiant activation is required for firefox and safari",
+            );
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "image/png": blob,
+            }),
+          ]);
+        });
+        await selectText();
+        await editor.press("ArrowRight");
+        await editor.press("Control+v");
+      },
+      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      expectHtmlContent: async (content: string) => {
+        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
+        expect(content).toEqual(expectedHtml);
+      },
+      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10">`,
+      expectedStoredFiles: [
+        {
+          name: "image.png-10",
+          signedUrl: "https://example.fr/image.png-10",
+          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
+        },
+      ],
+    },
+    {
+      testTitle: "Remove screenshot",
+      action: async () => {
+        await editor.getByRole("img").click();
+        await editor.press("Delete");
+      },
+      previousContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10">`,
+      previousFiles: [
+        {
+          name: "image.png-10",
+          signedUrl: `${FakeReportApiClient.BASE_URI}/image.png-10`,
+          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
+        },
+      ],
+      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      expectHtmlContent: async (content: string) =>
+        expect(content).toEqual(`<p>content</p>`),
+      expectedStoredHtmlContent: `<p>content</p>`,
+      expectedStoredFiles: [],
     },
   ].flat();
 
@@ -228,17 +271,22 @@ test.describe("Report Editor", () => {
       expectedContent,
       getHtmlContent,
       previousContent,
+      previousFiles,
       expectHtmlContent,
       expectedStoredHtmlContent,
+      expectedStoredFiles,
     }) => {
       test(testTitle, async () => {
-        await renderReport(previousContent || "content");
+        await renderReport(previousContent || "content", previousFiles);
 
         await editor.focus();
         await action();
 
         await expectContent(expectedContent ?? "content");
-        await expectStoredReport(expectedStoredHtmlContent);
+        await expectStoredReport(
+          expectedStoredHtmlContent,
+          expectedStoredFiles,
+        );
 
         const htmlContent = (await getHtmlContent())!;
         if (expectHtmlContent) {
@@ -342,7 +390,10 @@ test.describe("Report Editor", () => {
 
   const expectContent = (content: string) => expect(editor).toHaveText(content);
 
-  const expectStoredReport = async (content: string | null) => {
+  const expectStoredReport = async (
+    content: string | null,
+    attachedFiles?: ReportSM["attachedFiles"],
+  ) => {
     await sleep(400); // Wait for debouced store update
 
     const state = await page.evaluate(() => window.store.getState());
@@ -354,6 +405,7 @@ test.describe("Report Editor", () => {
         byIds: {
           "report-id": {
             ...initialState.reportOverview.byIds!["report-id"]!,
+            attachedFiles: attachedFiles || null,
             comment: content,
           },
         },
@@ -363,8 +415,13 @@ test.describe("Report Editor", () => {
     expect(state).toEqual(expecteState);
   };
 
-  const renderReport = async (content: string | null) => {
-    component = await mount(<ReportEditorForTest content={content} />);
+  const renderReport = async (
+    content: string | null,
+    previousFiles?: ReportSM["attachedFiles"],
+  ) => {
+    component = await mount(
+      <ReportEditorForTest content={content} previousFiles={previousFiles} />,
+    );
     editor = reportEditor();
 
     initialState = await page.evaluate(() => window.store.getState());

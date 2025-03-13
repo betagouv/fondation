@@ -40,5 +40,16 @@ export const extensions = [
     HTMLAttributes: {
       width: "100%",
     },
+  }).extend({
+    addAttributes() {
+      return {
+        src: {
+          default: null,
+        },
+        fileId: {
+          default: null,
+        },
+      };
+    },
   }),
 ];

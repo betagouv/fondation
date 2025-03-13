@@ -14,10 +14,10 @@ import {
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFile, AttachReportFileParams } from "./attach-report-file";
-import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 
 describe("Attach Report File", () => {
   let store: ReduxStore;
@@ -70,6 +70,7 @@ describe("Attach Report File", () => {
           reportId: "report-id",
           file: new File([file], "file.txt", { type: "image/png" }),
           usage,
+          addScreenshotToEditor: vi.fn(),
         }),
       );
       await sleep(100); // wait for listener to resolve
@@ -131,6 +132,7 @@ describe("Attach Report File", () => {
         reportId: aReport.id,
         file,
         usage: uploadUsage,
+        addScreenshotToEditor: vi.fn(),
       }),
     );
 

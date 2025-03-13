@@ -61,7 +61,7 @@ export type PartialAppDependencies = {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const defaultReportSummarySections: SummarySection[] = [
+export const defaultReportSummarySections: SummarySection[] = [
   {
     anchorId: reportHtmlIds.overview.biographySection,
     label: summaryLabels.biography,
@@ -122,6 +122,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
       } as RulesLabelsMap),
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
   currentDate = new Date(),
+  currentTimestamp = currentDate.getTime(),
 ) => {
   const loginNotifierMiddleware = loginNotifierMiddlewareFactory(
     providers.loginNotifierProvider,
@@ -135,12 +136,12 @@ export const initReduxStore = <IsTest extends boolean = true>(
 
   return configureStore({
     reducer: {
-      sharedKernel: createSharedKernelSlice(currentDate).reducer,
+      sharedKernel: createSharedKernelSlice(currentDate, currentTimestamp)
+        .reducer,
       reportOverview: createReportOverviewSlice(
         reportSummarySections,
         rulesMap,
         rulesLabelsMap,
-        gateways,
       ).reducer,
       reportList: reportListSlice.reducer,
       authentication: createAuthenticationSlice().reducer,

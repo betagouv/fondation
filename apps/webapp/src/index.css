@@ -5,3 +5,7 @@
 .fr-table > table tbody {
   background-color: var(--grey-975-75);
 }
+
+.ProseMirror-selectednode {
+  outline: 2px solid #0a76f6;
+}
