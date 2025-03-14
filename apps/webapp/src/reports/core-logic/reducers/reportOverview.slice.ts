@@ -10,6 +10,7 @@ import { generateReportFileUrl } from "../use-cases/report-file-url-generation/g
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
+import { deleteReportAttachedFiles } from "../use-cases/report-attached-files-deletion/delete-report-attached-file";
 
 export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
@@ -153,6 +154,13 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
             return;
           }
           existingFile.signedUrl = fileUri;
+
+          if (report.comment) {
+            report.comment = report.comment.replace(
+              new RegExp(`data-file-name="${fileName}"`, "g"),
+              `data-file-name="${fileName}" src="${fileUri}"`,
+            );
+          }
         }
       });
 
@@ -163,10 +171,6 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         if (action.payload) {
           state.byIds = { ...state.byIds, [action.payload.id]: action.payload };
           state.queryStatus[action.payload.id] = action.meta.requestStatus;
-
-          const editorElement = document.createElement("div");
-          const reportId = action.payload.id;
-          editorElement.id = reportId;
         }
       });
       builder.addCase(retrieveReport.rejected, (state, action) => {
@@ -181,6 +185,18 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
           const attachedFiles = report.attachedFiles || [];
           report.attachedFiles = attachedFiles.filter(
             (file) => file.name !== fileName,
+          );
+        }
+      });
+
+      builder.addCase(deleteReportAttachedFiles.fulfilled, (state, action) => {
+        const { reportId, fileNames } = action.meta.arg;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          const attachedFiles = report.attachedFiles || [];
+          report.attachedFiles = attachedFiles.filter(
+            (file) => !fileNames.includes(file.name),
           );
         }
       });

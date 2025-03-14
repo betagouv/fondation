@@ -70,7 +70,7 @@ describe("Select Report Rule Group Labels", () => {
   describe.each(testParams)(
     "When the rule group $ruleGroup has all its rules $description",
     ({ ruleGroup, ruleName, rulePath, validated, expectedLabel }) => {
-      let aReport: ReportSM;
+      let aReport: ReturnType<typeof reportBuilder.buildRetrieveSM>;
       let label: string | null;
 
       const testRulesMap = {

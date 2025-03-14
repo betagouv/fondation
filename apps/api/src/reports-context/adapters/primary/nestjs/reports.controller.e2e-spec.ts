@@ -293,7 +293,7 @@ describe('Reports Controller', () => {
         await uploadFile().expect(HttpStatus.CREATED);
 
         const response = await request(app.getHttpServer())
-          .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .get(`/api/reports/${aReportSnapshot.id}/files/byName/test-file.pdf`)
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
@@ -304,23 +304,59 @@ describe('Reports Controller', () => {
         await uploadFile().expect(HttpStatus.CREATED);
 
         await request(app.getHttpServer())
-          .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .delete(
+            `/api/reports/${aReportSnapshot.id}/files/byName/test-file.pdf`,
+          )
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
-        await expectReportsInDb({ ...aReportSnapshot, attachedFiles: null });
+        await expectNoFile();
       });
+
+      describe('Batch deletion', () => {
+        it('deletes a file', async () => {
+          await uploadScreenshot('screenshot1.png').expect(HttpStatus.CREATED);
+          await deleteBatchFiles('screenshot1.png').expect(HttpStatus.OK);
+          await expectNoFile();
+        });
+
+        it('deletes two files at once', async () => {
+          await uploadScreenshot('screenshot1.png').expect(HttpStatus.CREATED);
+          await uploadScreenshot('screenshot2.png').expect(HttpStatus.CREATED);
+
+          await deleteBatchFiles(['screenshot1.png', 'screenshot2.png']).expect(
+            HttpStatus.OK,
+          );
+
+          await expectNoFile();
+        });
+
+        const uploadScreenshot = (fileName: string) =>
+          uploadFile(ReportFileUsage.EMBEDDED_SCREENSHOT, fileName);
+
+        const deleteBatchFiles = (fileNames: string | string[]) =>
+          request(app.getHttpServer())
+            .delete(`/api/reports/${aReportSnapshot.id}/files/byNames`)
+            .query({ fileNames })
+            .set('Cookie', 'sessionId=unused');
+      });
+
+      const expectNoFile = () =>
+        expectReportsInDb({ ...aReportSnapshot, attachedFiles: null });
     });
 
-    const uploadFile = () => {
+    const uploadFile = (
+      usage = ReportFileUsage.ATTACHMENT,
+      fileName = 'test-file.pdf',
+    ) => {
       const pdfBuffer = givenAPdfBuffer();
 
       return request(app.getHttpServer())
         .post(
-          `/api/reports/${aReportSnapshot.id}/files/upload-one?usage=${ReportFileUsage.ATTACHMENT}`,
+          `/api/reports/${aReportSnapshot.id}/files/upload-one?usage=${usage}`,
         )
         .set('Cookie', 'sessionId=unused')
-        .attach('file', pdfBuffer, 'test-file.pdf');
+        .attach('file', pdfBuffer, fileName);
     };
 
     const givenAPdfBuffer = () => {

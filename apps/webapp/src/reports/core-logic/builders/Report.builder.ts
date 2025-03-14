@@ -10,6 +10,7 @@ import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../../store/appState";
 import { ReportApiModel } from "./ReportApiModel.builder";
+import { EndpointResponse } from "../gateways/ReportApi.client";
 
 type InternalReport = Omit<
   SetOptional<ReportSM, "rules"> & ReportListItem,
@@ -72,7 +73,10 @@ export class ReportBuilder {
       observersCount: this._report.observers?.length ?? 0,
     };
   }
-  buildRetrieveSM(): ReportSM {
+  buildRetrieveSM(): Awaited<EndpointResponse<"retrieveReport">> {
+    if (this._report.attachedFiles?.find((file) => !file.signedUrl))
+      throw new Error("Attached files must have a signedUrl");
+
     return {
       id: this._report.id,
       folderNumber: this._report.folderNumber,
@@ -90,7 +94,9 @@ export class ReportBuilder {
       comment: this._report.comment,
       observers: this._report.observers,
       rules: this._report.rules!,
-      attachedFiles: this._report.attachedFiles,
+      attachedFiles: this._report.attachedFiles as Awaited<
+        EndpointResponse<"retrieveReport">
+      >["attachedFiles"],
     };
   }
 

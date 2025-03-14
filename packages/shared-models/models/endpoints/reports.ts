@@ -47,14 +47,21 @@ export interface ReportsContextRestContract extends RestContract {
     };
     generateFileUrl: {
       method: "GET";
-      path: ":reportId/files/:fileName";
+      path: ":reportId/files/byName/:fileName";
       params: { reportId: string; fileName: string };
       response: string;
     };
     deleteAttachedFile: {
       method: "DELETE";
-      path: ":id/files/:fileName";
+      path: ":id/files/byName/:fileName";
       params: { id: string; fileName: string };
+      response: void;
+    };
+    deleteAttachedFiles: {
+      method: "DELETE";
+      path: ":id/files/byNames";
+      params: { id: string };
+      queryParams: { fileNames: string | string[] };
       response: void;
     };
   };
@@ -81,3 +88,12 @@ export const changeRuleValidationStateDto = z.object({
 export const attachFileQuerySchema = z.object({
   usage: z.nativeEnum(ReportFileUsage),
 }) satisfies ZodQueryParamsDto<ReportsContextRestContract, "attachFile">;
+
+export const deleteAttachedFilesQuerySchema = z.object({
+  fileNames: z
+    .union([z.string(), z.string().array()])
+    .transform((v) => (Array.isArray(v) ? v : [v])),
+}) satisfies ZodQueryParamsDto<
+  ReportsContextRestContract,
+  "deleteAttachedFiles"
+>;

@@ -307,7 +307,9 @@ describe("Select Report", () => {
     );
   });
 
-  const givenAReport = (report: ReportSM) => {
+  const givenAReport = (
+    report: ReturnType<typeof reportBuilder.buildRetrieveSM>,
+  ) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));
   };
 });
@@ -366,7 +368,9 @@ describe("Select Report - Summary and Age", () => {
     expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
   });
 
-  const givenAReport = (report: ReportSM) => {
+  const givenAReport = (
+    report: ReturnType<typeof reportBuilder.buildRetrieveSM>,
+  ) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));
   };
 

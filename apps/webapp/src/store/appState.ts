@@ -12,6 +12,7 @@ import { RouteChangedHandler } from "../router/core-logic/components/routeChange
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
+import { SetOptional } from "type-fest";
 export interface ReportSM {
   id: string;
   folderNumber: number | null;
@@ -29,7 +30,8 @@ export interface ReportSM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  attachedFiles: AttachedFileVM[] | null;
+  // Lors de l'upload d'un fichier, l'url n'est pas encore créée
+  attachedFiles: SetOptional<AttachedFileVM, "signedUrl">[] | null;
 }
 export type ReportListItem = Pick<
   ReportSM,
@@ -49,7 +51,6 @@ type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {
     currentDate: Date;
-    currentTimestamp: number;
   };
   reportOverview: {
     acceptedMimeTypes: {

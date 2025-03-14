@@ -1,4 +1,5 @@
 import { expect, MountResult, test } from "@playwright/experimental-ct-react";
+import { ReportFileUsage } from "shared-models";
 import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
 import { AppState, ReportSM } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
@@ -11,10 +12,10 @@ import {
 } from "../../../../../../test/playwright";
 import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
 import { ReportEditorForTest } from "./ReportEditor.story";
-import { ReportFileUsage } from "shared-models";
 
 declare const window: {
   store: ReduxStore;
+  serializedReport: string;
 } & Window;
 
 const label = "Rapport";
@@ -77,7 +78,6 @@ test.describe("Report Editor", () => {
     testTitle: string;
     action: () => Promise<void>;
     previousContent?: string;
-    previousFiles?: ReportSM["attachedFiles"];
     expectedContent?: string;
     getHtmlContent: () => Promise<string | null | undefined>;
     expectHtmlContent?: (content: string) => Promise<void>;
@@ -230,10 +230,10 @@ test.describe("Report Editor", () => {
       },
       getHtmlContent: () => queryHtmlContent(".ProseMirror"),
       expectHtmlContent: async (content: string) => {
-        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
+        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
         expect(content).toEqual(expectedHtml);
       },
-      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10">`,
+      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10">`,
       expectedStoredFiles: [
         {
           name: "image.png-10",
@@ -241,26 +241,6 @@ test.describe("Report Editor", () => {
           usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
         },
       ],
-    },
-    {
-      testTitle: "Remove screenshot",
-      action: async () => {
-        await editor.getByRole("img").click();
-        await editor.press("Delete");
-      },
-      previousContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10">`,
-      previousFiles: [
-        {
-          name: "image.png-10",
-          signedUrl: `${FakeReportApiClient.BASE_URI}/image.png-10`,
-          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
-        },
-      ],
-      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
-      expectHtmlContent: async (content: string) =>
-        expect(content).toEqual(`<p>content</p>`),
-      expectedStoredHtmlContent: `<p>content</p>`,
-      expectedStoredFiles: [],
     },
   ].flat();
 
@@ -271,13 +251,12 @@ test.describe("Report Editor", () => {
       expectedContent,
       getHtmlContent,
       previousContent,
-      previousFiles,
       expectHtmlContent,
       expectedStoredHtmlContent,
       expectedStoredFiles,
     }) => {
       test(testTitle, async () => {
-        await renderReport(previousContent || "content", previousFiles);
+        await renderReport(previousContent || "content");
 
         await editor.focus();
         await action();
@@ -415,13 +394,8 @@ test.describe("Report Editor", () => {
     expect(state).toEqual(expecteState);
   };
 
-  const renderReport = async (
-    content: string | null,
-    previousFiles?: ReportSM["attachedFiles"],
-  ) => {
-    component = await mount(
-      <ReportEditorForTest content={content} previousFiles={previousFiles} />,
-    );
+  const renderReport = async (content: string | null) => {
+    component = await mount(<ReportEditorForTest content={content} />);
     editor = reportEditor();
 
     initialState = await page.evaluate(() => window.store.getState());

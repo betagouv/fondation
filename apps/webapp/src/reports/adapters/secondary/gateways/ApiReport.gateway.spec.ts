@@ -132,6 +132,15 @@ describe("Api Report Gateway", () => {
           reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
         ).toEqual([]);
       });
+
+      it("deletes an attached file in batch", async () => {
+        await apiReportGateway.deleteAttachedFiles(aReportRetrievedSM.id, [
+          aFile.name,
+        ]);
+        expect(
+          reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
+        ).toEqual([]);
+      });
     });
   });
 });

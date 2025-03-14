@@ -10,7 +10,6 @@ import { ApiReportGateway } from "../../../../secondary/gateways/ApiReport.gatew
 import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../../labels/rules-labels";
 import ReportOverview from "../ReportOverview";
-import { ReportSM } from "../../../../../../store/appState";
 
 declare const window: {
   store: ReduxStore;
@@ -28,16 +27,11 @@ const testRulesMap: AllRulesMapV2 = {
 
 interface ReportEditorForTestProps {
   content: string | null;
-  previousFiles?: ReportSM["attachedFiles"];
 }
 
-export function ReportEditorForTest({
-  content,
-  previousFiles,
-}: ReportEditorForTestProps) {
+export function ReportEditorForTest({ content }: ReportEditorForTestProps) {
   const reportApiModel = new ReportApiModelBuilder(testRulesMap)
     .with("comment", content)
-    .with("attachedFiles", previousFiles ?? null)
     .build();
 
   const reportApiClient = new FakeReportApiClient();
@@ -62,7 +56,6 @@ export function ReportEditorForTest({
     } as RulesLabelsMap,
     [],
     new Date(),
-    10,
   );
 
   const report = ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();

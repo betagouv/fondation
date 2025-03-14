@@ -122,7 +122,6 @@ export const initReduxStore = <IsTest extends boolean = true>(
       } as RulesLabelsMap),
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
   currentDate = new Date(),
-  currentTimestamp = currentDate.getTime(),
 ) => {
   const loginNotifierMiddleware = loginNotifierMiddlewareFactory(
     providers.loginNotifierProvider,
@@ -136,8 +135,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
 
   return configureStore({
     reducer: {
-      sharedKernel: createSharedKernelSlice(currentDate, currentTimestamp)
-        .reducer,
+      sharedKernel: createSharedKernelSlice(currentDate).reducer,
       reportOverview: createReportOverviewSlice(
         reportSummarySections,
         rulesMap,

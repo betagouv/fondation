@@ -11,7 +11,7 @@ export enum ReportFileUsage {
 export type AttachedFileVM = {
   usage: ReportFileUsage;
   name: string;
-  signedUrl?: string;
+  signedUrl: string;
 };
 
 export interface ReportRetrievalVM {

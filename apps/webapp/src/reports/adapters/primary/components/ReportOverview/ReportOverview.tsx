@@ -103,7 +103,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       deleteReportAttachedFile({
         reportId: id,
         fileName,
-        usage: ReportFileUsage.ATTACHMENT,
       }),
     );
   };

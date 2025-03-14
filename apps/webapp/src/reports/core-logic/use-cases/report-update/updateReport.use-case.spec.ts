@@ -66,6 +66,25 @@ describe("Report Update", () => {
       ...newData,
     });
   });
+
+  it("strips out img src from comment", async () => {
+    reportApiClient.addReports(aReportApiModel);
+    store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
+
+    await store.dispatch(
+      updateReport({
+        reportId: "report-id",
+        data: {
+          comment: `<img data-file-name="unused" src="http://example.com">`,
+        },
+      }),
+    );
+
+    expectStoredReports({
+      ...aReport,
+      comment: `<img data-file-name="unused">`,
+    });
+  });
 });
 
 const aReportApiModel = new ReportApiModelBuilder()

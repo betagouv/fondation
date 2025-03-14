@@ -37,7 +37,7 @@ export const MenuBar: FC<MenuBarProps> = ({ reportId }) => {
         <BulletListButton />
         <IndentDecreaseButton />
         <IndentIncreaseButton />
-        <ImageUploadButton />
+        <ImageUploadButton reportId={reportId} />
       </div>
     </div>
   );

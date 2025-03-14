@@ -2,14 +2,12 @@ import { useCurrentEditor } from "@tiptap/react";
 import { useEffect } from "react";
 import { ReportFileUsage } from "shared-models";
 import { attachReportFile } from "../../../../../core-logic/use-cases/report-attach-file/attach-report-file";
-import { useAppDispatch, useAppSelector } from "../../../hooks/react-redux";
+import { useAppDispatch } from "../../../hooks/react-redux";
+import { dataFileNameKey } from "./extensions";
 
 export const useScreenshotPaste = (reportId: string) => {
   const { editor } = useCurrentEditor();
   const dispatch = useAppDispatch();
-  const currentTimestamp = useAppSelector(
-    (state) => state.sharedKernel.currentTimestamp,
-  );
 
   useEffect(() => {
     if (!editor) return;
@@ -18,6 +16,8 @@ export const useScreenshotPaste = (reportId: string) => {
       const reader = new FileReader();
       reader.onload = async (event) => {
         if (typeof event.target?.result === "string") {
+          const currentTimestamp = Date.now();
+
           const fileToUpload = new File(
             [await file.arrayBuffer()],
             `${file.name}-${currentTimestamp}`,
@@ -31,18 +31,17 @@ export const useScreenshotPaste = (reportId: string) => {
               usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
               file: fileToUpload,
               reportId,
-              addScreenshotToEditor: (fileUrl) => {
-                return editor
+              addScreenshotToEditor: (fileUrl) =>
+                editor
                   .chain()
                   .focus()
                   .setImage({
-                    // @ts-expect-error cet attribut est ajouté
-                    // lors de la customisation de l'extension Image
-                    fileId: "my-test-file-id",
+                    // Cet attribut est ajouté lors de la customisation de l'extension Image
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    [dataFileNameKey as any]: fileToUpload.name,
                     src: fileUrl,
                   })
-                  .run();
-              },
+                  .run(),
             }),
           );
         }

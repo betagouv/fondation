@@ -1,19 +1,19 @@
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportFileUsage, ReportRetrievalVM } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { ReportBuilder } from "../../builders/Report.builder";
-import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
-import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { deleteReportAttachedFile } from "./delete-report-attached-file";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
-import { ReportFileUsage, ReportRetrievalVM } from "shared-models";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
+import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
+import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
+import { deleteReportAttachedFiles } from "./delete-report-attached-file";
 
-describe("Delete Report Attached File", () => {
+describe("Delete Report Attached Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
@@ -38,11 +38,11 @@ describe("Delete Report Attached File", () => {
     store.dispatch(retrieveReport.fulfilled(aReport, "", aReport.id));
   });
 
-  it("deletes a report", async () => {
+  it("deletes two reports", async () => {
     await store.dispatch(
-      deleteReportAttachedFile({
+      deleteReportAttachedFiles({
         reportId: aReport.id,
-        fileName: "file.pdf",
+        fileNames: [aFile.name, aSecondFile.name],
       }),
     );
 
@@ -54,14 +54,19 @@ describe("Delete Report Attached File", () => {
 });
 
 const aFile = {
-  usage: ReportFileUsage.ATTACHMENT,
+  usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
   signedUrl: "https://example.fr",
   name: "file.pdf",
 };
+const aSecondFile = {
+  usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+  signedUrl: "https://example.fr/file2.png",
+  name: "file2.png",
+};
 const aReportApiModel = new ReportApiModelBuilder()
-  .with("attachedFiles", [aFile])
+  .with("attachedFiles", [aFile, aSecondFile])
   .build();
 const aReport: ReportRetrievalVM = {
   ...ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM(),
-  attachedFiles: [aFile],
+  attachedFiles: [aFile, aSecondFile],
 };

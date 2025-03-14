@@ -9,6 +9,7 @@ import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { ReportFileUsage } from "shared-models";
 
 describe("Retrieve report", () => {
   let store: ReduxStore;
@@ -21,7 +22,7 @@ describe("Retrieve report", () => {
     const reportGateway = new ApiReportGateway(reportApiClient);
     store = initReduxStore(
       {
-        reportGateway: reportGateway,
+        reportGateway,
       },
       {},
       {},
@@ -44,6 +45,29 @@ describe("Retrieve report", () => {
     await store.dispatch(retrieveReport("report-id"));
 
     expectStoredReports(aReport, anotherReport);
+  });
+
+  it.only("adds the screenshot urls into the report content", async () => {
+    const aReportApiModelWithScreenshots = new ReportApiModelBuilder()
+      .with("comment", `<img data-file-name="screenshot1.png">`)
+      .with("attachedFiles", [
+        {
+          name: "screenshot1.png",
+          usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+          signedUrl: "https://screenshot1.png",
+        },
+      ])
+      .build();
+    reportApiClient.addReports(aReportApiModelWithScreenshots);
+
+    await store.dispatch(retrieveReport(aReportApiModelWithScreenshots.id));
+
+    expectStoredReports({
+      ...ReportBuilder.fromApiModel(
+        aReportApiModelWithScreenshots,
+      ).buildRetrieveSM(),
+      comment: `<img data-file-name="screenshot1.png" src="https://screenshot1.png">`,
+    });
   });
 });
 

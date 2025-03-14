@@ -1,4 +1,3 @@
-import { ReportFileUsage } from "shared-models";
 import { Listener } from "../../../store/listeners";
 import { attachReportFile } from "../use-cases/report-attach-file/attach-report-file";
 import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
@@ -28,7 +27,6 @@ export const reportFileAttached: Listener = (startAppListening) =>
             deleteReportAttachedFile({
               reportId,
               fileName: file.name,
-              usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
             }),
           );
         }

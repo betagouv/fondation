@@ -4,8 +4,9 @@ import {
   ReportUpdateDto,
 } from "shared-models";
 
-type EndpointResponse<T extends keyof ReportsContextRestContract["endpoints"]> =
-  Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
+export type EndpointResponse<
+  T extends keyof ReportsContextRestContract["endpoints"],
+> = Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
 
 export interface ReportApiClient {
   generateFileUrl(
@@ -38,4 +39,8 @@ export interface ReportApiClient {
     reportId: string,
     fileName: string,
   ): EndpointResponse<"deleteAttachedFile">;
+  deleteAttachedFiles(
+    reportId: string,
+    fileNames: string[],
+  ): EndpointResponse<"deleteAttachedFiles">;
 }

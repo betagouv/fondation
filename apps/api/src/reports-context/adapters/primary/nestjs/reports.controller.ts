@@ -30,6 +30,7 @@ import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/inter
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
 import { AttachFileQueryParams } from './dto/attach-file-query-params.dto';
+import { DeleteAttachedFilesQueryDto } from './dto/delete-attached-files-query.dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -40,8 +41,9 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
   attachFile: ':id/files/upload-one',
-  generateFileUrl: ':reportId/files/:fileName',
-  deleteAttachedFile: ':id/files/:fileName',
+  generateFileUrl: ':reportId/files/byName/:fileName',
+  deleteAttachedFile: ':id/files/byName/:fileName',
+  deleteAttachedFiles: ':id/files/byNames',
 };
 
 @Controller(baseRoute)
@@ -136,5 +138,19 @@ export class ReportsController implements IReportController {
     }: ReportsContextRestContract['endpoints']['deleteAttachedFile']['params'],
   ) {
     return this.deleteReportAttachedFileUseCase.execute(id, fileName);
+  }
+
+  @Delete(endpointsPaths.deleteAttachedFiles)
+  async deleteAttachedFiles(
+    @Param()
+    {
+      id,
+    }: ReportsContextRestContract['endpoints']['deleteAttachedFiles']['params'],
+    @Query() query: DeleteAttachedFilesQueryDto,
+  ) {
+    const { fileNames } = query;
+    for (const fileName of fileNames) {
+      await this.deleteReportAttachedFileUseCase.execute(id, fileName);
+    }
   }
 }

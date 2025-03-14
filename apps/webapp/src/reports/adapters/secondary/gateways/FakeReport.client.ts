@@ -6,7 +6,10 @@ import {
   ReportRetrievalVM,
   ReportUpdateDto,
 } from "shared-models";
-import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
+import {
+  EndpointResponse,
+  ReportApiClient,
+} from "../../../core-logic/gateways/ReportApi.client";
 import { ReportApiModel } from "../../../core-logic/builders/ReportApiModel.builder";
 
 export class FakeReportApiClient implements ReportApiClient {
@@ -134,6 +137,14 @@ export class FakeReportApiClient implements ReportApiClient {
     return reportSignedUrl ?? defaultUrl;
   }
 
+  async generateFileUrlEndpoint(reportId: string, fileName: string) {
+    const urlEndpoint = await this.generateFileUrl(reportId, fileName);
+    return {
+      urlEndpoint,
+      method: "GET" as const,
+    };
+  }
+
   async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
@@ -146,6 +157,23 @@ export class FakeReportApiClient implements ReportApiClient {
           ...report.attachedFiles.filter((file) => file.name !== fileName),
         ],
       };
+  }
+
+  async deleteAttachedFiles(
+    reportId: string,
+    fileNames: string[],
+  ): EndpointResponse<"deleteAttachedFiles"> {
+    const report = this.reports[reportId];
+    if (!report) throw new Error("Report not found");
+    this.VMGuard(report);
+
+    this.reports[reportId] = {
+      ...report,
+      attachedFiles:
+        report.attachedFiles?.filter(
+          (file) => !fileNames.includes(file.name),
+        ) || [],
+    };
   }
 
   private VMGuard(

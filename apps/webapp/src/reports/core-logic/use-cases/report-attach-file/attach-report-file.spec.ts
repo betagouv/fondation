@@ -61,18 +61,14 @@ describe("Attach Report File", () => {
     },
   ];
   describe.each(testCases)("$description", ({ usage }) => {
-    uploadUsage = usage;
+    beforeEach(() => {
+      uploadUsage = usage;
+    });
+
     it("generates a signed url when a file is attached", async () => {
       const file = await givenAnImageBuffer("png");
 
-      await store.dispatch(
-        attachReportFile({
-          reportId: "report-id",
-          file: new File([file], "file.txt", { type: "image/png" }),
-          usage,
-          addScreenshotToEditor: vi.fn(),
-        }),
-      );
+      await attachFile(new File([file], "file.txt", { type: "image/png" }));
       await sleep(100); // wait for listener to resolve
 
       expectStoredReports({
@@ -132,7 +128,7 @@ describe("Attach Report File", () => {
         reportId: aReport.id,
         file,
         usage: uploadUsage,
-        addScreenshotToEditor: vi.fn(),
+        addScreenshotToEditor: vi.fn().mockReturnValue(true),
       }),
     );
 

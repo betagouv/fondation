@@ -15,6 +15,8 @@ import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { headingLevels } from "./constant";
 
+export const dataFileNameKey = "data-file-name";
+
 export const extensions = [
   Document,
   Paragraph,
@@ -46,7 +48,7 @@ export const extensions = [
         src: {
           default: null,
         },
-        fileId: {
+        [dataFileNameKey]: {
           default: null,
         },
       };

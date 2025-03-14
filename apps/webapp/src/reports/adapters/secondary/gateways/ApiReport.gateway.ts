@@ -4,12 +4,12 @@ import {
   ReportFileUsage,
   Transparency,
 } from "shared-models";
+import { ReportListItem } from "../../../../store/appState";
 import {
   ReportGateway,
   UpdateReportParams,
 } from "../../../core-logic/gateways/Report.gateway";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-import { ReportListItem, ReportSM } from "../../../../store/appState";
 
 export class ApiReportGateway implements ReportGateway {
   constructor(private readonly reportApiClient: ReportApiClient) {}
@@ -29,10 +29,9 @@ export class ApiReportGateway implements ReportGateway {
     await this.reportApiClient.updateRule(ruleId, validated);
   }
 
-  async retrieveReport(id: string): Promise<ReportSM | null> {
+  async retrieveReport(id: string) {
     const report = await this.reportApiClient.retrieveReport(id);
 
-    if (!report) return null;
     return {
       id: report.id,
       folderNumber: report.folderNumber,
@@ -91,5 +90,12 @@ export class ApiReportGateway implements ReportGateway {
 
   async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
     await this.reportApiClient.deleteAttachedFile(reportId, fileName);
+  }
+
+  async deleteAttachedFiles(
+    reportId: string,
+    fileNames: string[],
+  ): Promise<void> {
+    await this.reportApiClient.deleteAttachedFiles(reportId, fileNames);
   }
 }

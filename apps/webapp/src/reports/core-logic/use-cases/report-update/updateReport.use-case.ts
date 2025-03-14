@@ -25,7 +25,18 @@ export const updateReport = createAppAsyncThunk<
       },
     },
   ) => {
+    if (data.comment) {
+      const container = document.createElement("div");
+      container.innerHTML = data.comment;
+
+      const images = container.querySelectorAll("img");
+      images.forEach((img) => img.removeAttribute("src"));
+
+      data.comment = container.innerHTML;
+    }
+
     await reportGateway.updateReport(reportId, data);
+
     return { reportId, data };
   },
 );

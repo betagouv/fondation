@@ -153,6 +153,12 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
           (o) => o.split("\n") as [string, ...string[]],
         ) || null,
       )
-      .with("attachedFiles", reportStoreModel.attachedFiles);
+      .with(
+        "attachedFiles",
+        reportStoreModel.attachedFiles?.map((file) => ({
+          ...file,
+          signedUrl: file.signedUrl ?? "placeholder signed url",
+        })) || null,
+      );
   }
 }

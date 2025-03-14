@@ -1,9 +1,8 @@
-import { Editor } from "@tiptap/react";
+import { Editor, JSONContent } from "@tiptap/react";
 import { useRef } from "react";
-import { ReportFileUsage } from "shared-models";
-import { deleteReportAttachedFile } from "../../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
-import { useAppDispatch, useAppSelector } from "../../../hooks/react-redux";
-import { selectReport } from "../../../selectors/selectReport";
+import { deleteReportAttachedFiles } from "../../../../../core-logic/use-cases/report-attached-files-deletion/delete-report-attached-file";
+import { useAppDispatch } from "../../../hooks/react-redux";
+import { dataFileNameKey } from "./extensions";
 
 export type UseOnDeletedImage = (reportId: string) => {
   onCreate: (editor: Editor) => void;
@@ -11,53 +10,46 @@ export type UseOnDeletedImage = (reportId: string) => {
 };
 
 export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
-  const previousScreenshots = useRef<string[]>([]);
+  const previousImages = useRef<string[]>([]);
   const dispatch = useAppDispatch();
-  const filesSM = useAppSelector(
-    (state) => selectReport(state, reportId)?.attachedFiles,
-  );
 
   const onCreate = (editor: Editor) => {
     const content = editor.getJSON().content;
 
     if (content) {
-      previousScreenshots.current = content
-        .filter((item) => item.type === "image")
-        .map((item) => item.attrs!.src);
+      previousImages.current = imagesFileNamesFromContent(content);
     }
   };
 
-  const onUpdate = (editor: Editor) => {
+  const onUpdate = async (editor: Editor) => {
     const content = editor.getJSON().content;
 
     if (content) {
-      const currentScreenshots = content
-        ?.filter((item) => item.type === "image" && item.attrs)
-        .map((item) => item.attrs!.src);
+      const currentImages = imagesFileNamesFromContent(content);
 
-      const deletedImages = previousScreenshots.current.filter(
-        (url) => !currentScreenshots.includes(url),
+      const deletedImagesFileNames = previousImages.current.filter(
+        (name) => !currentImages.includes(name),
       );
-      for (const url of deletedImages) {
-        const fileSMToDelete = filesSM?.find((f) => f.signedUrl === url)?.name;
-        if (!fileSMToDelete) {
-          console.warn("Fichier à supprimer non trouvé.");
-          continue;
-        }
-
-        dispatch(
-          deleteReportAttachedFile({
-            fileName: fileSMToDelete,
+      if (deletedImagesFileNames.length)
+        await dispatch(
+          deleteReportAttachedFiles({
+            fileNames: deletedImagesFileNames,
             reportId,
-            usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-            addScreenshotToEditor: (fileUrl) => {
-              return editor.chain().focus().setImage({ src: fileUrl }).run();
-            },
+            addScreenshotToEditor: ({ fileUrl, fileName }) =>
+              editor
+                .chain()
+                .focus()
+                .setImage({
+                  // Cet attribut est ajouté lors de la customisation de l'extension Image
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  [dataFileNameKey as any]: fileName,
+                  src: fileUrl,
+                })
+                .run(),
           }),
         );
-      }
 
-      previousScreenshots.current = currentScreenshots;
+      previousImages.current = currentImages;
     }
   };
 
@@ -66,3 +58,8 @@ export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
     onUpdate,
   };
 };
+
+const imagesFileNamesFromContent = (content: JSONContent[]): string[] =>
+  content
+    ?.filter((item) => item.type === "image" && item.attrs)
+    .map((item) => item.attrs![dataFileNameKey]);

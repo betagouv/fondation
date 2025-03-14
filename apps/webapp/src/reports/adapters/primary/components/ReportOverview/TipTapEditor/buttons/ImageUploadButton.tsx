@@ -1,12 +1,17 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
 import { ChangeEvent, FC, useRef } from "react";
+import { ReportFileUsage } from "shared-models";
+import { attachReportFile } from "../../../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { useAppDispatch } from "../../../../hooks/react-redux";
+import { dataFileNameKey } from "../extensions";
 import { useIsBlurred } from "../useIsBlurred";
 
-export const ImageUploadButton: FC = () => {
+export const ImageUploadButton: FC<{ reportId: string }> = ({ reportId }) => {
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dispatch = useAppDispatch();
 
   if (!editor) return null;
 
@@ -15,18 +20,45 @@ export const ImageUploadButton: FC = () => {
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const insertImage = (file: File) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (typeof event.target?.result === "string") {
+          const currentTimestamp = Date.now();
+
+          const fileToUpload = new File(
+            [await file.arrayBuffer()],
+            `${file.name}-${currentTimestamp}`,
+            {
+              type: file.type,
+            },
+          );
+
+          dispatch(
+            attachReportFile({
+              usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+              file: fileToUpload,
+              reportId,
+              addScreenshotToEditor: (fileUrl) => {
+                return editor
+                  .chain()
+                  .focus()
+                  .setImage({
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    [dataFileNameKey as any]: fileToUpload.name,
+                    src: fileUrl,
+                  })
+                  .run();
+              },
+            }),
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    };
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (typeof event.target?.result === "string") {
-        editor.chain().focus().setImage({ src: event.target.result }).run();
-      }
-    };
-    reader.readAsDataURL(file);
-    // Reset input to allow selecting the same file again
-    e.target.value = "";
+    insertImage(file);
   };
 
   return (
