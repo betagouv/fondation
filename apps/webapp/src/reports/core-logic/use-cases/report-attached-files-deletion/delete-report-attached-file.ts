@@ -25,7 +25,7 @@ export const deleteReportAttachedFiles = createAppAsyncThunk<
   ) => {
     const { reportId, fileNames } = args;
     try {
-      await reportGateway.deleteAttachedFiles(reportId, fileNames);
+      await reportGateway.deleteFiles(reportId, fileNames);
     } catch {
       if (args.addScreenshotToEditor) {
         const state = getState();
@@ -34,6 +34,7 @@ export const deleteReportAttachedFiles = createAppAsyncThunk<
           const file = state.reportOverview.byIds?.[
             reportId
           ]?.attachedFiles?.find((f) => f.name === fileName);
+
           if (file?.signedUrl)
             args.addScreenshotToEditor({ fileUrl: file.signedUrl, fileName });
         }

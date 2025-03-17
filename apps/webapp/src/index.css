@@ -6,6 +6,11 @@
   background-color: var(--grey-975-75);
 }
 
+.ProseMirror {
+  padding: 10px;
+  outline: 2px solid #0a76f6;
+}
+
 .ProseMirror-selectednode {
   outline: 2px solid #0a76f6;
 }

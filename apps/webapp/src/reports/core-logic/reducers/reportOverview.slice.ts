@@ -1,16 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AllRulesMapV2, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 import { AppState } from "../../../store/appState";
 import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 import { attachReportFile } from "../use-cases/report-attach-file/attach-report-file";
-import { deleteReportAttachedFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
+import { deleteReportFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
+import { deleteReportAttachedFiles } from "../use-cases/report-attached-files-deletion/delete-report-attached-file";
+import { reportEmbedScreenshot } from "../use-cases/report-embed-screenshot/report-embed-screenshot";
 import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
-import { deleteReportAttachedFiles } from "../use-cases/report-attached-files-deletion/delete-report-attached-file";
 
 export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
@@ -46,7 +47,7 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
     reducers: {},
     extraReducers: (builder) => {
       builder.addCase(updateReport.fulfilled, (state, action) => {
-        const { reportId, data } = action.payload;
+        const { reportId, data } = action.meta.arg;
         const report = state.byIds?.[reportId];
 
         if (report) {
@@ -115,26 +116,28 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
       });
 
       builder.addCase(attachReportFile.fulfilled, (state, action) => {
-        const { reportId, file, usage } = action.meta.arg;
+        const { reportId, file } = action.meta.arg;
         const report = state.byIds?.[reportId];
 
         if (report) {
           const attachedFiles = (report.attachedFiles || []).concat({
-            usage,
+            usage: ReportFileUsage.ATTACHMENT,
             name: file.name,
           });
           report.attachedFiles = attachedFiles;
         }
       });
 
-      builder.addCase(attachReportFile.rejected, (state, action) => {
-        const { reportId, file } = action.meta.arg;
+      builder.addCase(reportEmbedScreenshot.fulfilled, (state, action) => {
+        const { reportId } = action.meta.arg;
+        const file = action.payload;
         const report = state.byIds?.[reportId];
 
         if (report) {
-          const attachedFiles = (report.attachedFiles || []).filter(
-            (attachedFile) => attachedFile.name !== file.name,
-          );
+          const attachedFiles = (report.attachedFiles || []).concat({
+            usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+            name: file.name,
+          });
           report.attachedFiles = attachedFiles;
         }
       });
@@ -154,13 +157,6 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
             return;
           }
           existingFile.signedUrl = fileUri;
-
-          if (report.comment) {
-            report.comment = report.comment.replace(
-              new RegExp(`data-file-name="${fileName}"`, "g"),
-              `data-file-name="${fileName}" src="${fileUri}"`,
-            );
-          }
         }
       });
 
@@ -177,7 +173,7 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         state.queryStatus[action.meta.arg] = action.meta.requestStatus;
       });
 
-      builder.addCase(deleteReportAttachedFile.fulfilled, (state, action) => {
+      builder.addCase(deleteReportFile.fulfilled, (state, action) => {
         const { reportId, fileName } = action.meta.arg;
         const report = state.byIds?.[reportId];
 

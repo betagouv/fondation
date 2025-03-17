@@ -1,30 +1,15 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ReportFileUsage } from "shared-models";
-import { AppState } from "../../../../store/appState";
-import { AppDependencies, AppDispatch } from "../../../../store/reduxStore";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
-type CommonParams = {
+export type AttachReportFileParams = {
   reportId: string;
   file: File;
 };
 
-export type AttachReportFileParams =
-  | (CommonParams & {
-      usage: ReportFileUsage.ATTACHMENT;
-    })
-  | (CommonParams & {
-      usage: ReportFileUsage.EMBEDDED_SCREENSHOT;
-      addScreenshotToEditor: (fileUrl: string) => boolean;
-    });
-
-export const attachReportFile = createAsyncThunk.withTypes<{
-  state: AppState;
-  dispatch: AppDispatch;
-  extra: AppDependencies;
-  fulfilledMeta: {
-    addScreenshotToEditor?: (fileUrl: string) => boolean;
-  };
-}>()<void, AttachReportFileParams>(
+export const attachReportFile = createAppAsyncThunk<
+  void,
+  AttachReportFileParams
+>(
   "report/attachFile",
   async (
     args,
@@ -34,45 +19,19 @@ export const attachReportFile = createAsyncThunk.withTypes<{
         gateways: { reportGateway },
         providers: { fileProvider },
       },
-      fulfillWithValue,
     },
   ) => {
-    const { reportId, file, usage } = args;
+    const { reportId, file } = args;
     const fileBuffer = await fileProvider.bufferFromFile(file);
 
     const mimeType = await fileProvider.mimeTypeFromBuffer(fileBuffer);
-
-    const acceptedMimeTypes = getAcceptedMimeType(
-      getState().reportOverview.acceptedMimeTypes,
-      usage,
-    );
+    const acceptedMimeTypes =
+      getState().reportOverview.acceptedMimeTypes.attachedFiles;
 
     if (!mimeType || !acceptedMimeTypes.includes(mimeType)) {
       throw new Error(`Invalid mime type: ${mimeType || ""}`);
     }
 
-    await reportGateway.attachFile(reportId, file, usage);
-    return fulfillWithValue(
-      void 0,
-      usage === ReportFileUsage.EMBEDDED_SCREENSHOT
-        ? { addScreenshotToEditor: args.addScreenshotToEditor }
-        : {},
-    );
+    await reportGateway.uploadFile(reportId, file, ReportFileUsage.ATTACHMENT);
   },
 );
-
-const getAcceptedMimeType = (
-  acceptedMimeTypes: AppState["reportOverview"]["acceptedMimeTypes"],
-  usage: ReportFileUsage,
-) => {
-  switch (usage) {
-    case ReportFileUsage.ATTACHMENT:
-      return acceptedMimeTypes.attachedFiles;
-    case ReportFileUsage.EMBEDDED_SCREENSHOT:
-      return acceptedMimeTypes.embeddedScreenshots;
-    default: {
-      const _exhaustiveCheck: never = usage;
-      return _exhaustiveCheck;
-    }
-  }
-};

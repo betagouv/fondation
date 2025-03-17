@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
 import sharp from "sharp";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
-import { FileProvider } from "../../../../../shared-kernel/core-logic/providers/fileProvider";
+import { RealFileProvider } from "../../../../../shared-kernel/adapters/secondary/providers/realFileProvider";
 import { AppState } from "../../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
 import {
@@ -64,12 +64,13 @@ describe("Report Overview Component", () => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
     routerProvider = new StubRouterProvider();
+    const fileProvider = new RealFileProvider();
 
     store = initReduxStore(
       {
         reportGateway,
       },
-      { routerProvider, fileProvider: new FileProvider() },
+      { routerProvider, fileProvider },
       {},
       { reportFileAttached },
       undefined,

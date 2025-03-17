@@ -1,9 +1,7 @@
 import { useCurrentEditor } from "@tiptap/react";
 import { useEffect } from "react";
-import { ReportFileUsage } from "shared-models";
-import { attachReportFile } from "../../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { reportEmbedScreenshot } from "../../../../../core-logic/use-cases/report-embed-screenshot/report-embed-screenshot";
 import { useAppDispatch } from "../../../hooks/react-redux";
-import { dataFileNameKey } from "./extensions";
 
 export const useScreenshotPaste = (reportId: string) => {
   const { editor } = useCurrentEditor();
@@ -13,40 +11,13 @@ export const useScreenshotPaste = (reportId: string) => {
     if (!editor) return;
 
     const insertImage = (file: File) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (typeof event.target?.result === "string") {
-          const currentTimestamp = Date.now();
-
-          const fileToUpload = new File(
-            [await file.arrayBuffer()],
-            `${file.name}-${currentTimestamp}`,
-            {
-              type: file.type,
-            },
-          );
-
-          dispatch(
-            attachReportFile({
-              usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-              file: fileToUpload,
-              reportId,
-              addScreenshotToEditor: (fileUrl) =>
-                editor
-                  .chain()
-                  .focus()
-                  .setImage({
-                    // Cet attribut est ajouté lors de la customisation de l'extension Image
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    [dataFileNameKey as any]: fileToUpload.name,
-                    src: fileUrl,
-                  })
-                  .run(),
-            }),
-          );
-        }
-      };
-      reader.readAsDataURL(file);
+      dispatch(
+        reportEmbedScreenshot({
+          file,
+          reportId,
+          editor,
+        }),
+      );
     };
 
     const handlePaste = (event: ClipboardEvent) => {

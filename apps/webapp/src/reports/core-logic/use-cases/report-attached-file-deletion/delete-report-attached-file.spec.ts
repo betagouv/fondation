@@ -6,7 +6,7 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { deleteReportAttachedFile } from "./delete-report-attached-file";
+import { deleteReportFile } from "./delete-report-attached-file";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
@@ -40,7 +40,7 @@ describe("Delete Report Attached File", () => {
 
   it("deletes a report", async () => {
     await store.dispatch(
-      deleteReportAttachedFile({
+      deleteReportFile({
         reportId: aReport.id,
         fileName: "file.pdf",
       }),

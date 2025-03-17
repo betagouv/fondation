@@ -10,12 +10,8 @@ export type UpdateReportParams = {
     state?: ReportStateUpdateParam;
   };
 };
-export type UpdateReportPayload = UpdateReportParams;
 
-export const updateReport = createAppAsyncThunk<
-  UpdateReportPayload,
-  UpdateReportParams
->(
+export const updateReport = createAppAsyncThunk<void, UpdateReportParams>(
   "report/updateReport",
   async (
     { reportId, data },
@@ -25,18 +21,18 @@ export const updateReport = createAppAsyncThunk<
       },
     },
   ) => {
-    if (data.comment) {
+    const gatewayData = { ...data };
+
+    if (gatewayData.comment) {
       const container = document.createElement("div");
-      container.innerHTML = data.comment;
+      container.innerHTML = gatewayData.comment;
 
       const images = container.querySelectorAll("img");
       images.forEach((img) => img.removeAttribute("src"));
 
-      data.comment = container.innerHTML;
+      gatewayData.comment = container.innerHTML;
     }
 
-    await reportGateway.updateReport(reportId, data);
-
-    return { reportId, data };
+    await reportGateway.updateReport(reportId, gatewayData);
   },
 );

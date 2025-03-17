@@ -5,11 +5,11 @@ export type DeleteReportAttachedFileParams = {
   fileName: string;
 };
 
-export const deleteReportAttachedFile = createAppAsyncThunk<
+export const deleteReportFile = createAppAsyncThunk<
   void,
   DeleteReportAttachedFileParams
 >(
-  "report/deleteReportAttachedFile",
+  "report/deleteReportFile",
   async (
     args,
     {
@@ -19,6 +19,6 @@ export const deleteReportAttachedFile = createAppAsyncThunk<
     },
   ) => {
     const { reportId, fileName } = args;
-    return reportGateway.deleteAttachedFile(reportId, fileName);
+    return reportGateway.deleteFile(reportId, fileName);
   },
 );

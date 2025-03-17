@@ -8,6 +8,8 @@ import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { updateReport, UpdateReportParams } from "./updateReport.use-case";
 import {
+  ExpectGatewayReports,
+  expectGatewayReportsFactory,
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
@@ -17,6 +19,7 @@ describe("Report Update", () => {
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let expectStoredReports: ExpectStoredReports;
+  let expectGatewayReports: ExpectGatewayReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -33,6 +36,7 @@ describe("Report Update", () => {
     initialState = store.getState();
 
     expectStoredReports = expectStoredReportsFactory(store, initialState);
+    expectGatewayReports = expectGatewayReportsFactory(reportApiClient);
   });
 
   const testData: UpdateReportParams["data"][] = [
@@ -82,6 +86,10 @@ describe("Report Update", () => {
 
     expectStoredReports({
       ...aReport,
+      comment: `<img data-file-name="unused" src="http://example.com">`,
+    });
+    expectGatewayReports({
+      ...aReportApiModel,
       comment: `<img data-file-name="unused">`,
     });
   });

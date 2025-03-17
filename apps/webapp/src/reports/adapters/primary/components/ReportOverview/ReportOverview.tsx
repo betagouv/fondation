@@ -1,9 +1,14 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { useEffect } from "react";
-import { NominationFile, ReportFileUsage } from "shared-models";
+import { NominationFile } from "shared-models";
+import {
+  BreadcrumCurrentPage,
+  selectBreadcrumb,
+} from "../../../../../router/adapters/selectors/selectBreadcrumb";
+import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
-import { deleteReportAttachedFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
+import { deleteReportFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { retrieveReport } from "../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
 import {
@@ -14,21 +19,16 @@ import {
 import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
 import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
 import { selectReport } from "../../selectors/selectReport";
+import { selectFetchingReport } from "../../selectors/selectReportQueryStatus";
 import { AttachedFileUpload } from "./AttachedFileUpload";
 import { AutoSaveNotice } from "./AutoSaveNotice";
 import { Biography } from "./Biography";
-import { ReportEditor } from "./ReportEditor";
 import { MagistratIdentity } from "./MagistratIdentity";
 import { Observers } from "./Observers";
+import { ReportEditor } from "./ReportEditor";
 import { ReportOverviewState } from "./ReportOverviewState";
 import { ReportRules } from "./ReportRules";
 import { Summary } from "./Summary";
-import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../../router/adapters/selectors/selectBreadcrumb";
-import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
-import { selectFetchingReport } from "../../selectors/selectReportQueryStatus";
 
 export type ReportOverviewProps = {
   id: string;
@@ -93,14 +93,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       attachReportFile({
         reportId: id,
         file,
-        usage: ReportFileUsage.ATTACHMENT,
       }),
     );
   };
 
   const onAttachedFileDeleted = (fileName: string) => {
     dispatch(
-      deleteReportAttachedFile({
+      deleteReportFile({
         reportId: id,
         fileName,
       }),

@@ -207,7 +207,37 @@ test.describe("Report Editor", () => {
         '<p><mark><span style="color: rgb(24, 117, 60)">content</span></mark></p>',
     },
     {
-      testTitle: "Add screenshot",
+      testTitle: "Add screenshot using the upload button",
+      action: async () => {
+        await selectText();
+        await editor.press("ArrowRight");
+
+        const fileChooserPromise = page.waitForEvent("filechooser");
+        await clickOnMark("Ajouter une capture d'écran");
+        const fileChooser = await fileChooserPromise;
+
+        await fileChooser.setFiles({
+          name: "image.png",
+          mimeType: "image/png",
+          buffer: Buffer.from(""),
+        });
+      },
+      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      expectHtmlContent: async (content: string) => {
+        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
+        expect(content).toEqual(expectedHtml);
+      },
+      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10">`,
+      expectedStoredFiles: [
+        {
+          name: "image.png-10",
+          signedUrl: "https://example.fr/image.png-10",
+          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
+        },
+      ],
+    },
+    {
+      testTitle: "Add screenshot with paste action",
       action: async () => {
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 

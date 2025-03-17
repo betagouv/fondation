@@ -90,7 +90,7 @@ describe("Api Report Gateway", () => {
     const aFile = new File([""], "some-file.pdf");
 
     it("attaches a file", async () => {
-      await apiReportGateway.attachFile(
+      await apiReportGateway.uploadFile(
         aReportRetrievedSM.id,
         aFile,
         ReportFileUsage.ATTACHMENT,
@@ -124,19 +124,14 @@ describe("Api Report Gateway", () => {
       });
 
       it("deletes an attached file", async () => {
-        await apiReportGateway.deleteAttachedFile(
-          aReportRetrievedSM.id,
-          aFile.name,
-        );
+        await apiReportGateway.deleteFile(aReportRetrievedSM.id, aFile.name);
         expect(
           reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
         ).toEqual([]);
       });
 
       it("deletes an attached file in batch", async () => {
-        await apiReportGateway.deleteAttachedFiles(aReportRetrievedSM.id, [
-          aFile.name,
-        ]);
+        await apiReportGateway.deleteFiles(aReportRetrievedSM.id, [aFile.name]);
         expect(
           reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
         ).toEqual([]);

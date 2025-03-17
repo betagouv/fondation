@@ -66,34 +66,6 @@ describe("Generate Report File Url", () => {
       ],
     });
   });
-
-  it("updates content's image urls", async () => {
-    const aScreenshot = {
-      usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-      name: "file.png",
-    };
-    const aReport = new ReportBuilder()
-      .with("attachedFiles", [aScreenshot])
-      .with("comment", `<img data-file-name="file.png" />`)
-      .buildRetrieveSM();
-    store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
-    store.dispatch(
-      generateReportFileUrl.fulfilled(signedUrl, "", {
-        reportId: aReport.id,
-        fileName: "file.png",
-      }),
-    );
-    expectStoredReports({
-      ...aReport,
-      attachedFiles: [
-        {
-          ...aScreenshot,
-          signedUrl,
-        },
-      ],
-      comment: `<img data-file-name="file.png" src="${signedUrl}" />`,
-    });
-  });
 });
 
 const signedUrl = "https://example.fr/file.png";

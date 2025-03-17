@@ -30,6 +30,7 @@ export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
       const deletedImagesFileNames = previousImages.current.filter(
         (name) => !currentImages.includes(name),
       );
+
       if (deletedImagesFileNames.length)
         await dispatch(
           deleteReportAttachedFiles({

@@ -40,10 +40,10 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   listReports: '',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
-  attachFile: ':id/files/upload-one',
+  uploadFile: ':id/files/upload-one',
   generateFileUrl: ':reportId/files/byName/:fileName',
-  deleteAttachedFile: ':id/files/byName/:fileName',
-  deleteAttachedFiles: ':id/files/byNames',
+  deleteFile: ':id/files/byName/:fileName',
+  deleteFiles: ':id/files/byNames',
 };
 
 @Controller(baseRoute)
@@ -98,11 +98,11 @@ export class ReportsController implements IReportController {
     await this.changeRuleValidationStateUseCase.execute(ruleId, dto.validated);
   }
 
-  @Post(endpointsPaths.attachFile)
+  @Post(endpointsPaths.uploadFile)
   @UseInterceptors(FileInterceptor('file'))
-  async attachFile(
+  async uploadFile(
     @Param()
-    { id }: ReportsContextRestContract['endpoints']['attachFile']['params'],
+    { id }: ReportsContextRestContract['endpoints']['uploadFile']['params'],
     @UploadedFile() file: Express.Multer.File,
     @Query() query: AttachFileQueryParams,
     @Req() req: Request,
@@ -129,23 +129,21 @@ export class ReportsController implements IReportController {
     return this.generateReportFileUrlUseCase.execute(reportId, fileName);
   }
 
-  @Delete(endpointsPaths.deleteAttachedFile)
-  async deleteAttachedFile(
+  @Delete(endpointsPaths.deleteFile)
+  async deleteFile(
     @Param()
     {
       id,
       fileName,
-    }: ReportsContextRestContract['endpoints']['deleteAttachedFile']['params'],
+    }: ReportsContextRestContract['endpoints']['deleteFile']['params'],
   ) {
     return this.deleteReportAttachedFileUseCase.execute(id, fileName);
   }
 
-  @Delete(endpointsPaths.deleteAttachedFiles)
-  async deleteAttachedFiles(
+  @Delete(endpointsPaths.deleteFiles)
+  async deleteFiles(
     @Param()
-    {
-      id,
-    }: ReportsContextRestContract['endpoints']['deleteAttachedFiles']['params'],
+    { id }: ReportsContextRestContract['endpoints']['deleteFiles']['params'],
     @Query() query: DeleteAttachedFilesQueryDto,
   ) {
     const { fileNames } = query;

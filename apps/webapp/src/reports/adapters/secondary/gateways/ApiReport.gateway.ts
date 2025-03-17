@@ -18,11 +18,7 @@ export class ApiReportGateway implements ReportGateway {
     reportId: string,
     data: UpdateReportParams,
   ): Promise<void> {
-    const updateData = {
-      comment: data.comment,
-      state: data.state,
-    };
-    await this.reportApiClient.updateReport(reportId, updateData);
+    await this.reportApiClient.updateReport(reportId, data);
   }
 
   async updateRule(ruleId: string, validated: boolean): Promise<void> {
@@ -69,12 +65,8 @@ export class ApiReportGateway implements ReportGateway {
     }));
   }
 
-  attachFile(
-    reportId: string,
-    file: File,
-    usage: ReportFileUsage,
-  ): Promise<void> {
-    return this.reportApiClient.attachFile(reportId, file, usage);
+  uploadFile(reportId: string, file: File, usage: ReportFileUsage) {
+    return this.reportApiClient.uploadFile(reportId, file, usage);
   }
 
   generateFileUrl(reportId: string, fileName: string): Promise<string> {
@@ -88,14 +80,11 @@ export class ApiReportGateway implements ReportGateway {
     return this.reportApiClient.generateFileUrlEndpoint(reportId, fileName);
   }
 
-  async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
-    await this.reportApiClient.deleteAttachedFile(reportId, fileName);
+  async deleteFile(reportId: string, fileName: string): Promise<void> {
+    await this.reportApiClient.deleteFile(reportId, fileName);
   }
 
-  async deleteAttachedFiles(
-    reportId: string,
-    fileNames: string[],
-  ): Promise<void> {
-    await this.reportApiClient.deleteAttachedFiles(reportId, fileNames);
+  async deleteFiles(reportId: string, fileNames: string[]): Promise<void> {
+    await this.reportApiClient.deleteFiles(reportId, fileNames);
   }
 }

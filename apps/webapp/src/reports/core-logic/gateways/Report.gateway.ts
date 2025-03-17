@@ -17,11 +17,11 @@ export interface ReportGateway {
   updateReport(reportId: string, data: UpdateReportParams): Promise<void>;
   updateRule(ruleId: string, validated: boolean): Promise<void>;
   retrieveReport(id: string): EndpointResponse<"retrieveReport">;
-  attachFile(
+  uploadFile(
     reportId: string,
     file: File,
     usage: ReportFileUsage,
   ): Promise<void>;
-  deleteAttachedFile(reportId: string, fileName: string): Promise<void>;
-  deleteAttachedFiles(reportId: string, fileNames: string[]): Promise<void>;
+  deleteFile(reportId: string, fileName: string): Promise<void>;
+  deleteFiles(reportId: string, fileNames: string[]): Promise<void>;
 }

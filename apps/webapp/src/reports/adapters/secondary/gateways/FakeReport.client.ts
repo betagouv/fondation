@@ -103,7 +103,7 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async attachFile(
+  async uploadFile(
     reportId: string,
     file: File,
     usage: ReportFileUsage,
@@ -145,7 +145,7 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
+  async deleteFile(reportId: string, fileName: string): Promise<void> {
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);
@@ -159,10 +159,10 @@ export class FakeReportApiClient implements ReportApiClient {
       };
   }
 
-  async deleteAttachedFiles(
+  async deleteFiles(
     reportId: string,
     fileNames: string[],
-  ): EndpointResponse<"deleteAttachedFiles"> {
+  ): EndpointResponse<"deleteFiles"> {
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);

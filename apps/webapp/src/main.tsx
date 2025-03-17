@@ -10,8 +10,11 @@ import { LocalStorageLoginNotifierProvider } from "./authentication/adapters/sec
 import { LocalStorageLogoutNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLogoutNotifier.provider.ts";
 import { initializeAuthenticationState } from "./authentication/core-logic/listeners/authentication.listeners.ts";
 import "./index.css";
+import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-labels.tsx";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
+import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
+import { reportContentEmbeddedScreenshot } from "./reports/core-logic/listeners/report-content-embedded-screenshot.listeners.ts";
 import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import {
@@ -23,10 +26,9 @@ import { useRouteToComponentFactory } from "./router/adapters/type-route/useRout
 import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.listeners.ts";
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
+import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/realDateProvider.ts";
+import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-labels.tsx";
-import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
-import { FileProvider } from "./shared-kernel/core-logic/providers/fileProvider.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -43,7 +45,8 @@ const reportGateway = new ApiReportGateway(reportApiClient);
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
-const fileProvider = new FileProvider();
+const dateProvider = new RealDateProvider();
+const fileProvider = new RealFileProvider();
 
 const store = initReduxStore<false>(
   { reportGateway, authenticationGateway },
@@ -52,6 +55,7 @@ const store = initReduxStore<false>(
     logoutNotifierProvider,
     loginNotifierProvider,
     fileProvider,
+    dateProvider,
   },
   {
     routeToComponentFactory: useRouteToComponentFactory,
@@ -64,6 +68,7 @@ const store = initReduxStore<false>(
     redirectOnLogin,
     reportFileAttached,
     preloadReportsRetrieval,
+    reportContentEmbeddedScreenshot,
   },
   routeToReactComponentMap,
   allRulesMapV2,

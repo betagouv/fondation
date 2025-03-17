@@ -1,10 +1,8 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
 import { ChangeEvent, FC, useRef } from "react";
-import { ReportFileUsage } from "shared-models";
-import { attachReportFile } from "../../../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { reportEmbedScreenshot } from "../../../../../../core-logic/use-cases/report-embed-screenshot/report-embed-screenshot";
 import { useAppDispatch } from "../../../../hooks/react-redux";
-import { dataFileNameKey } from "../extensions";
 import { useIsBlurred } from "../useIsBlurred";
 
 export const ImageUploadButton: FC<{ reportId: string }> = ({ reportId }) => {
@@ -20,45 +18,17 @@ export const ImageUploadButton: FC<{ reportId: string }> = ({ reportId }) => {
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const insertImage = (file: File) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (typeof event.target?.result === "string") {
-          const currentTimestamp = Date.now();
-
-          const fileToUpload = new File(
-            [await file.arrayBuffer()],
-            `${file.name}-${currentTimestamp}`,
-            {
-              type: file.type,
-            },
-          );
-
-          dispatch(
-            attachReportFile({
-              usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-              file: fileToUpload,
-              reportId,
-              addScreenshotToEditor: (fileUrl) => {
-                return editor
-                  .chain()
-                  .focus()
-                  .setImage({
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    [dataFileNameKey as any]: fileToUpload.name,
-                    src: fileUrl,
-                  })
-                  .run();
-              },
-            }),
-          );
-        }
-      };
-      reader.readAsDataURL(file);
-    };
     const file = e.target.files?.[0];
     if (!file) return;
-    insertImage(file);
+
+    dispatch(
+      reportEmbedScreenshot({
+        file,
+        reportId,
+        editor,
+      }),
+    );
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
