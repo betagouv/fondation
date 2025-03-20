@@ -47,6 +47,7 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
+import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 
 @Module({
   imports: [SharedKernelModule],
@@ -99,6 +100,12 @@ import {
       REPORT_FILE_SERVICE,
       TRANSACTION_PERFORMER,
     ]),
+    generateProvider(DeleteReportAttachedFilesUseCase, [
+      REPORT_REPOSITORY,
+      REPORT_FILE_SERVICE,
+      TRANSACTION_PERFORMER,
+    ]),
+
     {
       provide: REPORT_FILE_SERVICE,
       // generateProvider function doesn't handle the union type in ApiConfig

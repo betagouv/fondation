@@ -19,6 +19,8 @@ export class FakeReportApiClient implements ReportApiClient {
   reports: Record<string, Readonly<ReportApiModel>> = {};
   currentReportId: string | null = null;
 
+  deleteFilesError?: Error;
+
   addReports(...reports: ReportApiModel[]): void {
     for (const report of reports) {
       this.currentReportId = report.id;
@@ -163,6 +165,8 @@ export class FakeReportApiClient implements ReportApiClient {
     reportId: string,
     fileNames: string[],
   ): EndpointResponse<"deleteFiles"> {
+    if (this.deleteFilesError) throw this.deleteFilesError;
+
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);

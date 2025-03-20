@@ -5,7 +5,6 @@ import { StubBrowserFileProvider } from "../../../../../../shared-kernel/adapter
 import { initReduxStore, ReduxStore } from "../../../../../../store/reduxStore";
 import { ReportBuilder } from "../../../../../core-logic/builders/Report.builder";
 import { ReportApiModelBuilder } from "../../../../../core-logic/builders/ReportApiModel.builder";
-import { reportContentEmbeddedScreenshot } from "../../../../../core-logic/listeners/report-content-embedded-screenshot.listeners";
 import { retrieveReport } from "../../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { ApiReportGateway } from "../../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
@@ -51,7 +50,7 @@ export function ReportEditorForTest({ content }: ReportEditorForTestProps) {
       dateProvider: new DeterministicDateProvider(),
     },
     {},
-    { reportContentEmbeddedScreenshot },
+    {},
     undefined,
     testRulesMap,
     {

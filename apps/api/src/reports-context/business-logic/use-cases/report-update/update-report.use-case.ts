@@ -7,6 +7,9 @@ export type ReportUpdateData = Partial<
     state: NominationFileReport['state'];
   }
 >;
+
+export const MAX_RETRIES_OF_REPORT_UPDATE = 2;
+
 export class UpdateReportUseCase {
   constructor(
     private readonly reportRepository: ReportRepository,
@@ -14,14 +17,17 @@ export class UpdateReportUseCase {
   ) {}
 
   async execute(id: string, newData: ReportUpdateData) {
-    return this.transactionPerformer.perform(async (trx) => {
-      const report = await this.reportRepository.byId(id)(trx);
-      if (!report) return;
+    return this.transactionPerformer.perform(
+      async (trx) => {
+        const report = await this.reportRepository.byId(id)(trx);
+        if (!report) return;
 
-      if ('comment' in newData) report.updateComment(newData.comment);
-      if (newData.state) report.updateState(newData.state);
+        if ('comment' in newData) report.updateComment(newData.comment);
+        if (newData.state) report.updateState(newData.state);
 
-      await this.reportRepository.save(report)(trx);
-    });
+        await this.reportRepository.save(report)(trx);
+      },
+      { retries: 2 },
+    );
   }
 }

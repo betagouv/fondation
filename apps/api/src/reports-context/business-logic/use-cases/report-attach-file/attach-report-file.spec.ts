@@ -11,8 +11,12 @@ import { NominationFileReportSnapshot } from '../../models/nomination-file-repor
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
 import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
 import { ReportBuilder } from '../../models/report.builder';
-import { AttachReportFileUseCase } from './attach-report-file';
+import {
+  AttachReportFileUseCase,
+  MAX_RETRIES_OF_ATTACH_REPORT_FILE,
+} from './attach-report-file';
 import { ReportFileUsage } from 'shared-models';
+import { OptimisticLockError } from '../../errors/optimistic-lock.error';
 
 const currentDate = new Date(2021, 10, 10);
 
@@ -71,16 +75,6 @@ describe('Attach Report File Use Case', () => {
       });
     });
 
-    it.each`
-      description                         | file
-      ${'uploads an attached file'}       | ${anAttachedFile}
-      ${'uploads an embedded screenshot'} | ${anEmbeddedScreenshot}
-    `('$description', async ({ file }) => {
-      await uploadFile(file);
-      expecReportWithFile(file);
-      expectUploadedFile(file);
-    });
-
     it("doesn't upload the file if its metadata cannot be saved", async () => {
       reportRepository.saveError = new Error('Failed to save file');
       await expect(uploadFile(anAttachedFile)).rejects.toThrow(
@@ -95,6 +89,30 @@ describe('Attach Report File Use Case', () => {
         'Failed to upload file',
       );
       expecReportWithFile();
+    });
+
+    it('saves a file after a failure due to stale repository data', async () => {
+      uuidGenerator.nextUuids = [fileId, fileId, fileId];
+      reportRepository.saveError = new OptimisticLockError({
+        entityName: 'Report',
+        entityId: aReportSnapshot.id,
+        version: 0,
+      });
+      reportRepository.saveErrorCountLimit = MAX_RETRIES_OF_ATTACH_REPORT_FILE;
+
+      await uploadFile(anAttachedFile);
+
+      expecReportWithFile(anAttachedFile);
+    });
+
+    it.each`
+      description                         | file
+      ${'uploads an attached file'}       | ${anAttachedFile}
+      ${'uploads an embedded screenshot'} | ${anEmbeddedScreenshot}
+    `('$description', async ({ file }) => {
+      await uploadFile(file);
+      expecReportWithFile(file);
+      expectUploadedFile(file);
     });
 
     describe('with an attached file', () => {

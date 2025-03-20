@@ -1,7 +1,6 @@
 import { expect, MountResult, test } from "@playwright/experimental-ct-react";
-import { ReportFileUsage } from "shared-models";
 import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
-import { AppState, ReportSM } from "../../../../../../store/appState";
+import { AppState, ReportScreenshotSM } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
 import {
   Context,
@@ -82,7 +81,7 @@ test.describe("Report Editor", () => {
     getHtmlContent: () => Promise<string | null | undefined>;
     expectHtmlContent?: (content: string) => Promise<void>;
     expectedStoredHtmlContent: string;
-    expectedStoredFiles?: ReportSM["attachedFiles"];
+    expectedStoredFiles?: ReportScreenshotSM[];
   }[] = [
     {
       testTitle: "Mark text in bold",
@@ -232,7 +231,6 @@ test.describe("Report Editor", () => {
         {
           name: "image.png-10",
           signedUrl: "https://example.fr/image.png-10",
-          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
         },
       ],
     },
@@ -268,7 +266,6 @@ test.describe("Report Editor", () => {
         {
           name: "image.png-10",
           signedUrl: "https://example.fr/image.png-10",
-          usage: "EMBEDDED_SCREENSHOT" as ReportFileUsage,
         },
       ],
     },
@@ -401,7 +398,7 @@ test.describe("Report Editor", () => {
 
   const expectStoredReport = async (
     content: string | null,
-    attachedFiles?: ReportSM["attachedFiles"],
+    screenshots?: ReportScreenshotSM[],
   ) => {
     await sleep(400); // Wait for debouced store update
 
@@ -414,8 +411,13 @@ test.describe("Report Editor", () => {
         byIds: {
           "report-id": {
             ...initialState.reportOverview.byIds!["report-id"]!,
-            attachedFiles: attachedFiles || null,
             comment: content,
+            contentScreenshots: screenshots
+              ? {
+                  files: screenshots,
+                  isUploading: false,
+                }
+              : null,
           },
         },
       },

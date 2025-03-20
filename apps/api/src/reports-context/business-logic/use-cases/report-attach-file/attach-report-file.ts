@@ -5,6 +5,8 @@ import { ReportRepository } from '../../gateways/repositories/report.repository'
 import { ReportFileService } from '../../gateways/services/report-file-service';
 import { ReportFileUsage } from 'shared-models';
 
+export const MAX_RETRIES_OF_ATTACH_REPORT_FILE = 2;
+
 export class AttachReportFileUseCase {
   constructor(
     private readonly reportFileService: ReportFileService,
@@ -20,23 +22,26 @@ export class AttachReportFileUseCase {
     reporterId: string,
     usage: ReportFileUsage,
   ): Promise<void> {
-    return this.transactionPerformer.perform(async (trx) => {
-      const report = await this.reportRepository.byId(reportId)(trx);
-      if (!report) throw new NonExistingReportError();
+    return this.transactionPerformer.perform(
+      async (trx) => {
+        const report = await this.reportRepository.byId(reportId)(trx);
+        if (!report) throw new NonExistingReportError();
 
-      const reporter =
-        await this.reporterTranslatorService.reporterWithId(reporterId);
+        const reporter =
+          await this.reporterTranslatorService.reporterWithId(reporterId);
 
-      const filePath = report.generateAttachedFilePath(reporter);
-      const attachedFile = report.createAttachedFile(name, usage);
+        const filePath = report.generateAttachedFilePath(reporter);
+        const attachedFile = report.createAttachedFile(name, usage);
 
-      // Order matters, file isn't attached if saving in repository fails
-      await this.reportRepository.save(report)(trx);
-      await this.reportFileService.uploadFile(
-        attachedFile,
-        fileBuffer,
-        filePath,
-      );
-    });
+        // Order matters, file isn't attached if saving in repository fails
+        await this.reportRepository.save(report)(trx);
+        await this.reportFileService.uploadFile(
+          attachedFile,
+          fileBuffer,
+          filePath,
+        );
+      },
+      { retries: MAX_RETRIES_OF_ATTACH_REPORT_FILE },
+    );
   }
 }

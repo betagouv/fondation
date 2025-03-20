@@ -96,12 +96,31 @@ export class HttpReportFileService implements ReportFileService {
   async deleteFile(file: ReportAttachedFile) {
     const { method, path, params }: ClientFetchOptions['deleteFile'] = {
       method: 'DELETE',
-      path: ':id',
+      path: 'byId/:id',
       params: { id: file.fileId },
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
       method: method,
+    });
+  }
+
+  async deleteFiles(files: ReportAttachedFile[]): Promise<void> {
+    if (files.length === 0) {
+      return;
+    }
+
+    const { method, path, queryParams }: ClientFetchOptions['deleteFiles'] = {
+      method: 'DELETE',
+      path: 'byIds',
+      queryParams: {
+        ids: files.map((file) => file.toSnapshot().fileId),
+      },
+    };
+
+    const url = this.resolveUrl(path, undefined, queryParams);
+    await this.fetch(url, {
+      method,
     });
   }
 

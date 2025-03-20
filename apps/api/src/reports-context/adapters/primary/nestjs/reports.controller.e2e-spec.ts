@@ -279,6 +279,7 @@ describe('Reports Controller', () => {
 
         await expectReportsInDb({
           ...aReportSnapshot,
+          version: aReportSnapshot.version + 1,
           attachedFiles: [
             {
               usage: ReportFileUsage.ATTACHMENT,
@@ -328,7 +329,7 @@ describe('Reports Controller', () => {
             HttpStatus.OK,
           );
 
-          await expectNoFile();
+          await expectNoFile(4);
         });
 
         const uploadScreenshot = (fileName: string) =>
@@ -341,8 +342,8 @@ describe('Reports Controller', () => {
             .set('Cookie', 'sessionId=unused');
       });
 
-      const expectNoFile = () =>
-        expectReportsInDb({ ...aReportSnapshot, attachedFiles: null });
+      const expectNoFile = (version = 3) =>
+        expectReportsInDb({ ...aReportSnapshot, version, attachedFiles: null });
     });
 
     const uploadFile = (
@@ -365,11 +366,11 @@ describe('Reports Controller', () => {
       pdfDoc.end();
       return pdfDoc.read();
     };
-    const aReportSnapshot = new ReportBuilder('uuid').build();
+    const aReportSnapshot = ReportBuilder.forUpdate('uuid').build();
   });
 
   const givenAReportNotOwned = async () => {
-    const aReportNotOwned = new ReportBuilder('uuid')
+    const aReportNotOwned = ReportBuilder.forUpdate('uuid')
       .with('id', '10a4b056-dafa-4d28-93b5-e7dd51b9793d')
       .with('reporterId', '1c3f4001-8e08-4359-a68d-55fbf9811534')
       .build();

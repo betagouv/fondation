@@ -15,4 +15,6 @@ export interface S3StorageProvider {
     bucketPath: string[] | null,
     fileName: string,
   ): Promise<void>;
+  deleteFiles(files: FileDocument[]): Promise<PromiseSettledResult<void>[]>;
+  restoreFiles(files: FileDocument[]): Promise<void>;
 }

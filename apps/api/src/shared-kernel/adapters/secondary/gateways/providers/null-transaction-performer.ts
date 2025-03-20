@@ -8,14 +8,14 @@ export class NullTransactionPerformer implements TransactionPerformer {
 
   async perform<T>(
     useCase: TransactionableAsync<T>,
-    cleanup?: () => Promise<void>,
+    opts?: { retries: number },
   ): Promise<T> {
     try {
       return await useCase(null);
     } catch (err) {
       this.rollback?.();
-      if (cleanup) {
-        await cleanup();
+      if (opts?.retries) {
+        return this.perform(useCase, { retries: opts.retries - 1 });
       }
       throw err;
     }

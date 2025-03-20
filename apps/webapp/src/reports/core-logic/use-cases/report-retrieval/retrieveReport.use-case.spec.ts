@@ -47,14 +47,14 @@ describe("Retrieve report", () => {
     expectStoredReports(aReport, anotherReport);
   });
 
-  it.only("adds the screenshot urls into the report content", async () => {
+  it("adds the screenshot urls into the report content", async () => {
     const aReportApiModelWithScreenshots = new ReportApiModelBuilder()
       .with("comment", `<img data-file-name="screenshot1.png">`)
       .with("attachedFiles", [
         {
           name: "screenshot1.png",
           usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-          signedUrl: "https://screenshot1.png",
+          signedUrl: "https://example.fr/screenshot1.png",
         },
       ])
       .build();
@@ -63,10 +63,18 @@ describe("Retrieve report", () => {
     await store.dispatch(retrieveReport(aReportApiModelWithScreenshots.id));
 
     expectStoredReports({
-      ...ReportBuilder.fromApiModel(
-        aReportApiModelWithScreenshots,
-      ).buildRetrieveSM(),
-      comment: `<img data-file-name="screenshot1.png" src="https://screenshot1.png">`,
+      ...ReportBuilder.fromApiModel(aReportApiModelWithScreenshots)
+        .with("contentScreenshots", {
+          files: [
+            {
+              name: "screenshot1.png",
+              signedUrl: "https://example.fr/screenshot1.png",
+            },
+          ],
+          isUploading: false,
+        })
+        .buildRetrieveSM(),
+      comment: `<img data-file-name="screenshot1.png" src="https://example.fr/screenshot1.png">`,
     });
   });
 });

@@ -1,17 +1,17 @@
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportFileUsage } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import {
+  ExpectStoredReports,
+  expectStoredReportsFactory,
+} from "../../../../test/reports";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { deleteReportFile } from "./delete-report-attached-file";
-import {
-  ExpectStoredReports,
-  expectStoredReportsFactory,
-} from "../../../../test/reports";
-import { ReportFileUsage, ReportRetrievalVM } from "shared-models";
 
 describe("Delete Report Attached File", () => {
   let store: ReduxStore;
@@ -61,7 +61,7 @@ const aFile = {
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [aFile])
   .build();
-const aReport: ReportRetrievalVM = {
+const aReport = {
   ...ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM(),
   attachedFiles: [aFile],
 };

@@ -21,6 +21,7 @@ import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle
 import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
+import { DeleteFilesUseCase } from 'src/files-context/business-logic/use-cases/files-deletion/delete-files';
 
 const isProduction = process.env.NODE_ENV === 'production';
 // We don't use Scaleway in the CI at the moment, because we have a long latency
@@ -44,6 +45,11 @@ const isScalewayS3 = isProduction; //|| isCi;
       S3_STORAGE_PROVIDER,
     ]),
     generateProvider(DeleteFileUseCase, [
+      TRANSACTION_PERFORMER,
+      FILE_REPOSITORY,
+      S3_STORAGE_PROVIDER,
+    ]),
+    generateProvider(DeleteFilesUseCase, [
       TRANSACTION_PERFORMER,
       FILE_REPOSITORY,
       S3_STORAGE_PROVIDER,

@@ -4,10 +4,12 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportBuilder } from '../../models/report.builder';
 import {
+  MAX_RETRIES_OF_REPORT_UPDATE,
   ReportUpdateData,
   UpdateReportUseCase,
 } from './update-report.use-case';
 import { NominationFile } from 'shared-models';
+import { OptimisticLockError } from '../../errors/optimistic-lock.error';
 
 const aReport = new ReportBuilder().build();
 
@@ -22,6 +24,17 @@ describe('Report Update Use Case', () => {
     reportRepository.reports = {
       [aReport.id]: aReport,
     };
+  });
+
+  it('saves a comment after a failure due to stale repository data', async () => {
+    reportRepository.saveError = new OptimisticLockError({
+      entityName: 'Report',
+      entityId: aReport.id,
+      version: 0,
+    });
+    reportRepository.saveErrorCountLimit = MAX_RETRIES_OF_REPORT_UPDATE;
+
+    await expect(updateReport({ comment: 'new comment' })).toResolve();
   });
 
   const testData: [ReportUpdateData, NominationFileReportSnapshot][] = [
@@ -56,13 +69,16 @@ describe('Report Update Use Case', () => {
   it.each(testData)(
     'updates with this new data: %s',
     async (newData, report) => {
-      await new UpdateReportUseCase(
-        reportRepository,
-        transactionPerformer,
-      ).execute(aReport.id, newData);
+      await updateReport(newData);
       expectChangedReport(report);
     },
   );
+
+  const updateReport = (data: ReportUpdateData) =>
+    new UpdateReportUseCase(reportRepository, transactionPerformer).execute(
+      aReport.id,
+      data,
+    );
 
   const expectChangedReport = (report: NominationFileReportSnapshot) => {
     const savedReport = reportRepository.reports[report.id];

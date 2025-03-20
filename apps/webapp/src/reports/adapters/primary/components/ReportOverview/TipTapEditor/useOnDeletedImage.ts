@@ -1,6 +1,6 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { useRef } from "react";
-import { deleteReportAttachedFiles } from "../../../../../core-logic/use-cases/report-attached-files-deletion/delete-report-attached-file";
+import { deleteReportContentScreenshots } from "../../../../../core-logic/use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
 import { useAppDispatch } from "../../../hooks/react-redux";
 import { dataFileNameKey } from "./extensions";
 
@@ -33,7 +33,7 @@ export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
 
       if (deletedImagesFileNames.length)
         await dispatch(
-          deleteReportAttachedFiles({
+          deleteReportContentScreenshots({
             fileNames: deletedImagesFileNames,
             reportId,
             addScreenshotToEditor: ({ fileUrl, fileName }) =>

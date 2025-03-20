@@ -1,6 +1,5 @@
-import { NominationFile, ReportFileUsage } from "shared-models";
-import { ReportListItem } from "../../../store/appState";
-import { EndpointResponse } from "./ReportApi.client";
+import { AttachedFileVM, NominationFile, ReportFileUsage } from "shared-models";
+import { ReportListItem, ReportSM } from "../../../store/appState";
 
 export interface UpdateReportParams {
   comment?: string;
@@ -16,7 +15,11 @@ export interface ReportGateway {
   list(): Promise<ReportListItem[]>;
   updateReport(reportId: string, data: UpdateReportParams): Promise<void>;
   updateRule(ruleId: string, validated: boolean): Promise<void>;
-  retrieveReport(id: string): EndpointResponse<"retrieveReport">;
+  retrieveReport(
+    id: string,
+  ): Promise<
+    { attachedFiles: NonNullable<AttachedFileVM>[] | null } & ReportSM
+  >;
   uploadFile(
     reportId: string,
     file: File,

@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
-import { AppState } from "../../../store/appState";
+import { AppState, ReportScreenshotSM } from "../../../store/appState";
 import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 import { attachReportFile } from "../use-cases/report-attach-file/attach-report-file";
 import { deleteReportFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
-import { deleteReportAttachedFiles } from "../use-cases/report-attached-files-deletion/delete-report-attached-file";
+import { deleteReportContentScreenshots } from "../use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
 import { reportEmbedScreenshot } from "../use-cases/report-embed-screenshot/report-embed-screenshot";
 import { generateReportFileUrl } from "../use-cases/report-file-url-generation/generate-report-file-url";
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
@@ -128,17 +128,46 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
-      builder.addCase(reportEmbedScreenshot.fulfilled, (state, action) => {
+      builder.addCase(reportEmbedScreenshot.pending, (state, action) => {
         const { reportId } = action.meta.arg;
-        const file = action.payload;
         const report = state.byIds?.[reportId];
 
         if (report) {
-          const attachedFiles = (report.attachedFiles || []).concat({
-            usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+          report.contentScreenshots = {
+            files: report.contentScreenshots?.files || [],
+            isUploading: true,
+          };
+        }
+      });
+
+      builder.addCase(reportEmbedScreenshot.fulfilled, (state, action) => {
+        const { reportId } = action.meta.arg;
+        const { file, signedUrl } = action.payload;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          const screenshot: ReportScreenshotSM = {
             name: file.name,
-          });
-          report.attachedFiles = attachedFiles;
+            signedUrl,
+          };
+
+          const currentFiles = report.contentScreenshots?.files || [];
+          report.contentScreenshots = {
+            files: [...currentFiles, screenshot],
+            isUploading: false,
+          };
+        }
+      });
+
+      builder.addCase(reportEmbedScreenshot.rejected, (state, action) => {
+        const { reportId } = action.meta.arg;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          report.contentScreenshots = {
+            files: report.contentScreenshots?.files || [],
+            isUploading: false,
+          };
         }
       });
 
@@ -185,17 +214,26 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
-      builder.addCase(deleteReportAttachedFiles.fulfilled, (state, action) => {
-        const { reportId, fileNames } = action.meta.arg;
-        const report = state.byIds?.[reportId];
+      builder.addCase(
+        deleteReportContentScreenshots.fulfilled,
+        (state, action) => {
+          const { reportId, fileNames } = action.meta.arg;
+          const report = state.byIds?.[reportId];
 
-        if (report) {
-          const attachedFiles = report.attachedFiles || [];
-          report.attachedFiles = attachedFiles.filter(
-            (file) => !fileNames.includes(file.name),
-          );
-        }
-      });
+          if (report) {
+            const newFiles = report.contentScreenshots?.files.filter(
+              (file) => !fileNames.includes(file.name),
+            );
+
+            report.contentScreenshots = newFiles?.length
+              ? {
+                  files: newFiles,
+                  isUploading: report.contentScreenshots?.isUploading ?? false,
+                }
+              : null;
+          }
+        },
+      );
 
       builder.addCase(logout.fulfilled, (state) => {
         state.byIds = null;

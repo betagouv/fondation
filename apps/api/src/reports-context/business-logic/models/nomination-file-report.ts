@@ -5,20 +5,21 @@ import {
   Transparency,
 } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { z } from 'zod';
 import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
+import { DomainRegistry } from './domain-registry';
 import {
   ReportAttachedFile,
   ReportAttachedFileSnapshot,
 } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
-import { z } from 'zod';
-import { DomainRegistry } from './domain-registry';
 
 export type NominationFileReportSnapshot = {
   id: string;
   nominationFileId: string;
   reporterId: string;
+  version: number;
   createdAt: Date;
   folderNumber: number | null;
   biography: string | null;
@@ -38,22 +39,12 @@ export type NominationFileReportSnapshot = {
 };
 
 export class NominationFileReport {
-  deleteAttachedFileByName(fileName: string) {
-    if (!this.attachedFiles) {
-      throw new Error('No attached files');
-    }
-    const [attachedFiles, removedAttachedFile] =
-      this.attachedFiles.removeFileByName(fileName);
-
-    this._attachedFiles = attachedFiles;
-
-    return removedAttachedFile;
-  }
   constructor(
     private readonly _id: string,
     private readonly _nominationFileId: string,
     private readonly _createdAt: Date,
     private readonly _reporterId: string,
+    private _version: number,
     private _folderNumber: number | null,
     private readonly _biography: string | null,
     private readonly _dueDate: DateOnly | null,
@@ -81,6 +72,13 @@ export class NominationFileReport {
 
   public get reporterId(): string {
     return this._reporterId;
+  }
+
+  public get version(): number {
+    return this._version;
+  }
+  private set version(value: number) {
+    this._version = z.number().int().min(0).parse(value);
   }
 
   public get folderNumber(): number | null {
@@ -188,6 +186,30 @@ export class NominationFileReport {
     return attachedFile;
   }
 
+  deleteAttachedFileByName(fileName: string) {
+    if (!this.attachedFiles) {
+      throw new Error('No attached files');
+    }
+    const [attachedFiles, removedAttachedFile] =
+      this.attachedFiles.removeFileByName(fileName);
+
+    this._attachedFiles = attachedFiles;
+
+    return removedAttachedFile;
+  }
+
+  deleteAttachedFilesByNames(fileNames: string[]) {
+    if (!this.attachedFiles) {
+      throw new Error('No attached files');
+    }
+
+    const [attachedFiles, deletedFiles] =
+      this.attachedFiles.removeFilesByNames(fileNames);
+    this._attachedFiles = attachedFiles;
+
+    return deletedFiles;
+  }
+
   alreadyHasAttachedFile(file: ReportAttachedFile): boolean {
     return !!this.attachedFiles?.alreadyExists(file);
   }
@@ -205,6 +227,7 @@ export class NominationFileReport {
       id: this.id,
       nominationFileId: this.nominationFileId,
       reporterId: this.reporterId,
+      version: this.version,
       createdAt: this.createdAt,
       folderNumber: this.folderNumber,
       biography: this.biography,
@@ -232,6 +255,7 @@ export class NominationFileReport {
       snapshot.nominationFileId,
       snapshot.createdAt,
       snapshot.reporterId,
+      snapshot.version,
       snapshot.folderNumber,
       snapshot.biography,
       snapshot.dueDate,
@@ -266,6 +290,7 @@ export class NominationFileReport {
       importedNominationFileId,
       currentDate,
       reporter.reporterId,
+      0,
       createReportPayload.folderNumber,
       createReportPayload.biography,
       createReportPayload.dueDate

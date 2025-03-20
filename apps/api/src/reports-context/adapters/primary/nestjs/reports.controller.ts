@@ -30,7 +30,8 @@ import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/inter
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
 import { AttachFileQueryParams } from './dto/attach-file-query-params.dto';
-import { DeleteAttachedFilesQueryDto } from './dto/delete-attached-files-query.dto';
+import { DeleteFilesQueryDto } from './dto/delete-files-query.dto';
+import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -56,6 +57,7 @@ export class ReportsController implements IReportController {
     private readonly attachReportFileUseCase: AttachReportFileUseCase,
     private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
+    private readonly deleteReportAttachedFilesUseCase: DeleteReportAttachedFilesUseCase,
   ) {}
 
   @Get(endpointsPaths.listReports)
@@ -144,11 +146,9 @@ export class ReportsController implements IReportController {
   async deleteFiles(
     @Param()
     { id }: ReportsContextRestContract['endpoints']['deleteFiles']['params'],
-    @Query() query: DeleteAttachedFilesQueryDto,
+    @Query() query: DeleteFilesQueryDto,
   ) {
     const { fileNames } = query;
-    for (const fileName of fileNames) {
-      await this.deleteReportAttachedFileUseCase.execute(id, fileName);
-    }
+    return this.deleteReportAttachedFilesUseCase.execute(id, fileNames);
   }
 }

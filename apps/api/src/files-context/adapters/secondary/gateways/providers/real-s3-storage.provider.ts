@@ -1,5 +1,6 @@
-import { S3Client } from '@aws-sdk/client-s3';
+import { GetBucketVersioningCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import _ from 'lodash';
 import { FileVM } from 'shared-models';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
@@ -69,8 +70,95 @@ export class RealS3StorageProvider implements S3StorageProvider {
     bucketPath: string[] | null,
     fileName: string,
   ): Promise<void> {
-    const command = this.s3Commands.deleteFile(bucket, bucketPath, fileName);
+    const command = this.s3Commands.deleteObject(bucket, bucketPath, fileName);
     await this.s3Client.send(command);
+  }
+
+  async deleteFiles(
+    files: FileDocument[],
+  ): Promise<PromiseSettledResult<void>[]> {
+    const filesPerBucket = _.groupBy(files, (file) => file.toSnapshot().bucket);
+    const deletePromises = Object.entries(filesPerBucket).map(
+      async ([bucket, bucketFiles]) => {
+        const command = this.s3Commands.deleteObjects(
+          bucket,
+          bucketFiles.map((file) => ({
+            filePath: file.path,
+            fileName: file.name,
+          })),
+        );
+        await this.s3Client.send(command);
+      },
+    );
+
+    return Promise.allSettled(deletePromises);
+  }
+
+  async restoreFiles(files: FileDocument[]): Promise<void> {
+    const filesByBucket = _.groupBy(files, (file) => file.bucket);
+
+    for (const [bucket, bucketFiles] of Object.entries(filesByBucket)) {
+      for (const file of bucketFiles) {
+        const { path, name } = file.toSnapshot();
+        const key = this.s3Commands.genKey(path, name);
+
+        try {
+          await this.restoreFromVersioning(bucket, path, name);
+        } catch (error) {
+          console.error(
+            `Failed to restore file ${key} in bucket ${bucket}:`,
+            error,
+          );
+        }
+      }
+    }
+  }
+
+  private async isBucketVersioningEnabled(bucket: string): Promise<boolean> {
+    try {
+      const response = await this.s3Client.send(
+        new GetBucketVersioningCommand({ Bucket: bucket }),
+      );
+      return response.Status === 'Enabled';
+    } catch (error) {
+      console.error(`Error checking versioning for bucket ${bucket}:`, error);
+      return false; // Assume versioning is not enabled if check fails
+    }
+  }
+
+  private async restoreFromVersioning(
+    bucket: string,
+    bucketPath: string[] | null,
+    fileName: string,
+  ): Promise<void> {
+    const command = this.s3Commands.listObjectVersions(
+      bucket,
+      bucketPath,
+      fileName,
+    );
+    const response = await this.s3Client.send(command);
+    if (!response.Versions || response.Versions.length === 0) {
+      throw new Error(
+        `No versions found for file ${fileName} in bucket ${bucket}`,
+      );
+    }
+
+    const latestVersion = response.DeleteMarkers?.find(
+      (version) => version.IsLatest,
+    );
+    if (!latestVersion || !latestVersion.VersionId) {
+      throw new Error(
+        `No valid previous version found for file ${fileName} in bucket ${bucket}`,
+      );
+    }
+
+    const removeDeleteMarkerCommand = this.s3Commands.deleteObject(
+      bucket,
+      bucketPath,
+      fileName,
+      latestVersion.VersionId,
+    );
+    await this.s3Client.send(removeDeleteMarkerCommand);
   }
 
   private async ensureBucketExists(bucket: string): Promise<void> {

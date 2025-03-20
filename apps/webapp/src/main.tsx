@@ -14,7 +14,6 @@ import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-label
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
 import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
-import { reportContentEmbeddedScreenshot } from "./reports/core-logic/listeners/report-content-embedded-screenshot.listeners.ts";
 import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import {
@@ -68,7 +67,6 @@ const store = initReduxStore<false>(
     redirectOnLogin,
     reportFileAttached,
     preloadReportsRetrieval,
-    reportContentEmbeddedScreenshot,
   },
   routeToReactComponentMap,
   allRulesMapV2,

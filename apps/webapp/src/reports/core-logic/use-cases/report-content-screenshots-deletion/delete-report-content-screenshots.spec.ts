@@ -1,4 +1,4 @@
-import { ReportFileUsage, ReportRetrievalVM } from "shared-models";
+import { AttachedFileVM, ReportFileUsage } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import {
@@ -11,7 +11,8 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { deleteReportAttachedFiles } from "./delete-report-attached-file";
+import { deleteReportContentScreenshots } from "./delete-report-content-screenshots";
+import { Mock } from "vitest";
 
 describe("Delete Report Attached Files", () => {
   let store: ReduxStore;
@@ -39,18 +40,43 @@ describe("Delete Report Attached Files", () => {
   });
 
   it("deletes two reports", async () => {
-    await store.dispatch(
-      deleteReportAttachedFiles({
+    await deleteReports();
+    expectStoredReports({
+      ...aReport,
+      contentScreenshots: null,
+    });
+  });
+
+  it("adds a screenshot to the editor if the deletion fails", async () => {
+    reportApiClient.deleteFilesError = new Error();
+    const addScreenshotToEditor = vi.fn();
+
+    await deleteReports(addScreenshotToEditor);
+
+    expectScreenshotAddedToEditor(addScreenshotToEditor, aFile);
+    expectScreenshotAddedToEditor(addScreenshotToEditor, aSecondFile, {
+      nth: 2,
+    });
+  });
+
+  const deleteReports = async (addScreenshotToEditor = () => false) =>
+    store.dispatch(
+      deleteReportContentScreenshots({
         reportId: aReport.id,
         fileNames: [aFile.name, aSecondFile.name],
+        addScreenshotToEditor,
       }),
     );
 
-    expectStoredReports({
-      ...aReport,
-      attachedFiles: [],
+  const expectScreenshotAddedToEditor = (
+    addScreenshotToEditor: Mock,
+    file: AttachedFileVM,
+    opts: { nth: number } = { nth: 1 },
+  ) =>
+    expect(addScreenshotToEditor).toHaveBeenNthCalledWith(opts.nth, {
+      fileUrl: file.signedUrl,
+      fileName: file.name,
     });
-  });
 });
 
 const aFile = {
@@ -66,7 +92,11 @@ const aSecondFile = {
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [aFile, aSecondFile])
   .build();
-const aReport: ReportRetrievalVM = {
+const aReport: ReturnType<ReportBuilder["buildRetrieveSM"]> = {
   ...ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM(),
-  attachedFiles: [aFile, aSecondFile],
+  attachedFiles: [],
+  contentScreenshots: {
+    files: [aFile, aSecondFile],
+    isUploading: false,
+  },
 };

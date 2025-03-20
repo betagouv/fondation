@@ -48,8 +48,7 @@ describe('SQL Files Repository', () => {
       filesRepository.save(FileDocument.fromSnapshot(aFile)),
     );
 
-    const existingFiles = await db.select().from(filesPm).execute();
-    expect(existingFiles).toEqual([SqlFileRepository.mapSnapshotToDb(aFile)]);
+    await expectFilesInDb(aFile);
   });
 
   describe('when there are already files', () => {
@@ -72,8 +71,17 @@ describe('SQL Files Repository', () => {
       await transactionPerformer.perform(
         filesRepository.deleteFile(FileDocument.fromSnapshot(aFile)),
       );
-      const files = await db.select().from(filesPm).execute();
-      expect(files).toEqual([SqlFileRepository.mapSnapshotToDb(anotherFile)]);
+      await expectFilesInDb(anotherFile);
+    });
+
+    it('deletes two files in batch', async () => {
+      await transactionPerformer.perform(
+        filesRepository.deleteFiles([
+          FileDocument.fromSnapshot(aFile),
+          FileDocument.fromSnapshot(anotherFile),
+        ]),
+      );
+      await expectFilesInDb();
     });
   });
 
@@ -82,4 +90,9 @@ describe('SQL Files Repository', () => {
       .insert(filesPm)
       .values(files.map(SqlFileRepository.mapSnapshotToDb))
       .execute();
+
+  const expectFilesInDb = async (...expectedFiles: FileDocumentSnapshot[]) => {
+    const filesInDb = await db.select().from(filesPm).execute();
+    expect(filesInDb).toEqual<(typeof filesPm.$inferSelect)[]>(expectedFiles);
+  };
 });

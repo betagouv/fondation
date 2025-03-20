@@ -28,6 +28,14 @@ export class ReportAttachedFiles {
     ];
   }
 
+  removeFilesByNames(
+    names: string[],
+  ): [ReportAttachedFiles, ReportAttachedFile[]] {
+    const attachedFiles = this._files.filter((f) => !names.includes(f.name));
+    const newFiles = this._files.filter((f) => names.includes(f.name));
+    return [new ReportAttachedFiles(attachedFiles), newFiles];
+  }
+
   alreadyExists(file: ReportAttachedFile): boolean {
     return !!this._files.find((f) => f.isSameFile(file));
   }

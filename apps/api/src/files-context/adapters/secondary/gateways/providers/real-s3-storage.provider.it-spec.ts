@@ -1,4 +1,8 @@
-import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { join } from 'path';
 import { FileDocumentBuilder } from 'src/files-context/business-logic/builders/file-document.builder';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
@@ -227,6 +231,63 @@ describe.each`
         // Scaleway has high latency from time to time.
         providerName === 'Scaleway' ? 30000 : undefined,
       );
+
+      describe('when there is a second file', () => {
+        const secondFilePath = ['folder'];
+        const secondKey = join(...secondFilePath, 'second-file.txt');
+
+        const secondFile = new FileDocumentBuilder()
+          .with('id', 'second-file-id')
+          .with('bucket', bucket)
+          .with('name', 'second-file.txt')
+          .with('path', secondFilePath)
+          .with(
+            'signedUrl',
+            buildS3SignedUrl('second-file.txt', secondFilePath),
+          )
+          .build();
+
+        beforeEach(
+          async () => {
+            await givenSomeS3Files(s3Client, {
+              bucket,
+              Key: secondKey,
+            });
+          },
+          // Scaleway has high latency from time to time.
+          providerName === 'Scaleway' ? 30000 : undefined,
+        );
+
+        it('deletes multiple files', async () => {
+          const results = await s3StorageProvider.deleteFiles([
+            FileDocument.fromSnapshot(aFile),
+            FileDocument.fromSnapshot(secondFile),
+          ]);
+
+          expect(results.every((result) => result.status === 'fulfilled')).toBe(
+            true,
+          );
+
+          await expectDeletedFile(Key);
+          await expectDeletedFile(secondKey);
+        });
+
+        it('restores a file', async () => {
+          await s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: bucket,
+              Key,
+            }),
+          );
+
+          await s3StorageProvider.restoreFiles([
+            FileDocument.fromSnapshot(aFile),
+          ]);
+
+          await expectUploadedFile(Key);
+          await expectUploadedFile(secondKey);
+        });
+      });
     });
 
     const uploadFile = (fileName: string, filePath: string[] | null = null) =>
@@ -258,13 +319,27 @@ describe.each`
       );
     };
 
-    const expectUploadedFile = (Key: string) =>
-      s3Client.send(
-        new HeadObjectCommand({
-          Bucket: bucket,
-          Key,
-        }),
-      );
+    async function expectDeletedFile(Key: string) {
+      await expect(
+        s3Client.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key,
+          }),
+        ),
+      ).rejects.toBeDefined();
+    }
+
+    async function expectUploadedFile(Key: string) {
+      await expect(
+        s3Client.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key,
+          }),
+        ),
+      ).resolves.toBeDefined();
+    }
   },
   // Scaleway has high latency from time to time.
   40000,

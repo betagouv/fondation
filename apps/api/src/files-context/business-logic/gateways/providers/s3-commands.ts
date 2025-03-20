@@ -1,8 +1,10 @@
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
+  ListObjectVersionsCommand,
   PutObjectCommand,
   PutObjectRequest,
 } from '@aws-sdk/client-s3';
@@ -55,14 +57,49 @@ export class S3Commands {
       ...this.sseHeaders,
     });
   }
-  deleteFile(bucketName: string, filePath: string[] | null, fileName: string) {
+  deleteObject(
+    bucketName: string,
+    filePath: string[] | null,
+    fileName: string,
+    versionId?: string,
+  ) {
     return new DeleteObjectCommand({
       Bucket: bucketName,
       Key: this.genKey(filePath, fileName),
+      VersionId: versionId,
     });
   }
 
-  private genKey(filePath: string[] | null, fileName: string) {
+  deleteObjects(
+    bucketName: string,
+    objects: {
+      filePath: string[] | null;
+      fileName: string;
+    }[],
+  ) {
+    return new DeleteObjectsCommand({
+      Bucket: bucketName,
+      Delete: {
+        Objects: objects.map((obj) => ({
+          Key: this.genKey(obj.filePath, obj.fileName),
+        })),
+        Quiet: true, // Don't return list of deleted objects
+      },
+    });
+  }
+
+  listObjectVersions(
+    bucket: string,
+    filePath: string[] | null,
+    fileName: string,
+  ) {
+    return new ListObjectVersionsCommand({
+      Bucket: bucket,
+      Prefix: this.genKey(filePath, fileName),
+    });
+  }
+
+  genKey(filePath: string[] | null, fileName: string) {
     const key = join(...(filePath || []), encodeURIComponent(fileName));
     return key;
   }

@@ -22,6 +22,8 @@ const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
 const filePath = ['file', 'path'];
 const fileName = 'test-file.pdf';
 const fileId = '672d02d0-adc6-4fb2-8047-9cae543dd80e';
+const fileId2 = '7f4e1c30-b9d2-4e8f-bc7e-1a3d78f92a1c';
+const fileName2 = 'second-test-file.pdf';
 
 describe('Files Controller', () => {
   let app: NestApplication;
@@ -92,6 +94,7 @@ describe('Files Controller', () => {
         path: filePath,
         bucket,
       });
+      await expectExistingS3File(`file/path/${fileName}`);
     });
 
     it("generates a signed url for a file's download", async () => {
@@ -153,24 +156,86 @@ describe('Files Controller', () => {
 
       await new SecureCrossContextRequestBuilder(app)
         .withTestedEndpoint((testAgent) =>
-          testAgent.delete(`/api/files/${fileId}`).expect(HttpStatus.OK),
+          testAgent.delete(`/api/files/byId/${fileId}`).expect(HttpStatus.OK),
         )
         .request();
 
       await expectFilesPm();
-      await expect(
-        s3Client.send(
-          new HeadObjectCommand({
-            Bucket: bucket,
-            Key: fileName,
-          }),
-        ),
-      ).rejects.toThrow();
+      await expectDeletedS3File(fileName);
+    });
+
+    it('deletes multiple files', async () => {
+      await givenSomeS3Files(
+        s3Client,
+        {
+          bucket,
+          Key: fileName,
+        },
+        {
+          bucket,
+          Key: fileName2,
+        },
+      );
+
+      await db
+        .insert(filesPm)
+        .values([
+          {
+            id: fileId,
+            bucket,
+            path: null,
+            name: fileName,
+            storageProvider: FilesStorageProvider.SCALEWAY,
+          },
+          {
+            id: fileId2,
+            bucket,
+            path: null,
+            name: fileName2,
+            storageProvider: FilesStorageProvider.SCALEWAY,
+          },
+        ])
+        .execute();
+
+      await new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((testAgent) =>
+          testAgent
+            .delete(`/api/files/byIds`)
+            .query({ ids: [fileId, fileId2] })
+            .expect(HttpStatus.OK),
+        )
+        .request();
+
+      await expectFilesPm();
+      await expectDeletedS3File(fileName);
+      await expectDeletedS3File(fileName2);
     });
 
     const expectFilesPm = async (...files: (typeof filesPm.$inferSelect)[]) => {
       expect(await db.select().from(filesPm).execute()).toEqual(files);
     };
+
+    async function expectDeletedS3File(Key: string) {
+      await expect(
+        s3Client.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key,
+          }),
+        ),
+      ).rejects.toBeDefined();
+    }
+
+    async function expectExistingS3File(Key: string) {
+      await expect(
+        s3Client.send(
+          new HeadObjectCommand({
+            Bucket: bucket,
+            Key,
+          }),
+        ),
+      ).resolves.toBeDefined();
+    }
   });
 
   const initApp = async () => {

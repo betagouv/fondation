@@ -13,6 +13,17 @@ import { RouteToComponentFactory } from "../router/core-logic/components/routeTo
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 import { SetOptional } from "type-fest";
+
+export type ReportScreenshotSM = {
+  name: string;
+  signedUrl: string;
+};
+
+export type ReportScreenshots = {
+  files: ReportScreenshotSM[];
+  isUploading: boolean;
+};
+
 export interface ReportSM {
   id: string;
   folderNumber: number | null;
@@ -32,6 +43,7 @@ export interface ReportSM {
   rules: NominationFile.Rules;
   // Lors de l'upload d'un fichier, l'url n'est pas encore créée
   attachedFiles: SetOptional<AttachedFileVM, "signedUrl">[] | null;
+  contentScreenshots: ReportScreenshots | null;
 }
 export type ReportListItem = Pick<
   ReportSM,

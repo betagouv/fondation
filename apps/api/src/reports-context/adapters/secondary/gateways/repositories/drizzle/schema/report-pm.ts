@@ -23,6 +23,7 @@ export const reports = reportsContextSchema.table('reports', {
     .default(sql`gen_random_uuid()`),
   reporterId: uuid('reporter_id').notNull(),
   nominationFileId: uuid('nomination_file_id').notNull(),
+  version: integer('version').notNull().default(1),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   folderNumber: integer('folder_number'),
   biography: text('biography'),

@@ -3,14 +3,15 @@ import {
   AllRulesMapV2,
   Magistrat,
   NominationFile,
+  ReportFileUsage,
   RulesBuilder,
   Transparency,
 } from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportListItem, ReportSM } from "../../../store/appState";
+import { ReportGateway } from "../gateways/Report.gateway";
 import { ReportApiModel } from "./ReportApiModel.builder";
-import { EndpointResponse } from "../gateways/ReportApi.client";
 
 type InternalReport = Omit<
   SetOptional<ReportSM, "rules"> & ReportListItem,
@@ -47,6 +48,7 @@ export class ReportBuilder {
       comment: "Some comment",
       observers: ["observer 1", "observer 2"],
       attachedFiles: null,
+      contentScreenshots: null,
       rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }
@@ -73,7 +75,7 @@ export class ReportBuilder {
       observersCount: this._report.observers?.length ?? 0,
     };
   }
-  buildRetrieveSM(): Awaited<EndpointResponse<"retrieveReport">> {
+  buildRetrieveSM(): Awaited<ReturnType<ReportGateway["retrieveReport"]>> {
     if (this._report.attachedFiles?.find((file) => !file.signedUrl))
       throw new Error("Attached files must have a signedUrl");
 
@@ -95,8 +97,9 @@ export class ReportBuilder {
       observers: this._report.observers,
       rules: this._report.rules!,
       attachedFiles: this._report.attachedFiles as Awaited<
-        EndpointResponse<"retrieveReport">
+        ReturnType<ReportGateway["retrieveReport"]>
       >["attachedFiles"],
+      contentScreenshots: this._report.contentScreenshots,
     };
   }
 
@@ -127,7 +130,12 @@ export class ReportBuilder {
       .with("rank", aValidatedReportApiModel.rank)
       .with("observers", aValidatedReportApiModel.observers)
       .with("rules", aValidatedReportApiModel.rules)
-      .with("attachedFiles", aValidatedReportApiModel.attachedFiles);
+      .with(
+        "attachedFiles",
+        aValidatedReportApiModel.attachedFiles?.filter(
+          (file) => file.usage === ReportFileUsage.ATTACHMENT,
+        ) ?? null,
+      );
   }
 
   static duplicate(report: ReportListItem) {

@@ -26,8 +26,14 @@ export interface FilesContextRestContract extends RestContract {
     };
     deleteFile: {
       method: "DELETE";
-      path: ":id";
+      path: "byId/:id";
       params: { id: string };
+      response: void;
+    };
+    deleteFiles: {
+      method: "DELETE";
+      path: "byIds";
+      queryParams: { ids: string | string[] };
       response: void;
     };
   };
@@ -47,3 +53,9 @@ export const fileUrlsQuerySchema = z.object({
     .union([z.string(), z.string().array()])
     .transform((v) => (Array.isArray(v) ? v : [v])),
 }) satisfies ZodQueryParamsDto<FilesContextRestContract, "getSignedUrls">;
+
+export const deleteFilesQuerySchema = z.object({
+  ids: z
+    .union([z.string(), z.string().array()])
+    .transform((v) => (Array.isArray(v) ? v : [v])),
+}) satisfies ZodQueryParamsDto<FilesContextRestContract, "deleteFiles">;

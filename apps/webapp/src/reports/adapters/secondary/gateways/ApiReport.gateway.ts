@@ -4,7 +4,7 @@ import {
   ReportFileUsage,
   Transparency,
 } from "shared-models";
-import { ReportListItem } from "../../../../store/appState";
+import { ReportListItem, ReportScreenshots } from "../../../../store/appState";
 import {
   ReportGateway,
   UpdateReportParams,
@@ -45,7 +45,26 @@ export class ApiReportGateway implements ReportGateway {
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
-      attachedFiles: report.attachedFiles,
+      attachedFiles:
+        report.attachedFiles?.filter(
+          (file) => file.usage === ReportFileUsage.ATTACHMENT,
+        ) ?? null,
+      contentScreenshots:
+        report.attachedFiles
+          ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
+          .reduce(
+            (acc, file) => ({
+              files: [
+                ...acc.files,
+                {
+                  name: file.name,
+                  signedUrl: file.signedUrl,
+                },
+              ],
+              isUploading: false,
+            }),
+            { files: [], isUploading: false } as ReportScreenshots,
+          ) ?? null,
     };
   }
 

@@ -1,3 +1,4 @@
+import { TransactionRollbackError } from 'drizzle-orm';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportAttachedFileBuilder } from 'src/reports-context/business-logic/models/report-attached-file.builder';
@@ -10,13 +11,13 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { clearDB } from 'test/docker-postgresql-manager';
-import { reports } from './schema/report-pm';
-import { SqlReportRepository } from './sql-report.repository';
 import {
   GivenSomeReports,
   givenSomeReportsFactory,
 } from 'test/bounded-contexts/reports';
+import { clearDB } from 'test/docker-postgresql-manager';
+import { reports } from './schema/report-pm';
+import { SqlReportRepository } from './sql-report.repository';
 
 describe('SQL Report Repository', () => {
   let sqlReportRepository: SqlReportRepository;
@@ -53,6 +54,7 @@ describe('SQL Report Repository', () => {
       id: aReport.id,
       nominationFileId: aReport.nominationFileId,
       reporterId: aReport.reporterId,
+      version: 1,
       createdAt: aReport.createdAt,
       folderNumber: aReport.folderNumber,
       biography: aReport.biography,
@@ -74,6 +76,7 @@ describe('SQL Report Repository', () => {
 
   describe('when there is a report', () => {
     const aReport = new ReportBuilder('uuid')
+      .with('version', 1)
       .with('folderNumber', 1)
       .with('dueDate', new DateOnly(2030, 10, 1))
       .with('birthDate', new DateOnly(1980, 10, 1))
@@ -85,6 +88,25 @@ describe('SQL Report Repository', () => {
 
     beforeEach(async () => {
       await givenSomeReports(aReport);
+    });
+
+    it('refuses to update a report with an old version', async () => {
+      const aReportV2 = new ReportBuilder('uuid')
+        .with('id', '7eee3e35-033f-467f-b3f9-3540af233bf0')
+        .with('version', 2)
+        .build();
+      await givenSomeReports(aReportV2);
+      const aReportUpdated = ReportBuilder.duplicateReport(aReportV2)
+        .with('version', 1)
+        .build();
+
+      await expect(
+        transactionPerformer.perform(
+          sqlReportRepository.save(
+            NominationFileReport.fromSnapshot(aReportUpdated),
+          ),
+        ),
+      ).rejects.toThrow(TransactionRollbackError);
     });
 
     describe('Updates', () => {
@@ -130,13 +152,16 @@ describe('SQL Report Repository', () => {
         'updates a report with $testName',
         async ({ updatedReportSnapshot, updatedReportDb }) => {
           await transactionPerformer.perform(
-            sqlReportRepository.save(updatedReportSnapshot),
+            sqlReportRepository.save(
+              NominationFileReport.fromSnapshot(updatedReportSnapshot),
+            ),
           );
 
           await expectReports({
             id: updatedReportSnapshot.id,
             nominationFileId: updatedReportSnapshot.nominationFileId,
             reporterId: updatedReportSnapshot.reporterId,
+            version: 2,
             createdAt: updatedReportSnapshot.createdAt,
             folderNumber: updatedReportSnapshot.folderNumber,
             biography: updatedReportSnapshot.biography,
@@ -177,6 +202,7 @@ describe('SQL Report Repository', () => {
         id: aReportWithFile.id,
         nominationFileId: aReportWithFile.nominationFileId,
         reporterId: aReportWithFile.reporterId,
+        version: 2,
         createdAt: aReportWithFile.createdAt,
         folderNumber: aReportWithFile.folderNumber,
         biography: aReportWithFile.biography,
@@ -213,6 +239,7 @@ describe('SQL Report Repository', () => {
 
   describe('Given a saved report with a file', () => {
     const aReport = new ReportBuilder('uuid')
+      .with('version', 1)
       .with('attachedFiles', [new ReportAttachedFileBuilder().build()])
       .build();
     const aReportDb = SqlReportRepository.mapSnapshotToDb(aReport);
@@ -238,6 +265,7 @@ describe('SQL Report Repository', () => {
         id: aReportWithNoFiles.id,
         nominationFileId: aReportWithNoFiles.nominationFileId,
         reporterId: aReportWithNoFiles.reporterId,
+        version: 2,
         createdAt: aReportWithNoFiles.createdAt,
         folderNumber: aReportWithNoFiles.folderNumber,
         biography: aReportWithNoFiles.biography,

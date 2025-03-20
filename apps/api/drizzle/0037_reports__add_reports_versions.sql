@@ -1,0 +1,1 @@
+ALTER TABLE "reports_context"."reports" ADD COLUMN "version" integer DEFAULT 1 NOT NULL;

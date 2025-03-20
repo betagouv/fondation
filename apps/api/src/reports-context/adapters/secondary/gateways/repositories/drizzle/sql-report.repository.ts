@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { ReportRepository } from 'src/reports-context/business-logic/gateways/repositories/report.repository';
 import {
   NominationFileReport,
@@ -10,37 +10,49 @@ import {
   ReportAttachedFiles,
 } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
-import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
+import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 
 export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
     return async (db) => {
       const reportRow = SqlReportRepository.mapToDb(report);
-      await db
-        .insert(reports)
-        .values(reportRow)
-        .onConflictDoUpdate({
-          target: reports.id,
-          set: buildConflictUpdateColumns(reports, [
-            'folderNumber',
-            'biography',
-            'dueDate',
-            'name',
-            'birthDate',
-            'state',
-            'formation',
-            'transparency',
-            'grade',
-            'currentPosition',
-            'targettedPosition',
-            'comment',
-            'rank',
-            'observers',
-            'attachedFiles',
-          ]),
-        });
+      if (report.version === 0) {
+        await db.insert(reports).values({ ...reportRow, version: 1 });
+      } else {
+        const updatedRows = await db
+          .update(reports)
+          .set({
+            version: report.version + 1,
+            folderNumber: reportRow.folderNumber,
+            biography: reportRow.biography,
+            dueDate: reportRow.dueDate,
+            name: reportRow.name,
+            birthDate: reportRow.birthDate,
+            state: reportRow.state,
+            formation: reportRow.formation,
+            transparency: reportRow.transparency,
+            grade: reportRow.grade,
+            currentPosition: reportRow.currentPosition,
+            targettedPosition: reportRow.targettedPosition,
+            comment: reportRow.comment,
+            rank: reportRow.rank,
+            observers: reportRow.observers,
+            attachedFiles: reportRow.attachedFiles,
+          })
+          .where(
+            and(eq(reports.id, report.id), eq(reports.version, report.version)),
+          );
+
+        if (updatedRows.rowCount === 0) {
+          throw new OptimisticLockError({
+            entityName: 'Report',
+            entityId: report.id,
+            version: report.version,
+          });
+        }
+      }
     };
   }
 
@@ -76,36 +88,38 @@ export class SqlReportRepository implements ReportRepository {
   }
 
   static mapToDb(report: NominationFileReport): typeof reports.$inferInsert {
-    const attachedFiles = report.attachedFiles?.serialize();
-
-    return {
-      id: report.id,
-      nominationFileId: report.nominationFileId,
-      createdAt: report.createdAt,
-      reporterId: report.reporterId,
-      folderNumber: report.folderNumber,
-      biography: report.biography,
-      dueDate: report.dueDate ? report.dueDate.toDbString() : null,
-      name: report.name,
-      birthDate: report.birthDate.toDbString(),
-      state: report.state,
-      formation: report.formation,
-      transparency: report.transparency,
-      grade: report.grade,
-      currentPosition: report.currentPosition,
-      targettedPosition: report.targettedPosition,
-      comment: report.comment,
-      rank: report.rank,
-      observers: report.observers,
-      attachedFiles: attachedFiles?.length ? attachedFiles : null,
-    };
+    return SqlReportRepository.mapSnapshotToDb(report.toSnapshot());
   }
 
   static mapSnapshotToDb(
     reportSnapshot: NominationFileReportSnapshot,
   ): typeof reports.$inferInsert {
-    const report = NominationFileReport.fromSnapshot(reportSnapshot);
-    return SqlReportRepository.mapToDb(report);
+    return {
+      id: reportSnapshot.id,
+      nominationFileId: reportSnapshot.nominationFileId,
+      createdAt: reportSnapshot.createdAt,
+      reporterId: reportSnapshot.reporterId,
+      version: reportSnapshot.version,
+      folderNumber: reportSnapshot.folderNumber,
+      biography: reportSnapshot.biography,
+      dueDate: reportSnapshot.dueDate
+        ? reportSnapshot.dueDate.toDbString()
+        : null,
+      name: reportSnapshot.name,
+      birthDate: reportSnapshot.birthDate.toDbString(),
+      state: reportSnapshot.state,
+      formation: reportSnapshot.formation,
+      transparency: reportSnapshot.transparency,
+      grade: reportSnapshot.grade,
+      currentPosition: reportSnapshot.currentPosition,
+      targettedPosition: reportSnapshot.targettedPosition,
+      comment: reportSnapshot.comment,
+      rank: reportSnapshot.rank,
+      observers: reportSnapshot.observers,
+      attachedFiles: reportSnapshot.attachedFiles?.length
+        ? reportSnapshot.attachedFiles
+        : null,
+    };
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
@@ -118,6 +132,7 @@ export class SqlReportRepository implements ReportRepository {
       row.nominationFileId,
       row.createdAt,
       row.reporterId,
+      row.version,
       row.folderNumber,
       row.biography,
       row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,

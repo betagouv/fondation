@@ -1,12 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { Editor } from "@tiptap/react";
 import { File } from "node:buffer";
-import { ReportFileUsage } from "shared-models";
 import sharp, { FormatEnum } from "sharp";
 import { DeterministicDateProvider } from "../../../../shared-kernel/adapters/secondary/providers/deterministicDateProvider";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
-import { sleep } from "../../../../shared-kernel/core-logic/sleep";
-import { AppState } from "../../../../store/appState";
+import { AppState, ReportSM } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import {
   ExpectStoredReports,
@@ -19,7 +17,6 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { reportEmbedScreenshot } from "./report-embed-screenshot";
-import { reportContentEmbeddedScreenshot } from "../../listeners/report-content-embedded-screenshot.listeners";
 
 describe("Report Embed Screenshot", () => {
   let store: ReduxStore;
@@ -42,59 +39,12 @@ describe("Report Embed Screenshot", () => {
       },
       { fileProvider, dateProvider },
       {},
-      { reportContentEmbeddedScreenshot },
     );
     initialState = store.getState();
 
     expectStoredReports = expectStoredReportsFactory(store, initialState);
 
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
-  });
-
-  it("generates a signed url when a screenshot is embedded with timestamp in filename", async () => {
-    const fileBuffer = await givenAnImageBuffer("png");
-    const file = new File([fileBuffer], "screenshot.png", {
-      type: "image/png",
-    });
-
-    await embedScreenshot(file);
-    await sleep(100); // wait for listener to resolve
-
-    const signedUrl = `https://example.fr/screenshot.png-${dateProvider.timestamp}`;
-    expectStoredReports({
-      ...aReport,
-      attachedFiles: [
-        {
-          usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-          signedUrl,
-          name: "screenshot.png-10",
-        },
-      ],
-    });
-  });
-
-  it("uses updated timestamp for filename when dateProvider timestamp changes", async () => {
-    dateProvider.timestamp = 20;
-
-    const fileBuffer = await givenAnImageBuffer("png");
-    const file = new File([fileBuffer], "screenshot.png", {
-      type: "image/png",
-    });
-
-    await embedScreenshot(file);
-    await sleep(100); // wait for listener to resolve
-
-    const signedUrl = `https://example.fr/screenshot.png-${dateProvider.timestamp}`;
-    expectStoredReports({
-      ...aReport,
-      attachedFiles: [
-        {
-          usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-          signedUrl,
-          name: "screenshot.png-20",
-        },
-      ],
-    });
   });
 
   it("refuses to embed a .txt file", async () => {
@@ -109,7 +59,7 @@ describe("Report Embed Screenshot", () => {
     format
     ${"png"}
     ${"jpg"}
-  `("embeds a $format image", async ({ format }) => {
+  `("allows a $format image", async ({ format }) => {
     const fileBuffer = await givenAnImageBuffer(format);
     const file = new File([fileBuffer], `file.${format}`, {
       type: `image/${format}`,
@@ -117,18 +67,65 @@ describe("Report Embed Screenshot", () => {
     await expect(embedScreenshot(file)).resolves.toBeDefined();
   });
 
-  const embedScreenshot = (file: File) =>
-    store.dispatch(
-      reportEmbedScreenshot({
-        reportId: aReport.id,
-        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
-        // File du navigateur non investigué
-        file,
-        editor: new Editor({
-          extensions,
-        }),
-      }),
-    );
+  it("stores a screenshot with its signed URL", async () => {
+    const fileBuffer = await givenAnImageBuffer("png");
+    const file = new File([fileBuffer], "screenshot.png", {
+      type: "image/png",
+    });
+
+    await embedScreenshot(file);
+
+    const expectedFileName = `screenshot.png-${dateProvider.timestamp}`;
+    const signedUrl = `https://example.fr/${expectedFileName}`;
+
+    expectStoredScreenshots({
+      files: [
+        {
+          name: expectedFileName,
+          signedUrl,
+        },
+      ],
+      isUploading: false,
+    });
+  });
+
+  it("says that a screenshot is uploading", async () => {
+    const file = new File([""], "screenshot.png");
+
+    givenAScreenshotUploadingState({
+      reportId: aReport.id,
+      file,
+    });
+
+    expectStoredScreenshots({
+      files: [],
+      isUploading: true,
+    });
+  });
+
+  it("when uploading fails, it says that a screenshot is not uploading anymore", async () => {
+    const file = new File([""], "screenshot.png");
+
+    givenAStoredScreenshot({
+      file,
+      reportId: aReport.id,
+      signedUrl: "https://example.fr/screenshot.png",
+    });
+    givenAScreenshotUploadRejected({
+      file,
+      reportId: aReport.id,
+    });
+
+    expectStoredScreenshots({
+      files: [
+        {
+          name: "screenshot.png",
+          signedUrl: "https://example.fr/screenshot.png",
+        },
+      ],
+      isUploading: false,
+    });
+  });
 
   const givenAnImageBuffer = async (
     format: Extract<keyof FormatEnum, "png" | "jpg">,
@@ -147,6 +144,96 @@ describe("Report Embed Screenshot", () => {
 
     return fileBuffer;
   };
+
+  const givenAStoredScreenshot = ({
+    file,
+    reportId,
+    signedUrl,
+  }: {
+    file: File;
+    reportId: string;
+    signedUrl: string;
+  }) => {
+    store.dispatch(
+      reportEmbedScreenshot.fulfilled(
+        {
+          // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
+          // File du navigateur non investigué
+          file,
+          signedUrl,
+        },
+        "",
+        {
+          reportId,
+          file,
+          editor: new Editor({
+            extensions,
+          }),
+        },
+      ),
+    );
+  };
+
+  const givenAScreenshotUploadingState = ({
+    file,
+    reportId,
+  }: {
+    file: File;
+    reportId: string;
+  }) => {
+    store.dispatch(
+      reportEmbedScreenshot.pending("", {
+        reportId,
+        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
+        // File du navigateur non investigué
+        file,
+        editor: new Editor({
+          extensions,
+        }),
+      }),
+    );
+  };
+
+  const givenAScreenshotUploadRejected = ({
+    file,
+    reportId,
+  }: {
+    file: File;
+    reportId: string;
+  }) => {
+    store.dispatch(
+      reportEmbedScreenshot.rejected(new Error(), "", {
+        reportId,
+        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
+        // File du navigateur non investigué
+        file,
+        editor: new Editor({
+          extensions,
+        }),
+      }),
+    );
+  };
+
+  const embedScreenshot = (file: File) =>
+    store.dispatch(
+      reportEmbedScreenshot({
+        reportId: aReport.id,
+        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
+        // File du navigateur non investigué
+        file,
+        editor: new Editor({
+          extensions,
+        }),
+      }),
+    );
+
+  const expectStoredScreenshots = (
+    contentScreenshots: ReportSM["contentScreenshots"],
+  ) =>
+    expectStoredReports({
+      ...aReport,
+      contentScreenshots,
+    });
 
   const expectUploadError = (
     resp: Awaited<ReturnType<typeof embedScreenshot>>,

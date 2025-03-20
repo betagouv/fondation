@@ -26,7 +26,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     const response = await this.fetch(url, {
-      method: method,
+      method,
     });
     return response.json();
   }
@@ -53,7 +53,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {
-      method: method,
+      method,
       body: body,
     });
   }
@@ -111,7 +111,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     const response = await this.fetch(url, {
-      method: method,
+      method,
     });
     return await response.text();
   }
@@ -138,7 +138,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
     });
   }
 
@@ -156,7 +156,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {
-      method: method,
+      method,
     });
   }
 

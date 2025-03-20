@@ -5,17 +5,28 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
 import { ReportBuilder } from '../../models/report.builder';
-import { DeleteReportAttachedFileUseCase } from './delete-report-attached-file';
+import { DeleteReportAttachedFilesUseCase } from './delete-report-attached-files';
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
 
-describe('Delete Report Attached File Use Case', () => {
+describe('Delete Report Attached Files Use Case', () => {
   let transactionPerformer: TransactionPerformer;
   let reportRepository: FakeNominationFileReportRepository;
   let reportFileService: FakeReportFileService;
 
+  const reportAttachedFile1 = new ReportAttachedFileBuilder().build();
+
+  const reportAttachedFile2 = new ReportAttachedFileBuilder()
+    .with('name', 'file2.pdf')
+    .with('fileId', 'file-id-2')
+    .build();
+
+  const report = new ReportBuilder()
+    .with('attachedFiles', [reportAttachedFile1, reportAttachedFile2])
+    .build();
+
   beforeEach(() => {
+    reportRepository = new FakeNominationFileReportRepository();
     const createRepositories = () => {
-      reportRepository = new FakeNominationFileReportRepository();
       reportRepository.reports = {
         [report.id]: report,
       };
@@ -23,45 +34,54 @@ describe('Delete Report Attached File Use Case', () => {
 
     reportFileService = new FakeReportFileService();
     reportFileService.files = {
-      [reportAttachedFile.fileId]: {
-        name: reportAttachedFile.name,
-      },
+      [reportAttachedFile1.fileId]: { name: reportAttachedFile1.name },
+      [reportAttachedFile2.fileId]: { name: reportAttachedFile2.name },
     };
 
     createRepositories();
     transactionPerformer = new NullTransactionPerformer(createRepositories);
   });
 
-  it('deletes a report attached file', async () => {
-    await deleteFile();
+  it('deletes multiple report attached files', async () => {
+    await deleteFiles([reportAttachedFile1.name, reportAttachedFile2.name]);
+
     expect(reportFileService.files).toEqual({});
     expectReportWithFiles();
   });
 
-  it("doesn't delete the uploaded file if its metadata cannot be removed", async () => {
-    reportRepository.saveError = new Error('Failed to delete');
-    await expect(deleteFile()).rejects.toThrow(reportRepository.saveError);
-    expect(Object.values(reportFileService.files)).toEqual([
-      {
-        name: reportAttachedFile.name,
-      },
-    ]);
+  it('deletes only specified files', async () => {
+    await deleteFiles([reportAttachedFile1.name]);
+
+    expect(reportFileService.files).toEqual({
+      [reportAttachedFile2.fileId]: { name: reportAttachedFile2.name },
+    });
+
+    expectReportWithFiles(reportAttachedFile2);
   });
 
-  it("doesn't remove a file's metadata if file deletion failed", async () => {
-    reportFileService.deleteFileError = new Error('Failed to delete');
-    await expect(deleteFile()).rejects.toThrow(
+  it('does not delete files metadata if storage deletion failed', async () => {
+    reportFileService.deleteFilesError = new Error('Failed to delete');
+
+    await expect(deleteFiles([reportAttachedFile1.name])).rejects.toThrow(
       reportFileService.deleteFileError,
     );
-    expectReportWithFiles(reportAttachedFile);
+
+    expectReportWithFiles(reportAttachedFile1, reportAttachedFile2);
   });
 
-  const deleteFile = () =>
-    new DeleteReportAttachedFileUseCase(
+  it('throws error if report not found', async () => {
+    reportRepository.reports = {};
+    await expect(deleteFiles([reportAttachedFile1.name])).rejects.toThrow(
+      'Report not found',
+    );
+  });
+
+  const deleteFiles = (fileNames: string[]) =>
+    new DeleteReportAttachedFilesUseCase(
       reportRepository,
       reportFileService,
       transactionPerformer,
-    ).execute(report.id, reportAttachedFile.name);
+    ).execute(report.id, fileNames);
 
   const expectReportWithFiles = (...files: ReportAttachedFileSnapshot[]) =>
     expect(Object.values(reportRepository.reports)).toEqual<
@@ -73,8 +93,3 @@ describe('Delete Report Attached File Use Case', () => {
       },
     ]);
 });
-
-const reportAttachedFile = new ReportAttachedFileBuilder().build();
-const report = new ReportBuilder()
-  .with('attachedFiles', [reportAttachedFile])
-  .build();

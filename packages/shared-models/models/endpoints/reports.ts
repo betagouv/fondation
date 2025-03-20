@@ -89,7 +89,7 @@ export const attachFileQuerySchema = z.object({
   usage: z.nativeEnum(ReportFileUsage),
 }) satisfies ZodQueryParamsDto<ReportsContextRestContract, "uploadFile">;
 
-export const deleteAttachedFilesQuerySchema = z.object({
+export const deleteReportFilesQuerySchema = z.object({
   fileNames: z
     .union([z.string(), z.string().array()])
     .transform((v) => (Array.isArray(v) ? v : [v])),

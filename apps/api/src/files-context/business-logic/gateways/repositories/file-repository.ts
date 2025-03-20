@@ -5,4 +5,5 @@ export interface FileRepository {
   save(file: FileDocument): TransactionableAsync;
   getByIds(ids: string[]): TransactionableAsync<FileDocument[]>;
   deleteFile(file: FileDocument): TransactionableAsync;
+  deleteFiles(files: FileDocument[]): TransactionableAsync;
 }

@@ -1,4 +1,4 @@
-import { AttachedFileVM, ReportFileUsage } from "shared-models";
+import { ReportScreenshotSM } from "../../../../store/appState.ts";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk.ts";
 
 export const retrieveReport = createAppAsyncThunk(
@@ -13,16 +13,13 @@ export const retrieveReport = createAppAsyncThunk(
   ) => {
     const report = await reportGateway.retrieveReport(id);
 
-    const hasScreenshotFiles = report.attachedFiles?.find(
-      (file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT,
-    );
-    if (report?.comment && report.attachedFiles && hasScreenshotFiles) {
+    const screenshots = report.contentScreenshots?.files;
+    const hasScreenshotFiles = !!screenshots?.length;
+
+    if (report?.comment && hasScreenshotFiles) {
       const container = document.createElement("div");
       container.innerHTML = report.comment;
 
-      const screenshots = report.attachedFiles.filter(
-        (file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT,
-      );
       const images = container.querySelectorAll("img");
 
       images.forEach(setSrc(screenshots));
@@ -35,7 +32,7 @@ export const retrieveReport = createAppAsyncThunk(
 );
 
 function setSrc(
-  screenshots: AttachedFileVM[],
+  screenshots: ReportScreenshotSM[],
 ): (value: HTMLImageElement) => void {
   return (img) => {
     const imgFileName = img.getAttribute("data-file-name");

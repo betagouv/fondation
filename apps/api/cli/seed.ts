@@ -42,6 +42,7 @@ async function seed() {
     await db.insert(users).values(user).execute();
 
     const reportSnapshot1 = new ReportBuilder('uuid')
+      .with('version', 1)
       .with('name', 'John Doe')
       .with('reporterId', user.id!)
       .with('transparency', Transparency.SIEGE_DU_06_FEVRIER_2025)
@@ -74,6 +75,7 @@ async function seed() {
     const reportSnapshot2 = new ReportBuilder('uuid')
       .with('id', crypto.randomUUID())
       .with('reporterId', user.id!)
+      .with('version', 1)
       .with('name', 'Ada Lovelace')
       .with('biography', '- Tribunal de grande instance de Paris')
       .with('birthDate', new DateOnly(1990, 1, 1))
