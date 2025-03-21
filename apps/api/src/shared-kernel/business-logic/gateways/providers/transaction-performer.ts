@@ -5,6 +5,6 @@ export type TransactionableAsync<T = void, Trx = unknown> = (
 export interface TransactionPerformer {
   perform<T>(
     useCase: TransactionableAsync<T>,
-    cleanup?: () => Promise<void>,
+    opts?: { retries: number },
   ): Promise<T>;
 }

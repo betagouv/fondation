@@ -95,7 +95,7 @@ describe('Import Nominations from local file', () => {
       })),
     );
 
-    await expectAllReports();
+    await expectAllReports(undefined, { version: 1 });
   });
 
   describe('when a nomination file is already imported', () => {
@@ -269,23 +269,31 @@ describe('Import Nominations from local file', () => {
 
   const expectAllReports = async (
     moreFirstContent?: Partial<NominationFileRead['content']>,
+    opts?: { version: number },
   ) => {
+    const version = opts?.version ?? 2;
     const allReports = getExpectedContents()
       .map((content, index) =>
         content.reporters?.length
           ? content.reporters.map((reporterName) =>
-              getReportPm({
-                ...content,
-                reporterName,
-                ...(index === 0 && moreFirstContent),
-              }),
+              getReportPm(
+                {
+                  ...content,
+                  reporterName,
+                  ...(index === 0 && moreFirstContent),
+                },
+                index === 0 ? version : 1,
+              ),
             )
           : [
-              getReportPm({
-                ...content,
-                reporterName: null,
-                ...(index === 0 && moreFirstContent),
-              }),
+              getReportPm(
+                {
+                  ...content,
+                  reporterName: null,
+                  ...(index === 0 && moreFirstContent),
+                },
+                index === 0 ? version : 1,
+              ),
             ],
       )
       .flat();
@@ -306,11 +314,13 @@ describe('Import Nominations from local file', () => {
 
   const getReportPm = (
     content: NominationFileRead['content'] & { reporterName: string | null },
+    version: number,
   ): typeof reports.$inferSelect => ({
     id: expect.any(String),
     nominationFileId: expect.any(String),
     createdAt: expect.any(Date),
     reporterId: reportersMap[content.reporterName!]!,
+    version,
     folderNumber: content.folderNumber,
     state: NominationFile.ReportState.NEW,
     dueDate: content.dueDate
@@ -327,6 +337,7 @@ describe('Import Nominations from local file', () => {
     biography: content.biography,
     comment: null,
     observers: content.observers,
+    attachedFiles: null,
   });
 });
 

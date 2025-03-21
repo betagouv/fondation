@@ -1,8 +1,13 @@
 import { z, ZodType } from "zod";
 import { NominationFile } from "../nomination-file.namespace";
-import { ReportRetrievalVM } from "../report-retrieval-vm";
+import { ReportFileUsage, ReportRetrievalVM } from "../report-retrieval-vm";
 import { ReportListingVM } from "../reports-listing-vm";
-import { RestContract, ZodDto } from "./common";
+import {
+  RestContract,
+  ZodDto,
+  ZodParamsDto,
+  ZodQueryParamsDto,
+} from "./common";
 
 export interface ReportsContextRestContract extends RestContract {
   basePath: "api/reports";
@@ -32,23 +37,31 @@ export interface ReportsContextRestContract extends RestContract {
       path: "";
       response: ReportListingVM;
     };
-    attachFile: {
+    uploadFile: {
       method: "POST";
       path: ":id/files/upload-one";
       params: { id: string };
+      queryParams: { usage: ReportFileUsage };
       body: FormData;
       response: void;
     };
     generateFileUrl: {
       method: "GET";
-      path: ":reportId/files/:fileName";
+      path: ":reportId/files/byName/:fileName";
       params: { reportId: string; fileName: string };
       response: string;
     };
-    deleteAttachedFile: {
+    deleteFile: {
       method: "DELETE";
-      path: ":id/files/:fileName";
+      path: ":id/files/byName/:fileName";
       params: { id: string; fileName: string };
+      response: void;
+    };
+    deleteFiles: {
+      method: "DELETE";
+      path: ":id/files/byNames";
+      params: { id: string };
+      queryParams: { fileNames: string | string[] };
       response: void;
     };
   };
@@ -71,3 +84,13 @@ export const reportUpdateDto = z.object({
 export const changeRuleValidationStateDto = z.object({
   validated: z.boolean(),
 }) satisfies ZodDto<ReportsContextRestContract, "updateRule">;
+
+export const attachFileQuerySchema = z.object({
+  usage: z.nativeEnum(ReportFileUsage),
+}) satisfies ZodQueryParamsDto<ReportsContextRestContract, "uploadFile">;
+
+export const deleteReportFilesQuerySchema = z.object({
+  fileNames: z
+    .union([z.string(), z.string().array()])
+    .transform((v) => (Array.isArray(v) ? v : [v])),
+}) satisfies ZodQueryParamsDto<ReportsContextRestContract, "deleteFiles">;

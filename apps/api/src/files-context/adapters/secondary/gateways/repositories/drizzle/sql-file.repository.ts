@@ -31,6 +31,15 @@ export class SqlFileRepository implements FileRepository {
     };
   }
 
+  deleteFiles(files: FileDocument[]): DrizzleTransactionableAsync {
+    return async (db) => {
+      if (files.length === 0) return;
+
+      const fileIds = files.map((file) => file.toSnapshot().id);
+      await db.delete(filesPm).where(inArray(filesPm.id, fileIds));
+    };
+  }
+
   static mapToDb(file: FileDocument): typeof filesPm.$inferInsert {
     return this.mapSnapshotToDb(file.toSnapshot());
   }

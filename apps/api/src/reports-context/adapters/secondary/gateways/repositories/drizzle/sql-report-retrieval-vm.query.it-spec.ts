@@ -1,6 +1,7 @@
 import { NominationFile } from 'shared-models';
 import { ReportRetrievalQueried } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
+import { ReportAttachedFileBuilder } from 'src/reports-context/business-logic/models/report-attached-file.builder';
 import { ReportRetrievalBuilder } from 'src/reports-context/business-logic/models/report-retrieval-vm.builder';
 import {
   ReportRule,
@@ -15,24 +16,24 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { reportAttachedFiles } from './schema';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalQuery } from './sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { SqlReportRepository } from './sql-report.repository';
 import {
-  ReportAttachedFile,
-  ReportAttachedFileSnapshot,
-} from 'src/reports-context/business-logic/models/report-attached-file';
-import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
   let sqlReportRetrievalVMQuery: SqlReportRetrievalQuery;
+  let givenSomeReports: GivenSomeReports;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
   });
 
   beforeEach(async () => {
@@ -51,71 +52,53 @@ describe('SQL Report Retrieval VM Query', () => {
   });
 
   describe('when there is a report', () => {
-    let aReport: NominationFileReportSnapshot;
-    let aReportNotOwned: NominationFileReportSnapshot;
-    let aReportRuleSnapshot: ReportRuleSnapshot;
-
-    beforeEach(async () => {
-      aReport = new ReportBuilder('uuid')
+    it('retrieves a report', async () => {
+      const aReport = new ReportBuilder('uuid')
         .with('dueDate', new DateOnly(2030, 10, 1))
         .with('observers', ['observer1'])
         .build();
+      await givenSomeReports(aReport);
+      const aReportRuleSnapshot = await givenSomeRule(aReport.id);
 
-      aReportNotOwned = new ReportBuilder()
-        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
-        .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
-        .with('dueDate', new DateOnly(2040, 5, 1))
-        .build();
-
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      const anotherReportRow =
-        SqlReportRepository.mapSnapshotToDb(aReportNotOwned);
-      await db.insert(reports).values([reportRow, anotherReportRow]).execute();
-
-      aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
-    });
-
-    it('retrieves a report', async () => {
-      const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
       const result = await sqlReportRetrievalVMQuery.retrieveReport(
         aReport.id,
         aReport.reporterId!,
       );
+
       expect(result).toEqual<ReportRetrievalQueried>(
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
           aReport,
         )
-          .with('rules', expectedRules)
+          .with('rules', prepareExpectedRules(aReportRuleSnapshot))
           .buildQueried(),
       );
     });
 
     it("doesn't return a report not owned by the reporter", async () => {
+      const aReport = new ReportBuilder('uuid').build();
+      const aReportNotOwned = new ReportBuilder('uuid')
+        .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
+        .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
+        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
+        .with('dueDate', new DateOnly(2040, 5, 1))
+        .build();
+      await givenSomeReports(aReport, aReportNotOwned);
+
       const result = await sqlReportRetrievalVMQuery.retrieveReport(
         aReportNotOwned.id,
         aReport.reporterId!,
       );
+
       expect(result).toBeNull();
     });
 
     it('retrieves a report with its file', async () => {
-      const aFile: ReportAttachedFileSnapshot = {
-        createdAt: new Date(2020, 10, 10),
-        fileId: 'file-id',
-        name: 'file.txt',
-        reportId: aReport.id,
-      };
-      const expectedRules = prepareExpectedRules(aReportRuleSnapshot);
-      await db
-        .insert(reportAttachedFiles)
-        .values({
-          createdAt: aFile.createdAt,
-          reportId: aReport.id,
-          name: aFile.name,
-          fileId: aFile.fileId,
-        })
-        .execute();
+      const anAttachedFile = new ReportAttachedFileBuilder().build();
+      const aReport = new ReportBuilder('uuid')
+        .with('attachedFiles', [anAttachedFile])
+        .build();
+      await givenSomeReports(aReport);
+      const aReportRuleSnapshot = await givenSomeRule(aReport.id);
 
       const result = await sqlReportRetrievalVMQuery.retrieveReport(
         aReport.id,
@@ -126,11 +109,8 @@ describe('SQL Report Retrieval VM Query', () => {
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
           aReport,
         )
-          .with('rules', expectedRules)
-          .with(
-            'attachedFilesVO',
-            new ReportAttachedFiles([ReportAttachedFile.fromSnapshot(aFile)]),
-          )
+          .with('files', [anAttachedFile])
+          .with('rules', prepareExpectedRules(aReportRuleSnapshot))
           .buildQueried();
       expect(result).toEqual<ReportRetrievalQueried>(aReportQueried);
     });
@@ -149,7 +129,7 @@ describe('SQL Report Retrieval VM Query', () => {
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
-      aReportRuleSnapshot = await givenSomeRuleExists(aReport.id);
+      aReportRuleSnapshot = await givenSomeRule(aReport.id);
     });
 
     it('retrieves with empty values', async () => {
@@ -184,7 +164,7 @@ describe('SQL Report Retrieval VM Query', () => {
     } as NominationFile.Rules;
   };
 
-  const givenSomeRuleExists = async (reportId: string) => {
+  const givenSomeRule = async (reportId: string) => {
     const aReportRuleSnapshot = new ReportRuleBuilder()
       .with('id', 'da1619e2-263d-49b6-b928-6a04ee681132')
       .with('reportId', reportId)

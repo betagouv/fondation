@@ -1,7 +1,7 @@
-import { fileTypeFromBuffer } from "file-type";
+import { ReportFileUsage } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
-type AttachReportFileParams = {
+export type AttachReportFileParams = {
   reportId: string;
   file: File;
 };
@@ -12,31 +12,26 @@ export const attachReportFile = createAppAsyncThunk<
 >(
   "report/attachFile",
   async (
-    { reportId, file },
+    args,
     {
+      getState,
       extra: {
         gateways: { reportGateway },
+        providers: { fileProvider },
       },
     },
   ) => {
-    const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsArrayBuffer(file);
-    });
+    const { reportId, file } = args;
+    const fileBuffer = await fileProvider.bufferFromFile(file);
 
-    const fileType = await fileTypeFromBuffer(fileBuffer);
+    const mimeType = await fileProvider.mimeTypeFromBuffer(fileBuffer);
+    const acceptedMimeTypes =
+      getState().reportOverview.acceptedMimeTypes.attachedFiles;
 
-    if (!fileType) {
-      throw new Error("Invalid file type");
+    if (!mimeType || !acceptedMimeTypes.includes(mimeType)) {
+      throw new Error(`Invalid mime type: ${mimeType || ""}`);
     }
 
-    const acceptedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
-    if (!fileType || !acceptedMimeTypes.includes(fileType.mime)) {
-      throw new Error("Invalid file type");
-    }
-
-    return reportGateway.attachFile(reportId, file);
+    await reportGateway.uploadFile(reportId, file, ReportFileUsage.ATTACHMENT);
   },
 );

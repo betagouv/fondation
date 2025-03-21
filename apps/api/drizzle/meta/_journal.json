@@ -260,6 +260,20 @@
       "when": 1741963932059,
       "tag": "0036_data_administration__add_3_march_transparency",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "when": 1742570401,
+      "version": "7",
+      "tag": "0037_reports_context__attached_files_value_objects",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1742570481,
+      "tag": "0038_reports__add_reports_versions",
+      "breakpoints": true
     }
   ]
 }

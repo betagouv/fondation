@@ -1,24 +1,27 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { useCurrentEditor } from "@tiptap/react";
 import clsx from "clsx";
+import { FC } from "react";
 import { BoldButton } from "./buttons/BoldButton";
 import { BulletListButton } from "./buttons/BulletListButton";
 import { HeadingButton } from "./buttons/HeadingButton";
 import { HighlightButton } from "./buttons/HighlightButton";
+import { ImageUploadButton } from "./buttons/ImageUploadButton";
 import { IndentDecreaseButton } from "./buttons/IndentDecreaseButton";
 import { IndentIncreaseButton } from "./buttons/IndentIncreaseButton";
 import { ItalicButton } from "./buttons/ItalicButton";
+import { OrderedListButton } from "./buttons/OrderedListButton";
 import { TextColorButton } from "./buttons/TextColorButton";
 import { UnderlineButton } from "./buttons/UnderlineButton";
 import { headingLevels } from "./constant";
-import { OrderedListButton } from "./buttons/OrderedListButton";
+import { useScreenshotPaste } from "./useScreenshotPaste";
+import { InsertImage } from ".";
 
-export const MenuBar = () => {
-  const { editor } = useCurrentEditor();
+export interface MenuBarProps {
+  insertImage: InsertImage;
+}
 
-  if (!editor) {
-    return null;
-  }
+export const MenuBar: FC<MenuBarProps> = ({ insertImage }) => {
+  useScreenshotPaste(insertImage);
 
   return (
     <div className={clsx("sticky top-2 z-10 bg-white", cx("fr-my-4v"))}>
@@ -35,6 +38,7 @@ export const MenuBar = () => {
         <BulletListButton />
         <IndentDecreaseButton />
         <IndentIncreaseButton />
+        <ImageUploadButton insertEditorImage={insertImage} />
       </div>
     </div>
   );

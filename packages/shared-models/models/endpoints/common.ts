@@ -25,6 +25,11 @@ export type ZodParamsDto<
   E extends keyof C["endpoints"],
 > = ZodType<C["endpoints"][E]["params"]>;
 
+export type ZodQueryParamsDto<
+  C extends RestContract,
+  E extends keyof C["endpoints"],
+> = ZodType<C["endpoints"][E]["queryParams"]>;
+
 export const interpolateUrlParams = (
   url: URL,
   params: Record<string, string>

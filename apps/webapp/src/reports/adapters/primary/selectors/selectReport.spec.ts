@@ -1,4 +1,4 @@
-import { AllRulesMapV2, NominationFile } from "shared-models";
+import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
 import { ConditionalExcept } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../../store/appState";
@@ -76,7 +76,11 @@ describe("Select Report", () => {
         .with("rules.management.TRANSFER_TIME.validated", true)
         .with("rules.management.TRANSFER_TIME.preValidated", false)
         .with("attachedFiles", [
-          { name: "test.pdf", signedUrl: "http://example.fr/test.pdf" },
+          {
+            usage: ReportFileUsage.ATTACHMENT,
+            name: "test.pdf",
+            signedUrl: "http://example.fr/test.pdf",
+          },
         ])
         .buildRetrieveSM();
       givenAReport(aReport);
@@ -303,7 +307,9 @@ describe("Select Report", () => {
     );
   });
 
-  const givenAReport = (report: ReportSM) => {
+  const givenAReport = (
+    report: ReturnType<typeof reportBuilder.buildRetrieveSM>,
+  ) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));
   };
 });
@@ -362,7 +368,9 @@ describe("Select Report - Summary and Age", () => {
     expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
   });
 
-  const givenAReport = (report: ReportSM) => {
+  const givenAReport = (
+    report: ReturnType<typeof reportBuilder.buildRetrieveSM>,
+  ) => {
     store.dispatch(retrieveReport.fulfilled(report, "", ""));
   };
 

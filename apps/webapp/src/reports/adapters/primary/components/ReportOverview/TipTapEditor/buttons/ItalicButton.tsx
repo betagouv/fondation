@@ -1,11 +1,17 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
-export const ItalicButton = () => {
-  const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleItalic().run();
+export const ItalicButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) =>
+      !ctx.editor || !ctx.editor.can().chain().focus().toggleItalic().run(),
+  });
 
-  const toggleItalic = (editor: Editor) => () => {
+  const toggleItalic = () => {
+    if (!editor) return;
     editor.chain().focus().toggleItalic().run();
   };
 
@@ -14,8 +20,8 @@ export const ItalicButton = () => {
       iconId="fr-icon-italic"
       title="Italique"
       mark="italic"
-      disabledFactory={getDisabled}
-      onClickFactory={toggleItalic}
+      disabled={!!disabled}
+      onClick={toggleItalic}
     />
   );
 };

@@ -1,13 +1,25 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { HeadingLevel } from "../constant";
 import { EditorButton } from "./EditorButton";
 
-export const HeadingButton = ({ level }: { level: HeadingLevel }) => {
-  const toggleHeading = (editor: Editor) => () =>
-    editor.chain().focus().toggleHeading({ level }).run();
+type HeadingButtonProps = {
+  level: HeadingLevel;
+};
 
-  const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleHeading({ level }).run();
+export const HeadingButton: FC<HeadingButtonProps> = ({ level }) => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) =>
+      !ctx.editor ||
+      !ctx.editor.can().chain().focus().toggleHeading({ level }).run(),
+  });
+
+  const toggleHeading = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleHeading({ level }).run();
+  };
 
   return (
     <EditorButton
@@ -15,8 +27,8 @@ export const HeadingButton = ({ level }: { level: HeadingLevel }) => {
       title={`H${level}`}
       mark="heading"
       attributes={{ level }}
-      onClickFactory={toggleHeading}
-      disabledFactory={getDisabled}
+      onClick={toggleHeading}
+      disabled={!!disabled}
     />
   );
 };

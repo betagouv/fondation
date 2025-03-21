@@ -1,20 +1,27 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
-export const BulletListButton = () => {
-  const toggleBulletList = (editor: Editor) => () =>
-    editor.chain().focus().toggleBulletList().run();
+export const BulletListButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) =>
+      !ctx.editor || !ctx.editor.can().chain().focus().toggleBulletList().run(),
+  });
 
-  const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleBulletList().run();
+  const toggleBulletList = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleBulletList().run();
+  };
 
   return (
     <EditorButton
       iconId="fr-icon-list-unordered"
       title="Liste à puces"
       mark="bulletList"
-      onClickFactory={toggleBulletList}
-      disabledFactory={getDisabled}
+      onClick={toggleBulletList}
+      disabled={!!disabled}
     />
   );
 };

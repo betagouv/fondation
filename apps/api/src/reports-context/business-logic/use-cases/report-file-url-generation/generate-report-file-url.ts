@@ -1,20 +1,22 @@
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { ReportAttachedFileRepository } from '../../gateways/repositories/report-attached-file.repository';
+import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { ReportFileService } from '../../gateways/services/report-file-service';
 
 export class GenerateReportFileUrlUseCase {
   constructor(
     private transactionPerformer: TransactionPerformer,
-    private reportAttachedFileRepository: ReportAttachedFileRepository,
+    private reportRepository: ReportRepository,
     private reportFileService: ReportFileService,
   ) {}
 
   async execute(reportId: string, fileName: string): Promise<string> {
     return this.transactionPerformer.perform(async (trx) => {
-      const file = await this.reportAttachedFileRepository.byFileName(
-        reportId,
-        fileName,
-      )(trx);
+      const report = await this.reportRepository.byId(reportId)(trx);
+      if (!report) {
+        throw new Error(`Report not found by id: ${reportId}`);
+      }
+
+      const file = report.attachedFiles?.byName(fileName);
       if (!file) {
         throw new Error(
           `File not found by name: ${fileName} and report id: ${reportId}`,

@@ -19,7 +19,7 @@ const importedNominationFileId = 'imported-nomination-file-id';
 const userId = 'reporter-id';
 
 describe('Create Report Use Case', () => {
-  let nominationFileReportRepository: FakeNominationFileReportRepository;
+  let reportRepository: FakeNominationFileReportRepository;
   let transactionPerformer: TransactionPerformer;
   let uuidGenerator: DeterministicUuidGenerator;
   let reportRuleRepository: FakeReportRuleRepository;
@@ -27,7 +27,7 @@ describe('Create Report Use Case', () => {
   let reporterTranslatorService: ReporterTranslatorService;
 
   beforeEach(() => {
-    nominationFileReportRepository = new FakeNominationFileReportRepository();
+    reportRepository = new FakeNominationFileReportRepository();
     transactionPerformer = new NullTransactionPerformer();
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [nominationFileReportId];
@@ -69,6 +69,7 @@ describe('Create Report Use Case', () => {
       id: nominationFileReportId,
       nominationFileId: importedNominationFileId,
       createdAt: datetimeProvider.currentDate,
+      version: 0,
       folderNumber: payload.folderNumber,
       biography: payload.biography,
       dueDate: new DateOnly(2035, 8, 22),
@@ -119,7 +120,7 @@ describe('Create Report Use Case', () => {
 
   const createAReport = (payload: ReportToCreate) =>
     new CreateReportUseCase(
-      nominationFileReportRepository,
+      reportRepository,
       transactionPerformer,
       uuidGenerator,
       reportRuleRepository,
@@ -128,9 +129,7 @@ describe('Create Report Use Case', () => {
     ).execute(importedNominationFileId, payload);
 
   const expectReports = (...reports: NominationFileReportSnapshot[]) => {
-    expect(Object.values(nominationFileReportRepository.reports)).toEqual(
-      reports,
-    );
+    expect(Object.values(reportRepository.reports)).toEqual(reports);
   };
 
   const expectRulesFromPayload = (payloadRules: ReportToCreate['rules']) => {

@@ -1,15 +1,24 @@
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
-export const deleteReportAttachedFile = createAppAsyncThunk(
-  "report/deleteReportAttachedFile",
+export type DeleteReportAttachedFileParams = {
+  reportId: string;
+  fileName: string;
+};
+
+export const deleteReportFile = createAppAsyncThunk<
+  void,
+  DeleteReportAttachedFileParams
+>(
+  "report/deleteReportFile",
   async (
-    { reportId, fileName }: { reportId: string; fileName: string },
+    args,
     {
       extra: {
         gateways: { reportGateway },
       },
     },
   ) => {
-    await reportGateway.deleteAttachedFile(reportId, fileName);
+    const { reportId, fileName } = args;
+    return reportGateway.deleteFile(reportId, fileName);
   },
 );

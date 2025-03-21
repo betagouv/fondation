@@ -1,22 +1,34 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
-export const IndentDecreaseButton = () => {
-  const decreaseIndent = (editor: Editor) => () =>
+export const IndentDecreaseButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) => {
+      if (!ctx.editor) return true;
+
+      const cannotToggleList =
+        !ctx.editor.can().chain().focus().toggleBulletList().run() &&
+        !ctx.editor.can().chain().focus().toggleOrderedList().run();
+
+      return (
+        cannotToggleList ||
+        !ctx.editor.can().chain().focus().liftListItem("listItem").run()
+      );
+    },
+  });
+
+  const decreaseIndent = () => {
+    if (!editor) return;
     editor.chain().focus().liftListItem("listItem").run();
-
-  const cannotToggleList = (editor: Editor) =>
-    !editor.can().chain().focus().toggleBulletList().run() &&
-    !editor.can().chain().focus().toggleOrderedList().run();
-
-  const getDisabled = (editor: Editor) =>
-    cannotToggleList(editor) ||
-    !editor.can().chain().focus().liftListItem("listItem").run();
+  };
 
   return (
     <EditorButton
-      onClickFactory={decreaseIndent}
-      disabledFactory={getDisabled}
+      onClick={decreaseIndent}
+      disabled={!!disabled}
       iconId="ri-indent-decrease"
       title="Diminuer le retrait"
     />

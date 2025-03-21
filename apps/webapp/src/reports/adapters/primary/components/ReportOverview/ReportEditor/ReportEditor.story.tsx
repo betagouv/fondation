@@ -1,12 +1,14 @@
 import { Provider } from "react-redux";
 import { AllRulesMapV2, NominationFile } from "shared-models";
+import { DeterministicDateProvider } from "../../../../../../shared-kernel/adapters/secondary/providers/deterministicDateProvider";
+import { StubBrowserFileProvider } from "../../../../../../shared-kernel/adapters/secondary/providers/stubBrowserFileProvider";
 import { initReduxStore, ReduxStore } from "../../../../../../store/reduxStore";
 import { ReportBuilder } from "../../../../../core-logic/builders/Report.builder";
 import { ReportApiModelBuilder } from "../../../../../core-logic/builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../../../../core-logic/listeners/report-file-attached.listeners";
 import { retrieveReport } from "../../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { ApiReportGateway } from "../../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
+import { RulesLabelsMap } from "../../../labels/rules-labels";
 import ReportOverview from "../ReportOverview";
 
 declare const window: {
@@ -36,15 +38,28 @@ export function ReportEditorForTest({ content }: ReportEditorForTestProps) {
   reportApiClient.addReports(reportApiModel);
   const reportGateway = new ApiReportGateway(reportApiClient);
 
+  const fileProvider = new StubBrowserFileProvider();
+  fileProvider.mimeType = "image/png";
+
   const store = initReduxStore(
     {
       reportGateway,
     },
+    {
+      fileProvider,
+      dateProvider: new DeterministicDateProvider(),
+    },
     {},
     {},
-    { reportFileAttached },
     undefined,
     testRulesMap,
+    {
+      [NominationFile.RuleGroup.MANAGEMENT]: {},
+      [NominationFile.RuleGroup.STATUTORY]: {},
+      [NominationFile.RuleGroup.QUALITATIVE]: {},
+    } as RulesLabelsMap,
+    [],
+    new Date(),
   );
 
   const report = ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();

@@ -1,10 +1,15 @@
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  Magistrat,
+  NominationFile,
+  ReportFileUsage,
+  Transparency,
+} from "shared-models";
+import { ReportListItem, ReportScreenshots } from "../../../../store/appState";
 import {
   ReportGateway,
   UpdateReportParams,
 } from "../../../core-logic/gateways/Report.gateway";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
-import { ReportListItem, ReportSM } from "../../../../store/appState";
 
 export class ApiReportGateway implements ReportGateway {
   constructor(private readonly reportApiClient: ReportApiClient) {}
@@ -13,21 +18,16 @@ export class ApiReportGateway implements ReportGateway {
     reportId: string,
     data: UpdateReportParams,
   ): Promise<void> {
-    const updateData = {
-      comment: data.comment,
-      state: data.state,
-    };
-    await this.reportApiClient.updateReport(reportId, updateData);
+    await this.reportApiClient.updateReport(reportId, data);
   }
 
   async updateRule(ruleId: string, validated: boolean): Promise<void> {
     await this.reportApiClient.updateRule(ruleId, validated);
   }
 
-  async retrieveReport(id: string): Promise<ReportSM | null> {
+  async retrieveReport(id: string) {
     const report = await this.reportApiClient.retrieveReport(id);
 
-    if (!report) return null;
     return {
       id: report.id,
       folderNumber: report.folderNumber,
@@ -45,7 +45,26 @@ export class ApiReportGateway implements ReportGateway {
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
-      attachedFiles: report.attachedFiles,
+      attachedFiles:
+        report.attachedFiles?.filter(
+          (file) => file.usage === ReportFileUsage.ATTACHMENT,
+        ) ?? null,
+      contentScreenshots:
+        report.attachedFiles
+          ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
+          .reduce(
+            (acc, file) => ({
+              files: [
+                ...acc.files,
+                {
+                  name: file.name,
+                  signedUrl: file.signedUrl,
+                },
+              ],
+              isUploading: false,
+            }),
+            { files: [], isUploading: false } as ReportScreenshots,
+          ) ?? null,
     };
   }
 
@@ -65,15 +84,26 @@ export class ApiReportGateway implements ReportGateway {
     }));
   }
 
-  attachFile(reportId: string, file: File): Promise<void> {
-    return this.reportApiClient.attachFile(reportId, file);
+  uploadFile(reportId: string, file: File, usage: ReportFileUsage) {
+    return this.reportApiClient.uploadFile(reportId, file, usage);
   }
 
   generateFileUrl(reportId: string, fileName: string): Promise<string> {
     return this.reportApiClient.generateFileUrl(reportId, fileName);
   }
 
-  async deleteAttachedFile(reportId: string, fileName: string): Promise<void> {
-    await this.reportApiClient.deleteAttachedFile(reportId, fileName);
+  generateFileUrlEndpoint(
+    reportId: string,
+    fileName: string,
+  ): Promise<{ urlEndpoint: string; method: "GET" }> {
+    return this.reportApiClient.generateFileUrlEndpoint(reportId, fileName);
+  }
+
+  async deleteFile(reportId: string, fileName: string): Promise<void> {
+    await this.reportApiClient.deleteFile(reportId, fileName);
+  }
+
+  async deleteFiles(reportId: string, fileNames: string[]): Promise<void> {
+    await this.reportApiClient.deleteFiles(reportId, fileNames);
   }
 }

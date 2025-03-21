@@ -8,7 +8,6 @@ import {
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
 import { NominationFileReportSnapshot } from './nomination-file-report';
-import { ReportAttachedFiles } from './report-attached-files';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -90,7 +89,7 @@ export class ReportRetrievalBuilder<
         },
       },
       attachedFiles: null,
-      attachedFilesVO: new ReportAttachedFiles(),
+      files: [],
     };
   }
 
@@ -146,7 +145,7 @@ export class ReportRetrievalBuilder<
       rank: report.rank,
       observers: report.observers,
       rules: report.rules,
-      attachedFilesVO: report.attachedFilesVO,
+      files: report.files?.length ? report.files : null,
     };
   }
 

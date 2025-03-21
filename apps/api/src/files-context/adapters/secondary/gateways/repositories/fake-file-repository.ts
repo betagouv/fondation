@@ -11,6 +11,10 @@ export class FakeFileRepository implements FileRepository {
   files: Record<FileId, FileDocumentSnapshot> = {};
   saveFileError: Error;
   deleteFileError: Error;
+  deleteFilesError: Error;
+  deleteFilesErrorIndex = 0;
+  deleteFilesErrorCount = 0;
+  deleteFilesErrorCountLimit = Infinity;
 
   save(file: FileDocument): TransactionableAsync {
     return async () => {
@@ -31,6 +35,20 @@ export class FakeFileRepository implements FileRepository {
       if (this.deleteFileError) throw this.deleteFileError;
 
       if (file) delete this.files[file.id];
+    };
+  }
+
+  deleteFiles(files: FileDocument[]): TransactionableAsync {
+    return async () => {
+      for (const [index, file] of files.entries()) {
+        if (
+          this.deleteFilesError &&
+          this.deleteFilesErrorIndex === index &&
+          this.deleteFilesErrorCount++ < this.deleteFilesErrorCountLimit
+        )
+          throw this.deleteFilesError;
+        delete this.files[file.id];
+      }
     };
   }
 }

@@ -25,6 +25,7 @@ export class ReportBuilder {
       reporterId: isFakeId
         ? 'reporter-id'
         : 'bc2588b6-fcd9-46d1-9baf-306dd0704015',
+      version: 0,
       folderNumber: 1,
       name: 'John Doe',
       biography: 'Biography',
@@ -54,8 +55,17 @@ export class ReportBuilder {
     return this;
   }
 
+  incrementVersion() {
+    this._snapshot.version++;
+    return this;
+  }
+
   build(): NominationFileReportSnapshot {
     return this._snapshot;
+  }
+
+  static forUpdate(idMode: 'fake' | 'uuid' = 'fake'): ReportBuilder {
+    return new ReportBuilder(idMode).with('version', 1);
   }
 
   static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {
@@ -118,6 +128,7 @@ export class ReportBuilder {
       .with('id', report.id)
       .with('nominationFileId', report.nominationFileId)
       .with('reporterId', report.reporterId)
+      .with('version', report.version)
       .with('folderNumber', report.folderNumber)
       .with('dueDate', report.dueDate)
       .with('birthDate', report.birthDate)

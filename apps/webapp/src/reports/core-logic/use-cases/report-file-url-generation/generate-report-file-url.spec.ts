@@ -10,6 +10,7 @@ import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { ReportFileUsage } from "shared-models";
 
 describe("Generate Report File Url", () => {
   let store: ReduxStore;
@@ -19,7 +20,6 @@ describe("Generate Report File Url", () => {
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
 
     store = initReduxStore(
@@ -35,33 +35,37 @@ describe("Generate Report File Url", () => {
   });
 
   it("generates a report file url", async () => {
+    const aReportApiModel = new ReportApiModelBuilder()
+      .with("attachedFiles", [
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          name: "file.png",
+          signedUrl,
+        },
+      ])
+      .build();
+    const aReport =
+      ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+
+    reportApiClient.addReports(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
     await store.dispatch(
       generateReportFileUrl({
         reportId: aReport.id,
-        fileName: "file.txt",
+        fileName: "file.png",
       }),
     );
     expectStoredReports({
       ...aReport,
       attachedFiles: [
         {
-          signedUrl: signedUrl,
-          name: "file.txt",
+          usage: ReportFileUsage.ATTACHMENT,
+          signedUrl,
+          name: "file.png",
         },
       ],
     });
   });
 });
 
-const signedUrl = "https://example.fr/file.txt";
-
-const aReportApiModel = new ReportApiModelBuilder()
-  .with("attachedFiles", [
-    {
-      name: "file.txt",
-      signedUrl: signedUrl,
-    },
-  ])
-  .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+const signedUrl = "https://example.fr/file.png";

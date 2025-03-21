@@ -31,6 +31,9 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { FileProvider } from "../shared-kernel/core-logic/providers/fileProvider";
+import { RealDateProvider } from "../shared-kernel/adapters/secondary/providers/realDateProvider";
+import { DateProvider } from "../shared-kernel/core-logic/providers/dateProvider";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -41,6 +44,8 @@ export interface Providers {
   routerProvider: RouterProvider;
   logoutNotifierProvider: LogoutNotifierProvider;
   loginNotifierProvider: LoginNotifierProvider;
+  fileProvider: FileProvider;
+  dateProvider: DateProvider;
 }
 
 export interface NestedPrimaryAdapters {
@@ -59,7 +64,7 @@ export type PartialAppDependencies = {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const defaultReportSummarySections: SummarySection[] = [
+export const defaultReportSummarySections: SummarySection[] = [
   {
     anchorId: reportHtmlIds.overview.biographySection,
     label: summaryLabels.biography,
@@ -131,6 +136,12 @@ export const initReduxStore = <IsTest extends boolean = true>(
 
   const reportListSlice = createReportListSlice();
 
+  // Set default dateProvider if not provided
+  const providersWithDefaults = {
+    ...providers,
+    dateProvider: providers.dateProvider || new RealDateProvider(),
+  };
+
   return configureStore({
     reducer: {
       sharedKernel: createSharedKernelSlice(currentDate).reducer,
@@ -151,7 +162,7 @@ export const initReduxStore = <IsTest extends boolean = true>(
     middleware: (getDefaultMiddleware) => {
       const appDependencies: PartialAppDependencies = {
         gateways: gateways ?? {},
-        providers: providers ?? {},
+        providers: providersWithDefaults,
       };
 
       const middleware = getDefaultMiddleware({

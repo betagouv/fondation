@@ -1,11 +1,17 @@
-import { Editor } from "@tiptap/react";
+import { useCurrentEditor, useEditorState } from "@tiptap/react";
+import { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
-export const UnderlineButton = () => {
-  const getDisabled = (editor: Editor) =>
-    !editor.can().chain().focus().toggleUnderline().run();
+export const UnderlineButton: FC = () => {
+  const { editor } = useCurrentEditor();
+  const disabled = useEditorState({
+    editor,
+    selector: (ctx) =>
+      !ctx.editor || !ctx.editor.can().chain().focus().toggleUnderline().run(),
+  });
 
-  const toggleUnderline = (editor: Editor) => () => {
+  const toggleUnderline = () => {
+    if (!editor) return null;
     editor.chain().focus().toggleUnderline().run();
   };
 
@@ -14,8 +20,8 @@ export const UnderlineButton = () => {
       iconId="ri-underline"
       title="Souligner"
       mark="underline"
-      disabledFactory={getDisabled}
-      onClickFactory={toggleUnderline}
+      disabled={!!disabled}
+      onClick={toggleUnderline}
     />
   );
 };

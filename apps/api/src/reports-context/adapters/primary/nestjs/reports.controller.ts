@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -28,6 +29,9 @@ import {
 import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
+import { AttachFileQueryParams } from './dto/attach-file-query-params.dto';
+import { DeleteFilesQueryDto } from './dto/delete-files-query.dto';
+import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -37,9 +41,10 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   listReports: '',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
-  attachFile: ':id/files/upload-one',
-  generateFileUrl: ':reportId/files/:fileName',
-  deleteAttachedFile: ':id/files/:fileName',
+  uploadFile: ':id/files/upload-one',
+  generateFileUrl: ':reportId/files/byName/:fileName',
+  deleteFile: ':id/files/byName/:fileName',
+  deleteFiles: ':id/files/byNames',
 };
 
 @Controller(baseRoute)
@@ -52,6 +57,7 @@ export class ReportsController implements IReportController {
     private readonly attachReportFileUseCase: AttachReportFileUseCase,
     private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
+    private readonly deleteReportAttachedFilesUseCase: DeleteReportAttachedFilesUseCase,
   ) {}
 
   @Get(endpointsPaths.listReports)
@@ -94,20 +100,23 @@ export class ReportsController implements IReportController {
     await this.changeRuleValidationStateUseCase.execute(ruleId, dto.validated);
   }
 
-  @Post(endpointsPaths.attachFile)
+  @Post(endpointsPaths.uploadFile)
   @UseInterceptors(FileInterceptor('file'))
-  async attachFile(
+  async uploadFile(
     @Param()
-    { id }: ReportsContextRestContract['endpoints']['attachFile']['params'],
+    { id }: ReportsContextRestContract['endpoints']['uploadFile']['params'],
     @UploadedFile() file: Express.Multer.File,
+    @Query() query: AttachFileQueryParams,
     @Req() req: Request,
   ) {
     const reporterId = req.userId!;
+    const { usage } = query;
     return this.attachReportFileUseCase.execute(
       id,
       file.originalname,
       file.buffer,
       reporterId,
+      usage,
     );
   }
 
@@ -122,14 +131,24 @@ export class ReportsController implements IReportController {
     return this.generateReportFileUrlUseCase.execute(reportId, fileName);
   }
 
-  @Delete(endpointsPaths.deleteAttachedFile)
-  async deleteAttachedFile(
+  @Delete(endpointsPaths.deleteFile)
+  async deleteFile(
     @Param()
     {
       id,
       fileName,
-    }: ReportsContextRestContract['endpoints']['deleteAttachedFile']['params'],
+    }: ReportsContextRestContract['endpoints']['deleteFile']['params'],
   ) {
     return this.deleteReportAttachedFileUseCase.execute(id, fileName);
+  }
+
+  @Delete(endpointsPaths.deleteFiles)
+  async deleteFiles(
+    @Param()
+    { id }: ReportsContextRestContract['endpoints']['deleteFiles']['params'],
+    @Query() query: DeleteFilesQueryDto,
+  ) {
+    const { fileNames } = query;
+    return this.deleteReportAttachedFilesUseCase.execute(id, fileNames);
   }
 }

@@ -6,12 +6,23 @@ import {
   Transparency,
 } from "shared-models";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
+import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
 import { RouteChangedHandler } from "../router/core-logic/components/routeChangedHandler";
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
-import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 import { RouterProvider } from "../router/core-logic/providers/router";
-import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
+import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
+import { SetOptional } from "type-fest";
+
+export type ReportScreenshotSM = {
+  name: string;
+  signedUrl: string;
+};
+
+export type ReportScreenshots = {
+  files: ReportScreenshotSM[];
+  isUploading: boolean;
+};
 
 export interface ReportSM {
   id: string;
@@ -30,7 +41,9 @@ export interface ReportSM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  attachedFiles: AttachedFileVM[] | null;
+  // Lors de l'upload d'un fichier, l'url n'est pas encore créée
+  attachedFiles: SetOptional<AttachedFileVM, "signedUrl">[] | null;
+  contentScreenshots: ReportScreenshots | null;
 }
 export type ReportListItem = Pick<
   ReportSM,
@@ -52,6 +65,10 @@ export interface AppState<IsTest extends boolean = false> {
     currentDate: Date;
   };
   reportOverview: {
+    acceptedMimeTypes: {
+      embeddedScreenshots: string[];
+      attachedFiles: string[];
+    };
     summarySections: SummarySection[];
     queryStatus: Record<string, QueryStatus>;
     byIds: Record<string, ReportSM> | null;

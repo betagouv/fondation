@@ -4,6 +4,7 @@ import {
   ReportUpdateDto,
   reportUpdateDto,
   interpolateUrlParams,
+  ReportFileUsage,
 } from "shared-models";
 import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
 
@@ -25,7 +26,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     const response = await this.fetch(url, {
-      method: method,
+      method,
     });
     return response.json();
   }
@@ -52,7 +53,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +71,7 @@ export class FetchReportApiClient implements ReportApiClient {
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -78,19 +79,26 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  async attachFile(id: string, file: File) {
+  async uploadFile(id: string, file: File, usage: ReportFileUsage) {
     const formData = new FormData();
     formData.append("file", file, file.name);
 
-    const { method, path, params, body }: ClientFetchOptions["attachFile"] = {
+    const {
+      method,
+      path,
+      params,
+      body,
+      queryParams,
+    }: ClientFetchOptions["uploadFile"] = {
       method: "POST",
       path: ":id/files/upload-one",
       params: { id },
       body: formData,
+      queryParams: { usage },
     };
-    const url = this.resolveUrl(path, params);
+    const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {
-      method: method,
+      method,
       body: body,
     });
   }
@@ -98,33 +106,81 @@ export class FetchReportApiClient implements ReportApiClient {
   async generateFileUrl(reportId: string, fileName: string) {
     const { method, path, params }: ClientFetchOptions["generateFileUrl"] = {
       method: "GET",
-      path: ":reportId/files/:fileName",
+      path: ":reportId/files/byName/:fileName",
       params: { reportId, fileName },
     };
     const url = this.resolveUrl(path, params);
     const response = await this.fetch(url, {
-      method: method,
+      method,
     });
     return await response.text();
   }
 
-  async deleteAttachedFile(reportId: string, fileName: string) {
-    const { method, path, params }: ClientFetchOptions["deleteAttachedFile"] = {
+  async generateFileUrlEndpoint(reportId: string, fileName: string) {
+    const { method, path, params }: ClientFetchOptions["generateFileUrl"] = {
+      method: "GET",
+      path: ":reportId/files/byName/:fileName",
+      params: { reportId, fileName },
+    };
+    const url = this.resolveUrl(path, params);
+
+    return {
+      urlEndpoint: url,
+      method,
+    };
+  }
+
+  async deleteFile(reportId: string, fileName: string) {
+    const { method, path, params }: ClientFetchOptions["deleteFile"] = {
       method: "DELETE",
-      path: ":id/files/:fileName",
+      path: ":id/files/byName/:fileName",
       params: { id: reportId, fileName },
     };
     const url = this.resolveUrl(path, params);
     await this.fetch(url, {
-      method: method,
+      method,
     });
   }
 
-  private resolveUrl(path: string, params?: Record<string, string>): string {
+  async deleteFiles(reportId: string, fileNames: string[]) {
+    const {
+      method,
+      path,
+      params,
+      queryParams,
+    }: ClientFetchOptions["deleteFiles"] = {
+      method: "DELETE",
+      path: ":id/files/byNames",
+      params: { id: reportId },
+      queryParams: { fileNames },
+    };
+    const url = this.resolveUrl(path, params, queryParams);
+    await this.fetch(url, {
+      method,
+    });
+  }
+
+  private resolveUrl(
+    path: string,
+    params?: Record<string, string>,
+    queryParams?: Record<string, string | string[]>,
+  ): string {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
+    if (queryParams) this.buildQueryParams(url, queryParams);
+
     if (!params) return url.href;
     return interpolateUrlParams(url, params);
+  }
+
+  private buildQueryParams(
+    url: URL,
+    searchParams: Record<string, string | string[]>,
+  ) {
+    Object.entries(searchParams).forEach(([key, values]) => {
+      if (typeof values === "string") url.searchParams.append(key, values);
+      else values.forEach((value) => url.searchParams.append(key, value));
+    });
   }
 
   private async fetch(url: string, requestInit: RequestInit) {

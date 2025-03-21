@@ -8,7 +8,16 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeNominationFileReportRepository implements ReportRepository {
   reports: Record<string, NominationFileReportSnapshot> = {};
 
+  saveError: Error;
+  saveErrorCount = 0;
+  saveErrorCountLimit = Infinity;
+
   save(report: NominationFileReport): TransactionableAsync<void> {
+    if (this.saveError && this.saveErrorCount < this.saveErrorCountLimit) {
+      this.saveErrorCount++;
+      throw this.saveError;
+    }
+
     const snapshot = report.toSnapshot();
     return async () => {
       this.reports[snapshot.id] = snapshot;

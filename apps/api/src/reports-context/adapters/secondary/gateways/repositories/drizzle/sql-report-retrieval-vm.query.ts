@@ -4,13 +4,11 @@ import {
   ReportRetrievalQueried,
   ReportRetrievalQuery,
 } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
+import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { reportAttachedFiles } from './schema';
 import { reports } from './schema/report-pm'; // Drizzle ORM table definition
 import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition
-import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
-import { SqlReportAttachedFileRepository } from './sql-report-attached-file.repository';
 
 export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -37,6 +35,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
         rank: reports.rank,
         observers: reports.observers,
         observersCount: sql<number>`COALESCE(array_length(${reports.observers}, 1), 0)`,
+        files: reports.attachedFiles,
         // Rule fields
         ruleId: reportRules.id,
         ruleGroup: reportRules.ruleGroup,
@@ -88,12 +87,6 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       {} as NominationFile.Rules,
     );
 
-    const storedAttachedFiles = await this.db
-      .select()
-      .from(reportAttachedFiles)
-      .where(eq(reportAttachedFiles.reportId, id))
-      .execute();
-
     const reportRetrieval: ReportRetrievalQueried = {
       id: reportData.reportId,
       folderNumber: reportData.folderNumber,
@@ -113,9 +106,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       rank: reportData.rank,
       observers: reportData.observers,
       rules,
-      attachedFilesVO: new ReportAttachedFiles(
-        storedAttachedFiles.map(SqlReportAttachedFileRepository.toDomain),
-      ),
+      files: attachedFilesValidationSchema.parse(reportData.files),
     };
 
     return reportRetrieval;

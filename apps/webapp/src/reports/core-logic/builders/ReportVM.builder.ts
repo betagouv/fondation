@@ -3,6 +3,7 @@ import {
   AllRulesMapV2,
   Magistrat,
   NominationFile,
+  ReportFileUsage,
   Transparency,
 } from "shared-models";
 import { Get, Paths, SetOptional } from "type-fest";
@@ -43,6 +44,7 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
       ],
       attachedFiles: [
         {
+          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: "https://example.fr/image.png",
           name: "image.png",
         },
@@ -151,6 +153,12 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
           (o) => o.split("\n") as [string, ...string[]],
         ) || null,
       )
-      .with("attachedFiles", reportStoreModel.attachedFiles);
+      .with(
+        "attachedFiles",
+        reportStoreModel.attachedFiles?.map((file) => ({
+          ...file,
+          signedUrl: file.signedUrl ?? "placeholder signed url",
+        })) || null,
+      );
   }
 }

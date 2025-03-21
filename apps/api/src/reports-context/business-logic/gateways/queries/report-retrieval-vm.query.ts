@@ -4,7 +4,7 @@ import {
   NominationFile,
   Transparency,
 } from 'shared-models';
-import { ReportAttachedFiles } from '../../models/report-attached-files';
+import { ReportAttachedFilesSerialized } from '../../models/report-attached-files';
 
 export interface ReportRetrievalQueried {
   id: string;
@@ -23,9 +23,7 @@ export interface ReportRetrievalQueried {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  // The report retrieval includes files url generation,
-  // which is closer to a write need. So we need a value object here.
-  attachedFilesVO: ReportAttachedFiles;
+  files: ReportAttachedFilesSerialized;
 }
 
 export interface ReportRetrievalQuery {

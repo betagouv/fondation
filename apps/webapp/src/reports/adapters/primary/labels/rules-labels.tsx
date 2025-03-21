@@ -160,7 +160,13 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]: {
       label:
         "Exercice d'une profession juridique ou fonction publique élective dans le ressort du TJ depuis moins de 5 ans",
-      hint: `Le magistrat proposé ne doit pas avoir exercé une profession juridique (article 32 OS : avocat, notaire, huissier / commissaire de justice) ou une fonction publique élective (article 9 OS), dans le ressort du poste pressenti depuis moins de 5 ans.`,
+      hint: `Le magistrat proposé ne doit pas avoir exercé une profession juridique (article 32 OS : avocat, notaire, huissier / commissaire de justice) ou une fonction publique élective (article 9 OS), dans le ressort du poste pressenti depuis moins de 5 ans. 
+      
+      Le magistrat ne peut être nommé dans une juridiction dans le ressort de laquelle se trouve tout ou partie du département dont son conjoint est député ou sénateur. 
+      
+      Il ne peut exercer un mandat de conseiller régional, de conseiller départemental, de conseiller municipal ou de conseiller d'arrondissement, de conseiller de Paris, de conseiller de la métropole de Lyon, de conseiller de l'Assemblée de Corse, de conseiller de l'Assemblée de Guyane ou de conseiller de l'Assemblée de Martinique dans le ressort de la juridiction où il est proposé. 
+      
+      Il ne peut être nommé magistrat ni le demeurer dans une juridiction dans le ressort de laquelle il aura exercé depuis moins de cinq ans, une fonction publique élective ou fait acte de candidature à l'un de ces mandats, à l'exception du mandat de représentant au Parlement européen, depuis moins de trois ans (article 9 OS).`,
     },
   },
   [NominationFile.RuleGroup.QUALITATIVE]: {

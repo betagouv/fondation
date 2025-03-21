@@ -1,5 +1,5 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { PropsWithChildren } from "react";
+import { forwardRef, PropsWithChildren } from "react";
 import clsx from "clsx";
 
 export type CardProps = {
@@ -7,14 +7,17 @@ export type CardProps = {
   label?: string;
 } & PropsWithChildren;
 
-export const Card: React.FC<CardProps> = ({ id, label, children }) => {
-  return (
-    <section
-      id={id}
-      aria-label={label}
-      className={clsx("rounded-lg bg-white", cx("fr-px-3w", "fr-py-2w"))}
-    >
-      {children}
-    </section>
-  );
-};
+export const Card = forwardRef<HTMLElement, CardProps>(
+  ({ id, label, children }, ref) => {
+    return (
+      <section
+        ref={ref}
+        id={id}
+        aria-label={label}
+        className={clsx("rounded-lg bg-white", cx("fr-px-3w", "fr-py-2w"))}
+      >
+        {children}
+      </section>
+    );
+  },
+);

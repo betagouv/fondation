@@ -7,6 +7,7 @@ import {
   allRulesTuple,
   Magistrat,
   NominationFile,
+  ReportFileUsage,
   ReportListItemVM,
   ReportRetrievalVM,
   Transparency,
@@ -28,15 +29,18 @@ import {
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
+import {
+  ExpectReportsInDb,
+  expectReportsInDbFactory,
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files } from 'test/minio';
-import { reportAttachedFiles } from '../../secondary/gateways/repositories/drizzle/schema/report-attached-file-pm';
-import { reports } from '../../secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from '../../secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
-import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
-import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
+import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { USER_SERVICE } from './tokens';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
@@ -44,9 +48,13 @@ const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 describe('Reports Controller', () => {
   let app: INestApplication;
   let db: DrizzleDb;
+  let givenSomeReports: GivenSomeReports;
+  let expectReportsInDb: ExpectReportsInDb;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
+    expectReportsInDb = expectReportsInDbFactory(db);
   });
   beforeEach(async () => {
     await clearDB(db);
@@ -56,8 +64,7 @@ describe('Reports Controller', () => {
 
   describe('List', () => {
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReportSnapshot);
     });
 
     it('requires a valid user session to list reports', async () => {
@@ -107,8 +114,7 @@ describe('Reports Controller', () => {
     ])[];
 
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReport);
 
       const reportRulesPromises = allRulesTuple.map(
         async ([ruleGroup, ruleName]) => {
@@ -183,8 +189,7 @@ describe('Reports Controller', () => {
 
   describe('Rules validation state', () => {
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(report);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(report);
     });
 
     it('requires a valid user session', async () => {
@@ -247,8 +252,7 @@ describe('Reports Controller', () => {
     let s3Client: S3Client;
 
     beforeEach(async () => {
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReportSnapshot);
-      await db.insert(reports).values(reportRow).execute();
+      await givenSomeReports(aReportSnapshot);
     });
 
     it('requires a valid user session', async () => {
@@ -273,27 +277,24 @@ describe('Reports Controller', () => {
 
         expect(response.body).toEqual({});
 
-        const savedFiles = await db
-          .select()
-          .from(reportAttachedFiles)
-          .execute();
-        expect(savedFiles).toEqual<(typeof reportAttachedFiles.$inferSelect)[]>(
-          [
+        await expectReportsInDb({
+          ...aReportSnapshot,
+          version: aReportSnapshot.version + 1,
+          attachedFiles: [
             {
-              createdAt: expect.any(Date),
-              reportId: aReportSnapshot.id,
+              usage: ReportFileUsage.ATTACHMENT,
               name: 'test-file.pdf',
               fileId: expect.any(String),
             },
           ],
-        );
+        });
       });
 
       it('get a file signed URL', async () => {
         await uploadFile().expect(HttpStatus.CREATED);
 
         const response = await request(app.getHttpServer())
-          .get(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .get(`/api/reports/${aReportSnapshot.id}/files/byName/test-file.pdf`)
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
@@ -304,25 +305,59 @@ describe('Reports Controller', () => {
         await uploadFile().expect(HttpStatus.CREATED);
 
         await request(app.getHttpServer())
-          .delete(`/api/reports/${aReportSnapshot.id}/files/test-file.pdf`)
+          .delete(
+            `/api/reports/${aReportSnapshot.id}/files/byName/test-file.pdf`,
+          )
           .set('Cookie', 'sessionId=unused')
           .expect(HttpStatus.OK);
 
-        const savedFiles = await db
-          .select()
-          .from(reportAttachedFiles)
-          .execute();
-        expect(savedFiles).toEqual([]);
+        await expectNoFile();
       });
+
+      describe('Batch deletion', () => {
+        it('deletes a file', async () => {
+          await uploadScreenshot('screenshot1.png').expect(HttpStatus.CREATED);
+          await deleteBatchFiles('screenshot1.png').expect(HttpStatus.OK);
+          await expectNoFile();
+        });
+
+        it('deletes two files at once', async () => {
+          await uploadScreenshot('screenshot1.png').expect(HttpStatus.CREATED);
+          await uploadScreenshot('screenshot2.png').expect(HttpStatus.CREATED);
+
+          await deleteBatchFiles(['screenshot1.png', 'screenshot2.png']).expect(
+            HttpStatus.OK,
+          );
+
+          await expectNoFile(4);
+        });
+
+        const uploadScreenshot = (fileName: string) =>
+          uploadFile(ReportFileUsage.EMBEDDED_SCREENSHOT, fileName);
+
+        const deleteBatchFiles = (fileNames: string | string[]) =>
+          request(app.getHttpServer())
+            .delete(`/api/reports/${aReportSnapshot.id}/files/byNames`)
+            .query({ fileNames })
+            .set('Cookie', 'sessionId=unused');
+      });
+
+      const expectNoFile = (version = 3) =>
+        expectReportsInDb({ ...aReportSnapshot, version, attachedFiles: null });
     });
 
-    const uploadFile = () => {
+    const uploadFile = (
+      usage = ReportFileUsage.ATTACHMENT,
+      fileName = 'test-file.pdf',
+    ) => {
       const pdfBuffer = givenAPdfBuffer();
 
       return request(app.getHttpServer())
-        .post(`/api/reports/${aReportSnapshot.id}/files/upload-one`)
+        .post(
+          `/api/reports/${aReportSnapshot.id}/files/upload-one?usage=${usage}`,
+        )
         .set('Cookie', 'sessionId=unused')
-        .attach('file', pdfBuffer, 'test-file.pdf');
+        .attach('file', pdfBuffer, fileName);
     };
 
     const givenAPdfBuffer = () => {
@@ -331,19 +366,15 @@ describe('Reports Controller', () => {
       pdfDoc.end();
       return pdfDoc.read();
     };
-    const aReportSnapshot = new ReportBuilder('uuid').build();
+    const aReportSnapshot = ReportBuilder.forUpdate('uuid').build();
   });
 
   const givenAReportNotOwned = async () => {
-    const aReportNotOwned = new ReportBuilder('uuid')
+    const aReportNotOwned = ReportBuilder.forUpdate('uuid')
       .with('id', '10a4b056-dafa-4d28-93b5-e7dd51b9793d')
       .with('reporterId', '1c3f4001-8e08-4359-a68d-55fbf9811534')
       .build();
-    const anotherReportRow =
-      SqlReportRepository.mapSnapshotToDb(aReportNotOwned);
-
-    await db.insert(reports).values(anotherReportRow).execute();
-
+    await givenSomeReports(aReportNotOwned);
     return aReportNotOwned;
   };
 

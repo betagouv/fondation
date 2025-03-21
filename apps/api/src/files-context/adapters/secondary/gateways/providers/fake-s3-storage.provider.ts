@@ -9,6 +9,11 @@ type FilePath = string;
 export class FakeS3StorageProvider implements S3StorageProvider {
   uploadFileError: Error;
   deleteFileError: Error;
+  deleteFilesError: Error;
+  deleteFilesErrorIndex = 0;
+  deleteFilesErrorCount = 0;
+  deleteFilesErrorCountLimit = Infinity;
+  restoreFilesError: Error;
 
   storedFiles: Record<
     Bucket,
@@ -68,6 +73,41 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     if (this.deleteFileError) throw this.deleteFileError;
 
     delete this.storedFiles[bucket]![filePath?.join('/') || '']![fileName];
+  }
+
+  async deleteFiles(
+    files: FileDocument[],
+  ): Promise<PromiseSettledResult<void>[]> {
+    return Promise.allSettled(
+      files.map(async (file, index) => {
+        if (
+          this.deleteFilesError &&
+          this.deleteFilesErrorIndex === index &&
+          this.deleteFilesErrorCount < this.deleteFilesErrorCountLimit
+        ) {
+          this.deleteFilesErrorCount = this.deleteFilesErrorCount + 1;
+          throw this.deleteFilesError;
+        }
+
+        delete this.storedFiles[file.bucket]![file.path?.join('/') || '']![
+          file.name
+        ];
+      }),
+    );
+  }
+
+  async restoreFiles(files: FileDocument[]): Promise<void> {
+    if (this.restoreFilesError) throw this.restoreFilesError;
+
+    for (const file of files) {
+      this.addFile(
+        file.bucket,
+        file.path,
+        file.name,
+        Buffer.from('stub buffer of restored file'),
+        'application/pdf',
+      );
+    }
   }
 
   addFile(

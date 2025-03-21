@@ -1,16 +1,17 @@
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportFileUsage } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import { ReportBuilder } from "../../builders/Report.builder";
-import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
-import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { deleteReportAttachedFile } from "./delete-report-attached-file";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
+import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
+import { ReportBuilder } from "../../builders/Report.builder";
+import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
+import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
+import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
+import { deleteReportFile } from "./delete-report-attached-file";
 
 describe("Delete Report Attached File", () => {
   let store: ReduxStore;
@@ -38,8 +39,8 @@ describe("Delete Report Attached File", () => {
   });
 
   it("deletes a report", async () => {
-    store.dispatch(
-      deleteReportAttachedFile.fulfilled(undefined, "", {
+    await store.dispatch(
+      deleteReportFile({
         reportId: aReport.id,
         fileName: "file.pdf",
       }),
@@ -52,12 +53,15 @@ describe("Delete Report Attached File", () => {
   });
 });
 
+const aFile = {
+  usage: ReportFileUsage.ATTACHMENT,
+  signedUrl: "https://example.fr",
+  name: "file.pdf",
+};
 const aReportApiModel = new ReportApiModelBuilder()
-  .with("attachedFiles", [
-    {
-      signedUrl: "https://example.fr",
-      name: "file.pdf",
-    },
-  ])
+  .with("attachedFiles", [aFile])
   .build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+const aReport = {
+  ...ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM(),
+  attachedFiles: [aFile],
+};

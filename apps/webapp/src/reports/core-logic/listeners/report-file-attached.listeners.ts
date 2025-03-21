@@ -7,6 +7,7 @@ export const reportFileAttached: Listener = (startAppListening) =>
     actionCreator: attachReportFile.fulfilled,
     effect: async (action, { dispatch }) => {
       const { reportId, file } = action.meta.arg;
+
       await dispatch(
         generateReportFileUrl({
           reportId,

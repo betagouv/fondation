@@ -3,7 +3,13 @@ import { Magistrat } from "./magistrat.namespace";
 import { NominationFile } from "./nomination-file.namespace";
 import { Transparency } from "./transparency.enum";
 
+export enum ReportFileUsage {
+  ATTACHMENT = "ATTACHMENT",
+  EMBEDDED_SCREENSHOT = "EMBEDDED_SCREENSHOT",
+}
+
 export type AttachedFileVM = {
+  usage: ReportFileUsage;
   name: string;
   signedUrl: string;
 };

@@ -1,17 +1,20 @@
 import { expect, MountResult, test } from "@playwright/experimental-ct-react";
 import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
-import { AppState } from "../../../../../../store/appState";
+import { AppState, ReportScreenshotSM } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
 import {
+  Context,
   Locator,
   logPlaywrightBrowser,
   Mount,
   Page,
 } from "../../../../../../test/playwright";
+import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
 import { ReportEditorForTest } from "./ReportEditor.story";
 
 declare const window: {
   store: ReduxStore;
+  serializedReport: string;
 } & Window;
 
 const label = "Rapport";
@@ -22,12 +25,14 @@ test.describe("Report Editor", () => {
   let editor: Locator;
   let page: Page;
   let mount: Mount;
+  let context: Context;
 
-  test.beforeEach(({ page: aPage, mount: aMount }) => {
+  test.beforeEach(({ page: aPage, mount: aMount, context: aContext }) => {
     component = null;
     page = aPage;
     logPlaywrightBrowser(page);
     mount = aMount;
+    context = aContext;
   });
 
   test("should show a basic report", async () => {
@@ -75,6 +80,7 @@ test.describe("Report Editor", () => {
     getHtmlContent: () => Promise<string | null | undefined>;
     expectHtmlContent?: (content: string) => Promise<void>;
     expectedStoredHtmlContent: string;
+    expectedStoredFiles?: ReportScreenshotSM[];
   }[] = [
     {
       testTitle: "Mark text in bold",
@@ -198,6 +204,70 @@ test.describe("Report Editor", () => {
       expectedStoredHtmlContent:
         '<p><mark><span style="color: rgb(24, 117, 60)">content</span></mark></p>',
     },
+    {
+      testTitle: "Add screenshot using the upload button",
+      action: async () => {
+        await selectText();
+        await editor.press("ArrowRight");
+
+        const fileChooserPromise = page.waitForEvent("filechooser");
+        await clickOnMark("Ajouter une capture d'écran");
+        const fileChooser = await fileChooserPromise;
+
+        await fileChooser.setFiles({
+          name: "image.png",
+          mimeType: "image/png",
+          buffer: Buffer.from(""),
+        });
+      },
+      getHtmlContent: () => queryHtmlContent(".ProseMirror > div > div"),
+      expectHtmlContent: async (content: string) => {
+        const expectedHtml = `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
+        expect(content).toEqual(expectedHtml);
+      },
+      expectedStoredHtmlContent: `<p>content</p><img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
+      expectedStoredFiles: [
+        {
+          name: "image.png-10",
+          signedUrl: "https://example.fr/image.png-10",
+        },
+      ],
+    },
+    {
+      testTitle: "Add screenshot with paste action",
+      action: async () => {
+        await context.grantPermissions(["clipboard-write"]);
+
+        await page.evaluate(async () => {
+          const response = await fetch("https://fakeimg.pl/10x10/");
+          const blob = await response.blob();
+          if (!navigator.userActivation.isActive)
+            console.warn(
+              "Transiant activation is required for firefox and safari",
+            );
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "image/png": blob,
+            }),
+          ]);
+        });
+        await selectText();
+        await editor.press("ArrowRight");
+        await editor.press("Control+v");
+      },
+      getHtmlContent: () => queryHtmlContent(".ProseMirror > div > div"),
+      expectHtmlContent: async (content: string) => {
+        const expectedHtml = `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
+        expect(content).toEqual(expectedHtml);
+      },
+      expectedStoredHtmlContent: `<p>content</p><img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
+      expectedStoredFiles: [
+        {
+          name: "image.png-10",
+          signedUrl: "https://example.fr/image.png-10",
+        },
+      ],
+    },
   ].flat();
 
   testParams.forEach(
@@ -209,6 +279,7 @@ test.describe("Report Editor", () => {
       previousContent,
       expectHtmlContent,
       expectedStoredHtmlContent,
+      expectedStoredFiles,
     }) => {
       test(testTitle, async () => {
         await renderReport(previousContent || "content");
@@ -216,8 +287,11 @@ test.describe("Report Editor", () => {
         await editor.focus();
         await action();
 
-        await expectContent(expectedContent || "content");
-        await expectStoredReport(expectedStoredHtmlContent);
+        await expectContent(expectedContent ?? "content");
+        await expectStoredReport(
+          expectedStoredHtmlContent,
+          expectedStoredFiles,
+        );
 
         const htmlContent = (await getHtmlContent())!;
         if (expectHtmlContent) {
@@ -321,7 +395,10 @@ test.describe("Report Editor", () => {
 
   const expectContent = (content: string) => expect(editor).toHaveText(content);
 
-  const expectStoredReport = async (content: string | null) => {
+  const expectStoredReport = async (
+    content: string | null,
+    screenshots?: ReportScreenshotSM[],
+  ) => {
     await sleep(400); // Wait for debouced store update
 
     const state = await page.evaluate(() => window.store.getState());
@@ -334,6 +411,12 @@ test.describe("Report Editor", () => {
           "report-id": {
             ...initialState.reportOverview.byIds!["report-id"]!,
             comment: content,
+            contentScreenshots: screenshots
+              ? {
+                  files: screenshots,
+                  isUploading: false,
+                }
+              : null,
           },
         },
       },
