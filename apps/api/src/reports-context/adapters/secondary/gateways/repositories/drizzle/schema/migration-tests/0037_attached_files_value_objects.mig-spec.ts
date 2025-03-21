@@ -70,7 +70,7 @@ const schema = {
   oldAttachedFiles: oldAttachedFilesPm,
 };
 
-const migrationNumber = 36;
+const migrationNumber = 37;
 
 describe(`Reports context - migration 00${migrationNumber}`, () => {
   const pool = new Pool(drizzleConfigForTest);

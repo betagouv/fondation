@@ -1,5 +1,7 @@
 BEGIN;
 
+ALTER TABLE "reports_context"."reports" ADD COLUMN "attached_files" jsonb;
+
 -- Populate the attached_files column by aggregating files for each report
 UPDATE "reports_context"."reports" r
 SET "attached_files" = (
