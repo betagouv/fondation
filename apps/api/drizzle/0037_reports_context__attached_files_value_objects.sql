@@ -1,8 +1,5 @@
 BEGIN;
 
--- Add the attached_files column to the reports table
-ALTER TABLE "reports_context"."reports" ADD COLUMN "attached_files" jsonb;
-
 -- Populate the attached_files column by aggregating files for each report
 UPDATE "reports_context"."reports" r
 SET "attached_files" = (
@@ -17,7 +14,6 @@ SET "attached_files" = (
     WHERE af."report_id" = r."id"
 );
 
--- Drop the now redundant attached_files table
 DROP TABLE "reports_context"."attached_files";
 
 COMMIT;
