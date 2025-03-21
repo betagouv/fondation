@@ -28,7 +28,7 @@ export class DrizzleTransactionPerformer implements TransactionPerformer {
         }
       });
     } catch (err) {
-      const retries = opts?.retries;
+      const retries = z.number().int().min(1).optional().parse(opts?.retries);
 
       if (retries) {
         return await this.perform(useCase, { retries: retries - 1 });

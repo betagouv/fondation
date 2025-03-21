@@ -2,15 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --fondation-editor-min-width: 5rem;
+}
+
 .fr-table > table tbody {
   background-color: var(--grey-975-75);
 }
 
 .ProseMirror {
   padding: 10px;
-  outline: 2px solid #0a76f6;
+  outline: 2px solid var(--border-default-grey);
+}
+
+.ProseMirror-focused {
+  outline: 2px solid var(--border-default-grey) !important;
 }
 
 .ProseMirror-selectednode {
-  outline: 2px solid #0a76f6;
+  outline: 2px solid var(--border-action-high-info);
+}
+
+.ProseMirror > div:has(div > img) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ProseMirror > div > div {
+  min-width: var(--fondation-editor-min-width);
+  max-width: 100%;
+}
+
+.editor-resizable-image {
+  min-width: var(--fondation-editor-min-width);
+  max-width: 100%;
 }
