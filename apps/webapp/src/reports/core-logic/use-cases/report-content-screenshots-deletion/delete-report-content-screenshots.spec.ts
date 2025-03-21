@@ -1,10 +1,12 @@
-import { AttachedFileVM, ReportFileUsage } from "shared-models";
+import { Editor } from "@tiptap/react";
+import { ReportFileUsage } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
+import { createExtensions } from "../../../adapters/primary/components/ReportOverview/TipTapEditor/extensions";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
@@ -12,13 +14,13 @@ import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { deleteReportContentScreenshots } from "./delete-report-content-screenshots";
-import { Mock } from "vitest";
 
 describe("Delete Report Attached Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let expectStoredReports: ExpectStoredReports;
+  let editor: Editor;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -37,6 +39,11 @@ describe("Delete Report Attached Files", () => {
     expectStoredReports = expectStoredReportsFactory(store, initialState);
 
     store.dispatch(retrieveReport.fulfilled(aReport, "", aReport.id));
+    editor = new Editor({
+      extensions: createExtensions({
+        history: { newGroupDelay: 1 },
+      }),
+    });
   });
 
   it("deletes two reports", async () => {
@@ -47,36 +54,25 @@ describe("Delete Report Attached Files", () => {
     });
   });
 
-  it("adds a screenshot to the editor if the deletion fails", async () => {
+  it("still shows a screenshot in the editor if its deletion failed", async () => {
     reportApiClient.deleteFilesError = new Error();
-    const addScreenshotToEditor = vi.fn();
+    editor.chain().setImage({ src: aFile.signedUrl }).run();
+    const editorStateWithImage = editor.getJSON();
+    editor.chain().clearContent().run();
 
-    await deleteReports(addScreenshotToEditor);
+    await deleteReports();
 
-    expectScreenshotAddedToEditor(addScreenshotToEditor, aFile);
-    expectScreenshotAddedToEditor(addScreenshotToEditor, aSecondFile, {
-      nth: 2,
-    });
+    expect(editor.getJSON()).toEqual(editorStateWithImage);
   });
 
-  const deleteReports = async (addScreenshotToEditor = () => false) =>
+  const deleteReports = async () =>
     store.dispatch(
       deleteReportContentScreenshots({
         reportId: aReport.id,
         fileNames: [aFile.name, aSecondFile.name],
-        addScreenshotToEditor,
+        editor,
       }),
     );
-
-  const expectScreenshotAddedToEditor = (
-    addScreenshotToEditor: Mock,
-    file: AttachedFileVM,
-    opts: { nth: number } = { nth: 1 },
-  ) =>
-    expect(addScreenshotToEditor).toHaveBeenNthCalledWith(opts.nth, {
-      fileUrl: file.signedUrl,
-      fileName: file.name,
-    });
 });
 
 const aFile = {

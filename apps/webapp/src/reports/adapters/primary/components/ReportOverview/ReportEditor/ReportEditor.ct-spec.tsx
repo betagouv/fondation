@@ -32,7 +32,6 @@ test.describe("Report Editor", () => {
     page = aPage;
     logPlaywrightBrowser(page);
     mount = aMount;
-    aContext.grantPermissions(["clipboard-read", "clipboard-write"]);
     context = aContext;
   });
 
@@ -221,12 +220,12 @@ test.describe("Report Editor", () => {
           buffer: Buffer.from(""),
         });
       },
-      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      getHtmlContent: () => queryHtmlContent(".ProseMirror > div > div"),
       expectHtmlContent: async (content: string) => {
-        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
+        const expectedHtml = `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
         expect(content).toEqual(expectedHtml);
       },
-      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10">`,
+      expectedStoredHtmlContent: `<p>content</p><img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
       expectedStoredFiles: [
         {
           name: "image.png-10",
@@ -237,7 +236,7 @@ test.describe("Report Editor", () => {
     {
       testTitle: "Add screenshot with paste action",
       action: async () => {
-        await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+        await context.grantPermissions(["clipboard-write"]);
 
         await page.evaluate(async () => {
           const response = await fetch("https://fakeimg.pl/10x10/");
@@ -256,12 +255,12 @@ test.describe("Report Editor", () => {
         await editor.press("ArrowRight");
         await editor.press("Control+v");
       },
-      getHtmlContent: () => queryHtmlContent(".ProseMirror"),
+      getHtmlContent: () => queryHtmlContent(".ProseMirror > div > div"),
       expectHtmlContent: async (content: string) => {
-        const expectedHtml = `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" contenteditable="false" draggable="true" class="ProseMirror-selectednode">`;
+        const expectedHtml = `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
         expect(content).toEqual(expectedHtml);
       },
-      expectedStoredHtmlContent: `<p>content</p><img width="100%" src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10">`,
+      expectedStoredHtmlContent: `<p>content</p><img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
       expectedStoredFiles: [
         {
           name: "image.png-10",

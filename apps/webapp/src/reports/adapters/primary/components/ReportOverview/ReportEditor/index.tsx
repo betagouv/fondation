@@ -1,5 +1,9 @@
+import { Editor } from "@tiptap/react";
+import { deleteReportContentScreenshots } from "../../../../../core-logic/use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
+import { reportEmbedScreenshot } from "../../../../../core-logic/use-cases/report-embed-screenshot/report-embed-screenshot";
 import { ReportVM } from "../../../../../core-logic/view-models/ReportVM";
 import { reportHtmlIds } from "../../../dom/html-ids";
+import { useAppDispatch } from "../../../hooks/react-redux";
 import { TextareaCard } from "../TextareaCard";
 
 export type ReportEditorProps = {
@@ -12,13 +16,41 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
   comment,
   onUpdate,
   reportId,
-}) => (
-  <TextareaCard
-    cardId={reportHtmlIds.overview.commentSection}
-    titleId={reportHtmlIds.overview.comment}
-    label={ReportVM.commentLabel}
-    content={comment}
-    onContentChange={onUpdate}
-    reportId={reportId}
-  />
-);
+}) => {
+  const dispatch = useAppDispatch();
+
+  const insertImage = (editor: Editor, file: File) => {
+    dispatch(
+      reportEmbedScreenshot({
+        file,
+        reportId,
+        editor,
+      }),
+    );
+  };
+
+  const deleteImages = async (
+    editor: Editor,
+    deletedImagesFileNames: string[],
+  ) => {
+    await dispatch(
+      deleteReportContentScreenshots({
+        fileNames: deletedImagesFileNames,
+        reportId,
+        editor,
+      }),
+    );
+  };
+
+  return (
+    <TextareaCard
+      cardId={reportHtmlIds.overview.commentSection}
+      titleId={reportHtmlIds.overview.comment}
+      label={ReportVM.commentLabel}
+      content={comment}
+      onContentChange={onUpdate}
+      insertImage={insertImage}
+      deleteImages={deleteImages}
+    />
+  );
+};

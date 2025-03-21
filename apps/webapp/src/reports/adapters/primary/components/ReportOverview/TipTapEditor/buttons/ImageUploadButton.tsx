@@ -1,15 +1,19 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
 import { ChangeEvent, FC, useRef } from "react";
-import { reportEmbedScreenshot } from "../../../../../../core-logic/use-cases/report-embed-screenshot/report-embed-screenshot";
-import { useAppDispatch } from "../../../../hooks/react-redux";
+import { InsertImage } from "..";
 import { useIsBlurred } from "../useIsBlurred";
 
-export const ImageUploadButton: FC<{ reportId: string }> = ({ reportId }) => {
+type ImageUploadButtonProps = {
+  insertEditorImage: InsertImage;
+};
+
+export const ImageUploadButton: FC<ImageUploadButtonProps> = ({
+  insertEditorImage,
+}) => {
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dispatch = useAppDispatch();
 
   if (!editor) return null;
 
@@ -21,13 +25,7 @@ export const ImageUploadButton: FC<{ reportId: string }> = ({ reportId }) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    dispatch(
-      reportEmbedScreenshot({
-        file,
-        reportId,
-        editor,
-      }),
-    );
+    insertEditorImage(editor, file);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 

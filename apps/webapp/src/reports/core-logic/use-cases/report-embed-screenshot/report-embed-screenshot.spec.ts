@@ -10,7 +10,7 @@ import {
   ExpectStoredReports,
   expectStoredReportsFactory,
 } from "../../../../test/reports";
-import { extensions } from "../../../adapters/primary/components/ReportOverview/TipTapEditor/extensions";
+import { createExtensions } from "../../../adapters/primary/components/ReportOverview/TipTapEditor/extensions";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
@@ -25,6 +25,7 @@ describe("Report Embed Screenshot", () => {
   let dateProvider: DeterministicDateProvider;
   let fileProvider: StubNodeFileProvider;
   let expectStoredReports: ExpectStoredReports;
+  let editor: Editor;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
@@ -45,6 +46,9 @@ describe("Report Embed Screenshot", () => {
     expectStoredReports = expectStoredReportsFactory(store, initialState);
 
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
+    editor = new Editor({
+      extensions: createExtensions(),
+    });
   });
 
   it("refuses to embed a .txt file", async () => {
@@ -166,9 +170,7 @@ describe("Report Embed Screenshot", () => {
         {
           reportId,
           file,
-          editor: new Editor({
-            extensions,
-          }),
+          editor,
         },
       ),
     );
@@ -187,9 +189,7 @@ describe("Report Embed Screenshot", () => {
         // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
         // File du navigateur non investigué
         file,
-        editor: new Editor({
-          extensions,
-        }),
+        editor,
       }),
     );
   };
@@ -207,9 +207,7 @@ describe("Report Embed Screenshot", () => {
         // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
         // File du navigateur non investigué
         file,
-        editor: new Editor({
-          extensions,
-        }),
+        editor,
       }),
     );
   };
@@ -221,9 +219,7 @@ describe("Report Embed Screenshot", () => {
         // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
         // File du navigateur non investigué
         file,
-        editor: new Editor({
-          extensions,
-        }),
+        editor,
       }),
     );
 

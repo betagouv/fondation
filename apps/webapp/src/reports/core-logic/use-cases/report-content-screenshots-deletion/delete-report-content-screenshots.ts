@@ -1,12 +1,10 @@
+import { Editor } from "@tiptap/react";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 export type DeleteReportContentScreenshotsParams = {
   reportId: string;
   fileNames: string[];
-  addScreenshotToEditor: (arg: {
-    fileUrl: string;
-    fileName: string;
-  }) => boolean;
+  editor: Editor;
 };
 
 export const deleteReportContentScreenshots = createAppAsyncThunk<
@@ -17,26 +15,17 @@ export const deleteReportContentScreenshots = createAppAsyncThunk<
   async (
     args,
     {
-      getState,
       extra: {
         gateways: { reportGateway },
       },
     },
   ) => {
-    const { reportId, fileNames, addScreenshotToEditor } = args;
+    const { reportId, fileNames, editor } = args;
     try {
       await reportGateway.deleteFiles(reportId, fileNames);
-    } catch {
-      const state = getState();
-
-      for (const fileName of fileNames) {
-        const file = state.reportOverview.byIds?.[
-          reportId
-        ]?.contentScreenshots?.files?.find((f) => f.name === fileName);
-
-        if (file?.signedUrl)
-          addScreenshotToEditor({ fileUrl: file.signedUrl, fileName });
-      }
+    } catch (error) {
+      editor.chain().undo().run();
+      throw error;
     }
   },
 );

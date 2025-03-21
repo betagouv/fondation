@@ -1,17 +1,15 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { useRef } from "react";
-import { deleteReportContentScreenshots } from "../../../../../core-logic/use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
-import { useAppDispatch } from "../../../hooks/react-redux";
+import { DeleteImages } from ".";
 import { dataFileNameKey } from "./extensions";
 
-export type UseOnDeletedImage = (reportId: string) => {
+export type UseOnDeletedImage = (deleteImages: DeleteImages) => {
   onCreate: (editor: Editor) => void;
-  onUpdate: (editor: Editor) => void;
+  onUpdate: (editor: Editor) => Promise<void>;
 };
 
-export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
+export const useOnDeletedImage: UseOnDeletedImage = (deleteImages) => {
   const previousImages = useRef<string[]>([]);
-  const dispatch = useAppDispatch();
 
   const onCreate = (editor: Editor) => {
     const content = editor.getJSON().content;
@@ -31,26 +29,11 @@ export const useOnDeletedImage: UseOnDeletedImage = (reportId) => {
         (name) => !currentImages.includes(name),
       );
 
-      if (deletedImagesFileNames.length)
-        await dispatch(
-          deleteReportContentScreenshots({
-            fileNames: deletedImagesFileNames,
-            reportId,
-            addScreenshotToEditor: ({ fileUrl, fileName }) =>
-              editor
-                .chain()
-                .focus()
-                .setImage({
-                  // Cet attribut est ajouté lors de la customisation de l'extension Image
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  [dataFileNameKey as any]: fileName,
-                  src: fileUrl,
-                })
-                .run(),
-          }),
-        );
-
       previousImages.current = currentImages;
+
+      if (deletedImagesFileNames.length) {
+        await deleteImages(editor, deletedImagesFileNames);
+      }
     }
   };
 

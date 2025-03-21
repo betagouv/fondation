@@ -18,7 +18,11 @@ import { headingLevels } from "./constant";
 export const dataFileNameKey = "data-file-name";
 export const dataIsScreenshotKey = "data-is-screenshot";
 
-export const extensions = [
+export const createExtensions = (opts?: {
+  history: {
+    newGroupDelay: number;
+  };
+}) => [
   Document,
   Paragraph,
   Text,
@@ -38,7 +42,9 @@ export const extensions = [
   TextStyle,
   Color,
   OrderedList,
-  History,
+  History.configure({
+    newGroupDelay: opts?.history.newGroupDelay ?? 500,
+  }),
   ImageResize.extend({
     addAttributes() {
       return {
