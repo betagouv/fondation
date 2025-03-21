@@ -114,12 +114,12 @@ describe(`Reports context - migration 00${migrationNumber}`, () => {
           {
             fileId: firstReportAttachedFile1.fileId,
             name: firstReportAttachedFile1.name,
-            usage: 'attachment',
+            usage: 'ATTACHMENT',
           },
           {
             fileId: firstReportAttachedFile2.fileId,
             name: firstReportAttachedFile2.name,
-            usage: 'attachment',
+            usage: 'ATTACHMENT',
           },
         ],
       },
@@ -129,7 +129,7 @@ describe(`Reports context - migration 00${migrationNumber}`, () => {
           {
             fileId: secondReportAttachedFile.fileId,
             name: secondReportAttachedFile.name,
-            usage: 'attachment',
+            usage: 'ATTACHMENT',
           },
         ],
       },

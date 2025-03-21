@@ -9,7 +9,7 @@ SET "attached_files" = (
         jsonb_build_object(
             'fileId', af."file_id", 
             'name', af."name",
-            'usage', 'attachment'
+            'usage', 'ATTACHMENT'
         )
     )
     FROM "reports_context"."attached_files" af

@@ -3,10 +3,10 @@ import { FullName } from 'src/reports-context/business-logic/models/full-name';
 import { Reporter } from 'src/reports-context/business-logic/models/reporter';
 
 export class ReporterTranslatorService {
-  constructor(private readonly httpReportService: UserService) {}
+  constructor(private readonly reportService: UserService) {}
 
   async reporterWithId(reporterId: string): Promise<Reporter> {
-    const user = await this.httpReportService.userWithId(reporterId);
+    const user = await this.reportService.userWithId(reporterId);
     return new Reporter(
       user.userId,
       new FullName(user.firstName, user.lastName),
@@ -14,7 +14,7 @@ export class ReporterTranslatorService {
   }
 
   async reporterWithFullName(reporterName: string): Promise<Reporter> {
-    const user = await this.httpReportService.userWithFullName(reporterName);
+    const user = await this.reportService.userWithFullName(reporterName);
     return new Reporter(
       user.userId,
       new FullName(user.firstName, user.lastName),

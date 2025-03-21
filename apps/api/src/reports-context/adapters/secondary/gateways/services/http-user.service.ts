@@ -61,7 +61,7 @@ export class HttpUserService implements UserService {
     }
   }
 
-  private async fetchUser(
+  private fetchUser(
     method: string,
     path: string,
     params?: Record<string, string>,
