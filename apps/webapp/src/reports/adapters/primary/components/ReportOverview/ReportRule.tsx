@@ -69,6 +69,7 @@ export const ReportRule = <R extends NominationFile.RuleName>({
               }
               style={{
                 alignSelf: "flex-end",
+                maxWidth: "40rem",
               }}
             />
           </div>
