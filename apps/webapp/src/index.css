@@ -31,6 +31,7 @@
 .ProseMirror > div > div {
   min-width: var(--fondation-editor-min-width);
   max-width: 100%;
+  width: max-content;
 }
 
 .editor-resizable-image {
