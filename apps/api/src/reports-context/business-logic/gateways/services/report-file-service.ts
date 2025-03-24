@@ -7,6 +7,12 @@ export type ReportSignedUrl = {
   signedUrl: string;
 };
 
+export type FileUpload = {
+  file: ReportAttachedFile;
+  buffer: Buffer;
+  path: string[];
+};
+
 export const reportSignedUrlsSchema = z
   .object({
     name: z.string(),
@@ -20,6 +26,7 @@ export interface ReportFileService {
     fileBuffer: Buffer,
     filePath: string[],
   ): Promise<void>;
+  uploadFiles(fileUploads: FileUpload[], filesPath: string[]): Promise<void>;
   getSignedUrl(attachedFile: ReportAttachedFile): Promise<ReportSignedUrl>;
   getSignedUrls(attachedFiles: ReportAttachedFiles): Promise<ReportSignedUrl[]>;
   deleteFile(file: ReportAttachedFile): Promise<void>;

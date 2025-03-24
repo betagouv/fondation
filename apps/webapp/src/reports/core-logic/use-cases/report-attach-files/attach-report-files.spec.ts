@@ -15,11 +15,11 @@ import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
+import { reportFilesAttached } from "../../listeners/report-files-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { attachReportFile } from "./attach-report-file";
+import { attachReportFiles } from "./attach-report-files";
 
-describe("Attach Report File", () => {
+describe("Attach Multiple Report Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
@@ -38,7 +38,7 @@ describe("Attach Report File", () => {
       },
       { fileProvider },
       {},
-      { reportFileAttached },
+      { reportFilesAttached },
     );
     initialState = store.getState();
 
@@ -47,16 +47,14 @@ describe("Attach Report File", () => {
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
   });
 
-  it("attaches a PDF", async () => {
-    const fileBuffer = await givenAPdf();
-    const file = genFile(fileBuffer, "file.pdf", "application/pdf");
-    await expect(attachFile(file)).resolves.toBeDefined();
-  });
+  it("attaches two files simultaneously", async () => {
+    const pdfBuffer = await givenAPdf();
+    const pdfFile = genFile(pdfBuffer, "file.pdf", "application/pdf");
 
-  it("generates a signed url when a file is attached", async () => {
-    const file = await givenAnImageBuffer("png");
+    const pngBuffer = await givenAnImageBuffer("png");
+    const pngFile = genFile(pngBuffer, "image.png", "image/png");
 
-    await attachFile(new File([file], "file.png", { type: "image/png" }));
+    await attachFiles([pdfFile, pngFile]);
     await sleep(100); // wait for listener to resolve
 
     expectStoredReports({
@@ -64,32 +62,57 @@ describe("Attach Report File", () => {
       attachedFiles: [
         {
           usage: ReportFileUsage.ATTACHMENT,
-          signedUrl: "https://example.fr/file.png",
-          name: "file.png",
+          signedUrl: "https://example.fr/file.pdf",
+          name: "file.pdf",
+        },
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          signedUrl: "https://example.fr/image.png",
+          name: "image.png",
         },
       ],
     });
   });
 
-  it("refuses to upload an unknown file type", async () => {
-    const file = genFile("", "file.txt", "text/plain");
-    expectUploadError(await attachFile(file), "Invalid mime type: ");
+  it("refuses to upload if any file has an invalid mime type", async () => {
+    const invalidFile = genFile("", "file.txt", "text/plain");
+
+    expectUploadError(
+      await attachFiles([invalidFile]),
+      "Invalid mime type for file file.txt: ",
+    );
+
+    expectStoredReports({
+      ...aReport,
+      attachedFiles: null,
+    });
   });
 
-  it("refuses to upload an forbidden file type", async () => {
-    fileProvider.mimeType = "text/plain";
-    const file = genFile("", "file.txt", "text/plain");
-    expectUploadError(await attachFile(file), "Invalid mime type: text/plain");
-  });
+  it("attaches multiple image files of different formats", async () => {
+    const pngBuffer = await givenAnImageBuffer("png");
+    const pngFile = genFile(pngBuffer, "image1.png", "image/png");
 
-  it.each`
-    format
-    ${"png"}
-    ${"jpg"}
-  `("attaches a $format image", async ({ format }) => {
-    const fileBuffer = await givenAnImageBuffer(format);
-    const file = genFile(fileBuffer, `file.${format}`, `images/${format}`);
-    await expect(attachFile(file)).resolves.toBeDefined();
+    const jpgBuffer = await givenAnImageBuffer("jpg");
+    const jpgFile = genFile(jpgBuffer, "image2.jpg", "image/jpg");
+
+    await attachFiles([pngFile, jpgFile]);
+    await sleep(100); // wait for listener to resolve
+
+    expectStoredReports({
+      ...aReport,
+      attachedFiles: [
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          signedUrl: `${FakeReportApiClient.BASE_URI}/image1.png`,
+          name: "image1.png",
+        },
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          signedUrl: `${FakeReportApiClient.BASE_URI}/image2.jpg`,
+          name: "image2.jpg",
+        },
+      ],
+    });
   });
 
   const genFile = (
@@ -98,11 +121,11 @@ describe("Attach Report File", () => {
     type: string,
   ) => new File([buffer], name, { type });
 
-  const attachFile = (file: File) =>
+  const attachFiles = (files: File[]) =>
     store.dispatch(
-      attachReportFile({
+      attachReportFiles({
         reportId: aReport.id,
-        file,
+        files,
       }),
     );
 
@@ -125,7 +148,7 @@ describe("Attach Report File", () => {
   const givenAnImageBuffer = async (
     format: Extract<keyof FormatEnum, "png" | "jpg">,
   ) => {
-    fileProvider.mimeType = `image/${format}`;
+    fileProvider.mimeType = `image/${format === "jpg" ? "jpeg" : format}`;
     const fileBuffer = await sharp({
       create: {
         width: 256,
@@ -141,7 +164,7 @@ describe("Attach Report File", () => {
   };
 
   const expectUploadError = (
-    resp: Awaited<ReturnType<typeof attachFile>>,
+    resp: Awaited<ReturnType<typeof attachFiles>>,
     message: string,
   ) =>
     expect(resp).toMatchObject({

@@ -10,14 +10,18 @@ import {
   Put,
   Query,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ReportsContextRestContract } from 'shared-models';
-import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
+import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
+import {
+  AttachmentFile,
+  UploadReportFilesUseCase,
+} from 'src/reports-context/business-logic/use-cases/report-files-upload/upload-report-files';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-update/update-report.use-case';
@@ -26,12 +30,12 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
+import { FilesInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/files.interceptor';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
-import { ReportUpdateDto } from './dto/report-update.dto';
-import { AttachFileQueryParams } from './dto/attach-file-query-params.dto';
 import { DeleteFilesQueryDto } from './dto/delete-files-query.dto';
-import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
+import { ReportUpdateDto } from './dto/report-update.dto';
+import { UploadFilesParamsDto } from './dto/upload-files-params.dto';
+import { UploadFilesQueryParamsDto } from './dto/upload-files-query-params.dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 
@@ -41,7 +45,7 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   listReports: '',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
-  uploadFile: ':id/files/upload-one',
+  uploadFiles: ':id/files/upload-many',
   generateFileUrl: ':reportId/files/byName/:fileName',
   deleteFile: ':id/files/byName/:fileName',
   deleteFiles: ':id/files/byNames',
@@ -54,10 +58,10 @@ export class ReportsController implements IReportController {
     private readonly retrieveReportUseCase: RetrieveReportUseCase,
     private readonly changeRuleValidationStateUseCase: ChangeRuleValidationStateUseCase,
     private readonly updateReportUseCase: UpdateReportUseCase,
-    private readonly attachReportFileUseCase: AttachReportFileUseCase,
     private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
     private readonly deleteReportAttachedFilesUseCase: DeleteReportAttachedFilesUseCase,
+    private readonly uploadReportAttachmentsUseCase: UploadReportFilesUseCase,
   ) {}
 
   @Get(endpointsPaths.listReports)
@@ -100,21 +104,24 @@ export class ReportsController implements IReportController {
     await this.changeRuleValidationStateUseCase.execute(ruleId, dto.validated);
   }
 
-  @Post(endpointsPaths.uploadFile)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
+  @Post(endpointsPaths.uploadFiles)
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadFiles(
     @Param()
-    { id }: ReportsContextRestContract['endpoints']['uploadFile']['params'],
-    @UploadedFile() file: Express.Multer.File,
-    @Query() query: AttachFileQueryParams,
+    { id }: UploadFilesParamsDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Query() { usage }: UploadFilesQueryParamsDto,
     @Req() req: Request,
   ) {
     const reporterId = req.userId!;
-    const { usage } = query;
-    return this.attachReportFileUseCase.execute(
+    const attachmentFiles: AttachmentFile[] = files.map((file) => ({
+      name: file.originalname,
+      buffer: file.buffer,
+    }));
+
+    return this.uploadReportAttachmentsUseCase.execute(
       id,
-      file.originalname,
-      file.buffer,
+      attachmentFiles,
       reporterId,
       usage,
     );

@@ -7,7 +7,7 @@ import {
   selectBreadcrumb,
 } from "../../../../../router/adapters/selectors/selectBreadcrumb";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
-import { attachReportFile } from "../../../../core-logic/use-cases/report-attach-file/attach-report-file";
+import { attachReportFiles } from "../../../../core-logic/use-cases/report-attach-files/attach-report-files";
 import { deleteReportFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { retrieveReport } from "../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
@@ -88,11 +88,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       );
     };
 
-  const onFileAttached = (file: File) => {
+  const onFilesAttached = (files: File[]) => {
     dispatch(
-      attachReportFile({
+      attachReportFiles({
         reportId: id,
-        file,
+        files,
       }),
     );
   };
@@ -121,6 +121,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         Rapport non trouvé.
       </div>
     );
+
   return (
     <div className={clsx("flex-col items-center", cx("fr-grid-row"))}>
       <div className="w-full">
@@ -183,7 +184,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           />
           <AttachedFileUpload
             attachedFiles={report.attachedFiles}
-            onFileAttached={onFileAttached}
+            onFilesAttached={onFilesAttached}
             onAttachedFileDeleted={onAttachedFileDeleted}
           />
         </div>

@@ -99,7 +99,7 @@ describe("App Router Component", () => {
       routerProvider.goToTransparencies();
     });
 
-    expect(screen.findByText("transparencies")).rejects.toThrow();
+    await expect(screen.findByText("transparencies")).rejects.toThrow();
   });
 
   describe("Authenticated user", () => {

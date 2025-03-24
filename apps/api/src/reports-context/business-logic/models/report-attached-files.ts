@@ -17,6 +17,10 @@ export class ReportAttachedFiles {
     return url;
   }
 
+  getByName(name: string) {
+    return this._files.find((f) => f.name === name);
+  }
+
   removeFileByName(name: string): [ReportAttachedFiles, ReportAttachedFile] {
     const attachedFile = this._files.find((f) => f.name === name);
     if (!attachedFile) {

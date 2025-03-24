@@ -30,11 +30,12 @@ export interface ReportApiClient {
     validated: boolean,
   ): EndpointResponse<"updateRule">;
   retrieveReport(id: string): EndpointResponse<"retrieveReport">;
-  uploadFile(
+
+  uploadFiles(
     reportId: string,
-    file: File,
+    files: File[],
     usage: ReportFileUsage,
-  ): EndpointResponse<"uploadFile">;
+  ): EndpointResponse<"uploadFiles">;
   deleteFile(
     reportId: string,
     fileName: string,

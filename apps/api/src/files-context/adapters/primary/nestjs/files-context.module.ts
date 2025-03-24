@@ -22,6 +22,7 @@ import { FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
 import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
 import { DeleteFilesUseCase } from 'src/files-context/business-logic/use-cases/files-deletion/delete-files';
+import { UploadFilesUseCase } from 'src/files-context/business-logic/use-cases/files-upload/upload-files';
 
 const isProduction = process.env.NODE_ENV === 'production';
 // We don't use Scaleway in the CI at the moment, because we have a long latency
@@ -34,6 +35,12 @@ const isScalewayS3 = isProduction; //|| isCi;
   controllers: [FilesController],
   providers: [
     generateProvider(UploadFileUseCase, [
+      FILE_REPOSITORY,
+      TRANSACTION_PERFORMER,
+      DATE_TIME_PROVIDER,
+      S3_STORAGE_PROVIDER,
+    ]),
+    generateProvider(UploadFilesUseCase, [
       FILE_REPOSITORY,
       TRANSACTION_PERFORMER,
       DATE_TIME_PROVIDER,

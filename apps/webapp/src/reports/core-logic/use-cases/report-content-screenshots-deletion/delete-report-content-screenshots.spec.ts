@@ -11,7 +11,6 @@ import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../listeners/report-file-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { deleteReportContentScreenshots } from "./delete-report-content-screenshots";
 
@@ -32,7 +31,6 @@ describe("Delete Report Attached Files", () => {
       },
       {},
       {},
-      { reportFileAttached },
     );
     initialState = store.getState();
 

@@ -6,11 +6,11 @@ import {
   ReportRetrievalVM,
   ReportUpdateDto,
 } from "shared-models";
+import { ReportApiModel } from "../../../core-logic/builders/ReportApiModel.builder";
 import {
   EndpointResponse,
   ReportApiClient,
 } from "../../../core-logic/gateways/ReportApi.client";
-import { ReportApiModel } from "../../../core-logic/builders/ReportApiModel.builder";
 
 export class FakeReportApiClient implements ReportApiClient {
   static BASE_URI = "https://example.fr";
@@ -105,28 +105,26 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async uploadFile(
+  async uploadFiles(
     reportId: string,
-    file: File,
+    files: File[],
     usage: ReportFileUsage,
   ): Promise<void> {
-    const uri = `${FakeReportApiClient.BASE_URI}/${file.name}`;
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);
+
+    const newAttachedFiles = files.map((file) => ({
+      usage,
+      name: file.name,
+      signedUrl: `${FakeReportApiClient.BASE_URI}/${file.name}`,
+    }));
 
     this.reports = {
       ...this.reports,
       [reportId]: {
         ...report,
-        attachedFiles: [
-          ...(report.attachedFiles || []),
-          {
-            usage,
-            name: file.name,
-            signedUrl: uri,
-          },
-        ],
+        attachedFiles: [...(report.attachedFiles || []), ...newAttachedFiles],
       },
     };
   }

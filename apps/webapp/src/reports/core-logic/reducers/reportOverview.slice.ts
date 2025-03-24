@@ -4,7 +4,7 @@ import { logout } from "../../../authentication/core-logic/use-cases/logout/logo
 import { AppState, ReportScreenshotSM } from "../../../store/appState";
 import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
 import { SummarySection } from "../../adapters/primary/labels/summary-labels";
-import { attachReportFile } from "../use-cases/report-attach-file/attach-report-file";
+import { attachReportFiles } from "../use-cases/report-attach-files/attach-report-files";
 import { deleteReportFile } from "../use-cases/report-attached-file-deletion/delete-report-attached-file";
 import { deleteReportContentScreenshots } from "../use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
 import { reportEmbedScreenshot } from "../use-cases/report-embed-screenshot/report-embed-screenshot";
@@ -115,16 +115,17 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
-      builder.addCase(attachReportFile.fulfilled, (state, action) => {
-        const { reportId, file } = action.meta.arg;
+      builder.addCase(attachReportFiles.fulfilled, (state, action) => {
+        const { reportId, files } = action.meta.arg;
         const report = state.byIds?.[reportId];
 
         if (report) {
-          const attachedFiles = (report.attachedFiles || []).concat({
+          const newFiles = files.map((file) => ({
             usage: ReportFileUsage.ATTACHMENT,
             name: file.name,
-          });
-          report.attachedFiles = attachedFiles;
+          }));
+
+          report.attachedFiles = [...(report.attachedFiles || []), ...newFiles];
         }
       });
 

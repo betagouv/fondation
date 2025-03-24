@@ -9,13 +9,13 @@ import { Card } from "./Card";
 
 export type AttachedFileUploadProps = {
   attachedFiles: ReportSM["attachedFiles"];
-  onFileAttached: (file: File) => void;
+  onFilesAttached: (files: File[]) => void;
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
 export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   attachedFiles,
-  onFileAttached,
+  onFilesAttached,
   onAttachedFileDeleted,
 }) => {
   return (
@@ -31,13 +31,13 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
             onChange: (e) => {
               e.preventDefault();
               if (e.target.files && e.target.files.length > 0) {
-                onFileAttached(e.target.files[0]!);
+                onFilesAttached([...e.target.files]);
               }
             },
           }}
           hint="Formats supportés : png, jpeg et pdf."
           label={null}
-          multiple={false}
+          multiple
         />
         {attachedFiles && (
           <AttachedFilesList

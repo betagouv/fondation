@@ -1,4 +1,4 @@
-import { z, ZodType } from "zod";
+import { z } from "zod";
 import { NominationFile } from "../nomination-file.namespace";
 import { ReportFileUsage, ReportRetrievalVM } from "../report-retrieval-vm";
 import { ReportListingVM } from "../reports-listing-vm";
@@ -37,9 +37,9 @@ export interface ReportsContextRestContract extends RestContract {
       path: "";
       response: ReportListingVM;
     };
-    uploadFile: {
+    uploadFiles: {
       method: "POST";
-      path: ":id/files/upload-one";
+      path: ":id/files/upload-many";
       params: { id: string };
       queryParams: { usage: ReportFileUsage };
       body: FormData;
@@ -85,9 +85,13 @@ export const changeRuleValidationStateDto = z.object({
   validated: z.boolean(),
 }) satisfies ZodDto<ReportsContextRestContract, "updateRule">;
 
-export const attachFileQuerySchema = z.object({
+export const uploadFilesParamsDtoSchema = z.object({
+  id: z.string(),
+}) satisfies ZodParamsDto<ReportsContextRestContract, "uploadFiles">;
+
+export const uploadFilesQueryParamsDtoSchema = z.object({
   usage: z.nativeEnum(ReportFileUsage),
-}) satisfies ZodQueryParamsDto<ReportsContextRestContract, "uploadFile">;
+}) satisfies ZodQueryParamsDto<ReportsContextRestContract, "uploadFiles">;
 
 export const deleteReportFilesQuerySchema = z.object({
   fileNames: z

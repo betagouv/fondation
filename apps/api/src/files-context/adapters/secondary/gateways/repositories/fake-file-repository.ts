@@ -10,6 +10,8 @@ type FileId = string;
 export class FakeFileRepository implements FileRepository {
   files: Record<FileId, FileDocumentSnapshot> = {};
   saveFileError: Error;
+  saveFileErrorCount = 0;
+  saveFileErrorCountLimit = Infinity;
   deleteFileError: Error;
   deleteFilesError: Error;
   deleteFilesErrorIndex = 0;
@@ -18,7 +20,13 @@ export class FakeFileRepository implements FileRepository {
 
   save(file: FileDocument): TransactionableAsync {
     return async () => {
-      if (this.saveFileError) throw this.saveFileError;
+      if (
+        this.saveFileError &&
+        this.saveFileErrorCount < this.saveFileErrorCountLimit
+      ) {
+        this.saveFileErrorCount += 1;
+        throw this.saveFileError;
+      }
 
       const fileSnapshot = file.toSnapshot();
       this.files[fileSnapshot.id] = fileSnapshot;

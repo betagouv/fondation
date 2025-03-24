@@ -20,9 +20,9 @@ export interface ReportGateway {
   ): Promise<
     { attachedFiles: NonNullable<AttachedFileVM>[] | null } & ReportSM
   >;
-  uploadFile(
+  uploadFiles(
     reportId: string,
-    file: File,
+    files: File[],
     usage: ReportFileUsage,
   ): Promise<void>;
   deleteFile(reportId: string, fileName: string): Promise<void>;

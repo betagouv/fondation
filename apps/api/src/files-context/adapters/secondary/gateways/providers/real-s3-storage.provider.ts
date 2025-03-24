@@ -37,6 +37,39 @@ export class RealS3StorageProvider implements S3StorageProvider {
     }
   }
 
+  async uploadFiles(
+    files: {
+      file: Buffer;
+      fileName: string;
+      mimeType: string;
+      bucket: string;
+      filePath: string[] | null;
+    }[],
+  ): Promise<PromiseSettledResult<void>[]> {
+    // Ensure all buckets exist before attempting uploads
+    const buckets = [...new Set(files.map((file) => file.bucket))];
+    await Promise.all(buckets.map((bucket) => this.ensureBucketExists(bucket)));
+
+    // Upload each file independently
+    return Promise.allSettled(
+      files.map(async ({ file, fileName, mimeType, bucket, filePath }) => {
+        try {
+          const command = this.s3Commands.putObject(
+            bucket,
+            file,
+            fileName,
+            mimeType,
+            filePath,
+          );
+          await this.s3Client.send(command);
+        } catch (error) {
+          console.error(`Error uploading file ${fileName} to S3:`, error);
+          throw new Error(`Error uploading file ${fileName} to S3`);
+        }
+      }),
+    );
+  }
+
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {
     const signedUrls = await Promise.all(
       files.map(async (file) => {

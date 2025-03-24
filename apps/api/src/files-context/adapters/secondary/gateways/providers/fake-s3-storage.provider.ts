@@ -8,6 +8,10 @@ type FilePath = string;
 
 export class FakeS3StorageProvider implements S3StorageProvider {
   uploadFileError: Error;
+  uploadFilesError: Error;
+  uploadFilesErrorIndex = 0;
+  uploadFilesErrorCount = 0;
+  uploadFilesErrorCountLimit = Infinity;
   deleteFileError: Error;
   deleteFilesError: Error;
   deleteFilesErrorIndex = 0;
@@ -51,6 +55,46 @@ export class FakeS3StorageProvider implements S3StorageProvider {
         },
       },
     };
+  }
+
+  async uploadFiles(
+    files: Array<{
+      file: Buffer;
+      fileName: string;
+      mimeType: string;
+      bucket: string;
+      filePath: string[] | null;
+    }>,
+  ): Promise<PromiseSettledResult<void>[]> {
+    return Promise.allSettled(
+      files.map(
+        async ({ file, fileName, mimeType, bucket, filePath }, index) => {
+          if (
+            this.uploadFilesError &&
+            this.uploadFilesErrorIndex === index &&
+            this.uploadFilesErrorCount < this.uploadFilesErrorCountLimit
+          ) {
+            this.uploadFilesErrorCount += 1;
+            throw this.uploadFilesError;
+          }
+
+          this.storedFiles = {
+            ...this.storedFiles,
+            [bucket]: {
+              ...this.storedFiles[bucket],
+              [filePath?.join('/') || '']: {
+                ...(this.storedFiles[bucket]?.[filePath?.join('/') || ''] ||
+                  {}),
+                [fileName]: {
+                  file,
+                  mimeType,
+                },
+              },
+            },
+          };
+        },
+      ),
+    );
   }
 
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {

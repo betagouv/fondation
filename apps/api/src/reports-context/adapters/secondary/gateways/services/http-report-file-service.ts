@@ -1,7 +1,9 @@
 import axios from 'axios';
+import FormData from 'form-data';
 import { FilesContextRestContract, interpolateUrlParams } from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import {
+  FileUpload,
   ReportFileService,
   reportSignedUrlsSchema,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
@@ -59,6 +61,49 @@ export class HttpReportFileService implements ReportFileService {
     if (!(response.status === 201)) {
       throw new Error(
         `Failed to upload file to File Context: ${response.statusText}`,
+      );
+    }
+  }
+
+  async uploadFiles(files: FileUpload[], filesPath: string[]): Promise<void> {
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach(({ file, buffer }) => {
+      formData.append('files', buffer, file.name);
+    });
+
+    const {
+      method,
+      path,
+      queryParams,
+      body,
+    }: ClientFetchOptions['uploadFiles'] = {
+      method: 'POST',
+      path: 'upload-many',
+      queryParams: {
+        bucket: this.apiConfig.s3.reportsContext.attachedFilesBucketName,
+        path: filesPath,
+        fileIds: files.map(({ file }) => file.fileId),
+      },
+      body: formData,
+    };
+
+    const url = this.resolveUrl(path, undefined, queryParams);
+    const response = await axios.request({
+      url,
+      method,
+      data: body,
+      headers: {
+        ...formData.getHeaders(),
+        [systemRequestHeaderKey]: this.systemRequestSignatureProvider.sign(),
+      },
+      timeout: 10000,
+    });
+
+    if (!(response.status === 201)) {
+      throw new Error(
+        `Failed to upload files to File Context: ${response.statusText}`,
       );
     }
   }

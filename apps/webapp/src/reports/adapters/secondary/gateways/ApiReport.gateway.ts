@@ -84,8 +84,8 @@ export class ApiReportGateway implements ReportGateway {
     }));
   }
 
-  uploadFile(reportId: string, file: File, usage: ReportFileUsage) {
-    return this.reportApiClient.uploadFile(reportId, file, usage);
+  uploadFiles(reportId: string, files: File[], usage: ReportFileUsage) {
+    return this.reportApiClient.uploadFiles(reportId, files, usage);
   }
 
   generateFileUrl(reportId: string, fileName: string): Promise<string> {

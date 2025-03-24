@@ -1,8 +1,7 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
-import sharp from "sharp";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { RealFileProvider } from "../../../../../shared-kernel/adapters/secondary/providers/realFileProvider";
 import { AppState } from "../../../../../store/appState";
@@ -20,7 +19,6 @@ import {
   ReportApiModel,
   ReportApiModelBuilder,
 } from "../../../../core-logic/builders/ReportApiModel.builder";
-import { reportFileAttached } from "../../../../core-logic/listeners/report-file-attached.listeners";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
@@ -72,7 +70,7 @@ describe("Report Overview Component", () => {
       },
       { routerProvider, fileProvider },
       {},
-      { reportFileAttached },
+      {},
       undefined,
       testRulesMap,
       testRulesLabelsMap,
@@ -188,94 +186,6 @@ describe("Report Overview Component", () => {
         /- John Doe's biography\s- second line\s- third line/,
       );
     });
-
-    describe("Files", () => {
-      it("uploads a file", async () => {
-        const reportApiModel = reportApiModelBuilder.build();
-        await givenARenderedReport(reportApiModel);
-
-        const aReportVM =
-          ReportBuilder.fromApiModel(reportApiModel).buildRetrieveSM();
-        const fileBuffer = await givenAPngBuffer();
-
-        const file = new File([fileBuffer], "image.png", {
-          type: "image/png",
-        });
-
-        const input = await screen.findByLabelText(/^Formats supportés.*/);
-        await userEvent.upload(input, file);
-
-        expectStoredReports({
-          ...aReportVM,
-          attachedFiles: [
-            {
-              usage: ReportFileUsage.ATTACHMENT,
-              name: "image.png",
-              signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
-            },
-          ],
-        });
-      });
-
-      it("lists attached files urls", async () => {
-        const reportApiModel = reportApiModelBuilder
-          .with("attachedFiles", [
-            {
-              usage: ReportFileUsage.ATTACHMENT,
-              name: "file1.png",
-              signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
-            },
-            {
-              usage: ReportFileUsage.ATTACHMENT,
-              name: "file2.png",
-              signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
-            },
-          ])
-          .build();
-        await givenARenderedReport(reportApiModel);
-
-        await screen.findByText("file1.png");
-        await screen.findByText("file2.png");
-      });
-
-      it("deletes an attached file", async () => {
-        const reportApiModel = reportApiModelBuilder
-          .with("attachedFiles", [
-            {
-              usage: ReportFileUsage.ATTACHMENT,
-              name: "file1.png",
-              signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
-            },
-            {
-              usage: ReportFileUsage.ATTACHMENT,
-              name: "file2.png",
-              signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
-            },
-          ])
-          .build();
-        await givenARenderedReport(reportApiModel);
-
-        await screen.findByText("file1.png");
-        const deleteButton = screen.getByRole("button", {
-          name: "delete-attached-file-file1.png",
-        });
-        await userEvent.click(deleteButton);
-
-        expect(screen.queryByText("file1.png")).toBeNull();
-      });
-    });
-
-    const givenAPngBuffer = () =>
-      sharp({
-        create: {
-          width: 256,
-          height: 256,
-          channels: 3,
-          background: { r: 128, g: 0, b: 0 },
-        },
-      })
-        .png()
-        .toBuffer();
   });
 
   const givenARenderedReport = async (report: ReportApiModel) => {

@@ -290,6 +290,38 @@ describe('Reports Controller', () => {
         });
       });
 
+      it('uploads multiple attachment files', async () => {
+        const pdfBuffer1 = givenAPdfBuffer('Content 1');
+        const pdfBuffer2 = givenAPdfBuffer('Content 2');
+
+        const response = await request(app.getHttpServer())
+          .post(`/api/reports/${aReportSnapshot.id}/files/upload-many`)
+          .query({ usage: ReportFileUsage.ATTACHMENT })
+          .set('Cookie', 'sessionId=unused')
+          .attach('files', pdfBuffer1, 'attachment1.pdf')
+          .attach('files', pdfBuffer2, 'attachment2.pdf')
+          .expect(HttpStatus.CREATED);
+
+        expect(response.body).toEqual({});
+
+        await expectReportsInDb({
+          ...aReportSnapshot,
+          version: aReportSnapshot.version + 1,
+          attachedFiles: [
+            {
+              usage: ReportFileUsage.ATTACHMENT,
+              name: 'attachment1.pdf',
+              fileId: expect.any(String),
+            },
+            {
+              usage: ReportFileUsage.ATTACHMENT,
+              name: 'attachment2.pdf',
+              fileId: expect.any(String),
+            },
+          ],
+        });
+      });
+
       it('get a file signed URL', async () => {
         await uploadFile().expect(HttpStatus.CREATED);
 
@@ -354,15 +386,17 @@ describe('Reports Controller', () => {
 
       return request(app.getHttpServer())
         .post(
-          `/api/reports/${aReportSnapshot.id}/files/upload-one?usage=${usage}`,
+          `/api/reports/${aReportSnapshot.id}/files/upload-many?usage=${usage}`,
         )
         .set('Cookie', 'sessionId=unused')
-        .attach('file', pdfBuffer, fileName);
+        .attach('files', pdfBuffer, fileName);
     };
 
-    const givenAPdfBuffer = () => {
+    const givenAPdfBuffer = (
+      content = 'This is a test PDF file generated dynamically.',
+    ) => {
       const pdfDoc = new PDF();
-      pdfDoc.text('This is a test PDF file generated dynamically.');
+      pdfDoc.text(content);
       pdfDoc.end();
       return pdfDoc.read();
     };

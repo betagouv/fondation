@@ -18,6 +18,17 @@ export interface FilesContextRestContract extends RestContract {
       body: FormData;
       response: void;
     };
+    uploadFiles: {
+      method: "POST";
+      path: "upload-many";
+      queryParams: {
+        bucket: string;
+        path?: string | string[];
+        fileIds: string | string[];
+      };
+      body: FormData;
+      response: void;
+    };
     getSignedUrls: {
       method: "GET";
       path: "signed-urls";
@@ -47,6 +58,17 @@ export const fileUploadQueryDtoSchema = z.object({
     .optional(),
   fileId: z.string(),
 }) satisfies ZodQueryParamsDto<FilesContextRestContract, "uploadFile">;
+
+export const filesUploadQueryDtoSchema = z.object({
+  bucket: z.string(),
+  path: z
+    .union([z.string(), z.array(z.string())])
+    .transform<string[]>((value) => (Array.isArray(value) ? value : [value]))
+    .optional(),
+  fileIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform<string[]>((value) => (Array.isArray(value) ? value : [value])),
+}) satisfies ZodQueryParamsDto<FilesContextRestContract, "uploadFiles">;
 
 export const fileUrlsQuerySchema = z.object({
   ids: z

@@ -1,4 +1,5 @@
 import {
+  FileUpload,
   ReportFileService,
   ReportSignedUrl,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
@@ -30,6 +31,20 @@ export class FakeReportFileService implements ReportFileService {
     this.files[snapshot.fileId] = {
       name: snapshot.name,
     };
+  }
+
+  async uploadFiles(fileUploads: FileUpload[]): Promise<void> {
+    if (this.uploadError) throw this.uploadError;
+
+    for (const { file } of fileUploads) {
+      const snapshot = file.toSnapshot();
+      this.files = {
+        ...this.files,
+        [snapshot.fileId]: {
+          name: snapshot.name,
+        },
+      };
+    }
   }
 
   async getSignedUrl(

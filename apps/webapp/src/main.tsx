@@ -14,7 +14,6 @@ import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-label
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
 import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
-import { reportFileAttached } from "./reports/core-logic/listeners/report-file-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import {
   RouteProvider,
@@ -28,6 +27,7 @@ import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnR
 import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/realDateProvider.ts";
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
+import { reportFilesAttached } from "./reports/core-logic/listeners/report-files-attached.listeners.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -65,7 +65,7 @@ const store = initReduxStore<false>(
     redirectOnRouteChange,
     redirectOnLogout,
     redirectOnLogin,
-    reportFileAttached,
+    reportFilesAttached,
     preloadReportsRetrieval,
   },
   routeToReactComponentMap,

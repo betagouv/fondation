@@ -79,9 +79,11 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  async uploadFile(id: string, file: File, usage: ReportFileUsage) {
+  async uploadFiles(id: string, files: File[], usage: ReportFileUsage) {
     const formData = new FormData();
-    formData.append("file", file, file.name);
+    files.forEach((file) => {
+      formData.append("files", file, file.name);
+    });
 
     const {
       method,
@@ -89,9 +91,9 @@ export class FetchReportApiClient implements ReportApiClient {
       params,
       body,
       queryParams,
-    }: ClientFetchOptions["uploadFile"] = {
+    }: ClientFetchOptions["uploadFiles"] = {
       method: "POST",
-      path: ":id/files/upload-one",
+      path: ":id/files/upload-many",
       params: { id },
       body: formData,
       queryParams: { usage },
@@ -99,7 +101,7 @@ export class FetchReportApiClient implements ReportApiClient {
     const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {
       method,
-      body: body,
+      body,
     });
   }
 

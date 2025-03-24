@@ -53,9 +53,9 @@ export const reportEmbedScreenshot = createAsyncThunk.withTypes<{
       throw new Error(`Invalid mime type: ${mimeType || ""}`);
     }
 
-    await reportGateway.uploadFile(
+    await reportGateway.uploadFiles(
       reportId,
-      fileToUpload,
+      [fileToUpload],
       ReportFileUsage.EMBEDDED_SCREENSHOT,
     );
 

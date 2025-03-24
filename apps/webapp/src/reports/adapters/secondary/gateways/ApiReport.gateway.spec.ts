@@ -1,4 +1,4 @@
-import { NominationFile, ReportFileUsage } from "shared-models";
+import { AttachedFileVM, NominationFile, ReportFileUsage } from "shared-models";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportListItem, ReportSM } from "../../../../store/appState";
 import { ApiReportGateway } from "./ApiReport.gateway";
@@ -91,14 +91,33 @@ describe("Api Report Gateway", () => {
     const aFile = new File([""], "some-file.pdf");
 
     it("attaches a file", async () => {
-      await apiReportGateway.uploadFile(
-        aReportRetrievedSM.id,
-        aFile,
-        ReportFileUsage.ATTACHMENT,
+      const file1 = new File(["content1"], "file1.pdf");
+      await uploadFiles(file1);
+      expectUploadedFiles({
+        usage: ReportFileUsage.ATTACHMENT,
+        name: file1.name,
+        signedUrl: `${FakeReportApiClient.BASE_URI}/${file1.name}`,
+      });
+    });
+
+    it("uploads multiple files simultaneously", async () => {
+      const file1 = new File(["content1"], "file1.pdf");
+      const file2 = new File(["content2"], "file2.pdf");
+
+      await uploadFiles(file1, file2);
+
+      expectUploadedFiles(
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          name: file1.name,
+          signedUrl: `${FakeReportApiClient.BASE_URI}/${file1.name}`,
+        },
+        {
+          usage: ReportFileUsage.ATTACHMENT,
+          name: file2.name,
+          signedUrl: `${FakeReportApiClient.BASE_URI}/${file2.name}`,
+        },
       );
-      expect(
-        reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles![0]!.name,
-      ).toEqual(aFile.name);
     });
 
     describe("When there is a file attached", () => {
@@ -126,18 +145,29 @@ describe("Api Report Gateway", () => {
 
       it("deletes an attached file", async () => {
         await apiReportGateway.deleteFile(aReportRetrievedSM.id, aFile.name);
-        expect(
-          reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
-        ).toEqual([]);
+        expectUploadedFiles();
       });
 
       it("deletes an attached file in batch", async () => {
         await apiReportGateway.deleteFiles(aReportRetrievedSM.id, [aFile.name]);
-        expect(
-          reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles,
-        ).toEqual([]);
+        expectUploadedFiles();
       });
     });
+
+    const uploadFiles = async (...files: File[]) => {
+      await apiReportGateway.uploadFiles(
+        aReportRetrievedSM.id,
+        files,
+        ReportFileUsage.ATTACHMENT,
+      );
+    };
+
+    const expectUploadedFiles = (...files: AttachedFileVM[]) => {
+      const attachedFiles =
+        reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles;
+      expect(attachedFiles).toHaveLength(files.length);
+      expect(attachedFiles).toEqual(files);
+    };
   });
 });
 

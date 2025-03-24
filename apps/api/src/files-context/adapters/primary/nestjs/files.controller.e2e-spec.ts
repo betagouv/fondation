@@ -1,7 +1,11 @@
 import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { HttpStatus } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
-import { fileUploadQueryDtoSchema, FileVM } from 'shared-models';
+import {
+  filesUploadQueryDtoSchema,
+  fileUploadQueryDtoSchema,
+  FileVM,
+} from 'shared-models';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -95,6 +99,46 @@ describe('Files Controller', () => {
         bucket,
       });
       await expectExistingS3File(`file/path/${fileName}`);
+    });
+
+    it('uploads two files at the same time', async () => {
+      const query: z.infer<typeof filesUploadQueryDtoSchema> = {
+        bucket,
+        path: filePath,
+        fileIds: [fileId, fileId2],
+      };
+
+      await new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((testAgent) =>
+          testAgent
+            .post(`/api/files/upload-many`)
+            .query(query)
+            .attach('files', Buffer.from('test file.'), 'file1.txt')
+            .attach('files', Buffer.from('test file.'), 'file2.txt')
+            .expect(HttpStatus.CREATED),
+        )
+        .request();
+
+      await expectFilesPm(
+        {
+          id: fileId,
+          createdAt: expect.any(Date),
+          name: 'file1.txt',
+          storageProvider: FilesStorageProvider.SCALEWAY,
+          path: filePath,
+          bucket,
+        },
+        {
+          id: fileId2,
+          createdAt: expect.any(Date),
+          name: 'file2.txt',
+          storageProvider: FilesStorageProvider.SCALEWAY,
+          path: filePath,
+          bucket,
+        },
+      );
+      await expectExistingS3File(`file/path/file1.txt`);
+      await expectExistingS3File(`file/path/file2.txt`);
     });
 
     it("generates a signed url for a file's download", async () => {

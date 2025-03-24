@@ -89,28 +89,16 @@ describe.each`
           .with('signedUrl', buildS3SignedUrl('file-name.txt', filePath))
           .build();
 
-        it(
-          'uploads a file',
-          async () => {
-            expect(await uploadFile(aFile.name, aFile.path)).toBeUndefined();
-            await expectUploadedFile(Key);
-          },
-          // Scaleway has high latency from time to time.
-          providerName === 'Scaleway' ? 30000 : undefined,
-        );
+        it('uploads a file', async () => {
+          expect(await uploadFile(aFile.name, aFile.path)).toBeUndefined();
+          await expectUploadedFile(Key);
+        });
 
-        it(
-          'fails to get a signed URL for a missing file',
-          async () => {
-            await expect(
-              s3StorageProvider.getSignedUrls([
-                FileDocument.fromSnapshot(aFile),
-              ]),
-            ).rejects.toThrow();
-          },
-          // Scaleway has high latency from time to time.
-          providerName === 'Scaleway' ? 30000 : undefined,
-        );
+        it('fails to get a signed URL for a missing file', async () => {
+          await expect(
+            s3StorageProvider.getSignedUrls([FileDocument.fromSnapshot(aFile)]),
+          ).rejects.toThrow();
+        });
       },
     );
 
@@ -169,6 +157,34 @@ describe.each`
           providerName === 'Scaleway' ? 30000 : undefined,
         );
       });
+    });
+
+    it('uploads two files', async () => {
+      const firstFileName = 'first-file.txt';
+      const secondFileName = 'second-file.txt';
+
+      const results = await s3StorageProvider.uploadFiles([
+        {
+          file: Buffer.from(''),
+          fileName: firstFileName,
+          mimeType: 'text/plain',
+          bucket,
+          filePath: null,
+        },
+        {
+          file: Buffer.from(''),
+          fileName: secondFileName,
+          mimeType: 'text/plain',
+          bucket,
+          filePath: null,
+        },
+      ]);
+
+      expect(results.every((result) => result.status === 'fulfilled')).toBe(
+        true,
+      );
+      await expectUploadedFile(firstFileName);
+      await expectUploadedFile(secondFileName);
     });
 
     describe('When there is already one file', () => {

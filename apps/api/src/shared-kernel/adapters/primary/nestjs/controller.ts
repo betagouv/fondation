@@ -6,7 +6,7 @@ export type IController<C extends RestContract> = {
   [K in keyof C['endpoints']]: (
     params: C['endpoints'][K]['params'],
     body: C['endpoints'][K]['body'] extends FormData | FormDataLib
-      ? Express.Multer.File
+      ? Express.Multer.File | Express.Multer.File[]
       : C['endpoints'][K]['body'],
     query: C['endpoints'][K]['queryParams'],
     ...args: any[]

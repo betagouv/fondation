@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
-import { AttachReportFileUseCase } from 'src/reports-context/business-logic/use-cases/report-attach-file/attach-report-file';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
+import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
+import { UploadReportFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-upload/upload-report-files';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
 import { UpdateReportOnImportChangeUseCase } from 'src/reports-context/business-logic/use-cases/report-update-on-import-change/update-report-on-import-change.use-case';
@@ -47,7 +48,6 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
-import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 
 @Module({
   imports: [SharedKernelModule],
@@ -84,7 +84,7 @@ import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-l
       REPORT_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
-    generateProvider(AttachReportFileUseCase, [
+    generateProvider(UploadReportFilesUseCase, [
       REPORT_FILE_SERVICE,
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
