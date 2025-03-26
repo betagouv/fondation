@@ -91,6 +91,5 @@ const aReport: ReturnType<ReportBuilder["buildRetrieveSM"]> = {
   attachedFiles: [],
   contentScreenshots: {
     files: [aFile, aSecondFile],
-    isUploading: false,
   },
 };

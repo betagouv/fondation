@@ -46,6 +46,25 @@ export const createExtensions = (opts?: {
     newGroupDelay: opts?.history.newGroupDelay ?? 500,
   }),
   ImageResize.extend({
+    addCommands() {
+      return {
+        setImage:
+          (attributes) =>
+          ({ tr }) => {
+            const { $from } = tr.selection;
+            const pos = $from.pos;
+            // Lors de l'ajout de plusieurs images en même temps,
+            // on suit les changements de positions.
+            tr.insert(
+              pos,
+              this.type.createAndFill({
+                ...attributes,
+              })!,
+            );
+            return true;
+          },
+      };
+    },
     addAttributes() {
       return {
         src: {

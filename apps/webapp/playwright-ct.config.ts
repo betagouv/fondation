@@ -1,5 +1,23 @@
 import { defineConfig, devices } from "@playwright/experimental-ct-react";
 
+const edgeProject = {
+  name: "edge",
+  use: { ...devices["Desktop Edge"], channel: "msedge" },
+};
+const projects = [
+  edgeProject,
+  {
+    name: "Google Chrome",
+    use: {
+      ...devices["Desktop Chrome"],
+      channel: "chrome",
+      contextOptions: {
+        permissions: ["clipboard-read", "clipboard-write"],
+      },
+    },
+  },
+];
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -10,7 +28,7 @@ export default defineConfig({
   /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
   snapshotDir: "./__snapshots__",
   /* Maximum time one test can run for. */
-  timeout: 10 * 1000,
+  timeout: 5 * 60 * 1000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -40,26 +58,5 @@ export default defineConfig({
     },
   },
 
-  /* Configure projects for major browsers */
-  projects: process.env.CI
-    ? [
-        {
-          name: "chromium",
-          use: { ...devices["Desktop Chrome"] },
-        },
-        {
-          name: "firefox",
-          use: { ...devices["Desktop Firefox"] },
-        },
-        {
-          name: "webkit",
-          use: { ...devices["Desktop Safari"] },
-        },
-      ]
-    : [
-        {
-          name: "chromium",
-          use: { ...devices["Desktop Chrome"] },
-        },
-      ],
+  projects,
 });

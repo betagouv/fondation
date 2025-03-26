@@ -5,6 +5,7 @@ import { ReportVM } from "../../../../../core-logic/view-models/ReportVM";
 import { reportHtmlIds } from "../../../dom/html-ids";
 import { useAppDispatch } from "../../../hooks/react-redux";
 import { TextareaCard } from "../TextareaCard";
+import { InsertImages } from "../TipTapEditor";
 
 export type ReportEditorProps = {
   comment: string | null;
@@ -19,10 +20,10 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
 }) => {
   const dispatch = useAppDispatch();
 
-  const insertImage = (editor: Editor, file: File) => {
+  const insertImages: InsertImages = (editor, files) => {
     dispatch(
       reportEmbedScreenshot({
-        file,
+        files,
         reportId,
         editor,
       }),
@@ -49,7 +50,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       label={ReportVM.commentLabel}
       content={comment}
       onContentChange={onUpdate}
-      insertImage={insertImage}
+      insertImages={insertImages}
       deleteImages={deleteImages}
     />
   );

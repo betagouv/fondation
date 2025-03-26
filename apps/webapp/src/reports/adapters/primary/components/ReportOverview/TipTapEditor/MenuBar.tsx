@@ -14,14 +14,14 @@ import { TextColorButton } from "./buttons/TextColorButton";
 import { UnderlineButton } from "./buttons/UnderlineButton";
 import { headingLevels } from "./constant";
 import { useScreenshotPaste } from "./useScreenshotPaste";
-import { InsertImage } from ".";
+import { InsertImages } from ".";
 
 export interface MenuBarProps {
-  insertImage: InsertImage;
+  insertImages: InsertImages;
 }
 
-export const MenuBar: FC<MenuBarProps> = ({ insertImage }) => {
-  useScreenshotPaste(insertImage);
+export const MenuBar: FC<MenuBarProps> = ({ insertImages }) => {
+  useScreenshotPaste(insertImages);
 
   return (
     <div className={clsx("sticky top-2 z-10 bg-white", cx("fr-my-4v"))}>
@@ -38,7 +38,7 @@ export const MenuBar: FC<MenuBarProps> = ({ insertImage }) => {
         <BulletListButton />
         <IndentDecreaseButton />
         <IndentIncreaseButton />
-        <ImageUploadButton insertEditorImage={insertImage} />
+        <ImageUploadButton insertImages={insertImages} />
       </div>
     </div>
   );

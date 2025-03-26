@@ -129,46 +129,23 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
-      builder.addCase(reportEmbedScreenshot.pending, (state, action) => {
-        const { reportId } = action.meta.arg;
-        const report = state.byIds?.[reportId];
-
-        if (report) {
-          report.contentScreenshots = {
-            files: report.contentScreenshots?.files || [],
-            isUploading: true,
-          };
-        }
-      });
-
       builder.addCase(reportEmbedScreenshot.fulfilled, (state, action) => {
         const { reportId } = action.meta.arg;
-        const { file, signedUrl } = action.payload;
+        const files = action.payload;
         const report = state.byIds?.[reportId];
 
         if (report) {
-          const screenshot: ReportScreenshotSM = {
-            name: file.name,
-            signedUrl,
-          };
+          for (const { file, signedUrl } of files) {
+            const screenshot: ReportScreenshotSM = {
+              name: file.name,
+              signedUrl,
+            };
 
-          const currentFiles = report.contentScreenshots?.files || [];
-          report.contentScreenshots = {
-            files: [...currentFiles, screenshot],
-            isUploading: false,
-          };
-        }
-      });
-
-      builder.addCase(reportEmbedScreenshot.rejected, (state, action) => {
-        const { reportId } = action.meta.arg;
-        const report = state.byIds?.[reportId];
-
-        if (report) {
-          report.contentScreenshots = {
-            files: report.contentScreenshots?.files || [],
-            isUploading: false,
-          };
+            const currentFiles = report.contentScreenshots?.files || [];
+            report.contentScreenshots = {
+              files: [...currentFiles, screenshot],
+            };
+          }
         }
       });
 
@@ -229,7 +206,6 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
             report.contentScreenshots = newFiles?.length
               ? {
                   files: newFiles,
-                  isUploading: report.contentScreenshots?.isUploading ?? false,
                 }
               : null;
           }

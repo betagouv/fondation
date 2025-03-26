@@ -33,6 +33,8 @@ jobs:
         run: pnpm lint:check
       - name: Format
         run: pnpm format:check
+      - name: Install Playwright Browsers
+        run: pnpx playwright install --with-deps msedge chromium chrome
       - name: Test
         run: pnpm test:all
         env:

@@ -3,7 +3,7 @@ import { MenuBar } from "./MenuBar";
 import { createExtensions } from "./extensions";
 import { useOnDeletedImage } from "./useOnDeletedImage";
 
-export type InsertImage = (editor: Editor, file: File) => void;
+export type InsertImages = (editor: Editor, files: File[]) => void;
 export type DeleteImages = (
   editor: Editor,
   deletedImagesFileNames: string[],
@@ -13,7 +13,7 @@ type TipTapEditorProps = {
   value: string | undefined;
   onChange: (value: string) => void;
   ariaLabelledby: string;
-  insertImage: InsertImage;
+  insertImages: InsertImages;
   deleteImages: DeleteImages;
 };
 
@@ -21,7 +21,7 @@ export const TipTapEditor = ({
   value,
   onChange,
   ariaLabelledby,
-  insertImage,
+  insertImages,
   deleteImages,
 }: TipTapEditorProps) => {
   const {
@@ -33,7 +33,7 @@ export const TipTapEditor = ({
 
   return (
     <EditorProvider
-      slotBefore={<MenuBar insertImage={insertImage} />}
+      slotBefore={<MenuBar insertImages={insertImages} />}
       extensions={extensions}
       content={value}
       editable

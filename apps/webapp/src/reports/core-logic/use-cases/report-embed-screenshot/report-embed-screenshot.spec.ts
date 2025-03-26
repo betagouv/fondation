@@ -17,6 +17,7 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { reportEmbedScreenshot } from "./report-embed-screenshot";
+import { InvalidMimeTypeError } from "../../../../shared-kernel/core-logic/errors/InvalidMimeType.error";
 
 describe("Report Embed Screenshot", () => {
   let store: ReduxStore;
@@ -56,7 +57,7 @@ describe("Report Embed Screenshot", () => {
       type: "text/plain",
     });
     await file.arrayBuffer();
-    expectUploadError(await embedScreenshot(file), "Invalid mime type: ");
+    expectUploadError(await embedScreenshot(file), file.name);
   });
 
   it.each`
@@ -71,63 +72,33 @@ describe("Report Embed Screenshot", () => {
     await expect(embedScreenshot(file)).resolves.toBeDefined();
   });
 
-  it("stores a screenshot with its signed URL", async () => {
+  it.each([
+    {
+      fileNames: ["screenshot.png"],
+    },
+    {
+      fileNames: ["screenshot1.png", "screenshot2.png"],
+    },
+  ])("stores a screenshot with its signed URL", async ({ fileNames }) => {
     const fileBuffer = await givenAnImageBuffer("png");
-    const file = new File([fileBuffer], "screenshot.png", {
-      type: "image/png",
+    const files = fileNames.map(
+      (fileName) =>
+        new File([fileBuffer], fileName, {
+          type: "image/png",
+        }),
+    );
+
+    await embedScreenshot(...files);
+
+    const expectedFiles = fileNames.map((fileName) => {
+      const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
+      return {
+        name: fileNameWithTimestamp,
+        signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
+      };
     });
-
-    await embedScreenshot(file);
-
-    const expectedFileName = `screenshot.png-${dateProvider.timestamp}`;
-    const signedUrl = `https://example.fr/${expectedFileName}`;
-
     expectStoredScreenshots({
-      files: [
-        {
-          name: expectedFileName,
-          signedUrl,
-        },
-      ],
-      isUploading: false,
-    });
-  });
-
-  it("says that a screenshot is uploading", async () => {
-    const file = new File([""], "screenshot.png");
-
-    givenAScreenshotUploadingState({
-      reportId: aReport.id,
-      file,
-    });
-
-    expectStoredScreenshots({
-      files: [],
-      isUploading: true,
-    });
-  });
-
-  it("when uploading fails, it says that a screenshot is not uploading anymore", async () => {
-    const file = new File([""], "screenshot.png");
-
-    givenAStoredScreenshot({
-      file,
-      reportId: aReport.id,
-      signedUrl: "https://example.fr/screenshot.png",
-    });
-    givenAScreenshotUploadRejected({
-      file,
-      reportId: aReport.id,
-    });
-
-    expectStoredScreenshots({
-      files: [
-        {
-          name: "screenshot.png",
-          signedUrl: "https://example.fr/screenshot.png",
-        },
-      ],
-      isUploading: false,
+      files: expectedFiles,
     });
   });
 
@@ -149,76 +120,13 @@ describe("Report Embed Screenshot", () => {
     return fileBuffer;
   };
 
-  const givenAStoredScreenshot = ({
-    file,
-    reportId,
-    signedUrl,
-  }: {
-    file: File;
-    reportId: string;
-    signedUrl: string;
-  }) => {
-    store.dispatch(
-      reportEmbedScreenshot.fulfilled(
-        {
-          // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
-          // File du navigateur non investigué
-          file,
-          signedUrl,
-        },
-        "",
-        {
-          reportId,
-          file,
-          editor,
-        },
-      ),
-    );
-  };
-
-  const givenAScreenshotUploadingState = ({
-    file,
-    reportId,
-  }: {
-    file: File;
-    reportId: string;
-  }) => {
-    store.dispatch(
-      reportEmbedScreenshot.pending("", {
-        reportId,
-        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
-        // File du navigateur non investigué
-        file,
-        editor,
-      }),
-    );
-  };
-
-  const givenAScreenshotUploadRejected = ({
-    file,
-    reportId,
-  }: {
-    file: File;
-    reportId: string;
-  }) => {
-    store.dispatch(
-      reportEmbedScreenshot.rejected(new Error(), "", {
-        reportId,
-        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
-        // File du navigateur non investigué
-        file,
-        editor,
-      }),
-    );
-  };
-
-  const embedScreenshot = (file: File) =>
+  const embedScreenshot = (...files: File[]) =>
     store.dispatch(
       reportEmbedScreenshot({
         reportId: aReport.id,
         // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
         // File du navigateur non investigué
-        file,
+        files,
         editor,
       }),
     );
@@ -233,11 +141,13 @@ describe("Report Embed Screenshot", () => {
 
   const expectUploadError = (
     resp: Awaited<ReturnType<typeof embedScreenshot>>,
-    message: string,
+    fileName: string,
   ) =>
     expect(resp).toMatchObject({
       error: expect.objectContaining({
-        message,
+        message: new InvalidMimeTypeError({
+          fileName: `${fileName}-${new DeterministicDateProvider().timestamp}`,
+        }).message,
       }),
     });
 });

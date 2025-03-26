@@ -71,7 +71,6 @@ describe("Retrieve report", () => {
               signedUrl: "https://example.fr/screenshot1.png",
             },
           ],
-          isUploading: false,
         })
         .buildRetrieveSM(),
       comment: `<img data-file-name="screenshot1.png" src="https://example.fr/screenshot1.png">`,

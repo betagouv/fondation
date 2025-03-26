@@ -3,7 +3,6 @@ import { sleep } from "../../../../../../shared-kernel/core-logic/sleep";
 import { AppState, ReportScreenshotSM } from "../../../../../../store/appState";
 import { ReduxStore } from "../../../../../../store/reduxStore";
 import {
-  Context,
   Locator,
   logPlaywrightBrowser,
   Mount,
@@ -25,14 +24,18 @@ test.describe("Report Editor", () => {
   let editor: Locator;
   let page: Page;
   let mount: Mount;
-  let context: Context;
 
-  test.beforeEach(({ page: aPage, mount: aMount, context: aContext }) => {
+  test.beforeEach(({ page: aPage, mount: aMount }) => {
     component = null;
     page = aPage;
     logPlaywrightBrowser(page);
     mount = aMount;
-    context = aContext;
+  });
+
+  test.afterEach(async ({ page }) => {
+    // Manual closing because this open issue:
+    // https://github.com/microsoft/playwright/issues/31050
+    await page.close();
   });
 
   test("should show a basic report", async () => {
@@ -205,39 +208,8 @@ test.describe("Report Editor", () => {
         '<p><mark><span style="color: rgb(24, 117, 60)">content</span></mark></p>',
     },
     {
-      testTitle: "Add screenshot using the upload button",
-      action: async () => {
-        await selectText();
-        await editor.press("ArrowRight");
-
-        const fileChooserPromise = page.waitForEvent("filechooser");
-        await clickOnMark("Ajouter une capture d'écran");
-        const fileChooser = await fileChooserPromise;
-
-        await fileChooser.setFiles({
-          name: "image.png",
-          mimeType: "image/png",
-          buffer: Buffer.from(""),
-        });
-      },
-      getHtmlContent: () => queryHtmlContent(".ProseMirror > div > div"),
-      expectHtmlContent: async (content: string) => {
-        const expectedHtml = `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
-        expect(content).toEqual(expectedHtml);
-      },
-      expectedStoredHtmlContent: `<p>content</p><img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
-      expectedStoredFiles: [
-        {
-          name: "image.png-10",
-          signedUrl: "https://example.fr/image.png-10",
-        },
-      ],
-    },
-    {
       testTitle: "Add screenshot with paste action",
       action: async () => {
-        await context.grantPermissions(["clipboard-write"]);
-
         await page.evaluate(async () => {
           const response = await fetch("https://fakeimg.pl/10x10/");
           const blob = await response.blob();
@@ -247,7 +219,7 @@ test.describe("Report Editor", () => {
             );
           await navigator.clipboard.write([
             new ClipboardItem({
-              "image/png": blob,
+              "image/png": Promise.resolve(blob),
             }),
           ]);
         });
@@ -302,6 +274,58 @@ test.describe("Report Editor", () => {
       });
     },
   );
+
+  test("Add screenshots using the upload button", async () => {
+    await renderReport("content");
+
+    await editor.focus();
+    await selectText();
+    await editor.press("ArrowRight");
+
+    const fileChooserPromise = page.waitForEvent("filechooser");
+    await clickOnMark("Ajouter une capture d'écran");
+    const fileChooser = await fileChooserPromise;
+
+    await fileChooser.setFiles([
+      {
+        name: "image.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(""),
+      },
+      {
+        name: "image2.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(""),
+      },
+    ]);
+
+    await expectContent("content");
+
+    const expectedStoredHtmlContent =
+      `<p>content</p>` +
+      `<img src="${FakeReportApiClient.BASE_URI}/image2.png-10" data-file-name="image2.png-10" data-is-screenshot="true" class="editor-resizable-image">` +
+      `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`;
+    const expectedStoredFiles = [
+      {
+        name: "image.png-10",
+        signedUrl: `${FakeReportApiClient.BASE_URI}/image.png-10`,
+      },
+      {
+        name: "image2.png-10",
+        signedUrl: `${FakeReportApiClient.BASE_URI}/image2.png-10`,
+      },
+    ];
+    await expectStoredReport(expectedStoredHtmlContent, expectedStoredFiles);
+
+    const expectedHtml = [
+      `<img src="${FakeReportApiClient.BASE_URI}/image2.png-10" data-file-name="image2.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
+      `<img src="${FakeReportApiClient.BASE_URI}/image.png-10" data-file-name="image.png-10" data-is-screenshot="true" class="editor-resizable-image">`,
+    ];
+    const htmlContent = (await queryAllHtmlContent(
+      ".ProseMirror > div > div",
+    ))!;
+    expect(htmlContent).toEqual(expectedHtml);
+  });
 
   test("Undo a text modification", async () => {
     await renderReport("content");
@@ -387,6 +411,15 @@ test.describe("Report Editor", () => {
       queryString,
     );
 
+  const queryAllHtmlContent = (queryString: string) =>
+    page.evaluate(
+      (query) =>
+        [...document.querySelectorAll(query).values()].map(
+          (node) => node.innerHTML,
+        ),
+      queryString,
+    );
+
   const expectGreenCss = () =>
     expect(component!.getByText("content")).toHaveCSS(
       "color",
@@ -399,7 +432,7 @@ test.describe("Report Editor", () => {
     content: string | null,
     screenshots?: ReportScreenshotSM[],
   ) => {
-    await sleep(400); // Wait for debouced store update
+    await sleep(600); // Wait for debouced store update
 
     const state = await page.evaluate(() => window.store.getState());
 
@@ -414,7 +447,6 @@ test.describe("Report Editor", () => {
             contentScreenshots: screenshots
               ? {
                   files: screenshots,
-                  isUploading: false,
                 }
               : null,
           },

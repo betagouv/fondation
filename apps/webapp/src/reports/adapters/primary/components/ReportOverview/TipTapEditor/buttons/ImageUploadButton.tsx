@@ -1,15 +1,15 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
 import { ChangeEvent, FC, useRef } from "react";
-import { InsertImage } from "..";
+import { InsertImages } from "..";
 import { useIsBlurred } from "../useIsBlurred";
 
 type ImageUploadButtonProps = {
-  insertEditorImage: InsertImage;
+  insertImages: InsertImages;
 };
 
 export const ImageUploadButton: FC<ImageUploadButtonProps> = ({
-  insertEditorImage,
+  insertImages,
 }) => {
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
@@ -22,10 +22,10 @@ export const ImageUploadButton: FC<ImageUploadButtonProps> = ({
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files) return;
 
-    insertEditorImage(editor, file);
+    insertImages(editor, [...files]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -43,6 +43,7 @@ export const ImageUploadButton: FC<ImageUploadButtonProps> = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleFileChange}
         aria-label="Insérer une image"
         className="hidden"

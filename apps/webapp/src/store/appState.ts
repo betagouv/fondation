@@ -21,7 +21,6 @@ export type ReportScreenshotSM = {
 
 export type ReportScreenshots = {
   files: ReportScreenshotSM[];
-  isUploading: boolean;
 };
 
 export interface ReportSM {

@@ -28,6 +28,24 @@ export class ApiReportGateway implements ReportGateway {
   async retrieveReport(id: string) {
     const report = await this.reportApiClient.retrieveReport(id);
 
+    const initialContentScreenshots: ReportScreenshots = {
+      files: [],
+    };
+    const contentScreenshots = report.attachedFiles
+      ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
+      .reduce(
+        (acc, file) => ({
+          files: [
+            ...acc.files,
+            {
+              name: file.name,
+              signedUrl: file.signedUrl,
+            },
+          ],
+        }),
+        initialContentScreenshots,
+      );
+
     return {
       id: report.id,
       folderNumber: report.folderNumber,
@@ -49,22 +67,7 @@ export class ApiReportGateway implements ReportGateway {
         report.attachedFiles?.filter(
           (file) => file.usage === ReportFileUsage.ATTACHMENT,
         ) ?? null,
-      contentScreenshots:
-        report.attachedFiles
-          ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
-          .reduce(
-            (acc, file) => ({
-              files: [
-                ...acc.files,
-                {
-                  name: file.name,
-                  signedUrl: file.signedUrl,
-                },
-              ],
-              isUploading: false,
-            }),
-            { files: [], isUploading: false } as ReportScreenshots,
-          ) ?? null,
+      contentScreenshots: contentScreenshots ?? null,
     };
   }
 

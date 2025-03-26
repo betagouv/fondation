@@ -1,4 +1,5 @@
 import { fileTypeFromBuffer, FileTypeResult } from "file-type";
+import { InvalidMimeTypeError } from "../../../core-logic/errors/InvalidMimeType.error";
 import { FileProvider } from "../../../core-logic/providers/fileProvider";
 
 export class RealFileProvider implements FileProvider {
@@ -20,5 +21,18 @@ export class RealFileProvider implements FileProvider {
   ): Promise<FileTypeResult["mime"] | undefined> {
     const fileType = await fileTypeFromBuffer(fileBuffer);
     return fileType?.mime;
+  }
+
+  assertMimeTypeFactory(mimeTypesWhitelist: string[]) {
+    return async (file: File) => {
+      const fileBuffer = await this.bufferFromFile(file);
+      const mimeType = await this.mimeTypeFromBuffer(fileBuffer);
+
+      if (!mimeType || !mimeTypesWhitelist.includes(mimeType)) {
+        throw new InvalidMimeTypeError({
+          fileName: file.name,
+        });
+      }
+    };
   }
 }

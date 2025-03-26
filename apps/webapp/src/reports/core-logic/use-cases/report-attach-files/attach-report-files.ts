@@ -23,19 +23,11 @@ export const attachReportFiles = createAppAsyncThunk<
   ) => {
     const { reportId, files } = args;
 
-    const assertFileMimeType = async (file: File) => {
-      const fileBuffer = await fileProvider.bufferFromFile(file);
-      const mimeType = await fileProvider.mimeTypeFromBuffer(fileBuffer);
-      const acceptedMimeTypes =
-        getState().reportOverview.acceptedMimeTypes.attachedFiles;
-
-      if (!mimeType || !acceptedMimeTypes.includes(mimeType)) {
-        throw new Error(
-          `Invalid mime type for file ${file.name}: ${mimeType || ""}`,
-        );
-      }
-    };
-    await Promise.all(files.map(assertFileMimeType));
+    const acceptedMimeTypes =
+      getState().reportOverview.acceptedMimeTypes.attachedFiles;
+    await Promise.all(
+      files.map(fileProvider.assertMimeTypeFactory(acceptedMimeTypes)),
+    );
 
     await reportGateway.uploadFiles(
       reportId,
