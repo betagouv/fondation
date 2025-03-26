@@ -30,6 +30,7 @@ export class SessionValidationMiddleware implements NestMiddleware {
   }
 
   private invalidSession(req: Request) {
+    if (!req.cookies) return true;
     return !('sessionId' in req.cookies) || !this.sessionId(req);
   }
 

@@ -29,8 +29,8 @@ import { FilesUploadQueryDto } from './dto/files-upload-query.dto';
 
 type IReportController = IController<FilesContextRestContract>;
 
-const baseRoute: FilesContextRestContract['basePath'] = 'api/files';
-const endpointsPaths: IControllerPaths<FilesContextRestContract> = {
+export const baseRoute: FilesContextRestContract['basePath'] = 'api/files';
+export const endpointsPaths: IControllerPaths<FilesContextRestContract> = {
   uploadFile: 'upload-one',
   uploadFiles: 'upload-many',
   getSignedUrls: 'signed-urls',

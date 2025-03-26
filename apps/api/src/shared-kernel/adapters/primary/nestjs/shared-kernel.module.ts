@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
+import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
 import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
 import { getDrizzleConfig } from '../../secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -17,6 +19,8 @@ import {
 import { DomainEventsPoller } from './domain-event-poller';
 import { apiConfig, defaultApiConfig } from './env';
 import { validateDevConfig, validateProdConfig } from './env.validation';
+import { SystemRequestValidationMiddleware } from './middleware/system-request.middleware';
+import { SessionValidationMiddleware } from './middleware/session-validation.middleware';
 import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
 import {
   API_CONFIG,
@@ -28,8 +32,6 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from './tokens';
-import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
-import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -46,6 +48,8 @@ const isProduction = process.env.NODE_ENV === 'production';
     FileReaderProvider,
     SessionValidationService,
     SystemRequestSignatureProvider,
+    SystemRequestValidationMiddleware,
+    SessionValidationMiddleware,
   ],
   controllers: [],
   providers: [
@@ -128,6 +132,9 @@ const isProduction = process.env.NODE_ENV === 'production';
       },
       inject: [API_CONFIG],
     },
+
+    SystemRequestValidationMiddleware,
+    SessionValidationMiddleware,
   ],
 })
 export class SharedKernelModule {}

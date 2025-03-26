@@ -9,7 +9,7 @@ import {
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
 import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
-import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 type Endpoints = FilesContextRestContract['endpoints'];

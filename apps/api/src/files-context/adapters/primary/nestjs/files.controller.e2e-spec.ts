@@ -1,12 +1,12 @@
 import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { HttpStatus } from '@nestjs/common';
-import { NestApplication } from '@nestjs/core';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import {
   filesUploadQueryDtoSchema,
   fileUploadQueryDtoSchema,
   FileVM,
 } from 'shared-models';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
+import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -17,9 +17,9 @@ import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { deleteS3Files, givenSomeS3Files } from 'test/minio';
+import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
-import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
@@ -30,7 +30,7 @@ const fileId2 = '7f4e1c30-b9d2-4e8f-bc7e-1a3d78f92a1c';
 const fileName2 = 'second-test-file.pdf';
 
 describe('Files Controller', () => {
-  let app: NestApplication;
+  let app: INestApplication;
   let db: DrizzleDb;
   let s3Client: S3Client;
 
@@ -282,18 +282,57 @@ describe('Files Controller', () => {
     }
   });
 
-  const initApp = async () => {
-    const moduleFixture = await new AppTestingModule().compile();
-    app = moduleFixture.createNestApplication();
+  describe('User requests', () => {
+    beforeEach(async () => {
+      await initApp({ validatedUserSession: true });
+    });
+
+    it("generates a signed url for a file's download", async () => {
+      await givenSomeS3Files(s3Client, {
+        bucket,
+        Key: fileName,
+      });
+      await db
+        .insert(filesPm)
+        .values({
+          id: fileId,
+          name: fileName,
+          storageProvider: FilesStorageProvider.SCALEWAY,
+          bucket,
+        })
+        .execute();
+
+      const response = await supertest(app.getHttpServer())
+        .get('/api/files/signed-urls')
+        .set('Cookie', 'sessionId=unused')
+        .query({
+          ids: fileId,
+        })
+        .expect(HttpStatus.OK);
+      expect(response.body).toEqual<FileVM[]>([
+        {
+          name: fileName,
+          signedUrl: expect.stringMatching(/^http/),
+        },
+      ]);
+    });
+  });
+
+  const initApp = async (args?: { validatedUserSession: boolean }) => {
+    let testingModule = new BaseAppTestingModule(db);
+
+    if (args?.validatedUserSession)
+      testingModule = testingModule
+        .withFakeCookieSignature()
+        .withStubSessionValidationService(true);
+
+    const moduleFixture = await testingModule.compile();
+    app = new MainAppConfigurator(moduleFixture.createNestApplication())
+      .withCookies()
+      .configure();
 
     s3Client = app.get(S3Client);
 
     await app.init();
   };
-
-  class AppTestingModule extends BaseAppTestingModule {
-    constructor() {
-      super(db);
-    }
-  }
 });

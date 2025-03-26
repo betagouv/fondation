@@ -36,7 +36,7 @@ import {
   SESSION_REPOSITORY,
   USER_REPOSITORY,
 } from './tokens';
-import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/internal-request.middleware';
+import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 
 @Module({
   imports: [SharedKernelModule],
