@@ -213,13 +213,10 @@ test.describe("Report Editor", () => {
         await page.evaluate(async () => {
           const response = await fetch("https://fakeimg.pl/10x10/");
           const blob = await response.blob();
-          if (!navigator.userActivation.isActive)
-            console.warn(
-              "Transiant activation is required for firefox and safari",
-            );
+
           await navigator.clipboard.write([
             new ClipboardItem({
-              "image/png": Promise.resolve(blob),
+              "image/png": blob,
             }),
           ]);
         });
