@@ -432,7 +432,7 @@ test.describe("Report Editor", () => {
     content: string | null,
     screenshots?: ReportScreenshotSM[],
   ) => {
-    await sleep(600); // Wait for debouced store update
+    await sleep(1000); // Wait for debouced store update
 
     const state = await page.evaluate(() => window.store.getState());
 
