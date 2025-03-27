@@ -61,7 +61,7 @@ export const GdsTransparencies = ({
   return (
     <TransparencyBlock
       hidden={gdsTransparencies.noGdsTransparencies}
-      title="Pouvoir de proposition du garde des Sceaux"
+      title="Pouvoir de proposition du GDS"
     >
       <Tabs
         style={{

@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import _ from "lodash";
 import { Provider } from "react-redux";
 import {
   AuthenticatedUser,
@@ -13,25 +14,29 @@ import {
   authenticate,
   AuthenticateParams,
 } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
+import { ApiFileGateway } from "../../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { FakeFileApiClient } from "../../../../../files/adapters/secondary/gateways/FakeFile.client";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { initReduxStore, ReduxStore } from "../../../../../store/reduxStore";
-import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
-import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
-import { reportListTableLabels } from "../../labels/report-list-table-labels";
-import { ReportList } from "./ReportList";
-import _ from "lodash";
 import {
   ExpectTransparenciesBreadcrumb,
   expectTransparenciesBreadcrumbFactory,
 } from "../../../../../test/breadcrumb";
+import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
+import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway";
+import { ApiTransparencyGateway } from "../../../secondary/gateways/ApiTransparency.gateway";
+import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
+import { FakeTransparencyApiClient } from "../../../secondary/gateways/FakeTransparency.client";
+import { reportListTableLabels } from "../../labels/report-list-table-labels";
+import { ReportList } from "./ReportList";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
   let routerProvider: StubRouterProvider;
   let reportApiClient: FakeReportApiClient;
-  let authenticationGateway: ApiAuthenticationGateway;
   let authenticationApiClient: FakeAuthenticationApiClient;
+  let transparencyApiClient: FakeTransparencyApiClient;
+  let fileApiClient: FakeFileApiClient;
   let expectTransparenciesBreadcrumb: ExpectTransparenciesBreadcrumb;
 
   beforeEach(() => {
@@ -42,12 +47,20 @@ describe("Report List Component", () => {
       user.firstName,
       user.lastName,
     );
-    authenticationGateway = new ApiAuthenticationGateway(
+    const authenticationGateway = new ApiAuthenticationGateway(
       authenticationApiClient,
     );
 
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+
+    transparencyApiClient = new FakeTransparencyApiClient();
+    const transparencyGateway = new ApiTransparencyGateway(
+      transparencyApiClient,
+    );
+
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
 
     routerProvider = new StubRouterProvider();
     routerProvider.onReportOverviewClick = vi.fn();
@@ -56,11 +69,21 @@ describe("Report List Component", () => {
       {
         reportGateway,
         authenticationGateway,
+        transparencyGateway,
+        fileGateway,
       },
       { routerProvider },
       {},
       {},
       undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [
+        Transparency.AUTOMNE_2024,
+        Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
+      ],
     );
 
     expectTransparenciesBreadcrumb =
@@ -194,6 +217,50 @@ describe("Report List Component", () => {
           Magistrat.Formation.PARQUET,
         );
         await expect(screen.findByText(anotherReport.name)).rejects.toThrow();
+      });
+    });
+  });
+
+  describe("Files", () => {
+    it("doesn't show the title when they are no attachments", async () => {
+      renderReportList();
+      await expect(screen.findByText("Pièces jointes")).rejects.toThrow();
+    });
+
+    describe("With files attached", () => {
+      const transparency = Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
+
+      beforeEach(() => {
+        const attachments = [
+          { fileId: "file-id-1", metaPreSignedUrl: "url-1" },
+          { fileId: "file-id-2", metaPreSignedUrl: "url-2" },
+        ];
+        transparencyApiClient.addGdsFiles(transparency, { files: attachments });
+
+        const attachmentFiles = attachments.map((attachment, index) => ({
+          fileId: attachment.fileId,
+          name: "Attachment name " + index,
+          signedUrl: "https://example.com/attachment/" + index,
+        }));
+        fileApiClient.setFiles(...attachmentFiles);
+      });
+
+      it("shows the title", async () => {
+        renderReportList(transparency);
+        await screen.findByText("Pièces jointes");
+      });
+
+      it("lists the attachments", async () => {
+        renderReportList(transparency);
+
+        expect(await screen.findByText("Attachment name 0")).toHaveAttribute(
+          "href",
+          "https://example.com/attachment/0",
+        );
+        expect(screen.getByText("Attachment name 1")).toHaveAttribute(
+          "href",
+          "https://example.com/attachment/1",
+        );
       });
     });
   });

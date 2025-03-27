@@ -13,6 +13,8 @@ import {
 } from "../../labels/labels-mappers";
 import { Transparencies } from "./Transparencies";
 
+const gdsTitle = "Pouvoir de proposition du GDS";
+
 describe("Transparencies Component", () => {
   let store: ReduxStore;
   let routerProvider: StubRouterProvider;
@@ -38,7 +40,7 @@ describe("Transparencies Component", () => {
 
   it("shows the 'Pouvoir de proposition du Garde des sceaux' heading", async () => {
     renderTransparencies();
-    await screen.findByText("Pouvoir de proposition du garde des Sceaux");
+    await screen.findByText(gdsTitle);
   });
 
   it("shows no transparencies message", async () => {
@@ -47,9 +49,7 @@ describe("Transparencies Component", () => {
     expect(
       screen.getByText("Sur quel type de saisine souhaitez-vous travailler ?"),
     ).not.toBeVisible();
-    expect(
-      screen.getByText("Pouvoir de proposition du garde des Sceaux"),
-    ).not.toBeVisible();
+    expect(screen.getByText(gdsTitle)).not.toBeVisible();
   });
 
   describe("GDS transparencies", () => {
@@ -73,7 +73,7 @@ describe("Transparencies Component", () => {
 
         it("shows the GDS title", async () => {
           renderTransparencies();
-          await screen.findByText("Pouvoir de proposition du garde des Sceaux");
+          await screen.findByText(gdsTitle);
         });
 
         it("shows the formation", async () => {

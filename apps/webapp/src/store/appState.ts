@@ -1,10 +1,12 @@
 import {
   AllRulesMapV2,
   AttachedFileVM,
+  FileVM,
   Magistrat,
   NominationFile,
   Transparency,
 } from "shared-models";
+import { SetOptional, UnionToTuple } from "type-fest";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
@@ -12,7 +14,6 @@ import { RouteChangedHandler } from "../router/core-logic/components/routeChange
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
-import { SetOptional } from "type-fest";
 
 export type ReportScreenshotSM = {
   name: string;
@@ -59,9 +60,15 @@ export type ReportListItem = Pick<
 
 type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 
-export interface AppState<IsTest extends boolean = false> {
+export interface AppState<
+  IsTest extends boolean = false,
+  AppStateTransparencies extends string[] = UnionToTuple<Transparency>,
+> {
   sharedKernel: {
     currentDate: Date;
+  };
+  transparencies: {
+    GDS: Record<AppStateTransparencies[number], { files: FileVM[] }>;
   };
   reportOverview: {
     acceptedMimeTypes: {

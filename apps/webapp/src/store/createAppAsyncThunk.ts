@@ -7,3 +7,12 @@ export const createAppAsyncThunk = createAsyncThunk.withTypes<{
   dispatch: AppDispatch;
   extra: AppDependencies;
 }>();
+
+export const createAppAsyncThunkFactory = <
+  AppStateTransparencies extends string[],
+>() =>
+  createAsyncThunk.withTypes<{
+    state: AppState<boolean, AppStateTransparencies>;
+    dispatch: AppDispatch;
+    extra: AppDependencies<AppStateTransparencies>;
+  }>();

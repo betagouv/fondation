@@ -4,7 +4,7 @@ import { Listener } from "../listeners";
 import { AppDispatch, PartialAppDependencies } from "../reduxStore";
 
 export const createAppListenerMiddleware = (
-  appDependencies: PartialAppDependencies,
+  appDependencies: PartialAppDependencies<string[]>,
   listeners?: Listener[],
 ) => {
   const listenerMiddleware = createListenerMiddleware({

@@ -28,6 +28,10 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
 import { reportFilesAttached } from "./reports/core-logic/listeners/report-files-attached.listeners.ts";
+import { ApiFileGateway } from "./files/adapters/secondary/gateways/ApiFile.gateway.ts";
+import { FetchFileApiClient } from "./files/adapters/secondary/gateways/FetchFile.client.ts";
+import { ApiTransparencyGateway } from "./reports/adapters/secondary/gateways/ApiTransparency.gateway.ts";
+import { EnvTransparencyApiClient } from "./reports/adapters/secondary/gateways/EnvTransparency.client.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -41,6 +45,12 @@ const authenticationGateway = new ApiAuthenticationGateway(
 const reportApiClient = new FetchReportApiClient(import.meta.env.VITE_API_URL);
 const reportGateway = new ApiReportGateway(reportApiClient);
 
+const fileApiClient = new FetchFileApiClient(import.meta.env.VITE_API_URL);
+const fileGateway = new ApiFileGateway(fileApiClient);
+
+const transparencyApiClient = new EnvTransparencyApiClient();
+const transparencyGateway = new ApiTransparencyGateway(transparencyApiClient);
+
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
@@ -48,7 +58,7 @@ const dateProvider = new RealDateProvider();
 const fileProvider = new RealFileProvider();
 
 const store = initReduxStore<false>(
-  { reportGateway, authenticationGateway },
+  { reportGateway, authenticationGateway, fileGateway, transparencyGateway },
   {
     routerProvider: new TypeRouterProvider(),
     logoutNotifierProvider,

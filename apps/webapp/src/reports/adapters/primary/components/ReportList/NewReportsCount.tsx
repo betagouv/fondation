@@ -14,7 +14,6 @@ export const NewReportsCount: FC<NewReportsCountProps> = ({
     <span
       className={cx("fr-text--bold")}
       style={{
-        textDecoration: "underline",
         color: colorDecisions.text.active.blueFrance.default,
       }}
     >
