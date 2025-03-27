@@ -142,7 +142,7 @@ export const selectReportList = createAppSelector(
 );
 
 const transparencyTitleMap: { [key in Transparency]: string } = {
-  [Transparency.AUTOMNE_2024]: "transparence du 18/10/2024",
+  [Transparency.AUTOMNE_2024]: "transparence du 18/10/2024 (automne)",
   [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
     "transparence du 08/11/2024 (PG/PR)",
   [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
@@ -155,6 +155,7 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
   [Transparency.PARQUET_DU_20_FEVRIER_2025]: "transparence du 20/02/2025",
   [Transparency.DU_03_MARS_2025]: "transparence du 03/03/2025",
-  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "transparence du 21/03/2025",
+  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]:
+    "transparence du 21/03/2025 (annuelle)",
   [Transparency.MARCH_2026]: "transparence du 21/03/2026",
 };
