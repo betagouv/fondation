@@ -3,7 +3,7 @@ import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
 
 export const transparencyMap: { [key in Transparency]: string } = {
   [Transparency.AUTOMNE_2024]: 'Automne 2024',
-  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: 'Mars 2025',
+  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: 'T21/03/2025 (annuelle)',
   [Transparency.MARCH_2026]: 'Mars 2026',
   [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]: 'Transparence PG 08/11',
   [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]: 'Transparence PG 25/11',
