@@ -14,20 +14,18 @@ export class EnvTransparencyApiClient<
 > implements TransparencyApiClient<T, K>
 {
   async getAttachments(transparency: K): Promise<TransparencyAttachments> {
-    if (transparency !== Transparency.GRANDE_TRANSPA_DU_21_MARS_2025)
-      return { files: [] };
-
     const transparenciesFileIdsSerialized = import.meta.env
       .VITE_GDS_TRANSPA_FILES_IDS!;
 
     const transparenciesFileIds = JSON.parse(
       transparenciesFileIdsSerialized,
-    ) as Record<K, string[]>;
+    ) as Record<K, string[] | undefined>;
 
-    const files = transparenciesFileIds[transparency].map((fileId) => ({
-      fileId,
-      metaPreSignedUrl: this.buildSignedUrlEndpoint(fileId),
-    }));
+    const files =
+      transparenciesFileIds[transparency]?.map((fileId) => ({
+        fileId,
+        metaPreSignedUrl: this.buildSignedUrlEndpoint(fileId),
+      })) || [];
 
     return { files };
   }
