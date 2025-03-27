@@ -42,7 +42,7 @@ describe("Get Transparency Attachments", () => {
     initialState = store.getState();
   });
 
-  it.only("gets attachments for a specific transparency", async () => {
+  it("gets attachments for a specific transparency", async () => {
     const attachments: TransparencyAttachments = {
       files: [
         {
