@@ -1,10 +1,5 @@
 import _ from 'lodash';
-import {
-  allRulesMapV1,
-  Magistrat,
-  NominationFile,
-  RulesBuilder,
-} from 'shared-models';
+import { Magistrat, NominationFile, RulesBuilder } from 'shared-models';
 import {
   DateOnly,
   gsheetDateFormat,
@@ -17,6 +12,13 @@ import {
 } from './nomination-file-content-reader';
 import { NominationFileRead } from './nomination-file-read';
 import { transparencyMap } from './tsv-normalizers/transparency-tsv-normalizer';
+import {
+  allRulesMapV1,
+  ManagementRule,
+  QualitativeRule,
+  RuleName,
+  StatutoryRule,
+} from './rules';
 
 export type Line = {
   folderNumber: number | null;
@@ -34,13 +36,13 @@ export type Line = {
   observers: string[] | null;
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: {
-      [key in NominationFile.ManagementRule]: string;
+      [key in ManagementRule]: string;
     };
     [NominationFile.RuleGroup.STATUTORY]: {
-      [key in NominationFile.StatutoryRule]: string;
+      [key in StatutoryRule]: string;
     };
     [NominationFile.RuleGroup.QUALITATIVE]: {
-      [key in NominationFile.QualitativeRule]: string;
+      [key in QualitativeRule]: string;
     };
   };
 };
@@ -77,7 +79,7 @@ export class NominationFileTsvBuilder {
     if (!this._currentLine) throw new Error('No current line');
 
     this._currentLine['rules'][NominationFile.RuleGroup.MANAGEMENT][
-      NominationFile.ManagementRule.TRANSFER_TIME
+      ManagementRule.TRANSFER_TIME
     ] = validatedString;
 
     return this;
@@ -87,7 +89,7 @@ export class NominationFileTsvBuilder {
     if (!this._currentLine) throw new Error('No current line');
 
     this._currentLine['rules'][NominationFile.RuleGroup.STATUTORY][
-      NominationFile.StatutoryRule.MINISTER_CABINET
+      StatutoryRule.MINISTER_CABINET
     ] = validatedString;
 
     return this;
@@ -127,76 +129,67 @@ export class NominationFileTsvBuilder {
     rules,
   }: Line) {
     const firstGroupOfRuleValues = [
+      rules[NominationFile.RuleGroup.MANAGEMENT][ManagementRule.TRANSFER_TIME],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.TRANSFER_TIME
+        ManagementRule.GETTING_FIRST_GRADE
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.GETTING_FIRST_GRADE
+        ManagementRule.GETTING_GRADE_HH
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.GETTING_GRADE_HH
+        ManagementRule.GETTING_GRADE_IN_PLACE
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE
+        ManagementRule.PROFILED_POSITION
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.PROFILED_POSITION
+        ManagementRule.CASSATION_COURT_NOMINATION
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.CASSATION_COURT_NOMINATION
+        ManagementRule.OVERSEAS_TO_OVERSEAS
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS
+        ManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
       ],
       rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule
-          .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-      ],
-      rules[NominationFile.RuleGroup.MANAGEMENT][
-        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+        ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
       ],
 
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION
+        StatutoryRule.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION
       ],
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS
+        StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS
       ],
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS
+        StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS
       ],
     ];
 
     const secondGroupOfRuleValues = [
+      rules[NominationFile.RuleGroup.STATUTORY][StatutoryRule.MINISTER_CABINET],
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.MINISTER_CABINET
+        StatutoryRule.GRADE_REGISTRATION
       ],
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.GRADE_REGISTRATION
+        StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS
       ],
       rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS
-      ],
-      rules[NominationFile.RuleGroup.STATUTORY][
-        NominationFile.StatutoryRule
-          .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO
+        StatutoryRule.LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO
       ],
 
       rules[NominationFile.RuleGroup.QUALITATIVE][
-        NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE
+        QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE
       ],
       rules[NominationFile.RuleGroup.QUALITATIVE][
-        NominationFile.QualitativeRule
-          .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION
+        QualitativeRule.CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION
+      ],
+      rules[NominationFile.RuleGroup.QUALITATIVE][QualitativeRule.EVALUATIONS],
+      rules[NominationFile.RuleGroup.QUALITATIVE][
+        QualitativeRule.DISCIPLINARY_ELEMENTS
       ],
       rules[NominationFile.RuleGroup.QUALITATIVE][
-        NominationFile.QualitativeRule.EVALUATIONS
-      ],
-      rules[NominationFile.RuleGroup.QUALITATIVE][
-        NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS
-      ],
-      rules[NominationFile.RuleGroup.QUALITATIVE][
-        NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS
+        QualitativeRule.HH_NOMINATION_CONDITIONS
       ],
     ];
     const rulesValues = [
@@ -262,20 +255,21 @@ export class NominationFileTsvBuilder {
   }
 }
 
-class NominationFileTsvRulesBuilder extends RulesBuilder<string> {
+class NominationFileTsvRulesBuilder extends RulesBuilder<
+  string,
+  ManagementRule,
+  StatutoryRule,
+  QualitativeRule
+> {
   static fromRead(
     rules: NominationFileRead['content']['rules'],
   ): NominationFileTsvRulesBuilder {
-    return new NominationFileTsvRulesBuilder(
-      ({ ruleGroup, ruleName }) => {
-        const ruleValue = (
-          rules[ruleGroup] as Record<NominationFile.RuleName, boolean>
-        )[ruleName];
+    return new NominationFileTsvRulesBuilder(({ ruleGroup, ruleName }) => {
+      const ruleValue = (rules[ruleGroup] as Record<RuleName, boolean>)[
+        ruleName
+      ];
 
-        return ruleValue ? 'TRUE' : 'FALSE';
-      },
-      undefined,
-      allRulesMapV1,
-    );
+      return ruleValue ? 'TRUE' : 'FALSE';
+    }, allRulesMapV1);
   }
 }

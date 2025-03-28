@@ -12,6 +12,12 @@ import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
 import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
+import {
+  ManagementRule,
+  QualitativeRule,
+  RuleName,
+  StatutoryRule,
+} from './rules';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -38,10 +44,10 @@ export class NominationFileContentReader {
 
               return {
                 ...rulesAcc,
-                [rule as NominationFile.RuleName]: row[index] === 'TRUE',
+                [rule as RuleName]: row[index] === 'TRUE',
               };
             },
-            {} as Record<NominationFile.RuleName, boolean>,
+            {} as Record<RuleName, boolean>,
           ),
         }),
         {} as NominationFileRead['content']['rules'],
@@ -129,96 +135,85 @@ export class NominationFileContentReader {
   private getRulesColumnsIndices() {
     return {
       [NominationFile.RuleGroup.MANAGEMENT]: {
-        [NominationFile.ManagementRule.TRANSFER_TIME]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Mutation en - de 3 ans'),
-          ),
-        [NominationFile.ManagementRule.GETTING_FIRST_GRADE]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Passer au 1er grade'),
-          ),
-        [NominationFile.ManagementRule.GETTING_GRADE_HH]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Passe au grade "HH"'),
-          ),
-        [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Prendre son grade sur place'),
-          ),
-        [NominationFile.ManagementRule.PROFILED_POSITION]:
-          this.secondHeader.findIndex((col) => col.includes('Poste "profilé"')),
-        [NominationFile.ManagementRule.CASSATION_COURT_NOMINATION]:
+        [ManagementRule.TRANSFER_TIME]: this.secondHeader.findIndex((col) =>
+          col.includes('Mutation en - de 3 ans'),
+        ),
+        [ManagementRule.GETTING_FIRST_GRADE]: this.secondHeader.findIndex(
+          (col) => col.includes('Passer au 1er grade'),
+        ),
+        [ManagementRule.GETTING_GRADE_HH]: this.secondHeader.findIndex((col) =>
+          col.includes('Passe au grade "HH"'),
+        ),
+        [ManagementRule.GETTING_GRADE_IN_PLACE]: this.secondHeader.findIndex(
+          (col) => col.includes('Prendre son grade sur place'),
+        ),
+        [ManagementRule.PROFILED_POSITION]: this.secondHeader.findIndex((col) =>
+          col.includes('Poste "profilé"'),
+        ),
+        [ManagementRule.CASSATION_COURT_NOMINATION]:
           this.secondHeader.findIndex((col) =>
             col.includes('Nomination à la CC'),
           ),
-        [NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('"Outremer sur Outremer"'),
-          ),
-        [NominationFile.ManagementRule
-          .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]:
+        [ManagementRule.OVERSEAS_TO_OVERSEAS]: this.secondHeader.findIndex(
+          (col) => col.includes('"Outremer sur Outremer"'),
+        ),
+        [ManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]:
           this.secondHeader.findIndex((col) =>
             col.includes('Siège <> Parquet et TJ <> CA'),
           ),
-        [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
+        [ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
           this.secondHeader.findIndex((col) =>
             col.includes('Siège <> Parquet du même ressort'),
           ),
       },
       [NominationFile.RuleGroup.STATUTORY]: {
-        [NominationFile.StatutoryRule
-          .JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION]:
+        [StatutoryRule.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION]:
           this.secondHeader.findIndex((col) =>
             col.includes("Siège <> Parquet d'une même juridiction"),
           ),
-        [NominationFile.StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS]:
+        [StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS]:
           this.secondHeader.findIndex((col) =>
             col.includes('Prendre son grade sur place après 7 ans'),
           ),
-        [NominationFile.StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS]:
+        [StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS]:
           this.secondHeader.findIndex((col) =>
             col.includes("Ministère de la Justice à - de 3 ans d'exercice"),
           ),
-        [NominationFile.StatutoryRule.MINISTER_CABINET]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Cabinet du ministre'),
-          ),
-        [NominationFile.StatutoryRule.GRADE_REGISTRATION]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Inscription au tableau pour prise de grade'),
-          ),
-        [NominationFile.StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS]:
+        [StatutoryRule.MINISTER_CABINET]: this.secondHeader.findIndex((col) =>
+          col.includes('Cabinet du ministre'),
+        ),
+        [StatutoryRule.GRADE_REGISTRATION]: this.secondHeader.findIndex((col) =>
+          col.includes('Inscription au tableau pour prise de grade'),
+        ),
+        [StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS]:
           this.secondHeader.findIndex((col) =>
             col.includes(
               'Accéder à la HH sans avoir fait 2 postes au 1er grade',
             ),
           ),
-        [NominationFile.StatutoryRule
-          .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]:
+        [StatutoryRule.LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]:
           this.secondHeader.findIndex((col) =>
             col.includes('Prof. jur. dans le ressort du TJ il y a - de 5 ans'),
           ),
       },
       [NominationFile.RuleGroup.QUALITATIVE]: {
-        [NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]:
+        [QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]:
           this.secondHeader.findIndex((col) =>
             col.includes("Conflit d'intérêt avec parcours pré magistrature"),
           ),
-        [NominationFile.QualitativeRule
-          .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION]:
+        [QualitativeRule.CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION]:
           this.secondHeader.findIndex((col) =>
             col.includes("Conflit d'intérêt avec la prof. d'un proche"),
           ),
-        [NominationFile.QualitativeRule.EVALUATIONS]:
-          this.secondHeader.findIndex((col) => col.includes('Evaluations')),
-        [NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Eléments disciplinaires'),
-          ),
-        [NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS]:
-          this.secondHeader.findIndex((col) =>
-            col.includes('Conditions de nomination HH'),
-          ),
+        [QualitativeRule.EVALUATIONS]: this.secondHeader.findIndex((col) =>
+          col.includes('Evaluations'),
+        ),
+        [QualitativeRule.DISCIPLINARY_ELEMENTS]: this.secondHeader.findIndex(
+          (col) => col.includes('Eléments disciplinaires'),
+        ),
+        [QualitativeRule.HH_NOMINATION_CONDITIONS]: this.secondHeader.findIndex(
+          (col) => col.includes('Conditions de nomination HH'),
+        ),
       },
     };
   }

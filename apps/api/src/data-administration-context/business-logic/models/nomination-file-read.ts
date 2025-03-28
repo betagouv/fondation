@@ -1,12 +1,12 @@
-import {
-  allRulesMapV1,
-  Magistrat,
-  Month,
-  NominationFile,
-  Transparency,
-} from 'shared-models';
+import { Magistrat, Month, NominationFile, Transparency } from 'shared-models';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { z, ZodBoolean, ZodObject, ZodType } from 'zod';
+import {
+  allRulesMapV1,
+  ManagementRule,
+  QualitativeRule,
+  StatutoryRule,
+} from './rules';
 
 export type NominationFileRead = {
   rowNumber: number;
@@ -26,13 +26,13 @@ export type NominationFileRead = {
     observers: string[] | null;
     rules: {
       [NominationFile.RuleGroup.MANAGEMENT]: {
-        [key in NominationFile.ManagementRule]: boolean;
+        [key in ManagementRule]: boolean;
       };
       [NominationFile.RuleGroup.STATUTORY]: {
-        [key in NominationFile.StatutoryRule]: boolean;
+        [key in StatutoryRule]: boolean;
       };
       [NominationFile.RuleGroup.QUALITATIVE]: {
-        [key in NominationFile.QualitativeRule]: boolean;
+        [key in QualitativeRule]: boolean;
       };
     };
   };
@@ -40,13 +40,13 @@ export type NominationFileRead = {
 
 export type Rules = {
   [NominationFile.RuleGroup.MANAGEMENT]: ZodObject<
-    Record<NominationFile.ManagementRule, ZodBoolean>
+    Record<ManagementRule, ZodBoolean>
   >;
   [NominationFile.RuleGroup.STATUTORY]: ZodObject<
-    Record<NominationFile.StatutoryRule, ZodBoolean>
+    Record<StatutoryRule, ZodBoolean>
   >;
   [NominationFile.RuleGroup.QUALITATIVE]: ZodObject<
-    Record<NominationFile.QualitativeRule, ZodBoolean>
+    Record<QualitativeRule, ZodBoolean>
   >;
 };
 

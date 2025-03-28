@@ -4,14 +4,13 @@ import { NonEmptyTuple } from "type-fest";
 type GroupLabels<
   RulesMap extends AllRulesMapV2,
   RuleGroup extends NominationFile.RuleGroup,
-  ExcludedRules extends NominationFile.RuleName = never,
 > =
   NonEmptyTuple<RulesMap[RuleGroup]> extends readonly [
     RulesMap[RuleGroup],
     ...RulesMap[RuleGroup][],
   ]
     ? {
-        [key in Exclude<RulesMap[RuleGroup][number], ExcludedRules>]: {
+        [key in RulesMap[RuleGroup][number]]: {
           label: string;
           hint: string | JSX.Element;
         };
@@ -21,13 +20,7 @@ type GroupLabels<
 export type RulesLabelsMap<RulesMap extends AllRulesMapV2 = AllRulesMapV2> = {
   [NominationFile.RuleGroup.MANAGEMENT]: GroupLabels<
     RulesMap,
-    NominationFile.RuleGroup.MANAGEMENT,
-    | NominationFile.ManagementRule.CASSATION_COURT_NOMINATION
-    | NominationFile.ManagementRule.GETTING_FIRST_GRADE
-    | NominationFile.ManagementRule.GETTING_GRADE_HH
-    | NominationFile.ManagementRule.PROFILED_POSITION
-    | NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS
-    | NominationFile.ManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
+    NominationFile.RuleGroup.MANAGEMENT
   >;
   [NominationFile.RuleGroup.STATUTORY]: GroupLabels<
     RulesMap,
@@ -35,8 +28,7 @@ export type RulesLabelsMap<RulesMap extends AllRulesMapV2 = AllRulesMapV2> = {
   >;
   [NominationFile.RuleGroup.QUALITATIVE]: GroupLabels<
     RulesMap,
-    NominationFile.RuleGroup.QUALITATIVE,
-    NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS
+    NominationFile.RuleGroup.QUALITATIVE
   >;
 };
 

@@ -12,57 +12,33 @@ export class ReportVMRulesBuilder extends RulesBuilder<
     rulesMap: AppState["reportOverview"]["rulesMap"],
     rulesLabelsMap: AppState["reportOverview"]["rulesLabelsMap"],
   ): ReportVM["rulesChecked"] {
-    const builtRules = new ReportVMRulesBuilder(
-      ({ ruleGroup, ruleName }) => {
-        const rulesLabels = rulesLabelsMap[ruleGroup] as UnionToIntersection<
-          (typeof rulesLabelsMap)[NominationFile.RuleGroup]
-        >;
+    const builtRules = new ReportVMRulesBuilder(({ ruleGroup, ruleName }) => {
+      const rulesLabels = rulesLabelsMap[ruleGroup] as UnionToIntersection<
+        (typeof rulesLabelsMap)[NominationFile.RuleGroup]
+      >;
 
-        if (!Object.values(rulesMap).flat().includes(ruleName))
-          return {
-            id: "",
-            label: "",
-            hint: "",
-            checked: false,
-            highlighted: false,
-            comment: "",
-          };
-
-        const rule = rules[ruleGroup];
-        const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
-        const ruleLabels = rulesLabels[ruleName as keyof typeof rulesLabels];
-
-        if (
-          ruleName ===
-          NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-        ) {
-          const mergedRule = (rule as UnionToIntersection<typeof rule>)[
-            NominationFile.ManagementRule
-              .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-          ];
-
-          return {
-            id: ruleValue.id,
-            label: ruleLabels?.label || "",
-            hint: ruleLabels?.hint || "",
-            checked: !ruleValue.validated || !mergedRule.validated,
-            highlighted: ruleValue.preValidated || mergedRule.preValidated,
-            comment: ruleValue.comment,
-          };
-        }
-
+      if (!Object.values(rulesMap).flat().includes(ruleName))
         return {
-          id: ruleValue.id,
-          label: ruleLabels?.label || "",
-          hint: ruleLabels?.hint || "",
-          checked: !ruleValue.validated,
-          highlighted: ruleValue.preValidated,
-          comment: ruleValue.comment,
+          id: "",
+          label: "",
+          hint: "",
+          checked: false,
+          highlighted: false,
+          comment: "",
         };
-      },
-      undefined,
-      rulesMap,
-    ).build();
+
+      const rule = rules[ruleGroup];
+      const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
+      const ruleLabels = rulesLabels[ruleName as keyof typeof rulesLabels];
+
+      return {
+        id: ruleValue.id,
+        label: ruleLabels?.label || "",
+        hint: ruleLabels?.hint || "",
+        checked: !ruleValue.validated,
+        highlighted: ruleValue.preValidated,
+      };
+    }, rulesMap).build();
 
     const rulesVM = Object.entries(rulesMap).reduce(
       (acc, [ruleGroup, ruleNames]) => {

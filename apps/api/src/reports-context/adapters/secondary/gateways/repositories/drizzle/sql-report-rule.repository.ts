@@ -56,7 +56,6 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
         ruleName: row.ruleName,
         preValidated: row.preValidated,
         validated: row.validated,
-        comment: row.comment,
         reportId: row.reportId,
       };
       return ReportRule.fromSnapshot(reportRuleSnapshot);
@@ -74,7 +73,6 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
           set: buildConflictUpdateColumns(reportRules, [
             'preValidated',
             'validated',
-            'comment',
           ]),
         })
         .execute();
@@ -82,37 +80,16 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
   }
 
   static mapToDb(rule: ReportRule): typeof reportRules.$inferInsert {
-    const ruleSnapshot = rule.toSnapshot();
-
-    return {
-      id: ruleSnapshot.id,
-      createdAt: ruleSnapshot.createdAt,
-      reportId: ruleSnapshot.reportId,
-      ruleGroup: ruleSnapshot.ruleGroup,
-      ruleName: ruleSnapshot.ruleName,
-      preValidated: ruleSnapshot.preValidated,
-      validated: ruleSnapshot.validated,
-      comment: ruleSnapshot.comment,
-    };
+    return SqlReportRuleRepository.mapSnapshotToDb(rule.toSnapshot());
   }
 
   static mapSnapshotToDb(
     reportSnapshot: ReportRuleSnapshot,
   ): typeof reportRules.$inferInsert {
-    const report = ReportRule.fromSnapshot(reportSnapshot);
-    return this.mapToDb(report);
+    return reportSnapshot;
   }
 
   toDomain(reportRule: typeof reportRules.$inferSelect): ReportRule {
-    return ReportRule.fromSnapshot({
-      id: reportRule.id,
-      createdAt: reportRule.createdAt,
-      ruleGroup: reportRule.ruleGroup,
-      ruleName: reportRule.ruleName,
-      preValidated: reportRule.preValidated,
-      validated: reportRule.validated,
-      comment: reportRule.comment,
-      reportId: reportRule.reportId,
-    });
+    return ReportRule.fromSnapshot(reportRule);
   }
 }

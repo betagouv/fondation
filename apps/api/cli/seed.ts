@@ -63,7 +63,6 @@ async function seed() {
           .with('ruleName', ruleName)
           .with('preValidated', false)
           .with('validated', false)
-          .with('comment', null)
           .build();
 
         const ruleRow = SqlReportRuleRepository.mapSnapshotToDb(reportRule);
@@ -102,7 +101,6 @@ async function seed() {
           .with('ruleName', ruleName)
           .with('preValidated', true)
           .with('validated', true)
-          .with('comment', null)
           .build();
 
         const ruleRow = SqlReportRuleRepository.mapToDb(

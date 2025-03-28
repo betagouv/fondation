@@ -174,7 +174,6 @@ describe('Import Nominations from local file', () => {
         ruleName: NominationFile.ManagementRule.TRANSFER_TIME,
         preValidated: previousTransferTimePreValidated,
         validated: false,
-        comment: 'some comment',
       });
 
       await importNominationFileFromLocalFileCli.execute(fileToImportPath);
@@ -198,7 +197,6 @@ describe('Import Nominations from local file', () => {
         ruleName: NominationFile.ManagementRule.TRANSFER_TIME,
         preValidated: !previousTransferTimePreValidated,
         validated: false,
-        comment: 'some comment',
       });
     });
 
@@ -502,7 +500,7 @@ function getExpectedContents(): NominationFileRead['content'][] {
       },
       targettedPosition:
         "Premier substitut à l'administration centrale du ministère de la justice AC PARIS - I",
-      transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
+      transparency: Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
     },
   ];
 }

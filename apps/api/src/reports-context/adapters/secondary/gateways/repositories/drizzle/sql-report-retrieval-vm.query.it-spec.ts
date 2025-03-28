@@ -155,7 +155,6 @@ describe('SQL Report Retrieval VM Query', () => {
       id: reportRuleSnapshot.id,
       preValidated: reportRuleSnapshot.preValidated,
       validated: reportRuleSnapshot.validated,
-      comment: reportRuleSnapshot.comment,
     };
     return {
       [reportRuleSnapshot.ruleGroup]: {

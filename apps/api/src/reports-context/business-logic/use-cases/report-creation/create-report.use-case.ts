@@ -72,7 +72,6 @@ export class CreateReportUseCase {
                 ruleName as NominationFile.RuleName,
                 preValidated,
                 true,
-                null,
               ),
             )(trx),
           ),

@@ -15,7 +15,6 @@ export type VMReportRuleValue<Selected extends boolean = boolean> = {
   hint: string | JSX.Element;
   checked: boolean;
   highlighted: boolean;
-  comment: string | null;
 } & (Selected extends true
   ?
       | { checked: true; highlighted: true }
@@ -28,15 +27,7 @@ export class ReportVM<
   RuleName extends
     NominationFile.RuleName = RulesMap[NominationFile.RuleGroup][number],
   ManagementRules extends NominationFile.RuleName = Extract<
-    Exclude<
-      NominationFile.ManagementRule,
-      | NominationFile.ManagementRule.CASSATION_COURT_NOMINATION
-      | NominationFile.ManagementRule.GETTING_FIRST_GRADE
-      | NominationFile.ManagementRule.GETTING_GRADE_HH
-      | NominationFile.ManagementRule.PROFILED_POSITION
-      | NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS
-      | NominationFile.ManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-    >,
+    NominationFile.ManagementRule,
     RuleName
   >,
   StatutoryRules extends NominationFile.RuleName = Extract<
@@ -44,10 +35,7 @@ export class ReportVM<
     RuleName
   >,
   QualitativeRules extends NominationFile.RuleName = Extract<
-    Exclude<
-      NominationFile.QualitativeRule,
-      NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS
-    >,
+    NominationFile.QualitativeRule,
     RuleName
   >,
 > {

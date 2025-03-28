@@ -74,33 +74,22 @@ export class ReportApiModelBuilder {
       id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.TRANSFER_TIME}`,
       validated: true,
       preValidated: false,
-      comment: null,
     })
-      .with("rules.management.CASSATION_COURT_NOMINATION", {
-        id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.CASSATION_COURT_NOMINATION}`,
-        validated: true,
-        preValidated: false,
-        comment: null,
-      })
-
       .with("rules.statutory.MINISTER_CABINET", {
         id: `${NominationFile.RuleGroup.STATUTORY}-${NominationFile.StatutoryRule.MINISTER_CABINET}`,
         validated: true,
         preValidated: false,
-        comment: null,
       })
       .with("rules.statutory.GRADE_REGISTRATION", {
         id: `${NominationFile.RuleGroup.STATUTORY}-${NominationFile.StatutoryRule.GRADE_REGISTRATION}`,
         validated: true,
         preValidated: false,
-        comment: null,
       })
 
       .with("rules.qualitative.EVALUATIONS", {
         id: `${NominationFile.RuleGroup.QUALITATIVE}-${NominationFile.QualitativeRule.EVALUATIONS}`,
         validated: true,
         preValidated: false,
-        comment: null,
       });
   }
 
@@ -148,7 +137,6 @@ class RulesFromMapBuilder extends RulesBuilder {
         preValidated: true,
         comment: null,
       }),
-      undefined,
       rulesMap,
     );
   }

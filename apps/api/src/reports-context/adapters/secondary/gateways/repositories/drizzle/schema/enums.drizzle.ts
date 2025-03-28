@@ -1,5 +1,6 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { pgEnum } from 'drizzle-orm/pg-core';
+import { reportsContextSchema } from './reports-context-schema.drizzle';
 
 export const reportStateEnum = pgEnum(
   'report_state',
@@ -27,7 +28,7 @@ export const gradeEnum = pgEnum(
   Object.values(Magistrat.Grade) as [Magistrat.Grade, ...Magistrat.Grade[]],
 );
 
-export const ruleGroupEnum = pgEnum(
+export const ruleGroupEnum = reportsContextSchema.enum(
   'rule_group',
   Object.values(NominationFile.RuleGroup) as [
     NominationFile.RuleGroup,
@@ -40,4 +41,4 @@ const ruleNames = [
   ...Object.values(NominationFile.StatutoryRule),
   ...Object.values(NominationFile.QualitativeRule),
 ] as [NominationFile.RuleName, ...NominationFile.RuleName[]];
-export const ruleNameEnum = pgEnum('rule_name', ruleNames);
+export const ruleNameEnum = reportsContextSchema.enum('rule_name', ruleNames);

@@ -41,9 +41,6 @@ describe("Report Rule Update", () => {
     const rulesMap: AllRulesMapV2 = {
       [NominationFile.RuleGroup.MANAGEMENT]: [
         NominationFile.ManagementRule.TRANSFER_TIME,
-        NominationFile.ManagementRule
-          .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE,
-        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
       ],
       [NominationFile.RuleGroup.STATUTORY]: [],
       [NominationFile.RuleGroup.QUALITATIVE]: [],
@@ -93,103 +90,5 @@ describe("Report Rule Update", () => {
         },
       });
     });
-  });
-
-  describe("Merge of JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE with JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT", () => {
-    const rulesMap: AllRulesMapV2 = {
-      [NominationFile.RuleGroup.MANAGEMENT]: [
-        NominationFile.ManagementRule
-          .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE,
-        NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
-      ],
-      [NominationFile.RuleGroup.STATUTORY]: [],
-      [NominationFile.RuleGroup.QUALITATIVE]: [],
-    };
-
-    const aReportApiModelBuilder = new ReportApiModelBuilder(
-      rulesMap,
-    ).withSomeRules();
-
-    it.each`
-      mergedRuleValidated | ruleValidated | expectedValidated
-      ${true}             | ${false}      | ${true}
-      ${false}            | ${true}       | ${true}
-      ${false}            | ${false}      | ${true}
-      ${true}             | ${true}       | ${false}
-    `(
-      "validates both merged rules when one of them is validated",
-      async ({ mergedRuleValidated, ruleValidated, expectedValidated }) => {
-        const aReportApiModel = aReportApiModelBuilder
-          .with(
-            "rules.management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
-            {
-              id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE}`,
-              validated: mergedRuleValidated,
-              preValidated: false,
-              comment: null,
-            },
-          )
-          .with("rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT", {
-            id: `${NominationFile.RuleGroup.MANAGEMENT}-${NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT}`,
-            validated: ruleValidated,
-            preValidated: false,
-            comment: null,
-          })
-          .build();
-        const aReport =
-          ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
-
-        reportApiClient.addReports(aReportApiModel);
-        store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
-
-        await store.dispatch(
-          updateReportRule({
-            reportId: aReport.id,
-            ruleId:
-              aReport.rules.management.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT.id,
-            validated: expectedValidated,
-          }),
-        );
-
-        expectGatewayReports({
-          ...aReportApiModel,
-          rules: {
-            ...aReportApiModel.rules!,
-            management: {
-              ...aReportApiModel.rules!.management,
-              JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: {
-                ...aReportApiModel.rules!.management
-                  .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE,
-                validated: expectedValidated,
-              },
-              JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: {
-                ...aReportApiModel.rules!.management
-                  .JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
-                validated: expectedValidated,
-              },
-            },
-          },
-        });
-        expectStoredReports({
-          ...aReport,
-          rules: {
-            ...aReport.rules,
-            management: {
-              ...aReport.rules.management,
-              JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE: {
-                ...aReport.rules.management
-                  .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE,
-                validated: expectedValidated,
-              },
-              JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT: {
-                ...aReport.rules.management
-                  .JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT,
-                validated: expectedValidated,
-              },
-            },
-          },
-        });
-      },
-    );
   });
 });

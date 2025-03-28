@@ -1,23 +1,17 @@
 import { sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { getTableConfig, PgTableWithColumns } from 'drizzle-orm/pg-core';
 import * as path from 'path';
-import {
-  DockerComposeEnvironment,
-  StartedDockerComposeEnvironment,
-  Wait,
-} from 'testcontainers';
-import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import * as filesContextTables from 'src/files-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import * as reportsContextTables from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
-import * as identityAndAccessContextTables from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/tables';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { migrateDrizzle } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
-import { domainEvents } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+import {
+  DockerComposeEnvironment,
+  StartedDockerComposeEnvironment,
+  Wait,
+} from 'testcontainers';
 
 const composeFilePath = path.resolve(process.cwd(), 'test');
 const composeFile = 'docker-compose-test.yaml';
@@ -60,26 +54,23 @@ export const migrateDockerPostgresql = async (): Promise<DrizzleDb> => {
   }
 };
 
-export async function clearDB(
-  dbToClear: NodePgDatabase | DrizzleDb,
-  tables: PgTableWithColumns<any>[] = [
-    ...Object.values(reportsContextTables),
-    ...Object.values(filesContextTables),
-    ...Object.values(identityAndAccessContextTables),
-    nominationFiles,
-    domainEvents,
-  ],
-) {
+export async function clearDB(dbToClear: NodePgDatabase | DrizzleDb) {
   // Disable foreign key constraints
   await dbToClear.execute(sql`SET session_replication_role = 'replica'` as any);
 
   try {
-    for (const table of tables) {
-      const tableConfig = getTableConfig(table);
-      const tableName = tableConfig.name;
-      const schemaName = tableConfig.schema || 'public';
+    const query = sql<string>`SELECT table_schema, table_name
+    FROM information_schema.tables
+    WHERE table_schema LIKE '%context'
+      AND table_type = 'BASE TABLE';
+  `;
+
+    const tables: { rows: { table_schema: string; table_name: string }[] } =
+      await dbToClear.execute(query); // retrieve tables
+
+    for (const table of tables.rows) {
       await dbToClear.execute(
-        sql`TRUNCATE TABLE ${sql.identifier(schemaName)}.${sql.identifier(tableName)} RESTART IDENTITY CASCADE`,
+        sql`TRUNCATE TABLE ${sql.identifier(table.table_schema)}.${sql.identifier(table.table_name)} RESTART IDENTITY CASCADE`,
       );
     }
   } finally {

@@ -16,10 +16,9 @@ export class ReportRuleBuilder {
           ? 'report-id'
           : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
-      ruleName: NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
+      ruleName: NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
       preValidated: true,
       validated: true,
-      comment: 'rule comment',
     };
   }
 
@@ -31,10 +30,10 @@ export class ReportRuleBuilder {
     return this;
   }
 
-  withOverseasToOverseasRuleValidated(validated: boolean): this {
+  withGettingGradeInPlaceRuleValidated(validated: boolean): this {
     this._snapshot.ruleGroup = NominationFile.RuleGroup.MANAGEMENT;
     this._snapshot.ruleName =
-      NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS;
+      NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE;
     this._snapshot.validated = validated;
     return this;
   }

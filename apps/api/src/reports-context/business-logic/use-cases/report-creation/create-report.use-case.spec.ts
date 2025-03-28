@@ -146,7 +146,6 @@ describe('Create Report Use Case', () => {
                 rule as NominationFile.RuleName,
                 value,
                 true,
-                null,
               ),
           ),
         )

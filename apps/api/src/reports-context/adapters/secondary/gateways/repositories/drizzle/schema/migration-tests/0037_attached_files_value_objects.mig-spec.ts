@@ -86,7 +86,7 @@ describe(`Reports context - migration 00${migrationNumber}`, () => {
   });
 
   afterEach(async () => {
-    await clearDB(db as unknown as NodePgDatabase, [newReportsPm]);
+    await clearDB(db as unknown as NodePgDatabase);
   });
 
   afterAll(async () => {

@@ -14,13 +14,7 @@ export namespace NominationFile {
 
   export enum ManagementRule {
     TRANSFER_TIME = "TRANSFER_TIME",
-    GETTING_FIRST_GRADE = "GETTING_FIRST_GRADE",
-    GETTING_GRADE_HH = "GETTING_GRADE_HH",
     GETTING_GRADE_IN_PLACE = "GETTING_GRADE_IN_PLACE",
-    PROFILED_POSITION = "PROFILED_POSITION",
-    CASSATION_COURT_NOMINATION = "CASSATION_COURT_NOMINATION",
-    OVERSEAS_TO_OVERSEAS = "OVERSEAS_TO_OVERSEAS",
-    JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE = "JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE",
     JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT = "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
   }
   export enum StatutoryRule {
@@ -37,7 +31,6 @@ export namespace NominationFile {
     CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION = "CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION",
     EVALUATIONS = "EVALUATIONS",
     DISCIPLINARY_ELEMENTS = "DISCIPLINARY_ELEMENTS",
-    HH_NOMINATION_CONDITIONS = "HH_NOMINATION_CONDITIONS",
   }
 
   export type RuleName = ManagementRule | StatutoryRule | QualitativeRule;
@@ -46,18 +39,22 @@ export namespace NominationFile {
     id: string;
     preValidated: boolean;
     validated: boolean;
-    comment: string | null;
   };
 
-  export type Rules<T = RuleValue> = {
+  export type Rules<
+    T = RuleValue,
+    M extends string = ManagementRule,
+    S extends string = StatutoryRule,
+    Q extends string = QualitativeRule,
+  > = {
     [RuleGroup.MANAGEMENT]: {
-      [key in ManagementRule]: T;
+      [key in M]: T;
     };
     [RuleGroup.STATUTORY]: {
-      [key in StatutoryRule]: T;
+      [key in S]: T;
     };
     [RuleGroup.QUALITATIVE]: {
-      [key in QualitativeRule]: T;
+      [key in Q]: T;
     };
   };
 }

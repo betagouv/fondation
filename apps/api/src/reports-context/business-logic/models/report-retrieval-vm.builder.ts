@@ -20,7 +20,6 @@ export class ReportRetrievalBuilder<
       id: 'rule-id',
       preValidated: true,
       validated: true,
-      comment: 'rule comment',
     };
 
     this._report = {
@@ -50,15 +49,7 @@ export class ReportRetrievalBuilder<
       rules: {
         [NominationFile.RuleGroup.MANAGEMENT]: {
           [NominationFile.ManagementRule.TRANSFER_TIME]: defaultValue,
-          [NominationFile.ManagementRule.GETTING_FIRST_GRADE]: defaultValue,
-          [NominationFile.ManagementRule.GETTING_GRADE_HH]: defaultValue,
           [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]: defaultValue,
-          [NominationFile.ManagementRule.PROFILED_POSITION]: defaultValue,
-          [NominationFile.ManagementRule.CASSATION_COURT_NOMINATION]:
-            defaultValue,
-          [NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS]: defaultValue,
-          [NominationFile.ManagementRule
-            .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE]: defaultValue,
           [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
             defaultValue,
         },
@@ -84,8 +75,6 @@ export class ReportRetrievalBuilder<
             .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION]: defaultValue,
           [NominationFile.QualitativeRule.EVALUATIONS]: defaultValue,
           [NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS]: defaultValue,
-          [NominationFile.QualitativeRule.HH_NOMINATION_CONDITIONS]:
-            defaultValue,
         },
       },
       attachedFiles: null,

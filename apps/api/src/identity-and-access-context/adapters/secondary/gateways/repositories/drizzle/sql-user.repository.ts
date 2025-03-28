@@ -1,13 +1,8 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
-import {
-  User,
-  UserSnapshot,
-} from 'src/identity-and-access-context/business-logic/models/user';
+import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
-import { FullName } from 'src/identity-and-access-context/business-logic/models/full-name';
-import { Person } from 'src/identity-and-access-context/business-logic/models/person';
 
 export class SqlUserRepository implements UserRepository {
   save(user: User): DrizzleTransactionableAsync<void> {
@@ -83,31 +78,10 @@ export class SqlUserRepository implements UserRepository {
   }
 
   static mapToDb(user: User): typeof users.$inferInsert {
-    const snapshot = user.toSnapshot();
-    return SqlUserRepository.mapSnapshotToDb(snapshot);
-  }
-
-  static mapSnapshotToDb(snapshot: UserSnapshot): typeof users.$inferInsert {
-    return {
-      id: snapshot.id,
-      createdAt: snapshot.createdAt,
-      email: snapshot.email,
-      password: snapshot.password,
-      role: snapshot.role,
-      firstName: snapshot.firstName,
-      lastName: snapshot.lastName,
-      gender: snapshot.gender,
-    };
+    return user.toSnapshot();
   }
 
   static mapToDomain(row: typeof users.$inferSelect): User {
-    return new User(
-      row.id,
-      row.createdAt,
-      row.email,
-      row.password,
-      row.role,
-      new Person(new FullName(row.firstName, row.lastName), row.gender),
-    );
+    return User.fromSnapshot(row);
   }
 }

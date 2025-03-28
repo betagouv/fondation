@@ -164,7 +164,6 @@ describe('Reports Controller', () => {
                   id: reportRuleSnapshot.id,
                   preValidated: reportRuleSnapshot.preValidated,
                   validated: reportRuleSnapshot.validated,
-                  comment: reportRuleSnapshot.comment,
                 },
               },
             }),

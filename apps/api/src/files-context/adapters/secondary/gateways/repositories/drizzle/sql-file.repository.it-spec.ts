@@ -86,10 +86,7 @@ describe('SQL Files Repository', () => {
   });
 
   const givenSomeFiles = async (...files: FileDocumentSnapshot[]) =>
-    db
-      .insert(filesPm)
-      .values(files.map(SqlFileRepository.mapSnapshotToDb))
-      .execute();
+    db.insert(filesPm).values(files).execute();
 
   const expectFilesInDb = async (...expectedFiles: FileDocumentSnapshot[]) => {
     const filesInDb = await db.select().from(filesPm).execute();

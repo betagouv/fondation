@@ -39,7 +39,7 @@ describe('Data administration context - migration 0009', () => {
   });
 
   afterEach(async () => {
-    await clearDB(db as unknown as NodePgDatabase, [nominationFiles]);
+    await clearDB(db as unknown as NodePgDatabase);
   });
 
   afterAll(async () => {

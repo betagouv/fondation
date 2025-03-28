@@ -27,6 +27,12 @@ import {
   NominationFileTsvBuilder,
 } from '../../models/nomination-file-tsv-builder';
 import { ImportNominationFilesUseCase } from './import-nomination-files.use-case';
+import {
+  allRulesMapV1,
+  ManagementRule,
+  QualitativeRule,
+  StatutoryRule,
+} from '../../models/rules';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
@@ -565,27 +571,21 @@ describe('Import Nomination Files Use Case', () => {
 export const getReadRules = (
   moreRules?: PartialDeep<NominationFileRead['content']['rules']>,
 ): NominationFileRead['content']['rules'] => ({
-  [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
-    NominationFile.ManagementRule,
-  ).reduce(
+  [NominationFile.RuleGroup.MANAGEMENT]: Object.values(ManagementRule).reduce(
     (acc, rule) => ({
       ...acc,
       [rule]: moreRules?.[NominationFile.RuleGroup.MANAGEMENT]?.[rule] ?? true,
     }),
     {} as NominationFileRead['content']['rules'][NominationFile.RuleGroup.MANAGEMENT],
   ),
-  [NominationFile.RuleGroup.STATUTORY]: Object.values(
-    NominationFile.StatutoryRule,
-  ).reduce(
+  [NominationFile.RuleGroup.STATUTORY]: Object.values(StatutoryRule).reduce(
     (acc, rule) => ({
       ...acc,
       [rule]: moreRules?.[NominationFile.RuleGroup.STATUTORY]?.[rule] ?? true,
     }),
     {} as NominationFileRead['content']['rules'][NominationFile.RuleGroup.STATUTORY],
   ),
-  [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
-    NominationFile.QualitativeRule,
-  ).reduce(
+  [NominationFile.RuleGroup.QUALITATIVE]: Object.values(QualitativeRule).reduce(
     (acc, rule) => ({
       ...acc,
       [rule]: moreRules?.[NominationFile.RuleGroup.QUALITATIVE]?.[rule] ?? true,
@@ -594,8 +594,13 @@ export const getReadRules = (
   ),
 });
 
-export class NominationFileReadRulesBuilder extends RulesBuilder<boolean> {
+export class NominationFileReadRulesBuilder extends RulesBuilder<
+  boolean,
+  ManagementRule,
+  StatutoryRule,
+  QualitativeRule
+> {
   constructor() {
-    super(true);
+    super(true, allRulesMapV1);
   }
 }

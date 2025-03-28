@@ -29,7 +29,7 @@ describe('Shared Kernel Context - migration 0010', () => {
   });
 
   afterEach(async () => {
-    await clearDB(db as unknown as NodePgDatabase, [previousDomainEventsTable]);
+    await clearDB(db as unknown as NodePgDatabase);
   });
 
   afterAll(async () => {

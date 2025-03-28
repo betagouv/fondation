@@ -42,7 +42,6 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
         ruleName: reportRules.ruleName,
         preValidated: reportRules.preValidated,
         validated: reportRules.validated,
-        ruleComment: reportRules.comment,
       })
       .from(reports)
       .innerJoin(reportRules, eq(reportRules.reportId, reports.id))
@@ -79,7 +78,6 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
           id: row.ruleId,
           preValidated: row.preValidated,
           validated: row.validated,
-          comment: row.ruleComment,
         };
 
         return acc;

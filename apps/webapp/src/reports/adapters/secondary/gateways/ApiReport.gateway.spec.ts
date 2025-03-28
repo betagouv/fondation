@@ -1,9 +1,9 @@
 import { AttachedFileVM, NominationFile, ReportFileUsage } from "shared-models";
-import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { ReportListItem, ReportSM } from "../../../../store/appState";
+import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
+import { ReportApiModelBuilder } from "../../../core-logic/builders/ReportApiModel.builder";
 import { ApiReportGateway } from "./ApiReport.gateway";
 import { FakeReportApiClient } from "./FakeReport.client";
-import { ReportApiModelBuilder } from "../../../core-logic/builders/ReportApiModel.builder";
 
 describe("Api Report Gateway", () => {
   let reportApiClient: FakeReportApiClient;
@@ -61,7 +61,6 @@ describe("Api Report Gateway", () => {
             id: aRule.id,
             preValidated: aRule.preValidated,
             validated: aRule.validated,
-            comment: aRule.comment,
           },
         },
       },
@@ -83,7 +82,6 @@ describe("Api Report Gateway", () => {
       id: aRule.id,
       validated: !aRule.validated,
       preValidated: aRule.preValidated,
-      comment: aRule.comment,
     });
   });
 
@@ -177,7 +175,6 @@ const aRule = {
   name: NominationFile.ManagementRule.TRANSFER_TIME,
   preValidated: true,
   validated: true,
-  comment: "some rule comment",
 };
 
 const aReportApiModel = new ReportApiModelBuilder()
@@ -186,7 +183,6 @@ const aReportApiModel = new ReportApiModelBuilder()
     id: aRule.id,
     preValidated: aRule.preValidated,
     validated: aRule.validated,
-    comment: aRule.comment,
   })
   .build();
 const aReportRetrievedSM =

@@ -1,18 +1,14 @@
 import { and, eq } from 'drizzle-orm';
+import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 import { ReportRepository } from 'src/reports-context/business-logic/gateways/repositories/report.repository';
 import {
   NominationFileReport,
   NominationFileReportSnapshot,
 } from 'src/reports-context/business-logic/models/nomination-file-report';
-import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
-import {
-  attachedFilesValidationSchema,
-  ReportAttachedFiles,
-} from 'src/reports-context/business-logic/models/report-attached-files';
+import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
-import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 
 export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
@@ -127,34 +123,11 @@ export class SqlReportRepository implements ReportRepository {
       row.attachedFiles,
     );
 
-    return new NominationFileReport(
-      row.id,
-      row.nominationFileId,
-      row.createdAt,
-      row.reporterId,
-      row.version,
-      row.folderNumber,
-      row.biography,
-      row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,
-      row.name,
-      DateOnly.fromDbDateOnlyString(row.birthDate),
-      row.state,
-      row.formation,
-      row.transparency,
-      row.grade,
-      row.currentPosition,
-      row.targettedPosition,
-      row.comment,
-      row.rank,
-      row.observers,
-      attachedFiles?.length
-        ? new ReportAttachedFiles(
-            attachedFiles.map(
-              (file) =>
-                new ReportAttachedFile(file.name, file.fileId, file.usage),
-            ),
-          )
-        : null,
-    );
+    return NominationFileReport.fromSnapshot({
+      ...row,
+      dueDate: row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,
+      birthDate: DateOnly.fromDbDateOnlyString(row.birthDate),
+      attachedFiles,
+    });
   }
 }

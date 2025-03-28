@@ -12,20 +12,6 @@ export const allRulesTuple = [
   ),
 ];
 
-//! La persistence des règles va être supprimée,
-//! et par conséquent le code dans l'API dépendant des rules map.
-export const allRulesMapV1 = {
-  [NominationFile.RuleGroup.MANAGEMENT]: Object.values(
-    NominationFile.ManagementRule
-  ),
-  [NominationFile.RuleGroup.STATUTORY]: Object.values(
-    NominationFile.StatutoryRule
-  ),
-  [NominationFile.RuleGroup.QUALITATIVE]: Object.values(
-    NominationFile.QualitativeRule
-  ),
-};
-
 export const allRulesMapV2 = {
   [NominationFile.RuleGroup.MANAGEMENT]: [
     NominationFile.ManagementRule.TRANSFER_TIME,
@@ -44,5 +30,4 @@ export const allRulesMapV2 = {
   ],
 };
 
-export type AllRulesMapV1 = typeof allRulesMapV1;
 export type AllRulesMapV2 = typeof allRulesMapV2;

@@ -165,7 +165,6 @@ class RulesFromMapBuilder extends RulesBuilder {
         preValidated: true,
         comment: null,
       }),
-      undefined,
       rulesMap,
     );
   }

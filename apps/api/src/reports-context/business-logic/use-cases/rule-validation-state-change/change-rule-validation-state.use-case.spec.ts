@@ -20,7 +20,7 @@ describe('Change Rule Validation State', () => {
     { initialValidationState: false, expectValidated: true },
   ];
   it.each(testData)(
-    'switch an oversea to oversea rule validation state from $initialValidationState to $expectValidated',
+    'switch a rule validation state from $initialValidationState to $expectValidated',
     async ({ initialValidationState, expectValidated }) => {
       const aReportRuleSnapshot = givenSomeReportRuleExistWithValidatedAt(
         initialValidationState,
@@ -45,7 +45,7 @@ describe('Change Rule Validation State', () => {
     initialValidationState: boolean,
   ): ReportRuleSnapshot => {
     const aReportRuleSnapshot = new ReportRuleBuilder()
-      .withOverseasToOverseasRuleValidated(initialValidationState)
+      .withGettingGradeInPlaceRuleValidated(initialValidationState)
       .build();
 
     reportRuleRepository.reportRules = {
@@ -66,10 +66,9 @@ describe('Change Rule Validation State', () => {
         reportRuleSnapshot.createdAt,
         reportRuleSnapshot.reportId,
         NominationFile.RuleGroup.MANAGEMENT,
-        NominationFile.ManagementRule.OVERSEAS_TO_OVERSEAS,
+        NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
         reportRuleSnapshot.preValidated,
         expectValidated,
-        reportRuleSnapshot.comment,
       ),
     );
   };

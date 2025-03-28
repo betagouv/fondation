@@ -72,23 +72,6 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
           Object.entries(report.rules).forEach(([ruleGroup, ruleEntry]) => {
             Object.entries(ruleEntry).forEach(([ruleName, rule]) => {
               if (rule.id === ruleId) {
-                if (
-                  ruleName ===
-                  NominationFile.ManagementRule
-                    .JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-                ) {
-                  if (!state.byIds![reportId]) return;
-
-                  const mergedRuleValue =
-                    state.byIds![reportId].rules[
-                      NominationFile.RuleGroup.MANAGEMENT
-                    ][
-                      NominationFile.ManagementRule
-                        .JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE
-                    ];
-                  mergedRuleValue.validated = validated;
-                }
-
                 state.byIds![reportId] = {
                   ...report,
                   rules: {

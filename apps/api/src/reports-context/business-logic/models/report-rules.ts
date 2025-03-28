@@ -17,7 +17,6 @@ export type ReportRuleSnapshot = {
   ruleName: NominationFile.RuleName;
   preValidated: boolean;
   validated: boolean;
-  comment: string | null;
 };
 
 export class ReportRule {
@@ -29,7 +28,6 @@ export class ReportRule {
     private readonly ruleName: NominationFile.RuleName,
     private preValidated: boolean,
     private validated: boolean,
-    private readonly comment: string | null,
   ) {}
 
   validate(validated: boolean) {
@@ -68,7 +66,6 @@ export class ReportRule {
       ruleName: this.ruleName,
       preValidated: this.preValidated,
       validated: this.validated,
-      comment: this.comment,
     };
   }
   static fromSnapshot(reportRuleSnapshot: ReportRuleSnapshot) {
@@ -80,7 +77,6 @@ export class ReportRule {
       reportRuleSnapshot.ruleName,
       reportRuleSnapshot.preValidated,
       reportRuleSnapshot.validated,
-      reportRuleSnapshot.comment,
     );
   }
 }
