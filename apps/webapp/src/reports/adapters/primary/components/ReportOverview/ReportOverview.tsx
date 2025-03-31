@@ -144,7 +144,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             cx("fr-col-md-5", "fr-col-lg-4", "fr-col-xl-3"),
           )}
         >
-          <Summary summary={report.summary} />
+          <Summary reportId={id} />
         </div>
         <div
           className={clsx(

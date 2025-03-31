@@ -97,7 +97,6 @@ export class ReportVM<
           QualitativeRules
         >
     >,
-    public readonly summary: { anchorId: string; label: string }[],
   ) {}
 }
 

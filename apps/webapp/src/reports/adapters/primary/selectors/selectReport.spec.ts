@@ -15,14 +15,8 @@ import {
   ReportVM,
   VMReportRuleValue,
 } from "../../../core-logic/view-models/ReportVM";
-import { reportHtmlIds } from "../dom/html-ids";
 import { RulesLabelsMap } from "../labels/rules-labels";
-import { SummarySection } from "../labels/summary-labels";
 import { selectReport } from "./selectReport";
-
-const summarySections: SummarySection[] = [
-  { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
-];
 
 describe("Select Report", () => {
   let store: ReduxStore;
@@ -48,10 +42,7 @@ describe("Select Report", () => {
     };
 
     const reportVMBuilder = (report: ReportSM) =>
-      ReportBuilderVM.fromStoreModel<typeof testRulesMap>(
-        report,
-        summarySections,
-      );
+      ReportBuilderVM.fromStoreModel<typeof testRulesMap>(report);
 
     beforeEach(() => {
       store = initReduxStore(
@@ -62,7 +53,6 @@ describe("Select Report", () => {
         undefined,
         testRulesMap,
         labelsRulesMap,
-        summarySections,
       );
       reportBuilder = new ReportBuilder(testRulesMap);
     });
@@ -254,14 +244,9 @@ describe("Select Report - Summary and Age", () => {
     [NominationFile.RuleGroup.QUALITATIVE]: {},
   };
 
-  const summarySections: SummarySection[] = [
-    { anchorId: reportHtmlIds.overview.biographySection, label: "Biographie" },
-    { anchorId: reportHtmlIds.overview.observersSection, label: "Observants" },
-  ];
   const reportVMBuilder = (report: ReportSM) =>
     ReportBuilderVM.fromStoreModel<typeof emptyTestRulesMap>(
       report,
-      summarySections,
       currentDate,
     );
 
@@ -274,21 +259,10 @@ describe("Select Report - Summary and Age", () => {
       undefined,
       emptyTestRulesMap,
       emptyLabelsRulesMap,
-      summarySections,
+      [],
       currentDate.toDate(),
     );
     reportBuilder = new ReportBuilder(emptyTestRulesMap);
-  });
-
-  it("doesn't include observer section in summary if there are no observers", () => {
-    const aReport = reportBuilder.with("observers", null).buildRetrieveSM();
-    givenAReport(aReport);
-
-    const aReportVM = reportVMBuilder(aReport)
-      .with("observers", null)
-      .with("summary", [summarySections[0]!])
-      .build();
-    expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
   });
 
   const givenAReport = (
@@ -339,7 +313,7 @@ describe("Select Report - Summary and Age", () => {
         undefined,
         emptyTestRulesMap,
         emptyLabelsRulesMap,
-        summarySections,
+        [],
         currentDate,
       );
 

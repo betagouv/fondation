@@ -97,12 +97,12 @@ export const defaultReportSummarySections: SummarySection[] = [
     label: summaryLabels.observers,
   },
   {
-    anchorId: reportHtmlIds.overview.managementSection,
-    label: summaryLabels.rules.management,
-  },
-  {
     anchorId: reportHtmlIds.overview.statutorySection,
     label: summaryLabels.rules.statutory,
+  },
+  {
+    anchorId: reportHtmlIds.overview.managementSection,
+    label: summaryLabels.rules.management,
   },
   {
     anchorId: reportHtmlIds.overview.qualitativeSection,

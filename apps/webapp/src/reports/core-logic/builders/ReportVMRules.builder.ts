@@ -10,7 +10,7 @@ export class ReportVMRulesBuilder extends RulesBuilder<
   static buildFromStoreModel(
     rules: ReportSM["rules"],
     rulesMap: AppState["reportOverview"]["rulesMap"],
-    rulesLabelsMap: AppState["reportOverview"]["rulesLabelsMap"],
+    rulesLabelsMap: AppState<boolean>["reportOverview"]["rulesLabelsMap"],
   ): ReportVM["rulesChecked"] {
     const builtRules = new ReportVMRulesBuilder(({ ruleGroup, ruleName }) => {
       const rulesLabels = rulesLabelsMap[ruleGroup] as UnionToIntersection<

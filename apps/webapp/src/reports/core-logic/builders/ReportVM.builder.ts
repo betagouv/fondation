@@ -10,7 +10,6 @@ import { Get, Paths, SetOptional } from "type-fest";
 import { DateOnly } from "../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../store/appState";
 import { ReportVM, VMReportRuleValue } from "../view-models/ReportVM";
-import { SummarySection } from "../../adapters/primary/labels/summary-labels";
 
 type InternalReportVM<RulesMap extends AllRulesMapV2> = Omit<
   SetOptional<ReportVM<RulesMap>, "rulesChecked">,
@@ -22,7 +21,7 @@ type InternalReportVM<RulesMap extends AllRulesMapV2> = Omit<
 export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
   private _reportVM: InternalReportVM<RulesMap>;
 
-  constructor(summarySections?: SummarySection[]) {
+  constructor() {
     this._reportVM = {
       id: "report-id",
 
@@ -47,12 +46,6 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
           usage: ReportFileUsage.ATTACHMENT,
           signedUrl: "https://example.fr/image.png",
           name: "image.png",
-        },
-      ],
-      summary: summarySections ?? [
-        {
-          anchorId: "biography",
-          label: "Biographie",
         },
       ],
     };
@@ -123,10 +116,9 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
 
   static fromStoreModel<R extends AllRulesMapV2 = AllRulesMapV2>(
     reportStoreModel: ReportSM,
-    summarySections?: SummarySection[],
     currentDate: DateOnly = DateOnly.now(),
   ): ReportBuilderVM<R> {
-    return new ReportBuilderVM<R>(summarySections)
+    return new ReportBuilderVM<R>()
       .with("id", reportStoreModel.id)
       .with("biography", reportStoreModel.biography)
       .withBirthDate(

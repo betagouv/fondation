@@ -1,41 +1,21 @@
-import { createSelector } from "@reduxjs/toolkit";
 import { AttachedFileVM, DateOnlyJson, ReportFileUsage } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
-import { AppState, ReportSM } from "../../../../store/appState";
+import { ReportSM } from "../../../../store/appState";
+import { createAppSelector } from "../../../../store/createAppSelector";
 import { ReportVMRulesBuilder } from "../../../core-logic/builders/ReportVMRules.builder";
 import { ReportVM } from "../../../core-logic/view-models/ReportVM";
-import { reportHtmlIds } from "../dom/html-ids";
-import { SummarySection } from "../labels/summary-labels";
 
-export const selectReport = createSelector(
+export const selectReport = createAppSelector(
   [
-    (state: AppState) => state.reportOverview.byIds,
+    (state) => state.reportOverview.byIds,
     (_, id: string) => id,
-    (state: AppState) => state.reportOverview.rulesMap,
-    (state: AppState) => state.reportOverview.rulesLabelsMap,
-    (state: AppState) => state.reportOverview.summarySections,
-    (state: AppState) => state.sharedKernel.currentDate,
+    (state) => state.reportOverview.rulesMap,
+    (state) => state.reportOverview.rulesLabelsMap,
+    (state) => state.sharedKernel.currentDate,
   ],
-  (
-    byIds,
-    id,
-    rulesMap,
-    rulesLabelsMap,
-    summarySections,
-    currentDate,
-  ): ReportVM | null => {
+  (byIds, id, rulesMap, rulesLabelsMap, currentDate): ReportVM | null => {
     const report = byIds?.[id];
     if (!report) return null;
-
-    const filterOutObserversInSummary = ({
-      anchorId,
-    }: SummarySection): boolean => {
-      const isObserverSection = anchorId === htmlIds.observersSection;
-      const isOtherSection = !isObserverSection;
-      const hasNoObserver = !!report.observers?.length;
-
-      return isOtherSection || (isObserverSection && hasNoObserver);
-    };
 
     return {
       id: report.id,
@@ -63,7 +43,6 @@ export const selectReport = createSelector(
         (report.attachedFiles
           ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
           .filter((file) => !!file.signedUrl) as AttachedFileVM[]) ?? null,
-      summary: summarySections.filter(filterOutObserversInSummary),
     };
   },
 );
@@ -85,8 +64,6 @@ const formatObservers = (
 ): ReportVM["observers"] =>
   observers?.map((observer) => observer.split("\n") as [string, ...string[]]) ||
   null;
-
-const htmlIds = reportHtmlIds.overview;
 
 const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
   const birthDate = DateOnly.fromStoreModel(birthDateJson);

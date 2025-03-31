@@ -1,18 +1,20 @@
 import { SideMenu, SideMenuProps } from "@codegouvfr/react-dsfr/SideMenu";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { useObservedSections } from "./hooks/useObservedSections";
 import { scrollToSummarySection } from "../../dom/scroll-to-summary-section";
 import { summaryScrollListenersFactory } from "../../dom/summary-scroll-listeners";
+import { useAppSelector } from "../../hooks/react-redux";
+import { selectSummary } from "../../selectors/selectSummary";
+import { useObservedSections } from "./hooks/useObservedSections";
 
 export type SummaryProps = {
-  summary: ReportVM["summary"];
+  reportId: string;
 };
 
 const { setIsScrolling, createListeners, removeListeners } =
   summaryScrollListenersFactory();
 
-export const Summary: FC<SummaryProps> = ({ summary }) => {
+export const Summary: FC<SummaryProps> = ({ reportId }) => {
+  const summary = useAppSelector((state) => selectSummary(state, reportId));
   const [currentSection, setCurrentSection] = useState<string | null>(null);
 
   const anchorIds = useMemo(
