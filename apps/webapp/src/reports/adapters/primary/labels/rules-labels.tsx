@@ -163,7 +163,7 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
     [NominationFile.StatutoryRule
       .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS]: {
       label:
-        "Retour avant une durée de 5 ans sur des fonctions spécialisés occupées pendant la durée maximale de 9 ans",
+        "Retour avant une durée de 5 ans sur des fonctions spécialisées occupées pendant la durée maximale de 9 ans",
       hint: `Article 28-4 de l'OS : nul ne peut être nommé pour exercer une fonction spécialisée (JLD / JE / JI / JAP / JCP) dans une juridiction au sein de laquelle il a exercé les mêmes fonctions durant plus de neuf années avant l'expiration d'un délai de cinq ans à compter de la cessation de ses fonctions au sein de cette juridiction.`,
     },
   },
