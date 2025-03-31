@@ -281,6 +281,13 @@
       "when": 1743161728259,
       "tag": "0039_reports__merge_rules_and_remove_old_ones",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1743415387395,
+      "tag": "0040_reports__add_new_statutory_rule",
+      "breakpoints": true
     }
   ]
 }

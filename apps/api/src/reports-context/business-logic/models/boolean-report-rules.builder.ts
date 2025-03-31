@@ -12,7 +12,7 @@ export class BooleanReportRulesBuilder extends RulesBuilder<
   StatutoryRule,
   QualitativeRule
 > {
-  constructor() {
-    super(true, allRulesMapV1);
+  constructor(validation = true) {
+    super(validation, allRulesMapV1);
   }
 }

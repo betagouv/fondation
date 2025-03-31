@@ -67,6 +67,9 @@ export class ReportRetrievalBuilder<
           [NominationFile.StatutoryRule
             .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]:
             defaultValue,
+          [NominationFile.StatutoryRule
+            .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS]:
+            defaultValue,
         },
         [NominationFile.RuleGroup.QUALITATIVE]: {
           [NominationFile.QualitativeRule

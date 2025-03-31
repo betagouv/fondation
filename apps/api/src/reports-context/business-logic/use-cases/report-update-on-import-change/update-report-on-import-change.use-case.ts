@@ -2,21 +2,21 @@ import { NominationFile } from 'shared-models';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
+import {
+  ManagementRule,
+  StatutoryRule,
+  QualitativeRule,
+} from 'src/data-administration-context/business-logic/models/rules';
 
 export interface UpdateReportOnImportChangePayload {
   folderNumber?: number | null;
   observers?: string[];
-  rules?: {
-    [NominationFile.RuleGroup.MANAGEMENT]: {
-      [key in NominationFile.ManagementRule]: boolean;
-    };
-    [NominationFile.RuleGroup.STATUTORY]: {
-      [key in NominationFile.StatutoryRule]: boolean;
-    };
-    [NominationFile.RuleGroup.QUALITATIVE]: {
-      [key in NominationFile.QualitativeRule]: boolean;
-    };
-  };
+  rules?: NominationFile.Rules<
+    boolean,
+    ManagementRule,
+    StatutoryRule,
+    QualitativeRule
+  >;
 }
 
 export class UpdateReportOnImportChangeUseCase {

@@ -279,12 +279,13 @@ export class NominationFileReport {
   }
 
   static createFromImport(
-    reportId: string,
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
-    currentDate: Date,
     reporter: Reporter,
   ): NominationFileReport {
+    const reportId = DomainRegistry.uuidGenerator().generate();
+    const currentDate = DomainRegistry.dateTimeProvider().now();
+
     const report = new NominationFileReport(
       reportId,
       importedNominationFileId,

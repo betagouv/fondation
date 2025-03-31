@@ -48,6 +48,7 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
+import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 
 @Module({
   imports: [SharedKernelModule],
@@ -66,9 +67,6 @@ import {
     generateProvider(CreateReportUseCase, [
       REPORT_REPOSITORY,
       TRANSACTION_PERFORMER,
-      UUID_GENERATOR,
-      REPORT_RULE_REPOSITORY,
-      DATE_TIME_PROVIDER,
       ReporterTranslatorService,
     ]),
     generateProvider(ChangeRuleValidationStateUseCase, [
@@ -149,11 +147,14 @@ export class ReportsModule implements NestModule, OnModuleInit {
     private readonly uuidGenerator: UuidGenerator,
     @Inject(DATE_TIME_PROVIDER)
     private readonly dateTimeProvider: DateTimeProvider,
+    @Inject(REPORT_RULE_REPOSITORY)
+    private readonly reportRuleRepository: ReportRuleRepository,
   ) {}
 
   onModuleInit() {
     DomainRegistry.setUuidGenerator(this.uuidGenerator);
     DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
+    DomainRegistry.setReportRuleRepository(this.reportRuleRepository);
   }
 
   configure(consumer: MiddlewareConsumer) {

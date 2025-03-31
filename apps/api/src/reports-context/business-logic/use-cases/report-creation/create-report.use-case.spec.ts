@@ -1,4 +1,10 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  allRulesMapV2,
+  Magistrat,
+  NominationFile,
+  RulesBuilder,
+  Transparency,
+} from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
@@ -8,11 +14,13 @@ import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { UnionToIntersection } from 'type-fest';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
-import { ReportRule } from '../../models/report-rules';
+import { ReportRuleSnapshot } from '../../models/report-rules';
 import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
+import { DomainRegistry } from '../../models/domain-registry';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
 const importedNominationFileId = 'imported-nomination-file-id';
@@ -42,10 +50,14 @@ describe('Create Report Use Case', () => {
       lastName: 'LUC',
     };
     reporterTranslatorService = new ReporterTranslatorService(userService);
+
+    DomainRegistry.setReportRuleRepository(reportRuleRepository);
+    DomainRegistry.setUuidGenerator(uuidGenerator);
+    DomainRegistry.setDateTimeProvider(datetimeProvider);
   });
 
   it("doesn't create any report if there's a rules count mismatch", () => {
-    const reportToCreate = givenAReportToCreate();
+    const reportToCreate = givenAReportWithRulesAlerts();
     reportToCreate.rules = {
       ...reportToCreate.rules,
       [NominationFile.RuleGroup.MANAGEMENT]: {
@@ -61,7 +73,7 @@ describe('Create Report Use Case', () => {
   });
 
   it('creates a report', async () => {
-    const payload = givenAReportToCreate();
+    const payload = givenAReportWithRulesAlerts();
 
     await createAReport(payload);
 
@@ -87,10 +99,43 @@ describe('Create Report Use Case', () => {
       observers: payload.observers,
       attachedFiles: null,
     });
-    expectRulesFromPayload(payload.rules);
+    expectRulesFromPayload(
+      { defaultPreValidation: true },
+      {
+        [NominationFile.RuleGroup.MANAGEMENT]: {},
+        [NominationFile.RuleGroup.STATUTORY]: {},
+        [NominationFile.RuleGroup.QUALITATIVE]: {},
+      },
+    );
   });
 
-  const givenAReportToCreate = (
+  it('merges two rules', async () => {
+    const payload = givenAReportWithRulesAlerts({
+      rules: getAllRulesWithPreValidation(false, {
+        exceptJudiciaryRoleAndJuridictionDegreeChange: true,
+      }),
+    });
+
+    await createAReport(payload);
+
+    expectRulesFromPayload(
+      { defaultPreValidation: false },
+      {
+        [NominationFile.RuleGroup.MANAGEMENT]: {
+          [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]:
+            {
+              id: expect.any(String),
+              preValidated: true,
+              validated: true,
+            },
+        },
+        [NominationFile.RuleGroup.STATUTORY]: {},
+        [NominationFile.RuleGroup.QUALITATIVE]: {},
+      },
+    );
+  });
+
+  const givenAReportWithRulesAlerts = (
     moreData?: Partial<ReportToCreate>,
   ): ReportToCreate => ({
     folderNumber: 1,
@@ -114,7 +159,7 @@ describe('Create Report Use Case', () => {
     },
     biography: '- blablablablabla',
     observers: ['New observer'],
-    rules: getAllRulesPreValidated(),
+    rules: getAllRulesWithPreValidation(true),
     ...moreData,
   });
 
@@ -122,9 +167,6 @@ describe('Create Report Use Case', () => {
     new CreateReportUseCase(
       reportRepository,
       transactionPerformer,
-      uuidGenerator,
-      reportRuleRepository,
-      datetimeProvider,
       reporterTranslatorService,
     ).execute(importedNominationFileId, payload);
 
@@ -132,40 +174,71 @@ describe('Create Report Use Case', () => {
     expect(Object.values(reportRepository.reports)).toEqual(reports);
   };
 
-  const expectRulesFromPayload = (payloadRules: ReportToCreate['rules']) => {
+  const expectRulesFromPayload = (
+    { defaultPreValidation }: { defaultPreValidation: boolean },
+    expectedRules: {
+      [G in NominationFile.RuleGroup]: Partial<NominationFile.Rules[G]>;
+    },
+  ) => {
     expectRules(
-      ...Object.entries(payloadRules)
-        .map(([ruleGroup, rules]) =>
-          Object.entries(rules).map(
-            ([rule, value]) =>
-              new ReportRule(
-                expect.any(String),
-                expect.any(Date),
-                nominationFileReportId,
-                ruleGroup as NominationFile.RuleGroup,
-                rule as NominationFile.RuleName,
-                value,
-                true,
-              ),
-          ),
-        )
+      ...Object.values(
+        new ReportRulesBuilder(({ ruleGroup, ruleName }) => {
+          const value =
+            ruleName ===
+            NominationFile.StatutoryRule
+              .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS
+              ? {
+                  id: expect.any(String),
+                  preValidated: false,
+                  validated: true,
+                }
+              : (
+                  expectedRules[ruleGroup] as UnionToIntersection<
+                    (typeof expectedRules)[NominationFile.RuleGroup]
+                  >
+                )[ruleName];
+
+          return {
+            createdAt: datetimeProvider.currentDate,
+            reportId: nominationFileReportId,
+            ruleGroup,
+            ruleName,
+
+            ...(value || {
+              id: expect.any(String),
+              preValidated: defaultPreValidation,
+              validated: true,
+            }),
+          };
+        }, allRulesMapV2).build(),
+      )
+        .map((r) => Object.values(r))
+        .flat()
         .flat(),
     );
   };
 
-  const expectRules = (...rules: ReportRule[]) => {
+  const expectRules = (...rules: ReportRuleSnapshot[]) => {
     expect(Object.values(reportRuleRepository.reportRules)).toEqual<
-      ReportRule[]
+      ReportRuleSnapshot[]
     >(rules);
   };
 });
 
-export const getAllRulesPreValidated = (options?: {
-  exceptRuleMinisterCabinet: true;
-}): ReportToCreate['rules'] => {
-  const builder = new BooleanReportRulesBuilder();
-  if (options?.exceptRuleMinisterCabinet) {
-    builder.with('statutory.MINISTER_CABINET', false);
+export const getAllRulesWithPreValidation = (
+  validation = true,
+  options?: {
+    exceptJudiciaryRoleAndJuridictionDegreeChange: true;
+  },
+): ReportToCreate['rules'] => {
+  const builder = new BooleanReportRulesBuilder(validation);
+  if (options?.exceptJudiciaryRoleAndJuridictionDegreeChange) {
+    builder.with(
+      'management.JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE',
+      !validation,
+    );
   }
   return builder.build();
 };
+
+class ReportRulesBuilder extends RulesBuilder<ReportRuleSnapshot> {}

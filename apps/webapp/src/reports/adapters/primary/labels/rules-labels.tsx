@@ -160,6 +160,12 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       
       Il ne peut être nommé magistrat ni le demeurer dans une juridiction dans le ressort de laquelle il aura exercé depuis moins de cinq ans, une fonction publique élective ou fait acte de candidature à l'un de ces mandats, à l'exception du mandat de représentant au Parlement européen, depuis moins de trois ans (article 9 OS).`,
     },
+    [NominationFile.StatutoryRule
+      .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS]: {
+      label:
+        "Retour avant une durée de 5 ans sur des fonctions spécialisés occupées pendant la durée maximale de 9 ans",
+      hint: `Article 28-4 de l'OS : nul ne peut être nommé pour exercer une fonction spécialisée (JLD / JE / JI / JAP / JCP) dans une juridiction au sein de laquelle il a exercé les mêmes fonctions durant plus de neuf années avant l'expiration d'un délai de cinq ans à compter de la cessation de ses fonctions au sein de cette juridiction.`,
+    },
   },
   [NominationFile.RuleGroup.QUALITATIVE]: {
     [NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]: {
