@@ -102,14 +102,14 @@ describe.each`
       },
     );
 
-    describe('With accents in file name', () => {
+    describe.only('With accents in file name', () => {
       const aFile = new FileDocumentBuilder()
         .with('bucket', bucket)
         .with('path', null)
-        .with('name', 'file-ÉéèàùïôâŒ-name.txt')
+        .with('name', 'file-ÃªÉêéèàùïôâŒ-name.txt')
         .build();
       const encodedFileName =
-        'file-%C3%89%C3%A9%C3%A8%C3%A0%C3%B9%C3%AF%C3%B4%C3%A2%C5%92-name.txt';
+        'file-%C3%83%C2%AA%C3%89%C3%AA%C3%A9%C3%A8%C3%A0%C3%B9%C3%AF%C3%B4%C3%A2%C5%92-name.txt';
 
       it('uploads it', async () => {
         expect(await uploadFile(aFile.name)).toBeUndefined();

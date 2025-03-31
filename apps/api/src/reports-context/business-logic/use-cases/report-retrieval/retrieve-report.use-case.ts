@@ -37,10 +37,19 @@ export class RetrieveReportUseCase {
     const signedUrls = await this.reportFileService.getSignedUrls(
       ReportAttachedFiles.deserialize(files),
     );
-    return signedUrls.map(({ signedUrl, name }) => ({
-      usage: files.find((f) => f.name === name)!.usage,
-      name,
-      signedUrl,
-    }));
+
+    return signedUrls.map(({ signedUrl, name }) => {
+      const file = files.find((f) => f.name === name);
+      if (!file)
+        console.error(
+          `Pre-signed url with name ${name} not found. File names are: ${files.map((f) => f.name).join(', ')}`,
+        );
+
+      return {
+        usage: file!.usage,
+        name,
+        signedUrl,
+      };
+    });
   }
 }

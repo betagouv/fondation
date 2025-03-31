@@ -42,6 +42,7 @@ import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/d
 import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { USER_SERVICE } from './tokens';
+import { transcode } from 'buffer';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -315,6 +316,38 @@ describe('Reports Controller', () => {
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: 'attachment2.pdf',
+              fileId: expect.any(String),
+            },
+          ],
+        });
+      });
+
+      it('handles the multer latin1 default encoding when uploading a file', async () => {
+        const pdfBuffer1 = givenAPdfBuffer('Content 1');
+        const expectedUtf8Filename = 'Résumé_éèêë_çñß_déjà_vu.pdf';
+        const latin1Buffer = transcode(
+          Buffer.from(expectedUtf8Filename),
+          'utf8',
+          'latin1',
+        );
+        const latin1String = latin1Buffer.toString('latin1');
+
+        const response = await request(app.getHttpServer())
+          .post(`/api/reports/${aReportSnapshot.id}/files/upload-many`)
+          .query({ usage: ReportFileUsage.ATTACHMENT })
+          .set('Cookie', 'sessionId=unused')
+          .attach('files', pdfBuffer1, latin1String)
+          .expect(HttpStatus.CREATED);
+
+        expect(response.body).toEqual({});
+
+        await expectReportsInDb({
+          ...aReportSnapshot,
+          version: aReportSnapshot.version + 1,
+          attachedFiles: [
+            {
+              usage: ReportFileUsage.ATTACHMENT,
+              name: expectedUtf8Filename,
               fileId: expect.any(String),
             },
           ],

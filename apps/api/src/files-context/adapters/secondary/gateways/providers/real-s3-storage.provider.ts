@@ -63,7 +63,10 @@ export class RealS3StorageProvider implements S3StorageProvider {
           );
           await this.s3Client.send(command);
         } catch (error) {
-          console.error(`Error uploading file ${fileName} to S3:`, error);
+          console.error(
+            `Error uploading file ${fileName} to S3:`,
+            error.message,
+          );
           throw new Error(`Error uploading file ${fileName} to S3`);
         }
       }),
@@ -95,6 +98,7 @@ export class RealS3StorageProvider implements S3StorageProvider {
       }),
     );
 
+    console.log('files signedUrls', signedUrls, files);
     return signedUrls;
   }
 
