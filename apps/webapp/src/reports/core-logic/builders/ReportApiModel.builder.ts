@@ -1,6 +1,7 @@
 import _ from "lodash";
 import {
   AllRulesMapV2,
+  AttachedFileVM,
   Magistrat,
   NominationFile,
   ReportListItemVM,
@@ -8,9 +9,17 @@ import {
   RulesBuilder,
   Transparency,
 } from "shared-models";
-import { Get, Paths, SetOptional } from "type-fest";
+import { Get, OverrideProperties, Paths, SetOptional } from "type-fest";
 
-export type ReportApiModel = SetOptional<ReportRetrievalVM, "rules"> &
+export type ReportApiModel = SetOptional<
+  OverrideProperties<
+    ReportRetrievalVM,
+    {
+      attachedFiles: AttachedFileVM[] | null;
+    }
+  >,
+  "rules"
+> &
   ReportListItemVM;
 
 export class ReportApiModelBuilder {

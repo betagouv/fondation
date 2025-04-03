@@ -77,11 +77,13 @@ const aFile = {
   usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
   signedUrl: "https://example.fr",
   name: "file.pdf",
+  fileId: "file-id",
 };
 const aSecondFile = {
   usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
   signedUrl: "https://example.fr/file2.png",
   name: "file2.png",
+  fileId: "file-2-id",
 };
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [aFile, aSecondFile])

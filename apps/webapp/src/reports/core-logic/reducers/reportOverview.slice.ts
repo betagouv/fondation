@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { logout } from "../../../authentication/core-logic/use-cases/logout/logout";
 import { AppState, ReportScreenshotSM } from "../../../store/appState";
 import { RulesLabelsMap } from "../../adapters/primary/labels/rules-labels";
@@ -104,8 +104,9 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
 
         if (report) {
           const newFiles = files.map((file) => ({
-            usage: ReportFileUsage.ATTACHMENT,
             name: file.name,
+            fileId: null,
+            signedUrl: null,
           }));
 
           report.attachedFiles = [...(report.attachedFiles || []), ...newFiles];
@@ -122,6 +123,7 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
             const screenshot: ReportScreenshotSM = {
               name: file.name,
               signedUrl,
+              fileId: null,
             };
 
             const currentFiles = report.contentScreenshots?.files || [];

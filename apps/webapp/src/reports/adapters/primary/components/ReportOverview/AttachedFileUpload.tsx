@@ -1,14 +1,14 @@
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import clsx from "clsx";
 import { FC } from "react";
-import { ReportSM } from "../../../../../store/appState";
+import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { reportHtmlIds } from "../../dom/html-ids";
 import { summaryLabels } from "../../labels/summary-labels";
 import { AttachedFilesList } from "./AttachedFilesList";
 import { Card } from "./Card";
 
 export type AttachedFileUploadProps = {
-  attachedFiles: ReportSM["attachedFiles"];
+  attachedFiles: ReportVM["attachedFiles"];
   onFilesAttached: (files: File[]) => void;
   onAttachedFileDeleted: (fileName: string) => void;
 };

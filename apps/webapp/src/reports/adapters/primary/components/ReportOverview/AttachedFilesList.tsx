@@ -1,10 +1,10 @@
+import Button from "@codegouvfr/react-dsfr/Button";
 import clsx from "clsx";
 import { FC } from "react";
-import { ReportSM } from "../../../../../store/appState";
-import Button from "@codegouvfr/react-dsfr/Button";
+import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 
 export type AttachedFilesListProps = {
-  attachedFiles: NonNullable<ReportSM["attachedFiles"]>;
+  attachedFiles: NonNullable<ReportVM["attachedFiles"]>;
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
@@ -18,7 +18,11 @@ export const AttachedFilesList: FC<AttachedFilesListProps> = ({
 
       return (
         <li key={file.name} className="flex items-center gap-4">
-          <a href={file.signedUrl} target="_blank" rel="noopener noreferrer">
+          <a
+            href={file.signedUrl ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {file.name}
           </a>
           <Button

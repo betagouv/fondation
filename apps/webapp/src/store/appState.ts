@@ -1,12 +1,11 @@
 import {
   AllRulesMapV2,
-  AttachedFileVM,
   FileVM,
   Magistrat,
   NominationFile,
   Transparency,
 } from "shared-models";
-import { SetOptional, UnionToTuple } from "type-fest";
+import { UnionToTuple } from "type-fest";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
@@ -16,8 +15,10 @@ import { RouterProvider } from "../router/core-logic/providers/router";
 import { DateOnlyStoreModel } from "../shared-kernel/core-logic/models/date-only";
 
 export type ReportScreenshotSM = {
+  // On n'a pas de fileId avant la fin de l'upload
+  fileId: string | null;
   name: string;
-  signedUrl: string;
+  signedUrl: string | null;
 };
 
 export type ReportScreenshots = {
@@ -41,8 +42,13 @@ export interface ReportSM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  // Lors de l'upload d'un fichier, l'url n'est pas encore créée
-  attachedFiles: SetOptional<AttachedFileVM, "signedUrl">[] | null;
+  attachedFiles:
+    | {
+        name: string;
+        fileId: string | null;
+        signedUrl: string | null;
+      }[]
+    | null;
   contentScreenshots: ReportScreenshots | null;
 }
 export type ReportListItem = Pick<

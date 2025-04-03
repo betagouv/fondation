@@ -1,4 +1,4 @@
-import { AllRulesMapV2, NominationFile, ReportFileUsage } from "shared-models";
+import { AllRulesMapV2, NominationFile } from "shared-models";
 import { ConditionalExcept } from "type-fest";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../../store/appState";
@@ -65,13 +65,6 @@ describe("Select Report", () => {
         ])
         .with("rules.management.TRANSFER_TIME.validated", true)
         .with("rules.management.TRANSFER_TIME.preValidated", false)
-        .with("attachedFiles", [
-          {
-            usage: ReportFileUsage.ATTACHMENT,
-            name: "test.pdf",
-            signedUrl: "http://example.fr/test.pdf",
-          },
-        ])
         .buildRetrieveSM();
       givenAReport(aReport);
 
@@ -220,6 +213,40 @@ describe("Select Report", () => {
     };
   });
 
+  describe("Select Report - Files", () => {
+    const reportVMBuilder = (report: ReportSM) =>
+      ReportBuilderVM.fromStoreModel(report);
+
+    beforeEach(() => {
+      store = initReduxStore({}, {}, {});
+      reportBuilder = new ReportBuilder();
+    });
+    it("selects an attached file without a pre-signed url", async () => {
+      const aReport = new ReportBuilder()
+        .with("attachedFiles", [
+          {
+            name: "test.pdf",
+            fileId: "file-id",
+            signedUrl: null,
+          },
+        ])
+        .buildRetrieveSM();
+      givenAReport(aReport);
+
+      const aReportVM = reportVMBuilder(aReport)
+        .with("attachedFiles", [
+          {
+            name: "test.pdf",
+            fileId: "file-id",
+            signedUrl: null,
+          },
+        ])
+        .build();
+
+      expect(selectReport(store.getState(), aReport.id)).toEqual(aReportVM);
+    });
+  });
+
   const givenAReport = (
     report: ReturnType<typeof reportBuilder.buildRetrieveSM>,
   ) => {
@@ -227,7 +254,7 @@ describe("Select Report", () => {
   };
 });
 
-describe("Select Report - Summary and Age", () => {
+describe("Select Report - Age", () => {
   const currentDate = new DateOnly(2025, 10, 2);
 
   let store: ReduxStore;

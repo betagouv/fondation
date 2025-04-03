@@ -40,7 +40,8 @@ describe("Generate Report File Url", () => {
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: "file.png",
-          signedUrl,
+          fileId: "file-id",
+          signedUrl: null,
         },
       ])
       .build();
@@ -49,19 +50,21 @@ describe("Generate Report File Url", () => {
 
     reportApiClient.addReports(aReportApiModel);
     store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
+
     await store.dispatch(
       generateReportFileUrl({
         reportId: aReport.id,
         fileName: "file.png",
       }),
     );
+
     expectStoredReports({
       ...aReport,
       attachedFiles: [
         {
-          usage: ReportFileUsage.ATTACHMENT,
           signedUrl,
           name: "file.png",
+          fileId: "file-id",
         },
       ],
     });

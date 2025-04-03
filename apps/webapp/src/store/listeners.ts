@@ -11,6 +11,7 @@ export type AppListeners = {
   redirectOnLogin: Listener;
   reportFilesAttached: Listener;
   preloadReportsRetrieval: Listener;
+  genFileUrlsOnReportRetrieval: Listener;
 };
 
 export type StartAppListening = TypedStartListening<

@@ -1,3 +1,4 @@
+import { FileVM } from "shared-models";
 import { ReportScreenshotSM } from "../../../../store/appState.ts";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk.ts";
 
@@ -7,7 +8,7 @@ export const retrieveReport = createAppAsyncThunk(
     id: string,
     {
       extra: {
-        gateways: { reportGateway },
+        gateways: { reportGateway, fileGateway },
       },
     },
   ) => {
@@ -22,7 +23,12 @@ export const retrieveReport = createAppAsyncThunk(
 
       const images = container.querySelectorAll("img");
 
-      images.forEach(setSrc(screenshots));
+      const signedUrlsVM = await fileGateway.getSignedUrls(
+        screenshots
+          .filter((screenshot) => screenshot.fileId !== null)
+          .map((screenshot) => screenshot.fileId!),
+      );
+      images.forEach(setSrc(screenshots, signedUrlsVM));
 
       report.comment = container.innerHTML;
     }
@@ -33,6 +39,7 @@ export const retrieveReport = createAppAsyncThunk(
 
 function setSrc(
   screenshots: ReportScreenshotSM[],
+  signedUrlsVM: FileVM[],
 ): (value: HTMLImageElement) => void {
   return (img) => {
     const imgFileName = img.getAttribute("data-file-name");
@@ -41,6 +48,13 @@ function setSrc(
       console.warn(`Screenshot ${imgFileName} not found`);
       return;
     }
-    img.setAttribute("src", screenshot.signedUrl);
+
+    const signedUrlVM = signedUrlsVM.find(
+      (file) => file.name === screenshot.name,
+    );
+
+    if (signedUrlVM) {
+      img.setAttribute("src", signedUrlVM.signedUrl);
+    }
   };
 }

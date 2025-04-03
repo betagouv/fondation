@@ -76,9 +76,6 @@ export class ReportBuilder {
     };
   }
   buildRetrieveSM(): Awaited<ReturnType<ReportGateway["retrieveReport"]>> {
-    if (this._report.attachedFiles?.find((file) => !file.signedUrl))
-      throw new Error("Attached files must have a signedUrl");
-
     return {
       id: this._report.id,
       folderNumber: this._report.folderNumber,
@@ -132,9 +129,13 @@ export class ReportBuilder {
       .with("rules", aValidatedReportApiModel.rules)
       .with(
         "attachedFiles",
-        aValidatedReportApiModel.attachedFiles?.filter(
-          (file) => file.usage === ReportFileUsage.ATTACHMENT,
-        ) ?? null,
+        aValidatedReportApiModel.attachedFiles
+          ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
+          ?.map((file) => ({
+            name: file.name,
+            fileId: file.fileId,
+            signedUrl: null,
+          })) ?? null,
       );
   }
 

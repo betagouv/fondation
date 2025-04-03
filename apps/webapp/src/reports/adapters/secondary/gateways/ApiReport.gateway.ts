@@ -38,8 +38,9 @@ export class ApiReportGateway implements ReportGateway {
           files: [
             ...acc.files,
             {
+              fileId: file.fileId,
               name: file.name,
-              signedUrl: file.signedUrl,
+              signedUrl: null,
             },
           ],
         }),
@@ -64,10 +65,16 @@ export class ApiReportGateway implements ReportGateway {
       observers: report.observers,
       rules: report.rules,
       attachedFiles:
-        report.attachedFiles?.filter(
-          (file) => file.usage === ReportFileUsage.ATTACHMENT,
-        ) ?? null,
-      contentScreenshots: contentScreenshots ?? null,
+        report.attachedFiles
+          ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
+          .map((file) => ({
+            fileId: file.fileId,
+            name: file.name,
+            signedUrl: null,
+          })) ?? null,
+      contentScreenshots: contentScreenshots?.files.length
+        ? contentScreenshots
+        : null,
     };
   }
 

@@ -83,7 +83,7 @@ test.describe("Report Editor", () => {
     getHtmlContent: () => Promise<string | null | undefined>;
     expectHtmlContent?: (content: string) => Promise<void>;
     expectedStoredHtmlContent: string;
-    expectedStoredFiles?: ReportScreenshotSM[];
+    expectedStoredFiles?: Omit<ReportScreenshotSM, "fileId">[];
   }[] = [
     {
       testTitle: "Mark text in bold",
@@ -427,7 +427,7 @@ test.describe("Report Editor", () => {
 
   const expectStoredReport = async (
     content: string | null,
-    screenshots?: ReportScreenshotSM[],
+    screenshots?: Omit<ReportScreenshotSM, "fileId">[],
   ) => {
     await sleep(1000); // Wait for debouced store update
 
@@ -443,7 +443,14 @@ test.describe("Report Editor", () => {
             comment: content,
             contentScreenshots: screenshots
               ? {
-                  files: screenshots,
+                  files: screenshots.map(
+                    (screenshot) =>
+                      ({
+                        name: screenshot.name,
+                        fileId: expect.any(String),
+                        signedUrl: screenshot.signedUrl,
+                      }) as unknown as ReportScreenshotSM,
+                  ),
                 }
               : null,
           },

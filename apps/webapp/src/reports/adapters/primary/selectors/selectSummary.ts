@@ -13,11 +13,6 @@ export const selectSummary = createAppSelector(
     if (!report) return [];
 
     return summarySections.filter(({ anchorId }) => {
-      console.log(
-        "anchorId",
-        anchorId,
-        reportHtmlIds.overview.observersSection,
-      );
       const isObserverSection =
         anchorId === reportHtmlIds.overview.observersSection;
       const isOtherSection = !isObserverSection;

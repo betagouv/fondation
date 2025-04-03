@@ -12,16 +12,18 @@ import {
   ReportApiClient,
 } from "../../../core-logic/gateways/ReportApi.client";
 
+type ApiModel = ReportApiModel;
+
 export class FakeReportApiClient implements ReportApiClient {
   static BASE_URI = "https://example.fr";
 
   // Readonly because Redux makes it immutable
-  reports: Record<string, Readonly<ReportApiModel>> = {};
+  reports: Record<string, Readonly<ApiModel>> = {};
   currentReportId: string | null = null;
 
   deleteFilesError?: Error;
 
-  addReports(...reports: ReportApiModel[]): void {
+  addReports(...reports: ApiModel[]): void {
     for (const report of reports) {
       this.currentReportId = report.id;
       this.reports = {
@@ -117,7 +119,7 @@ export class FakeReportApiClient implements ReportApiClient {
     const newAttachedFiles = files.map((file) => ({
       usage,
       name: file.name,
-      signedUrl: `${FakeReportApiClient.BASE_URI}/${file.name}`,
+      fileId: "fake-file-id",
     }));
 
     this.reports = {
@@ -130,11 +132,18 @@ export class FakeReportApiClient implements ReportApiClient {
   }
 
   async generateFileUrl(reportId: string, fileName: string): Promise<string> {
-    const reportSignedUrl = this.reports[reportId]!.attachedFiles?.find(
+    const file = this.reports[reportId]!.attachedFiles?.find(
       (file) => file.name === fileName,
-    )?.signedUrl;
+    );
     const defaultUrl = `${FakeReportApiClient.BASE_URI}/${fileName}`;
-    return reportSignedUrl ?? defaultUrl;
+
+    if (this.reports[reportId] && file)
+      this.reports[reportId] = {
+        ...this.reports[reportId],
+        attachedFiles: [...(this.reports[reportId]!.attachedFiles || []), file],
+      };
+
+    return defaultUrl;
   }
 
   async generateFileUrlEndpoint(reportId: string, fileName: string) {

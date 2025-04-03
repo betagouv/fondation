@@ -55,6 +55,7 @@ const aFile = {
   usage: ReportFileUsage.ATTACHMENT,
   signedUrl: "https://example.fr",
   name: "file.pdf",
+  fileId: "file-id",
 };
 const aReportApiModel = new ReportApiModelBuilder()
   .with("attachedFiles", [aFile])

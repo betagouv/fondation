@@ -13,7 +13,9 @@ import "./index.css";
 import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-labels.tsx";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
+import { genFileUrlsOnReportRetrieval } from "./reports/core-logic/listeners/genFileUrlsOnReportRetrieval.listeners.ts";
 import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
+import { reportFilesAttached } from "./reports/core-logic/listeners/report-files-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import {
   RouteProvider,
@@ -27,7 +29,6 @@ import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnR
 import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/realDateProvider.ts";
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { reportFilesAttached } from "./reports/core-logic/listeners/report-files-attached.listeners.ts";
 import { ApiFileGateway } from "./files/adapters/secondary/gateways/ApiFile.gateway.ts";
 import { FetchFileApiClient } from "./files/adapters/secondary/gateways/FetchFile.client.ts";
 import { ApiTransparencyGateway } from "./reports/adapters/secondary/gateways/ApiTransparency.gateway.ts";
@@ -77,6 +78,7 @@ const store = initReduxStore<false>(
     redirectOnLogin,
     reportFilesAttached,
     preloadReportsRetrieval,
+    genFileUrlsOnReportRetrieval,
   },
   routeToReactComponentMap,
   allRulesMapV2,

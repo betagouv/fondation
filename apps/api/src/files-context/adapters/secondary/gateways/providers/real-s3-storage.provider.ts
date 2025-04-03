@@ -98,7 +98,6 @@ export class RealS3StorageProvider implements S3StorageProvider {
       }),
     );
 
-    console.log('files signedUrls', signedUrls, files);
     return signedUrls;
   }
 

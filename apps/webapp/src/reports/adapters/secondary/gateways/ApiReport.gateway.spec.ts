@@ -1,7 +1,10 @@
-import { AttachedFileVM, NominationFile, ReportFileUsage } from "shared-models";
+import { NominationFile, ReportFileUsage } from "shared-models";
 import { ReportListItem, ReportSM } from "../../../../store/appState";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
-import { ReportApiModelBuilder } from "../../../core-logic/builders/ReportApiModel.builder";
+import {
+  ReportApiModel,
+  ReportApiModelBuilder,
+} from "../../../core-logic/builders/ReportApiModel.builder";
 import { ApiReportGateway } from "./ApiReport.gateway";
 import { FakeReportApiClient } from "./FakeReport.client";
 
@@ -94,7 +97,7 @@ describe("Api Report Gateway", () => {
       expectUploadedFiles({
         usage: ReportFileUsage.ATTACHMENT,
         name: file1.name,
-        signedUrl: `${FakeReportApiClient.BASE_URI}/${file1.name}`,
+        fileId: expect.any(String),
       });
     });
 
@@ -108,12 +111,12 @@ describe("Api Report Gateway", () => {
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: file1.name,
-          signedUrl: `${FakeReportApiClient.BASE_URI}/${file1.name}`,
+          fileId: expect.any(String),
         },
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: file2.name,
-          signedUrl: `${FakeReportApiClient.BASE_URI}/${file2.name}`,
+          fileId: expect.any(String),
         },
       );
     });
@@ -126,7 +129,7 @@ describe("Api Report Gateway", () => {
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: aFile.name,
-              signedUrl: "some-url",
+              fileId: "some-file-id",
             },
           ],
         };
@@ -138,7 +141,7 @@ describe("Api Report Gateway", () => {
             aReportRetrievedSM.id,
             aFile.name,
           ),
-        ).toEqual("some-url");
+        ).toEqual(`${FakeReportApiClient.BASE_URI}/some-file.pdf`);
       });
 
       it("deletes an attached file", async () => {
@@ -160,7 +163,9 @@ describe("Api Report Gateway", () => {
       );
     };
 
-    const expectUploadedFiles = (...files: AttachedFileVM[]) => {
+    const expectUploadedFiles = (
+      ...files: NonNullable<ReportApiModel["attachedFiles"]>
+    ) => {
       const attachedFiles =
         reportApiClient.reports[aReportRetrievedSM.id]!.attachedFiles;
       expect(attachedFiles).toHaveLength(files.length);

@@ -1,4 +1,4 @@
-import { AttachedFileVM, DateOnlyJson, ReportFileUsage } from "shared-models";
+import { DateOnlyJson } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { ReportSM } from "../../../../store/appState";
 import { createAppSelector } from "../../../../store/createAppSelector";
@@ -39,10 +39,7 @@ export const selectReport = createAppSelector(
         rulesMap,
         rulesLabelsMap,
       ),
-      attachedFiles:
-        (report.attachedFiles
-          ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
-          .filter((file) => !!file.signedUrl) as AttachedFileVM[]) ?? null,
+      attachedFiles: report.attachedFiles,
     };
   },
 );

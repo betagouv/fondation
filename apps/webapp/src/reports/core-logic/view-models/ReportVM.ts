@@ -1,6 +1,5 @@
 import {
   AllRulesMapV2,
-  AttachedFileVM,
   Magistrat,
   NominationFile,
   Transparency,
@@ -87,7 +86,12 @@ export class ReportVM<
     public readonly comment: string | null,
     public readonly rank: string,
     public readonly observers: [string, ...string[]][] | null,
-    public readonly attachedFiles: AttachedFileVM[] | null,
+    public readonly attachedFiles:
+      | {
+          name: string;
+          signedUrl: string | null;
+        }[]
+      | null,
 
     public readonly rulesChecked: Simplify<
       GroupRulesChecked<NominationFile.RuleGroup.MANAGEMENT, ManagementRules> &

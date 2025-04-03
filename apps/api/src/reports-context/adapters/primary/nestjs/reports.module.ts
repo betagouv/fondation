@@ -72,10 +72,7 @@ import {
       REPORT_RULE_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
-    generateProvider(RetrieveReportUseCase, [
-      REPORT_RETRIEVAL_QUERY,
-      REPORT_FILE_SERVICE,
-    ]),
+    generateProvider(RetrieveReportUseCase, [REPORT_RETRIEVAL_QUERY]),
     generateProvider(ListReportsUseCase, [REPORT_LISTING_QUERY]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,

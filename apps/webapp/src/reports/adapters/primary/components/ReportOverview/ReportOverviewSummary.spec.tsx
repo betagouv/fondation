@@ -43,7 +43,7 @@ describe("Report Overview Component - Summary use cases", () => {
 
   it("doesn't show the summary if no report found", async () => {
     renderReportId("invalid-id");
-    expect(screen.findByText("Sommaire")).rejects.toThrow();
+    await expect(screen.findByText("Sommaire")).rejects.toThrow();
   });
 
   describe("when there is a report", () => {

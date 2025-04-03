@@ -10,22 +10,31 @@ import {
   expectStoredReportsFactory,
 } from "../../../../test/reports";
 import { ReportFileUsage } from "shared-models";
+import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
+import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { genFileUrlsOnReportRetrieval } from "../../listeners/genFileUrlsOnReportRetrieval.listeners";
+import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 
 describe("Retrieve report", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let fileApiClient: FakeFileApiClient;
   let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
     store = initReduxStore(
       {
         reportGateway,
+        fileGateway,
       },
       {},
       {},
+      { genFileUrlsOnReportRetrieval },
     );
     initialState = store.getState();
 
@@ -47,6 +56,39 @@ describe("Retrieve report", () => {
     expectStoredReports(aReport, anotherReport);
   });
 
+  it("generates signed urls for attached files", async () => {
+    const aReportApiModelWithFiles = new ReportApiModelBuilder()
+      .with("attachedFiles", [
+        {
+          name: "file1.png",
+          usage: ReportFileUsage.ATTACHMENT,
+          fileId: "file1-id",
+        },
+      ])
+      .build();
+    reportApiClient.addReports(aReportApiModelWithFiles);
+    fileApiClient.setFiles({
+      name: "file1.png",
+      fileId: "file1-id",
+      signedUrl: "https://example.fr/file1.png",
+    });
+
+    await store.dispatch(retrieveReport(aReportApiModelWithFiles.id));
+    await sleep(20);
+
+    expectStoredReports({
+      ...ReportBuilder.fromApiModel(aReportApiModelWithFiles)
+        .with("attachedFiles", [
+          {
+            name: "file1.png",
+            fileId: "file1-id",
+            signedUrl: "https://example.fr/file1.png",
+          },
+        ])
+        .buildRetrieveSM(),
+    });
+  });
+
   it("adds the screenshot urls into the report content", async () => {
     const aReportApiModelWithScreenshots = new ReportApiModelBuilder()
       .with("comment", `<img data-file-name="screenshot1.png">`)
@@ -54,11 +96,16 @@ describe("Retrieve report", () => {
         {
           name: "screenshot1.png",
           usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-          signedUrl: "https://example.fr/screenshot1.png",
+          fileId: "screenshot1-id",
         },
       ])
       .build();
     reportApiClient.addReports(aReportApiModelWithScreenshots);
+    fileApiClient.setFiles({
+      name: "screenshot1.png",
+      signedUrl: "https://example.fr/screenshot1.png",
+      fileId: "screenshot1-id",
+    });
 
     await store.dispatch(retrieveReport(aReportApiModelWithScreenshots.id));
 
@@ -68,7 +115,8 @@ describe("Retrieve report", () => {
           files: [
             {
               name: "screenshot1.png",
-              signedUrl: "https://example.fr/screenshot1.png",
+              fileId: "screenshot1-id",
+              signedUrl: null,
             },
           ],
         })

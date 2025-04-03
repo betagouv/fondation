@@ -59,8 +59,8 @@ describe("Report Overview Component - Files", () => {
       fileNames: ["image.png"],
       expectedAttachedFiles: [
         {
-          usage: ReportFileUsage.ATTACHMENT,
           name: "image.png",
+          fileId: null,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
         },
       ],
@@ -70,13 +70,13 @@ describe("Report Overview Component - Files", () => {
       fileNames: ["image.png", "image2.png"],
       expectedAttachedFiles: [
         {
-          usage: ReportFileUsage.ATTACHMENT,
           name: "image.png",
+          fileId: null,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
         },
         {
-          usage: ReportFileUsage.ATTACHMENT,
           name: "image2.png",
+          fileId: null,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image2.png`,
         },
       ],
@@ -116,11 +116,13 @@ describe("Report Overview Component - Files", () => {
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: "file1.png",
+          fileId: "file-id1",
           signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
         },
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: "file2.png",
+          fileId: "file-id2",
           signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
         },
       ])
@@ -137,11 +139,13 @@ describe("Report Overview Component - Files", () => {
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: "file1.png",
+          fileId: "file-id1",
           signedUrl: `${FakeReportApiClient.BASE_URI}/file1.png`,
         },
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: "file2.png",
+          fileId: "file-id2",
           signedUrl: `${FakeReportApiClient.BASE_URI}/file2.png`,
         },
       ])

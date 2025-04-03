@@ -93,6 +93,7 @@ describe("Report Embed Screenshot", () => {
     const expectedFiles = fileNames.map((fileName) => {
       const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
       return {
+        fileId: null,
         name: fileNameWithTimestamp,
         signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
       };

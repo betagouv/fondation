@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import blobStream from "blob-stream";
 import PDF from "pdfkit";
-import { ReportFileUsage } from "shared-models";
 import sharp, { FormatEnum } from "sharp";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
@@ -61,14 +60,14 @@ describe("Attach Multiple Report Files", () => {
       ...aReport,
       attachedFiles: [
         {
-          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: "https://example.fr/file.pdf",
           name: "file.pdf",
+          fileId: null,
         },
         {
-          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: "https://example.fr/image.png",
           name: "image.png",
+          fileId: null,
         },
       ],
     });
@@ -102,14 +101,14 @@ describe("Attach Multiple Report Files", () => {
       ...aReport,
       attachedFiles: [
         {
-          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image1.png`,
           name: "image1.png",
+          fileId: null,
         },
         {
-          usage: ReportFileUsage.ATTACHMENT,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image2.jpg`,
           name: "image2.jpg",
+          fileId: null,
         },
       ],
     });
