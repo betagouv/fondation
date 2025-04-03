@@ -12,6 +12,7 @@ import {
   UpdateReportOnImportChangePayload,
   UpdateReportOnImportChangeUseCase,
 } from './update-report-on-import-change.use-case';
+import { DomainRegistry } from '../../models/domain-registry';
 
 const nominationFileId = 'nomination-file-id';
 
@@ -33,6 +34,8 @@ describe('Update Report On Import Change Use Case', () => {
     };
     jest.spyOn(reportRuleRepository, 'save');
     transactionPerformer = new NullTransactionPerformer();
+
+    DomainRegistry.setReportRuleRepository(reportRuleRepository);
   });
 
   afterEach(() => {
@@ -43,7 +46,7 @@ describe('Update Report On Import Change Use Case', () => {
     const payload: UpdateReportOnImportChangePayload = {
       folderNumber: 10,
     };
-    await updateReport(payload);
+    await updateReports(payload);
     expectReports(
       { ...aFirstReport, folderNumber: 10 },
       { ...aSecondReport, folderNumber: 10 },
@@ -54,7 +57,7 @@ describe('Update Report On Import Change Use Case', () => {
     const payload: UpdateReportOnImportChangePayload = {
       observers: ['New observer'],
     };
-    await updateReport(payload);
+    await updateReports(payload);
     expectReports(
       { ...aFirstReport, observers: ['New observer'] },
       { ...aSecondReport, observers: ['New observer'] },
@@ -67,7 +70,7 @@ describe('Update Report On Import Change Use Case', () => {
         .with('management.TRANSFER_TIME', false)
         .build(),
     };
-    await updateReport(payload);
+    await updateReports(payload);
     expectReportRules(
       { ...aFirstTransferTimeRuleSnapshot, preValidated: false },
       { ...aSecondTransferTimeRuleSnapshot, preValidated: false },
@@ -75,12 +78,22 @@ describe('Update Report On Import Change Use Case', () => {
     expect(reportRuleRepository.save).toHaveBeenCalledTimes(2);
   });
 
-  const updateReport = async (
+  it('should update V2 rules and ignore additional rules', async () => {
+    const payload: UpdateReportOnImportChangePayload = {
+      rules: new BooleanReportRulesBuilder()
+        .with('management.TRANSFER_TIME', false)
+        .with('management.CASSATION_COURT_NOMINATION', true)
+        .build(),
+    };
+
+    await expect(updateReports(payload)).toResolve();
+  });
+
+  const updateReports = async (
     updateReportOnImportChangePayload: UpdateReportOnImportChangePayload,
   ) => {
     await new UpdateReportOnImportChangeUseCase(
       reportRepository,
-      reportRuleRepository,
       transactionPerformer,
     ).execute(nominationFileId, updateReportOnImportChangePayload);
   };

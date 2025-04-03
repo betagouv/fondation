@@ -6,6 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
@@ -48,7 +49,6 @@ import {
   REPORT_RULE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
-import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 
 @Module({
   imports: [SharedKernelModule],
@@ -61,7 +61,6 @@ import { ReportRuleRepository } from 'src/reports-context/business-logic/gateway
 
     generateProvider(UpdateReportOnImportChangeUseCase, [
       REPORT_REPOSITORY,
-      REPORT_RULE_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
     generateProvider(CreateReportUseCase, [

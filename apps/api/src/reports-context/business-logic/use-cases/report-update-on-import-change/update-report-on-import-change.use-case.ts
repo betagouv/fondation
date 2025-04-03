@@ -1,28 +1,30 @@
-import { NominationFile } from 'shared-models';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { ReportRuleRepository } from '../../gateways/repositories/report-rule.repository';
-import { ReportRepository } from '../../gateways/repositories/report.repository';
+import { allRulesMapV2, NominationFile, RulesBuilder } from 'shared-models';
 import {
   ManagementRule,
-  StatutoryRule,
   QualitativeRule,
+  StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
+import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { UnionToIntersection } from 'type-fest';
+import { ReportRepository } from '../../gateways/repositories/report.repository';
+import { DomainRegistry } from '../../models/domain-registry';
+
+type UpdatedRules = NominationFile.Rules<
+  boolean,
+  ManagementRule,
+  StatutoryRule,
+  QualitativeRule
+>;
 
 export interface UpdateReportOnImportChangePayload {
   folderNumber?: number | null;
   observers?: string[];
-  rules?: NominationFile.Rules<
-    boolean,
-    ManagementRule,
-    StatutoryRule,
-    QualitativeRule
-  >;
+  rules?: UpdatedRules;
 }
 
 export class UpdateReportOnImportChangeUseCase {
   constructor(
     private readonly reportRepository: ReportRepository,
-    private readonly reportRuleRepository: ReportRuleRepository,
     private readonly transactionPerformer: TransactionPerformer,
   ) {}
 
@@ -50,39 +52,97 @@ export class UpdateReportOnImportChangeUseCase {
       }
 
       if (payload.rules) {
-        const rulesTuple = this.genRulesTuples(payload.rules);
-
         for (const report of reports) {
-          for (const [ruleGroup, ruleName, preValidated] of rulesTuple) {
-            const rule = await this.reportRuleRepository.byName(
+          await Promise.all(
+            ImportedV1RulesToV2Builder.fromV1(payload.rules).buildRepositories(
               report.id,
-              ruleGroup as NominationFile.RuleGroup,
-              ruleName as NominationFile.RuleName,
-            )(trx);
-            if (rule && rule.preValidationChanged(preValidated)) {
-              rule.preValidate(preValidated);
-              await this.reportRuleRepository.save(rule)(trx);
-            }
-          }
+              trx,
+            ),
+          );
         }
       }
     });
   }
+}
 
-  private genRulesTuples(
-    rulesPayload: NonNullable<UpdateReportOnImportChangePayload['rules']>,
-  ): (readonly [NominationFile.RuleGroup, NominationFile.RuleName, boolean])[] {
-    return Object.entries(rulesPayload)
-      .map(([ruleGroup, rulesPayload]) =>
-        Object.entries(rulesPayload).map(
-          ([ruleName, preValidated]) =>
-            [
-              ruleGroup as NominationFile.RuleGroup,
-              ruleName as NominationFile.RuleName,
-              preValidated,
-            ] as const,
-        ),
+class ImportedV1RulesToV2Builder extends RulesBuilder<boolean | undefined> {
+  buildRepositories(reportId: string, trx: unknown): Promise<void>[] {
+    return Object.entries(this.build())
+      .map(([ruleGroup, rules]) =>
+        Object.entries(rules).map(async ([ruleName, preValidated]) => {
+          const reportRuleRepository = DomainRegistry.reportRuleRepository();
+          const rule = await reportRuleRepository.byName(
+            reportId,
+            ruleGroup as NominationFile.RuleGroup,
+            ruleName as NominationFile.RuleName,
+          )(trx);
+
+          if (
+            rule &&
+            preValidated !== undefined &&
+            rule.preValidationChanged(preValidated)
+          ) {
+            rule.preValidate(preValidated);
+            await reportRuleRepository.save(rule)(trx);
+          }
+        }),
       )
       .flat();
+  }
+
+  static fromV1(
+    rules: NonNullable<UpdateReportOnImportChangePayload['rules']>,
+  ): ImportedV1RulesToV2Builder {
+    const rulesV2 = new ImportedV1RulesToV2Builder(
+      ({ ruleGroup, ruleName }) => {
+        const preValidated = ImportedV1RulesToV2Builder.getPrevalidated(
+          rules,
+          ruleGroup,
+          ruleName,
+        );
+
+        return preValidated;
+      },
+      allRulesMapV2,
+    );
+    return rulesV2;
+  }
+
+  static getPrevalidated(
+    rules: NonNullable<UpdateReportOnImportChangePayload['rules']>,
+    ruleGroup: NominationFile.RuleGroup,
+    ruleName: NominationFile.RuleName,
+  ): boolean | undefined {
+    if (
+      ruleName ===
+      NominationFile.StatutoryRule
+        .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS
+    )
+      return;
+
+    if (
+      ruleName ===
+      NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+    ) {
+      return (
+        rules[ruleGroup][
+          ruleName as keyof NonNullable<
+            UpdateReportOnImportChangePayload['rules']
+          >[NominationFile.RuleGroup]
+        ] ||
+        rules[ruleGroup][
+          'JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE' as keyof NonNullable<
+            UpdateReportOnImportChangePayload['rules']
+          >[NominationFile.RuleGroup]
+        ]
+      );
+    }
+
+    const ruleValue = (
+      rules[ruleGroup] as UnionToIntersection<
+        (typeof rules)[NominationFile.RuleGroup]
+      >
+    )[ruleName];
+    return ruleValue;
   }
 }

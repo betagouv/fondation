@@ -166,7 +166,6 @@ describe('Import Nominations from local file', () => {
         firstTsvContent,
         reportersMap[firstTsvContent.reporters![0]!]!,
       );
-
       await db.insert(reportRules).values({
         id: transferTimeRuleId,
         reportId,
