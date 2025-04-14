@@ -3,7 +3,9 @@ import { Editor } from "@tiptap/react";
 import { File } from "node:buffer";
 import sharp, { FormatEnum } from "sharp";
 import { DeterministicDateProvider } from "../../../../shared-kernel/adapters/secondary/providers/deterministicDateProvider";
+import { DeterministicUuidGenerator } from "../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
+import { InvalidMimeTypeError } from "../../../../shared-kernel/core-logic/errors/InvalidMimeType.error";
 import { AppState, ReportSM } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import {
@@ -17,7 +19,6 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { reportEmbedScreenshot } from "./report-embed-screenshot";
-import { InvalidMimeTypeError } from "../../../../shared-kernel/core-logic/errors/InvalidMimeType.error";
 
 describe("Report Embed Screenshot", () => {
   let store: ReduxStore;
@@ -25,6 +26,7 @@ describe("Report Embed Screenshot", () => {
   let reportApiClient: FakeReportApiClient;
   let dateProvider: DeterministicDateProvider;
   let fileProvider: StubNodeFileProvider;
+  let uuidGenerator: DeterministicUuidGenerator;
   let expectStoredReports: ExpectStoredReports;
   let editor: Editor;
 
@@ -34,12 +36,14 @@ describe("Report Embed Screenshot", () => {
     const reportGateway = new ApiReportGateway(reportApiClient);
     fileProvider = new StubNodeFileProvider();
     dateProvider = new DeterministicDateProvider();
+    uuidGenerator = new DeterministicUuidGenerator();
+    uuidGenerator.nextUuids = [fileId1, fileId2];
 
     store = initReduxStore(
       {
         reportGateway,
       },
-      { fileProvider, dateProvider },
+      { fileProvider, dateProvider, uuidGenerator },
       {},
     );
     initialState = store.getState();
@@ -90,10 +94,10 @@ describe("Report Embed Screenshot", () => {
 
     await embedScreenshot(...files);
 
-    const expectedFiles = fileNames.map((fileName) => {
+    const expectedFiles = fileNames.map((fileName, index) => {
       const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
       return {
-        fileId: null,
+        fileId: index === 0 ? fileId1 : fileId2,
         name: fileNameWithTimestamp,
         signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
       };
@@ -155,3 +159,6 @@ describe("Report Embed Screenshot", () => {
 
 const aReportApiModel = new ReportApiModelBuilder().build();
 const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+
+const fileId1 = "file-id1";
+const fileId2 = "file-id2";

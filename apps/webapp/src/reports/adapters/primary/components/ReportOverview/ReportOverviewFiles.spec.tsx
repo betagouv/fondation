@@ -20,6 +20,7 @@ import { ApiReportGateway } from "../../../secondary/gateways/ApiReport.gateway"
 import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.client";
 import { ReportOverview } from "./ReportOverview";
 import { reportFilesAttached } from "../../../../core-logic/listeners/report-files-attached.listeners";
+import { DeterministicUuidGenerator } from "../../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
 
 describe("Report Overview Component - Files", () => {
   let store: ReduxStore;
@@ -28,18 +29,21 @@ describe("Report Overview Component - Files", () => {
   let reportApiModelBuilder: ReportApiModelBuilder;
   let expectStoredReports: ExpectStoredReports;
   let routerProvider: StubRouterProvider;
+  let uuidGenerator: DeterministicUuidGenerator;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
     routerProvider = new StubRouterProvider();
     const fileProvider = new RealFileProvider();
+    uuidGenerator = new DeterministicUuidGenerator();
+    uuidGenerator.nextUuids = [fileId1, fileId2];
 
     store = initReduxStore(
       {
         reportGateway,
       },
-      { routerProvider, fileProvider },
+      { routerProvider, fileProvider, uuidGenerator },
       {},
       { reportFilesAttached },
     );
@@ -60,7 +64,7 @@ describe("Report Overview Component - Files", () => {
       expectedAttachedFiles: [
         {
           name: "image.png",
-          fileId: null,
+          fileId: fileId1,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
         },
       ],
@@ -71,12 +75,12 @@ describe("Report Overview Component - Files", () => {
       expectedAttachedFiles: [
         {
           name: "image.png",
-          fileId: null,
+          fileId: fileId1,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
         },
         {
           name: "image2.png",
-          fileId: null,
+          fileId: fileId2,
           signedUrl: `${FakeReportApiClient.BASE_URI}/image2.png`,
         },
       ],
@@ -197,3 +201,6 @@ describe("Report Overview Component - Files", () => {
     );
   };
 });
+
+const fileId1 = "file-id1";
+const fileId2 = "file-id2";

@@ -6,7 +6,10 @@ import {
   interpolateUrlParams,
   ReportFileUsage,
 } from "shared-models";
-import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
+import {
+  ReportApiClient,
+  UploadFileArg,
+} from "../../../core-logic/gateways/ReportApi.client";
 
 type Endpoints = ReportsContextRestContract["endpoints"];
 type ClientFetchOptions = {
@@ -79,11 +82,16 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  async uploadFiles(id: string, files: File[], usage: ReportFileUsage) {
+  async uploadFiles(
+    id: string,
+    files: UploadFileArg[],
+    usage: ReportFileUsage,
+  ) {
     const formData = new FormData();
-    files.forEach((file) => {
+    files.forEach(({ file }) => {
       formData.append("files", file, file.name);
     });
+    const fileIds = files.map(({ fileId }) => fileId);
 
     const {
       method,
@@ -96,7 +104,7 @@ export class FetchReportApiClient implements ReportApiClient {
       path: ":id/files/upload-many",
       params: { id },
       body: formData,
-      queryParams: { usage },
+      queryParams: { usage, fileIds },
     };
     const url = this.resolveUrl(path, params, queryParams);
     await this.fetch(url, {

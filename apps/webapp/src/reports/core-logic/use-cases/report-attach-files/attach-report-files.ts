@@ -7,7 +7,10 @@ export type AttachReportFilesParams = {
 };
 
 export const attachReportFiles = createAppAsyncThunk<
-  void,
+  {
+    file: File;
+    fileId: string;
+  }[],
   AttachReportFilesParams
 >(
   "report/attachFiles",
@@ -17,7 +20,7 @@ export const attachReportFiles = createAppAsyncThunk<
       getState,
       extra: {
         gateways: { reportGateway },
-        providers: { fileProvider },
+        providers: { fileProvider, uuidGenerator },
       },
     },
   ) => {
@@ -29,10 +32,17 @@ export const attachReportFiles = createAppAsyncThunk<
       files.map(fileProvider.assertMimeTypeFactory(acceptedMimeTypes)),
     );
 
+    const filesArg = files.map((file) => ({
+      file,
+      fileId: uuidGenerator.generate(),
+    }));
+
     await reportGateway.uploadFiles(
       reportId,
-      files,
+      filesArg,
       ReportFileUsage.ATTACHMENT,
     );
+
+    return filesArg;
   },
 );

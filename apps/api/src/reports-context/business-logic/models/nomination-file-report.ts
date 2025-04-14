@@ -172,12 +172,9 @@ export class NominationFileReport {
   createAttachedFile(
     fileName: string,
     usage: ReportFileUsage,
+    fileId: string,
   ): ReportAttachedFile {
-    const attachedFile = new ReportAttachedFile(
-      fileName,
-      DomainRegistry.uuidGenerator().generate(),
-      usage,
-    );
+    const attachedFile = new ReportAttachedFile(fileName, fileId, usage);
 
     if (!this._attachedFiles) this._attachedFiles = new ReportAttachedFiles();
     if (!this.alreadyHasAttachedFile(attachedFile))

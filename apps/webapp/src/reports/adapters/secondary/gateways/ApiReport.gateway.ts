@@ -9,7 +9,10 @@ import {
   ReportGateway,
   UpdateReportParams,
 } from "../../../core-logic/gateways/Report.gateway";
-import { ReportApiClient } from "../../../core-logic/gateways/ReportApi.client";
+import {
+  ReportApiClient,
+  UploadFileArg,
+} from "../../../core-logic/gateways/ReportApi.client";
 
 export class ApiReportGateway implements ReportGateway {
   constructor(private readonly reportApiClient: ReportApiClient) {}
@@ -94,7 +97,11 @@ export class ApiReportGateway implements ReportGateway {
     }));
   }
 
-  uploadFiles(reportId: string, files: File[], usage: ReportFileUsage) {
+  uploadFiles(
+    reportId: string,
+    files: UploadFileArg[],
+    usage: ReportFileUsage,
+  ) {
     return this.reportApiClient.uploadFiles(reportId, files, usage);
   }
 

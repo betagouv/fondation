@@ -93,7 +93,9 @@ describe("Api Report Gateway", () => {
 
     it("attaches a file", async () => {
       const file1 = new File(["content1"], "file1.pdf");
-      await uploadFiles(file1);
+      const file1Id = "file1-id";
+
+      await uploadFiles({ file: file1, fileId: file1Id });
       expectUploadedFiles({
         usage: ReportFileUsage.ATTACHMENT,
         name: file1.name,
@@ -104,19 +106,24 @@ describe("Api Report Gateway", () => {
     it("uploads multiple files simultaneously", async () => {
       const file1 = new File(["content1"], "file1.pdf");
       const file2 = new File(["content2"], "file2.pdf");
+      const file1Id = "file1-id";
+      const file2Id = "file2-id";
 
-      await uploadFiles(file1, file2);
+      await uploadFiles(
+        { file: file1, fileId: file1Id },
+        { file: file2, fileId: file2Id },
+      );
 
       expectUploadedFiles(
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: file1.name,
-          fileId: expect.any(String),
+          fileId: file1Id,
         },
         {
           usage: ReportFileUsage.ATTACHMENT,
           name: file2.name,
-          fileId: expect.any(String),
+          fileId: file2Id,
         },
       );
     });
@@ -155,7 +162,7 @@ describe("Api Report Gateway", () => {
       });
     });
 
-    const uploadFiles = async (...files: File[]) => {
+    const uploadFiles = async (...files: { file: File; fileId: string }[]) => {
       await apiReportGateway.uploadFiles(
         aReportRetrievedSM.id,
         files,

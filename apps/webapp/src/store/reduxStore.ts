@@ -43,6 +43,7 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { UuidGenerator } from "../shared-kernel/core-logic/providers/uuidGenerator";
 
 export interface Gateways<
   StoreTransparencies extends string[] = UnionToTuple<Transparency>,
@@ -59,6 +60,7 @@ export interface Providers {
   loginNotifierProvider: LoginNotifierProvider;
   fileProvider: FileProvider;
   dateProvider: DateProvider;
+  uuidGenerator: UuidGenerator;
 }
 
 export interface NestedPrimaryAdapters {

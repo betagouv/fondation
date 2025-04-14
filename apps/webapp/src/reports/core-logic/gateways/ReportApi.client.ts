@@ -4,6 +4,8 @@ import {
   ReportUpdateDto,
 } from "shared-models";
 
+export type UploadFileArg = { file: File; fileId: string };
+
 export type EndpointResponse<
   T extends keyof ReportsContextRestContract["endpoints"],
 > = Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
@@ -25,7 +27,7 @@ export interface ReportApiClient {
   retrieveReport(id: string): EndpointResponse<"retrieveReport">;
   uploadFiles(
     reportId: string,
-    files: File[],
+    files: UploadFileArg[],
     usage: ReportFileUsage,
   ): EndpointResponse<"uploadFiles">;
   deleteFile(

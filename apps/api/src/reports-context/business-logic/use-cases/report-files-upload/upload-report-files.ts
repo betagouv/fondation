@@ -8,7 +8,8 @@ import { ReportFileService } from '../../gateways/services/report-file-service';
 
 export const MAX_RETRIES_OF_UPLOADS = 2;
 
-export interface AttachmentFile {
+export interface ReportFile {
+  fileId: string;
   name: string;
   buffer: Buffer;
 }
@@ -23,7 +24,7 @@ export class UploadReportFilesUseCase {
 
   async execute(
     reportId: string,
-    files: AttachmentFile[],
+    files: ReportFile[],
     reporterId: string,
     fileUsage: ReportFileUsage,
     retries = MAX_RETRIES_OF_UPLOADS,
@@ -39,7 +40,7 @@ export class UploadReportFilesUseCase {
           await this.reporterTranslatorService.reporterWithId(reporterId);
 
         for (const file of files) {
-          report.createAttachedFile(file.name, fileUsage);
+          report.createAttachedFile(file.name, fileUsage, file.fileId);
         }
 
         await this.reportRepository.save(report)(trx);

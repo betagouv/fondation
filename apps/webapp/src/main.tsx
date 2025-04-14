@@ -9,9 +9,13 @@ import { FetchAuthenticationApiClient } from "./authentication/adapters/secondar
 import { LocalStorageLoginNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLoginNotifier.provider.ts";
 import { LocalStorageLogoutNotifierProvider } from "./authentication/adapters/secondary/providers/localStorageLogoutNotifier.provider.ts";
 import { initializeAuthenticationState } from "./authentication/core-logic/listeners/authentication.listeners.ts";
+import { ApiFileGateway } from "./files/adapters/secondary/gateways/ApiFile.gateway.ts";
+import { FetchFileApiClient } from "./files/adapters/secondary/gateways/FetchFile.client.ts";
 import "./index.css";
 import { allRulesLabelsMap } from "./reports/adapters/primary/labels/rules-labels.tsx";
 import { ApiReportGateway } from "./reports/adapters/secondary/gateways/ApiReport.gateway.ts";
+import { ApiTransparencyGateway } from "./reports/adapters/secondary/gateways/ApiTransparency.gateway.ts";
+import { EnvTransparencyApiClient } from "./reports/adapters/secondary/gateways/EnvTransparency.client.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
 import { genFileUrlsOnReportRetrieval } from "./reports/core-logic/listeners/genFileUrlsOnReportRetrieval.listeners.ts";
 import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
@@ -28,11 +32,8 @@ import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
 import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/realDateProvider.ts";
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
+import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { ApiFileGateway } from "./files/adapters/secondary/gateways/ApiFile.gateway.ts";
-import { FetchFileApiClient } from "./files/adapters/secondary/gateways/FetchFile.client.ts";
-import { ApiTransparencyGateway } from "./reports/adapters/secondary/gateways/ApiTransparency.gateway.ts";
-import { EnvTransparencyApiClient } from "./reports/adapters/secondary/gateways/EnvTransparency.client.ts";
 
 startReactDsfr({ defaultColorScheme: "light" });
 
@@ -57,6 +58,9 @@ const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
 
 const dateProvider = new RealDateProvider();
 const fileProvider = new RealFileProvider();
+const uuidGenerator = new (class RealUuidGenerator implements UuidGenerator {
+  generate = () => crypto.randomUUID();
+})();
 
 const store = initReduxStore<false>(
   { reportGateway, authenticationGateway, fileGateway, transparencyGateway },
@@ -66,6 +70,7 @@ const store = initReduxStore<false>(
     loginNotifierProvider,
     fileProvider,
     dateProvider,
+    uuidGenerator,
   },
   {
     routeToComponentFactory: useRouteToComponentFactory,

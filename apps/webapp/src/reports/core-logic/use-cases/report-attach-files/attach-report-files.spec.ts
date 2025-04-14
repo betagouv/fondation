@@ -16,12 +16,14 @@ import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { reportFilesAttached } from "../../listeners/report-files-attached.listeners";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFiles } from "./attach-report-files";
+import { DeterministicUuidGenerator } from "../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
 
 describe("Attach Report Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
   let fileProvider: StubNodeFileProvider;
+  let uuidGenerator: DeterministicUuidGenerator;
   let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
@@ -29,12 +31,14 @@ describe("Attach Report Files", () => {
     reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
     fileProvider = new StubNodeFileProvider();
+    uuidGenerator = new DeterministicUuidGenerator();
+    uuidGenerator.nextUuids = [fileId1, fileId2];
 
     store = initReduxStore(
       {
         reportGateway,
       },
-      { fileProvider },
+      { fileProvider, uuidGenerator },
       {},
       { reportFilesAttached },
     );
@@ -61,12 +65,12 @@ describe("Attach Report Files", () => {
         {
           signedUrl: "https://example.fr/file.pdf",
           name: "file.pdf",
-          fileId: null,
+          fileId: fileId1,
         },
         {
           signedUrl: "https://example.fr/image.png",
           name: "image.png",
-          fileId: null,
+          fileId: fileId2,
         },
       ],
     });
@@ -102,12 +106,12 @@ describe("Attach Report Files", () => {
         {
           signedUrl: `${FakeReportApiClient.BASE_URI}/image1.png`,
           name: "image1.png",
-          fileId: null,
+          fileId: fileId1,
         },
         {
           signedUrl: `${FakeReportApiClient.BASE_URI}/image2.jpg`,
           name: "image2.jpg",
-          fileId: null,
+          fileId: fileId2,
         },
       ],
     });
@@ -163,3 +167,6 @@ describe("Attach Report Files", () => {
 
 const aReportApiModel = new ReportApiModelBuilder().build();
 const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
+
+const fileId1 = "file-id1";
+const fileId2 = "file-id2";

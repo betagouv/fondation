@@ -14,6 +14,7 @@ export type ReportEmbedScreenshotParams = {
 type FulfilledValue = {
   file: File;
   signedUrl: string;
+  fileId: string;
 };
 
 export const reportEmbedScreenshot = createAppAsyncThunk<
@@ -28,7 +29,7 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
       dispatch,
       extra: {
         gateways: { reportGateway },
-        providers: { fileProvider, dateProvider },
+        providers: { fileProvider, dateProvider, uuidGenerator },
       },
       rejectWithValue,
     },
@@ -45,21 +46,26 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
       filesToUpload.map(fileProvider.assertMimeTypeFactory(acceptedMimeTypes)),
     );
 
+    const filesArg = filesToUpload.map((file) => ({
+      file,
+      fileId: uuidGenerator.generate(),
+    }));
+
     await reportGateway.uploadFiles(
       reportId,
-      filesToUpload,
+      filesArg,
       ReportFileUsage.EMBEDDED_SCREENSHOT,
     );
 
     const filesWithUrl = await Promise.allSettled(
-      filesToUpload.map(async (file) => {
+      filesArg.map(async ({ file, fileId }) => {
         const screenshotName = file.name;
         const signedUrl = await reportGateway.generateFileUrl(
           reportId,
           screenshotName,
         );
 
-        return { file, signedUrl };
+        return { file, signedUrl, fileId };
       }),
     );
     const fulfilledFiles = filesWithUrl.filter(

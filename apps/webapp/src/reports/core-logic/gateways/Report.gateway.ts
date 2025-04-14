@@ -1,5 +1,6 @@
 import { NominationFile, ReportFileUsage } from "shared-models";
 import { ReportListItem, ReportSM } from "../../../store/appState";
+import { UploadFileArg } from "./ReportApi.client";
 
 export interface UpdateReportParams {
   comment?: string;
@@ -14,7 +15,7 @@ export interface ReportGateway {
   retrieveReport(id: string): Promise<ReportSM>;
   uploadFiles(
     reportId: string,
-    files: File[],
+    files: UploadFileArg[],
     usage: ReportFileUsage,
   ): Promise<void>;
   deleteFile(reportId: string, fileName: string): Promise<void>;

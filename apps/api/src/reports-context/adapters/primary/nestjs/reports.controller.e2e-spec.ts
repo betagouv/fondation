@@ -273,7 +273,11 @@ describe('Reports Controller', () => {
       });
 
       it('uploads a file', async () => {
-        const response = await uploadFile().expect(HttpStatus.CREATED);
+        const response = await uploadFile(
+          ReportFileUsage.ATTACHMENT,
+          'test-file.pdf',
+          fileId1,
+        ).expect(HttpStatus.CREATED);
 
         expect(response.body).toEqual({});
 
@@ -284,7 +288,7 @@ describe('Reports Controller', () => {
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: 'test-file.pdf',
-              fileId: expect.any(String),
+              fileId: fileId1,
             },
           ],
         });
@@ -296,7 +300,10 @@ describe('Reports Controller', () => {
 
         const response = await request(app.getHttpServer())
           .post(`/api/reports/${aReportSnapshot.id}/files/upload-many`)
-          .query({ usage: ReportFileUsage.ATTACHMENT })
+          .query({
+            usage: ReportFileUsage.ATTACHMENT,
+            fileIds: [fileId1, fileId2],
+          })
           .set('Cookie', 'sessionId=unused')
           .attach('files', pdfBuffer1, 'attachment1.pdf')
           .attach('files', pdfBuffer2, 'attachment2.pdf')
@@ -311,12 +318,12 @@ describe('Reports Controller', () => {
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: 'attachment1.pdf',
-              fileId: expect.any(String),
+              fileId: fileId1,
             },
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: 'attachment2.pdf',
-              fileId: expect.any(String),
+              fileId: fileId2,
             },
           ],
         });
@@ -334,7 +341,7 @@ describe('Reports Controller', () => {
 
         const response = await request(app.getHttpServer())
           .post(`/api/reports/${aReportSnapshot.id}/files/upload-many`)
-          .query({ usage: ReportFileUsage.ATTACHMENT })
+          .query({ usage: ReportFileUsage.ATTACHMENT, fileIds: fileId1 })
           .set('Cookie', 'sessionId=unused')
           .attach('files', pdfBuffer1, latin1String)
           .expect(HttpStatus.CREATED);
@@ -348,7 +355,7 @@ describe('Reports Controller', () => {
             {
               usage: ReportFileUsage.ATTACHMENT,
               name: expectedUtf8Filename,
-              fileId: expect.any(String),
+              fileId: fileId1,
             },
           ],
         });
@@ -387,7 +394,9 @@ describe('Reports Controller', () => {
 
         it('deletes two files at once', async () => {
           await uploadScreenshot('screenshot1.png').expect(HttpStatus.CREATED);
-          await uploadScreenshot('screenshot2.png').expect(HttpStatus.CREATED);
+          await uploadScreenshot('screenshot2.png', fileId2).expect(
+            HttpStatus.CREATED,
+          );
 
           await deleteBatchFiles(['screenshot1.png', 'screenshot2.png']).expect(
             HttpStatus.OK,
@@ -396,8 +405,8 @@ describe('Reports Controller', () => {
           await expectNoFile(4);
         });
 
-        const uploadScreenshot = (fileName: string) =>
-          uploadFile(ReportFileUsage.EMBEDDED_SCREENSHOT, fileName);
+        const uploadScreenshot = (fileName: string, fileId = fileId1) =>
+          uploadFile(ReportFileUsage.EMBEDDED_SCREENSHOT, fileName, fileId);
 
         const deleteBatchFiles = (fileNames: string | string[]) =>
           request(app.getHttpServer())
@@ -413,13 +422,13 @@ describe('Reports Controller', () => {
     const uploadFile = (
       usage = ReportFileUsage.ATTACHMENT,
       fileName = 'test-file.pdf',
+      fileIds: string | string[] = fileId1,
     ) => {
       const pdfBuffer = givenAPdfBuffer();
 
       return request(app.getHttpServer())
-        .post(
-          `/api/reports/${aReportSnapshot.id}/files/upload-many?usage=${usage}`,
-        )
+        .post(`/api/reports/${aReportSnapshot.id}/files/upload-many`)
+        .query({ usage, fileIds })
         .set('Cookie', 'sessionId=unused')
         .attach('files', pdfBuffer, fileName);
     };
@@ -497,3 +506,6 @@ const stubUser = {
   firstName: 'First-name',
   lastName: 'REPORTER',
 };
+
+const fileId1 = 'acd97958-5059-45b7-a3d9-4b46f000d2b4';
+const fileId2 = 'a25b1785-0ba0-47b0-b784-161c0e1afae0';

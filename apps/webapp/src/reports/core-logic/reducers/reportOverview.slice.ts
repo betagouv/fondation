@@ -113,6 +113,21 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         }
       });
 
+      builder.addCase(attachReportFiles.fulfilled, (state, action) => {
+        const { reportId } = action.meta.arg;
+        const filesUploaded = action.payload;
+        const report = state.byIds?.[reportId];
+
+        if (report && report.attachedFiles) {
+          report.attachedFiles = report.attachedFiles.map((attachedFile) => ({
+            ...attachedFile,
+            fileId:
+              filesUploaded.find(({ file }) => file.name === attachedFile.name)
+                ?.fileId || null,
+          }));
+        }
+      });
+
       builder.addCase(attachReportFiles.rejected, (state, action) => {
         const { reportId, files } = action.meta.arg;
         const report = state.byIds?.[reportId];
@@ -132,11 +147,11 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
         const report = state.byIds?.[reportId];
 
         if (report) {
-          for (const { file, signedUrl } of files) {
+          for (const { file, signedUrl, fileId } of files) {
             const screenshot: ReportScreenshotSM = {
               name: file.name,
               signedUrl,
-              fileId: null,
+              fileId,
             };
 
             const currentFiles = report.contentScreenshots?.files || [];

@@ -4,7 +4,6 @@ import { FakeReportFileService } from 'src/reports-context/adapters/secondary/ga
 import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
 import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
-import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { OptimisticLockError } from '../../errors/optimistic-lock.error';
@@ -13,8 +12,8 @@ import { NominationFileReportSnapshot } from '../../models/nomination-file-repor
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
 import { ReportBuilder } from '../../models/report.builder';
 import {
-  AttachmentFile,
   MAX_RETRIES_OF_UPLOADS,
+  ReportFile,
   UploadReportFilesUseCase,
 } from './upload-report-files';
 
@@ -28,7 +27,6 @@ describe('Upload Report Files Use Case', () => {
   let dateTimeProvider: DeterministicDateProvider;
   let transactionPerformer: NullTransactionPerformer;
   let reportRepository: FakeNominationFileReportRepository;
-  let uuidGenerator: DeterministicUuidGenerator;
   let reporterTranslatorService: ReporterTranslatorService;
 
   beforeEach(() => {
@@ -36,20 +34,23 @@ describe('Upload Report Files Use Case', () => {
     dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
     reportRepository = new FakeNominationFileReportRepository();
-    uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [fileId1, fileId2];
     const userService = new StubUserService();
     userService.user = aUser;
     reporterTranslatorService = new ReporterTranslatorService(userService);
     transactionPerformer = new NullTransactionPerformer();
 
-    DomainRegistry.setUuidGenerator(uuidGenerator);
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
   });
 
   it('refuses to add attachments to a non-existing report', async () => {
     await expect(
-      uploadFiles([{ name: 'file1.pdf', buffer: Buffer.from('content1') }]),
+      uploadFiles([
+        {
+          fileId: 'any-file-id',
+          name: 'file1.pdf',
+          buffer: Buffer.from('content1'),
+        },
+      ]),
     ).rejects.toThrow(NonExistingReportError);
 
     expectUploadedFiles();
@@ -75,8 +76,16 @@ describe('Upload Report Files Use Case', () => {
 
       await expect(
         uploadFiles([
-          { name: 'file1.pdf', buffer: Buffer.from('content1') },
-          { name: 'file2.pdf', buffer: Buffer.from('content2') },
+          {
+            fileId: 'any-file-id-1',
+            name: 'file1.pdf',
+            buffer: Buffer.from('content1'),
+          },
+          {
+            fileId: 'any-file-id-2',
+            name: 'file2.pdf',
+            buffer: Buffer.from('content2'),
+          },
         ]),
       ).rejects.toThrow('Failed to save files');
 
@@ -89,8 +98,16 @@ describe('Upload Report Files Use Case', () => {
 
       await expect(
         uploadFiles([
-          { name: 'file1.pdf', buffer: Buffer.from('content1') },
-          { name: 'file2.pdf', buffer: Buffer.from('content2') },
+          {
+            fileId: 'any-file-id-1',
+            name: 'file1.pdf',
+            buffer: Buffer.from('content1'),
+          },
+          {
+            fileId: 'any-file-id-2',
+            name: 'file2.pdf',
+            buffer: Buffer.from('content2'),
+          },
         ]),
       ).rejects.toThrow('Failed to upload files');
 
@@ -107,8 +124,16 @@ describe('Upload Report Files Use Case', () => {
 
     it('uploads multiple attachments', async () => {
       await uploadFiles([
-        { name: 'file1.pdf', buffer: Buffer.from('content1') },
-        { name: 'file2.pdf', buffer: Buffer.from('content2') },
+        {
+          fileId: fileId1,
+          name: 'file1.pdf',
+          buffer: Buffer.from('content1'),
+        },
+        {
+          fileId: fileId2,
+          name: 'file2.pdf',
+          buffer: Buffer.from('content2'),
+        },
       ]);
 
       expectReportWithFiles(
@@ -127,7 +152,6 @@ describe('Upload Report Files Use Case', () => {
     });
 
     it('saves files after a failure due to stale repository data', async () => {
-      uuidGenerator.nextUuids = [fileId1, fileId2, fileId1, fileId2];
       reportRepository.saveError = new OptimisticLockError({
         entityName: 'Report',
         entityId: aReportSnapshot.id,
@@ -136,8 +160,16 @@ describe('Upload Report Files Use Case', () => {
       reportRepository.saveErrorCountLimit = 1;
 
       await uploadFiles([
-        { name: 'file1.pdf', buffer: Buffer.from('content1') },
-        { name: 'file2.pdf', buffer: Buffer.from('content2') },
+        {
+          fileId: fileId1,
+          name: 'file1.pdf',
+          buffer: Buffer.from('content1'),
+        },
+        {
+          fileId: fileId2,
+          name: 'file2.pdf',
+          buffer: Buffer.from('content2'),
+        },
       ]);
 
       expectReportWithFiles(
@@ -177,7 +209,11 @@ describe('Upload Report Files Use Case', () => {
 
       it('appends new files to existing ones', async () => {
         await uploadFiles([
-          { name: 'file1.pdf', buffer: Buffer.from('content1') },
+          {
+            fileId: fileId1,
+            name: 'file1.pdf',
+            buffer: Buffer.from('content1'),
+          },
         ]);
 
         expectReportWithFiles(
@@ -197,7 +233,7 @@ describe('Upload Report Files Use Case', () => {
     });
   });
 
-  const uploadFiles = async (files: AttachmentFile[]) => {
+  const uploadFiles = async (files: ReportFile[]) => {
     await new UploadReportFilesUseCase(
       reportFileService,
       transactionPerformer,

@@ -10,6 +10,7 @@ import { ReportApiModel } from "../../../core-logic/builders/ReportApiModel.buil
 import {
   EndpointResponse,
   ReportApiClient,
+  UploadFileArg,
 } from "../../../core-logic/gateways/ReportApi.client";
 
 type ApiModel = ReportApiModel;
@@ -109,17 +110,17 @@ export class FakeReportApiClient implements ReportApiClient {
 
   async uploadFiles(
     reportId: string,
-    files: File[],
+    files: UploadFileArg[],
     usage: ReportFileUsage,
   ): Promise<void> {
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);
 
-    const newAttachedFiles = files.map((file) => ({
+    const newAttachedFiles = files.map(({ file, fileId }) => ({
       usage,
       name: file.name,
-      fileId: "fake-file-id",
+      fileId,
     }));
 
     this.reports = {

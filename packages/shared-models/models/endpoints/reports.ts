@@ -41,7 +41,7 @@ export interface ReportsContextRestContract extends RestContract {
       method: "POST";
       path: ":id/files/upload-many";
       params: { id: string };
-      queryParams: { usage: ReportFileUsage };
+      queryParams: { usage: ReportFileUsage; fileIds: string | string[] };
       body: FormData;
       response: void;
     };
@@ -91,6 +91,9 @@ export const uploadFilesParamsDtoSchema = z.object({
 
 export const uploadFilesQueryParamsDtoSchema = z.object({
   usage: z.nativeEnum(ReportFileUsage),
+  fileIds: z
+    .union([z.string(), z.string().array()])
+    .transform((v) => (Array.isArray(v) ? v : [v])),
 }) satisfies ZodQueryParamsDto<ReportsContextRestContract, "uploadFiles">;
 
 export const deleteReportFilesQuerySchema = z.object({

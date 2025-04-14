@@ -19,7 +19,7 @@ import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-lo
 import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 import {
-  AttachmentFile,
+  ReportFile,
   UploadReportFilesUseCase,
 } from 'src/reports-context/business-logic/use-cases/report-files-upload/upload-report-files';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
@@ -61,7 +61,7 @@ export class ReportsController implements IReportController {
     private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
     private readonly deleteReportAttachedFilesUseCase: DeleteReportAttachedFilesUseCase,
-    private readonly uploadReportAttachmentsUseCase: UploadReportFilesUseCase,
+    private readonly uploadReportFilesUseCase: UploadReportFilesUseCase,
   ) {}
 
   @Get(endpointsPaths.listReports)
@@ -110,18 +110,20 @@ export class ReportsController implements IReportController {
     @Param()
     { id }: UploadFilesParamsDto,
     @UploadedFiles() files: Express.Multer.File[],
-    @Query() { usage }: UploadFilesQueryParamsDto,
+    @Query() { usage, fileIds }: UploadFilesQueryParamsDto,
     @Req() req: Request,
   ) {
+    console.log('Received fileIds:', fileIds);
     const reporterId = req.userId!;
-    const attachmentFiles: AttachmentFile[] = files.map((file) => ({
+    const reportFiles: ReportFile[] = files.map((file, index) => ({
       name: file.originalname,
       buffer: file.buffer,
+      fileId: Array.isArray(fileIds) ? fileIds[index]! : fileIds,
     }));
 
-    return this.uploadReportAttachmentsUseCase.execute(
+    return this.uploadReportFilesUseCase.execute(
       id,
-      attachmentFiles,
+      reportFiles,
       reporterId,
       usage,
     );
