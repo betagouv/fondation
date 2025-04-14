@@ -102,13 +102,6 @@ export class ApiReportGateway implements ReportGateway {
     return this.reportApiClient.generateFileUrl(reportId, fileName);
   }
 
-  generateFileUrlEndpoint(
-    reportId: string,
-    fileName: string,
-  ): Promise<{ urlEndpoint: string; method: "GET" }> {
-    return this.reportApiClient.generateFileUrlEndpoint(reportId, fileName);
-  }
-
   async deleteFile(reportId: string, fileName: string): Promise<void> {
     await this.reportApiClient.deleteFile(reportId, fileName);
   }

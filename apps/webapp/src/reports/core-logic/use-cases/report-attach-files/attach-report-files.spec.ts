@@ -1,11 +1,10 @@
 import "@testing-library/jest-dom/vitest";
-import blobStream from "blob-stream";
-import PDF from "pdfkit";
 import sharp, { FormatEnum } from "sharp";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import { givenAPdf } from "../../../../test/files";
 import {
   ExpectStoredReports,
   expectStoredReportsFactory,
@@ -18,7 +17,7 @@ import { reportFilesAttached } from "../../listeners/report-files-attached.liste
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFiles } from "./attach-report-files";
 
-describe("Attach Multiple Report Files", () => {
+describe("Attach Report Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
@@ -47,7 +46,7 @@ describe("Attach Multiple Report Files", () => {
   });
 
   it("attaches two files simultaneously", async () => {
-    const pdfBuffer = await givenAPdf();
+    const pdfBuffer = await givenAPdfFile();
     const pdfFile = genFile(pdfBuffer, "file.pdf", "application/pdf");
 
     const pngBuffer = await givenAnImageBuffer("png");
@@ -128,20 +127,9 @@ describe("Attach Multiple Report Files", () => {
       }),
     );
 
-  const givenAPdf = async () => {
+  const givenAPdfFile = async () => {
     fileProvider.mimeType = "application/pdf";
-    return new Promise<Blob>((resolve, reject) => {
-      const pdfDoc = new PDF();
-      pdfDoc.text("Some content.");
-      pdfDoc.end();
-
-      const stream = pdfDoc.pipe(blobStream());
-
-      stream.on("finish", function () {
-        resolve(stream.toBlob("application/pdf"));
-      });
-      stream.on("error", reject);
-    });
+    return givenAPdf();
   };
 
   const givenAnImageBuffer = async (
