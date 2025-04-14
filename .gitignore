@@ -8,3 +8,5 @@ node_modules
 generated
 .env
 .env.*
+!.env.example
+!.env.*.example
