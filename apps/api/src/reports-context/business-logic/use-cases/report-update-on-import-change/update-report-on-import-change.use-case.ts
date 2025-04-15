@@ -115,8 +115,9 @@ class ImportedV1RulesToV2Builder extends RulesBuilder<boolean | undefined> {
   ): boolean | undefined {
     if (
       ruleName ===
-      NominationFile.StatutoryRule
-        .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS
+        NominationFile.StatutoryRule
+          .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS ||
+      ruleName === NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS
     )
       return;
 

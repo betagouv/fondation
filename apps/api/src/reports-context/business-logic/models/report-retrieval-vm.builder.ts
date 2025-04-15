@@ -70,6 +70,8 @@ export class ReportRetrievalBuilder<
           [NominationFile.StatutoryRule
             .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS]:
             defaultValue,
+          [NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS]:
+            defaultValue,
         },
         [NominationFile.RuleGroup.QUALITATIVE]: {
           [NominationFile.QualitativeRule

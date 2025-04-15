@@ -288,6 +288,13 @@
       "when": 1743415387395,
       "tag": "0040_reports__add_new_statutory_rule",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1744727101029,
+      "tag": "0041_reports__add_nomination_ca_avant_4_ans",
+      "breakpoints": true
     }
   ]
 }
