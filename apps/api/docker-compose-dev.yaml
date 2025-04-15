@@ -3,7 +3,7 @@ services:
     container_name: postgres
     image: 'postgres:13.2'
     ports:
-      - '5440:5432'
+      - '5441:5432'
     networks:
       - app_net
     environment:
@@ -43,10 +43,9 @@ services:
       DATABASE_NAME: fondation
     volumes:
       - ../../:/usr/src/fondation/
-      - ./node_modules:/usr/src/fondation/apps/api/node_modules
-      - ../../node_modules:/usr/src/fondation/node_modules
-      - ../../pnpm-lock.yaml:/usr/src/fondation/pnpm-lock.yaml
-      - ~/.pnpm-store:/root/.pnpm-store
+      - api_node_modules:/usr/src/fondation/apps/api/node_modules
+      - root_node_modules:/usr/src/fondation/node_modules
+      - shared_models_node_modules:/usr/src/fondation/shared/models/node_modules
     depends_on:
       - postgres
     command: |
@@ -55,6 +54,12 @@ services:
         echo 'Waiting for postgres...'
         sleep 1
       done &&
+
+      corepack enable &&
+      corepack prepare pnpm@9.11.0 --activate &&
+
+      echo \"install dependencies\" &&
+      pnpm --filter api... install --frozen-lockfile &&
 
       echo \"Migration starting\" &&
       npm run drizzle:migrate &&
@@ -72,3 +77,6 @@ networks:
 volumes:
   fondation_postgres_data:
   fondation_minio:
+  api_node_modules:
+  root_node_modules:
+  shared_models_node_modules:
