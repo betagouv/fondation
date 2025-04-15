@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RestContract, ZodDto, ZodParamsDto } from "./common";
+import { Role } from "../role";
 
 export interface IdentityAndAccessRestContract extends RestContract {
   basePath: "api/auth";
@@ -45,6 +46,7 @@ export interface AuthenticatedUser {
   userId: string;
   firstName: string;
   lastName: string;
+  role: Role;
 }
 
 export interface LoginDto {

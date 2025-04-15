@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { User } from './user';
 import { Gender } from './gender';
+import { Role } from 'shared-models';
 
 export type UserDescriptorSerialized = {
   userId: string;
   firstName: string;
   lastName: string;
+  role: Role;
 };
 
 export class UserDescriptor {
@@ -14,6 +16,7 @@ export class UserDescriptor {
     private _firstName: string,
     private _lastName: string,
     private _gender: Gender | null,
+    private _role: Role,
   ) {}
 
   public get userId(): string {
@@ -44,11 +47,19 @@ export class UserDescriptor {
     this._gender = value;
   }
 
+  public get role(): Role {
+    return this._role;
+  }
+  private set role(value: Role) {
+    this._role = z.nativeEnum(Role).parse(value);
+  }
+
   serialize(): UserDescriptorSerialized {
     return {
       userId: this.userId,
       firstName: this.firstName,
       lastName: this.lastName,
+      role: this.role,
     };
   }
 
@@ -58,6 +69,7 @@ export class UserDescriptor {
       user.person.fullName.firstName,
       user.person.fullName.lastName,
       user.person.gender,
+      user.role,
     );
   }
 }

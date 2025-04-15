@@ -9,7 +9,7 @@ import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-co
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import {
   reportRules,
   reports,
@@ -79,8 +79,8 @@ describe('Import Nominations from local file', () => {
     ]);
   });
 
-  afterEach(() => app.close());
-  afterAll(() => db.$client.end());
+  afterEach(async () => await app.close());
+  afterAll(async () => await db.$client.end());
 
   it('creates reports found in the imported file', async () => {
     await importNominationFileFromLocalFileCli.execute(fileToImportPath);

@@ -13,6 +13,7 @@ import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentica
 import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
 import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
 import { Login } from "./Login";
+import { Role } from "shared-models";
 
 describe("Login Component", () => {
   let store: ReduxStore;
@@ -58,6 +59,7 @@ describe("Login Component", () => {
         userCredentials.password,
         user.firstName,
         user.lastName,
+        user.role,
       );
     });
 
@@ -95,6 +97,7 @@ describe("Login Component", () => {
 const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
+  role: Role.MEMBRE_COMMUN,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

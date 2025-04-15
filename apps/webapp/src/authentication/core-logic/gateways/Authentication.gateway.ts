@@ -1,6 +1,9 @@
+import { Role } from "shared-models";
+
 export type AuthenticatedUserSM = {
   firstName: string;
   lastName: string;
+  role: Role;
 };
 
 export interface AuthenticationGateway {

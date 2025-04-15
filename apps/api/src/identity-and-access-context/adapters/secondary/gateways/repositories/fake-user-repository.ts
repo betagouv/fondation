@@ -44,4 +44,8 @@ export class FakeUserRepository implements UserRepository {
       return user ? User.fromSnapshot(user) : null;
     };
   }
+
+  addUser(user: UserSnapshot): void {
+    this.users[user.id] = user;
+  }
 }

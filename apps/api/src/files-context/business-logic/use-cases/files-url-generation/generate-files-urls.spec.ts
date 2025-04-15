@@ -1,14 +1,17 @@
 import { FakeS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/fake-s3-storage.provider';
 import { FakeFileRepository } from 'src/files-context/adapters/secondary/gateways/repositories/fake-file-repository';
+import { StubPermissionsService } from 'src/files-context/adapters/secondary/services/stub-permissions.service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { FileDocumentBuilder } from '../../builders/file-document.builder';
 import { GenerateFilesUrlsUseCase } from './generate-files-urls';
+import { PermissionDeniedError } from '../../errors/permission-denied.error';
 
 describe('Generate Files Urls Use Case', () => {
   let transactionPerformer: TransactionPerformer;
   let fileRepository: FakeFileRepository;
   let s3StorageProvider: FakeS3StorageProvider;
+  let permissionsService: StubPermissionsService;
 
   beforeEach(() => {
     transactionPerformer = new NullTransactionPerformer();
@@ -36,16 +39,20 @@ describe('Generate Files Urls Use Case', () => {
       'text/plain',
       'second-signed-url',
     );
+
+    permissionsService = new StubPermissionsService();
+  });
+
+  it('requires a file permission to get an url', async () => {
+    permissionsService.canReadFile = false;
+    await expect(generateFilesUrlsUseCase(file1.id)).rejects.toThrow(
+      PermissionDeniedError,
+    );
   });
 
   it('generates files urls', async () => {
-    expect(
-      await new GenerateFilesUrlsUseCase(
-        fileRepository,
-        transactionPerformer,
-        s3StorageProvider,
-      ).execute([file1.id, file2.id]),
-    ).toEqual([
+    permissionsService.canReadFile = true;
+    expect(await generateFilesUrlsUseCase(file1.id, file2.id)).toEqual([
       {
         name: file1.name,
         signedUrl: 'signed-url',
@@ -56,6 +63,14 @@ describe('Generate Files Urls Use Case', () => {
       },
     ]);
   });
+
+  const generateFilesUrlsUseCase = (...fileIds: string[]) =>
+    new GenerateFilesUrlsUseCase(
+      fileRepository,
+      transactionPerformer,
+      s3StorageProvider,
+      permissionsService,
+    ).execute(fileIds, 'stub-user-id');
 });
 
 const file1 = new FileDocumentBuilder()

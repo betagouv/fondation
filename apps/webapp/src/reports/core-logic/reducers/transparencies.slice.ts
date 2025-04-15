@@ -29,7 +29,6 @@ export const createTransparenciesSlice = <
         (state, action) => {
           const { transparency } = action.meta.arg;
           const files = action.payload;
-
           state.GDS[transparency] = {
             files: files.map((file) => ({
               name: file.name,

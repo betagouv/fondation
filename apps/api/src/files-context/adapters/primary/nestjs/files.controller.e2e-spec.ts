@@ -20,6 +20,8 @@ import { deleteS3Files, givenSomeS3Files } from 'test/minio';
 import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
+import { PERMISSIONS_SERVICE } from './tokens';
+import { FileDocumentSnapshot } from 'src/files-context/business-logic/models/file-document';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
@@ -46,14 +48,14 @@ describe('Files Controller', () => {
     await app.close();
     await deleteS3Files(s3Client);
   });
-  afterAll(() => db.$client.end());
+  afterAll(async () => await db.$client.end());
 
   describe('Invalid system requests', () => {
     beforeEach(async () => {
       await initApp();
     });
 
-    it('requires a valid internal request token', async () => {
+    it('requires a valid system request token', async () => {
       const query: z.infer<typeof fileUploadQueryDtoSchema> = {
         bucket,
         path: filePath,
@@ -68,7 +70,7 @@ describe('Files Controller', () => {
     });
   });
 
-  describe('Internal requests', () => {
+  describe('Valid system requests', () => {
     beforeEach(async () => {
       await initApp();
     });
@@ -283,45 +285,73 @@ describe('Files Controller', () => {
   });
 
   describe('User requests', () => {
-    beforeEach(async () => {
-      await initApp({ validatedUserSession: true });
-    });
-
-    it("generates a signed url for a file's download", async () => {
-      await givenSomeS3Files(s3Client, {
-        bucket,
-        Key: fileName,
-      });
-      await db
-        .insert(filesPm)
-        .values({
+    describe('without read file permission', () => {
+      beforeEach(async () => {
+        await initApp({ validatedUserSession: true, userCanReadFile: false });
+        await givenSomeS3Files(s3Client, {
+          bucket,
+          Key: fileName,
+        });
+        await givenSomeDbFiles({
           id: fileId,
           name: fileName,
-          storageProvider: FilesStorageProvider.SCALEWAY,
-          bucket,
-        })
-        .execute();
+        });
+      });
 
-      const response = await supertest(app.getHttpServer())
-        .get('/api/files/signed-urls')
-        .set('Cookie', 'sessionId=unused')
-        .query({
-          ids: fileId,
-        })
-        .expect(HttpStatus.OK);
-      expect(response.body).toEqual<FileVM[]>([
-        {
+      it("cannot get a signed url if the user doesn't have permission", async () => {
+        await supertest(app.getHttpServer())
+          .get('/api/files/signed-urls')
+          .set('Cookie', 'sessionId=unused')
+          .query({
+            ids: fileId,
+          })
+          .expect(HttpStatus.FORBIDDEN);
+      });
+    });
+
+    describe('with read file permission', () => {
+      beforeEach(async () => {
+        await initApp({ validatedUserSession: true, userCanReadFile: true });
+        await givenSomeS3Files(s3Client, {
+          bucket,
+          Key: fileName,
+        });
+        await givenSomeDbFiles({
+          id: fileId,
           name: fileName,
-          signedUrl: expect.stringMatching(/^http/),
-        },
-      ]);
+        });
+      });
+
+      it("generates a signed url for a file's download", async () => {
+        const response = await supertest(app.getHttpServer())
+          .get('/api/files/signed-urls')
+          .set('Cookie', 'sessionId=unused')
+          .query({
+            ids: fileId,
+          })
+          .expect(HttpStatus.OK);
+        expect(response.body).toEqual<FileVM[]>([
+          {
+            name: fileName,
+            signedUrl: expect.stringMatching(/^http/),
+          },
+        ]);
+      });
     });
   });
 
-  const initApp = async (args?: { validatedUserSession: boolean }) => {
-    let testingModule = new BaseAppTestingModule(db);
+  const initApp = async (args?: {
+    validatedUserSession: boolean;
+    userCanReadFile?: boolean;
+  }) => {
+    let testingModule = new AppTestingModule();
 
-    if (args?.validatedUserSession)
+    if (args?.userCanReadFile !== undefined)
+      testingModule = testingModule.withStubPermissionsService(
+        args.userCanReadFile,
+      );
+
+    if (args?.validatedUserSession !== undefined)
       testingModule = testingModule
         .withFakeCookieSignature()
         .withStubSessionValidationService(true);
@@ -334,5 +364,37 @@ describe('Files Controller', () => {
     s3Client = app.get(S3Client);
 
     await app.init();
+  };
+
+  class AppTestingModule extends BaseAppTestingModule {
+    constructor() {
+      super(db);
+    }
+
+    withStubPermissionsService(userCanReadFile: boolean) {
+      this.moduleFixture.overrideProvider(PERMISSIONS_SERVICE).useFactory({
+        factory: () => ({
+          userCanRead: () => userCanReadFile,
+        }),
+      });
+
+      return this;
+    }
+  }
+
+  const givenSomeDbFiles = async (
+    ...files: Pick<FileDocumentSnapshot, 'id' | 'name'>[]
+  ) => {
+    for (const file of files) {
+      await db
+        .insert(filesPm)
+        .values({
+          id: file.id,
+          name: file.name,
+          storageProvider: FilesStorageProvider.SCALEWAY,
+          bucket,
+        })
+        .execute();
+    }
   };
 });

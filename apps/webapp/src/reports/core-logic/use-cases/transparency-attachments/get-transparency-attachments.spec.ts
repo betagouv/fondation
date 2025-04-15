@@ -1,3 +1,9 @@
+import { Role } from "shared-models";
+import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
+import {
+  authenticate,
+  AuthenticateParams,
+} from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
 import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
 import { AppState } from "../../../../store/appState";
@@ -39,48 +45,91 @@ describe("Get Transparency Attachments", () => {
       undefined,
       ["transpa-test"],
     );
-    initialState = store.getState();
   });
 
-  it("gets attachments for a specific transparency", async () => {
-    const attachments: TransparencyAttachments = {
-      files: [
+  describe("Given some GDS transparency attachments", () => {
+    beforeEach(() => {
+      const attachments: TransparencyAttachments = {
+        siegeEtParquet: ["file-id-1"],
+        parquet: ["file-id-parquet"],
+      };
+      transparencyClient.setGdsFiles("transpa-test", attachments);
+
+      fileApiClient.addFiles([
         {
           fileId: "file-id-1",
-          metaPreSignedUrl: "https://example.com/api-endpoint/file-id-1",
+          name: "file-id-1-name",
+          signedUrl: "https://example.com/signed-url/file-id-1-name",
         },
-      ],
+        {
+          fileId: "file-id-parquet",
+          name: "file-id-parquet-name",
+          signedUrl: "https://example.com/signed-url/file-id-parquet-name",
+        },
+      ]);
+    });
+
+    describe("Membre du parquet", () => {
+      beforeEach(() => {
+        givenAMembreDuSiege();
+        initialState = store.getState();
+      });
+
+      it("gets attachments for a specific transparency", async () => {
+        await getTransparencyAttchments();
+        expectGdsStoredFiles("file-id-1-name");
+      });
+    });
+
+    describe("Membre commun", () => {
+      beforeEach(() => {
+        givenAMembreCommun();
+        initialState = store.getState();
+      });
+
+      it("gets attachments for a specific transparency", async () => {
+        await getTransparencyAttchments();
+        expectGdsStoredFiles("file-id-1-name", "file-id-parquet-name");
+      });
+    });
+  });
+
+  const givenAMembreCommun = () => givenAUser(Role.MEMBRE_COMMUN);
+  const givenAMembreDuSiege = () => givenAUser(Role.MEMBRE_DU_SIEGE);
+
+  const givenAUser = (role: Role) => {
+    const user: AuthenticatedUserSM = {
+      firstName: "User",
+      lastName: "Current",
+      role,
     };
-    transparencyClient.addGdsFiles("transpa-test", attachments);
+    store.dispatch(authenticate.fulfilled(user, "", userCredentials));
+  };
 
-    fileApiClient.addFiles([
-      {
-        fileId: "file-id-1",
-        name: "file-id-1-name",
-        signedUrl: "https://example.com/signed-url/file-id-1-name",
-      },
-    ]);
-
-    await store.dispatch(
+  const getTransparencyAttchments = () =>
+    store.dispatch(
       getTransparencyAttachmentsFactory<["transpa-test"]>()({
         transparency,
       }),
     );
 
+  const expectGdsStoredFiles = (...fileNames: string[]) =>
     expect(store.getState()).toEqual<AppState<true, ["transpa-test"]>>({
       ...initialState,
       transparencies: {
         GDS: {
           [transparency]: {
-            files: [
-              {
-                name: "file-id-1-name",
-                signedUrl: "https://example.com/signed-url/file-id-1-name",
-              },
-            ],
+            files: fileNames.map((fileName) => ({
+              name: fileName,
+              signedUrl: `https://example.com/signed-url/${fileName}`,
+            })),
           },
         },
       },
     });
-  });
 });
+
+const userCredentials: AuthenticateParams = {
+  email: "user@example.fr",
+  password: "password",
+};

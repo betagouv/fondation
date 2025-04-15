@@ -14,19 +14,22 @@ describe("Api Transparency Gateway", () => {
 
   describe("Attachments", () => {
     it("gets attachments for a transparency", async () => {
-      transparencyClient.addGdsFiles(aTransparency, aTransparencyAttachments);
+      transparencyClient.setGdsFiles(aTransparency, aTransparencyAttachments);
       const result = await apiTransparencyGateway.getAttachments(aTransparency);
       expect(result).toEqual<TransparencyAttachments>(aTransparencyAttachments);
     });
 
     it("returns empty files array when no attachments exist", async () => {
       const result = await apiTransparencyGateway.getAttachments(aTransparency);
-      expect(result).toEqual<TransparencyAttachments>({ files: [] });
+      expect(result).toEqual<TransparencyAttachments>({
+        siegeEtParquet: [],
+        parquet: [],
+      });
     });
 
     it("returns different attachments for different transparencies", async () => {
-      transparencyClient.addGdsFiles(aTransparency, aTransparencyAttachments);
-      transparencyClient.addGdsFiles(
+      transparencyClient.setGdsFiles(aTransparency, aTransparencyAttachments);
+      transparencyClient.setGdsFiles(
         anotherTransparency,
         anotherTransparencyAttachments,
       );
@@ -50,23 +53,11 @@ const aTransparency = Transparency.AUTOMNE_2024;
 const anotherTransparency = Transparency.DU_03_MARS_2025;
 
 const aTransparencyAttachments: TransparencyAttachments = {
-  files: [
-    {
-      fileId: "document1.pdf",
-      metaPreSignedUrl: `https://example.fr/transparency/${aTransparency}/document1.pdf`,
-    },
-    {
-      fileId: "document2.pdf",
-      metaPreSignedUrl: `https://example.fr/transparency/${aTransparency}/document2.pdf`,
-    },
-  ],
+  siegeEtParquet: ["document-1.pdf", "document-2.pdf"],
+  parquet: [],
 };
 
 const anotherTransparencyAttachments: TransparencyAttachments = {
-  files: [
-    {
-      fileId: "3-mars-2025.pdf",
-      metaPreSignedUrl: `https://example.fr/transparency/${anotherTransparency}/3-mars-2025.pdf`,
-    },
-  ],
+  siegeEtParquet: ["3-mars-2025.pdf"],
+  parquet: [],
 };

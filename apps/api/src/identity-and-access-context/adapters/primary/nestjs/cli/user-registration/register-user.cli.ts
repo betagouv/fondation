@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import {
   RegisterUserCommand,
   RegisterUserUseCase,

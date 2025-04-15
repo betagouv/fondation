@@ -9,6 +9,7 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
     return {
       firstName: authenticatedUser.firstName,
       lastName: authenticatedUser.lastName,
+      role: authenticatedUser.role,
     };
   }
 
@@ -18,6 +19,7 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
       ? {
           firstName: user.firstName,
           lastName: user.lastName,
+          role: user.role,
         }
       : null;
   }

@@ -2,6 +2,7 @@ import {
   allRulesMapV2,
   Magistrat,
   NominationFile,
+  Role,
   RulesBuilder,
   Transparency,
 } from 'shared-models';
@@ -48,6 +49,7 @@ describe('Create Report Use Case', () => {
       userId,
       firstName: 'Loïc',
       lastName: 'LUC',
+      role: Role.MEMBRE_COMMUN,
     };
     reporterTranslatorService = new ReporterTranslatorService(userService);
 

@@ -66,7 +66,7 @@ export async function clearDB(dbToClear: NodePgDatabase | DrizzleDb) {
   `;
 
     const tables: { rows: { table_schema: string; table_name: string }[] } =
-      await dbToClear.execute(query); // retrieve tables
+      await dbToClear.execute(query);
 
     for (const table of tables.rows) {
       await dbToClear.execute(

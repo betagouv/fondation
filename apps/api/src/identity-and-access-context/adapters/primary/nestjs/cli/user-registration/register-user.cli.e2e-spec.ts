@@ -4,7 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import { RegisterUserCommand } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -51,7 +51,7 @@ describe('User Registration (CLI)', () => {
     fs.unlinkSync(usersFilePath);
     fs.rmSync(tempDir, { recursive: true });
   });
-  afterAll(() => db.$client.end());
+  afterAll(async () => await db.$client.end());
 
   it('registers users from a JSON file', async () => {
     const env = {

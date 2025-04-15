@@ -10,7 +10,7 @@ export type RestContract = {
       path: string;
       params?: Record<string, string>;
       queryParams?: Record<string, string | string[]>;
-      response: Record<string, any> | string | null | void;
+      response: Record<string, any> | string | boolean | null | void;
     }
   >;
 };

@@ -1,3 +1,4 @@
+import { Role } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
 import {
@@ -56,6 +57,7 @@ describe("Select Authentication Failed", () => {
 const user: AuthenticatedUserSM = {
   firstName: "User",
   lastName: "Current",
+  role: Role.MEMBRE_COMMUN,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

@@ -1,5 +1,5 @@
 import { UserBuilder } from 'src/identity-and-access-context/business-logic/builders/user.builder';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';

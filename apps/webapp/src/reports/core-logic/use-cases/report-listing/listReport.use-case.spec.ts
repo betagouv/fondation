@@ -1,3 +1,4 @@
+import { Role } from "shared-models";
 import { ApiAuthenticationGateway } from "../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
@@ -51,6 +52,7 @@ describe("Reports Listing", () => {
           userCredentials.password,
           user.firstName,
           user.lastName,
+          user.role,
         );
       });
 
@@ -93,6 +95,7 @@ describe("Reports Listing", () => {
 const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
+  role: Role.MEMBRE_COMMUN,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

@@ -22,8 +22,14 @@ import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scal
 import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
 import { baseRoute, endpointsPaths, FilesController } from './files.controller';
 import { generateFilesProvider as generateProvider } from './provider-generator';
-import { FILE_REPOSITORY, S3_STORAGE_PROVIDER } from './tokens';
+import {
+  FILE_REPOSITORY,
+  PERMISSIONS_SERVICE,
+  S3_STORAGE_PROVIDER,
+} from './tokens';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { HttpPermissionsService } from '../../secondary/services/http-permissions.service';
 
 const isProduction = process.env.NODE_ENV === 'production';
 // We don't use Scaleway in the CI at the moment, because we have a long latency
@@ -51,6 +57,7 @@ const isScalewayS3 = isProduction; //|| isCi;
       FILE_REPOSITORY,
       TRANSACTION_PERFORMER,
       S3_STORAGE_PROVIDER,
+      PERMISSIONS_SERVICE,
     ]),
     generateProvider(DeleteFileUseCase, [
       TRANSACTION_PERFORMER,
@@ -81,6 +88,21 @@ const isScalewayS3 = isProduction; //|| isCi;
       useValue: isScalewayS3 ? scalewayS3StorageClient : minioS3StorageClient,
     },
     { provide: S3Commands, useClass: MinioS3Commands },
+
+    {
+      provide: PERMISSIONS_SERVICE,
+      // generateProvider function doesn't handle the union type in ApiConfig
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new HttpPermissionsService(
+          apiConfig,
+          systemRequestSignatureProvider,
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
   ],
   exports: [],
 })

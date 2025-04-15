@@ -16,6 +16,7 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { ReporterTranslatorService } from './reporter-translator.service';
+import { Role } from 'shared-models';
 
 const reporterId = 'ad7b1b1e-0b7b-4b7b-8b7b-0b7b1b7b1b7b';
 const reporterName = 'DOE John';
@@ -24,6 +25,7 @@ const aUserDescriptor: UserDescriptor = new UserDescriptor(
   'john',
   'doe',
   Gender.M,
+  Role.MEMBRE_COMMUN,
 );
 
 describe('Reporter Translator Service', () => {
@@ -49,21 +51,21 @@ describe('Reporter Translator Service', () => {
     await app.listen(defaultApiConfig.port);
   });
 
-  afterEach(() => app.close());
-  afterAll(() => db.$client.end());
+  afterEach(async () => await app.close());
+  afterAll(async () => await db.$client.end());
 
   it('fetches a reporter by id', async () => {
     const reporter = await reporterTranslatorService.reporterWithId(reporterId);
-    expecReporter(reporter);
+    expectReporter(reporter);
   });
 
   it('fetches a reporter by name', async () => {
     const reporter =
       await reporterTranslatorService.reporterWithFullName(reporterName);
-    expecReporter(reporter);
+    expectReporter(reporter);
   });
 
-  const expecReporter = (reporter: Reporter) => {
+  const expectReporter = (reporter: Reporter) => {
     expect(reporter.toSnapshot()).toEqual<ReporterSnapshot>({
       reporterId,
       firstName: 'john',

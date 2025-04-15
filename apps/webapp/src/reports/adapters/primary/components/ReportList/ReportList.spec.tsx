@@ -29,6 +29,7 @@ import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.clie
 import { FakeTransparencyApiClient } from "../../../secondary/gateways/FakeTransparency.client";
 import { reportListTableLabels } from "../../labels/report-list-table-labels";
 import { ReportList } from "./ReportList";
+import { Role } from "shared-models";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
@@ -46,6 +47,7 @@ describe("Report List Component", () => {
       userCredentials.password,
       user.firstName,
       user.lastName,
+      user.role,
     );
     const authenticationGateway = new ApiAuthenticationGateway(
       authenticationApiClient,
@@ -222,6 +224,10 @@ describe("Report List Component", () => {
   });
 
   describe("Files", () => {
+    beforeEach(() => {
+      givenAnAuthenticatedUser();
+    });
+
     it("doesn't show the title when they are no attachments", async () => {
       renderReportList();
       await expect(screen.findByText("Pièces jointes")).rejects.toThrow();
@@ -231,14 +237,14 @@ describe("Report List Component", () => {
       const transparency = Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
 
       beforeEach(() => {
-        const attachments = [
-          { fileId: "file-id-1", metaPreSignedUrl: "url-1" },
-          { fileId: "file-id-2", metaPreSignedUrl: "url-2" },
-        ];
-        transparencyApiClient.addGdsFiles(transparency, { files: attachments });
+        const attachments = ["file-id-1", "file-id-2"];
+        transparencyApiClient.setGdsFiles(transparency, {
+          siegeEtParquet: attachments,
+          parquet: [],
+        });
 
-        const attachmentFiles = attachments.map((attachment, index) => ({
-          fileId: attachment.fileId,
+        const attachmentFiles = attachments.map((fileId, index) => ({
+          fileId,
           name: "Attachment name " + index,
           signedUrl: "https://example.com/attachment/" + index,
         }));
@@ -288,6 +294,7 @@ const user: AuthenticatedUser = {
   userId: "user-id",
   firstName: "User",
   lastName: "Current",
+  role: Role.MEMBRE_COMMUN,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

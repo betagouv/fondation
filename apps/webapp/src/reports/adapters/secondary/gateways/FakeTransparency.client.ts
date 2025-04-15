@@ -1,4 +1,3 @@
-import { SetRequired } from "type-fest";
 import {
   EndpointResponse,
   TransparencyApiClient,
@@ -17,22 +16,15 @@ export class FakeTransparencyApiClient<
   async getAttachments(
     transparency: K,
   ): EndpointResponse<TransparencyAttachments> {
-    this.assertGdsFiles(this.files);
-    return this.files.GDS[transparency] ?? { files: [] };
-  }
-
-  addGdsFiles(transparency: K, files: TransparencyAttachments) {
-    this.files.GDS[transparency] = files;
+    return (
+      this.files.GDS[transparency] ?? {
+        siegeEtParquet: [],
+        parquet: [],
+      }
+    );
   }
 
   setGdsFiles(transparency: K, files: TransparencyAttachments) {
-    this.assertGdsFiles(this.files);
     this.files.GDS[transparency] = files;
-  }
-
-  private assertGdsFiles(
-    files: FakeTransparencyApiClient["files"],
-  ): asserts files is SetRequired<FakeTransparencyApiClient["files"], "GDS"> {
-    if (!files.GDS) throw new Error();
   }
 }

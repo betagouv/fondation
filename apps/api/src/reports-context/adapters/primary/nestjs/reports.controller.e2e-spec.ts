@@ -43,6 +43,7 @@ import { StubUserService } from '../../secondary/gateways/services/stub-user.ser
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { USER_SERVICE } from './tokens';
 import { transcode } from 'buffer';
+import { Role } from 'shared-models';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -60,8 +61,8 @@ describe('Reports Controller', () => {
   beforeEach(async () => {
     await clearDB(db);
   });
-  afterEach(() => app.close());
-  afterAll(() => db.$client.end());
+  afterEach(async () => await app.close());
+  afterAll(async () => await db.$client.end());
 
   describe('List', () => {
     beforeEach(async () => {
@@ -494,6 +495,7 @@ const stubUser = {
   userId: reporterId,
   firstName: 'First-name',
   lastName: 'REPORTER',
+  role: Role.MEMBRE_COMMUN,
 };
 
 const fileId1 = 'acd97958-5059-45b7-a3d9-4b46f000d2b4';

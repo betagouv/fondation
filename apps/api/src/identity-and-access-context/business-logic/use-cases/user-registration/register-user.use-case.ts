@@ -1,6 +1,6 @@
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
-import { Role } from '../../models/role';
+import { Role } from 'shared-models';
 import { User } from '../../models/user';
 import { Gender } from '../../models/gender';
 

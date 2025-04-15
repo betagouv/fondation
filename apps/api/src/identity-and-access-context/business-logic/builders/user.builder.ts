@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { Get, Paths } from 'type-fest';
-import { Role } from '../models/role';
+import { Role } from 'shared-models';
 import { UserSnapshot } from '../models/user';
 import { RegisterUserCommand } from '../use-cases/user-registration/register-user.use-case';
 import { Gender } from '../models/gender';

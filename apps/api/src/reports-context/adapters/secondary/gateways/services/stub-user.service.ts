@@ -2,7 +2,7 @@ import { UserDescriptorSerialized } from 'src/identity-and-access-context/busine
 import { UserService } from 'src/reports-context/business-logic/gateways/services/user.service';
 
 export class StubUserService implements UserService {
-  user: { userId: string; firstName: string; lastName: string };
+  user: UserDescriptorSerialized;
 
   async userWithId(reporterId: string): Promise<UserDescriptorSerialized> {
     if (this.user.userId !== reporterId) throw new Error('User not found.');
@@ -10,10 +10,6 @@ export class StubUserService implements UserService {
   }
 
   async userWithFullName(): Promise<UserDescriptorSerialized> {
-    return {
-      userId: this.user.userId,
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
-    };
+    return this.user;
   }
 }

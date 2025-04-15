@@ -14,6 +14,7 @@ import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logi
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
+import { HasReadFilePermissionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
@@ -28,10 +29,13 @@ import { BcryptEncryptionProvider } from '../../secondary/gateways/providers/bcr
 import { PersistentSessionProvider } from '../../secondary/gateways/providers/persistent-session.provider';
 import { SqlSessionRepository } from '../../secondary/gateways/repositories/drizzle/sql-session.repository';
 import { SqlUserRepository } from '../../secondary/gateways/repositories/drizzle/sql-user.repository';
+import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
 import { AuthController, baseRoute, endpointsPaths } from './auth.controller';
+import { AuthzController } from './authz.controller';
 import { generateIdentityAndAccessProvider as generateProvider } from './provider-generator';
 import {
   ENCRYPTION_PROVIDER,
+  FILE_REPOSITORY,
   SESSION_PROVIDER,
   SESSION_REPOSITORY,
   USER_REPOSITORY,
@@ -40,7 +44,7 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthzController],
   providers: [
     generateProvider(ValidateSessionUseCase, [
       SESSION_REPOSITORY,
@@ -65,7 +69,11 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
       USER_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
-
+    generateProvider(HasReadFilePermissionUseCase, [
+      TRANSACTION_PERFORMER,
+      USER_REPOSITORY,
+      FILE_REPOSITORY,
+    ]),
     generateProvider(AuthenticationService, [USER_REPOSITORY]),
     generateProvider(BcryptEncryptionProvider, [], ENCRYPTION_PROVIDER),
     generateProvider(
@@ -86,6 +94,7 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
       [DATE_TIME_PROVIDER],
       SESSION_REPOSITORY,
     ),
+    generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
   ],
 })
 export class IdentityAndAccessModule implements OnModuleInit {
@@ -110,6 +119,8 @@ export class IdentityAndAccessModule implements OnModuleInit {
       .forRoutes(
         `${baseRoute}/${endpointsPaths.userWithId}`,
         `${baseRoute}/${endpointsPaths.userWithFullName}`,
-      );
+      )
+      .apply(SystemRequestValidationMiddleware)
+      .forRoutes(AuthzController);
   }
 }

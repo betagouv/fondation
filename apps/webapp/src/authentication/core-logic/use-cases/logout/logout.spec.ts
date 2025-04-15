@@ -1,3 +1,4 @@
+import { Role } from "shared-models";
 import { ReportBuilder } from "../../../../reports/core-logic/builders/Report.builder";
 import { listReport } from "../../../../reports/core-logic/use-cases/report-listing/listReport.use-case";
 import { retrieveReport } from "../../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
@@ -23,7 +24,13 @@ describe("Logout", () => {
 
   beforeEach(() => {
     apiClient = new FakeAuthenticationApiClient();
-    apiClient.setEligibleAuthUser("username", "password", "John", "Doe");
+    apiClient.setEligibleAuthUser(
+      "username",
+      "password",
+      "John",
+      "Doe",
+      Role.MEMBRE_COMMUN,
+    );
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
     logoutNotifierProvider = new StubLogoutNotifierProvider();

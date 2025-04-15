@@ -8,7 +8,7 @@ import {
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';

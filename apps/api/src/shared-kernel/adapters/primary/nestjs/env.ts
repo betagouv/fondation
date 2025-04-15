@@ -51,7 +51,7 @@ export const defaultApiConfig = {
   database: {
     // env variable used by docker compose
     host: process.env.DATABASE_HOST || 'localhost',
-    port: process.env.DATABASE_PORT ? Number(process.env.DATABASE_PORT) : 5440,
+    port: process.env.DATABASE_PORT ? Number(process.env.DATABASE_PORT) : 5441,
     user: 'fondation',
     password: 'secret',
     name: 'fondation',

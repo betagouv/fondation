@@ -1,5 +1,6 @@
 import { AuthenticatedUser } from "shared-models";
 import { AuthenticationApiClient } from "../../../core-logic/gateways/AuthenticationApi.client";
+import { Role } from "shared-models";
 
 export class FakeAuthenticationApiClient implements AuthenticationApiClient {
   user: {
@@ -7,6 +8,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
     password: string;
     firstName: string;
     lastName: string;
+    role: Role;
   } | null = null;
 
   async login(email: string, password: string) {
@@ -21,6 +23,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
       userId: "user-id",
       firstName: this.user.firstName,
       lastName: this.user.lastName,
+      role: this.user.role,
     };
     return authenticatedUser;
   }
@@ -31,6 +34,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
       userId: "user-id",
       firstName: this.user.firstName,
       lastName: this.user.lastName,
+      role: this.user.role,
     };
   }
 
@@ -43,7 +47,8 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
     password: string,
     firstName: string,
     lastName: string,
+    role: Role,
   ) {
-    this.user = { email, password, firstName, lastName };
+    this.user = { email, password, firstName, lastName, role };
   }
 }

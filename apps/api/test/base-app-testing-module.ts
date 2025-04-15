@@ -1,5 +1,8 @@
 import { TestingModuleBuilder, Test } from '@nestjs/testing';
+import { Role } from 'shared-models';
 import { AppModule } from 'src/app.module';
+import { ENCRYPTION_PROVIDER } from 'src/identity-and-access-context/adapters/primary/nestjs/tokens';
+import { FakeEncryptionProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-encryption.provider';
 import { FakeSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-signature.provider';
 import { CookieSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
@@ -40,6 +43,7 @@ export class BaseAppTestingModule {
       userId: '123e4567-e89b-12d3-a456-426614174000',
       firstName: 'First-name',
       lastName: 'REPORTER',
+      role: Role.MEMBRE_COMMUN,
     },
   ) {
     this.moduleFixture.overrideProvider(SessionValidationService).useClass(
@@ -51,6 +55,26 @@ export class BaseAppTestingModule {
         }
       },
     );
+    return this;
+  }
+
+  withFakeEncryption({
+    aPassword,
+    aPasswordEncrypted,
+  }: {
+    aPassword: string;
+    aPasswordEncrypted: string;
+  }) {
+    this.moduleFixture.overrideProvider(ENCRYPTION_PROVIDER).useFactory({
+      factory: () => {
+        const encryptionProvider = new FakeEncryptionProvider();
+        encryptionProvider.encryptionMap = {
+          [aPassword]: aPasswordEncrypted,
+        };
+        return encryptionProvider;
+      },
+    });
+
     return this;
   }
 

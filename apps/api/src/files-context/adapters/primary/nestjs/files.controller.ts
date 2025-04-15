@@ -2,9 +2,12 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Post,
   Query,
+  Req,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -26,6 +29,8 @@ import { FileUploadQueryDto } from '../dto/file-upload-query.dto';
 import { FilesDeletionQueryDto } from '../dto/files-deletion-query.dto';
 import { FilesUrlsQueryDto } from '../dto/files-urls-query.dto';
 import { FilesUploadQueryDto } from './dto/files-upload-query.dto';
+import { Request } from 'express';
+import { PermissionDeniedError } from 'src/files-context/business-logic/errors/permission-denied.error';
 
 type IReportController = IController<FilesContextRestContract>;
 
@@ -90,8 +95,19 @@ export class FilesController implements IReportController {
   }
 
   @Get(endpointsPaths.getSignedUrls)
-  async getSignedUrls(@Query() { ids }: FilesUrlsQueryDto) {
-    return this.generateFilesUrlsUseCase.execute(ids);
+  async getSignedUrls(
+    @Query() { ids }: FilesUrlsQueryDto,
+    @Req() request: Request,
+  ) {
+    const userId = request.userId;
+    try {
+      return await this.generateFilesUrlsUseCase.execute(ids, userId);
+    } catch (error) {
+      if (error instanceof PermissionDeniedError) {
+        throw new HttpException(error.message, HttpStatus.FORBIDDEN);
+      }
+      throw error;
+    }
   }
 
   @Delete(endpointsPaths.deleteFile)

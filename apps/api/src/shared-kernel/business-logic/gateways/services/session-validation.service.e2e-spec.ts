@@ -13,6 +13,7 @@ import {
 import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { baseRoute, endpointsPaths } from './session-validation.service';
+import { Role } from 'shared-models';
 
 const sessionId = 'valid-session-id';
 
@@ -20,6 +21,7 @@ const stubUser = {
   userId: 'valid-user-id',
   firstName: 'John',
   lastName: 'Doe',
+  role: Role.MEMBRE_COMMUN,
 };
 
 describe('Session Validation Service', () => {
@@ -42,8 +44,8 @@ describe('Session Validation Service', () => {
     await app.listen(defaultApiConfig.port);
   });
 
-  afterEach(() => app.close());
-  afterAll(() => db.$client.end());
+  afterEach(async () => await app.close());
+  afterAll(async () => await db.$client.end());
 
   it('validates a session', async () => {
     const pathname = join('/', baseRoute, endpointsPaths.validateSession);
@@ -77,6 +79,7 @@ describe('Session Validation Service', () => {
               stubUser.firstName,
               stubUser.lastName,
               Gender.M,
+              Role.MEMBRE_COMMUN,
             );
           }
         },

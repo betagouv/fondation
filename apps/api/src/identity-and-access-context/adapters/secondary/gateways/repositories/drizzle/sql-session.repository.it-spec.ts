@@ -1,5 +1,5 @@
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Role } from 'shared-models';
 import { UserSession } from 'src/identity-and-access-context/business-logic/models/session';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -40,7 +40,7 @@ describe('SQL Session Repository', () => {
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
   });
 
-  afterAll(() => db.$client.end());
+  afterAll(async () => await db.$client.end());
 
   it('creates a session', async () => {
     await givenAUser();

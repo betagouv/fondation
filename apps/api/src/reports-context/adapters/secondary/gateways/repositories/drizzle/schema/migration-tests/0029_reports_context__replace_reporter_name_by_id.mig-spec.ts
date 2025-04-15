@@ -3,7 +3,7 @@ import { desc, sql } from 'drizzle-orm';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { text, uuid, varchar } from 'drizzle-orm/pg-core';
 import { Pool } from 'pg';
-import { identityAndAccessContextSchema } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { identityAndAccessContextSchema } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/identity-and-access-context-schema.drizzle';
 import { reportsContextSchema } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/reports-context-schema.drizzle';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import { getDrizzleMigrationSql } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';

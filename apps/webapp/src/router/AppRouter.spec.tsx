@@ -30,6 +30,7 @@ import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listen
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
 import { FormationsRoutesMapper } from "./core-logic/models/formations-routes-mapper";
+import { Role } from "shared-models";
 
 const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
@@ -242,6 +243,7 @@ describe("App Router Component", () => {
         userCredentials.password,
         user.firstName,
         user.lastName,
+        user.role,
       );
       store.dispatch(authenticate.fulfilled(user, "", userCredentials));
       await waitListenersCompletion();
@@ -270,6 +272,7 @@ const baseTransaparencySegment = join(
 const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
+  role: Role.MEMBRE_COMMUN,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

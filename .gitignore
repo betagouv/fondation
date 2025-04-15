@@ -10,3 +10,5 @@ generated
 .env.*
 !.env.example
 !.env.*.example
+
+.pnpm-store

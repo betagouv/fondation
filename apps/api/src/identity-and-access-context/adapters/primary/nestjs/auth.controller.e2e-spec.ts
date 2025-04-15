@@ -1,15 +1,19 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { AuthenticatedUser } from 'shared-models';
+import { AuthenticatedUser, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
-import { Role } from 'src/identity-and-access-context/business-logic/models/role';
+import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
-import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
+import {
+  RegisterUserCommand,
+  RegisterUserUseCase,
+} from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import {
   API_CONFIG,
   TRANSACTION_PERFORMER,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { DevApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -19,12 +23,10 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
+import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER } from './tokens';
-import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { DevApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -55,8 +57,8 @@ describe('Auth Controller', () => {
     await db.insert(users).values(aUserDb).execute();
   });
 
-  afterEach(() => app.close());
-  afterAll(() => db.$client.end());
+  afterEach(async () => await app.close());
+  afterAll(async () => await db.$client.end());
 
   describe('With real encryption', () => {
     beforeEach(async () => {
@@ -75,16 +77,15 @@ describe('Auth Controller', () => {
         TRANSACTION_PERFORMER,
       );
 
-      await transactionPerformer.perform(
-        registerUserUseCase.execute({
-          email: 'new-user@example.com',
-          password: 'new-password-123',
-          role: Role.MEMBRE_DU_PARQUET,
-          firstName: 'New',
-          lastName: 'User',
-          gender: Gender.F,
-        }),
-      );
+      const user: RegisterUserCommand = {
+        email: 'new-user@example.com',
+        password: 'new-password-123',
+        role: Role.MEMBRE_DU_PARQUET,
+        firstName: 'New',
+        lastName: 'User',
+        gender: Gender.F,
+      };
+      await transactionPerformer.perform(registerUserUseCase.execute(user));
 
       const response = await supertest(app.getHttpServer())
         .post('/api/auth/login')
@@ -96,6 +97,7 @@ describe('Auth Controller', () => {
         userId: expect.any(String),
         firstName: 'new',
         lastName: 'user',
+        role: user.role,
       };
       expect(response.body).toEqual(expectedAuthenticatedUser);
     });
@@ -137,12 +139,7 @@ describe('Auth Controller', () => {
         .expect('Access-Control-Allow-Origin', defaultApiConfig.originUrl)
         .expect('Access-Control-Allow-Credentials', 'true');
 
-      const expectedAuthenticatedUser: AuthenticatedUser = {
-        userId: aUserDb.id,
-        firstName: aUserDb.firstName,
-        lastName: aUserDb.lastName,
-      };
-      expect(response.body).toEqual(expectedAuthenticatedUser);
+      expectUserDescriptor(response.body);
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       const sessionCookie = cookies.find((cookie: string) =>
@@ -195,11 +192,7 @@ describe('Auth Controller', () => {
         .send({ sessionId: signedSessionId })
         .expect(HttpStatus.OK);
 
-      expect(response.body).toEqual<UserDescriptorSerialized>({
-        userId: aUserDb.id,
-        firstName: aUserDb.firstName,
-        lastName: aUserDb.lastName,
-      });
+      expectUserDescriptor(response.body);
     });
 
     it('validates a session id from cookie', async () => {
@@ -215,11 +208,7 @@ describe('Auth Controller', () => {
         .set('Cookie', `sessionId=${signedSessionId}`)
         .expect(HttpStatus.OK);
 
-      expect(response.body).toEqual<UserDescriptorSerialized>({
-        userId: aUserDb.id,
-        firstName: aUserDb.firstName,
-        lastName: aUserDb.lastName,
-      });
+      expectUserDescriptor(response.body);
     });
 
     it('logs out a user and invalidates the session', async () => {
@@ -274,11 +263,7 @@ describe('Auth Controller', () => {
       ${'by ID'}        | ${`user-with-id/${aUserDb.id}`}
     `('retrieves a user $description', async ({ pathname }) => {
       const response = await requestEndpoint(pathname, HttpStatus.OK);
-      expect(response.body).toEqual<UserDescriptorSerialized>({
-        userId: aUserDb.id,
-        firstName: aUserDb.firstName,
-        lastName: aUserDb.lastName,
-      });
+      expectUserDescriptor(response.body);
     });
 
     const requestEndpoint = (pathname: string, statusCode: HttpStatus) =>
@@ -303,6 +288,13 @@ describe('Auth Controller', () => {
       expectedSessions,
     );
   };
+  const expectUserDescriptor = (body: any) =>
+    expect(body).toEqual<UserDescriptorSerialized>({
+      userId: aUserDb.id,
+      firstName: aUserDb.firstName,
+      lastName: aUserDb.lastName,
+      role: aUserDb.role,
+    });
 
   class AppTestingModule extends BaseAppTestingModule {
     constructor() {
