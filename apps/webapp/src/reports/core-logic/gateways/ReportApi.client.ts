@@ -11,10 +11,6 @@ export type EndpointResponse<
 > = Promise<ReportsContextRestContract["endpoints"][T]["response"]>;
 
 export interface ReportApiClient {
-  generateFileUrl(
-    reportId: string,
-    fileName: string,
-  ): EndpointResponse<"generateFileUrl">;
   list(): EndpointResponse<"listReports">;
   updateReport(
     reportId: string,

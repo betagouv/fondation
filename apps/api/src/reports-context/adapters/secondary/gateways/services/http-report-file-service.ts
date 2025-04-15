@@ -5,10 +5,8 @@ import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/
 import {
   FileUpload,
   ReportFileService,
-  reportSignedUrlsSchema,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
-import { ReportAttachedFiles } from 'src/reports-context/business-logic/models/report-attached-files';
 import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
@@ -106,36 +104,6 @@ export class HttpReportFileService implements ReportFileService {
         `Failed to upload files to File Context: ${response.statusText}`,
       );
     }
-  }
-
-  async getSignedUrl(attachedFile: ReportAttachedFile) {
-    const signedUrls = await this.getSignedUrls(
-      new ReportAttachedFiles([attachedFile]),
-    );
-    if (signedUrls.length === 0) {
-      throw new Error(
-        `Failed to get signed URL for file: ${attachedFile.fileId}`,
-      );
-    }
-    return signedUrls[0]!;
-  }
-
-  async getSignedUrls(attachedFiles: ReportAttachedFiles) {
-    const { method, path, queryParams }: ClientFetchOptions['getSignedUrls'] = {
-      method: 'GET',
-      path: 'signed-urls',
-      queryParams: {
-        ids: attachedFiles.getFileIds(),
-      },
-    };
-    const url = this.resolveUrl(path, undefined, queryParams);
-    const response = await this.fetch(url, {
-      method,
-    });
-
-    const signedUrlsData = await response.json();
-    const signedUrls = reportSignedUrlsSchema.parse(signedUrlsData);
-    return signedUrls;
   }
 
   async deleteFile(file: ReportAttachedFile) {

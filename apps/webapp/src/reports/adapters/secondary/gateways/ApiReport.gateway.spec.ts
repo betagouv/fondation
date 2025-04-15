@@ -142,15 +142,6 @@ describe("Api Report Gateway", () => {
         };
       });
 
-      it("generates a file url", async () => {
-        expect(
-          await apiReportGateway.generateFileUrl(
-            aReportRetrievedSM.id,
-            aFile.name,
-          ),
-        ).toEqual(`${FakeReportApiClient.BASE_URI}/some-file.pdf`);
-      });
-
       it("deletes an attached file", async () => {
         await apiReportGateway.deleteFile(aReportRetrievedSM.id, aFile.name);
         expectUploadedFiles();

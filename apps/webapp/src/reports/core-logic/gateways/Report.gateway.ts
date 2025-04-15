@@ -8,7 +8,6 @@ export interface UpdateReportParams {
 }
 
 export interface ReportGateway {
-  generateFileUrl(reportId: string, fileName: string): Promise<string>;
   list(): Promise<ReportListItem[]>;
   updateReport(reportId: string, data: UpdateReportParams): Promise<void>;
   updateRule(ruleId: string, validated: boolean): Promise<void>;

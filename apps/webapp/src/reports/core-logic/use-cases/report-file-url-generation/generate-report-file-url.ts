@@ -3,13 +3,14 @@ import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 export const generateReportFileUrl = createAppAsyncThunk(
   "report/generateReportFileUrl",
   async (
-    { reportId, fileName }: { reportId: string; fileName: string },
+    { fileId }: { reportId: string; fileId: string },
     {
       extra: {
-        gateways: { reportGateway },
+        gateways: { fileGateway },
       },
     },
   ) => {
-    return reportGateway.generateFileUrl(reportId, fileName);
+    const fileVMs = await fileGateway.getSignedUrls([fileId]);
+    return fileVMs[0]!.signedUrl;
   },
 );

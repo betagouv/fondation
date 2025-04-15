@@ -17,11 +17,14 @@ import { reportFilesAttached } from "../../listeners/report-files-attached.liste
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { attachReportFiles } from "./attach-report-files";
 import { DeterministicUuidGenerator } from "../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
+import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
 
 describe("Attach Report Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let fileApiClient: FakeFileApiClient;
   let fileProvider: StubNodeFileProvider;
   let uuidGenerator: DeterministicUuidGenerator;
   let expectStoredReports: ExpectStoredReports;
@@ -30,6 +33,8 @@ describe("Attach Report Files", () => {
     reportApiClient = new FakeReportApiClient();
     reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
     fileProvider = new StubNodeFileProvider();
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [fileId1, fileId2];
@@ -37,6 +42,7 @@ describe("Attach Report Files", () => {
     store = initReduxStore(
       {
         reportGateway,
+        fileGateway,
       },
       { fileProvider, uuidGenerator },
       {},
@@ -50,6 +56,20 @@ describe("Attach Report Files", () => {
   });
 
   it("attaches two files simultaneously", async () => {
+    const expectedAttachedFiles = [
+      {
+        signedUrl: "https://example.fr/file.pdf",
+        name: "file.pdf",
+        fileId: fileId1,
+      },
+      {
+        signedUrl: "https://example.fr/image.png",
+        name: "image.png",
+        fileId: fileId2,
+      },
+    ];
+    fileApiClient.setFiles(...expectedAttachedFiles);
+
     const pdfBuffer = await givenAPdfFile();
     const pdfFile = genFile(pdfBuffer, "file.pdf", "application/pdf");
 
@@ -61,18 +81,7 @@ describe("Attach Report Files", () => {
 
     expectStoredReports({
       ...aReport,
-      attachedFiles: [
-        {
-          signedUrl: "https://example.fr/file.pdf",
-          name: "file.pdf",
-          fileId: fileId1,
-        },
-        {
-          signedUrl: "https://example.fr/image.png",
-          name: "image.png",
-          fileId: fileId2,
-        },
-      ],
+      attachedFiles: expectedAttachedFiles,
     });
   });
 
@@ -91,6 +100,20 @@ describe("Attach Report Files", () => {
   });
 
   it("attaches multiple image files of different formats", async () => {
+    const expectedAttachedFiles = [
+      {
+        signedUrl: `${FakeReportApiClient.BASE_URI}/image1.png`,
+        name: "image1.png",
+        fileId: fileId1,
+      },
+      {
+        signedUrl: `${FakeReportApiClient.BASE_URI}/image2.jpg`,
+        name: "image2.jpg",
+        fileId: fileId2,
+      },
+    ];
+    fileApiClient.setFiles(...expectedAttachedFiles);
+
     const pngBuffer = await givenAnImageBuffer("png");
     const pngFile = genFile(pngBuffer, "image1.png", "image/png");
 
@@ -102,18 +125,7 @@ describe("Attach Report Files", () => {
 
     expectStoredReports({
       ...aReport,
-      attachedFiles: [
-        {
-          signedUrl: `${FakeReportApiClient.BASE_URI}/image1.png`,
-          name: "image1.png",
-          fileId: fileId1,
-        },
-        {
-          signedUrl: `${FakeReportApiClient.BASE_URI}/image2.jpg`,
-          name: "image2.jpg",
-          fileId: fileId2,
-        },
-      ],
+      attachedFiles: expectedAttachedFiles,
     });
   });
 

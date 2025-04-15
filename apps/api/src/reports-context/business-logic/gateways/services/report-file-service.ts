@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ReportAttachedFile } from '../../models/report-attached-file';
-import { ReportAttachedFiles } from '../../models/report-attached-files';
 
 export type ReportSignedUrl = {
   name: string;
@@ -27,8 +26,6 @@ export interface ReportFileService {
     filePath: string[],
   ): Promise<void>;
   uploadFiles(fileUploads: FileUpload[], filesPath: string[]): Promise<void>;
-  getSignedUrl(attachedFile: ReportAttachedFile): Promise<ReportSignedUrl>;
-  getSignedUrls(attachedFiles: ReportAttachedFiles): Promise<ReportSignedUrl[]>;
   deleteFile(file: ReportAttachedFile): Promise<void>;
   deleteFiles(files: ReportAttachedFile[]): Promise<void>;
 }

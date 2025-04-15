@@ -132,29 +132,6 @@ export class FakeReportApiClient implements ReportApiClient {
     };
   }
 
-  async generateFileUrl(reportId: string, fileName: string): Promise<string> {
-    const file = this.reports[reportId]!.attachedFiles?.find(
-      (file) => file.name === fileName,
-    );
-    const defaultUrl = `${FakeReportApiClient.BASE_URI}/${fileName}`;
-
-    if (this.reports[reportId] && file)
-      this.reports[reportId] = {
-        ...this.reports[reportId],
-        attachedFiles: [...(this.reports[reportId]!.attachedFiles || []), file],
-      };
-
-    return defaultUrl;
-  }
-
-  async generateFileUrlEndpoint(reportId: string, fileName: string) {
-    const urlEndpoint = await this.generateFileUrl(reportId, fileName);
-    return {
-      urlEndpoint,
-      method: "GET" as const,
-    };
-  }
-
   async deleteFile(reportId: string, fileName: string): Promise<void> {
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");

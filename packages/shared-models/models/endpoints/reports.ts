@@ -45,12 +45,6 @@ export interface ReportsContextRestContract extends RestContract {
       body: FormData;
       response: void;
     };
-    generateFileUrl: {
-      method: "GET";
-      path: ":reportId/files/byName/:fileName";
-      params: { reportId: string; fileName: string };
-      response: string;
-    };
     deleteFile: {
       method: "DELETE";
       path: ":id/files/byName/:fileName";

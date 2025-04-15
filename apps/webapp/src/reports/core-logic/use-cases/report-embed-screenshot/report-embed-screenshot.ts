@@ -28,7 +28,7 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
       getState,
       dispatch,
       extra: {
-        gateways: { reportGateway },
+        gateways: { reportGateway, fileGateway },
         providers: { fileProvider, dateProvider, uuidGenerator },
       },
       rejectWithValue,
@@ -59,13 +59,9 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
 
     const filesWithUrl = await Promise.allSettled(
       filesArg.map(async ({ file, fileId }) => {
-        const screenshotName = file.name;
-        const signedUrl = await reportGateway.generateFileUrl(
-          reportId,
-          screenshotName,
-        );
+        const fileVMs = await fileGateway.getSignedUrls([fileId]);
 
-        return { file, signedUrl, fileId };
+        return { file, signedUrl: fileVMs[0]!.signedUrl, fileId };
       }),
     );
     const fulfilledFiles = filesWithUrl.filter(

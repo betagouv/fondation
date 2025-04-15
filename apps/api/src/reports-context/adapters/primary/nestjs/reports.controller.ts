@@ -16,7 +16,6 @@ import {
 import { Request } from 'express';
 import { ReportsContextRestContract } from 'shared-models';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
-import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 import {
   ReportFile,
@@ -46,7 +45,6 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
   uploadFiles: ':id/files/upload-many',
-  generateFileUrl: ':reportId/files/byName/:fileName',
   deleteFile: ':id/files/byName/:fileName',
   deleteFiles: ':id/files/byNames',
 };
@@ -58,7 +56,6 @@ export class ReportsController implements IReportController {
     private readonly retrieveReportUseCase: RetrieveReportUseCase,
     private readonly changeRuleValidationStateUseCase: ChangeRuleValidationStateUseCase,
     private readonly updateReportUseCase: UpdateReportUseCase,
-    private readonly generateReportFileUrlUseCase: GenerateReportFileUrlUseCase,
     private readonly deleteReportAttachedFileUseCase: DeleteReportAttachedFileUseCase,
     private readonly deleteReportAttachedFilesUseCase: DeleteReportAttachedFilesUseCase,
     private readonly uploadReportFilesUseCase: UploadReportFilesUseCase,
@@ -113,7 +110,6 @@ export class ReportsController implements IReportController {
     @Query() { usage, fileIds }: UploadFilesQueryParamsDto,
     @Req() req: Request,
   ) {
-    console.log('Received fileIds:', fileIds);
     const reporterId = req.userId!;
     const reportFiles: ReportFile[] = files.map((file, index) => ({
       name: file.originalname,
@@ -127,17 +123,6 @@ export class ReportsController implements IReportController {
       reporterId,
       usage,
     );
-  }
-
-  @Get(endpointsPaths.generateFileUrl)
-  async generateFileUrl(
-    @Param()
-    {
-      reportId,
-      fileName,
-    }: ReportsContextRestContract['endpoints']['generateFileUrl']['params'],
-  ) {
-    return this.generateReportFileUrlUseCase.execute(reportId, fileName);
   }
 
   @Delete(endpointsPaths.deleteFile)

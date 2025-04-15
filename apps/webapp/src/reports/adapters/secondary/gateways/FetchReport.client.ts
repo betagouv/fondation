@@ -113,33 +113,6 @@ export class FetchReportApiClient implements ReportApiClient {
     });
   }
 
-  async generateFileUrl(reportId: string, fileName: string) {
-    const { method, path, params }: ClientFetchOptions["generateFileUrl"] = {
-      method: "GET",
-      path: ":reportId/files/byName/:fileName",
-      params: { reportId, fileName },
-    };
-    const url = this.resolveUrl(path, params);
-    const response = await this.fetch(url, {
-      method,
-    });
-    return await response.text();
-  }
-
-  async generateFileUrlEndpoint(reportId: string, fileName: string) {
-    const { method, path, params }: ClientFetchOptions["generateFileUrl"] = {
-      method: "GET",
-      path: ":reportId/files/byName/:fileName",
-      params: { reportId, fileName },
-    };
-    const url = this.resolveUrl(path, params);
-
-    return {
-      urlEndpoint: url,
-      method,
-    };
-  }
-
   async deleteFile(reportId: string, fileName: string) {
     const { method, path, params }: ClientFetchOptions["deleteFile"] = {
       method: "DELETE",

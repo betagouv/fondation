@@ -19,11 +19,14 @@ import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
 import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
 import { reportEmbedScreenshot } from "./report-embed-screenshot";
+import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
 
 describe("Report Embed Screenshot", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let fileApiClient: FakeFileApiClient;
   let dateProvider: DeterministicDateProvider;
   let fileProvider: StubNodeFileProvider;
   let uuidGenerator: DeterministicUuidGenerator;
@@ -34,6 +37,8 @@ describe("Report Embed Screenshot", () => {
     reportApiClient = new FakeReportApiClient();
     reportApiClient.addReports(aReportApiModel);
     const reportGateway = new ApiReportGateway(reportApiClient);
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
     fileProvider = new StubNodeFileProvider();
     dateProvider = new DeterministicDateProvider();
     uuidGenerator = new DeterministicUuidGenerator();
@@ -42,6 +47,7 @@ describe("Report Embed Screenshot", () => {
     store = initReduxStore(
       {
         reportGateway,
+        fileGateway,
       },
       { fileProvider, dateProvider, uuidGenerator },
       {},
@@ -84,6 +90,15 @@ describe("Report Embed Screenshot", () => {
       fileNames: ["screenshot1.png", "screenshot2.png"],
     },
   ])("stores a screenshot with its signed URL", async ({ fileNames }) => {
+    const expectedFiles = fileNames.map((fileName, index) => {
+      const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
+      return {
+        fileId: index === 0 ? fileId1 : fileId2,
+        name: fileNameWithTimestamp,
+        signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
+      };
+    });
+    fileApiClient.setFiles(...expectedFiles);
     const fileBuffer = await givenAnImageBuffer("png");
     const files = fileNames.map(
       (fileName) =>
@@ -94,14 +109,6 @@ describe("Report Embed Screenshot", () => {
 
     await embedScreenshot(...files);
 
-    const expectedFiles = fileNames.map((fileName, index) => {
-      const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
-      return {
-        fileId: index === 0 ? fileId1 : fileId2,
-        name: fileNameWithTimestamp,
-        signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
-      };
-    });
     expectStoredScreenshots({
       files: expectedFiles,
     });

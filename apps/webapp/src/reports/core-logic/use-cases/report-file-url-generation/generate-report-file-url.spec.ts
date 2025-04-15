@@ -11,20 +11,26 @@ import {
   expectStoredReportsFactory,
 } from "../../../../test/reports";
 import { ReportFileUsage } from "shared-models";
+import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
+import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
 
 describe("Generate Report File Url", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let fileApiClient: FakeFileApiClient;
   let expectStoredReports: ExpectStoredReports;
 
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
 
     store = initReduxStore(
       {
         reportGateway,
+        fileGateway,
       },
       {},
       {},
@@ -35,6 +41,15 @@ describe("Generate Report File Url", () => {
   });
 
   it("generates a report file url", async () => {
+    const expectedAttachedFiles = [
+      {
+        signedUrl,
+        name: "file.png",
+        fileId: "file-id",
+      },
+    ];
+    fileApiClient.setFiles(...expectedAttachedFiles);
+
     const aReportApiModel = new ReportApiModelBuilder()
       .with("attachedFiles", [
         {
@@ -53,20 +68,14 @@ describe("Generate Report File Url", () => {
 
     await store.dispatch(
       generateReportFileUrl({
-        reportId: aReport.id,
-        fileName: "file.png",
+        reportId: aReportApiModel.id,
+        fileId: "file-id",
       }),
     );
 
     expectStoredReports({
       ...aReport,
-      attachedFiles: [
-        {
-          signedUrl,
-          name: "file.png",
-          fileId: "file-id",
-        },
-      ],
+      attachedFiles: expectedAttachedFiles,
     });
   });
 });

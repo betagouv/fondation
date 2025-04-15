@@ -10,7 +10,6 @@ import { ReportRuleRepository } from 'src/reports-context/business-logic/gateway
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
-import { GenerateReportFileUrlUseCase } from 'src/reports-context/business-logic/use-cases/report-file-url-generation/generate-report-file-url';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 import { UploadReportFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-upload/upload-report-files';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
@@ -83,11 +82,6 @@ import {
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
       ReporterTranslatorService,
-    ]),
-    generateProvider(GenerateReportFileUrlUseCase, [
-      TRANSACTION_PERFORMER,
-      REPORT_REPOSITORY,
-      REPORT_FILE_SERVICE,
     ]),
     generateProvider(DeleteReportAttachedFileUseCase, [
       REPORT_REPOSITORY,

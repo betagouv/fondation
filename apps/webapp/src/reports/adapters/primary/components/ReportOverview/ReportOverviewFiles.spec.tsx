@@ -21,11 +21,14 @@ import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.clie
 import { ReportOverview } from "./ReportOverview";
 import { reportFilesAttached } from "../../../../core-logic/listeners/report-files-attached.listeners";
 import { DeterministicUuidGenerator } from "../../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
+import { ApiFileGateway } from "../../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { FakeFileApiClient } from "../../../../../files/adapters/secondary/gateways/FakeFile.client";
 
 describe("Report Overview Component - Files", () => {
   let store: ReduxStore;
   let initialState: AppState<true>;
   let reportApiClient: FakeReportApiClient;
+  let fileApiClient: FakeFileApiClient;
   let reportApiModelBuilder: ReportApiModelBuilder;
   let expectStoredReports: ExpectStoredReports;
   let routerProvider: StubRouterProvider;
@@ -34,6 +37,8 @@ describe("Report Overview Component - Files", () => {
   beforeEach(() => {
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
+    fileApiClient = new FakeFileApiClient();
+    const fileGateway = new ApiFileGateway(fileApiClient);
     routerProvider = new StubRouterProvider();
     const fileProvider = new RealFileProvider();
     uuidGenerator = new DeterministicUuidGenerator();
@@ -42,6 +47,7 @@ describe("Report Overview Component - Files", () => {
     store = initReduxStore(
       {
         reportGateway,
+        fileGateway,
       },
       { routerProvider, fileProvider, uuidGenerator },
       {},
@@ -89,6 +95,18 @@ describe("Report Overview Component - Files", () => {
   it.each(uploadTestParams)(
     "$testName",
     async ({ fileNames, expectedAttachedFiles }) => {
+      fileApiClient.setFiles(
+        {
+          fileId: fileId1,
+          name: "image.png",
+          signedUrl: `${FakeReportApiClient.BASE_URI}/image.png`,
+        },
+        {
+          fileId: fileId2,
+          name: "image2.png",
+          signedUrl: `${FakeReportApiClient.BASE_URI}/image2.png`,
+        },
+      );
       const reportApiModel = reportApiModelBuilder.build();
       await givenARenderedReport(reportApiModel);
 

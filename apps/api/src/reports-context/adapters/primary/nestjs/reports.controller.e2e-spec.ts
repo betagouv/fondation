@@ -361,17 +361,6 @@ describe('Reports Controller', () => {
         });
       });
 
-      it('get a file signed URL', async () => {
-        await uploadFile().expect(HttpStatus.CREATED);
-
-        const response = await request(app.getHttpServer())
-          .get(`/api/reports/${aReportSnapshot.id}/files/byName/test-file.pdf`)
-          .set('Cookie', 'sessionId=unused')
-          .expect(HttpStatus.OK);
-
-        expect(response.text).toEqual(expect.stringMatching(/^http/));
-      });
-
       it('deletes a file', async () => {
         await uploadFile().expect(HttpStatus.CREATED);
 

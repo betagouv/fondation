@@ -10,7 +10,8 @@ export class FakeFileApiClient implements FileApiClient {
 
   addFiles(files: ({ fileId: string } & FileVM)[]) {
     files.forEach((file) => {
-      this.files[file.fileId] = file;
+      const { fileId, ...fileWithoutId } = file;
+      this.files[fileId] = fileWithoutId;
     });
   }
 

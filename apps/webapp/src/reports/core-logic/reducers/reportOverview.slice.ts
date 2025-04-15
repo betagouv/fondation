@@ -163,17 +163,17 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
       });
 
       builder.addCase(generateReportFileUrl.fulfilled, (state, action) => {
-        const { reportId, fileName } = action.meta.arg;
+        const { reportId, fileId } = action.meta.arg;
         const fileUri = action.payload;
         const report = state.byIds?.[reportId];
 
         if (report) {
           const attachedFiles = report.attachedFiles || [];
           const existingFile = attachedFiles.find(
-            (file) => file.name === fileName,
+            (file) => file.fileId === fileId,
           );
           if (!existingFile) {
-            console.error(`File ${fileName} not found in report ${reportId}`);
+            console.error(`File id ${fileId} not found in report`);
             return;
           }
           existingFile.signedUrl = fileUri;

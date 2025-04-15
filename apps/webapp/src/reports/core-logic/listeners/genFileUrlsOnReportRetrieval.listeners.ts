@@ -13,13 +13,14 @@ export const genFileUrlsOnReportRetrieval: Listener = (startAppListening) =>
         return;
       }
 
-      report.attachedFiles.forEach((file) => {
-        dispatch(
-          generateReportFileUrl({
-            reportId,
-            fileName: file.name,
-          }),
-        );
+      report.attachedFiles.forEach(({ fileId }) => {
+        if (fileId)
+          dispatch(
+            generateReportFileUrl({
+              reportId,
+              fileId,
+            }),
+          );
       });
     },
   });
