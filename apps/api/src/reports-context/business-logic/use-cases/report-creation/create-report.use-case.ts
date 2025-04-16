@@ -51,6 +51,7 @@ export class CreateReportUseCase {
   async execute(
     importedNominationFileId: string,
     createReportPayload: ReportToCreate,
+    retries: number = 3,
   ): Promise<void> {
     new CreateReportValidator().validate(createReportPayload);
 
@@ -58,21 +59,24 @@ export class CreateReportUseCase {
       createReportPayload.reporterName,
     );
 
-    return this.transactionPerformer.perform(async (trx) => {
-      const report = NominationFileReport.createFromImport(
-        importedNominationFileId,
-        createReportPayload,
-        reporter,
-      );
+    return this.transactionPerformer.perform(
+      async (trx) => {
+        const report = NominationFileReport.createFromImport(
+          importedNominationFileId,
+          createReportPayload,
+          reporter,
+        );
 
-      await this.reportRepository.save(report)(trx);
+        await this.reportRepository.save(report)(trx);
 
-      const rulesRepositoryPromises = ImportedV1RulesToV2Builder.fromV1(
-        createReportPayload.rules,
-      ).buildRepositories(report.id, trx);
+        const rulesRepositoryPromises = ImportedV1RulesToV2Builder.fromV1(
+          createReportPayload.rules,
+        ).buildRepositories(report.id, trx);
 
-      await Promise.all(rulesRepositoryPromises);
-    });
+        await Promise.all(rulesRepositoryPromises);
+      },
+      { retries },
+    );
   }
 }
 

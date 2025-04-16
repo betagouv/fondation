@@ -74,6 +74,25 @@ describe('Create Report Use Case', () => {
     expectRules();
   });
 
+  it('retries the transaction if it fails', async () => {
+    reportRepository.saveError = new Error('Save report failed');
+    reportRepository.saveErrorCountLimit = 2;
+
+    await createAReport(givenAReportWithRulesAlerts());
+
+    expect(reportRepository.saveErrorCount).toBe(2);
+  });
+
+  it('shall not retry more than 4 times', async () => {
+    reportRepository.saveError = new Error('Save report failed');
+    reportRepository.saveErrorCountLimit = 6;
+
+    await expect(createAReport(givenAReportWithRulesAlerts())).rejects.toThrow(
+      'Save report failed',
+    );
+    expect(reportRepository.saveErrorCount).toBe(4);
+  });
+
   it('creates a report', async () => {
     const payload = givenAReportWithRulesAlerts();
 
