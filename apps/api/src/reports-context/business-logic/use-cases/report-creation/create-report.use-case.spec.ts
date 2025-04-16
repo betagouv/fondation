@@ -17,10 +17,10 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';
 import { CreateReportValidationError } from '../../errors/create-report-validation.error';
 import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
+import { DomainRegistry } from '../../models/domain-registry';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportRuleSnapshot } from '../../models/report-rules';
 import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
-import { DomainRegistry } from '../../models/domain-registry';
 
 const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
 const importedNominationFileId = 'imported-nomination-file-id';
@@ -185,8 +185,9 @@ describe('Create Report Use Case', () => {
         new ReportRulesBuilder(({ ruleGroup, ruleName }) => {
           const value =
             ruleName ===
-            NominationFile.StatutoryRule
-              .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS
+              NominationFile.StatutoryRule
+                .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS ||
+            ruleName === NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS
               ? {
                   id: expect.any(String),
                   preValidated: false,

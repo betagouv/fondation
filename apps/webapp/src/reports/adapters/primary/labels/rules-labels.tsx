@@ -166,6 +166,11 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
         "Retour avant une durée de 5 ans sur des fonctions spécialisées occupées pendant la durée maximale de 9 ans",
       hint: `Article 28-4 de l'OS : nul ne peut être nommé pour exercer une fonction spécialisée (JLD / JE / JI / JAP / JCP) dans une juridiction au sein de laquelle il a exercé les mêmes fonctions durant plus de neuf années avant l'expiration d'un délai de cinq ans à compter de la cessation de ses fonctions au sein de cette juridiction.`,
     },
+    [NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS]: {
+      label:
+        "Nomination pour un poste de conseiller CA ou de substitut général CA du second grade avant 4 ans de fonction",
+      hint: `Article 10 du décret du 7/01/1993 pris pour l'application de l'OS : Nul magistrat du second grade ne peut être nommé aux fonctions de conseiller ou de substitut général de cour d'appel s'il n'a accompli quatre années de services effectifs dans le corps judiciaire depuis son entrée dans la magistrature.`,
+    },
   },
   [NominationFile.RuleGroup.QUALITATIVE]: {
     [NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]: {
