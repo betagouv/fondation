@@ -1,9 +1,10 @@
 import { NominationFile } from 'shared-models';
+import { ManagementRule } from 'src/data-administration-context/business-logic/models/rules';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-rule.repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { BooleanReportRulesBuilder } from '../../models/boolean-report-rules.builder';
+import { DomainRegistry } from '../../models/domain-registry';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportRuleSnapshot } from '../../models/report-rules';
 import { ReportRuleBuilder } from '../../models/report-rules.builder';
@@ -12,7 +13,6 @@ import {
   UpdateReportOnImportChangePayload,
   UpdateReportOnImportChangeUseCase,
 } from './update-report-on-import-change.use-case';
-import { DomainRegistry } from '../../models/domain-registry';
 
 const nominationFileId = 'nomination-file-id';
 
@@ -66,9 +66,11 @@ describe('Update Report On Import Change Use Case', () => {
 
   it('should update two reports when a transfer time rule changes', async () => {
     const payload: UpdateReportOnImportChangePayload = {
-      rules: new BooleanReportRulesBuilder()
-        .with('management.TRANSFER_TIME', false)
-        .build(),
+      rules: {
+        [NominationFile.RuleGroup.MANAGEMENT]: {
+          [NominationFile.ManagementRule.TRANSFER_TIME]: false,
+        },
+      },
     };
     await updateReports(payload);
     expectReportRules(
@@ -80,10 +82,12 @@ describe('Update Report On Import Change Use Case', () => {
 
   it('should update V2 rules and ignore additional rules', async () => {
     const payload: UpdateReportOnImportChangePayload = {
-      rules: new BooleanReportRulesBuilder()
-        .with('management.TRANSFER_TIME', false)
-        .with('management.CASSATION_COURT_NOMINATION', true)
-        .build(),
+      rules: {
+        [NominationFile.RuleGroup.MANAGEMENT]: {
+          [ManagementRule.TRANSFER_TIME]: false,
+          [ManagementRule.CASSATION_COURT_NOMINATION]: true,
+        },
+      },
     };
 
     await expect(updateReports(payload)).toResolve();

@@ -5,15 +5,12 @@ import {
   StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { UnionToIntersection } from 'type-fest';
+import { PartialDeep, UnionToIntersection } from 'type-fest';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { DomainRegistry } from '../../models/domain-registry';
 
-type UpdatedRules = NominationFile.Rules<
-  boolean,
-  ManagementRule,
-  StatutoryRule,
-  QualitativeRule
+type UpdatedRules = PartialDeep<
+  NominationFile.Rules<boolean, ManagementRule, StatutoryRule, QualitativeRule>
 >;
 
 export interface UpdateReportOnImportChangePayload {
@@ -121,29 +118,9 @@ class ImportedV1RulesToV2Builder extends RulesBuilder<boolean | undefined> {
     )
       return;
 
-    if (
-      ruleName ===
-      NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
-    ) {
-      return (
-        rules[ruleGroup][
-          ruleName as keyof NonNullable<
-            UpdateReportOnImportChangePayload['rules']
-          >[NominationFile.RuleGroup]
-        ] ||
-        rules[ruleGroup][
-          'JUDICIARY_ROLE_AND_JURIDICTION_DEGREE_CHANGE' as keyof NonNullable<
-            UpdateReportOnImportChangePayload['rules']
-          >[NominationFile.RuleGroup]
-        ]
-      );
-    }
-
-    const ruleValue = (
-      rules[ruleGroup] as UnionToIntersection<
-        (typeof rules)[NominationFile.RuleGroup]
-      >
-    )[ruleName];
-    return ruleValue;
+    const groupValues = rules[ruleGroup] as UnionToIntersection<
+      (typeof rules)[NominationFile.RuleGroup]
+    >;
+    return groupValues?.[ruleName];
   }
 }
