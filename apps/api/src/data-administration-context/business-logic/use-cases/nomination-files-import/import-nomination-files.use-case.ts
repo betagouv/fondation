@@ -1,12 +1,12 @@
+import { Transparency } from 'shared-models';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { NominationFileRepository } from '../../gateways/repositories/nomination-file-repository';
 import { NominationFileContentReader } from '../../models/nomination-file-content-reader';
-import { TsvParser } from '../../models/tsv-parser';
 import { NominationFilesUpdatedCollection } from '../../models/nomination-files-updated-collection';
-
+import { TsvParser } from '../../models/tsv-parser';
 export class ImportNominationFilesUseCase {
   constructor(
     private readonly nominationFileRepository: NominationFileRepository,
@@ -19,47 +19,56 @@ export class ImportNominationFilesUseCase {
     const parsedContent = new TsvParser().parse(fileContentToImport);
     const [, secondHeader, ...content] = parsedContent;
 
-    const readCollection = new NominationFileContentReader(
+    const nominationFileReadCollection = new NominationFileContentReader(
       secondHeader,
       content,
     ).read();
 
-    return this.transactionPerformer.perform(async (trx) => {
-      const existingNominationFiles =
-        await this.nominationFileRepository.findAll()(trx);
+    const perTransparence = nominationFileReadCollection.perTransparence();
 
-      const [newNominationFiles, newNominationFilesImportedEvent] =
-        readCollection
-          .excludeExistingNominationFiles(existingNominationFiles)
-          .toModelsWithEvent(
+    return this.transactionPerformer.perform(async (trx) => {
+      for (const { readCollection, transparency } of perTransparence) {
+        const existingNominationFiles =
+          await this.nominationFileRepository.findSnapshotsPerTransparency(
+            transparency as Transparency,
+          )(trx);
+
+        const newNominationFilesCollection = readCollection.newNominationFiles(
+          existingNominationFiles,
+        );
+
+        const [newNominationFilesModels, newNominationFilesImportedEvent] =
+          newNominationFilesCollection.toModelsWithEvent(
             () => this.uuidGenerator.generate(),
             this.dateTimeProvider.now(),
           );
 
-      const promises = newNominationFiles.map((nominationFile) =>
-        this.nominationFileRepository.save(nominationFile)(trx),
-      );
-      await Promise.all(promises);
+        for (const nominationFile of newNominationFilesModels) {
+          await this.nominationFileRepository.save(nominationFile)(trx);
+        }
 
-      if (newNominationFilesImportedEvent)
-        await this.domainEventRepository.save(newNominationFilesImportedEvent)(
-          trx,
-        );
+        if (newNominationFilesImportedEvent)
+          await this.domainEventRepository.save(
+            newNominationFilesImportedEvent,
+          )(trx);
 
-      const [updatedNominationFiles, nominationFilesUpdatedEvent] =
-        new NominationFilesUpdatedCollection(
-          existingNominationFiles,
-        ).updateNominationFiles(
-          readCollection.getNominationFilesRead(),
-          this.uuidGenerator.generate(),
-          this.dateTimeProvider.now(),
-        );
+        const updatedNominationFilesFields =
+          readCollection.updatedNominationFiles(existingNominationFiles);
+        const [updatedNominationFiles, nominationFilesUpdatedEvent] =
+          new NominationFilesUpdatedCollection(
+            existingNominationFiles,
+          ).updateNominationFiles(
+            updatedNominationFilesFields,
+            this.uuidGenerator.generate(),
+            this.dateTimeProvider.now(),
+          );
 
-      if (!nominationFilesUpdatedEvent) return;
-      for (const nominationFile of updatedNominationFiles) {
-        await this.nominationFileRepository.save(nominationFile)(trx);
+        if (!nominationFilesUpdatedEvent) continue;
+        for (const nominationFile of updatedNominationFiles) {
+          await this.nominationFileRepository.save(nominationFile)(trx);
+        }
+        await this.domainEventRepository.save(nominationFilesUpdatedEvent)(trx);
       }
-      await this.domainEventRepository.save(nominationFilesUpdatedEvent)(trx);
     });
   }
 }

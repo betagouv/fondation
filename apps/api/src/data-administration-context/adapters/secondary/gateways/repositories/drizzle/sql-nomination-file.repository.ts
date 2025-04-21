@@ -1,5 +1,10 @@
+import { sql } from 'drizzle-orm';
+import { Transparency } from 'shared-models';
 import { NominationFileRepository } from 'src/data-administration-context/business-logic/gateways/repositories/nomination-file-repository';
-import { NominationFileModel } from 'src/data-administration-context/business-logic/models/nomination-file';
+import {
+  NominationFileModel,
+  NominationFileModelSnapshot,
+} from 'src/data-administration-context/business-logic/models/nomination-file';
 import {
   NominationFileRead,
   nominationFileReadContentSchema,
@@ -9,13 +14,6 @@ import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary
 import { nominationFiles } from './schema/nomination-file-pm';
 
 export class SqlNominationFileRepository implements NominationFileRepository {
-  findAll(): DrizzleTransactionableAsync<NominationFileModel[]> {
-    return async (db) => {
-      const rows = await db.select().from(nominationFiles).execute();
-      return rows.map((row) => this.mapToDomain(row));
-    };
-  }
-
   save(nominationFile: NominationFileModel): DrizzleTransactionableAsync {
     return async (db) => {
       const nominationFileRow =
@@ -32,6 +30,32 @@ export class SqlNominationFileRepository implements NominationFileRepository {
           ]),
         })
         .execute();
+    };
+  }
+
+  findAll(): DrizzleTransactionableAsync<NominationFileModel[]> {
+    return async (db) => {
+      const rows = await db.select().from(nominationFiles).execute();
+      return rows.map((row) => this.mapToDomain(row));
+    };
+  }
+
+  findSnapshotsPerTransparency(
+    transparency: Transparency,
+  ): DrizzleTransactionableAsync<NominationFileModelSnapshot[]> {
+    return async (db) => {
+      const rows = await db
+        .select()
+        .from(nominationFiles)
+        .where(
+          sql`${nominationFiles.content}->>'transparency' = ${transparency}`,
+        )
+        .execute();
+
+      return rows.map((row) => ({
+        ...row,
+        content: this.safeContent(row.content),
+      }));
     };
   }
 

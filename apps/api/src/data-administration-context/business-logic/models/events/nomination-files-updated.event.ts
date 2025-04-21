@@ -1,16 +1,13 @@
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
+import { z } from 'zod';
 import {
-  NominationFileRead,
+  zodGroupRulesPartial,
   nominationFileReadContentSchema,
 } from '../nomination-file-read';
-import { z, ZodType } from 'zod';
 
-export type NominationFilesUpdatedEventPayload = {
-  nominationFileId: string;
-  content: Partial<
-    Pick<NominationFileRead['content'], 'folderNumber' | 'observers' | 'rules'>
-  >;
-}[];
+export type NominationFilesUpdatedEventPayload = z.infer<
+  typeof nominationFilesUpdatedEventPayloadSchema
+>;
 
 export const nominationFilesUpdatedEventPayloadSchema = z
   .object({
@@ -19,12 +16,14 @@ export const nominationFilesUpdatedEventPayloadSchema = z
       .pick({
         folderNumber: true,
         observers: true,
-        rules: true,
+      })
+      .extend({
+        rules: zodGroupRulesPartial,
       })
       .partial(),
   })
   .strict()
-  .array() satisfies ZodType<NominationFilesUpdatedEventPayload>;
+  .array();
 
 export class NominationFilesUpdatedEvent extends DomainEvent<NominationFilesUpdatedEventPayload> {
   readonly name = 'NOMINATION_FILES_UPDATED';
