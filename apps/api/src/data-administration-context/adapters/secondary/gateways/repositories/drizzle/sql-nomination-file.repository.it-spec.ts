@@ -4,6 +4,7 @@ import {
   NominationFileModel,
   NominationFileModelSnapshot,
 } from 'src/data-administration-context/business-logic/models/nomination-file';
+import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import { getReadRules } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -76,11 +77,37 @@ describe('SQL Nomination File Repository', () => {
       );
       expect(nominationFiles).toEqual([aNominationFile]);
     });
+
+    describe("when there's another transparency", () => {
+      beforeEach(async () => {
+        const anotherNominationFile = givenSomeNominationFile(
+          '4822e5f0-4d34-4858-bd34-20cd3b4781b0',
+          {
+            transparency: Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025,
+          },
+        );
+        await db
+          .insert(nominationFiles)
+          .values(anotherNominationFile.toSnapshot());
+      });
+
+      it('finds nomination files per transparency', async () => {
+        const nominationFiles = await transactionPerformer.perform(
+          nominationFileRepository.findSnapshotsPerTransparency(
+            aNominationFile.toSnapshot().content.transparency,
+          ),
+        );
+        expect(nominationFiles).toEqual([aNominationFile.toSnapshot()]);
+      });
+    });
   });
 
-  const givenSomeNominationFile = () =>
+  const givenSomeNominationFile = (
+    id?: string,
+    contentOverride?: Partial<NominationFileRead['content']>,
+  ) =>
     new NominationFileModel(
-      'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
+      id ?? 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
       datetimeProvider.currentDate,
       {
         rowNumber: 1,
@@ -107,6 +134,7 @@ describe('SQL Nomination File Repository', () => {
               [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
             },
           }),
+          ...contentOverride,
         },
       },
     );

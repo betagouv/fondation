@@ -315,13 +315,11 @@ describe('Import Nomination Files Use Case', () => {
           {
             nominationFileId: 'nomination-file-id',
             content: {
-              rules: getMarcelDupontRead(
-                1,
-                undefined,
-                new NominationFileReadRulesBuilder()
-                  .with('management.TRANSFER_TIME', false)
-                  .build(),
-              ).content.rules,
+              rules: {
+                [NominationFile.RuleGroup.MANAGEMENT]: {
+                  [NominationFile.ManagementRule.TRANSFER_TIME]: false,
+                },
+              },
             },
           },
         ],

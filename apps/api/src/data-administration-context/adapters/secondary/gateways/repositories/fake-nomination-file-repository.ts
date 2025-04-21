@@ -1,3 +1,4 @@
+import { Transparency } from 'shared-models';
 import { NominationFileRepository } from 'src/data-administration-context/business-logic/gateways/repositories/nomination-file-repository';
 import {
   NominationFileModel,
@@ -21,6 +22,17 @@ export class FakeNominationFileRepository implements NominationFileRepository {
 
     return async () => {
       this.nominationFiles[nominationFileSnapshot.id] = nominationFileSnapshot;
+    };
+  }
+
+  findSnapshotsPerTransparency(
+    transparence: Transparency,
+  ): TransactionableAsync<NominationFileModelSnapshot[]> {
+    return async () => {
+      return Object.values(this.nominationFiles).filter(
+        (nominationFile) =>
+          nominationFile.content.transparency === transparence,
+      );
     };
   }
 }

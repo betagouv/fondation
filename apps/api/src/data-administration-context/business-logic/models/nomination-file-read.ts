@@ -50,21 +50,53 @@ export type Rules = {
   >;
 };
 
-const createZodGroupRules = () => {
-  return z.object(
-    Object.values(NominationFile.RuleGroup).reduce(
-      (acc, group) => ({
-        ...acc,
-        [group]: z.object(
-          Object.fromEntries(
-            allRulesMapV1[group].map((ruleName) => [ruleName, z.boolean()]),
-          ),
+export type PartialRules = Partial<{
+  [NominationFile.RuleGroup.MANAGEMENT]: ZodObject<{
+    [K in ManagementRule]?: ZodBoolean | undefined;
+  }>;
+  [NominationFile.RuleGroup.STATUTORY]: ZodObject<{
+    [K in StatutoryRule]?: ZodBoolean;
+  }>;
+  [NominationFile.RuleGroup.QUALITATIVE]: ZodObject<{
+    [K in QualitativeRule]?: ZodBoolean;
+  }>;
+}>;
+
+const zodGroupRules = z.object(
+  Object.values(NominationFile.RuleGroup).reduce(
+    (acc, group) => ({
+      ...acc,
+      [group]: z.object(
+        Object.fromEntries(
+          allRulesMapV1[group].map((ruleName) => [ruleName, z.boolean()]),
         ),
-      }),
-      {} as Rules,
+      ),
+    }),
+    {} as Rules,
+  ),
+);
+
+const createGroupRulesPartial = (group: NominationFile.RuleGroup) =>
+  z
+    .object(
+      Object.fromEntries(
+        allRulesMapV1[group].map((ruleName) => [ruleName, z.boolean()]),
+      ),
+    )
+    .partial();
+export const zodGroupRulesPartial = z
+  .object({
+    [NominationFile.RuleGroup.MANAGEMENT]: createGroupRulesPartial(
+      NominationFile.RuleGroup.MANAGEMENT,
     ),
-  );
-};
+    [NominationFile.RuleGroup.STATUTORY]: createGroupRulesPartial(
+      NominationFile.RuleGroup.STATUTORY,
+    ),
+    [NominationFile.RuleGroup.QUALITATIVE]: createGroupRulesPartial(
+      NominationFile.RuleGroup.QUALITATIVE,
+    ),
+  })
+  .partial();
 
 export const nominationFileReadContentSchema = z.object({
   folderNumber: z.number().nullable(),
@@ -90,7 +122,7 @@ export const nominationFileReadContentSchema = z.object({
   }),
   biography: z.string().nullable(),
   observers: z.array(z.string()).nullable(),
-  rules: createZodGroupRules(),
+  rules: zodGroupRules,
 }) satisfies ZodType<NominationFileRead['content']>;
 
 export const nominationFileReadSchema = z.object({

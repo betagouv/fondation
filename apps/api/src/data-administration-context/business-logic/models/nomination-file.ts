@@ -19,37 +19,16 @@ export class NominationFileModel {
     private nominationFileRead: NominationFileRead,
   ) {}
 
-  updateContent(updatedContent: NominationFileUpdatedContent) {
-    this.nominationFileRead.content = {
-      ...this.nominationFileRead.content,
-      folderNumber: updatedContent.folderNumber,
-      observers: updatedContent.observers,
-      rules: updatedContent.rules,
-    };
+  updateFolderNumber(folderNumber: number) {
+    this.nominationFileRead.content.folderNumber = folderNumber;
   }
-
-  hasSameRowNumberAs(nominationFileRead: NominationFileRead): boolean {
-    return this.nominationFileRead.rowNumber === nominationFileRead.rowNumber;
+  updateObservers(observers: string[]) {
+    this.nominationFileRead.content.observers = observers;
   }
-
-  hasSameFolderNumberAs(nominationFileRead: NominationFileRead) {
-    return (
-      this.nominationFileRead.content.folderNumber ===
-      nominationFileRead.content.folderNumber
-    );
-  }
-
-  hasSameObserversAs(nominationFileRead: NominationFileRead) {
-    return _.isEqual(
-      this.nominationFileRead.content.observers,
-      nominationFileRead.content.observers,
-    );
-  }
-
-  hasSameRulesAs(nominationFileRead: NominationFileRead): boolean {
-    return _.isEqual(
+  updateRules(rules: NominationFileRead['content']['rules']) {
+    this.nominationFileRead.content.rules = _.merge(
       this.nominationFileRead.content.rules,
-      nominationFileRead.content.rules,
+      rules,
     );
   }
 
