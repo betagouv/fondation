@@ -7,8 +7,6 @@ export const reportListTableLabels = {
     status: "Statut",
     observers: "Observants",
     deadline: "Echéance",
-    transparency: "Transparence",
-    formation: "Formation",
   },
 };
 

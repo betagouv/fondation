@@ -1,4 +1,4 @@
-import { Role } from "shared-models";
+import { Magistrat, Role } from "shared-models";
 import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import {
   authenticate,
@@ -50,52 +50,66 @@ describe("Get Transparency Attachments", () => {
   describe("Given some GDS transparency attachments", () => {
     beforeEach(() => {
       const attachments: TransparencyAttachments = {
-        siegeEtParquet: ["file-id-1"],
+        siegeEtParquet: ["file-id-commun"],
         parquet: ["file-id-parquet"],
+        siege: ["file-id-siège"],
       };
       transparencyClient.setGdsFiles("transpa-test", attachments);
 
       fileApiClient.addFiles([
         {
-          fileId: "file-id-1",
-          name: "file-id-1-name",
-          signedUrl: "https://example.com/signed-url/file-id-1-name",
+          fileId: "file-id-commun",
+          name: "file-name-commun",
+          signedUrl: "https://example.com/signed-url/file-name-commun",
         },
         {
           fileId: "file-id-parquet",
-          name: "file-id-parquet-name",
-          signedUrl: "https://example.com/signed-url/file-id-parquet-name",
+          name: "file-name-parquet",
+          signedUrl: "https://example.com/signed-url/file-name-parquet",
+        },
+        {
+          fileId: "file-id-siège",
+          name: "file-name-siège",
+          signedUrl: "https://example.com/signed-url/file-name-siège",
         },
       ]);
     });
 
-    describe("Membre du parquet", () => {
+    describe.each([
+      {
+        testName: "Membre du siège",
+        givenAUser: givenAMembreDuSiege,
+        formation: Magistrat.Formation.SIEGE,
+        expectedFiles: ["file-name-commun", "file-name-siège"],
+      },
+      {
+        testName: "Membre du parquet",
+        givenAUser: givenAMembreDuParquet,
+        formation: Magistrat.Formation.PARQUET,
+        expectedFiles: ["file-name-commun", "file-name-parquet"],
+      },
+      {
+        testName: "Membre commun",
+        givenAUser: givenAMembreCommun,
+        formation: Magistrat.Formation.PARQUET,
+        expectedFiles: ["file-name-commun", "file-name-parquet"],
+      },
+    ])("$testName", ({ givenAUser, expectedFiles, formation }) => {
       beforeEach(() => {
-        givenAMembreDuSiege();
+        givenAUser();
         initialState = store.getState();
       });
 
       it("gets attachments for a specific transparency", async () => {
-        await getTransparencyAttchments();
-        expectGdsStoredFiles("file-id-1-name");
-      });
-    });
-
-    describe("Membre commun", () => {
-      beforeEach(() => {
-        givenAMembreCommun();
-        initialState = store.getState();
-      });
-
-      it("gets attachments for a specific transparency", async () => {
-        await getTransparencyAttchments();
-        expectGdsStoredFiles("file-id-1-name", "file-id-parquet-name");
+        await getTransparencyAttchments(formation);
+        expectGdsStoredFiles(formation, ...expectedFiles);
       });
     });
   });
 
   const givenAMembreCommun = () => givenAUser(Role.MEMBRE_COMMUN);
   const givenAMembreDuSiege = () => givenAUser(Role.MEMBRE_DU_SIEGE);
+  const givenAMembreDuParquet = () => givenAUser(Role.MEMBRE_DU_PARQUET);
 
   const givenAUser = (role: Role) => {
     const user: AuthenticatedUserSM = {
@@ -106,23 +120,31 @@ describe("Get Transparency Attachments", () => {
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };
 
-  const getTransparencyAttchments = () =>
+  const getTransparencyAttchments = (formation: Magistrat.Formation) =>
     store.dispatch(
       getTransparencyAttachmentsFactory<["transpa-test"]>()({
         transparency,
+        formation,
       }),
     );
 
-  const expectGdsStoredFiles = (...fileNames: string[]) =>
+  const expectGdsStoredFiles = (
+    formation: Magistrat.Formation,
+    ...fileNames: string[]
+  ) =>
     expect(store.getState()).toEqual<AppState<true, ["transpa-test"]>>({
       ...initialState,
       transparencies: {
         GDS: {
           [transparency]: {
-            files: fileNames.map((fileName) => ({
-              name: fileName,
-              signedUrl: `https://example.com/signed-url/${fileName}`,
-            })),
+            files: {
+              [Magistrat.Formation.PARQUET]: [],
+              [Magistrat.Formation.SIEGE]: [],
+              [formation]: fileNames.map((fileName) => ({
+                name: fileName,
+                signedUrl: `https://example.com/signed-url/${fileName}`,
+              })),
+            },
           },
         },
       },

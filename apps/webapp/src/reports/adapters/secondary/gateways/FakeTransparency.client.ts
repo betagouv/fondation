@@ -20,6 +20,7 @@ export class FakeTransparencyApiClient<
       this.files.GDS[transparency] ?? {
         siegeEtParquet: [],
         parquet: [],
+        siege: [],
       }
     );
   }

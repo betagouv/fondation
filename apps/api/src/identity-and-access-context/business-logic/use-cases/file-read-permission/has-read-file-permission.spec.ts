@@ -9,6 +9,14 @@ import {
   HasReadFilePermissionUseCase,
 } from './has-read-file-permission.use-case';
 
+const membreCommun = new UserBuilder().with('role', Role.MEMBRE_COMMUN).build();
+const membreDuSiege = new UserBuilder()
+  .with('role', Role.MEMBRE_DU_SIEGE)
+  .build();
+const membreDuParquet = new UserBuilder()
+  .with('role', Role.MEMBRE_DU_PARQUET)
+  .build();
+
 describe('Has Read File Permission', () => {
   let transactionPerformer: TransactionPerformer;
   let userRepository: FakeUserRepository;
@@ -35,26 +43,32 @@ describe('Has Read File Permission', () => {
       };
     });
 
-    // TODO Tant que tous les fichiers ne sont pas migrés, on autorise l'accès à ceux manquants
-    it.skip('should deny a reporter to access a non-existing transparency attachment file', async () => {
-      expect(await hasReadFilePermission()).toBe(false);
-    });
-
     it('should allow a reporter to access a transparency attachment file', async () => {
       givenSomeFile();
       expect(await hasReadFilePermission()).toBe(true);
     });
   });
 
-  describe('Membre du Siège', () => {
+  describe.each([
+    {
+      describeName: 'Membre du Parquet',
+      fileType: FileType.PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE,
+      user: membreDuParquet,
+    },
+    {
+      describeName: 'Membre du Siège',
+      fileType: FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET,
+      user: membreDuSiege,
+    },
+  ])('$describeName', ({ fileType, user }) => {
     beforeEach(() => {
       userRepository.users = {
-        [membreDuSiege.id]: membreDuSiege,
+        [user.id]: user,
       };
     });
 
-    it('should deny a siege reporter to access a parquet-only transparency attachment file', async () => {
-      givenSomeFile(FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET);
+    it(`should deny access to transparency attachment file of type: ${fileType}`, async () => {
+      givenSomeFile(fileType);
       expect(await hasReadFilePermission()).toBe(false);
     });
   });
@@ -79,8 +93,3 @@ describe('Has Read File Permission', () => {
 });
 
 const fileId = 'file-id';
-
-const membreCommun = new UserBuilder().with('role', Role.MEMBRE_COMMUN).build();
-const membreDuSiege = new UserBuilder()
-  .with('role', Role.MEMBRE_DU_SIEGE)
-  .build();

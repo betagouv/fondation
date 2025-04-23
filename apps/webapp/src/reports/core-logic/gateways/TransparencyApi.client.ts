@@ -7,6 +7,7 @@ export type EndpointResponse<T> = Promise<T>;
 export const transparencyAttachmentsSchema = z.object({
   siegeEtParquet: z.string().array(),
   parquet: z.string().array(),
+  siege: z.string().array(),
 });
 
 export const transparenciesAttachmentsSchema = z.record(

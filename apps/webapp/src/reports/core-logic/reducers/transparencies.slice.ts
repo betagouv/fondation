@@ -2,7 +2,7 @@ import { createSlice, Slice } from "@reduxjs/toolkit";
 import { AppState } from "../../../store/appState";
 import { getTransparencyAttachmentsFactory } from "../use-cases/transparency-attachments/get-transparency-attachments";
 import { UnionToTuple } from "type-fest";
-import { Transparency } from "shared-models";
+import { Magistrat, Transparency } from "shared-models";
 
 export const createTransparenciesSlice = <
   T extends string[] = UnionToTuple<Transparency>,
@@ -13,12 +13,20 @@ export const createTransparenciesSlice = <
     name: "transparencies",
     initialState: (): AppState["transparencies"] => ({
       GDS: gdsTransparencies.reduce(
-        (acc, transparency) => ({
-          ...acc,
-          [transparency]: {
-            files: [],
-          },
-        }),
+        (acc, transparency) => {
+          // Cette étape intermédiaire ajoute un peu de type-safety
+          const transparencyInitialState: AppState["transparencies"]["GDS"][Transparency] =
+            {
+              files: {
+                [Magistrat.Formation.SIEGE]: [],
+                [Magistrat.Formation.PARQUET]: [],
+              },
+            };
+          return {
+            ...acc,
+            [transparency]: transparencyInitialState,
+          };
+        },
         {} as AppState["transparencies"]["GDS"],
       ),
     }),
@@ -27,13 +35,16 @@ export const createTransparenciesSlice = <
       builder.addCase(
         getTransparencyAttachmentsFactory().fulfilled,
         (state, action) => {
-          const { transparency } = action.meta.arg;
+          const { transparency, formation } = action.meta.arg;
           const files = action.payload;
           state.GDS[transparency] = {
-            files: files.map((file) => ({
-              name: file.name,
-              signedUrl: file.signedUrl,
-            })),
+            files: {
+              ...state.GDS[transparency].files,
+              [formation]: files.map((file) => ({
+                name: file.name,
+                signedUrl: file.signedUrl,
+              })),
+            },
           };
         },
       );

@@ -24,6 +24,7 @@ describe("Api Transparency Gateway", () => {
       expect(result).toEqual<TransparencyAttachments>({
         siegeEtParquet: [],
         parquet: [],
+        siege: [],
       });
     });
 
@@ -55,9 +56,11 @@ const anotherTransparency = Transparency.DU_03_MARS_2025;
 const aTransparencyAttachments: TransparencyAttachments = {
   siegeEtParquet: ["document-1.pdf", "document-2.pdf"],
   parquet: [],
+  siege: [],
 };
 
 const anotherTransparencyAttachments: TransparencyAttachments = {
   siegeEtParquet: ["3-mars-2025.pdf"],
   parquet: [],
+  siege: [],
 };

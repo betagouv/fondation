@@ -22,7 +22,7 @@ export type BreadcrumbVM = {
 type CurrentPage =
   | {
       name: BreadcrumCurrentPage.perGdsTransparencyReports;
-      formation: Magistrat.Formation | null;
+      formation: Magistrat.Formation;
     }
   | {
       name: BreadcrumCurrentPage.gdsReport;
@@ -54,9 +54,7 @@ export const selectBreadcrumb = createAppSelector(
     switch (currentPage.name) {
       case BreadcrumCurrentPage.perGdsTransparencyReports:
         return {
-          currentPageLabel: currentPage.formation
-            ? `Formation ${formationToLabel(currentPage.formation)}`
-            : "Rapports",
+          currentPageLabel: `Formation ${formationToLabel(currentPage.formation)}`,
           segments: [transparenciesSegment, gdsTransparenciesSegment],
         };
 

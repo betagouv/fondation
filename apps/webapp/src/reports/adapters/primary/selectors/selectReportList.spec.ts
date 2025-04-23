@@ -38,9 +38,9 @@ describe("Select Report List", () => {
   });
 
   it("shows a report title", () => {
-    givenSomeReports(reportBuilder.buildListSM());
+    givenSomeReports(new ReportBuilder().buildListSM());
     selectReports();
-    expectTitle([{ text: "Rapports" }]);
+    expectTitle(expectedGrandeTranspaTransparencyTitle);
   });
 
   it("shows the table headers", () => {
@@ -56,14 +56,14 @@ describe("Select Report List", () => {
   describe("When there is two new reports and an in-progress report", () => {
     beforeEach(() => {
       givenSomeReports(
-        reportBuilder
+        new ReportBuilder()
           .with("state", NominationFile.ReportState.NEW)
           .buildListSM(),
-        reportBuilder
+        new ReportBuilder()
           .with("id", "second-new-report-id")
           .with("state", NominationFile.ReportState.NEW)
           .buildListSM(),
-        reportBuilder
+        new ReportBuilder()
           .with("id", "in-progress-report-id")
           .with("state", NominationFile.ReportState.IN_PROGRESS)
           .buildListSM(),
@@ -77,7 +77,7 @@ describe("Select Report List", () => {
   });
 
   describe("When there is one report with SIEGE formation", () => {
-    const aSiegeReport = reportBuilder
+    const aSiegeReport = new ReportBuilder()
       .with("transparency", Transparency.AUTOMNE_2024)
       .with("formation", Magistrat.Formation.SIEGE)
       .buildListSM();
@@ -97,7 +97,7 @@ describe("Select Report List", () => {
 
   describe("when there are many reports", () => {
     it("filters out the reports of a transparency", () => {
-      const aReport = reportBuilder
+      const aReport = new ReportBuilder()
         .with("transparency", Transparency.AUTOMNE_2024)
         .buildListSM();
       const aDifferentTransparencyReport = ReportBuilder.duplicate(aReport)
@@ -111,31 +111,26 @@ describe("Select Report List", () => {
       });
 
       expectStoredReports(viewModelFromStoreModel(aReport));
-      expectHeaders(perTransparencyAndFormationHeaders);
-      expectTitle(expectedTransparencyTitle);
     });
 
-    it("selects the sorted list by transparency then folder number", () => {
-      const aReport = reportBuilder
-        .with("folderNumber", 1)
-        .with("transparency", Transparency.AUTOMNE_2024)
+    it("selects the sorted list by folder number", () => {
+      const aReport = new ReportBuilder().with("folderNumber", 1).buildListSM();
+      const aSecondReport = new ReportBuilder()
+        .with("id", "second-report-id")
+        .with("folderNumber", 2)
         .buildListSM();
-      const aDifferentTransparencyReport = reportBuilder
-        .with("id", "different-transparency-report-id")
-        .with("folderNumber", 1)
-        .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
-        .buildListSM();
-      const aProfiledReport = ReportBuilder.duplicate(aReport)
+      const aProfiledReport = new ReportBuilder()
+        .with("id", "profiled-report-id")
         .with("folderNumber", null)
         .buildListSM();
-      givenSomeReports(aProfiledReport, aReport, aDifferentTransparencyReport);
+      givenSomeReports(aProfiledReport, aReport, aSecondReport);
 
       selectReports();
 
       expectStoredReports(
         viewModelFromStoreModel(aReport),
+        viewModelFromStoreModel(aSecondReport),
         viewModelFromStoreModel(aProfiledReport),
-        viewModelFromStoreModel(aDifferentTransparencyReport),
       );
     });
   });
@@ -143,10 +138,15 @@ describe("Select Report List", () => {
   const givenSomeReports = (...reports: ReportListItem[]) =>
     store.dispatch(listReport.fulfilled(reports, "", undefined));
 
-  const selectReports = (args?: {
-    transparencyFilter?: Transparency;
-    formationFilter?: Magistrat.Formation;
-  }) => {
+  const selectReports = (
+    args: {
+      transparencyFilter: Transparency;
+      formationFilter: Magistrat.Formation;
+    } = {
+      transparencyFilter: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
+      formationFilter: Magistrat.Formation.PARQUET,
+    },
+  ) => {
     selectedReport = selectReportList(store.getState(), {
       aTransparencyTitleMap: transparencyTitleMap,
       ...args,
@@ -175,18 +175,8 @@ describe("Select Report List", () => {
 
 const allHeaders = Object.values(reportListTableLabels.headers);
 
-const perTransparencyAndFormationHeaders: ReportListVM["headers"] = [
-  reportListTableLabels.headers.folderNumber,
-  reportListTableLabels.headers.magistrate,
-  reportListTableLabels.headers.currentGrade,
-  reportListTableLabels.headers.targetedPosition,
-  reportListTableLabels.headers.status,
-  reportListTableLabels.headers.observers,
-  reportListTableLabels.headers.deadline,
-];
-
 const transparencyTitleMap: { [key in Transparency]: string } = {
-  [Transparency.AUTOMNE_2024]: "transpa automne 2024",
+  [Transparency.AUTOMNE_2024]: "",
   [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]: "",
   [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]: "",
   [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]: "",
@@ -195,18 +185,16 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.PARQUET_DU_06_FEVRIER_2025]: "",
   [Transparency.PARQUET_DU_20_FEVRIER_2025]: "",
   [Transparency.DU_03_MARS_2025]: "",
-  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "",
+  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "grande transpa",
   [Transparency.MARCH_2026]: "",
 };
 
-const expectedTransparencyTitle = [
+const expectedGrandeTranspaTransparencyTitle = [
   {
     text: "Rapports sur la ",
   },
   {
-    text: "transpa automne 2024",
+    text: "grande transpa",
     color: expect.any(String),
   },
 ];
-
-const reportBuilder = new ReportBuilder();

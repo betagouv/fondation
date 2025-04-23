@@ -74,7 +74,10 @@ export interface AppState<
     currentDate: Date;
   };
   transparencies: {
-    GDS: Record<AppStateTransparencies[number], { files: FileVM[] }>;
+    GDS: Record<
+      AppStateTransparencies[number],
+      { files: Record<Magistrat.Formation, FileVM[]> }
+    >;
   };
   reportOverview: {
     acceptedMimeTypes: {

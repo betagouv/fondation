@@ -6,6 +6,7 @@ import {
   AuthenticatedUser,
   Magistrat,
   NominationFile,
+  Role,
   Transparency,
 } from "shared-models";
 import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
@@ -29,7 +30,6 @@ import { FakeReportApiClient } from "../../../secondary/gateways/FakeReport.clie
 import { FakeTransparencyApiClient } from "../../../secondary/gateways/FakeTransparency.client";
 import { reportListTableLabels } from "../../labels/report-list-table-labels";
 import { ReportList } from "./ReportList";
-import { Role } from "shared-models";
 
 describe("Report List Component", () => {
   let store: ReduxStore;
@@ -82,10 +82,7 @@ describe("Report List Component", () => {
       undefined,
       undefined,
       undefined,
-      [
-        Transparency.AUTOMNE_2024,
-        Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
-      ],
+      [aTransparency, Transparency.AUTOMNE_2024],
     );
 
     expectTransparenciesBreadcrumb =
@@ -116,6 +113,7 @@ describe("Report List Component", () => {
             new ReportApiModelBuilder()
               .with("id", `report-id-${count}`)
               .with("state", NominationFile.ReportState.NEW)
+              .with("transparency", aTransparency)
               .build(),
           ),
         );
@@ -137,8 +135,10 @@ describe("Report List Component", () => {
 
   describe("Breadcrumb", () => {
     it("shows the current page", async () => {
-      renderReportList();
-      within(await screen.findByRole("navigation")).getByText("Rapports");
+      renderReportList(aTransparency, Magistrat.Formation.PARQUET);
+      within(await screen.findByRole("navigation")).getByText(
+        "Formation Parquet",
+      );
     });
 
     it("redirects to the transparency page", async () => {
@@ -167,9 +167,7 @@ describe("Report List Component", () => {
       await screen.findByText(aReportFolderNumber.toString());
       await within(table).findByText("Nouveau");
       await screen.findByText("30/10/2030");
-      await screen.findByText("Parquet");
       await screen.findByText("John Doe");
-      await screen.findByText("T 8/11/2024 (PG/PR)");
       await screen.findByText("I");
       await screen.findByText("PG TJ Marseille");
       await screen.findByText(aReportObserversCount.toString());
@@ -194,18 +192,18 @@ describe("Report List Component", () => {
       });
 
       it("hides the transparency column for a single transparency", async () => {
-        renderReportList(anotherReport.transparency);
+        renderReportList(anotherReport.transparency, anotherReport.formation);
         await screen.findByText(anotherReport.name);
         expect(screen.queryByText("Transparence")).toBeNull();
       });
 
       it("shows reports for a single transparency", async () => {
-        renderReportList(anotherReport.transparency);
+        renderReportList(anotherReport.transparency, anotherReport.formation);
         await screen.findByText(anotherReport.name);
         expect(screen.queryByText(aReport.name)).toBeNull();
       });
 
-      it("doesn't show 'Parquet' reports when we filter transparency reports on 'Siège'", async () => {
+      it("doesn't show a transparency's 'Parquet' reports when we expect the 'Siège' one", async () => {
         reportApiClient.addReports(
           new ReportApiModelBuilder()
             .with("id", "parquet-report-id")
@@ -241,6 +239,7 @@ describe("Report List Component", () => {
         transparencyApiClient.setGdsFiles(transparency, {
           siegeEtParquet: attachments,
           parquet: [],
+          siege: [],
         });
 
         const attachmentFiles = attachments.map((fileId, index) => ({
@@ -276,15 +275,12 @@ describe("Report List Component", () => {
   };
 
   const renderReportList = (
-    transparency?: Transparency,
-    formation?: Magistrat.Formation,
+    transparency: Transparency = aTransparency,
+    formation: Magistrat.Formation = aFormation,
   ) => {
     render(
       <Provider store={store}>
-        <ReportList
-          transparency={transparency || null}
-          formation={formation || null}
-        />
+        <ReportList transparency={transparency} formation={formation} />
       </Provider>,
     );
   };
@@ -310,3 +306,6 @@ const aReport = new ReportApiModelBuilder()
   .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
   .with("formation", Magistrat.Formation.PARQUET)
   .build();
+
+const aTransparency = Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
+const aFormation = Magistrat.Formation.PARQUET;

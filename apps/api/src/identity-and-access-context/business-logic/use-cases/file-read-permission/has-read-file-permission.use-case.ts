@@ -6,6 +6,7 @@ import { FileRepository } from '../../gateways/repositories/file-repository';
 export enum FileType {
   PIECE_JOINTE_TRANSPARENCE = 'PIECE_JOINTE_TRANSPARENCE',
   PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET = 'PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET',
+  PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE = 'PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE',
 }
 
 export class HasReadFilePermissionUseCase {
@@ -23,12 +24,25 @@ export class HasReadFilePermissionUseCase {
       // TODO Tant que tous les fichiers ne sont pas migrés, on autorise l'accès à ceux manquants
       if (!file) return true;
 
-      const allowedRoles =
-        file.type === FileType.PIECE_JOINTE_TRANSPARENCE
-          ? [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_SIEGE, Role.MEMBRE_DU_PARQUET]
-          : [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_PARQUET];
-
-      return allowedRoles.includes(user.role);
+      return this.allowedRoles(file.type).includes(user.role);
     });
+  }
+
+  private allowedRoles(fileType: FileType): Role[] {
+    switch (fileType) {
+      case FileType.PIECE_JOINTE_TRANSPARENCE:
+        return [
+          Role.MEMBRE_COMMUN,
+          Role.MEMBRE_DU_SIEGE,
+          Role.MEMBRE_DU_PARQUET,
+        ];
+      case FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET:
+        return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_PARQUET];
+      case FileType.PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE:
+        return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_SIEGE];
+      default:
+        const _exhaustiveCheck: never = fileType;
+        throw new Error(`Unhandled file type: ${_exhaustiveCheck}`);
+    }
   }
 }

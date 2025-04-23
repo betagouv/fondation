@@ -15,11 +15,6 @@ export const Breadcrumb: FC<BreadcrumbProps> = ({
   ariaLabel,
 }) => (
   <DsfrBreadcrumb
-    classes={
-      {
-        // root: "m-0",
-      }
-    }
     id={id}
     aria-label={ariaLabel}
     currentPageLabel={currentPageLabel}

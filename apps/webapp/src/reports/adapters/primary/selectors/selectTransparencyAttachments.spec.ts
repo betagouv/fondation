@@ -1,10 +1,12 @@
-import { FileVM } from "shared-models";
+import { FileVM, Magistrat } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { getTransparencyAttachmentsFactory } from "../../../core-logic/use-cases/transparency-attachments/get-transparency-attachments";
 import {
   selectGdsTransparencyAttachmentsFactory,
   TransparencyAttachmentsVM,
 } from "./selectTransparencyAttachments";
+
+const aFormation = Magistrat.Formation.PARQUET;
 
 describe("Select Transparency Attachments", () => {
   let store: ReduxStore;
@@ -72,6 +74,7 @@ describe("Select Transparency Attachments", () => {
         "",
         {
           transparency,
+          formation: aFormation,
         },
       ),
     );
@@ -84,15 +87,16 @@ describe("Select Transparency Attachments", () => {
       "transpa-test" | "other-transpa-test"
     >()(store.getState(), {
       transparency,
+      formation: aFormation,
     });
   };
 
   const expectAttachments = (expectedFiles: FileVM[]) => {
-    expect(selectedAttachments).toEqual<TransparencyAttachmentsVM>({
-      files: expectedFiles.map((file) => ({
+    expect(selectedAttachments).toEqual<TransparencyAttachmentsVM>(
+      expectedFiles.map((file) => ({
         name: file.name,
         url: file.signedUrl,
       })),
-    });
+    );
   };
 });

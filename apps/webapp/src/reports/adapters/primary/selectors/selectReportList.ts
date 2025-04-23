@@ -3,17 +3,13 @@ import _ from "lodash";
 import { Magistrat, Transparency } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../../store/createAppSelector";
-import { transparenciesOrder } from "../../../core-logic/transparencies-order";
 import {
   formationToLabel,
   gradeToLabel,
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import {
-  ReportListTableLabels,
-  reportListTableLabels,
-} from "../labels/report-list-table-labels";
+import { reportListTableLabels } from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
 
 export type ReportListItemVM = {
@@ -31,8 +27,6 @@ export type ReportListItemVM = {
   onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
-type HeadersKey = keyof ReportListTableLabels["headers"];
-
 export type ReportListVM = {
   newReportsCount: number;
   reports: ReportListItemVM[];
@@ -46,33 +40,26 @@ export const selectReportList = createAppSelector(
     (state) => state.router.anchorsAttributes.reportOverview,
     (
       _,
-      args?: {
-        transparencyFilter?: Transparency;
+      args: {
+        transparencyFilter: Transparency;
         aTransparencyTitleMap?: typeof transparencyTitleMap;
-        formationFilter?: Magistrat.Formation;
+        formationFilter: Magistrat.Formation;
       },
     ) => args,
   ],
   (data, getReportAnchorAttributes, args): ReportListVM => {
-    const { transparencyFilter, formationFilter } = args || {};
-    let { aTransparencyTitleMap } = args || {};
+    const { transparencyFilter, formationFilter } = args;
+    let { aTransparencyTitleMap } = args;
     if (!aTransparencyTitleMap) aTransparencyTitleMap = transparencyTitleMap;
 
     const sortedReports = _.orderBy(
       [...(data || [])],
-      [
-        (item) => transparenciesOrder.indexOf(item.transparency),
-        (item) => item.folderNumber,
-      ],
+      [(item) => item.folderNumber],
     );
 
     const reports = sortedReports
-      .filter(({ transparency }) =>
-        transparencyFilter ? transparency === transparencyFilter : true,
-      )
-      .filter(({ formation }) =>
-        formationFilter ? formation === formationFilter : true,
-      )
+      .filter(({ transparency }) => transparency === transparencyFilter)
+      .filter(({ formation }) => formation === formationFilter)
       .map(
         ({
           id,
@@ -117,26 +104,17 @@ export const selectReportList = createAppSelector(
       newReportsCount: _.sumBy(reports, (report) =>
         report.state === "Nouveau" ? 1 : 0,
       ),
-      headers: Object.entries(reportListTableLabels.headers)
-        .filter(([key]) =>
-          transparencyFilter ? (key as HeadersKey) !== "transparency" : true,
-        )
-        .filter(([key]) =>
-          formationFilter ? (key as HeadersKey) !== "formation" : true,
-        )
-        .map(([, value]) => value),
+      headers: Object.values(reportListTableLabels.headers),
       reports,
-      title: transparencyFilter
-        ? [
-            {
-              text: "Rapports sur la ",
-            },
-            {
-              text: aTransparencyTitleMap[transparencyFilter],
-              color: colors.options.yellowTournesol.sun407moon922.hover,
-            },
-          ]
-        : [{ text: "Rapports" }],
+      title: [
+        {
+          text: "Rapports sur la ",
+        },
+        {
+          text: aTransparencyTitleMap[transparencyFilter],
+          color: colors.options.yellowTournesol.sun407moon922.hover,
+        },
+      ],
     };
   },
 );

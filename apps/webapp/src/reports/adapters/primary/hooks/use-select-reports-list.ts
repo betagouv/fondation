@@ -3,12 +3,12 @@ import { selectReportList } from "../selectors/selectReportList";
 import { useAppSelector } from "./react-redux";
 
 export const useSelectReportsList = (
-  transparency: Transparency | null,
-  formation: Magistrat.Formation | null,
+  transparency: Transparency,
+  formation: Magistrat.Formation,
 ) => {
   const reportListArgs = {
-    transparencyFilter: transparency || undefined,
-    formationFilter: formation || undefined,
+    transparencyFilter: transparency,
+    formationFilter: formation,
   };
 
   return useAppSelector((state) => selectReportList(state, reportListArgs));

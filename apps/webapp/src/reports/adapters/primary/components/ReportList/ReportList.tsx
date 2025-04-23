@@ -14,8 +14,8 @@ import { TransparencyFilesList } from "./TransparencyFilesList";
 import { useSelectReportsList } from "../../hooks/use-select-reports-list";
 
 export interface ReportListProps {
-  transparency: Transparency | null;
-  formation: Magistrat.Formation | null;
+  transparency: Transparency;
+  formation: Magistrat.Formation;
 }
 
 export const ReportList: FC<ReportListProps> = ({
@@ -33,7 +33,7 @@ export const ReportList: FC<ReportListProps> = ({
     transparency,
     formation,
   );
-  const attachments = useTransparencyAttachments(transparency ?? undefined);
+  const attachments = useTransparencyAttachments(transparency, formation);
 
   useReportsList();
 
@@ -63,20 +63,15 @@ export const ReportList: FC<ReportListProps> = ({
       )}
 
       {reports.length ? (
-        <ReportsTable
-          transparency={transparency}
-          formation={formation}
-          headers={headers}
-          reports={reports}
-        />
+        <ReportsTable headers={headers} reports={reports} />
       ) : (
         <div>Aucun rapport.</div>
       )}
 
-      {attachments.files.length > 0 && (
+      {attachments.length > 0 && (
         <div>
           <h2>Pièces jointes</h2>
-          <TransparencyFilesList files={attachments.files} />
+          <TransparencyFilesList files={attachments} />
         </div>
       )}
     </div>

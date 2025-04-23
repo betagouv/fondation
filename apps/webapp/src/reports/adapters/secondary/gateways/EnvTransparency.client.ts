@@ -23,6 +23,7 @@ export class EnvTransparencyApiClient<
       transparenciesFileIds[transparency] ?? {
         siegeEtParquet: [],
         parquet: [],
+        siege: [],
       }
     );
   }
