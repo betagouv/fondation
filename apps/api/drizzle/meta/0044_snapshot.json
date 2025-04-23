@@ -1,0 +1,635 @@
+{
+  "id": "f688f96b-1956-463f-932c-c0af92775b19",
+  "prevId": "5f7fff3f-708e-43ec-b014-c31fc2bd6d40",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "data_administration_context.nomination_files": {
+      "name": "nomination_files",
+      "schema": "data_administration_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "row_number": {
+          "name": "row_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "files_context.files": {
+      "name": "files",
+      "schema": "files_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bucket": {
+          "name": "bucket",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "varchar[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "storage_provider": {
+          "name": "storage_provider",
+          "type": "storage_provider",
+          "typeSchema": "files_context",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "identity_and_access_context.files": {
+      "name": "files",
+      "schema": "identity_and_access_context",
+      "columns": {
+        "file_id": {
+          "name": "file_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "file_type",
+          "typeSchema": "identity_and_access_context",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "identity_and_access_context.users": {
+      "name": "users",
+      "schema": "identity_and_access_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "role",
+          "typeSchema": "identity_and_access_context",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender",
+          "typeSchema": "identity_and_access_context",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "checkConstraints": {}
+    },
+    "identity_and_access_context.sessions": {
+      "name": "sessions",
+      "schema": "identity_and_access_context",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invalidated_at": {
+          "name": "invalidated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
+          "schemaTo": "identity_and_access_context",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "reports_context.report_rule": {
+      "name": "report_rule",
+      "schema": "reports_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "rule_group": {
+          "name": "rule_group",
+          "type": "rule_group",
+          "typeSchema": "reports_context",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rule_name": {
+          "name": "rule_name",
+          "type": "rule_name",
+          "typeSchema": "reports_context",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pre_validated": {
+          "name": "pre_validated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validated": {
+          "name": "validated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "report_rule_report_id_reports_id_fk": {
+          "name": "report_rule_report_id_reports_id_fk",
+          "tableFrom": "report_rule",
+          "tableTo": "reports",
+          "schemaTo": "reports_context",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "reports_context.reports": {
+      "name": "reports",
+      "schema": "reports_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reporter_id": {
+          "name": "reporter_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nomination_file_id": {
+          "name": "nomination_file_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "folder_number": {
+          "name": "folder_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "biography": {
+          "name": "biography",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "report_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NEW'"
+        },
+        "formation": {
+          "name": "formation",
+          "type": "formation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transparency": {
+          "name": "transparency",
+          "type": "transparency",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grade": {
+          "name": "grade",
+          "type": "grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "current_position": {
+          "name": "current_position",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "targetted_position": {
+          "name": "targetted_position",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "observers": {
+          "name": "observers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attached_files": {
+          "name": "attached_files",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "shared_kernel_context.domain_events": {
+      "name": "domain_events",
+      "schema": "shared_kernel_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "occurred_on": {
+          "name": "occurred_on",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "domain_event_status",
+          "typeSchema": "shared_kernel_context",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "enums": {
+    "files_context.storage_provider": {
+      "name": "storage_provider",
+      "schema": "files_context",
+      "values": [
+        "SCALEWAY"
+      ]
+    },
+    "identity_and_access_context.file_type": {
+      "name": "file_type",
+      "schema": "identity_and_access_context",
+      "values": [
+        "PIECE_JOINTE_TRANSPARENCE",
+        "PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET",
+        "PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE"
+      ]
+    },
+    "identity_and_access_context.gender": {
+      "name": "gender",
+      "schema": "identity_and_access_context",
+      "values": [
+        "MALE",
+        "FEMALE"
+      ]
+    },
+    "identity_and_access_context.role": {
+      "name": "role",
+      "schema": "identity_and_access_context",
+      "values": [
+        "MEMBRE_DU_SIEGE",
+        "MEMBRE_DU_PARQUET",
+        "MEMBRE_COMMUN"
+      ]
+    },
+    "public.formation": {
+      "name": "formation",
+      "schema": "public",
+      "values": [
+        "PARQUET",
+        "SIEGE"
+      ]
+    },
+    "public.grade": {
+      "name": "grade",
+      "schema": "public",
+      "values": [
+        "I",
+        "II",
+        "HH"
+      ]
+    },
+    "public.report_state": {
+      "name": "report_state",
+      "schema": "public",
+      "values": [
+        "NEW",
+        "IN_PROGRESS",
+        "READY_TO_SUPPORT",
+        "SUPPORTED"
+      ]
+    },
+    "reports_context.rule_group": {
+      "name": "rule_group",
+      "schema": "reports_context",
+      "values": [
+        "management",
+        "statutory",
+        "qualitative"
+      ]
+    },
+    "reports_context.rule_name": {
+      "name": "rule_name",
+      "schema": "reports_context",
+      "values": [
+        "TRANSFER_TIME",
+        "GETTING_GRADE_IN_PLACE",
+        "JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT",
+        "JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION",
+        "GRADE_ON_SITE_AFTER_7_YEARS",
+        "MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS",
+        "MINISTER_CABINET",
+        "GRADE_REGISTRATION",
+        "HH_WITHOUT_2_FIRST_GRADE_POSITIONS",
+        "LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO",
+        "RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS",
+        "NOMINATION_CA_AVANT_4_ANS",
+        "CONFLICT_OF_INTEREST_PRE_MAGISTRATURE",
+        "CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION",
+        "EVALUATIONS",
+        "DISCIPLINARY_ELEMENTS"
+      ]
+    },
+    "public.transparency": {
+      "name": "transparency",
+      "schema": "public",
+      "values": [
+        "AUTOMNE_2024",
+        "PROCUREURS_GENERAUX_8_NOVEMBRE_2024",
+        "PROCUREURS_GENERAUX_25_NOVEMBRE_2024",
+        "TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024",
+        "CABINET_DU_MINISTRE_DU_21_JANVIER_2025",
+        "SIEGE_DU_06_FEVRIER_2025",
+        "PARQUET_DU_06_FEVRIER_2025",
+        "PARQUET_DU_20_FEVRIER_2025",
+        "DU_03_MARS_2025",
+        "GRANDE_TRANSPA_DU_21_MARS_2025",
+        "MARCH_2026"
+      ]
+    },
+    "shared_kernel_context.domain_event_status": {
+      "name": "domain_event_status",
+      "schema": "shared_kernel_context",
+      "values": [
+        "NEW",
+        "PENDING",
+        "CONSUMED"
+      ]
+    }
+  },
+  "schemas": {
+    "data_administration_context": "data_administration_context",
+    "files_context": "files_context",
+    "identity_and_access_context": "identity_and_access_context",
+    "reports_context": "reports_context",
+    "shared_kernel_context": "shared_kernel_context"
+  },
+  "sequences": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
