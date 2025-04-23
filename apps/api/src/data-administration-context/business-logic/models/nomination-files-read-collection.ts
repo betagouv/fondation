@@ -14,8 +14,13 @@ import {
   nominationFileReadContentSchema,
   nominationFileReadListSchema,
 } from './nomination-file-read';
-import { NominationFile } from 'shared-models';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { ManagementRule } from './rules';
+
+export type TransparenceCollection = {
+  transparency: Transparency;
+  readCollection: NominationFilesContentReadCollection;
+};
 
 export class NominationFilesContentReadCollection {
   private readonly _nominationFileReadList: NominationFileRead[];
@@ -26,18 +31,15 @@ export class NominationFilesContentReadCollection {
     );
   }
 
-  toModelsWithEvent(
-    generatedUuid: () => string,
-    currentDate: Date,
-  ): [NominationFileModel[], NominationFilesImportedEvent | null] {
+  toModelsWithEvent(): [
+    NominationFileModel[],
+    NominationFilesImportedEvent | null,
+  ] {
     if (this._nominationFileReadList.length === 0) {
       return [[], null];
     }
 
-    const nominationFiles = this._nominationFileReadList.map(
-      (content) =>
-        new NominationFileModel(generatedUuid(), currentDate, content),
-    );
+    const nominationFiles = this.toModels();
 
     const payload: NominationFilesImportedEventPayload = nominationFiles.map(
       (nominationFile) => {
@@ -49,16 +51,19 @@ export class NominationFilesContentReadCollection {
       },
     );
 
-    const nominationFilesImportedEvent = new NominationFilesImportedEvent(
-      generatedUuid(),
-      payload,
-      currentDate,
-    );
+    const nominationFilesImportedEvent =
+      NominationFilesImportedEvent.create(payload);
 
     return [nominationFiles, nominationFilesImportedEvent];
   }
 
-  perTransparence() {
+  toModels(): NominationFileModel[] {
+    return this._nominationFileReadList.map((content) =>
+      NominationFileModel.create(content),
+    );
+  }
+
+  perTransparence(): TransparenceCollection[] {
     const aggregatedLists = _.groupBy(
       this._nominationFileReadList,
       (nominationFile) => nominationFile.content.transparency,
@@ -68,11 +73,20 @@ export class NominationFilesContentReadCollection {
         const nominationFilesContentReadCollection =
           new NominationFilesContentReadCollection(nominationFiles);
         return {
-          transparency: transparence,
+          transparency: z.nativeEnum(Transparency).parse(transparence),
           readCollection: nominationFilesContentReadCollection,
         };
       },
     );
+  }
+
+  formations(): Magistrat.Formation[] {
+    const formations = _.uniq(
+      this._nominationFileReadList.map(
+        (nominationFile) => nominationFile.content.formation,
+      ),
+    );
+    return formations;
   }
 
   newNominationFiles(existingNominationFiles: NominationFileModelSnapshot[]) {
@@ -167,6 +181,14 @@ export class NominationFilesContentReadCollection {
     });
 
     return newNominationFiles;
+  }
+
+  contents(): NominationFileRead['content'][] {
+    return [
+      ...this._nominationFileReadList.map(
+        (nominationFile) => nominationFile.content,
+      ),
+    ];
   }
 }
 

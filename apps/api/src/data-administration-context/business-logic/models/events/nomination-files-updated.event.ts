@@ -1,8 +1,9 @@
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
+import { DomainRegistry } from '../domain-registry';
 import {
-  zodGroupRulesPartial,
   nominationFileReadContentSchema,
+  zodGroupRulesPartial,
 } from '../nomination-file-read';
 
 export type NominationFilesUpdatedEventPayload = z.infer<
@@ -34,5 +35,11 @@ export class NominationFilesUpdatedEvent extends DomainEvent<NominationFilesUpda
     currentDate: Date,
   ) {
     super(id, NominationFilesUpdatedEvent.name, payload, currentDate);
+  }
+
+  static create(payload: NominationFilesUpdatedEventPayload) {
+    const id = DomainRegistry.uuidGenerator().generate();
+    const currentDate = DomainRegistry.dateTimeProvider().now();
+    return new NominationFilesUpdatedEvent(id, payload, currentDate);
   }
 }

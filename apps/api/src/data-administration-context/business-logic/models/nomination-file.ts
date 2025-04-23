@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { NominationFileRead } from './nomination-file-read';
+import { DomainRegistry } from './domain-registry';
 
 export type NominationFileModelSnapshot = {
   id: string;
@@ -13,7 +14,7 @@ export type NominationFileUpdatedContent = Pick<
   'folderNumber' | 'observers' | 'rules'
 >;
 export class NominationFileModel {
-  constructor(
+  private constructor(
     private readonly id: string,
     private readonly createdAt: Date,
     private nominationFileRead: NominationFileRead,
@@ -48,5 +49,11 @@ export class NominationFileModel {
       rowNumber: snapshot.rowNumber,
       content: snapshot.content,
     });
+  }
+
+  static create(nominationFileRead: NominationFileRead) {
+    const id = DomainRegistry.uuidGenerator().generate();
+    const createdAt = DomainRegistry.dateTimeProvider().now();
+    return new NominationFileModel(id, createdAt, nominationFileRead);
   }
 }

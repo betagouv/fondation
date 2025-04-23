@@ -9,7 +9,7 @@ import {
   Role,
   Transparency,
 } from 'shared-models';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/data-administration-context.module';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/tokens';
 import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';

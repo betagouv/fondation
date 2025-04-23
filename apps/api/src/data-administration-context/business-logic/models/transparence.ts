@@ -1,5 +1,5 @@
-import { Magistrat } from 'shared-models';
-import { DomainRegistry } from './domain-registry';
+import { Magistrat, Transparency } from 'shared-models';
+import { z } from 'zod';
 import {
   NominationFileModel,
   NominationFileModelSnapshot,
@@ -7,34 +7,44 @@ import {
 
 export type TransparenceSnapshot = {
   id: string;
-  name: string;
+  name: Transparency;
   formations: Magistrat.Formation[];
   nominationFiles: NominationFileModelSnapshot[];
 };
 
 export class Transparence {
-  private constructor(
-    private readonly _id: string,
-    private readonly _name: string,
-    private readonly _formations: Magistrat.Formation[],
-    private readonly _nominationFiles: NominationFileModel[] = [],
-  ) {}
+  private _formations: Set<Magistrat.Formation>;
 
-  get id(): string {
-    return this._id;
+  private constructor(
+    private _name: Transparency,
+    _formations: Magistrat.Formation[],
+    private _nominationFiles: NominationFileModel[],
+  ) {
+    this.name = _name;
+    this.formations = _formations;
+    this.nominationFiles = _nominationFiles;
+  }
+
+  get name() {
+    return this._name;
+  }
+  set name(name: Transparency) {
+    this._name = z.nativeEnum(Transparency).parse(name);
+  }
+
+  set formations(formations: Magistrat.Formation[]) {
+    this._formations = z
+      .set(z.nativeEnum(Magistrat.Formation))
+      .nonempty()
+      .max(2)
+      .parse(new Set(formations));
   }
 
   get nominationFiles(): NominationFileModel[] {
     return [...this._nominationFiles];
   }
-
-  snapshot(): TransparenceSnapshot {
-    return {
-      id: this._id,
-      name: this._name,
-      formations: this._formations,
-      nominationFiles: this._nominationFiles.map((file) => file.toSnapshot()),
-    };
+  private set nominationFiles(nominationFiles: NominationFileModel[]) {
+    this._nominationFiles = z.any().array().nonempty().parse(nominationFiles);
   }
 
   addNominationFile(nominationFile: NominationFileModel): void {
@@ -45,21 +55,28 @@ export class Transparence {
     this._nominationFiles.push(...nominationFiles);
   }
 
-  static nouvelle(
-    name: string,
-    formations: Magistrat.Formation[],
-    nominationFiles: NominationFileModel[] = [],
-  ) {
-    const transparenceId = DomainRegistry.uuidGenerator().generate();
-    return new Transparence(transparenceId, name, formations, nominationFiles);
+  snapshot(): TransparenceSnapshot {
+    return {
+      id: this._name,
+      name: this._name,
+      formations: [...this._formations],
+      nominationFiles: this._nominationFiles.map((file) => file.toSnapshot()),
+    };
   }
 
   static fromSnapshot(snapshot: TransparenceSnapshot): Transparence {
     return new Transparence(
-      snapshot.id,
       snapshot.name,
       snapshot.formations,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
     );
+  }
+
+  static nouvelle(
+    name: Transparency,
+    formations: Magistrat.Formation[],
+    nominationFiles: NominationFileModel[],
+  ) {
+    return new Transparence(name, formations, nominationFiles);
   }
 }
