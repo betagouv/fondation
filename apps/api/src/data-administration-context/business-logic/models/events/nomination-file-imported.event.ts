@@ -4,6 +4,7 @@ import {
   NominationFileRead,
   nominationFileReadContentSchema,
 } from '../nomination-file-read';
+import { DomainRegistry } from '../domain-registry';
 
 export type NominationFilesImportedEventPayload = ({
   content: NominationFileRead['content'];
@@ -27,5 +28,11 @@ export class NominationFilesImportedEvent extends DomainEvent<NominationFilesImp
     currentDate: Date,
   ) {
     super(id, NominationFilesImportedEvent.name, payload, currentDate);
+  }
+
+  static create(payload: NominationFilesImportedEventPayload) {
+    const id = DomainRegistry.uuidGenerator().generate();
+    const currentDate = DomainRegistry.dateTimeProvider().now();
+    return new NominationFilesImportedEvent(id, payload, currentDate);
   }
 }
