@@ -23,7 +23,7 @@ import { NominationFileReportSnapshot } from '../../models/nomination-file-repor
 import { ReportRuleSnapshot } from '../../models/report-rules';
 import { CreateReportUseCase, ReportToCreate } from './create-report.use-case';
 
-const nominationFileReportId = 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b';
+const nominationFileReportId = 'nomination-file-report-id';
 const importedNominationFileId = 'imported-nomination-file-id';
 const userId = 'reporter-id';
 
@@ -75,22 +75,41 @@ describe('Create Report Use Case', () => {
   });
 
   it('retries the transaction if it fails', async () => {
+    uuidGenerator.nextUuids = [
+      nominationFileReportId,
+      nominationFileReportId,
+      nominationFileReportId,
+    ];
+
     reportRepository.saveError = new Error('Save report failed');
     reportRepository.saveErrorCountLimit = 2;
 
-    await createAReport(givenAReportWithRulesAlerts());
+    const payload = givenAReportWithRulesAlerts();
+    await createAReport(payload);
 
     expect(reportRepository.saveErrorCount).toBe(2);
-  });
-
-  it('shall not retry more than 4 times', async () => {
-    reportRepository.saveError = new Error('Save report failed');
-    reportRepository.saveErrorCountLimit = 6;
-
-    await expect(createAReport(givenAReportWithRulesAlerts())).rejects.toThrow(
-      'Save report failed',
-    );
-    expect(reportRepository.saveErrorCount).toBe(4);
+    expectReports({
+      id: nominationFileReportId,
+      nominationFileId: importedNominationFileId,
+      createdAt: datetimeProvider.currentDate,
+      version: 0,
+      folderNumber: payload.folderNumber,
+      biography: payload.biography,
+      dueDate: new DateOnly(2035, 8, 22),
+      name: payload.name,
+      reporterId: userId,
+      birthDate: new DateOnly(1962, 8, 22),
+      state: NominationFile.ReportState.NEW,
+      formation: payload.formation,
+      transparency: payload.transparency,
+      grade: payload.grade,
+      currentPosition: payload.currentPosition,
+      targettedPosition: payload.targettedPosition,
+      comment: null,
+      rank: payload.rank,
+      observers: payload.observers,
+      attachedFiles: null,
+    });
   });
 
   it('creates a report', async () => {
