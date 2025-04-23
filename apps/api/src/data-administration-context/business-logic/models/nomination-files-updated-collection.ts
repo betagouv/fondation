@@ -18,11 +18,7 @@ export class NominationFilesUpdatedCollection {
     );
   }
 
-  updateNominationFiles(
-    updatedFields: UpdatedNominationFilesFields[],
-    eventId: string,
-    currentDate: Date,
-  ) {
+  updateNominationFiles(updatedFields: UpdatedNominationFilesFields[]) {
     const updatedNominationFiles = this.filterNominationFilesToUpdate(
       updatedFields,
     ).map((nominationFile) => {
@@ -50,7 +46,7 @@ export class NominationFilesUpdatedCollection {
       return { nominationFile, updatedField: matchedNominationFileFields };
     });
 
-    return this.toModelsWithEvent(updatedNominationFiles, eventId, currentDate);
+    return this.toModelsWithEvent(updatedNominationFiles);
   }
 
   private toModelsWithEvent(
@@ -58,8 +54,6 @@ export class NominationFilesUpdatedCollection {
       nominationFile: NominationFileModel;
       updatedField: UpdatedNominationFilesFields;
     }[],
-    eventId: string,
-    currentDate: Date,
   ): [NominationFileModel[], NominationFilesUpdatedEvent | null] {
     if (updatedNominationFiles.length === 0) {
       return [[], null];
@@ -76,11 +70,8 @@ export class NominationFilesUpdatedCollection {
       });
     nominationFilesUpdatedEventPayloadSchema.parse(payload);
 
-    const nominationFilesUpdatedEvent = new NominationFilesUpdatedEvent(
-      eventId,
-      payload,
-      currentDate,
-    );
+    const nominationFilesUpdatedEvent =
+      NominationFilesUpdatedEvent.create(payload);
 
     return [
       updatedNominationFiles.map((f) => f.nominationFile),

@@ -5,7 +5,6 @@ import {
   NominationFileModelSnapshot,
 } from 'src/data-administration-context/business-logic/models/nomination-file';
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
-import { getReadRules } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.spec';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -17,6 +16,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { nominationFiles } from './schema/nomination-file-pm';
 import { SqlNominationFileRepository } from './sql-nomination-file.repository';
+import { getReadRules } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 
 describe('SQL Nomination File Repository', () => {
   let db: DrizzleDb;
@@ -106,36 +106,34 @@ describe('SQL Nomination File Repository', () => {
     id?: string,
     contentOverride?: Partial<NominationFileRead['content']>,
   ) =>
-    new NominationFileModel(
-      id ?? 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
-      datetimeProvider.currentDate,
-      {
-        rowNumber: 1,
-        content: {
-          folderNumber: 2,
-          name: 'Lucien Pierre',
-          formation: Magistrat.Formation.PARQUET,
-          dueDate: null,
-          transparency: Transparency.AUTOMNE_2024,
-          reporters: ['VICTOIRE Christian'],
-          grade: Magistrat.Grade.HH,
-          currentPosition: 'Procureur de la République adjoint TJ  NIMES',
-          targettedPosition: 'Avocat général CC  PARIS - HH',
-          rank: '(2 sur une liste de 11)',
-          birthDate: {
-            year: 1962,
-            month: 8,
-            day: 22,
-          },
-          biography: '- blablablablabla',
-          observers: ['Some observer'],
-          rules: getReadRules({
-            [NominationFile.RuleGroup.STATUTORY]: {
-              [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
-            },
-          }),
-          ...contentOverride,
+    NominationFileModel.fromSnapshot({
+      id: id ?? 'daa7b3b0-0b3b-4b3b-8b3b-0b3b3b3b3b3b',
+      createdAt: datetimeProvider.currentDate,
+      rowNumber: 1,
+      content: {
+        folderNumber: 2,
+        name: 'Lucien Pierre',
+        formation: Magistrat.Formation.PARQUET,
+        dueDate: null,
+        transparency: Transparency.AUTOMNE_2024,
+        reporters: ['VICTOIRE Christian'],
+        grade: Magistrat.Grade.HH,
+        currentPosition: 'Procureur de la République adjoint TJ  NIMES',
+        targettedPosition: 'Avocat général CC  PARIS - HH',
+        rank: '(2 sur une liste de 11)',
+        birthDate: {
+          year: 1962,
+          month: 8,
+          day: 22,
         },
+        biography: '- blablablablabla',
+        observers: ['Some observer'],
+        rules: getReadRules({
+          [NominationFile.RuleGroup.STATUTORY]: {
+            [NominationFile.StatutoryRule.MINISTER_CABINET]: false,
+          },
+        }),
+        ...contentOverride,
       },
-    );
+    });
 });
