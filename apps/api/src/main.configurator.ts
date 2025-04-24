@@ -1,20 +1,27 @@
 import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { API_CONFIG } from './shared-kernel/adapters/primary/nestjs/tokens';
+import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
+import { HttpExceptionFilter } from './shared-kernel/adapters/primary/nestjs/filters/http-exception.filter';
+import {
+  API_CONFIG,
+  SENTRY_SERVICE,
+} from './shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from './shared-kernel/adapters/primary/zod/api-config-schema';
-import { HttpExceptionFilter } from './shared-kernel/adapters/primary/nestjs/filters/htt-exception.filter';
 
 export class MainAppConfigurator {
   app: INestApplication;
+  apiConfig: ApiConfig;
+  sentryService: SentryService;
 
   constructor(app: INestApplication) {
     this.app = app;
+    this.apiConfig = this.app.get<ApiConfig>(API_CONFIG);
+    this.sentryService = this.app.get<SentryService>(SENTRY_SERVICE);
   }
 
   withCors(): MainAppConfigurator {
-    const apiConfig = this.app.get<ApiConfig>(API_CONFIG);
     this.app.enableCors({
-      origin: apiConfig.originUrl,
+      origin: this.apiConfig.originUrl,
       credentials: true,
     });
     return this;
@@ -28,7 +35,7 @@ export class MainAppConfigurator {
   }
 
   withFilters(): MainAppConfigurator {
-    this.app.useGlobalFilters(new HttpExceptionFilter());
+    this.app.useGlobalFilters(new HttpExceptionFilter(this.sentryService));
     return this;
   }
 

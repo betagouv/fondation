@@ -3,6 +3,7 @@ import { DomainEventPublisher } from 'src/shared-kernel/business-logic/gateways/
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
 import { DrizzleDb } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { ApiConfig } from '../zod/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
@@ -15,6 +16,7 @@ export const DOMAIN_EVENTS_POLLER = 'DOMAIN_EVENTS_POLLER';
 export const TRANSACTION_PERFORMER = 'TRANSACTION_PERFORMER';
 export const DOMAIN_EVENT_PUBLISHER = 'DOMAIN_EVENT_PUBLISHER';
 export const DOMAIN_EVENT_REPOSITORY = 'DOMAIN_EVENT_REPOSITORY';
+export const SENTRY_SERVICE = 'SENTRY_SERVICE';
 
 export const sharedKernelTokens = [
   API_CONFIG,
@@ -25,6 +27,7 @@ export const sharedKernelTokens = [
   TRANSACTION_PERFORMER,
   DOMAIN_EVENT_PUBLISHER,
   DOMAIN_EVENT_REPOSITORY,
+  SENTRY_SERVICE,
 ] as const;
 
 export interface SharedKernelInjectionTokenMap {
@@ -36,4 +39,5 @@ export interface SharedKernelInjectionTokenMap {
   [TRANSACTION_PERFORMER]: TransactionPerformer;
   [DOMAIN_EVENT_PUBLISHER]: DomainEventPublisher;
   [DOMAIN_EVENT_REPOSITORY]: DomainEventRepository;
+  [SENTRY_SERVICE]: SentryService;
 }
