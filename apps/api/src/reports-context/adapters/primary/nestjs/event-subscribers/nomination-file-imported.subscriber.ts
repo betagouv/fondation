@@ -17,31 +17,34 @@ export class NominationFileImportedSubscriber {
   ) {
     nominationFilesImportedEventPayloadSchema.parse(payload);
 
-    const promises: Promise<void>[] = payload
+    const useCaseParams = payload
+      .filter(({ content }) => content.reporters?.length)
       .map(({ nominationFileImportedId: id, content }) => {
-        return content.reporters?.length
-          ? content.reporters.map((reporterName) =>
-              this.createReportUseCase.execute(id, {
-                folderNumber: content.folderNumber,
-                name: content.name,
-                reporterName,
-                formation: content.formation,
-                dueDate: content.dueDate,
-                transparency: content.transparency,
-                grade: content.grade,
-                currentPosition: content.currentPosition,
-                targettedPosition: content.targettedPosition,
-                rank: content.rank,
-                birthDate: content.birthDate,
-                biography: content.biography,
-                observers: content.observers,
-                rules: content.rules,
-              }),
-            )
-          : [];
+        return (content.reporters || []).map((reporterName) => ({
+          id,
+          content,
+          reporterName,
+        }));
       })
       .flat();
 
-    await Promise.all(promises);
+    for (const { id, content, reporterName } of useCaseParams) {
+      await this.createReportUseCase.execute(id, {
+        folderNumber: content.folderNumber,
+        name: content.name,
+        reporterName,
+        formation: content.formation,
+        dueDate: content.dueDate,
+        transparency: content.transparency,
+        grade: content.grade,
+        currentPosition: content.currentPosition,
+        targettedPosition: content.targettedPosition,
+        rank: content.rank,
+        birthDate: content.birthDate,
+        biography: content.biography,
+        observers: content.observers,
+        rules: content.rules,
+      });
+    }
   }
 }
