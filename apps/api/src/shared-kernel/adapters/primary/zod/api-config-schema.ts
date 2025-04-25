@@ -38,6 +38,7 @@ const S3ConfigSchema = z.object({
 export const ProdApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('https://'),
+    sentryDsn: z.string().url(),
     database: z.object({
       connectionString: z.string(),
     }),
@@ -52,6 +53,7 @@ export const ProdApiConfigSchema = commonBaseSchema.merge(
 export const DevApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('http://'),
+    sentryDsn: z.string().url(),
     database: z.object({
       host: z.string(),
       port: z.number(),

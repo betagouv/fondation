@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
+import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
 import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
@@ -19,8 +20,8 @@ import {
 import { DomainEventsPoller } from './domain-event-poller';
 import { apiConfig, defaultApiConfig } from './env';
 import { validateDevConfig, validateProdConfig } from './env.validation';
-import { SystemRequestValidationMiddleware } from './middleware/system-request.middleware';
 import { SessionValidationMiddleware } from './middleware/session-validation.middleware';
+import { SystemRequestValidationMiddleware } from './middleware/system-request.middleware';
 import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
 import {
   API_CONFIG,
@@ -29,6 +30,7 @@ import {
   DOMAIN_EVENT_REPOSITORY,
   DOMAIN_EVENTS_POLLER,
   DRIZZLE_DB,
+  SENTRY_SERVICE,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from './tokens';
@@ -131,6 +133,15 @@ const isProduction = process.env.NODE_ENV === 'production';
         return new SystemRequestSignatureProvider(apiConfig);
       },
       inject: [API_CONFIG],
+    },
+    {
+      provide: SENTRY_SERVICE,
+      useFactory: (): SentryService => {
+        if (!apiConfig.sentryDsn) {
+          throw new Error('Sentry DSN is not set');
+        }
+        return new SentryService(isProduction, apiConfig.sentryDsn);
+      },
     },
 
     SystemRequestValidationMiddleware,
