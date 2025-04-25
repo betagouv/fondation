@@ -44,5 +44,6 @@ jobs:
           S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
           COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       - name: Build
         run: pnpm build
