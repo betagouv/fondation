@@ -19,27 +19,17 @@ export class ImportNominationFilesUseCase {
         const transparence =
           await this.transparenceService.transparence(transparency)(trx);
 
-        if (!transparence) {
-          await this.transparenceService.nouvelleTransparence(
+        if (transparence) {
+          await this.transparenceService.updateTransparence(
+            transparence,
+            readCollection,
+          )(trx);
+        } else {
+          await this.transparenceService.newTransparence(
             transparency,
             readCollection,
           )(trx);
         }
-
-        const existingNominationFiles =
-          await this.transparenceService.nominationFilesSnapshots(transparency)(
-            trx,
-          );
-
-        await this.transparenceService.createNewNominationFiles(
-          readCollection,
-          existingNominationFiles,
-        )(trx);
-
-        await this.transparenceService.updateModifiedNominationFiles(
-          readCollection,
-          existingNominationFiles,
-        )(trx);
       }
     });
   }

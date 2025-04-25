@@ -1,25 +1,25 @@
 import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
-import {
-  NominationFilesImportedEvent,
-  NominationFilesImportedEventPayload,
-} from 'src/data-administration-context/business-logic/models/events/nomination-file-imported.event';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
 import {
   allRulesMapV1,
   ManagementRule,
   QualitativeRule,
   StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
-import { FakeTransparenceRepository } from 'src/nominations-context/adapters/gateways/repositories/fake-transparence.repository';
-import { GdsTransparencesImportedListener } from './gds-transparences-imported.listener';
+import { FakeAffectationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-affectation.repository';
+import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { TypeDeSaisine } from '../models/type-de-saisine';
+import { AffectationRapporteursTransparenceTsvUseCase } from '../use-cases/affectation-rapporteurs-transparence-tsv/affectation-rapporteurs-transparence-tsv.use-case';
 import {
   ImportNouvelleTransparenceCommand,
   ImportNouvelleTransparenceUseCase,
 } from '../use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { TypeDeSaisine } from '../models/type-de-saisine';
+import { GdsTransparencesImportedListener } from './gds-transparences-imported.listener';
 
 describe('GDS transparences imported listener', () => {
   let nouvelleTransparenceUseCase: ImportNouvelleTransparenceUseCase;
+  let affectationRapporteursTransparenceTsvUseCase: AffectationRapporteursTransparenceTsvUseCase;
 
   beforeEach(() => {
     nouvelleTransparenceUseCase = new ImportNouvelleTransparenceUseCase(
@@ -27,56 +27,49 @@ describe('GDS transparences imported listener', () => {
       new FakeTransparenceRepository(),
     );
     nouvelleTransparenceUseCase.execute = jest.fn();
+
+    affectationRapporteursTransparenceTsvUseCase =
+      new AffectationRapporteursTransparenceTsvUseCase(
+        new NullTransactionPerformer(),
+        new FakeAffectationRepository(),
+      );
+    affectationRapporteursTransparenceTsvUseCase.execute = jest.fn();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('importe deux nouvelles transparences GDS', async () => {
-    await listenEvent(anEvent);
-
-    expect(nouvelleTransparenceUseCase.execute).toHaveBeenCalledExactlyOnceWith(
-      anEvent.payload,
-    );
+  it('crée la session', async () => {
+    await listenEvent();
+    expectNouvelleTransparenceCalledWith(Transparency.AUTOMNE_2024);
   });
 
-  // describe("Transparence existante", () => {
-  //   beforeEach(() => {
-  //   it('ne crée pas de nouvelle transparence GDS si elle existe déjà', async () => {
-  //     const transparence = Transparency.DU_03_MARS_2025;
-  //     const payload = givenAnImportEventPayload({
-  //       transparency,
-  //       formation: Magistrat.Formation.PARQUET,
-  //     });
-  //     const payload2 = givenAnImportEventPayload({
-  //       transparency,
-  //       formation: Magistrat.Formation.COUR_DE_CASSATION,
-  //     });
-  //     const event = givenAnImportEvent(payload, payload2);
-  //     await listenEvent(event);
-  //     expect(nouvelleTransparenceUseCase.execute).toHaveBeenCalledTimes(0);
+  it("crée l'affectation des rapporteurs", async () => {
+    await listenEvent();
+    expectAffectationCalledWithPayload();
+  });
 
-  //   })
+  const listenEvent = () =>
+    new GdsTransparencesImportedListener(
+      nouvelleTransparenceUseCase,
+      affectationRapporteursTransparenceTsvUseCase,
+    ).handle(firstPayload);
 
-  const listenEvent = (event: NominationFilesImportedEvent) =>
-    new GdsTransparencesImportedListener(nouvelleTransparenceUseCase).handle(
-      event.payload,
-    );
-
-  const expectNouvelleTransparenceNthCalledWith = (
-    nth: number,
-    transparence: Transparency,
-  ) => {
-    expect(nouvelleTransparenceUseCase.execute).toHaveBeenNthCalledWith(
-      nth,
+  const expectNouvelleTransparenceCalledWith = (transparence: Transparency) => {
+    expect(nouvelleTransparenceUseCase.execute).toHaveBeenCalledExactlyOnceWith(
       new ImportNouvelleTransparenceCommand(
         TypeDeSaisine.TRANSPARENCE_GDS,
         transparence,
-        [firstPayload.content.formation],
+        firstPayload.formations,
       ),
     );
   };
+
+  const expectAffectationCalledWithPayload = () =>
+    expect(
+      affectationRapporteursTransparenceTsvUseCase.execute,
+    ).toHaveBeenCalledExactlyOnceWith(firstPayload);
 });
 
 class PayloadRules extends RulesBuilder<
@@ -90,14 +83,13 @@ class PayloadRules extends RulesBuilder<
   }
 }
 
-const givenAnImportEventPayload = (
-  overrideContent?: Partial<
-    NominationFilesImportedEventPayload[number]['content']
-  >,
-) => {
-  const payload: NominationFilesImportedEventPayload[number] = {
-    nominationFileImportedId: 'nominationFileImportedId',
-    content: {
+const lucLoïcReporterId = 'luc-loic-reporter-id';
+
+const firstPayload: GdsNewTransparenceImportedEventPayload = {
+  transparenceId: Transparency.AUTOMNE_2024,
+  formations: [Magistrat.Formation.SIEGE],
+  nominationFiles: [
+    {
       transparency: Transparency.AUTOMNE_2024,
       biography: 'biography',
       birthDate: {
@@ -118,27 +110,8 @@ const givenAnImportEventPayload = (
       name: 'name',
       observers: [],
       rank: 'rank',
-      reporters: [],
+      reporterIds: [lucLoïcReporterId],
       rules: new PayloadRules().build(),
-      ...overrideContent,
     },
-  };
-  return payload;
+  ],
 };
-
-const givenAnImportEvent = (
-  ...payloads: NominationFilesImportedEventPayload
-) => {
-  return new NominationFilesImportedEvent('event-id', payloads, new Date());
-};
-
-const firstPayload = givenAnImportEventPayload({
-  transparency: Transparency.AUTOMNE_2024,
-});
-const secondPayload = givenAnImportEventPayload({
-  transparency: Transparency.DU_03_MARS_2025,
-});
-const thirdPayload = givenAnImportEventPayload({
-  transparency: Transparency.DU_03_MARS_2025,
-});
-const anEvent = givenAnImportEvent(firstPayload, secondPayload, thirdPayload);

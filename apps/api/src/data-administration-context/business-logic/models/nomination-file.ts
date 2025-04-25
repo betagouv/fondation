@@ -15,7 +15,7 @@ export type NominationFileUpdatedContent = Pick<
 >;
 export class NominationFileModel {
   private constructor(
-    private readonly id: string,
+    private readonly _id: string,
     private readonly createdAt: Date,
     private nominationFileRead: NominationFileRead,
   ) {}
@@ -33,6 +33,10 @@ export class NominationFileModel {
     );
   }
 
+  reporterNames() {
+    return this.nominationFileRead.content.reporters;
+  }
+
   toSnapshot(): NominationFileModelSnapshot {
     return {
       id: this.id,
@@ -40,6 +44,10 @@ export class NominationFileModel {
       rowNumber: this.nominationFileRead.rowNumber,
       content: this.nominationFileRead.content,
     };
+  }
+
+  public get id(): string {
+    return this._id;
   }
 
   static fromSnapshot(

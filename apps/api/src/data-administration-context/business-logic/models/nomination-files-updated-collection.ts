@@ -1,18 +1,22 @@
 import {
-  NominationFilesUpdatedEvent,
-  NominationFilesUpdatedEventPayload,
-  nominationFilesUpdatedEventPayloadSchema,
-} from './events/nomination-files-updated.event';
+  GdsTransparenceNominationFilesModifiedEvent,
+  GdsTransparenceNominationFilesModifiedEventPayload,
+  gdsTransparenceNominationFilesModifiedEventPayloadSchema,
+} from './events/gds-transparence-nomination-files-modified.event';
 import {
   NominationFileModel,
   NominationFileModelSnapshot,
 } from './nomination-file';
 import { UpdatedNominationFilesFields } from './nomination-files-read-collection';
+import { Transparence } from './transparence';
 
 export class NominationFilesUpdatedCollection {
   private _nominationFileModels: NominationFileModel[];
 
-  constructor(nominationFileModelSnapshots: NominationFileModelSnapshot[]) {
+  constructor(
+    nominationFileModelSnapshots: NominationFileModelSnapshot[],
+    private readonly transparenceId: Transparence['name'],
+  ) {
     this._nominationFileModels = nominationFileModelSnapshots.map(
       NominationFileModel.fromSnapshot,
     );
@@ -54,24 +58,27 @@ export class NominationFilesUpdatedCollection {
       nominationFile: NominationFileModel;
       updatedField: UpdatedNominationFilesFields;
     }[],
-  ): [NominationFileModel[], NominationFilesUpdatedEvent | null] {
+  ): [
+    NominationFileModel[],
+    GdsTransparenceNominationFilesModifiedEvent | null,
+  ] {
     if (updatedNominationFiles.length === 0) {
       return [[], null];
     }
 
-    const payload: NominationFilesUpdatedEventPayload =
-      updatedNominationFiles.map(({ nominationFile, updatedField }) => {
-        const { id } = nominationFile.toSnapshot();
-
-        return {
-          nominationFileId: id,
+    const payload: GdsTransparenceNominationFilesModifiedEventPayload = {
+      transparenceId: this.transparenceId,
+      nominationFiles: updatedNominationFiles.map(
+        ({ nominationFile, updatedField }) => ({
+          nominationFileId: nominationFile.id,
           content: updatedField.content,
-        };
-      });
-    nominationFilesUpdatedEventPayloadSchema.parse(payload);
+        }),
+      ),
+    };
+    gdsTransparenceNominationFilesModifiedEventPayloadSchema.parse(payload);
 
     const nominationFilesUpdatedEvent =
-      NominationFilesUpdatedEvent.create(payload);
+      GdsTransparenceNominationFilesModifiedEvent.create(payload);
 
     return [
       updatedNominationFiles.map((f) => f.nominationFile),

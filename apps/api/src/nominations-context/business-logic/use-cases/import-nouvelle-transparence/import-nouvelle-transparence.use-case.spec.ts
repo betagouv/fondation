@@ -1,5 +1,5 @@
 import { Magistrat } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/nominations-context/adapters/gateways/repositories/fake-transparence.repository';
+import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import {
   ImportNouvelleTransparenceCommand,
   ImportNouvelleTransparenceUseCase,
