@@ -25,4 +25,8 @@ export class FakeTransparenceRepository implements TransparenceRepository {
   addTransparence(name: Transparency, transparence: TransparenceSnapshot) {
     this.transparences[name] = transparence;
   }
+
+  getTransparences() {
+    return Object.values(this.transparences);
+  }
 }
