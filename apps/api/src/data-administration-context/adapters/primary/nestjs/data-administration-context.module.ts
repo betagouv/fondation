@@ -17,8 +17,10 @@ import { generateDataAdministrationProvider as generateProvider } from './provid
 import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
   NOMINATION_FILE_REPOSITORY,
+  TRANSPARENCE_REPOSITORY,
 } from './tokens';
 import { DomainRegistry } from 'src/data-administration-context/business-logic/models/domain-registry';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 
 @Module({
   imports: [SharedKernelModule],
@@ -31,6 +33,7 @@ import { DomainRegistry } from 'src/data-administration-context/business-logic/m
     generateProvider(TransparenceService, [
       NOMINATION_FILE_REPOSITORY,
       DOMAIN_EVENT_REPOSITORY,
+      TRANSPARENCE_REPOSITORY,
     ]),
 
     generateProvider(
@@ -53,10 +56,13 @@ export class DataAdministrationContextModule implements OnModuleInit {
     private readonly uuidGenerator: UuidGenerator,
     @Inject(DATE_TIME_PROVIDER)
     private readonly dateTimeProvider: DateTimeProvider,
+    @Inject(DOMAIN_EVENT_REPOSITORY)
+    private readonly domainEventRepository: DomainEventRepository,
   ) {}
 
   onModuleInit() {
     DomainRegistry.setUuidGenerator(this.uuidGenerator);
     DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
+    DomainRegistry.setDomainEventRepository(this.domainEventRepository);
   }
 }

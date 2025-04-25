@@ -1,10 +1,7 @@
 import { diff } from 'json-diff';
 import _ from 'lodash';
+import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { z } from 'zod';
-import {
-  NominationFilesImportedEvent,
-  NominationFilesImportedEventPayload,
-} from './events/nomination-file-imported.event';
 import {
   NominationFileModel,
   NominationFileModelSnapshot,
@@ -14,7 +11,6 @@ import {
   nominationFileReadContentSchema,
   nominationFileReadListSchema,
 } from './nomination-file-read';
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { ManagementRule } from './rules';
 
 export type TransparenceCollection = {
@@ -29,32 +25,6 @@ export class NominationFilesContentReadCollection {
     this._nominationFileReadList = nominationFileReadListSchema.parse(
       nominationFileReadList,
     );
-  }
-
-  toModelsWithEvent(): [
-    NominationFileModel[],
-    NominationFilesImportedEvent | null,
-  ] {
-    if (this._nominationFileReadList.length === 0) {
-      return [[], null];
-    }
-
-    const nominationFiles = this.toModels();
-
-    const payload: NominationFilesImportedEventPayload = nominationFiles.map(
-      (nominationFile) => {
-        const { id, content } = nominationFile.toSnapshot();
-        return {
-          nominationFileImportedId: id,
-          content,
-        };
-      },
-    );
-
-    const nominationFilesImportedEvent =
-      NominationFilesImportedEvent.create(payload);
-
-    return [nominationFiles, nominationFilesImportedEvent];
   }
 
   toModels(): NominationFileModel[] {
@@ -80,13 +50,17 @@ export class NominationFilesContentReadCollection {
     );
   }
 
-  formations(): Magistrat.Formation[] {
+  hasNominationFiles() {
+    return this._nominationFileReadList.length > 0;
+  }
+
+  formations(): Set<Magistrat.Formation> {
     const formations = _.uniq(
       this._nominationFileReadList.map(
         (nominationFile) => nominationFile.content.formation,
       ),
     );
-    return formations;
+    return new Set(formations);
   }
 
   newNominationFiles(existingNominationFiles: NominationFileModelSnapshot[]) {

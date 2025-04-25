@@ -1,6 +1,7 @@
 import {
   Magistrat,
   NominationFile,
+  Role,
   RulesBuilder,
   Transparency,
 } from 'shared-models';
@@ -14,6 +15,42 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from '../../models/rules';
+import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
+
+export const gdsTransparenceEventId = 'gds-transparence-event-id';
+export const gdsTransparenceName = Transparency.AUTOMNE_2024;
+export const currentDate = new Date(2024, 10, 10);
+
+export const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN} (1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;
+export const anObserverExpected = 'FIRST OBSERVER\n(1 sur 2)\nTJ de Rennes';
+
+export const lucLoïcReporterId = 'luc-loic-reporter-id';
+export const emilienRenaudJulesReporterId = 'emilien-renaud-jules-reporter-id';
+export const jeanneLouiseDeFranceAudeReporterId =
+  'jeanne-louise-de-france-aude-reporter-id';
+
+export const lucLoïcUser = {
+  userId: lucLoïcReporterId,
+  firstName: 'LOIC',
+  lastName: 'LUC',
+  fullName: 'LUC Loïc',
+  role: Role.MEMBRE_COMMUN,
+};
+
+export const emilienRenaudJulesUser = {
+  userId: emilienRenaudJulesReporterId,
+  firstName: 'Jules',
+  lastName: 'ÉMILIEN-RENAUD',
+  fullName: 'ÉMILIEN-RENAUD Jules ep. Françoise',
+  role: Role.MEMBRE_COMMUN,
+};
+export const jeanneLouiseDeFranceAudeUser = {
+  userId: jeanneLouiseDeFranceAudeReporterId,
+  firstName: 'AUDREY',
+  lastName: 'JEANNE LOUISE DE FRANCE',
+  fullName: 'JEANNE LOUISE DE FRANCE Aude',
+  role: Role.MEMBRE_COMMUN,
+};
 
 export const getMarcelDupontModelSnapshotFactory =
   (dateTimeProvider: DeterministicDateProvider) =>
@@ -27,7 +64,7 @@ export const getMarcelDupontModelSnapshotFactory =
   ): NominationFileModelSnapshot => ({
     id: uuid,
     createdAt: dateTimeProvider.currentDate,
-    rowNumber: rowNumber,
+    rowNumber,
     content: getMarcelDupontRead(rowNumber, moreContent, rules).content,
   });
 export type GetMarcelDupontModelSnapshot = ReturnType<
@@ -39,7 +76,7 @@ export const getLucienPierreModelSnapshotFactory =
   (uuid: string, rowNumber = 1): NominationFileModelSnapshot => ({
     id: uuid,
     createdAt: dateTimeProvider.currentDate,
-    rowNumber: rowNumber,
+    rowNumber,
     content: getLucienPierreRead(rowNumber).content,
   });
 export type GetLucienPierreModelSnapshot = ReturnType<
