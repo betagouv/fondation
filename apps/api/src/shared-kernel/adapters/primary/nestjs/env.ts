@@ -46,7 +46,7 @@ const defaultBaseUrl = 'http://localhost:3000';
 
 export const defaultApiConfig = {
   originUrl: 'http://localhost:5173',
-  sentryDsn: process.env.SENTRY_DSN!,
+  sentryDsn: process.env.SENTRY_DSN,
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   cookieMaxAgeInMs: 1000 * 60 * 60 * 24 * 90,

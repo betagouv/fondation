@@ -53,7 +53,7 @@ export const ProdApiConfigSchema = commonBaseSchema.merge(
 export const DevApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('http://'),
-    sentryDsn: z.string().url(),
+    sentryDsn: z.string().url().optional(),
     database: z.object({
       host: z.string(),
       port: z.number(),
