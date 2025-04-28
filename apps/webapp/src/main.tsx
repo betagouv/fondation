@@ -101,6 +101,7 @@ if (process.env.NODE_ENV === "production") {
     tracesSampleRate: 1.0,
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
+    release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
   });
 }
 
