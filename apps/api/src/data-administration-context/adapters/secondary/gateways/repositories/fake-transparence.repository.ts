@@ -9,16 +9,16 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeTransparenceRepository implements TransparenceRepository {
   private transparences: Record<string, TransparenceSnapshot> = {};
 
+  save(transparence: Transparence) {
+    return async () => {
+      this.transparences[transparence.name] = transparence.snapshot();
+    };
+  }
+
   transparence(name: Transparency): TransactionableAsync<Transparence | null> {
     return async () => {
       const transparence = this.transparences[name];
       return transparence ? Transparence.fromSnapshot(transparence) : null;
-    };
-  }
-
-  save(transparence: Transparence) {
-    return async () => {
-      this.transparences[transparence.name] = transparence.snapshot();
     };
   }
 

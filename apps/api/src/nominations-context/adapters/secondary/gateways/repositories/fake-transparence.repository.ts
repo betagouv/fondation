@@ -1,13 +1,13 @@
 import { TransparenceRepository } from 'src/nominations-context/business-logic/gateways/repositories/transparence.repository';
 import {
-  Transparence,
-  TransparenceSnapshot,
-} from 'src/nominations-context/business-logic/models/transparence';
+  Session,
+  SessionSnapshot,
+} from 'src/nominations-context/business-logic/models/session';
 
 export class FakeTransparenceRepository implements TransparenceRepository {
-  transparences: Record<string, TransparenceSnapshot> = {};
+  transparences: Record<string, SessionSnapshot> = {};
 
-  save(transparence: Transparence) {
+  save(transparence: Session) {
     return async () => {
       this.transparences[transparence.id] = transparence.snapshot();
     };

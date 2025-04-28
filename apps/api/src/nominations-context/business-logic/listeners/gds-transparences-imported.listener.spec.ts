@@ -7,15 +7,16 @@ import {
   StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
 import { FakeAffectationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-affectation.repository';
+import { FakePréAnalyseRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-pré-analyse.repository';
 import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { TransparenceService } from 'src/nominations-context/business-logic/services/transparence.service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TypeDeSaisine } from '../models/type-de-saisine';
 import { AffectationRapporteursTransparenceTsvUseCase } from '../use-cases/affectation-rapporteurs-transparence-tsv/affectation-rapporteurs-transparence-tsv.use-case';
-import {
-  ImportNouvelleTransparenceCommand,
-  ImportNouvelleTransparenceUseCase,
-} from '../use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
+import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
+import { ImportNouvelleTransparenceUseCase } from '../use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { GdsTransparencesImportedListener } from './gds-transparences-imported.listener';
+import { FakeDossierDeNominationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 
 describe('GDS transparences imported listener', () => {
   let nouvelleTransparenceUseCase: ImportNouvelleTransparenceUseCase;
@@ -24,7 +25,12 @@ describe('GDS transparences imported listener', () => {
   beforeEach(() => {
     nouvelleTransparenceUseCase = new ImportNouvelleTransparenceUseCase(
       new NullTransactionPerformer(),
-      new FakeTransparenceRepository(),
+      new TransparenceService(
+        new FakeDossierDeNominationRepository(),
+        new FakePréAnalyseRepository(),
+        new FakeTransparenceRepository(),
+        new FakeAffectationRepository(),
+      ),
     );
     nouvelleTransparenceUseCase.execute = jest.fn();
 
@@ -45,16 +51,10 @@ describe('GDS transparences imported listener', () => {
     expectNouvelleTransparenceCalledWith(Transparency.AUTOMNE_2024);
   });
 
-  it("crée l'affectation des rapporteurs", async () => {
-    await listenEvent();
-    expectAffectationCalledWithPayload();
-  });
-
   const listenEvent = () =>
-    new GdsTransparencesImportedListener(
-      nouvelleTransparenceUseCase,
-      affectationRapporteursTransparenceTsvUseCase,
-    ).handle(firstPayload);
+    new GdsTransparencesImportedListener(nouvelleTransparenceUseCase).handle(
+      firstPayload,
+    );
 
   const expectNouvelleTransparenceCalledWith = (transparence: Transparency) => {
     expect(nouvelleTransparenceUseCase.execute).toHaveBeenCalledExactlyOnceWith(
@@ -62,14 +62,10 @@ describe('GDS transparences imported listener', () => {
         TypeDeSaisine.TRANSPARENCE_GDS,
         transparence,
         firstPayload.formations,
+        [dossierDeNominationPayload],
       ),
     );
   };
-
-  const expectAffectationCalledWithPayload = () =>
-    expect(
-      affectationRapporteursTransparenceTsvUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(firstPayload);
 });
 
 class PayloadRules extends RulesBuilder<
@@ -85,33 +81,33 @@ class PayloadRules extends RulesBuilder<
 
 const lucLoïcReporterId = 'luc-loic-reporter-id';
 
+const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
+  {
+    transparency: Transparency.AUTOMNE_2024,
+    biography: 'biography',
+    birthDate: {
+      day: 1,
+      month: 1,
+      year: 2000,
+    },
+    currentPosition: 'currentPosition',
+    targettedPosition: 'targettedPosition',
+    dueDate: {
+      day: 1,
+      month: 1,
+      year: 2000,
+    },
+    folderNumber: 1,
+    formation: Magistrat.Formation.PARQUET,
+    grade: Magistrat.Grade.I,
+    name: 'name',
+    observers: [],
+    rank: 'rank',
+    reporterIds: [lucLoïcReporterId],
+    rules: new PayloadRules().build(),
+  };
 const firstPayload: GdsNewTransparenceImportedEventPayload = {
   transparenceId: Transparency.AUTOMNE_2024,
   formations: [Magistrat.Formation.SIEGE],
-  nominationFiles: [
-    {
-      transparency: Transparency.AUTOMNE_2024,
-      biography: 'biography',
-      birthDate: {
-        day: 1,
-        month: 1,
-        year: 2000,
-      },
-      currentPosition: 'currentPosition',
-      targettedPosition: 'targettedPosition',
-      dueDate: {
-        day: 1,
-        month: 1,
-        year: 2000,
-      },
-      folderNumber: 1,
-      formation: Magistrat.Formation.PARQUET,
-      grade: Magistrat.Grade.I,
-      name: 'name',
-      observers: [],
-      rank: 'rank',
-      reporterIds: [lucLoïcReporterId],
-      rules: new PayloadRules().build(),
-    },
-  ],
+  nominationFiles: [dossierDeNominationPayload],
 };
