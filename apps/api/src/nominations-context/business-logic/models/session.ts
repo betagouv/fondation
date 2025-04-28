@@ -1,0 +1,68 @@
+import { Magistrat } from 'shared-models';
+import { Affectation } from './affectation';
+import {
+  DossierDeNomination,
+  DossierDeNominationContent,
+} from './dossier-de-nomination';
+import { TypeDeSaisine } from './type-de-saisine';
+
+export type SessionSnapshot = {
+  id: string;
+  name: string;
+  formations: Magistrat.Formation[];
+  typeDeSaisine: TypeDeSaisine;
+};
+
+export class Session {
+  private constructor(
+    private readonly _id: string,
+    private readonly _name: string,
+    private readonly _formations: Magistrat.Formation[],
+    private readonly _typeDeSaisine: TypeDeSaisine,
+  ) {}
+
+  nouveauDossier(content: DossierDeNominationContent) {
+    return DossierDeNomination.create(this._id, content);
+  }
+
+  affecterRapporteurs(
+    dossiers: {
+      dossier: DossierDeNomination;
+      rapporteurIds: string[];
+    }[],
+  ): Affectation[] {
+    return this._formations.map(
+      (formation) =>
+        new Affectation(
+          this._id,
+          formation,
+          dossiers.map(({ dossier, rapporteurIds }) => ({
+            dossierDeNominationId: dossier.id,
+            rapporteurIds,
+          })),
+        ),
+    );
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  snapshot(): SessionSnapshot {
+    return {
+      id: this._id,
+      name: this._name,
+      formations: this._formations,
+      typeDeSaisine: this._typeDeSaisine,
+    };
+  }
+
+  static nouvelle(
+    id: string,
+    typeDeSaisine: TypeDeSaisine,
+    formations: Magistrat.Formation[],
+  ) {
+    const defaultName = id;
+    return new Session(id, defaultName, formations, typeDeSaisine);
+  }
+}

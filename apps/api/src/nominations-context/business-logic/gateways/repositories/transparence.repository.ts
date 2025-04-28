@@ -1,6 +1,6 @@
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { Transparence } from '../../models/transparence';
+import { Session } from '../../models/session';
 
 export interface TransparenceRepository {
-  save(transparence: Transparence): TransactionableAsync;
+  save(transparence: Session): TransactionableAsync;
 }

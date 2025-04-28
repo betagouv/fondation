@@ -1,0 +1,53 @@
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
+import { DomainRegistry } from './domain-registry';
+import { Règle, RègleSnapshot } from './règle';
+import { TransparenceRulesMapper } from './transparence-rules.mapper';
+
+export type PréAnalyseSnapshot = {
+  id: string;
+  dossierDeNominationId: string;
+  règles: RègleSnapshot[];
+};
+
+export class PréAnalyse {
+  private constructor(
+    private readonly _id: string,
+    private readonly _dossierDeNominationId: string,
+    private readonly _règles: Règle[],
+  ) {}
+
+  get id(): string {
+    return this._id;
+  }
+
+  snapshot(): PréAnalyseSnapshot {
+    return {
+      id: this._id,
+      dossierDeNominationId: this._dossierDeNominationId,
+      règles: this._règles.map((règle) => règle.snapshot()),
+    };
+  }
+
+  static create(dossierDeNominationId: string, règles: Règle[]): PréAnalyse {
+    const id = DomainRegistry.uuidGenerator().generate();
+    return new PréAnalyse(id, dossierDeNominationId, règles);
+  }
+
+  static fromSnapshot(snapshot: PréAnalyseSnapshot): PréAnalyse {
+    const règles = snapshot.règles.map((règleSnapshot) =>
+      Règle.fromSnapshot(règleSnapshot),
+    );
+
+    return new PréAnalyse(snapshot.id, snapshot.dossierDeNominationId, règles);
+  }
+
+  static fromTransparenceRulesV1(
+    dossierDeNominationId: string,
+    rulesV1: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['rules'],
+  ) {
+    const règle = new TransparenceRulesMapper().fromTransparenceRulesV1(
+      rulesV1,
+    );
+    return this.create(dossierDeNominationId, règle);
+  }
+}
