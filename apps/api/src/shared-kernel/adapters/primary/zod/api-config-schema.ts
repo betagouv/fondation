@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export enum DeployEnvMode {
+  PRODUCTION = 'production',
+  STAGING = 'staging',
+}
+
 const commonBaseSchema = z.object({
   port: z.number(),
   cookieSecret: z.string().min(32),
@@ -39,6 +44,7 @@ export const ProdApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('https://'),
     sentryDsn: z.string().url(),
+    deployEnv: z.nativeEnum(DeployEnvMode),
     database: z.object({
       connectionString: z.string(),
     }),
@@ -53,7 +59,6 @@ export const ProdApiConfigSchema = commonBaseSchema.merge(
 export const DevApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('http://'),
-    sentryDsn: z.string().url().optional(),
     database: z.object({
       host: z.string(),
       port: z.number(),

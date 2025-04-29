@@ -102,6 +102,7 @@ if (process.env.NODE_ENV === "production") {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
     release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+    environment: import.meta.env.VITE_DEPLOY_ENV,
   });
 }
 

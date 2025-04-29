@@ -15,6 +15,7 @@ export class SentryService {
       dsn,
       tracesSampleRate: 1.0,
       release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+      environment: process.env.DEPLOY_ENV,
     });
     this.canCapture = true;
   }

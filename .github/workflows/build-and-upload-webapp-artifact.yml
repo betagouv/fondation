@@ -32,6 +32,7 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_GDS_TRANSPA_FILES_IDS: ${{ vars.VITE_GDS_TRANSPA_FILES_IDS }}
+          VITE_DEPLOY_ENV: ${{ vars.VITE_DEPLOY_ENV }}
       - name: Create Archive
         run: |
           # In Scalingo dashboard, we set the PROJECT_DIR environment variable to webapp

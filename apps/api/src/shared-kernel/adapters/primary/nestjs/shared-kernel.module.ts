@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { validateConfig } from 'src/shared-kernel/adapters/primary/nestjs/env.validation';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
@@ -18,8 +19,7 @@ import {
   ProdApiConfig,
 } from '../zod/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
-import { apiConfig, defaultApiConfig } from './env';
-import { validateDevConfig, validateProdConfig } from './env.validation';
+import { apiConfig } from './env';
 import { SessionValidationMiddleware } from './middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from './middleware/system-request.middleware';
 import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
@@ -57,10 +57,7 @@ const isProduction = process.env.NODE_ENV === 'production';
   providers: [
     {
       provide: API_CONFIG,
-      useFactory: (): ApiConfig =>
-        isProduction
-          ? validateProdConfig(apiConfig)
-          : validateDevConfig(defaultApiConfig),
+      useFactory: (): ApiConfig => validateConfig(),
     },
     {
       provide: TRANSACTION_PERFORMER,
@@ -137,7 +134,7 @@ const isProduction = process.env.NODE_ENV === 'production';
     {
       provide: SENTRY_SERVICE,
       useFactory: (): SentryService => {
-        if (!apiConfig.sentryDsn) {
+        if (!apiConfig.sentryDsn && isProduction) {
           throw new Error('Sentry DSN is not set');
         }
         return new SentryService(isProduction, apiConfig.sentryDsn);
