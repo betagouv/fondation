@@ -91,7 +91,7 @@ const store = initReduxStore<false>(
 );
 
 // Dont instanciate sentry in non production mode
-if (import.meta.env.PROD) {
+if (!import.meta.env.DEV) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     integrations: [

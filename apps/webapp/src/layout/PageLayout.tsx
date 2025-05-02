@@ -5,8 +5,7 @@ import { Notice } from "../shared-kernel/adapters/primary/react/Notice";
 
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   const isStaging =
-    process.env.NODE_ENV === "production" &&
-    process.env.VITE_DEPLOY_ENV === "staging";
+    !import.meta.env.DEV && import.meta.env.VITE_DEPLOY_ENV === "staging";
 
   const notice = isStaging && (
     <Notice
