@@ -4,6 +4,7 @@ import _ from "lodash";
 import { Provider } from "react-redux";
 import {
   AuthenticatedUser,
+  Gender,
   Magistrat,
   NominationFile,
   Role,
@@ -292,6 +293,7 @@ const user: AuthenticatedUser = {
   firstName: "User",
   lastName: "Current",
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

@@ -1,5 +1,5 @@
-import { TestingModuleBuilder, Test } from '@nestjs/testing';
-import { Role } from 'shared-models';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
+import { Gender, Role } from 'shared-models';
 import { AppModule } from 'src/app.module';
 import { ENCRYPTION_PROVIDER } from 'src/identity-and-access-context/adapters/primary/nestjs/tokens';
 import { FakeEncryptionProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/fake-encryption.provider';
@@ -44,6 +44,7 @@ export class BaseAppTestingModule {
       firstName: 'First-name',
       lastName: 'REPORTER',
       role: Role.MEMBRE_COMMUN,
+      gender: Gender.M,
     },
   ) {
     this.moduleFixture.overrideProvider(SessionValidationService).useClass(

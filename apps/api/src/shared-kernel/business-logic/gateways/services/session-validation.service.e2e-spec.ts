@@ -21,6 +21,7 @@ const stubUser = {
   firstName: 'John',
   lastName: 'Doe',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 
 describe('Session Validation Service', () => {

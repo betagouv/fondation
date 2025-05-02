@@ -1,5 +1,6 @@
 import {
   allRulesMapV2,
+  Gender,
   Magistrat,
   NominationFile,
   Role,
@@ -50,6 +51,7 @@ describe('Create Report Use Case', () => {
       firstName: 'Loïc',
       lastName: 'LUC',
       role: Role.MEMBRE_COMMUN,
+      gender: Gender.M,
     };
     reporterTranslatorService = new ReporterTranslatorService(userService);
 

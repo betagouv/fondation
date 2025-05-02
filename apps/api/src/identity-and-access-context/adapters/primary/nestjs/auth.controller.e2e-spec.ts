@@ -97,6 +97,7 @@ describe('Auth Controller', () => {
         firstName: 'new',
         lastName: 'user',
         role: user.role,
+        gender: user.gender,
       };
       expect(response.body).toEqual(expectedAuthenticatedUser);
     });

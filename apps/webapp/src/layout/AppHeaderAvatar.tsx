@@ -7,17 +7,16 @@ import {
   useAppSelector,
 } from "../reports/adapters/primary/hooks/react-redux";
 export const AppHeaderAvatar: FC = () => {
-  const authenticatedUser = useAppSelector(selectAuthenticatedUser);
+  const { firstLetters, isDefined } = useAppSelector(selectAuthenticatedUser);
   const dispatch = useAppDispatch();
 
-  if (!authenticatedUser) {
+  if (!isDefined) {
     return null;
   }
 
   const onClickLogout = () => {
     dispatch(logout());
   };
-  const firstLetters = `${authenticatedUser?.lastName.charAt(0).toUpperCase()}${authenticatedUser?.firstName.charAt(0).toUpperCase()}`;
 
   return (
     <div className="fr-btn flex items-center gap-2">

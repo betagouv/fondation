@@ -60,6 +60,7 @@ export class UserDescriptor {
       firstName: this.firstName,
       lastName: this.lastName,
       role: this.role,
+      gender: this.gender,
     };
   }
 

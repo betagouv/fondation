@@ -1,15 +1,18 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { transcode } from 'buffer';
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import PDF from 'pdfkit';
 import {
   allRulesTuple,
+  Gender,
   Magistrat,
   NominationFile,
   ReportFileUsage,
   ReportListItemVM,
   ReportRetrievalVM,
+  Role,
   Transparency,
 } from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
@@ -42,8 +45,6 @@ import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/d
 import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
 import { ChangeRuleValidationStateDto } from './dto/change-rule-validation-state.dto';
 import { USER_SERVICE } from './tokens';
-import { transcode } from 'buffer';
-import { Role } from 'shared-models';
 
 const reporterId = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -496,6 +497,7 @@ const stubUser = {
   firstName: 'First-name',
   lastName: 'REPORTER',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 
 const fileId1 = 'acd97958-5059-45b7-a3d9-4b46f000d2b4';
