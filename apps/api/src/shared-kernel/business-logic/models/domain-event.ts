@@ -4,8 +4,8 @@ export enum DomainEventStatus {
   CONSUMED = 'CONSUMED',
 }
 
-export abstract class DomainEvent<T = unknown> {
-  abstract readonly name: string;
+export class DomainEvent<T = unknown> {
+  readonly name: string;
 
   constructor(
     public readonly id: string,

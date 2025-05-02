@@ -28,7 +28,7 @@ export class TransparenceService {
     private readonly userService: UserService,
   ) {}
 
-  newTransparence(
+  nouvelleTransparence(
     transparency: Transparency,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
@@ -43,7 +43,8 @@ export class TransparenceService {
       await this.transparenceRepository.save(transparence)(trx);
 
       const payload: GdsNewTransparenceImportedEventPayload = {
-        transparenceId: transparency,
+        transparenceId: transparence.id,
+        transparenceName: transparence.name,
         formations: [...readCollection.formations()],
         nominationFiles:
           await this.nominationFilesWithReportersIds(readCollection),
@@ -70,7 +71,8 @@ export class TransparenceService {
 
       if (nominationFilesToAdd) {
         const payload: GdsTransparenceNominationFilesAddedEventPayload = {
-          transparenceId: transparence.name,
+          transparenceId: transparence.id,
+          transparenceName: transparence.name,
           nominationFiles:
             await this.nominationFilesWithReportersIds(nominationFilesToAdd),
         };

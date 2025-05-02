@@ -2,12 +2,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { UserRepository } from '../../gateways/repositories/user-repository';
 import { Role } from 'shared-models';
 import { FileRepository } from '../../gateways/repositories/file-repository';
-
-export enum FileType {
-  PIECE_JOINTE_TRANSPARENCE = 'PIECE_JOINTE_TRANSPARENCE',
-  PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET = 'PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET',
-  PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE = 'PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE',
-}
+import { FileType } from '../../models/file-type';
 
 export class HasReadFilePermissionUseCase {
   constructor(

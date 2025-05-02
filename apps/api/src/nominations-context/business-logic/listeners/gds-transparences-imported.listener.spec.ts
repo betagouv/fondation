@@ -101,6 +101,7 @@ const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nomina
   };
 const firstPayload: GdsNewTransparenceImportedEventPayload = {
   transparenceId: Transparency.AUTOMNE_2024,
+  transparenceName: Transparency.AUTOMNE_2024,
   formations: [Magistrat.Formation.SIEGE],
   nominationFiles: [dossierDeNominationPayload],
 };

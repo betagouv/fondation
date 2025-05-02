@@ -1,6 +1,7 @@
 import { Magistrat, Transparency } from 'shared-models';
 import { z } from 'zod';
 import { Affectation, NominationFileAffectation } from './affectation';
+import { DomainRegistry } from './domain-registry';
 import { GdsTransparenceNominationFilesModifiedEvent } from './events/gds-transparence-nomination-files-modified.event';
 import {
   NominationFileModel,
@@ -10,6 +11,7 @@ import { NominationFilesContentReadCollection } from './nomination-files-read-co
 import { NominationFilesUpdatedCollection } from './nomination-files-updated-collection';
 
 export type TransparenceSnapshot = {
+  id: string;
   name: Transparency;
   formations: Set<Magistrat.Formation>;
   nominationFiles: NominationFileModelSnapshot[];
@@ -20,6 +22,7 @@ export class Transparence {
   private _nominationFiles: Record<string, NominationFileModel>;
 
   private constructor(
+    private readonly _id: string,
     private _name: Transparency,
     _formations: Set<Magistrat.Formation>,
     _nominationFiles: NominationFileModel[],
@@ -54,7 +57,8 @@ export class Transparence {
     const [updatedNominationFiles, nominationFilesUpdatedEvent] =
       new NominationFilesUpdatedCollection(
         this.nominationFiles.map((file) => file.toSnapshot()),
-        this.name,
+        this._id,
+        this._name,
       ).updateNominationFiles(updatedNominationFilesFields);
 
     this.nominationFiles = [...this.nominationFiles, ...updatedNominationFiles];
@@ -68,7 +72,11 @@ export class Transparence {
     this.formations = readCollection.formations();
   }
 
-  get name() {
+  get id(): string {
+    return this._id;
+  }
+
+  get name(): Transparency {
     return this._name;
   }
   set name(name: Transparency) {
@@ -104,6 +112,7 @@ export class Transparence {
 
   snapshot(): TransparenceSnapshot {
     return {
+      id: this._id,
       name: this._name,
       formations: this._formations,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
@@ -114,6 +123,7 @@ export class Transparence {
 
   static fromSnapshot(snapshot: TransparenceSnapshot): Transparence {
     return new Transparence(
+      snapshot.id,
       snapshot.name,
       snapshot.formations,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
@@ -125,15 +135,16 @@ export class Transparence {
     formations: Set<Magistrat.Formation>,
     nominationFiles: NominationFileModel[],
   ) {
-    return new Transparence(name, formations, nominationFiles);
+    const id = DomainRegistry.uuidGenerator().generate();
+    return new Transparence(id, name, formations, nominationFiles);
   }
 
   affecterRapporteurs(
     nominationFilesAffectations: NominationFileAffectation[],
   ) {
     return new Affectation(
-      this.name,
-      this.formations,
+      this._id,
+      this._formations,
       nominationFilesAffectations,
     );
   }

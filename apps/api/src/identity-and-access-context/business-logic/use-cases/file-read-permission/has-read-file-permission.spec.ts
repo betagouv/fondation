@@ -4,10 +4,8 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserBuilder } from '../../builders/user.builder';
 import { Role } from 'shared-models';
-import {
-  FileType,
-  HasReadFilePermissionUseCase,
-} from './has-read-file-permission.use-case';
+import { HasReadFilePermissionUseCase } from './has-read-file-permission.use-case';
+import { FileType } from '../../models/file-type';
 
 const membreCommun = new UserBuilder().with('role', Role.MEMBRE_COMMUN).build();
 const membreDuSiege = new UserBuilder()
