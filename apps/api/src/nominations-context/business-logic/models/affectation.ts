@@ -1,4 +1,5 @@
 import { Magistrat } from 'shared-models';
+import { DomainRegistry } from './domain-registry';
 
 export type AffectationsDossiersDeNominations = {
   dossierDeNominationId: string;
@@ -6,36 +7,36 @@ export type AffectationsDossiersDeNominations = {
 };
 
 export type AffectationSnapshot = {
-  transparenceId: string;
+  id: string;
+  sessionId: string;
   formation: Magistrat.Formation;
   affectationsDossiersDeNominations: AffectationsDossiersDeNominations[];
 };
 
 export class Affectation {
-  constructor(
-    private _transparenceId: string,
+  private constructor(
+    private readonly _id: string,
+    private _sessionId: string,
     private _formation: Magistrat.Formation,
     private _affectationsDossiersDeNominations: AffectationsDossiersDeNominations[],
   ) {}
 
-  get transparenceId(): string {
-    return this._transparenceId;
-  }
-
-  get formation(): Magistrat.Formation {
-    return this._formation;
-  }
-
-  get affectationsDossiersDeNominations(): AffectationsDossiersDeNominations[] {
-    return this._affectationsDossiersDeNominations;
-  }
-
-  createSnapshot(): AffectationSnapshot {
+  snapshot(): AffectationSnapshot {
     return {
-      transparenceId: this._transparenceId,
+      id: this._id,
+      sessionId: this._sessionId,
       formation: this._formation,
       affectationsDossiersDeNominations:
         this._affectationsDossiersDeNominations,
     };
+  }
+
+  static nouvelle(
+    sessionId: string,
+    formation: Magistrat.Formation,
+    dossiersDeNomination: AffectationsDossiersDeNominations[],
+  ): Affectation {
+    const id = DomainRegistry.uuidGenerator().generate();
+    return new Affectation(id, sessionId, formation, dossiersDeNomination);
   }
 }
