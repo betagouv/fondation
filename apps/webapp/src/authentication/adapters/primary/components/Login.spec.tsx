@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
+import { Gender, Role } from "shared-models";
 import { AppState } from "../../../../store/appState";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
 import {
@@ -13,7 +14,6 @@ import { ApiAuthenticationGateway } from "../../secondary/gateways/ApiAuthentica
 import { FakeAuthenticationApiClient } from "../../secondary/gateways/FakeAuthentication.client";
 import { LocalStorageLoginNotifierProvider } from "../../secondary/providers/localStorageLoginNotifier.provider";
 import { Login } from "./Login";
-import { Role } from "shared-models";
 
 describe("Login Component", () => {
   let store: ReduxStore;
@@ -60,6 +60,7 @@ describe("Login Component", () => {
         user.firstName,
         user.lastName,
         user.role,
+        user.gender,
       );
     });
 
@@ -98,6 +99,7 @@ const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

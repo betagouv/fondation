@@ -1,4 +1,4 @@
-import { Role } from "shared-models";
+import { Gender, Role } from "shared-models";
 import { AuthenticatedUserSM } from "../../../core-logic/gateways/Authentication.gateway";
 import { ApiAuthenticationGateway } from "./ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "./FakeAuthentication.client";
@@ -15,6 +15,7 @@ describe("Api Authentication Gateway", () => {
       user.firstName,
       user.lastName,
       user.role,
+      user.gender,
     );
 
     gateway = new ApiAuthenticationGateway(apiClient);
@@ -38,6 +39,7 @@ const user: AuthenticatedUserSM = {
   firstName: "john",
   lastName: "doe",
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 const userCredentials = {
   email: "user@example.com",

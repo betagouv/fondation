@@ -1,8 +1,7 @@
+import { Gender, Role } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserRepository } from '../../gateways/repositories/user-repository';
-import { Role } from 'shared-models';
 import { User } from '../../models/user';
-import { Gender } from '../../models/gender';
 
 export type RegisterUserCommand = {
   email: string;

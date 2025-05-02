@@ -1,9 +1,8 @@
+import { Gender, Role } from 'shared-models';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
-import { Role } from 'shared-models';
-import { Person } from './person';
-import { Gender } from './gender';
 import { FullName } from './full-name';
+import { Person } from './person';
 
 export type UserSnapshot = {
   id: string;

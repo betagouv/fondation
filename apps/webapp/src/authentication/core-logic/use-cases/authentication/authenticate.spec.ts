@@ -1,4 +1,4 @@
-import { Role } from "shared-models";
+import { Gender, Role } from "shared-models";
 import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { AppState } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
@@ -30,6 +30,7 @@ describe("Authenticate", () => {
       user.firstName,
       user.lastName,
       user.role,
+      user.gender,
     );
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);
@@ -105,6 +106,7 @@ const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 const userCredentials: AuthenticateParams = {
   email: "username",

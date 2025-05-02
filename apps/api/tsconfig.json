@@ -19,7 +19,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "lib": ["ESNext"],
+    "lib": ["ESNext"]
   },
   "include": [
     "src/**/*.ts",
@@ -27,9 +27,9 @@
     "cli/**/*.ts",
     "drizzle.config.ts"
   ],
-  "references":[{"path": "../../packages/shared-models"}],
+  "references": [{ "path": "../../packages/shared-models" }],
   "ts-node": {
     // Can't have Express types override recognised
-    "transpileOnly": true,
-  },
+    "transpileOnly": true
+  }
 }

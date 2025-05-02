@@ -48,6 +48,7 @@ describe("Report List Component", () => {
       user.firstName,
       user.lastName,
       user.role,
+      user.gender,
     );
     const authenticationGateway = new ApiAuthenticationGateway(
       authenticationApiClient,
