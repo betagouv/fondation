@@ -10,7 +10,7 @@ import {
 } from '../zod/api-config-schema';
 
 export const validateConfig = (): DevApiConfig | ProdApiConfig => {
-  return process.env.DEPLOY_ENV === 'production'
+  return process.env.NODE_ENV === 'production'
     ? validateProdConfig()
     : validateDevConfig();
 };
