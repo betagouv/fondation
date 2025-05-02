@@ -1,4 +1,5 @@
 import { DomainRegistry } from './domain-registry';
+import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
 
 //? Ajouter un type paramétré lorsqu'on gérera plusieurs types de saisines
 export type DossierDeNominationContent = {
@@ -22,25 +23,25 @@ export class DossierDeNomination {
     return this._id;
   }
 
-  get sessionId(): string {
-    return this._sessionId;
-  }
-
-  get content(): DossierDeNominationContent {
-    return { ...this._content };
-  }
-
   snapshot(): DossierDeNominationSnapshot {
     return {
       id: this._id,
       sessionId: this._sessionId,
-      content: this.content,
+      content: this._content,
     };
   }
 
   static create(sessionId: string, content: DossierDeNominationContent) {
-    const id = DomainRegistry.uuidGenerator().generate();
-    return new DossierDeNomination(id, sessionId, content);
+    const uuidGenerator = DomainRegistry.uuidGenerator();
+    const id = uuidGenerator.generate();
+    const dossier = new DossierDeNomination(id, sessionId, content);
+    const event = NouveauDossierDeNominationEvent.create({
+      dossierDeNominationId: id,
+      sessionId,
+      content,
+    });
+
+    return [dossier, event] as const;
   }
 
   static fromSnapshot(snapshot: DossierDeNominationSnapshot) {

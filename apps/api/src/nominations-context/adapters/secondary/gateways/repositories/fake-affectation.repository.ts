@@ -15,7 +15,7 @@ export class FakeAffectationRepository implements AffectationRepository {
 
   save(affectation: Affectation) {
     return async () => {
-      const snapshot = affectation.createSnapshot();
+      const snapshot = affectation.snapshot();
       this.affectations[`${snapshot.transparenceId}-${snapshot.formation}`] =
         snapshot;
     };

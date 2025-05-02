@@ -62,7 +62,16 @@ const aGdsTransparenceNominationFilesAddedEvent =
     gdsTransparenceEventId,
     {
       transparenceId: gdsTransparenceName,
-      nominationFiles: [getMarcelDupontRead(2).content],
+      nominationFiles: [
+        {
+          ...getMarcelDupontRead(2).content,
+          reporterIds: [
+            lucLoïcReporterId,
+            emilienRenaudJulesReporterId,
+            jeanneLouiseDeFranceAudeReporterId,
+          ],
+        },
+      ],
     },
     currentDate,
   );
@@ -213,6 +222,11 @@ describe('Import Nomination Files Use Case', () => {
     ])(
       'informs about a nomination file modification on $testName',
       async ({ getNominationFile: getTsvValue, eventPayload }) => {
+        uuidGenerator.nextUuids = [
+          gdsTransparenceEventId,
+          nominationFileId,
+          nominationFilesImportedEventId,
+        ];
         await importNominationFiles(getTsvValue());
         expectDomainEvents(
           getGdsTransparenceNominationFilesModifiedEvent(eventPayload),

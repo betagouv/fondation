@@ -7,6 +7,7 @@ import { UserService } from '../gateways/services/user.service';
 import {
   GdsNewTransparenceImportedEvent,
   GdsNewTransparenceImportedEventPayload,
+  NominationFilesContentWithReporterIds,
 } from '../models/events/gds-transparence-imported.event';
 import { NominationFileContentReader } from '../models/nomination-file-content-reader';
 import {
@@ -15,6 +16,10 @@ import {
 } from '../models/nomination-files-read-collection';
 import { Transparence } from '../models/transparence';
 import { TsvParser } from '../models/tsv-parser';
+import {
+  GdsTransparenceNominationFilesAddedEventPayload,
+  GdsTransparenceNominationFilesAddedEvent,
+} from '../models/events/gds-transparence-nomination-files-added.event';
 
 export class TransparenceService {
   constructor(
@@ -41,7 +46,7 @@ export class TransparenceService {
         transparenceId: transparency,
         formations: [...readCollection.formations()],
         nominationFiles:
-          await this.nominationFilesPayloadFactory(readCollection),
+          await this.nominationFilesWithReportersIds(readCollection),
       };
       const newTransparenceImportedEvent =
         GdsNewTransparenceImportedEvent.create(payload);
@@ -56,16 +61,25 @@ export class TransparenceService {
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync {
     return async (trx) => {
-      const nominationFilesAddedEvent =
+      const nominationFilesToAdd =
         transparence.addNewNominationFiles(readCollection);
       const modifiedNominationFilesEvent =
         transparence.replaceModifiedNominationFiles(readCollection);
 
       await this.transparenceRepository.save(transparence)(trx);
 
-      if (nominationFilesAddedEvent) {
+      if (nominationFilesToAdd) {
+        const payload: GdsTransparenceNominationFilesAddedEventPayload = {
+          transparenceId: transparence.name,
+          nominationFiles:
+            await this.nominationFilesWithReportersIds(nominationFilesToAdd),
+        };
+        const nominationFilesAddedEvent =
+          GdsTransparenceNominationFilesAddedEvent.create(payload);
+
         await this.domainEventRepository.save(nominationFilesAddedEvent)(trx);
       }
+
       if (modifiedNominationFilesEvent) {
         await this.domainEventRepository.save(modifiedNominationFilesEvent)(
           trx,
@@ -93,18 +107,16 @@ export class TransparenceService {
       await this.transparenceRepository.transparence(transparence)(trx);
   }
 
-  private async nominationFilesPayloadFactory(
+  private async nominationFilesWithReportersIds(
     nominationFiles: NominationFilesContentReadCollection,
-  ): Promise<
-    GdsNewTransparenceImportedEventPayload['nominationFiles'][number][]
-  > {
+  ): Promise<NominationFilesContentWithReporterIds[]> {
     const reporterNames: string[] = _.uniq(
       nominationFiles
         .contents()
         .flatMap((nominationFile) => nominationFile.reporters)
         .filter((reporterName): reporterName is string => !!reporterName),
     );
-    const reporterss = await Promise.all(
+    const reportersList = await Promise.all(
       reporterNames.map(async (reporterName) => {
         return [
           reporterName,
@@ -112,7 +124,7 @@ export class TransparenceService {
         ] as const;
       }),
     );
-    const reporters = Object.fromEntries(reporterss);
+    const reporters = Object.fromEntries(reportersList);
     return nominationFiles.contents().map((nominationFile) => ({
       ...nominationFile,
       reporterIds:

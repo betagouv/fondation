@@ -1,44 +1,25 @@
 import { Magistrat, Role, Transparency } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
 import { NominationFileReadRulesBuilder } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
-import { FakeAffectationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-affectation.repository';
-import { FakeDossierDeNominationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
-import { FakePréAnalyseRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-pré-analyse.repository';
-import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
-import { FakeUserService } from 'src/nominations-context/adapters/secondary/services/fake-user.service';
-import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { AffectationSnapshot } from '../../models/affectation';
-import { DomainRegistry } from '../../models/domain-registry';
-import { TypeDeSaisine } from '../../models/type-de-saisine';
-import { TransparenceService } from '../../services/transparence.service';
-import { ImportNouvelleTransparenceCommand } from './Import-nouvelle-transparence.command';
-import { ImportNouvelleTransparenceUseCase } from './import-nouvelle-transparence.use-case';
+import { AffectationSnapshot } from '../../../models/affectation';
+import { TypeDeSaisine } from '../../../models/type-de-saisine';
+import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparence.command';
+import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';
+import { getDependencies } from '../../transparence.use-case.tests-dependencies';
 
 describe('Affectation des rapporteurs de transparence au format tsv', () => {
-  let affectationRepository: FakeAffectationRepository;
-  let userService: FakeUserService;
-  let transparenceRepository: FakeTransparenceRepository;
-  let dossierDeNominationRepository: FakeDossierDeNominationRepository;
-  let transparenceService: TransparenceService;
-  let uuidGenerator: DeterministicUuidGenerator;
+  let dependencies: ReturnType<typeof getDependencies>;
 
   beforeEach(() => {
-    affectationRepository = new FakeAffectationRepository();
-    transparenceRepository = new FakeTransparenceRepository();
-    dossierDeNominationRepository = new FakeDossierDeNominationRepository();
-    transparenceService = new TransparenceService(
-      dossierDeNominationRepository,
-      new FakePréAnalyseRepository(),
-      transparenceRepository,
-      affectationRepository,
-    );
-    uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [aDossierDeNominationId];
-    DomainRegistry.setUuidGenerator(uuidGenerator);
-
-    userService = new FakeUserService();
-    userService.addUsers(lucLoïcUser);
+    dependencies = getDependencies();
+    dependencies.uuidGenerator.nextUuids = [
+      aDossierDeNominationId,
+      'pré-analyse-id',
+      'dossier-de-nomination-event-id',
+      aAffectationId,
+    ];
+    dependencies.userService.addUsers(lucLoïcUser);
   });
 
   it('crée une affectation des rapporteurs aux dossiers de nominations', async () => {
@@ -49,15 +30,16 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
   const créerAffectationRapporteurs = () =>
     new ImportNouvelleTransparenceUseCase(
       new NullTransactionPerformer(),
-      transparenceService,
+      dependencies.transparenceService,
     ).execute(aCommand);
 
   const expectAffectationRapporteursCréée = () =>
-    expect(affectationRepository.getAffectations()).toEqual<
+    expect(dependencies.affectationRepository.getAffectations()).toEqual<
       AffectationSnapshot[]
     >([
       {
-        transparenceId: aTransparencyName,
+        id: aAffectationId,
+        sessionId: aTransparencyName,
         formation: aFormation,
         affectationsDossiersDeNominations: [
           {
@@ -82,6 +64,7 @@ const aTransparencyName = Transparency.AUTOMNE_2024;
 const aFormation = Magistrat.Formation.PARQUET;
 const aTypeDeSaisine = TypeDeSaisine.TRANSPARENCE_GDS;
 const aDossierDeNominationId = 'dossier-de-nomination-id';
+const aAffectationId = 'affectation-id';
 
 const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
   {

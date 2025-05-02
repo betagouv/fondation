@@ -1,101 +1,71 @@
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
-import { DossierDeNomination } from 'src/nominations-context/business-logic/models/dossier-de-nomination';
-import { PréAnalyse } from 'src/nominations-context/business-logic/models/pré-analyse';
+import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { AffectationRepository } from '../gateways/repositories/affectation.repository';
 import { DossierDeNominationRepository } from '../gateways/repositories/dossier-de-nomination.repository';
 import { PréAnalyseRepository } from '../gateways/repositories/pré-analyse.repository';
-import { TransparenceRepository } from '../gateways/repositories/transparence.repository';
+import { SessionRepository } from '../gateways/repositories/session.repository';
+import { GdsNewTransparenceEventTransformer } from '../models/gds-new-transparence-event-transformer';
 import { Session } from '../models/session';
 import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
-
-type DossierAvecPayload = {
-  dossier: DossierDeNomination;
-  rules: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['rules'];
-  rapporteurIds: string[];
-};
 
 export class TransparenceService {
   constructor(
     private readonly dossierDeNominationRepository: DossierDeNominationRepository,
     private readonly préAnalyseRepository: PréAnalyseRepository,
-    private readonly transparenceRepository: TransparenceRepository,
+    private readonly sessionRepository: SessionRepository,
     private readonly affectationRepository: AffectationRepository,
+    private readonly domainEventRepository: DomainEventRepository,
   ) {}
 
   nouvelleSession(
     command: ImportNouvelleTransparenceCommand,
   ): TransactionableAsync<Session> {
     return async (trx) => {
-      const transparence = Session.nouvelle(
+      const session = Session.nouvelle(
         command.transparenceId,
         command.typeDeSaisine,
         command.formations,
       );
-      await this.transparenceRepository.save(transparence)(trx);
-      return transparence;
+      await this.sessionRepository.save(session)(trx);
+      return session;
     };
   }
 
   créerDossiersImportés(
     session: Session,
-    nominationFiles: GdsNewTransparenceImportedEventPayload['nominationFiles'],
+    nominationFiles:
+      | GdsNewTransparenceImportedEventPayload['nominationFiles']
+      | GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'],
   ): TransactionableAsync {
     return async (trx) => {
-      const dossiers = nominationFiles.map((nominationFile) => {
-        const content = {
-          biography: nominationFile.biography,
-          birthDate: nominationFile.birthDate,
-          currentPosition: nominationFile.currentPosition,
-          targettedPosition: nominationFile.targettedPosition,
-          dueDate: nominationFile.dueDate,
-          folderNumber: nominationFile.folderNumber,
-          formation: nominationFile.formation,
-          grade: nominationFile.grade,
-          name: nominationFile.name,
-          observers: nominationFile.observers,
-          rank: nominationFile.rank,
-        };
+      const dossiersTransformer = new GdsNewTransparenceEventTransformer(
+        session,
+      ).transformer(nominationFiles);
 
-        const dossierAvecPayload = {
-          dossier: session.nouveauDossier(content),
-          rules: nominationFile.rules,
-          rapporteurIds: nominationFile.reporterIds,
-        };
-        return dossierAvecPayload;
-      });
-
-      for (const { dossier, rules } of dossiers) {
+      for (const {
+        dossier,
+        nouveauDossierEvent,
+        préAnalyse,
+      } of dossiersTransformer.dossiers) {
         await this.dossierDeNominationRepository.save(dossier)(trx);
-        await this.createFromRulesV1(dossier.id, rules)(trx);
+        await this.préAnalyseRepository.save(préAnalyse)(trx);
+        await this.domainEventRepository.save(nouveauDossierEvent)(trx);
       }
 
-      await this.affecterRapporteurs(
-        session,
-        dossiers.filter(
-          (dossier) =>
-            dossier.rapporteurIds && dossier.rapporteurIds.length > 0,
-        ) as DossierAvecPayload[],
-      )(trx);
-    };
-  }
-
-  private createFromRulesV1(
-    dossierId: string,
-    rules: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['rules'],
-  ): TransactionableAsync {
-    return async (trx) => {
-      const préAnalyse = PréAnalyse.fromTransparenceRulesV1(dossierId, rules);
-      await this.préAnalyseRepository.save(préAnalyse)(trx);
+      await this.affecterRapporteurs(session, dossiersTransformer)(trx);
     };
   }
 
   private affecterRapporteurs(
     session: Session,
-    dossiers: Pick<DossierAvecPayload, 'dossier' | 'rapporteurIds'>[],
+    dossiersTransformer: GdsNewTransparenceEventTransformer,
   ): TransactionableAsync {
     return async (trx) => {
-      const affectations = session.affecterRapporteurs(dossiers);
+      const affectations = session.affecterRapporteurs(
+        dossiersTransformer.filtrerAvecRapporteurs().dossiers,
+      );
 
       for (const affectation of affectations) {
         await this.affectationRepository.save(affectation)(trx);
