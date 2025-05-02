@@ -34,7 +34,7 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-
+import * as Sentry from "@sentry/react";
 startReactDsfr({ defaultColorScheme: "light" });
 
 const authencationApiClient = new FetchAuthenticationApiClient(
@@ -89,6 +89,22 @@ const store = initReduxStore<false>(
   allRulesMapV2,
   allRulesLabelsMap,
 );
+
+// Dont instanciate sentry in non production mode
+if (process.env.NODE_ENV === "production") {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+    environment: import.meta.env.VITE_DEPLOY_ENV,
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

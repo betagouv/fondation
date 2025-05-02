@@ -1,5 +1,9 @@
 import crypto from 'crypto';
-import { DevApiConfig, ProdApiConfig } from '../zod/api-config-schema';
+import {
+  DeployEnvMode,
+  DevApiConfig,
+  ProdApiConfig,
+} from '../zod/api-config-schema';
 
 const baseScalewayDomain = 's3.fr-par.scw.cloud';
 
@@ -9,6 +13,9 @@ const baseUrl = `http://${process.env.APP}.osc-secnum-fr1.scalingo.io`;
 
 export const apiConfig: ProdApiConfig = {
   originUrl: process.env.ORIGIN_URL!,
+  sentryDsn: process.env.SENTRY_DSN!,
+  deployEnv:
+    (process.env.DEPLOY_ENV as DeployEnvMode) || DeployEnvMode.PRODUCTION,
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   cookieMaxAgeInMs: Number(process.env.COOKIE_MAX_AGE_IN_MS!),
