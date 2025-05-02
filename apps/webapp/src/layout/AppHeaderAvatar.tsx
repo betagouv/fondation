@@ -6,11 +6,14 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../reports/adapters/primary/hooks/react-redux";
+
 export const AppHeaderAvatar: FC = () => {
-  const { firstLetters, isDefined } = useAppSelector(selectAuthenticatedUser);
+  const user = useAppSelector(selectAuthenticatedUser);
+  const firstLetters = user?.firstLetters;
+
   const dispatch = useAppDispatch();
 
-  if (!isDefined) {
+  if (!user) {
     return null;
   }
 

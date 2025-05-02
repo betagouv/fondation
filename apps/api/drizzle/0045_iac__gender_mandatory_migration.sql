@@ -1,0 +1,1 @@
+ALTER TABLE "identity_and_access_context"."users" ALTER COLUMN "gender" SET NOT NULL;

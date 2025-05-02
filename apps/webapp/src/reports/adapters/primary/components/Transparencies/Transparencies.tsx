@@ -11,7 +11,8 @@ export const Transparencies = () => {
   useReportsList();
   const transparencies = useAppSelector(selectTransparencies);
   const gdsTransparencies = transparencies["GARDE DES SCEAUX"];
-  const { civility } = useAppSelector(selectAuthenticatedUser);
+  const user = useAppSelector(selectAuthenticatedUser);
+  const civility = user?.civility;
   return (
     <div className={clsx("gap-10", cx("fr-grid-row"))}>
       <div>
