@@ -7,39 +7,23 @@ import {
 } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
 import { NominationFileReadRulesBuilder } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
-import { FakeDossierDeNominationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
-import { FakePréAnalyseRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-pré-analyse.repository';
-import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
-import { TransparenceService } from 'src/nominations-context/business-logic/services/transparence.service';
-import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { DomainRegistry } from '../../models/domain-registry';
-import { PréAnalyseSnapshot } from '../../models/pré-analyse';
-import { TypeDeSaisine } from '../../models/type-de-saisine';
-import { ImportNouvelleTransparenceCommand } from './Import-nouvelle-transparence.command';
-import { ImportNouvelleTransparenceUseCase } from './import-nouvelle-transparence.use-case';
-import { FakeAffectationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-affectation.repository';
+import { PréAnalyseSnapshot } from '../../../models/pré-analyse';
+import { TypeDeSaisine } from '../../../models/type-de-saisine';
+import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparence.command';
+import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';
+import { getDependencies } from '../../transparence.use-case.tests-dependencies';
 
 describe('Nouvelle transparence GDS - Pré-analyse', () => {
-  let transparenceRepository: FakeTransparenceRepository;
-  let dossierDeNominationRepository: FakeDossierDeNominationRepository;
-  let préAnalyseRepository: FakePréAnalyseRepository;
-  let transparenceService: TransparenceService;
-  let uuidGenerator: DeterministicUuidGenerator;
+  let dependencies: ReturnType<typeof getDependencies>;
 
   beforeEach(() => {
-    transparenceRepository = new FakeTransparenceRepository();
-    dossierDeNominationRepository = new FakeDossierDeNominationRepository();
-    préAnalyseRepository = new FakePréAnalyseRepository();
-    transparenceService = new TransparenceService(
-      dossierDeNominationRepository,
-      préAnalyseRepository,
-      transparenceRepository,
-      new FakeAffectationRepository(),
-    );
-    uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [aDossierDeNominationId, aPréAnalyseId];
-    DomainRegistry.setUuidGenerator(uuidGenerator);
+    dependencies = getDependencies();
+    dependencies.uuidGenerator.nextUuids = [
+      aDossierDeNominationId,
+      'dossier-de-nomination-event-id',
+      aPréAnalyseId,
+    ];
   });
 
   it("crée la pré-analyse d'un dossier de nomination", async () => {
@@ -50,12 +34,12 @@ describe('Nouvelle transparence GDS - Pré-analyse', () => {
   async function créerDossiersDeNomination() {
     await new ImportNouvelleTransparenceUseCase(
       new NullTransactionPerformer(),
-      transparenceService,
+      dependencies.transparenceService,
     ).execute(aCommand);
   }
 
   function expectPréAnalyseCréée() {
-    const préAnalyses = préAnalyseRepository.getPréAnalyses();
+    const préAnalyses = dependencies.préAnalyseRepository.getPréAnalyses();
     expect(préAnalyses.map(sortPréAnalyse)).toEqual<PréAnalyseSnapshot[]>([
       préAnalyseSnapshot,
     ]);

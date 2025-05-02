@@ -2,19 +2,23 @@ import { Transparency } from 'shared-models';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../domain-registry';
-import {
-  NominationFileRead,
-  nominationFileReadContentSchema,
-} from '../nomination-file-read';
+import { nominationFileReadContentSchema } from '../nomination-file-read';
+import { NominationFilesContentWithReporterIds } from './gds-transparence-imported.event';
 
 export type GdsTransparenceNominationFilesAddedEventPayload = {
   transparenceId: string;
-  nominationFiles: NominationFileRead['content'][];
+  nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
 export const gdsTransparenceNominationFilesAddedEventPayloadSchema = z.object({
   transparenceId: z.nativeEnum(Transparency),
-  nominationFiles: z.array(nominationFileReadContentSchema).nonempty(),
+  nominationFiles: z
+    .array(
+      nominationFileReadContentSchema.omit({ reporters: true }).extend({
+        reporterIds: z.array(z.string()).nullable(),
+      }),
+    )
+    .nonempty(),
 }) satisfies z.ZodType<GdsTransparenceNominationFilesAddedEventPayload>;
 
 export class GdsTransparenceNominationFilesAddedEvent extends DomainEvent<GdsTransparenceNominationFilesAddedEventPayload> {

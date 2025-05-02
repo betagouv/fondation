@@ -31,16 +31,15 @@ export class Session {
       rapporteurIds: string[];
     }[],
   ): Affectation[] {
-    return this._formations.map(
-      (formation) =>
-        new Affectation(
-          this._id,
-          formation,
-          dossiers.map(({ dossier, rapporteurIds }) => ({
-            dossierDeNominationId: dossier.id,
-            rapporteurIds,
-          })),
-        ),
+    return this._formations.map((formation) =>
+      Affectation.nouvelle(
+        this._id,
+        formation,
+        dossiers.map(({ dossier, rapporteurIds }) => ({
+          dossierDeNominationId: dossier.id,
+          rapporteurIds,
+        })),
+      ),
     );
   }
 
@@ -64,5 +63,14 @@ export class Session {
   ) {
     const defaultName = id;
     return new Session(id, defaultName, formations, typeDeSaisine);
+  }
+
+  static fromSnapshot(snapshot: SessionSnapshot): Session {
+    return new Session(
+      snapshot.id,
+      snapshot.name,
+      snapshot.formations,
+      snapshot.typeDeSaisine,
+    );
   }
 }

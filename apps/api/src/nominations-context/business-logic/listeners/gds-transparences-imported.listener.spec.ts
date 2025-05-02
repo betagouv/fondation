@@ -7,20 +7,19 @@ import {
   StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
 import { FakeAffectationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-affectation.repository';
+import { FakeDossierDeNominationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 import { FakePréAnalyseRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-pré-analyse.repository';
-import { FakeTransparenceRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeSessionRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-session.repository';
 import { TransparenceService } from 'src/nominations-context/business-logic/services/transparence.service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TypeDeSaisine } from '../models/type-de-saisine';
-import { AffectationRapporteursTransparenceTsvUseCase } from '../use-cases/affectation-rapporteurs-transparence-tsv/affectation-rapporteurs-transparence-tsv.use-case';
 import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
 import { ImportNouvelleTransparenceUseCase } from '../use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { GdsTransparencesImportedListener } from './gds-transparences-imported.listener';
-import { FakeDossierDeNominationRepository } from 'src/nominations-context/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
+import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 
 describe('GDS transparences imported listener', () => {
   let nouvelleTransparenceUseCase: ImportNouvelleTransparenceUseCase;
-  let affectationRapporteursTransparenceTsvUseCase: AffectationRapporteursTransparenceTsvUseCase;
 
   beforeEach(() => {
     nouvelleTransparenceUseCase = new ImportNouvelleTransparenceUseCase(
@@ -28,18 +27,12 @@ describe('GDS transparences imported listener', () => {
       new TransparenceService(
         new FakeDossierDeNominationRepository(),
         new FakePréAnalyseRepository(),
-        new FakeTransparenceRepository(),
+        new FakeSessionRepository(),
         new FakeAffectationRepository(),
+        new FakeDomainEventRepository(),
       ),
     );
     nouvelleTransparenceUseCase.execute = jest.fn();
-
-    affectationRapporteursTransparenceTsvUseCase =
-      new AffectationRapporteursTransparenceTsvUseCase(
-        new NullTransactionPerformer(),
-        new FakeAffectationRepository(),
-      );
-    affectationRapporteursTransparenceTsvUseCase.execute = jest.fn();
   });
 
   afterEach(() => {

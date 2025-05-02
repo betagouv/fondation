@@ -1,10 +1,6 @@
 import { Magistrat, Transparency } from 'shared-models';
 import { z } from 'zod';
 import { Affectation, NominationFileAffectation } from './affectation';
-import {
-  GdsTransparenceNominationFilesAddedEvent,
-  GdsTransparenceNominationFilesAddedEventPayload,
-} from './events/gds-transparence-nomination-files-added.event';
 import { GdsTransparenceNominationFilesModifiedEvent } from './events/gds-transparence-nomination-files-modified.event';
 import {
   NominationFileModel,
@@ -35,7 +31,7 @@ export class Transparence {
 
   addNewNominationFiles(
     readCollection: NominationFilesContentReadCollection,
-  ): GdsTransparenceNominationFilesAddedEvent | null {
+  ): NominationFilesContentReadCollection | null {
     const newNominationFiles = readCollection.newNominationFiles(
       this.nominationFiles.map((file) => file.toSnapshot()),
     );
@@ -45,16 +41,7 @@ export class Transparence {
       ...newNominationFilesModels,
     ];
 
-    const payload: GdsTransparenceNominationFilesAddedEventPayload = {
-      transparenceId: this.name,
-      nominationFiles: newNominationFiles.contents(),
-    };
-    const nominationFilesAddedEvent =
-      GdsTransparenceNominationFilesAddedEvent.create(payload);
-
-    return newNominationFiles.hasNominationFiles()
-      ? nominationFilesAddedEvent
-      : null;
+    return newNominationFiles.hasNominationFiles() ? newNominationFiles : null;
   }
 
   replaceModifiedNominationFiles(

@@ -7,12 +7,17 @@ import {
   nominationFileReadContentSchema,
 } from '../nomination-file-read';
 
+export type NominationFilesContentWithReporterIds = Omit<
+  NominationFileRead['content'],
+  'reporters'
+> & {
+  reporterIds: string[] | null;
+};
+
 export type GdsNewTransparenceImportedEventPayload = {
   transparenceId: string;
   formations: Magistrat.Formation[];
-  nominationFiles: (Omit<NominationFileRead['content'], 'reporters'> & {
-    reporterIds: string[] | null;
-  })[];
+  nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
