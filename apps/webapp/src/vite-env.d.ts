@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN: string;
   readonly VITE_DEPLOY_ENV: string;
   readonly DEV: boolean;
+  readonly PROD: boolean;
 }
 
 interface ImportMeta {

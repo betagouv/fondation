@@ -91,7 +91,7 @@ const store = initReduxStore<false>(
 );
 
 // Dont instanciate sentry in non production mode
-if (process.env.NODE_ENV === "production") {
+if (import.meta.env.PROD) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     integrations: [
@@ -104,6 +104,7 @@ if (process.env.NODE_ENV === "production") {
     release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
     environment: import.meta.env.VITE_DEPLOY_ENV,
   });
+  Sentry.captureException(new Error("Test in production mode"));
 }
 
 createRoot(document.getElementById("root")!).render(
