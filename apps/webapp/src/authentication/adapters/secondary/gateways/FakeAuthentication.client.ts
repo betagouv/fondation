@@ -8,7 +8,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
     firstName: string;
     lastName: string;
     role: Role;
-    gender: Gender | null;
+    gender: Gender;
   } | null = null;
 
   async login(email: string, password: string) {
@@ -50,7 +50,7 @@ export class FakeAuthenticationApiClient implements AuthenticationApiClient {
     firstName: string,
     lastName: string,
     role: Role,
-    gender: Gender | null,
+    gender: Gender,
   ) {
     this.user = { email, password, firstName, lastName, role, gender };
   }

@@ -4,7 +4,7 @@ export type AuthenticatedUserSM = {
   firstName: string;
   lastName: string;
   role: Role;
-  gender: Gender | null;
+  gender: Gender;
 };
 
 export interface AuthenticationGateway {

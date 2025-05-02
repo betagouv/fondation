@@ -9,7 +9,7 @@ export type RegisterUserCommand = {
   role: Role;
   firstName: string;
   lastName: string;
-  gender: Gender | null;
+  gender: Gender;
 };
 
 export class RegisterUserUseCase {

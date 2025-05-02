@@ -48,7 +48,7 @@ export interface AuthenticatedUser {
   firstName: string;
   lastName: string;
   role: Role;
-  gender: Gender | null;
+  gender: Gender;
 }
 
 export interface LoginDto {

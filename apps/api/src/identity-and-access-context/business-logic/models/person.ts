@@ -5,17 +5,17 @@ import { FullName } from './full-name';
 export class Person {
   constructor(
     private readonly _fullName: FullName,
-    private _gender: Gender | null,
+    private _gender: Gender,
   ) {}
 
   public get fullName(): FullName {
     return this._fullName;
   }
 
-  public get gender(): Gender | null {
+  public get gender(): Gender {
     return this._gender;
   }
-  private set gender(value: Gender | null) {
-    this._gender = z.nativeEnum(Gender).nullable().parse(value);
+  private set gender(value: Gender) {
+    this._gender = z.nativeEnum(Gender).parse(value);
   }
 }
