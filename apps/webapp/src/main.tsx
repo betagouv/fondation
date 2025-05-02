@@ -1,4 +1,5 @@
 import { startReactDsfr } from "@codegouvfr/react-dsfr/spa";
+import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
@@ -34,7 +35,6 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import * as Sentry from "@sentry/react";
 startReactDsfr({ defaultColorScheme: "light" });
 
 const authencationApiClient = new FetchAuthenticationApiClient(
@@ -104,7 +104,6 @@ if (!import.meta.env.DEV) {
     release: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
     environment: import.meta.env.VITE_DEPLOY_ENV,
   });
-  Sentry.captureException(new Error("Test in production mode"));
 }
 
 createRoot(document.getElementById("root")!).render(
