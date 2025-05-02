@@ -1,4 +1,4 @@
-import { ReportFileUsage, Role } from 'shared-models';
+import { Gender, ReportFileUsage, Role } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
 import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
@@ -272,4 +272,5 @@ const aUser = {
   firstName: 'john',
   lastName: 'doe',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };

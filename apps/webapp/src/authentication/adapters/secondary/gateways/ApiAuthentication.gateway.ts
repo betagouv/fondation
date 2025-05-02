@@ -10,6 +10,7 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
       firstName: authenticatedUser.firstName,
       lastName: authenticatedUser.lastName,
       role: authenticatedUser.role,
+      gender: authenticatedUser.gender,
     };
   }
 
@@ -20,6 +21,7 @@ export class ApiAuthenticationGateway implements AuthenticationGateway {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          gender: user.gender,
         }
       : null;
   }

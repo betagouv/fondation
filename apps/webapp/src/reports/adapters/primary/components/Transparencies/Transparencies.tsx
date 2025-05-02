@@ -1,20 +1,21 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import clsx from "clsx";
+import { selectAuthenticatedUser } from "../../../../../authentication/adapters/primary/selectors/selectAuthenticatedUser";
 import { useAppSelector } from "../../hooks/react-redux";
 import { useReportsList } from "../../hooks/use-reports-list";
 import { selectTransparencies } from "../../selectors/selectTransparencies";
 import { CsmTransparencies } from "./CsmTransparencies";
 import { GdsTransparencies } from "./GdsTransparencies";
-import clsx from "clsx";
 
 export const Transparencies = () => {
   useReportsList();
   const transparencies = useAppSelector(selectTransparencies);
   const gdsTransparencies = transparencies["GARDE DES SCEAUX"];
-
+  const { civility } = useAppSelector(selectAuthenticatedUser);
   return (
     <div className={clsx("gap-10", cx("fr-grid-row"))}>
       <div>
-        <h1>Bonjour,</h1>
+        <h1>Bonjour {civility},</h1>
         <p
           style={{
             display: transparencies.noTransparencies ? undefined : "none",

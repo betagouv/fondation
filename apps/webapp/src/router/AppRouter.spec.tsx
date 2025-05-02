@@ -2,7 +2,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { join } from "node:path";
 import { Provider } from "react-redux";
-import { Magistrat, Transparency } from "shared-models";
+import { Gender, Magistrat, Role, Transparency } from "shared-models";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
@@ -28,9 +28,8 @@ import { AppRouter } from "./AppRouter";
 import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
-import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
 import { FormationsRoutesMapper } from "./core-logic/models/formations-routes-mapper";
-import { Role } from "shared-models";
+import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
 
 const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
@@ -244,6 +243,7 @@ describe("App Router Component", () => {
         user.firstName,
         user.lastName,
         user.role,
+        user.gender,
       );
       store.dispatch(authenticate.fulfilled(user, "", userCredentials));
       await waitListenersCompletion();
@@ -273,6 +273,7 @@ const user: AuthenticatedUserSM = {
   firstName: "John",
   lastName: "Doe",
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 const userCredentials: AuthenticateParams = {
   email: "user@example.fr",

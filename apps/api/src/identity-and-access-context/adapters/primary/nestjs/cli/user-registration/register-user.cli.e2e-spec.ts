@@ -2,9 +2,8 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { Gender, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'shared-models';
 import { RegisterUserCommand } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {

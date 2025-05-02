@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { join } from 'node:path/posix';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
+import { Gender, Role } from 'shared-models';
 import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';
@@ -13,7 +13,6 @@ import {
 import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { baseRoute, endpointsPaths } from './session-validation.service';
-import { Role } from 'shared-models';
 
 const sessionId = 'valid-session-id';
 
@@ -22,6 +21,7 @@ const stubUser = {
   firstName: 'John',
   lastName: 'Doe',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 
 describe('Session Validation Service', () => {

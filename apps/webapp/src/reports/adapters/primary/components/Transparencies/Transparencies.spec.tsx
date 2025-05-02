@@ -1,7 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  Gender,
+  Magistrat,
+  NominationFile,
+  Role,
+  Transparency,
+} from "shared-models";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { ReduxStore, initReduxStore } from "../../../../../store/reduxStore";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
@@ -12,6 +18,12 @@ import {
   transparencyToLabel,
 } from "../../labels/labels-mappers";
 import { Transparencies } from "./Transparencies";
+import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
+import { StubLoginNotifierProvider } from "../../../../../authentication/adapters/secondary/providers/stubLoginNotifier.provider";
+import { AuthenticatedUserSM } from "../../../../../authentication/core-logic/gateways/Authentication.gateway";
+import { AuthenticateParams } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
+import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
+import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 
 const gdsTitle = "Pouvoir de proposition du GDS";
 
@@ -19,20 +31,48 @@ describe("Transparencies Component", () => {
   let store: ReduxStore;
   let routerProvider: StubRouterProvider;
   let reportApiClient: FakeReportApiClient;
+  const user: AuthenticatedUserSM = {
+    firstName: "John",
+    lastName: "Doe",
+    role: Role.MEMBRE_COMMUN,
+    gender: Gender.M,
+  };
+  const userCredentials: AuthenticateParams = {
+    email: "username",
+    password: "password",
+  };
 
-  beforeEach(() => {
+  const apiClient = new FakeAuthenticationApiClient();
+  apiClient.setEligibleAuthUser(
+    userCredentials.email,
+    userCredentials.password,
+    user.firstName,
+    user.lastName,
+    user.role,
+    user.gender,
+  );
+
+  const authenticationGateway = new ApiAuthenticationGateway(apiClient);
+  const loginNotifierProvider = new StubLoginNotifierProvider();
+
+  beforeEach(async () => {
     routerProvider = new StubRouterProvider();
     routerProvider.onTransparencyClickAttribute = vi.fn();
 
     reportApiClient = new FakeReportApiClient();
     const reportGateway = new ApiReportGateway(reportApiClient);
 
-    store = initReduxStore({ reportGateway }, { routerProvider }, {});
+    store = initReduxStore(
+      { reportGateway, authenticationGateway },
+      { routerProvider, loginNotifierProvider },
+      {},
+    );
   });
 
   it("shows the introduction", async () => {
+    await store.dispatch(authenticate(userCredentials));
     renderTransparencies();
-    await screen.findByText("Bonjour,");
+    await screen.findByText("Bonjour M. DOE,");
     await screen.findByText(
       "Sur quel type de saisine souhaitez-vous travailler ?",
     );

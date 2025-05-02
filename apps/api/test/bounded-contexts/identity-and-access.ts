@@ -13,5 +13,6 @@ export const expectUserDescriptor = (
     firstName: expectedUser.firstName,
     lastName: expectedUser.lastName,
     role: expectedUser.role,
+    gender: expectedUser.gender,
   });
 };

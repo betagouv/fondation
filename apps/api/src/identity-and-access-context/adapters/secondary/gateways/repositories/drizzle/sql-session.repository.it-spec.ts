@@ -1,5 +1,5 @@
+import { Gender, Role } from 'shared-models';
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
-import { Role } from 'shared-models';
 import { UserSession } from 'src/identity-and-access-context/business-logic/models/session';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -13,7 +13,6 @@ import { clearDB } from 'test/docker-postgresql-manager';
 import { sessions } from './schema/session-pm';
 import { users } from './schema/user-pm';
 import { SqlSessionRepository } from './sql-session.repository';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 
 const currentDate = new Date(2030, 0, 10);
 const expiryTimeInDays = 10;

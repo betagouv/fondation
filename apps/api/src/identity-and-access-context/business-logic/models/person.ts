@@ -1,6 +1,6 @@
+import { Gender } from 'shared-models';
 import { z } from 'zod';
 import { FullName } from './full-name';
-import { Gender } from './gender';
 
 export class Person {
   constructor(

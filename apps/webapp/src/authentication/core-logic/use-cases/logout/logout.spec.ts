@@ -1,4 +1,4 @@
-import { Role } from "shared-models";
+import { Gender, Role } from "shared-models";
 import { ReportBuilder } from "../../../../reports/core-logic/builders/Report.builder";
 import { listReport } from "../../../../reports/core-logic/use-cases/report-listing/listReport.use-case";
 import { retrieveReport } from "../../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
@@ -30,6 +30,7 @@ describe("Logout", () => {
       "John",
       "Doe",
       Role.MEMBRE_COMMUN,
+      Gender.M,
     );
 
     authenticationGateway = new ApiAuthenticationGateway(apiClient);

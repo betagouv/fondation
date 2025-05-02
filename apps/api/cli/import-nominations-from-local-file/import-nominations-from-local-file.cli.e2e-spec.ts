@@ -2,14 +2,18 @@ import { NestApplication } from '@nestjs/core';
 import { asc, eq } from 'drizzle-orm';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Gender,
+  Magistrat,
+  NominationFile,
+  Role,
+  Transparency,
+} from 'shared-models';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/data-administration-context.module';
 import { nominationFiles } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'shared-models';
 import {
   reportRules,
   reports,

@@ -1,7 +1,6 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { AuthenticatedUser, Role } from 'shared-models';
+import { AuthenticatedUser, Gender, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import {
   RegisterUserCommand,
@@ -98,6 +97,7 @@ describe('Auth Controller', () => {
         firstName: 'new',
         lastName: 'user',
         role: user.role,
+        gender: user.gender,
       };
       expect(response.body).toEqual(expectedAuthenticatedUser);
     });
@@ -294,6 +294,7 @@ describe('Auth Controller', () => {
       firstName: aUserDb.firstName,
       lastName: aUserDb.lastName,
       role: aUserDb.role,
+      gender: aUserDb.gender,
     });
 
   class AppTestingModule extends BaseAppTestingModule {

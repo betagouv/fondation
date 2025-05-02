@@ -1,8 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Gender, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { FileModel } from 'src/identity-and-access-context/business-logic/models/file';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
-import { Role } from 'shared-models';
 import { UserSnapshot } from 'src/identity-and-access-context/business-logic/models/user';
 import { FileType } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
 import { MainAppConfigurator } from 'src/main.configurator';

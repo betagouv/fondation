@@ -1,9 +1,10 @@
-import { Role } from "shared-models";
+import { Gender, Role } from "shared-models";
 
 export type AuthenticatedUserSM = {
   firstName: string;
   lastName: string;
   role: Role;
+  gender: Gender | null;
 };
 
 export interface AuthenticationGateway {

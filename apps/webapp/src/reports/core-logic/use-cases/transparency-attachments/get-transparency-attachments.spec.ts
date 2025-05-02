@@ -1,4 +1,4 @@
-import { Magistrat, Role } from "shared-models";
+import { Gender, Magistrat, Role } from "shared-models";
 import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import {
   authenticate,
@@ -7,7 +7,7 @@ import {
 import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
 import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
 import { AppState } from "../../../../store/appState";
-import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiTransparencyGateway } from "../../../adapters/secondary/gateways/ApiTransparency.gateway";
 import { FakeTransparencyApiClient } from "../../../adapters/secondary/gateways/FakeTransparency.client";
 import { TransparencyAttachments } from "../../gateways/TransparencyApi.client";
@@ -116,6 +116,7 @@ describe("Get Transparency Attachments", () => {
       firstName: "User",
       lastName: "Current",
       role,
+      gender: Gender.M,
     };
     store.dispatch(authenticate.fulfilled(user, "", userCredentials));
   };

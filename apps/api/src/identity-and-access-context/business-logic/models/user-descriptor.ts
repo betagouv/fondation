@@ -1,13 +1,13 @@
+import { Gender, Role } from 'shared-models';
 import { z } from 'zod';
 import { User } from './user';
-import { Gender } from './gender';
-import { Role } from 'shared-models';
 
 export type UserDescriptorSerialized = {
   userId: string;
   firstName: string;
   lastName: string;
   role: Role;
+  gender: Gender | null;
 };
 
 export class UserDescriptor {
@@ -60,6 +60,7 @@ export class UserDescriptor {
       firstName: this.firstName,
       lastName: this.lastName,
       role: this.role,
+      gender: this.gender,
     };
   }
 
