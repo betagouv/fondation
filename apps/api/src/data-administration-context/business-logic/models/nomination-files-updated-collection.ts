@@ -15,7 +15,8 @@ export class NominationFilesUpdatedCollection {
 
   constructor(
     nominationFileModelSnapshots: NominationFileModelSnapshot[],
-    private readonly transparenceId: Transparence['name'],
+    private readonly transparenceId: Transparence['id'],
+    private readonly transparenceName: Transparence['name'],
   ) {
     this._nominationFileModels = nominationFileModelSnapshots.map(
       NominationFileModel.fromSnapshot,
@@ -68,6 +69,7 @@ export class NominationFilesUpdatedCollection {
 
     const payload: GdsTransparenceNominationFilesModifiedEventPayload = {
       transparenceId: this.transparenceId,
+      transparenceName: this.transparenceName,
       nominationFiles: updatedNominationFiles.map(
         ({ nominationFile, updatedField }) => ({
           nominationFileId: nominationFile.id,

@@ -9,13 +9,12 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { NominationFile } from 'shared-models';
+import { gradeEnum, reportStateEnum } from './enums.drizzle';
+import { reportsContextSchema } from './reports-context-schema.drizzle';
 import {
   formationEnum,
-  gradeEnum,
-  reportStateEnum,
   transparencyEnum,
-} from './enums.drizzle';
-import { reportsContextSchema } from './reports-context-schema.drizzle';
+} from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 export const reports = reportsContextSchema.table('reports', {
   id: uuid('id')

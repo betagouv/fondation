@@ -9,6 +9,7 @@ import {
 
 export type GdsTransparenceNominationFilesModifiedEventPayload = {
   transparenceId: string;
+  transparenceName: Transparency;
   nominationFiles: Array<{
     nominationFileId: string;
     content: z.infer<typeof nominationFileContentUpdateSchema>;
@@ -27,7 +28,8 @@ const nominationFileContentUpdateSchema = nominationFileReadContentSchema
 
 export const gdsTransparenceNominationFilesModifiedEventPayloadSchema =
   z.object({
-    transparenceId: z.nativeEnum(Transparency),
+    transparenceId: z.string(),
+    transparenceName: z.nativeEnum(Transparency),
     nominationFiles: z
       .array(
         z.object({

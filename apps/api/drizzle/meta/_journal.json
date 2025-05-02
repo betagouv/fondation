@@ -330,6 +330,13 @@
       "when": 1747047648636,
       "tag": "0046_data_administration__add_transpa_30_avril_2025",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1747302365066,
+      "tag": "0047_data_administration__per_transparence",
+      "breakpoints": true
     }
   ]
 }

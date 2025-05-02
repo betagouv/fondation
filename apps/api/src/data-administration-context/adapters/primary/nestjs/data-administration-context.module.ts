@@ -18,6 +18,7 @@ import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
   NOMINATION_FILE_REPOSITORY,
   TRANSPARENCE_REPOSITORY,
+  USER_SERVICE,
 } from './tokens';
 import { DomainRegistry } from 'src/data-administration-context/business-logic/models/domain-registry';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
@@ -31,9 +32,9 @@ import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways
     ]),
 
     generateProvider(TransparenceService, [
-      NOMINATION_FILE_REPOSITORY,
       DOMAIN_EVENT_REPOSITORY,
       TRANSPARENCE_REPOSITORY,
+      USER_SERVICE,
     ]),
 
     generateProvider(

@@ -1,6 +1,6 @@
 {
-  "id": "f688f96b-1956-463f-932c-c0af92775b19",
-  "prevId": "5f7fff3f-708e-43ec-b014-c31fc2bd6d40",
+  "id": "abee4ddd-d7e5-4bb2-8919-cc56452eda93",
+  "prevId": "792a6898-b8d6-4565-9270-9de56b2308f8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -31,6 +31,43 @@
         "content": {
           "name": "content",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "data_administration_context.transparences": {
+      "name": "transparences",
+      "schema": "data_administration_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "transparency",
+          "typeSchema": "public",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "formations": {
+          "name": "formations",
+          "type": "formation[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nomination_files_ids": {
+          "name": "nomination_files_ids",
+          "type": "jsonb[]",
           "primaryKey": false,
           "notNull": true
         }
@@ -169,7 +206,7 @@
           "type": "gender",
           "typeSchema": "identity_and_access_context",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -179,7 +216,9 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "checkConstraints": {}
@@ -228,8 +267,12 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity_and_access_context",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -296,8 +339,12 @@
           "tableFrom": "report_rule",
           "tableTo": "reports",
           "schemaTo": "reports_context",
-          "columnsFrom": ["report_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -493,7 +540,9 @@
     "files_context.storage_provider": {
       "name": "storage_provider",
       "schema": "files_context",
-      "values": ["SCALEWAY"]
+      "values": [
+        "SCALEWAY"
+      ]
     },
     "identity_and_access_context.file_type": {
       "name": "file_type",
@@ -507,32 +556,47 @@
     "identity_and_access_context.gender": {
       "name": "gender",
       "schema": "identity_and_access_context",
-      "values": ["MALE", "FEMALE"]
+      "values": [
+        "MALE",
+        "FEMALE"
+      ]
     },
     "identity_and_access_context.role": {
       "name": "role",
       "schema": "identity_and_access_context",
-      "values": ["MEMBRE_DU_SIEGE", "MEMBRE_DU_PARQUET", "MEMBRE_COMMUN"]
-    },
-    "public.formation": {
-      "name": "formation",
-      "schema": "public",
-      "values": ["PARQUET", "SIEGE"]
+      "values": [
+        "MEMBRE_DU_SIEGE",
+        "MEMBRE_DU_PARQUET",
+        "MEMBRE_COMMUN"
+      ]
     },
     "public.grade": {
       "name": "grade",
       "schema": "public",
-      "values": ["I", "II", "HH"]
+      "values": [
+        "I",
+        "II",
+        "HH"
+      ]
     },
     "public.report_state": {
       "name": "report_state",
       "schema": "public",
-      "values": ["NEW", "IN_PROGRESS", "READY_TO_SUPPORT", "SUPPORTED"]
+      "values": [
+        "NEW",
+        "IN_PROGRESS",
+        "READY_TO_SUPPORT",
+        "SUPPORTED"
+      ]
     },
     "reports_context.rule_group": {
       "name": "rule_group",
       "schema": "reports_context",
-      "values": ["management", "statutory", "qualitative"]
+      "values": [
+        "management",
+        "statutory",
+        "qualitative"
+      ]
     },
     "reports_context.rule_name": {
       "name": "rule_name",
@@ -556,6 +620,23 @@
         "DISCIPLINARY_ELEMENTS"
       ]
     },
+    "shared_kernel_context.domain_event_status": {
+      "name": "domain_event_status",
+      "schema": "shared_kernel_context",
+      "values": [
+        "NEW",
+        "PENDING",
+        "CONSUMED"
+      ]
+    },
+    "public.formation": {
+      "name": "formation",
+      "schema": "public",
+      "values": [
+        "PARQUET",
+        "SIEGE"
+      ]
+    },
     "public.transparency": {
       "name": "transparency",
       "schema": "public",
@@ -570,13 +651,9 @@
         "PARQUET_DU_20_FEVRIER_2025",
         "DU_03_MARS_2025",
         "GRANDE_TRANSPA_DU_21_MARS_2025",
+        "DU_30_AVRIL_2025",
         "MARCH_2026"
       ]
-    },
-    "shared_kernel_context.domain_event_status": {
-      "name": "domain_event_status",
-      "schema": "shared_kernel_context",
-      "values": ["NEW", "PENDING", "CONSUMED"]
     }
   },
   "schemas": {

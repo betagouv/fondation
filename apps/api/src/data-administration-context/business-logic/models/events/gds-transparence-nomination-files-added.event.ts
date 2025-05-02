@@ -7,11 +7,13 @@ import { NominationFilesContentWithReporterIds } from './gds-transparence-import
 
 export type GdsTransparenceNominationFilesAddedEventPayload = {
   transparenceId: string;
+  transparenceName: Transparency;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
 export const gdsTransparenceNominationFilesAddedEventPayloadSchema = z.object({
-  transparenceId: z.nativeEnum(Transparency),
+  transparenceId: z.string(),
+  transparenceName: z.nativeEnum(Transparency),
   nominationFiles: z
     .array(
       nominationFileReadContentSchema.omit({ reporters: true }).extend({

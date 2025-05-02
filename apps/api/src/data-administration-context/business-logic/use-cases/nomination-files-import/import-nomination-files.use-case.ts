@@ -25,7 +25,7 @@ export class ImportNominationFilesUseCase {
             readCollection,
           )(trx);
         } else {
-          await this.transparenceService.newTransparence(
+          await this.transparenceService.nouvelleTransparence(
             transparency,
             readCollection,
           )(trx);

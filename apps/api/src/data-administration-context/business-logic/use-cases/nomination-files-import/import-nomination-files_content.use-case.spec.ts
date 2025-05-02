@@ -22,6 +22,7 @@ import {
   anObserverExpected,
   anObserverString,
   emilienRenaudJulesUser,
+  gdsTransparenceId,
   gdsTransparenceName,
   GetLucienPierreModelSnapshot,
   getLucienPierreModelSnapshotFactory,
@@ -61,6 +62,7 @@ describe('Import Nomination Files Use Case', () => {
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [
       'nomination-file-id',
+      gdsTransparenceId,
       nominationFilesImportedEventId,
     ];
     DomainRegistry.setUuidGenerator(uuidGenerator);
@@ -227,6 +229,7 @@ describe('Import Nomination Files Use Case', () => {
     uuidGenerator.nextUuids = [
       'nomination-file-id',
       'second-nomination-file-id',
+      gdsTransparenceId,
       nominationFilesImportedEventId,
     ];
 
@@ -246,7 +249,8 @@ describe('Import Nomination Files Use Case', () => {
 
   describe('when an updated file is imported a second time', () => {
     beforeEach(() => {
-      transparenceRepository.addTransparence(gdsTransparenceName, {
+      transparenceRepository.addTransparence(gdsTransparenceId, {
+        id: gdsTransparenceId,
         name: gdsTransparenceName,
         formations: new Set([Magistrat.Formation.SIEGE]),
         nominationFiles: [
@@ -398,6 +402,7 @@ describe('Import Nomination Files Use Case', () => {
       TransparenceSnapshot[]
     >([
       {
+        id: gdsTransparenceId,
         name: gdsTransparenceName,
         formations: new Set(formations),
         nominationFiles: nominationFileSnapshots,
