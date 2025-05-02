@@ -9,7 +9,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { files } from './schema/file-pm';
 import { SqlFileRepository } from './sql-file.repository';
-import { FileType } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
+import { FileType } from 'src/identity-and-access-context/business-logic/models/file-type';
 
 const aFile = new FileModel(
   'a1b2c3d4-e5f6-4a5b-9c3d-2e1f0a9b8c7d',

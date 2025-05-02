@@ -4,7 +4,7 @@ import * as dataAdministrationContextSchema from 'src/data-administration-contex
 import * as filesContextSchema from 'src/files-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import * as identityAndAccessContextSchema from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import * as reportsContextSchema from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { sharedKernelContextSchema } from '../schema/shared-kernel-context-schema.drizzle';
+import * as sharedKernelContextSchema from '../schema';
 
 export const getDrizzleInstance = (connectionConfig: ConnectionConfig) => {
   const pool = new Pool(connectionConfig);

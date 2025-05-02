@@ -3,7 +3,7 @@ import { Gender, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import { FileModel } from 'src/identity-and-access-context/business-logic/models/file';
 import { UserSnapshot } from 'src/identity-and-access-context/business-logic/models/user';
-import { FileType } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
+import { FileType } from 'src/identity-and-access-context/business-logic/models/file-type';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {

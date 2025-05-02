@@ -24,6 +24,7 @@ import {
   emilienRenaudJulesReporterId,
   emilienRenaudJulesUser,
   gdsTransparenceEventId,
+  gdsTransparenceId,
   gdsTransparenceName,
   GetMarcelDupontModelSnapshot,
   getMarcelDupontModelSnapshotFactory,
@@ -41,7 +42,8 @@ const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const aGdsNewtransparenceImportedEvent = new GdsNewTransparenceImportedEvent(
   gdsTransparenceEventId,
   {
-    transparenceId: gdsTransparenceName,
+    transparenceId: gdsTransparenceId,
+    transparenceName: gdsTransparenceName,
     formations: [Magistrat.Formation.SIEGE],
     nominationFiles: [
       {
@@ -61,7 +63,8 @@ const aGdsTransparenceNominationFilesAddedEvent =
   new GdsTransparenceNominationFilesAddedEvent(
     gdsTransparenceEventId,
     {
-      transparenceId: gdsTransparenceName,
+      transparenceId: gdsTransparenceId,
+      transparenceName: gdsTransparenceName,
       nominationFiles: [
         {
           ...getMarcelDupontRead(2).content,
@@ -115,9 +118,9 @@ describe('Import Nomination Files Use Case', () => {
 
   it('informs about a new transparence imported', async () => {
     uuidGenerator.nextUuids = [
-      gdsTransparenceName,
-      gdsTransparenceEventId,
       nominationFileId,
+      gdsTransparenceId,
+      gdsTransparenceEventId,
       nominationFilesImportedEventId,
     ];
     await importNominationFiles(firstNominationFile);
@@ -129,9 +132,8 @@ describe('Import Nomination Files Use Case', () => {
 
     beforeEach(() => {
       uuidGenerator.nextUuids = [
-        gdsTransparenceName,
-        gdsTransparenceEventId,
         nominationFileId,
+        gdsTransparenceEventId,
         nominationFilesImportedEventId,
       ];
 
@@ -143,7 +145,8 @@ describe('Import Nomination Files Use Case', () => {
         },
       );
 
-      transparenceRepository.addTransparence(gdsTransparenceName, {
+      transparenceRepository.addTransparence(gdsTransparenceId, {
+        id: gdsTransparenceId,
         name: gdsTransparenceName,
         formations: new Set([Magistrat.Formation.SIEGE]),
         nominationFiles: [firstNominationFile],
@@ -264,7 +267,8 @@ const getGdsTransparenceNominationFilesModifiedEvent = (
   new GdsTransparenceNominationFilesModifiedEvent(
     gdsTransparenceEventId,
     {
-      transparenceId: gdsTransparenceName,
+      transparenceId: gdsTransparenceId,
+      transparenceName: gdsTransparenceName,
       nominationFiles: nominationFilesPayload,
     },
     currentDate,

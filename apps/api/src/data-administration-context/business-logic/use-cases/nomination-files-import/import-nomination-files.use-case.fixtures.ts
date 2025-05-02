@@ -18,6 +18,7 @@ import {
 import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 
 export const gdsTransparenceEventId = 'gds-transparence-event-id';
+export const gdsTransparenceId = 'gds-transparence-id';
 export const gdsTransparenceName = Transparency.AUTOMNE_2024;
 export const currentDate = new Date(2024, 10, 10);
 

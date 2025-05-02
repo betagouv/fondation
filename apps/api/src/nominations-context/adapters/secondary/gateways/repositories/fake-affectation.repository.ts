@@ -5,27 +5,26 @@ import {
   AffectationSnapshot,
 } from 'src/nominations-context/business-logic/models/affectation';
 
-type TransparenceId = string;
+type SessionId = string;
 
 export class FakeAffectationRepository implements AffectationRepository {
   private affectations: Record<
-    `${TransparenceId}-${Magistrat.Formation}`,
+    `${SessionId}-${Magistrat.Formation}`,
     AffectationSnapshot
   > = {};
 
   save(affectation: Affectation) {
     return async () => {
       const snapshot = affectation.snapshot();
-      this.affectations[`${snapshot.transparenceId}-${snapshot.formation}`] =
+      this.affectations[`${snapshot.sessionId}-${snapshot.formation}`] =
         snapshot;
     };
   }
 
   addAffectations(...affectations: AffectationSnapshot[]) {
     affectations.forEach((affectation) => {
-      this.affectations[
-        `${affectation.transparenceId}-${affectation.formation}`
-      ] = affectation;
+      this.affectations[`${affectation.sessionId}-${affectation.formation}`] =
+        affectation;
     });
   }
 

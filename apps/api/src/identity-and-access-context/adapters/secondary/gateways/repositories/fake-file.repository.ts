@@ -1,6 +1,6 @@
 import { FileRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/file-repository';
 import { FileModel } from 'src/identity-and-access-context/business-logic/models/file';
-import { FileType } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
+import { FileType } from 'src/identity-and-access-context/business-logic/models/file-type';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeFileRepository implements FileRepository {

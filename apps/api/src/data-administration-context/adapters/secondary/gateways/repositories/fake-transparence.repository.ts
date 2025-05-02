@@ -1,4 +1,3 @@
-import { Transparency } from 'shared-models';
 import { TransparenceRepository } from 'src/data-administration-context/business-logic/gateways/repositories/transparence.repository';
 import {
   Transparence,
@@ -11,19 +10,21 @@ export class FakeTransparenceRepository implements TransparenceRepository {
 
   save(transparence: Transparence) {
     return async () => {
-      this.transparences[transparence.name] = transparence.snapshot();
+      this.transparences[transparence.id] = transparence.snapshot();
     };
   }
 
-  transparence(name: Transparency): TransactionableAsync<Transparence | null> {
+  transparence(name: string): TransactionableAsync<Transparence | null> {
     return async () => {
-      const transparence = this.transparences[name];
+      const transparence = Object.values(this.transparences).find(
+        (transpa) => transpa.name === name,
+      );
       return transparence ? Transparence.fromSnapshot(transparence) : null;
     };
   }
 
-  addTransparence(name: Transparency, transparence: TransparenceSnapshot) {
-    this.transparences[name] = transparence;
+  addTransparence(id: string, transparence: TransparenceSnapshot) {
+    this.transparences[id] = transparence;
   }
 
   getTransparences() {

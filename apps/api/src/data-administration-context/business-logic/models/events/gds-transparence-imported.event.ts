@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, Transparency } from 'shared-models';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../domain-registry';
@@ -16,12 +16,14 @@ export type NominationFilesContentWithReporterIds = Omit<
 
 export type GdsNewTransparenceImportedEventPayload = {
   transparenceId: string;
+  transparenceName: Transparency;
   formations: Magistrat.Formation[];
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceId: z.string().uuid(),
+  transparenceName: z.nativeEnum(Transparency),
   formations: z.array(z.nativeEnum(Magistrat.Formation)).nonempty(),
   nominationFiles: z
     .array(
