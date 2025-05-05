@@ -21,6 +21,7 @@ import { ImportNominationFilesUseCase } from './import-nomination-files.use-case
 import {
   anObserverExpected,
   anObserverString,
+  currentDate,
   emilienRenaudJulesUser,
   gdsTransparenceId,
   gdsTransparenceName,
@@ -58,7 +59,7 @@ describe('Import Nomination Files Use Case', () => {
       jeanneLouiseDeFranceAudeUser,
     );
     dateTimeProvider = new DeterministicDateProvider();
-    dateTimeProvider.currentDate = new Date(2024, 10, 10);
+    dateTimeProvider.currentDate = currentDate;
     uuidGenerator = new DeterministicUuidGenerator();
     uuidGenerator.nextUuids = [
       'nomination-file-id',
@@ -251,6 +252,7 @@ describe('Import Nomination Files Use Case', () => {
     beforeEach(() => {
       transparenceRepository.addTransparence(gdsTransparenceId, {
         id: gdsTransparenceId,
+        createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
         formations: new Set([Magistrat.Formation.SIEGE]),
         nominationFiles: [
@@ -403,6 +405,7 @@ describe('Import Nomination Files Use Case', () => {
     >([
       {
         id: gdsTransparenceId,
+        createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
         formations: new Set(formations),
         nominationFiles: nominationFileSnapshots,
