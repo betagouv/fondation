@@ -7,7 +7,7 @@ export type UserDescriptorSerialized = {
   firstName: string;
   lastName: string;
   role: Role;
-  gender: Gender | null;
+  gender: Gender;
 };
 
 export class UserDescriptor {
@@ -15,7 +15,7 @@ export class UserDescriptor {
     private _userId: string,
     private _firstName: string,
     private _lastName: string,
-    private _gender: Gender | null,
+    private _gender: Gender,
     private _role: Role,
   ) {}
 
@@ -40,10 +40,10 @@ export class UserDescriptor {
     this._lastName = z.string().min(1).parse(value);
   }
 
-  public get gender(): Gender | null {
+  public get gender(): Gender {
     return this._gender;
   }
-  private set gender(value: Gender | null) {
+  private set gender(value: Gender) {
     this._gender = value;
   }
 

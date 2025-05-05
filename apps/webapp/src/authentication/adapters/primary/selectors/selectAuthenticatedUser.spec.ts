@@ -14,7 +14,7 @@ describe("Select Authenticated User", () => {
   it("should return empty user when store is not initialized", () => {
     const store = initReduxStore({}, {}, {});
     const user = selectAuthenticatedUser(store.getState());
-    expect(user.isDefined).toEqual(false);
+    expect(user).toBeNull();
   });
 
   it("should return authenticated user when user is logged in", async () => {
@@ -58,7 +58,6 @@ describe("Select Authenticated User", () => {
     const selectedUser = selectAuthenticatedUser(store.getState());
     expect(selectedUser).toEqual({
       firstLetters: "DJ",
-      isDefined: true,
       civility: "M. DOE",
     });
   });

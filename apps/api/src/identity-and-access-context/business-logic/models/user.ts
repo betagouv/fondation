@@ -12,7 +12,7 @@ export type UserSnapshot = {
   role: Role;
   firstName: string;
   lastName: string;
-  gender: Gender | null;
+  gender: Gender;
 };
 
 export class User {
@@ -114,7 +114,7 @@ export class User {
     role: Role,
     firstName: string,
     lastName: string,
-    gender: Gender | null,
+    gender: Gender,
   ): Promise<User> {
     const uuidGenerator = DomainRegistry.uuidGenerator();
     const currentDate = DomainRegistry.dateTimeProvider().now();

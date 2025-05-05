@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { uuid, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { genderEnum, roleEnum } from './enums.drizzle';
 import { identityAndAccessContextSchema } from './identity-and-access-context-schema.drizzle';
 
@@ -13,5 +13,5 @@ export const users = identityAndAccessContextSchema.table('users', {
   role: roleEnum('role').notNull(),
   email: varchar('email').notNull().unique(),
   password: text('password').notNull(),
-  gender: genderEnum(),
+  gender: genderEnum().notNull(),
 });
