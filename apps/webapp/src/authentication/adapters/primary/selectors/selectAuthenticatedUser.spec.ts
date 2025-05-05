@@ -58,7 +58,7 @@ describe("Select Authenticated User", () => {
     const selectedUser = selectAuthenticatedUser(store.getState());
     expect(selectedUser).toEqual({
       firstLetters: "DJ",
-      civility: "M. DOE",
+      civility: "Monsieur DOE",
     });
   });
 });

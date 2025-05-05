@@ -7,7 +7,7 @@ export const selectAuthenticatedUser = createAppSelector(
     user
       ? {
           firstLetters: `${user?.lastName.charAt(0).toUpperCase()}${user?.firstName.charAt(0).toUpperCase()}`,
-          civility: `${user?.gender === Gender.F ? "Mme" : "M."} ${user?.lastName.toUpperCase()}`,
+          civility: `${user?.gender === Gender.F ? "Madame" : "Monsieur"} ${user?.lastName.toUpperCase()}`,
         }
       : null,
 );
