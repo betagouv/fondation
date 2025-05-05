@@ -11,6 +11,7 @@ import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-do
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aDossierDeNominationId = 'dossier-de-nomination-id';
+const aDossierDeNominationImportedId = 'dossier-de-nomination-imported-id';
 export const anEventId = 'event-id';
 export const aSessionId = aTransparencyName;
 export const aFormation = Magistrat.Formation.PARQUET;
@@ -28,20 +29,23 @@ export const lucLoïcUser = {
 
 export const aDossierDeNominationPayload: GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'][number] =
   {
-    transparency: aTransparencyName,
-    biography: 'Nominee biography',
-    birthDate: { day: 1, month: 1, year: 1980 },
-    currentPosition: 'Current position',
-    targettedPosition: 'Target position',
-    dueDate: { day: 1, month: 6, year: 2023 },
-    folderNumber: 1,
-    formation: Magistrat.Formation.PARQUET,
-    grade: Magistrat.Grade.I,
-    name: 'Nominee Name',
-    observers: [],
-    rank: 'A',
-    reporterIds: [lucLoïcReporterId],
-    rules: new NominationFileReadRulesBuilder().build(),
+    nominationFileId: aDossierDeNominationImportedId,
+    content: {
+      transparency: aTransparencyName,
+      biography: 'Nominee biography',
+      birthDate: { day: 1, month: 1, year: 1980 },
+      currentPosition: 'Current position',
+      targettedPosition: 'Target position',
+      dueDate: { day: 1, month: 6, year: 2023 },
+      folderNumber: 1,
+      formation: Magistrat.Formation.PARQUET,
+      grade: Magistrat.Grade.I,
+      name: 'Nominee Name',
+      observers: [],
+      rank: 'A',
+      reporterIds: [lucLoïcReporterId],
+      rules: new NominationFileReadRulesBuilder().build(),
+    },
   };
 
 const aCommand = new ImportNouveauxDossiersTransparenceCommand(

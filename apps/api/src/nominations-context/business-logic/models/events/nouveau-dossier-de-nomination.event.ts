@@ -6,12 +6,14 @@ import { DossierDeNominationContent } from '../dossier-de-nomination';
 export type NouveauDossierDeNominationEventPayload = {
   dossierDeNominationId: string;
   sessionId: string;
+  nominationFileImportedId: string;
   content: DossierDeNominationContent;
 };
 
 export const nouveauDossierDeNominationEventPayloadSchema = z.object({
   dossierDeNominationId: z.string(),
   sessionId: z.string(),
+  nominationFileImportedId: z.string(),
   content: z.record(z.unknown()),
 }) satisfies z.ZodType<NouveauDossierDeNominationEventPayload>;
 

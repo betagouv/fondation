@@ -18,7 +18,7 @@ const newRulesV2 = [
 
 export class TransparenceRulesMapper {
   fromTransparenceRulesV1(
-    rulesV1: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['rules'],
+    rulesV1: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['content']['rules'],
   ): Règle[] {
     const rules = Object.entries(rulesV1)
       .map(([group, rule]) =>

@@ -8,6 +8,7 @@ import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { DomainRegistry } from '../models/domain-registry';
 import { TransparenceService } from '../services/transparence.service';
+import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -17,6 +18,7 @@ export const getDependencies = () => {
   const dossierDeNominationRepository = new FakeDossierDeNominationRepository();
   const domainEventRepository = new FakeDomainEventRepository();
   const préAnalyseRepository = new FakePréAnalyseRepository();
+  const nullTransactionPerformer = new NullTransactionPerformer();
 
   const transparenceService = new TransparenceService(
     dossierDeNominationRepository,
@@ -36,6 +38,7 @@ export const getDependencies = () => {
   const userService = new FakeUserService();
 
   return {
+    nullTransactionPerformer,
     uuidGenerator,
     dateTimeProvider,
     affectationRepository,

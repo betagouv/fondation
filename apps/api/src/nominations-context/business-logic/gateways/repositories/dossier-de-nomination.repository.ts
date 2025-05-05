@@ -7,4 +7,7 @@ export interface DossierDeNominationRepository {
   findBySessionId(
     sessionId: string,
   ): TransactionableAsync<DossierDeNomination[]>;
+  findByImportedId(
+    nominationFileImportedId: string,
+  ): TransactionableAsync<DossierDeNomination | null>;
 }

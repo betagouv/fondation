@@ -21,8 +21,15 @@ export class Session {
     private readonly _typeDeSaisine: TypeDeSaisine,
   ) {}
 
-  nouveauDossier(content: DossierDeNominationContent) {
-    return DossierDeNomination.create(this._id, content);
+  nouveauDossier(
+    nominationFileImportedId: string,
+    content: DossierDeNominationContent,
+  ) {
+    return DossierDeNomination.create(
+      this._id,
+      nominationFileImportedId,
+      content,
+    );
   }
 
   affecterRapporteurs(
