@@ -7,11 +7,11 @@ import {
   nominationFileReadContentSchema,
 } from '../nomination-file-read';
 
-export type NominationFilesContentWithReporterIds = Omit<
-  NominationFileRead['content'],
-  'reporters'
-> & {
-  reporterIds: string[] | null;
+export type NominationFilesContentWithReporterIds = {
+  nominationFileId: string;
+  content: Omit<NominationFileRead['content'], 'reporters'> & {
+    reporterIds: string[] | null;
+  };
 };
 
 export type GdsNewTransparenceImportedEventPayload = {
@@ -21,17 +21,24 @@ export type GdsNewTransparenceImportedEventPayload = {
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
+export const nominationFilesPayloadSchema = z
+  .array(
+    z.object({
+      nominationFileId: z.string(),
+      content: nominationFileReadContentSchema
+        .omit({ reporters: true })
+        .extend({
+          reporterIds: z.array(z.string()).nullable(),
+        }),
+    }),
+  )
+  .nonempty();
+
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceId: z.string().uuid(),
   transparenceName: z.nativeEnum(Transparency),
   formations: z.array(z.nativeEnum(Magistrat.Formation)).nonempty(),
-  nominationFiles: z
-    .array(
-      nominationFileReadContentSchema.omit({ reporters: true }).extend({
-        reporterIds: z.array(z.string()).nullable(),
-      }),
-    )
-    .nonempty(),
+  nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
 
 export class GdsNewTransparenceImportedEvent extends DomainEvent<GdsNewTransparenceImportedEventPayload> {

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type RègleSnapshot = {
   group: string;
   name: string;
@@ -5,11 +7,28 @@ export type RègleSnapshot = {
 };
 
 export class Règle {
+  private _value: boolean;
+
   private constructor(
     private readonly _group: string,
     private readonly _name: string,
-    private readonly _value: boolean,
-  ) {}
+    value: boolean,
+  ) {
+    this.setValue(value);
+  }
+
+  àJourDesRèglesModifiées(nouvellesRègles: Règle[]) {
+    const règleChangée = nouvellesRègles.find(
+      (nouvellesRègle) =>
+        nouvellesRègle.group === this.group &&
+        nouvellesRègle.name === this.name,
+    );
+    if (règleChangée) this.changeValue(règleChangée.value);
+  }
+
+  changeValue(value: boolean) {
+    this.setValue(value);
+  }
 
   get group(): string {
     return this._group;
@@ -21,6 +40,9 @@ export class Règle {
 
   get value(): boolean {
     return this._value;
+  }
+  setValue(value: boolean) {
+    this._value = z.boolean().parse(value);
   }
 
   snapshot(): RègleSnapshot {

@@ -65,23 +65,27 @@ const aTransparencyName = Transparency.AUTOMNE_2024;
 const aFormation = Magistrat.Formation.PARQUET;
 const aTypeDeSaisine = TypeDeSaisine.TRANSPARENCE_GDS;
 const aDossierDeNominationId = 'dossier-de-nomination-id';
+const aDossierDeNominationImportedId = 'dossier-de-nomination-imported-id';
 
 const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
   {
-    transparency: aTransparencyName,
-    biography: 'Nominee biography',
-    birthDate: { day: 1, month: 1, year: 1980 },
-    currentPosition: 'Current position',
-    targettedPosition: 'Target position',
-    dueDate: { day: 1, month: 6, year: 2023 },
-    folderNumber: 1,
-    formation: Magistrat.Formation.PARQUET,
-    grade: Magistrat.Grade.I,
-    name: 'Nominee Name',
-    observers: [],
-    rank: 'A',
-    reporterIds: ['reporter-1'],
-    rules: new NominationFileReadRulesBuilder().build(),
+    nominationFileId: aDossierDeNominationImportedId,
+    content: {
+      transparency: aTransparencyName,
+      biography: 'Nominee biography',
+      birthDate: { day: 1, month: 1, year: 1980 },
+      currentPosition: 'Current position',
+      targettedPosition: 'Target position',
+      dueDate: { day: 1, month: 6, year: 2023 },
+      folderNumber: 1,
+      formation: Magistrat.Formation.PARQUET,
+      grade: Magistrat.Grade.I,
+      name: 'Nominee Name',
+      observers: [],
+      rank: 'A',
+      reporterIds: ['reporter-1'],
+      rules: new NominationFileReadRulesBuilder().build(),
+    },
   };
 
 const aCommand = new ImportNouvelleTransparenceCommand(
