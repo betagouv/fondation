@@ -12,6 +12,7 @@ import { NominationFilesUpdatedCollection } from './nomination-files-updated-col
 
 export type TransparenceSnapshot = {
   id: string;
+  createdAt: Date;
   name: Transparency;
   formations: Set<Magistrat.Formation>;
   nominationFiles: NominationFileModelSnapshot[];
@@ -23,6 +24,7 @@ export class Transparence {
 
   private constructor(
     private readonly _id: string,
+    private readonly _createdAt: Date,
     private _name: Transparency,
     _formations: Set<Magistrat.Formation>,
     _nominationFiles: NominationFileModel[],
@@ -76,6 +78,10 @@ export class Transparence {
     return this._id;
   }
 
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+
   get name(): Transparency {
     return this._name;
   }
@@ -98,7 +104,7 @@ export class Transparence {
     return Object.values(this._nominationFiles);
   }
   private set nominationFiles(nominationFiles: NominationFileModel[]) {
-    const parseNominationFiles = z
+    const parsedNominationFiles = z
       .any()
       .array()
       .nonempty()
@@ -106,7 +112,12 @@ export class Transparence {
     this._nominationFiles = z
       .record(z.string(), z.any())
       .parse(
-        Object.fromEntries(parseNominationFiles.map((file) => [file.id, file])),
+        Object.fromEntries(
+          parsedNominationFiles.map((nominationFile) => [
+            nominationFile.id,
+            nominationFile,
+          ]),
+        ),
       );
   }
 
@@ -114,6 +125,7 @@ export class Transparence {
     return {
       id: this._id,
       name: this._name,
+      createdAt: this._createdAt,
       formations: this._formations,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
@@ -124,6 +136,7 @@ export class Transparence {
   static fromSnapshot(snapshot: TransparenceSnapshot): Transparence {
     return new Transparence(
       snapshot.id,
+      snapshot.createdAt,
       snapshot.name,
       snapshot.formations,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
@@ -136,7 +149,8 @@ export class Transparence {
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
-    return new Transparence(id, name, formations, nominationFiles);
+    const createdAt = DomainRegistry.dateTimeProvider().now();
+    return new Transparence(id, createdAt, name, formations, nominationFiles);
   }
 
   affecterRapporteurs(
