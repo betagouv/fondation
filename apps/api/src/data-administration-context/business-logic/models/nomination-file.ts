@@ -1,6 +1,10 @@
 import _ from 'lodash';
-import { NominationFileRead } from './nomination-file-read';
 import { DomainRegistry } from './domain-registry';
+import {
+  NominationFileRead,
+  nominationFileReadSchema,
+} from './nomination-file-read';
+import { z } from 'zod';
 
 export type NominationFileModelSnapshot = {
   id: string;
@@ -14,40 +18,54 @@ export type NominationFileUpdatedContent = Pick<
   'folderNumber' | 'observers' | 'rules'
 >;
 export class NominationFileModel {
+  private _nominationFileRead: NominationFileRead;
+  private _createdAt: Date;
+
   private constructor(
     private readonly _id: string,
-    private readonly createdAt: Date,
-    private nominationFileRead: NominationFileRead,
-  ) {}
+    _createdAt: Date,
+    nominationFileRead: NominationFileRead,
+  ) {
+    this.setCreatedAt(_createdAt);
+    this.setNominationFileRead(nominationFileRead);
+  }
 
   updateFolderNumber(folderNumber: number) {
-    this.nominationFileRead.content.folderNumber = folderNumber;
+    this._nominationFileRead.content.folderNumber = folderNumber;
   }
   updateObservers(observers: string[]) {
-    this.nominationFileRead.content.observers = observers;
+    this._nominationFileRead.content.observers = observers;
   }
   updateRules(rules: NominationFileRead['content']['rules']) {
-    this.nominationFileRead.content.rules = _.merge(
-      this.nominationFileRead.content.rules,
+    this._nominationFileRead.content.rules = _.merge(
+      this._nominationFileRead.content.rules,
       rules,
     );
   }
 
   reporterNames() {
-    return this.nominationFileRead.content.reporters;
+    return this._nominationFileRead.content.reporters;
   }
 
   toSnapshot(): NominationFileModelSnapshot {
     return {
       id: this.id,
-      createdAt: this.createdAt,
-      rowNumber: this.nominationFileRead.rowNumber,
-      content: this.nominationFileRead.content,
+      createdAt: this._createdAt,
+      rowNumber: this._nominationFileRead.rowNumber,
+      content: this._nominationFileRead.content,
     };
   }
 
   public get id(): string {
     return this._id;
+  }
+
+  private setCreatedAt(_createdAt: Date) {
+    this._createdAt = z.date().parse(_createdAt);
+  }
+  private setNominationFileRead(nominationFileRead: NominationFileRead) {
+    this._nominationFileRead =
+      nominationFileReadSchema.parse(nominationFileRead);
   }
 
   static fromSnapshot(

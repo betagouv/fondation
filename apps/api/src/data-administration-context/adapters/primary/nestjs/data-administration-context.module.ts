@@ -3,6 +3,7 @@ import { TransparenceService } from 'src/data-administration-context/business-lo
 import { ImportNominationFilesUseCase } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
+  API_CONFIG,
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
@@ -22,6 +23,10 @@ import {
 } from './tokens';
 import { DomainRegistry } from 'src/data-administration-context/business-logic/models/domain-registry';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { FakeTransparenceRepository } from '../../secondary/gateways/repositories/fake-transparence.repository';
+import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 
 @Module({
   imports: [SharedKernelModule],
@@ -36,12 +41,21 @@ import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways
       TRANSPARENCE_REPOSITORY,
       USER_SERVICE,
     ]),
+    {
+      provide: USER_SERVICE,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => new HttpUserService(apiConfig, systemRequestSignatureProvider),
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
 
     generateProvider(
       SqlNominationFileRepository,
       [],
       NOMINATION_FILE_REPOSITORY,
     ),
+    generateProvider(FakeTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
 
     generateProvider(
       ImportNominationFileFromLocalFileCli,

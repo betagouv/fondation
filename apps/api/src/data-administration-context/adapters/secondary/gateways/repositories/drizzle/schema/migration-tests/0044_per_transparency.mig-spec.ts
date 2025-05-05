@@ -111,12 +111,13 @@ describe(`migration 00${migrationNumber}`, () => {
       await db
         .select()
         .from(transparencesPm)
-        .orderBy(transparencesPm.createdAt)
+        .orderBy(transparencesPm.name)
         .execute(),
     ).toEqual<(typeof transparencesPm.$inferSelect)[]>([
       {
-        id: Transparency.AUTOMNE_2024,
+        id: expect.any(String),
         createdAt: expect.any(Date),
+        name: Transparency.AUTOMNE_2024,
         formations: [Magistrat.Formation.PARQUET, Magistrat.Formation.SIEGE],
         nominationFiles: [
           {
@@ -142,8 +143,9 @@ describe(`migration 00${migrationNumber}`, () => {
         ],
       },
       {
-        id: Transparency.DU_03_MARS_2025,
+        id: expect.any(String),
         createdAt: expect.any(Date),
+        name: Transparency.DU_03_MARS_2025,
         formations: [Magistrat.Formation.SIEGE],
         nominationFiles: [
           {
