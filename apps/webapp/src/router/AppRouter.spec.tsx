@@ -38,6 +38,7 @@ const routeToComponentMap: RouteToComponentMap<false> = {
     <div>a list with transparency: {props.transparency}</div>
   ),
   reportOverview: () => <div>an overview</div>,
+  secretariatGeneral: () => <div>Secretariat General</div>,
 };
 
 describe("App Router Component", () => {

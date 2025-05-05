@@ -1,9 +1,9 @@
 import { Magistrat } from "shared-models";
-import { createAppSelector } from "../../../store/createAppSelector";
 import {
   formationToLabel,
   transparencyToLabel,
 } from "../../../reports/adapters/primary/labels/labels-mappers";
+import { createAppSelector } from "../../../store/createAppSelector";
 
 export enum BreadcrumCurrentPage {
   perGdsTransparencyReports = "per-gds-transparency-reports",
