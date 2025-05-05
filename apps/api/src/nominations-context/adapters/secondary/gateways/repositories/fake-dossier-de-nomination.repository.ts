@@ -34,6 +34,25 @@ export class FakeDossierDeNominationRepository
     };
   }
 
+  findByImportedId(nominationFileImportedId: string) {
+    return async () => {
+      const snapshot = Object.values(this.dossiers).find(
+        (dossier) =>
+          dossier.nominationFileImportedId === nominationFileImportedId,
+      );
+
+      if (!snapshot) return null;
+
+      return DossierDeNomination.fromSnapshot(snapshot);
+    };
+  }
+
+  ajouterDossiers(...dossiers: DossierDeNominationSnapshot[]) {
+    dossiers.forEach((dossier) => {
+      this.dossiers[dossier.id] = dossier;
+    });
+  }
+
   getDossiers() {
     return Object.values(this.dossiers);
   }

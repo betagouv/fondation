@@ -9,6 +9,7 @@ import {
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 import { NominationFilesUpdatedCollection } from './nomination-files-updated-collection';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 
 export type TransparenceSnapshot = {
   id: string;
@@ -72,6 +73,24 @@ export class Transparence {
 
   replaceFormations(readCollection: NominationFilesContentReadCollection) {
     this.formations = readCollection.formations();
+  }
+
+  nominationFilesEventPayload(reporters: {
+    [k: string]: UserDescriptorSerialized;
+  }) {
+    return Object.values(this._nominationFiles).map((nominationFile) => ({
+      nominationFileId: nominationFile.id,
+      content: {
+        ...nominationFile.toSnapshot().content,
+        reporterIds:
+          nominationFile.reporterNames()?.map((reporter) => {
+            const userReporter = reporters[reporter];
+            if (!userReporter)
+              throw new Error(`User for reporter ${reporter} not found`);
+            return userReporter.userId;
+          }) || null,
+      },
+    }));
   }
 
   get id(): string {

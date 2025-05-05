@@ -3,9 +3,10 @@ import {
   PréAnalyse,
   PréAnalyseSnapshot,
 } from 'src/nominations-context/business-logic/models/pré-analyse';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakePréAnalyseRepository implements PréAnalyseRepository {
-  préAnalyses: Record<string, PréAnalyseSnapshot> = {};
+  private préAnalyses: Record<string, PréAnalyseSnapshot> = {};
 
   save(préAnalyse: PréAnalyse) {
     return async () => {
@@ -13,13 +14,23 @@ export class FakePréAnalyseRepository implements PréAnalyseRepository {
     };
   }
 
-  findByDossierId(dossierId: string): PréAnalyseSnapshot | undefined {
-    return Object.values(this.préAnalyses).find(
-      (préAnalyse) => préAnalyse.dossierDeNominationId === dossierId,
-    );
+  findByDossierId(dossierId: string): TransactionableAsync<PréAnalyse | null> {
+    return async () => {
+      const préAnalyse = Object.values(this.préAnalyses).find(
+        (préAnalyse) => préAnalyse.dossierDeNominationId === dossierId,
+      );
+
+      return préAnalyse ? PréAnalyse.fromSnapshot(préAnalyse) : null;
+    };
   }
 
   getPréAnalyses(): PréAnalyseSnapshot[] {
     return Object.values(this.préAnalyses);
+  }
+
+  addPréAnalyses(...préAnalyses: PréAnalyseSnapshot[]) {
+    préAnalyses.forEach((préAnalyse) => {
+      this.préAnalyses[préAnalyse.id] = préAnalyse;
+    });
   }
 }

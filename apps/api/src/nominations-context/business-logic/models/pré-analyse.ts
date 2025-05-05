@@ -13,8 +13,14 @@ export class PréAnalyse {
   private constructor(
     private readonly _id: string,
     private readonly _dossierDeNominationId: string,
-    private readonly _règles: Règle[],
+    private _règles: Règle[],
   ) {}
+
+  mettreàJourRègles(tuplesRègles: Règle[]) {
+    this._règles.forEach((règle) => {
+      règle.àJourDesRèglesModifiées(tuplesRègles);
+    });
+  }
 
   get id(): string {
     return this._id;
@@ -43,7 +49,7 @@ export class PréAnalyse {
 
   static fromTransparenceRulesV1(
     dossierDeNominationId: string,
-    rulesV1: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['rules'],
+    rulesV1: GdsNewTransparenceImportedEventPayload['nominationFiles'][number]['content']['rules'],
   ) {
     const règle = new TransparenceRulesMapper().fromTransparenceRulesV1(
       rulesV1,

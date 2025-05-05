@@ -23,33 +23,35 @@ export class GdsNewTransparenceEventTransformer<T extends boolean = false> {
       | GdsNewTransparenceImportedEventPayload['nominationFiles']
       | GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'],
   ): GdsNewTransparenceEventTransformer {
-    const dossiers = nominationFiles.map((nominationFile) => {
-      const content = {
-        biography: nominationFile.biography,
-        birthDate: nominationFile.birthDate,
-        currentPosition: nominationFile.currentPosition,
-        targettedPosition: nominationFile.targettedPosition,
-        dueDate: nominationFile.dueDate,
-        folderNumber: nominationFile.folderNumber,
-        formation: nominationFile.formation,
-        grade: nominationFile.grade,
-        name: nominationFile.name,
-        observers: nominationFile.observers,
-        rank: nominationFile.rank,
+    const dossiers = nominationFiles.map(({ nominationFileId, content }) => {
+      const contenu = {
+        biography: content.biography,
+        birthDate: content.birthDate,
+        currentPosition: content.currentPosition,
+        targettedPosition: content.targettedPosition,
+        dueDate: content.dueDate,
+        folderNumber: content.folderNumber,
+        formation: content.formation,
+        grade: content.grade,
+        name: content.name,
+        observers: content.observers,
+        rank: content.rank,
       };
 
-      const [dossier, nouveauDossierEvent] =
-        this._session.nouveauDossier(content);
+      const [dossier, nouveauDossierEvent] = this._session.nouveauDossier(
+        nominationFileId,
+        contenu,
+      );
       const préAnalyse = PréAnalyse.fromTransparenceRulesV1(
         dossier.id,
-        nominationFile.rules,
+        content.rules,
       );
 
       const dossierAvecPayload = {
         dossier,
         nouveauDossierEvent,
         préAnalyse,
-        rapporteurIds: nominationFile.reporterIds,
+        rapporteurIds: content.reporterIds,
       };
       return dossierAvecPayload;
     });

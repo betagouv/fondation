@@ -47,12 +47,15 @@ const aGdsNewtransparenceImportedEvent = new GdsNewTransparenceImportedEvent(
     formations: [Magistrat.Formation.SIEGE],
     nominationFiles: [
       {
-        ...getMarcelDupontRead(1).content,
-        reporterIds: [
-          lucLoïcReporterId,
-          emilienRenaudJulesReporterId,
-          jeanneLouiseDeFranceAudeReporterId,
-        ],
+        nominationFileId,
+        content: {
+          ...getMarcelDupontRead(1).content,
+          reporterIds: [
+            lucLoïcReporterId,
+            emilienRenaudJulesReporterId,
+            jeanneLouiseDeFranceAudeReporterId,
+          ],
+        },
       },
     ],
   },
@@ -67,12 +70,15 @@ const aGdsTransparenceNominationFilesAddedEvent =
       transparenceName: gdsTransparenceName,
       nominationFiles: [
         {
-          ...getMarcelDupontRead(2).content,
-          reporterIds: [
-            lucLoïcReporterId,
-            emilienRenaudJulesReporterId,
-            jeanneLouiseDeFranceAudeReporterId,
-          ],
+          nominationFileId,
+          content: {
+            ...getMarcelDupontRead(2).content,
+            reporterIds: [
+              lucLoïcReporterId,
+              emilienRenaudJulesReporterId,
+              jeanneLouiseDeFranceAudeReporterId,
+            ],
+          },
         },
       ],
     },
@@ -147,6 +153,7 @@ describe('Import Nomination Files Use Case', () => {
 
       transparenceRepository.addTransparence(gdsTransparenceId, {
         id: gdsTransparenceId,
+        createdAt: currentDate,
         name: gdsTransparenceName,
         formations: new Set([Magistrat.Formation.SIEGE]),
         nominationFiles: [firstNominationFile],

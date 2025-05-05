@@ -46,8 +46,10 @@ export class TransparenceService {
         transparenceId: transparence.id,
         transparenceName: transparence.name,
         formations: [...readCollection.formations()],
-        nominationFiles:
-          await this.nominationFilesWithReportersIds(readCollection),
+        nominationFiles: await this.nominationFilesWithReportersIds(
+          readCollection,
+          transparence,
+        ),
       };
       const newTransparenceImportedEvent =
         GdsNewTransparenceImportedEvent.create(payload);
@@ -73,8 +75,10 @@ export class TransparenceService {
         const payload: GdsTransparenceNominationFilesAddedEventPayload = {
           transparenceId: transparence.id,
           transparenceName: transparence.name,
-          nominationFiles:
-            await this.nominationFilesWithReportersIds(nominationFilesToAdd),
+          nominationFiles: await this.nominationFilesWithReportersIds(
+            nominationFilesToAdd,
+            transparence,
+          ),
         };
         const nominationFilesAddedEvent =
           GdsTransparenceNominationFilesAddedEvent.create(payload);
@@ -111,6 +115,7 @@ export class TransparenceService {
 
   private async nominationFilesWithReportersIds(
     nominationFiles: NominationFilesContentReadCollection,
+    transparence: Transparence,
   ): Promise<NominationFilesContentWithReporterIds[]> {
     const reporterNames: string[] = _.uniq(
       nominationFiles
@@ -127,15 +132,7 @@ export class TransparenceService {
       }),
     );
     const reporters = Object.fromEntries(reportersList);
-    return nominationFiles.contents().map((nominationFile) => ({
-      ...nominationFile,
-      reporterIds:
-        nominationFile.reporters?.map((reporter) => {
-          const userReporter = reporters[reporter];
-          if (!userReporter)
-            throw new Error(`User for reporter ${reporter} not found`);
-          return userReporter.userId;
-        }) || null,
-    }));
+
+    return transparence.nominationFilesEventPayload(reporters);
   }
 }
