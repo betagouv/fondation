@@ -1,3 +1,4 @@
+import { colors } from "@codegouvfr/react-dsfr";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
 import { selectAuthenticatedUser } from "../../../../../authentication/adapters/primary/selectors/selectAuthenticatedUser";
@@ -16,7 +17,17 @@ export const Transparencies = () => {
   return (
     <div className={clsx("gap-10", cx("fr-grid-row"))}>
       <div>
-        <h1>Bonjour {civility},</h1>
+        <h1>
+          Bonjour,&nbsp;
+          <span
+            style={{
+              color: colors.options.yellowTournesol.sun407moon922.hover,
+            }}
+          >
+            {civility}
+          </span>
+          .
+        </h1>
         <p
           style={{
             display: transparencies.noTransparencies ? undefined : "none",

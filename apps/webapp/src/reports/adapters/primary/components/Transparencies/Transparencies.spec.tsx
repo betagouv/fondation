@@ -8,6 +8,14 @@ import {
   Role,
   Transparency,
 } from "shared-models";
+import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
+import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
+import { StubLoginNotifierProvider } from "../../../../../authentication/adapters/secondary/providers/stubLoginNotifier.provider";
+import { AuthenticatedUserSM } from "../../../../../authentication/core-logic/gateways/Authentication.gateway";
+import {
+  AuthenticateParams,
+  authenticate,
+} from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 import { StubRouterProvider } from "../../../../../router/adapters/stubRouterProvider";
 import { ReduxStore, initReduxStore } from "../../../../../store/reduxStore";
 import { ReportApiModelBuilder } from "../../../../core-logic/builders/ReportApiModel.builder";
@@ -18,12 +26,6 @@ import {
   transparencyToLabel,
 } from "../../labels/labels-mappers";
 import { Transparencies } from "./Transparencies";
-import { ApiAuthenticationGateway } from "../../../../../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
-import { StubLoginNotifierProvider } from "../../../../../authentication/adapters/secondary/providers/stubLoginNotifier.provider";
-import { AuthenticatedUserSM } from "../../../../../authentication/core-logic/gateways/Authentication.gateway";
-import { AuthenticateParams } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
-import { FakeAuthenticationApiClient } from "../../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { authenticate } from "../../../../../authentication/core-logic/use-cases/authentication/authenticate";
 
 const gdsTitle = "Pouvoir de proposition du GDS";
 
@@ -72,7 +74,8 @@ describe("Transparencies Component", () => {
   it("shows the introduction", async () => {
     await store.dispatch(authenticate(userCredentials));
     renderTransparencies();
-    await screen.findByText("Bonjour M. DOE,");
+    const heading = await screen.findByRole("heading", { level: 1 });
+    expect(heading).toHaveTextContent("Bonjour, Monsieur DOE.");
     await screen.findByText(
       "Sur quel type de saisine souhaitez-vous travailler ?",
     );
