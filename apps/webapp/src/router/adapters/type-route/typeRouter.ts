@@ -2,8 +2,8 @@ import { Magistrat, Transparency } from "shared-models";
 import { RouterProvider } from "../../core-logic/providers/router";
 
 import { createRouter, defineRoute, param } from "type-route";
-import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
+import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 
 export const routeSegments = {
   propositionduGardeDesSceaux: "pouvoir-de-proposition-du-garde-des-sceaux",
@@ -34,10 +34,11 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
     (p) =>
       `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}/${p.id}`,
   ),
+  secretariatGeneral: defineRoute("/secretariat-general"),
 });
 
 // React adapter
-export { RouteProvider, useRoute, session as sessionForTestingPurpose };
+export { RouteProvider, session as sessionForTestingPurpose, useRoute };
 
 // Navigation adapter
 export class TypeRouterProvider implements RouterProvider {
@@ -71,5 +72,9 @@ export class TypeRouterProvider implements RouterProvider {
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
       id,
     }).link;
+  }
+
+  goToSecretariatGeneral() {
+    return routes.secretariatGeneral().push();
   }
 }
