@@ -8,6 +8,7 @@ import { createAppSelector } from "../../../store/createAppSelector";
 export enum BreadcrumCurrentPage {
   perGdsTransparencyReports = "per-gds-transparency-reports",
   gdsReport = "gds-report",
+  secretariatGeneral = "secretariat-general",
 }
 
 export type BreadcrumbVM = {
@@ -27,6 +28,9 @@ type CurrentPage =
   | {
       name: BreadcrumCurrentPage.gdsReport;
       reportId: string;
+    }
+  | {
+      name: BreadcrumCurrentPage.secretariatGeneral;
     };
 
 export const selectBreadcrumb = createAppSelector(
@@ -34,12 +38,14 @@ export const selectBreadcrumb = createAppSelector(
     (state) => state.router.anchorsAttributes.transparencies,
     (state) => state.router.anchorsAttributes.perTransparency,
     (state) => state.reportOverview.byIds,
+    (state) => state.router.anchorsAttributes.secretariatGeneral,
     (_, currentPage: CurrentPage) => currentPage,
   ],
   (
     getTransparenciesAnchorAttributes,
     getTransparencyReportsAnchorAttributes,
     reports,
+    getSecretariatGeneralAnchorAttributes,
     currentPage,
   ): BreadcrumbVM => {
     const transparenciesSegment = {
@@ -80,6 +86,23 @@ export const selectBreadcrumb = createAppSelector(
               currentPageLabel: "Rapport non trouvé",
               segments: [transparenciesSegment, gdsTransparenciesSegment],
             };
+      }
+
+      case BreadcrumCurrentPage.secretariatGeneral: {
+        const secretariatGeneralSegments = [
+          {
+            label: "Secretariat général",
+            ...getSecretariatGeneralAnchorAttributes(),
+          },
+          {
+            label: "Tableau de bord",
+            ...getSecretariatGeneralAnchorAttributes(),
+          },
+        ];
+        return {
+          currentPageLabel: "Secretariat général",
+          segments: secretariatGeneralSegments,
+        };
       }
 
       default: {

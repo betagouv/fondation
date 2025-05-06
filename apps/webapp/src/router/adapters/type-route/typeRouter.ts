@@ -75,6 +75,10 @@ export class TypeRouterProvider implements RouterProvider {
   }
 
   goToSecretariatGeneral() {
-    return routes.secretariatGeneral().push();
+    routes.secretariatGeneral().push();
+  }
+
+  getSecretariatGeneralAnchorAttributes() {
+    return routes.secretariatGeneral().link;
   }
 }
