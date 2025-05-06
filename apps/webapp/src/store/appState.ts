@@ -118,6 +118,7 @@ export interface AppState<
       perTransparency: RouterProvider["getTransparencyReportsAnchorAttributes"];
       reportOverview: RouterProvider["getReportOverviewAnchorAttributes"];
       login: RouterProvider["getLoginAnchorAttributes"];
+      secretariatGeneral: RouterProvider["getSecretariatGeneralAnchorAttributes"];
     };
     routeToComponent: ReturnType<RouteToComponentFactory>;
     routeChangedHandler: RouteChangedHandler;

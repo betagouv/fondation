@@ -36,6 +36,9 @@ export const createRouterSlice = ({
         reportOverview:
           routerProvider?.getReportOverviewAnchorAttributes ??
           getStubAnchorAttributes,
+        secretariatGeneral:
+          routerProvider?.getSecretariatGeneralAnchorAttributes ??
+          getStubAnchorAttributes,
       },
       routeToComponent: routeToComponent ?? (() => () => null),
       routeChangedHandler: routeChangedHandler ?? (() => {}),
