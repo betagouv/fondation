@@ -1,15 +1,15 @@
 import { FC } from "react";
-import { Card } from "../../../../shared-kernel/adapters/primary/react/Card";
-import { PageContentLayout } from "../../../../shared-kernel/adapters/primary/react/PageContentLayout";
-import { SgNouvelleTransparence } from "./SgNouvelleTransparence/SgNouvelleTransparence";
+import { useAppSelector } from "../../../../reports/adapters/primary/hooks/react-redux";
 import {
   BreadcrumCurrentPage,
   selectBreadcrumb,
 } from "../../../../router/adapters/selectors/selectBreadcrumb";
-import { useAppSelector } from "../../../../reports/adapters/primary/hooks/react-redux";
+import { selectSecretariatGeneralAnchorAttributes } from "../../../../router/adapters/selectors/selectSecretariatGeneralAnchorAttributes";
 import { Breadcrumb } from "../../../../shared-kernel/adapters/primary/react/Breadcrumb";
+import { Card } from "../../../../shared-kernel/adapters/primary/react/Card";
+import { PageContentLayout } from "../../../../shared-kernel/adapters/primary/react/PageContentLayout";
 
-const SgDashboard: FC = () => {
+const Dashboard: FC = () => {
   const currentPage = {
     name: BreadcrumCurrentPage.secretariatGeneral,
   } as const;
@@ -17,8 +17,11 @@ const SgDashboard: FC = () => {
     selectBreadcrumb(state, currentPage),
   );
 
-  // TODO : donner le bon lien vers le formulaire
-  // TODO : Créer le breadcrumb : demander à Maxime comment est prévue la gestion de celui-ci
+  const { getNouvelleTransparenceAnchorAttributes } = useAppSelector(
+    selectSecretariatGeneralAnchorAttributes,
+  );
+  const anchorAttributes = getNouvelleTransparenceAnchorAttributes();
+
   return (
     <PageContentLayout>
       <Breadcrumb
@@ -33,13 +36,12 @@ const SgDashboard: FC = () => {
           title="Créer une nouvelle transparence"
           description="Renseignez les premières informations à votre disposition concernant une nouvelle transparence."
           linkProps={{
-            href: "/sg/transparence/creer",
+            ...anchorAttributes,
           }}
         />
       </section>
-      <SgNouvelleTransparence />
     </PageContentLayout>
   );
 };
 
-export default SgDashboard;
+export default Dashboard;
