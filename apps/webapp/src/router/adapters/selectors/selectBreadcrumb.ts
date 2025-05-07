@@ -9,6 +9,7 @@ export enum BreadcrumCurrentPage {
   perGdsTransparencyReports = "per-gds-transparency-reports",
   gdsReport = "gds-report",
   secretariatGeneral = "secretariat-general",
+  sgNouvelleTransparence = "sg-nouvelle-transparence",
 }
 
 export type BreadcrumbVM = {
@@ -31,6 +32,9 @@ type CurrentPage =
     }
   | {
       name: BreadcrumCurrentPage.secretariatGeneral;
+    }
+  | {
+      name: BreadcrumCurrentPage.sgNouvelleTransparence;
     };
 
 export const selectBreadcrumb = createAppSelector(
@@ -38,7 +42,7 @@ export const selectBreadcrumb = createAppSelector(
     (state) => state.router.anchorsAttributes.transparencies,
     (state) => state.router.anchorsAttributes.perTransparency,
     (state) => state.reportOverview.byIds,
-    (state) => state.router.anchorsAttributes.secretariatGeneral,
+    (state) => state.router.anchorsAttributes.secretariatGeneral.dashboard,
     (_, currentPage: CurrentPage) => currentPage,
   ],
   (
@@ -88,7 +92,7 @@ export const selectBreadcrumb = createAppSelector(
             };
       }
 
-      case BreadcrumCurrentPage.secretariatGeneral: {
+      case BreadcrumCurrentPage.sgNouvelleTransparence: {
         const secretariatGeneralSegments = [
           {
             label: "Secretariat général",
@@ -100,7 +104,20 @@ export const selectBreadcrumb = createAppSelector(
           },
         ];
         return {
-          currentPageLabel: "Secretariat général",
+          currentPageLabel: "Créer une nouvelle transparence",
+          segments: secretariatGeneralSegments,
+        };
+      }
+
+      case BreadcrumCurrentPage.secretariatGeneral: {
+        const secretariatGeneralSegments = [
+          {
+            label: "Secretariat général",
+            ...getSecretariatGeneralAnchorAttributes(),
+          },
+        ];
+        return {
+          currentPageLabel: "Tableau de bord",
           segments: secretariatGeneralSegments,
         };
       }

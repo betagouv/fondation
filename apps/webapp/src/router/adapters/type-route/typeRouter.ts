@@ -10,7 +10,13 @@ export const routeSegments = {
   transparences: "transparences",
   dossiersDeNomination: "dossiers-de-nomination",
   rapports: "rapports",
+  secretariatGeneral: "secretariat-general",
+  sgNouvelleTransparence: "secretariat-general/nouvelle-transparence",
 };
+
+const secretariatGeneralRoute = defineRoute(
+  `/${routeSegments.secretariatGeneral}`,
+);
 
 const { RouteProvider, useRoute, routes, session } = createRouter({
   login: defineRoute("/login"),
@@ -34,7 +40,10 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
     (p) =>
       `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}/${p.id}`,
   ),
-  secretariatGeneral: defineRoute("/secretariat-general"),
+  secretariatGeneral: secretariatGeneralRoute,
+  sgNouvelleTransparence: defineRoute(
+    `/${routeSegments.sgNouvelleTransparence}`,
+  ),
 });
 
 // React adapter
@@ -80,5 +89,13 @@ export class TypeRouterProvider implements RouterProvider {
 
   getSecretariatGeneralAnchorAttributes() {
     return routes.secretariatGeneral().link;
+  }
+
+  goToSgNouvelleTransparence() {
+    routes.sgNouvelleTransparence().push();
+  }
+
+  getSgNouvelleTransparenceAnchorAttributes() {
+    return routes.sgNouvelleTransparence().link;
   }
 }

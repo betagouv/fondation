@@ -1,5 +1,4 @@
 import { Card as DsfrCard } from "@codegouvfr/react-dsfr/Card";
-import { cx, FrCxArg } from "@codegouvfr/react-dsfr/fr/cx";
 import { RegisteredLinkProps } from "@codegouvfr/react-dsfr/link";
 
 export type CardProps = {

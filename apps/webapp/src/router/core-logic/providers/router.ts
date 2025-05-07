@@ -6,7 +6,12 @@ export interface RouterProvider {
 
   goToTransparencies(): void;
   goToSecretariatGeneral(): void;
+  goToSgNouvelleTransparence(): void;
   getSecretariatGeneralAnchorAttributes: () => {
+    href: string;
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  };
+  getSgNouvelleTransparenceAnchorAttributes: () => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };

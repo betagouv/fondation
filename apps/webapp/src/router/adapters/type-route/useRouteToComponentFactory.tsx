@@ -38,6 +38,10 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
           const Component = routeToComponentMap[route.name];
           return suspensed(<Component />);
         }
+        case "sgNouvelleTransparence": {
+          const Component = routeToComponentMap[route.name];
+          return suspensed(<Component />);
+        }
         case "transparencies": {
           const Component = routeToComponentMap[route.name];
           return suspensed(protectedComponent(<Component />));
