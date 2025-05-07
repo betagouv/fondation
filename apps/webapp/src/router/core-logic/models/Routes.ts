@@ -3,4 +3,5 @@ export type RouteName =
   | "transparencies"
   | "reportList"
   | "reportOverview"
-  | "secretariatGeneral";
+  | "secretariatGeneral"
+  | "sgNouvelleTransparence";

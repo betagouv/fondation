@@ -19,9 +19,16 @@ const ReportOverviewPage = import(
 export const LazyReportOverview = lazy(() => ReportOverviewPage);
 
 const SecretariatGeneralDashboardPage = import(
-  "../../secretariat-general/adapters/primary/components/SgDashboard"
+  "../../secretariat-general/adapters/primary/components/Dashboard"
 );
 
 export const LazySecretariatGeneralDashboard = lazy(
   () => SecretariatGeneralDashboardPage,
+);
+
+const SgNouvelleTransparencePage = import(
+  "../../secretariat-general/adapters/primary/components/SgNouvelleTransparence/NouvelleTransparence"
+);
+export const LazySgNouvelleTransparence = lazy(
+  () => SgNouvelleTransparencePage,
 );
