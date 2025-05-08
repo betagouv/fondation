@@ -48,12 +48,10 @@ describe("NouvelleTransparence", () => {
     ).toBeInTheDocument();
     expect(await screen.findByLabelText("Formation")).toBeInTheDocument();
     expect(
-      await screen.findByLabelText(formationToLabel(Magistrat.Formation.SIEGE)),
+      await screen.getByText(formationToLabel(Magistrat.Formation.SIEGE)),
     ).toBeInTheDocument();
     expect(
-      await screen.findByLabelText(
-        formationToLabel(Magistrat.Formation.PARQUET),
-      ),
+      await screen.getByText(formationToLabel(Magistrat.Formation.PARQUET)),
     ).toBeInTheDocument();
     expect(await screen.findByLabelText("Date d'échéance")).toBeInTheDocument();
     expect(await screen.findByText("Annuler")).toBeInTheDocument();

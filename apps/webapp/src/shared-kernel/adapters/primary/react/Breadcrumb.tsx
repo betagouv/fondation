@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { BreadcrumbVM } from "../../../../router/adapters/selectors/selectBreadcrumb";
+import { BreadcrumbVM } from "../../../core-logic/models/breadcrumb-vm";
 
 import DsfrBreadcrumb from "@codegouvfr/react-dsfr/Breadcrumb";
 

@@ -5,7 +5,7 @@ import {
   LazyReportListPage,
   LazyReportOverview,
   LazySecretariatGeneralDashboard,
-  LazySgNouvelleTransparence,
+  LazyNouvelleTransparence,
   LazyTransparencies,
 } from "./lazyRouteComponents";
 
@@ -15,7 +15,7 @@ export const routeToReactComponentMap = {
   reportList: LazyReportListPage,
   reportOverview: LazyReportOverview,
   secretariatGeneral: LazySecretariatGeneralDashboard,
-  sgNouvelleTransparence: LazySgNouvelleTransparence,
+  sgNouvelleTransparence: LazyNouvelleTransparence,
 };
 
 export type RouteToComponentMap<Prod extends boolean = boolean> =
