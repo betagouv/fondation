@@ -1,5 +1,5 @@
-import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
-import { StubRouterProvider } from "../stubRouterProvider";
+import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
+import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { selectSecretariatGeneralAnchorAttributes } from "./selectSecretariatGeneralAnchorAttributes";
 
 describe("selectSecretariatGeneralAnchorAttributes", () => {
