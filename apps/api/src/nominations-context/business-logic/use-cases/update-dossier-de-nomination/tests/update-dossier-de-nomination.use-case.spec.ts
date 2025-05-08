@@ -1,7 +1,7 @@
 import { NominationFile } from 'shared-models';
 import { PréAnalyseSnapshot } from 'src/nominations-context/business-logic/models/pré-analyse';
 import { DossierDeNominationSnapshot } from '../../../models/dossier-de-nomination';
-import { getDependencies } from '../../transparence.use-case.tests-dependencies';
+import { getDependencies } from '../../../../tests-dependencies';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 import { UpdateDossierDeNominationUseCase } from '../update-dossier-de-nomination.use-case';
 import {

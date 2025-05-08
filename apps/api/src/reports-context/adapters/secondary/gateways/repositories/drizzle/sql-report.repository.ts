@@ -92,7 +92,7 @@ export class SqlReportRepository implements ReportRepository {
   ): typeof reports.$inferInsert {
     return {
       id: reportSnapshot.id,
-      nominationFileId: reportSnapshot.nominationFileId,
+      nominationFileId: reportSnapshot.dossierDeNominationId,
       createdAt: reportSnapshot.createdAt,
       reporterId: reportSnapshot.reporterId,
       version: reportSnapshot.version,

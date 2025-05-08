@@ -48,9 +48,9 @@ export class FakeDossierDeNominationRepository
   }
 
   ajouterDossiers(...dossiers: DossierDeNominationSnapshot[]) {
-    dossiers.forEach((dossier) => {
+    for (const dossier of dossiers) {
       this.dossiers[dossier.id] = dossier;
-    });
+    }
   }
 
   getDossiers() {

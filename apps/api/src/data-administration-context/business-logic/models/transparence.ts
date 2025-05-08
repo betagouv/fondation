@@ -75,22 +75,30 @@ export class Transparence {
     this.formations = readCollection.formations();
   }
 
-  nominationFilesEventPayload(reporters: {
-    [k: string]: UserDescriptorSerialized;
-  }) {
-    return Object.values(this._nominationFiles).map((nominationFile) => ({
-      nominationFileId: nominationFile.id,
-      content: {
-        ...nominationFile.toSnapshot().content,
-        reporterIds:
-          nominationFile.reporterNames()?.map((reporter) => {
-            const userReporter = reporters[reporter];
-            if (!userReporter)
-              throw new Error(`User for reporter ${reporter} not found`);
-            return userReporter.userId;
-          }) || null,
-      },
-    }));
+  nominationFilesEventPayload(
+    nominationFiles: NominationFilesContentReadCollection,
+    reporters: {
+      [k: string]: UserDescriptorSerialized;
+    },
+  ) {
+    return Object.values(this._nominationFiles)
+      .filter((nominationFile) =>
+        nominationFiles.hasRowNumber(nominationFile.rowNumber),
+      )
+      .map((nominationFile) => ({
+        nominationFileId: nominationFile.id,
+        content: {
+          ...nominationFile.toSnapshot().content,
+          reporterIds:
+            nominationFile.reporterNames()?.map((reporter) => {
+              const userReporter = reporters[reporter];
+              if (!userReporter)
+                throw new Error(`User for reporter ${reporter} not found`);
+
+              return userReporter.userId;
+            }) || null,
+        },
+      }));
   }
 
   get id(): string {

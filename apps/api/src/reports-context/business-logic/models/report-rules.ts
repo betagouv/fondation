@@ -4,7 +4,6 @@ export class ReportRuleValidation {
   constructor(
     readonly ruleGroup: NominationFile.RuleGroup,
     readonly ruleName: NominationFile.RuleName,
-    readonly preValidated: boolean,
     readonly validated: boolean,
   ) {}
 }
@@ -15,7 +14,6 @@ export type ReportRuleSnapshot = {
   reportId: string;
   ruleGroup: NominationFile.RuleGroup;
   ruleName: NominationFile.RuleName;
-  preValidated: boolean;
   validated: boolean;
 };
 
@@ -26,20 +24,11 @@ export class ReportRule {
     private readonly reportId: string,
     private readonly ruleGroup: NominationFile.RuleGroup,
     private readonly ruleName: NominationFile.RuleName,
-    private preValidated: boolean,
     private validated: boolean,
   ) {}
 
   validate(validated: boolean) {
     this.validated = validated;
-  }
-
-  preValidate(preValidated: boolean) {
-    this.preValidated = preValidated;
-  }
-
-  preValidationChanged(preValidated: boolean) {
-    return this.preValidated !== preValidated;
   }
 
   isRuleOfReportId(reportId: string): boolean {
@@ -64,7 +53,6 @@ export class ReportRule {
       reportId: this.reportId,
       ruleGroup: this.ruleGroup,
       ruleName: this.ruleName,
-      preValidated: this.preValidated,
       validated: this.validated,
     };
   }
@@ -75,7 +63,6 @@ export class ReportRule {
       reportRuleSnapshot.reportId,
       reportRuleSnapshot.ruleGroup,
       reportRuleSnapshot.ruleName,
-      reportRuleSnapshot.preValidated,
       reportRuleSnapshot.validated,
     );
   }
