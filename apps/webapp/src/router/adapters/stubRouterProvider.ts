@@ -4,16 +4,32 @@ import { RouterProvider } from "../core-logic/providers/router";
 export class StubRouterProvider implements RouterProvider {
   readonly loginHref = "/login";
   readonly transparenciesHref = "/transparences";
+  readonly secretariatGeneralHref = "/secretariat-general";
 
   onGoToLoginClick = () => null;
   onGoToTransparenciesClick = () => null;
+  goToSecretariatGeneral = () => null;
+  goToSgNouvelleTransparence = () => null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onTransparencyClickAttribute = (_: Transparency) => null;
   onReportOverviewClick = () => null;
 
   goToLogin = () => {};
   goToTransparencies = () => {};
-
+  getSecretariatGeneralAnchorAttributes = () => ({
+    href: this.secretariatGeneralHref,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      this.goToSecretariatGeneral();
+    },
+  });
+  getSgNouvelleTransparenceAnchorAttributes = () => ({
+    href: this.loginHref,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      this.goToSgNouvelleTransparence();
+    },
+  });
   getLoginHref = () => this.loginHref;
   getTransparencyReportsHref = (transparency: Transparency) =>
     `/transparences/${transparency}`;

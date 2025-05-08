@@ -6,6 +6,8 @@ export class RouterAccessControl {
     transparencies: true,
     reportList: true,
     reportOverview: true,
+    secretariatGeneral: false,
+    sgNouvelleTransparence: false,
   };
 
   safeAccess(routeName: RouteName, isAuthenticated: boolean): boolean {
