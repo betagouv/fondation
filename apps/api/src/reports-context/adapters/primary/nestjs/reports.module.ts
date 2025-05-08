@@ -8,13 +8,13 @@ import {
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
+import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 import { UploadReportFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-upload/upload-report-files';
 import { ListReportsUseCase } from 'src/reports-context/business-logic/use-cases/report-listing/list-reports.use-case';
 import { RetrieveReportUseCase } from 'src/reports-context/business-logic/use-cases/report-retrieval/retrieve-report.use-case';
-import { UpdateReportOnImportChangeUseCase } from 'src/reports-context/business-logic/use-cases/report-update-on-import-change/update-report-on-import-change.use-case';
 import { UpdateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-update/update-report.use-case';
 import { ChangeRuleValidationStateUseCase } from 'src/reports-context/business-logic/use-cases/rule-validation-state-change/change-rule-validation-state.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
@@ -36,8 +36,7 @@ import { SqlReportRepository } from '../../secondary/gateways/repositories/drizz
 import { HttpReportFileService } from '../../secondary/gateways/services/http-report-file-service';
 import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
-import { NominationFileImportedSubscriber } from './event-subscribers/nomination-file-imported.subscriber';
-import { NominationFileUpdatedSubscriber } from './event-subscribers/nomination-file-updated.subscriber';
+import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers/affectation-rapporteurs-créée.nest-subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
@@ -53,20 +52,15 @@ import {
   imports: [SharedKernelModule],
   controllers: [ReportsController],
   providers: [
-    generateProvider(NominationFileImportedSubscriber, [CreateReportUseCase]),
-    generateProvider(NominationFileUpdatedSubscriber, [
-      UpdateReportOnImportChangeUseCase,
+    generateProvider(AffectationRapporteursCrééeNestSubscriber, [
+      AffectationRapporteursCrééeSubscriber,
+    ]),
+    generateProvider(AffectationRapporteursCrééeSubscriber, [
+      CreateReportUseCase,
+      TRANSACTION_PERFORMER,
     ]),
 
-    generateProvider(UpdateReportOnImportChangeUseCase, [
-      REPORT_REPOSITORY,
-      TRANSACTION_PERFORMER,
-    ]),
-    generateProvider(CreateReportUseCase, [
-      REPORT_REPOSITORY,
-      TRANSACTION_PERFORMER,
-      ReporterTranslatorService,
-    ]),
+    generateProvider(CreateReportUseCase, [REPORT_REPOSITORY]),
     generateProvider(ChangeRuleValidationStateUseCase, [
       REPORT_RULE_REPOSITORY,
       TRANSACTION_PERFORMER,

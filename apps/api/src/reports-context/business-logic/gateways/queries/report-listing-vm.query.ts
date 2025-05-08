@@ -1,5 +1,5 @@
-import { ReportListingVM } from 'shared-models';
+import { ReportListItemQueried } from 'shared-models';
 
 export interface ReportListingQuery {
-  listReports(reporterId: string): Promise<ReportListingVM>;
+  listReports(reporterId: string): Promise<ReportListItemQueried[]>;
 }

@@ -172,18 +172,8 @@ export class ReportRetrievalBuilder<
       ReportRetrievalVM | ReportRetrievalQueried
     >()
       .with('id', report.id)
-      .with('name', report.name)
-      .with('biography', report.biography)
-      .with('dueDate', report.dueDate ? report.dueDate.toJson() : null)
-      .with('birthDate', report.birthDate.toJson())
       .with('state', report.state)
       .with('formation', report.formation)
-      .with('transparency', report.transparency)
-      .with('grade', report.grade)
-      .with('currentPosition', report.currentPosition)
-      .with('targettedPosition', report.targettedPosition)
-      .with('comment', report.comment)
-      .with('rank', report.rank)
-      .with('observers', report.observers);
+      .with('comment', report.comment);
   }
 }

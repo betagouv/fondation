@@ -1,4 +1,10 @@
-import { Magistrat, NominationFile, Role, Transparency } from 'shared-models';
+import {
+  Gender,
+  Magistrat,
+  NominationFile,
+  Role,
+  Transparency,
+} from 'shared-models';
 import { FakeTransparenceRepository } from 'src/data-administration-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -139,6 +145,7 @@ describe('Import Nomination Files Use Case', () => {
         lastName: 'Reporter',
         fullName: 'FIRST Reporter',
         role: Role.MEMBRE_COMMUN,
+        gender: Gender.M,
       },
       {
         userId: 'second-reporter-id',
@@ -146,6 +153,7 @@ describe('Import Nomination Files Use Case', () => {
         lastName: 'Reporter',
         fullName: 'SECOND Reporter',
         role: Role.MEMBRE_COMMUN,
+        gender: Gender.M,
       },
     );
     const marcelDupontSnapshot = getMarcelDupontModelSnapshot(
