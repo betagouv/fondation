@@ -1,5 +1,6 @@
 import { Magistrat } from 'shared-models';
 import { DomainRegistry } from './domain-registry';
+import { DossierDeNomination } from './dossier-de-nomination';
 
 export type AffectationsDossiersDeNominations = {
   dossierDeNominationId: string;
@@ -21,14 +22,42 @@ export class Affectation {
     private _affectationsDossiersDeNominations: AffectationsDossiersDeNominations[],
   ) {}
 
+  ajouterDossier(
+    dossier: DossierDeNomination<unknown>,
+    rapporteurIds: string[],
+  ) {
+    this._affectationsDossiersDeNominations.push({
+      dossierDeNominationId: dossier.id,
+      rapporteurIds,
+    });
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get formation(): Magistrat.Formation {
+    return this._formation;
+  }
+
   snapshot(): AffectationSnapshot {
     return {
       id: this._id,
       sessionId: this._sessionId,
       formation: this._formation,
-      affectationsDossiersDeNominations:
-        this._affectationsDossiersDeNominations,
+      affectationsDossiersDeNominations: [
+        ...this._affectationsDossiersDeNominations,
+      ],
     };
+  }
+
+  static fromSnapshot(snapshot: AffectationSnapshot): Affectation {
+    return new Affectation(
+      snapshot.id,
+      snapshot.sessionId,
+      snapshot.formation,
+      [...snapshot.affectationsDossiersDeNominations],
+    );
   }
 
   static nouvelle(

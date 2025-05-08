@@ -4,7 +4,9 @@ import { DomainRegistry } from './domain-registry';
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
 import { TypeDeSaisine } from './type-de-saisine';
 
-export interface ContenuDossierDeNominationTransparence {
+type ContenuInconnu = Record<string, unknown>;
+
+export interface ContenuDossierDeNominationTransparence extends ContenuInconnu {
   folderNumber: number | null;
   name: string;
   formation: Magistrat.Formation;
@@ -67,10 +69,10 @@ export class DossierDeNominationSaisineInferer {
 }
 
 export type DossierDeNominationContent<
-  S extends TypeDeSaisine = TypeDeSaisine,
+  S extends TypeDeSaisine | unknown = unknown,
 > = S extends TypeDeSaisine.TRANSPARENCE_GDS
   ? ContenuDossierDeNominationTransparence
-  : Record<string, unknown>;
+  : ContenuInconnu;
 
 export type DossierDeNominationSnapshot = {
   id: string;
@@ -79,7 +81,7 @@ export type DossierDeNominationSnapshot = {
   content: DossierDeNominationContent;
 };
 
-export class DossierDeNomination<S extends TypeDeSaisine = TypeDeSaisine> {
+export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
   private constructor(
     private readonly _id: string,
     private readonly _sessionId: string,

@@ -132,7 +132,7 @@ const getLucienPierreRead = (rowNumber = 1): NominationFileRead => ({
     formation: Magistrat.Formation.PARQUET,
     dueDate: null,
     transparency: Transparency.AUTOMNE_2024,
-    reporters: null,
+    reporters: ['LUC Loïc'],
     grade: Magistrat.Grade.HH,
     currentPosition: 'Procureur de la République adjoint TJ  NIMES',
     targettedPosition: 'Avocat général CC  PARIS - HH',

@@ -52,7 +52,7 @@ describe('SQL Report Repository', () => {
 
     await expectReports({
       id: aReport.id,
-      nominationFileId: aReport.nominationFileId,
+      nominationFileId: aReport.dossierDeNominationId,
       reporterId: aReport.reporterId,
       version: 1,
       createdAt: aReport.createdAt,
@@ -200,7 +200,7 @@ describe('SQL Report Repository', () => {
         SqlReportRepository.mapSnapshotToDb(aReportWithFile);
       await expectReports({
         id: aReportWithFile.id,
-        nominationFileId: aReportWithFile.nominationFileId,
+        nominationFileId: aReportWithFile.dossierDeNominationId,
         reporterId: aReportWithFile.reporterId,
         version: 2,
         createdAt: aReportWithFile.createdAt,
@@ -231,7 +231,7 @@ describe('SQL Report Repository', () => {
 
     it('finds a report by nomination file id', async () => {
       const result = await transactionPerformer.perform(
-        sqlReportRepository.byNominationFileId(aReport.nominationFileId),
+        sqlReportRepository.byNominationFileId(aReport.dossierDeNominationId),
       );
       expect(result).toEqual([NominationFileReport.fromSnapshot(aReport)]);
     });
@@ -263,7 +263,7 @@ describe('SQL Report Repository', () => {
         SqlReportRepository.mapSnapshotToDb(aReportWithNoFiles);
       await expectReports({
         id: aReportWithNoFiles.id,
-        nominationFileId: aReportWithNoFiles.nominationFileId,
+        nominationFileId: aReportWithNoFiles.dossierDeNominationId,
         reporterId: aReportWithNoFiles.reporterId,
         version: 2,
         createdAt: aReportWithNoFiles.createdAt,

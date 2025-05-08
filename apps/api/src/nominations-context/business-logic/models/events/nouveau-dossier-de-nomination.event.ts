@@ -14,7 +14,7 @@ export const nouveauDossierDeNominationEventPayloadSchema = z.object({
   dossierDeNominationId: z.string(),
   sessionId: z.string(),
   nominationFileImportedId: z.string(),
-  content: z.record(z.unknown()),
+  content: z.record(z.string(), z.unknown()),
 }) satisfies z.ZodType<NouveauDossierDeNominationEventPayload>;
 
 export class NouveauDossierDeNominationEvent extends DomainEvent<NouveauDossierDeNominationEventPayload> {

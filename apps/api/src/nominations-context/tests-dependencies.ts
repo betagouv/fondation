@@ -6,9 +6,12 @@ import { FakeUserService } from 'src/nominations-context/adapters/secondary/serv
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
-import { DomainRegistry } from '../models/domain-registry';
-import { TransparenceService } from '../services/transparence.service';
+import { DomainRegistry } from './business-logic/models/domain-registry';
+import { TransparenceService } from './business-logic/services/transparence.service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { ImportNouvelleTransparenceUseCase } from './business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
+import { UpdateDossierDeNominationUseCase } from './business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
+import { ImportNouveauxDossiersTransparenceUseCase } from './business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -37,6 +40,25 @@ export const getDependencies = () => {
 
   const userService = new FakeUserService();
 
+  const importNouvelleTransparenceUseCase =
+    new ImportNouvelleTransparenceUseCase(
+      nullTransactionPerformer,
+      transparenceService,
+    );
+
+  const updateDossierDeNominationUseCase = new UpdateDossierDeNominationUseCase(
+    nullTransactionPerformer,
+    dossierDeNominationRepository,
+    préAnalyseRepository,
+  );
+
+  const importNouveauxDossiersTransparenceUseCase =
+    new ImportNouveauxDossiersTransparenceUseCase(
+      nullTransactionPerformer,
+      sessionRepository,
+      transparenceService,
+    );
+
   return {
     nullTransactionPerformer,
     uuidGenerator,
@@ -48,5 +70,8 @@ export const getDependencies = () => {
     userService,
     domainEventRepository,
     préAnalyseRepository,
+    importNouvelleTransparenceUseCase,
+    updateDossierDeNominationUseCase,
+    importNouveauxDossiersTransparenceUseCase,
   };
 };

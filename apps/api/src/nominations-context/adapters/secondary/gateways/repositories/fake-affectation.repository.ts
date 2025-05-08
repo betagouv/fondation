@@ -4,31 +4,43 @@ import {
   Affectation,
   AffectationSnapshot,
 } from 'src/nominations-context/business-logic/models/affectation';
-
-type SessionId = string;
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeAffectationRepository implements AffectationRepository {
-  private affectations: Record<
-    `${SessionId}-${Magistrat.Formation}`,
-    AffectationSnapshot
-  > = {};
+  private fakeAffectations: Record<string, AffectationSnapshot> = {};
 
   save(affectation: Affectation) {
     return async () => {
       const snapshot = affectation.snapshot();
-      this.affectations[`${snapshot.sessionId}-${snapshot.formation}`] =
-        snapshot;
+      this.fakeAffectations[snapshot.id] = snapshot;
+    };
+  }
+
+  affectations(
+    sessionId: string,
+  ): TransactionableAsync<Record<Magistrat.Formation, Affectation>> {
+    return async () => {
+      const affectations = Object.values(this.fakeAffectations).filter(
+        (affectation) => affectation.sessionId === sessionId,
+      );
+
+      return affectations.reduce(
+        (acc, affectation) => {
+          acc[affectation.formation] = Affectation.fromSnapshot(affectation);
+          return acc;
+        },
+        {} as Record<Magistrat.Formation, Affectation>,
+      );
     };
   }
 
   addAffectations(...affectations: AffectationSnapshot[]) {
     affectations.forEach((affectation) => {
-      this.affectations[`${affectation.sessionId}-${affectation.formation}`] =
-        affectation;
+      this.fakeAffectations[affectation.id] = affectation;
     });
   }
 
   getAffectations() {
-    return Object.values(this.affectations);
+    return Object.values(this.fakeAffectations);
   }
 }

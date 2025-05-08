@@ -1,15 +1,26 @@
-import { AffectationSnapshot } from '../../../models/affectation';
-import { getDependencies } from '../../transparence.use-case.tests-dependencies';
 import {
-  aAffectationId,
-  aDossierDeNominationId,
-  aFormation,
-  aTransparencyName,
+  AffectationRapporteursCréeEvent,
+  AffectationRapporteursCréeEventPayload,
+} from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
+import {
+  AffectationRapporteursModifiéeEvent,
+  AffectationRapporteursModifiéeEventPayload,
+} from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-modifiée.event';
+import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { currentDate, getDependencies } from '../../../../tests-dependencies';
+import { AffectationSnapshot } from '../../../models/affectation';
+import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
+import {
+  aParquetCommand,
+  aSecondSiègeCommand,
   givenSomeUuids,
+  givenUneAffectationSiège,
   givenUneSession,
   importNouveauxDossiersUseCase,
-  lucLoïcReporterId,
   lucLoïcUser,
+  uneAffectationParquet,
+  uneAffectationSiègeAvecDeuxDossiers,
+  uneAffectionSiège,
 } from './import-nouveaux-dossiers-transparence.tests-setup';
 
 describe('Affectation des rapporteurs de transparence au format tsv', () => {
@@ -20,31 +31,63 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
 
     givenSomeUuids(dependencies.uuidGenerator);
     givenUneSession(dependencies.sessionRepository);
+    givenUneAffectationSiège(dependencies.affectationRepository);
     dependencies.userService.addUsers(lucLoïcUser);
   });
 
-  it('crée une affectation des rapporteurs aux dossiers de nominations', async () => {
-    await créerAffectationRapporteurs();
-    expectAffectationRapporteursCréée();
+  it("informe que l'affectation a été créée", async () => {
+    await créerAffectationRapporteurs(aParquetCommand);
+    expectDomainEvent(AffectationRapporteursCréeEvent.name, {
+      ...uneAffectationParquet,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+    });
   });
 
-  const créerAffectationRapporteurs = () =>
-    importNouveauxDossiersUseCase(dependencies);
+  it('crée une affectation "Parquet" des rapporteurs aux dossiers de nominations', async () => {
+    await créerAffectationRapporteurs(aParquetCommand);
+    expectAffectationRapporteursCréée(uneAffectionSiège, uneAffectationParquet);
+  });
 
-  const expectAffectationRapporteursCréée = () =>
+  describe('Affectation "Siège" modifiée', () => {
+    it("informe que l'affectation a été modifiée", async () => {
+      await créerAffectationRapporteurs(aSecondSiègeCommand);
+      expectDomainEvent(AffectationRapporteursModifiéeEvent.name, {
+        ...uneAffectationSiègeAvecDeuxDossiers,
+        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        affectationsDossiersDeNominations: [
+          uneAffectationSiègeAvecDeuxDossiers
+            .affectationsDossiersDeNominations[1]!,
+        ],
+      });
+    });
+
+    it("ajoute un dossier à l'affectation 'Siège' existante", async () => {
+      await créerAffectationRapporteurs(aSecondSiègeCommand);
+      expectAffectationRapporteursCréée(uneAffectationSiègeAvecDeuxDossiers);
+    });
+  });
+
+  const créerAffectationRapporteurs = (
+    command?: ImportNouveauxDossiersTransparenceCommand,
+  ) => importNouveauxDossiersUseCase(dependencies, command);
+
+  const expectAffectationRapporteursCréée = (
+    ...affectations: AffectationSnapshot[]
+  ) =>
     expect(dependencies.affectationRepository.getAffectations()).toEqual<
       AffectationSnapshot[]
-    >([
-      {
-        id: aAffectationId,
-        sessionId: aTransparencyName,
-        formation: aFormation,
-        affectationsDossiersDeNominations: [
-          {
-            dossierDeNominationId: aDossierDeNominationId,
-            rapporteurIds: [lucLoïcReporterId],
-          },
-        ],
-      },
-    ]);
+    >(affectations);
+
+  const expectDomainEvent = (
+    name: string,
+    payload:
+      | AffectationRapporteursModifiéeEventPayload
+      | AffectationRapporteursCréeEventPayload,
+  ) => {
+    const event = dependencies.domainEventRepository.events[1]!;
+    expect(dependencies.domainEventRepository.events).toHaveLength(2);
+    expect(event.type).toEqual(name);
+    expect(event.payload).toEqual(payload);
+    expect(event.occurredOn).toEqual(currentDate);
+  };
 });

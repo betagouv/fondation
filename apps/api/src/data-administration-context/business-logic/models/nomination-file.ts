@@ -56,8 +56,12 @@ export class NominationFileModel {
     };
   }
 
-  public get id(): string {
+  get id(): string {
     return this._id;
+  }
+
+  get rowNumber(): number {
+    return this._nominationFileRead.rowNumber;
   }
 
   private setCreatedAt(_createdAt: Date) {
