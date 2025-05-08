@@ -11,6 +11,9 @@ import { StubUserService } from '../adapters/secondary/gateways/services/stub-us
 import { Role } from 'shared-models';
 import { ReporterTranslatorService } from '../adapters/secondary/gateways/services/reporter-translator.service';
 import { CreateReportUseCase } from './use-cases/report-creation/create-report.use-case';
+import { StubDossierDeNominationService } from '../adapters/secondary/gateways/services/stub-dossier-de-nomination.service';
+import { StubSessionService } from '../adapters/secondary/gateways/services/stub-session.service';
+import { CréerAnalyseUseCase } from './use-cases/création-analyse/créer-analyse.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -32,6 +35,7 @@ export const getDependencies = () => {
 
   const fakeReportRepository = new FakeNominationFileReportRepository();
   const fakeReportRuleRepository = new FakeReportRuleRepository();
+  DomainRegistry.setReportRuleRepository(fakeReportRuleRepository);
   const fakeReportListingVMQuery = new FakeReportListingVMRepository();
   const fakeReportRetrievalVMQuery = new FakeReportRetrievalVMQuery();
   const fakeDomainEventRepository = new FakeDomainEventRepository();
@@ -40,11 +44,15 @@ export const getDependencies = () => {
   const reporterTranslatorService = new ReporterTranslatorService(
     stubUserService,
   );
+  const stubDossierDeNominationService = new StubDossierDeNominationService();
+  const stubSessionService = new StubSessionService();
 
   const createReportUseCase = new CreateReportUseCase(
     fakeReportRepository,
-    nullTransactionPerformer,
+    fakeDomainEventRepository,
   );
+  const créerAnalyseUseCase = new CréerAnalyseUseCase(nullTransactionPerformer);
+
   return {
     nullTransactionPerformer,
     uuidGenerator,
@@ -58,7 +66,10 @@ export const getDependencies = () => {
 
     stubUserService,
     reporterTranslatorService,
+    stubDossierDeNominationService,
+    stubSessionService,
 
     createReportUseCase,
+    créerAnalyseUseCase,
   };
 };

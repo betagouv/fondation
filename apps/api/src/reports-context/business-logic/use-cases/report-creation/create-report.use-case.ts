@@ -4,10 +4,11 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from 'src/data-administration-context/business-logic/models/rules';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { NominationFileReport } from '../../models/nomination-file-report';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 
 export interface ReportToCreate {
   folderNumber: number | null;
@@ -75,22 +76,20 @@ export class CreateReportCommand {
 export class CreateReportUseCase {
   constructor(
     private readonly reportRepository: ReportRepository,
-    private readonly transactionPerformer: TransactionPerformer,
+    private readonly domainEventRepository: DomainEventRepository,
   ) {}
 
-  async execute(command: CreateReportCommand, retries = 3): Promise<void> {
-    return this.transactionPerformer.perform(
-      async (trx) => {
-        const report = NominationFileReport.createFromImport(
-          command.sessionId,
-          command.dossierDeNominationId,
-          command.formation,
-          command.rapporteurId,
-        );
+  execute(command: CreateReportCommand): TransactionableAsync {
+    return async (trx) => {
+      const [rapport, rapportCrééEvent] = NominationFileReport.createFromImport(
+        command.sessionId,
+        command.dossierDeNominationId,
+        command.formation,
+        command.rapporteurId,
+      );
 
-        await this.reportRepository.save(report)(trx);
-      },
-      { retries },
-    );
+      await this.reportRepository.save(rapport)(trx);
+      await this.domainEventRepository.save(rapportCrééEvent)(trx);
+    };
   }
 }

@@ -101,7 +101,7 @@ describe('Reports Controller', () => {
       observersCount: 1,
     };
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
-      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .with('reporterId', reporterId)
       .build();
     const requestReportsList = () =>
@@ -165,7 +165,6 @@ describe('Reports Controller', () => {
                 ...acc[ruleGroup],
                 [reportRuleSnapshot.ruleName]: {
                   id: reportRuleSnapshot.id,
-                  preValidated: reportRuleSnapshot.preValidated,
                   validated: reportRuleSnapshot.validated,
                 },
               },
@@ -180,7 +179,7 @@ describe('Reports Controller', () => {
       'uuid',
     ).buildVM();
     const aReport = ReportBuilder.fromRetrievalVM(aReportRetrievedVM)
-      .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
+      .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681138')
       .with('reporterId', reporterId)
       .build();
     const requestReport = () =>

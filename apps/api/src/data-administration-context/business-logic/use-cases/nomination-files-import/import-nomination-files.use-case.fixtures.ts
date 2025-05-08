@@ -1,4 +1,5 @@
 import {
+  Gender,
   Magistrat,
   NominationFile,
   Role,
@@ -8,6 +9,7 @@ import {
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { PartialDeep } from 'type-fest';
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
+import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 import { NominationFileRead } from '../../models/nomination-file-read';
 import {
   allRulesMapV1,
@@ -15,7 +17,6 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from '../../models/rules';
-import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../../models/nomination-file-content-reader';
 
 export const gdsTransparenceEventId = 'gds-transparence-event-id';
 export const gdsTransparenceId = 'gds-transparence-id';
@@ -36,6 +37,7 @@ export const lucLoïcUser = {
   lastName: 'LUC',
   fullName: 'LUC Loïc',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 
 export const emilienRenaudJulesUser = {
@@ -44,6 +46,7 @@ export const emilienRenaudJulesUser = {
   lastName: 'ÉMILIEN-RENAUD',
   fullName: 'ÉMILIEN-RENAUD Jules ep. Françoise',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 export const jeanneLouiseDeFranceAudeUser = {
   userId: jeanneLouiseDeFranceAudeReporterId,
@@ -51,6 +54,7 @@ export const jeanneLouiseDeFranceAudeUser = {
   lastName: 'JEANNE LOUISE DE FRANCE',
   fullName: 'JEANNE LOUISE DE FRANCE Aude',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.F,
 };
 
 export const getMarcelDupontModelSnapshotFactory =

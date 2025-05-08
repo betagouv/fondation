@@ -62,9 +62,13 @@ export class ReportsController implements IReportController {
   ) {}
 
   @Get(endpointsPaths.listReports)
-  async listReports(@Req() req: Request) {
+  async listReports(
+    @Param()
+    params: ReportsContextRestContract['endpoints']['listReports']['params'],
+    @Req() req: Request,
+  ) {
     const userId = req.userId!;
-    return this.listReportsUseCase.execute(userId);
+    return this.listReportsUseCase.execute(userId, params.sessionId);
   }
 
   @Get(endpointsPaths.retrieveReport)

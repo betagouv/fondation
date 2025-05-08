@@ -1,4 +1,4 @@
-import { Magistrat, Role, Transparency } from 'shared-models';
+import { Gender, Magistrat, Role, Transparency } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
 import { NominationFileReadRulesBuilder } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -23,6 +23,7 @@ export const lucLoïcUser = {
   lastName: 'LUC',
   fullName: 'LUC Loïc',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
 };
 
 export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
