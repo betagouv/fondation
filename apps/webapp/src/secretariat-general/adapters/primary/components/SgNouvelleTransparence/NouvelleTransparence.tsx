@@ -8,12 +8,10 @@ import { Magistrat } from "shared-models";
 import { z } from "zod";
 import { useAppSelector } from "../../../../../reports/adapters/primary/hooks/react-redux";
 import { formationToLabel } from "../../../../../reports/adapters/primary/labels/labels-mappers";
-import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../../router/adapters/selectors/selectBreadcrumb";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
+import { selectBreadcrumb } from "../../selectors/selectBreadcrumb";
+import { BreadcrumCurrentPage } from "../../selectors/selectBreadcrumb";
 
 const schema = z.object({
   transparenceName: z.string().min(1, "Le nom de la transparence est requise"),
