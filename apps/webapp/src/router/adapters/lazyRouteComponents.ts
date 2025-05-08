@@ -26,9 +26,7 @@ export const LazySecretariatGeneralDashboard = lazy(
   () => SecretariatGeneralDashboardPage,
 );
 
-const SgNouvelleTransparencePage = import(
-  "../../secretariat-general/adapters/primary/components/SgNouvelleTransparence/NouvelleTransparence"
+const NouvelleTransparencePage = import(
+  "../../secretariat-general/adapters/primary/components/NouvelleTransparence/NouvelleTransparence"
 );
-export const LazySgNouvelleTransparence = lazy(
-  () => SgNouvelleTransparencePage,
-);
+export const LazyNouvelleTransparence = lazy(() => NouvelleTransparencePage);

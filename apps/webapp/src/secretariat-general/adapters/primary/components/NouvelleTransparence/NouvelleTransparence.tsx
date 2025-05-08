@@ -1,19 +1,17 @@
 import { ButtonsGroup } from "@codegouvfr/react-dsfr/ButtonsGroup";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FC } from "react";
+import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Magistrat } from "shared-models";
 import { z } from "zod";
 import { useAppSelector } from "../../../../../reports/adapters/primary/hooks/react-redux";
 import { formationToLabel } from "../../../../../reports/adapters/primary/labels/labels-mappers";
-import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../../router/adapters/selectors/selectBreadcrumb";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
+import { selectBreadcrumb } from "../../selectors/selectBreadcrumb";
+import { BreadcrumCurrentPage } from "../../selectors/selectBreadcrumb";
+import Select from "@codegouvfr/react-dsfr/Select";
 
 const schema = z.object({
   transparenceName: z.string().min(1, "Le nom de la transparence est requise"),
@@ -31,7 +29,7 @@ const defaultValues: Schema = {
   formation: Magistrat.Formation.SIEGE,
 };
 
-const SgNouvelleTransparence: FC = () => {
+const NouvelleTransparence: FC = () => {
   const currentPage = {
     name: BreadcrumCurrentPage.sgNouvelleTransparence,
   } as const;
@@ -79,6 +77,29 @@ const SgNouvelleTransparence: FC = () => {
           )}
         />
         <Controller
+          name="formation"
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <Select
+              label="Formation"
+              nativeSelectProps={{
+                value,
+                onChange,
+              }}
+            >
+              <React.Fragment key=".0">
+                <option selected value={Magistrat.Formation.SIEGE}>
+                  {formationToLabel(Magistrat.Formation.SIEGE)}
+                </option>
+                <option value={Magistrat.Formation.PARQUET}>
+                  {formationToLabel(Magistrat.Formation.PARQUET)}
+                </option>
+                <option value={"BOTH"}>Les 2</option>
+              </React.Fragment>
+            </Select>
+          )}
+        />
+        <Controller
           name="dateEcheance"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -93,34 +114,6 @@ const SgNouvelleTransparence: FC = () => {
               }}
               state={errors.dateEcheance ? "error" : "default"}
               stateRelatedMessage={errors.dateEcheance?.message}
-            />
-          )}
-        />
-        <Controller
-          name="formation"
-          control={control}
-          render={({ field: { value, onChange } }) => (
-            <RadioButtons
-              legend="Formation"
-              orientation="horizontal"
-              options={[
-                {
-                  label: formationToLabel(Magistrat.Formation.SIEGE),
-                  nativeInputProps: {
-                    value: Magistrat.Formation.SIEGE,
-                    checked: value === Magistrat.Formation.SIEGE,
-                    onChange: () => onChange(Magistrat.Formation.SIEGE),
-                  },
-                },
-                {
-                  label: formationToLabel(Magistrat.Formation.PARQUET),
-                  nativeInputProps: {
-                    value: Magistrat.Formation.PARQUET,
-                    checked: value === Magistrat.Formation.PARQUET,
-                    onChange: () => onChange(Magistrat.Formation.PARQUET),
-                  },
-                },
-              ]}
             />
           )}
         />
@@ -148,4 +141,4 @@ const SgNouvelleTransparence: FC = () => {
   );
 };
 
-export default SgNouvelleTransparence;
+export default NouvelleTransparence;

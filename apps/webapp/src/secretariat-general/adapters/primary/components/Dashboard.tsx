@@ -1,13 +1,11 @@
 import { FC } from "react";
 import { useAppSelector } from "../../../../reports/adapters/primary/hooks/react-redux";
-import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../router/adapters/selectors/selectBreadcrumb";
-import { selectSecretariatGeneralAnchorAttributes } from "../../../../router/adapters/selectors/selectSecretariatGeneralAnchorAttributes";
 import { Breadcrumb } from "../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { Card } from "../../../../shared-kernel/adapters/primary/react/Card";
 import { PageContentLayout } from "../../../../shared-kernel/adapters/primary/react/PageContentLayout";
+import { selectSecretariatGeneralAnchorAttributes } from "../selectors/selectSecretariatGeneralAnchorAttributes";
+import { BreadcrumCurrentPage } from "../selectors/selectBreadcrumb";
+import { selectBreadcrumb } from "../selectors/selectBreadcrumb";
 
 const Dashboard: FC = () => {
   const currentPage = {
