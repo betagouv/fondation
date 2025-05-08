@@ -1,10 +1,11 @@
-import { Magistrat } from 'shared-models';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { SessionSnapshot } from '../../../models/session';
 import { TypeDeSaisine } from '../../../models/type-de-saisine';
-import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparence.command';
-import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';
-import { getDependencies } from '../../transparence.use-case.tests-dependencies';
+import { getDependencies } from '../../../../tests-dependencies';
+import {
+  aFormation,
+  aTransparencyName,
+  importNouvelleTransparenceUseCase,
+} from './import-nouvelle-transparence.tests-setup';
 
 describe('Nouvelle transparence GDS', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -19,10 +20,7 @@ describe('Nouvelle transparence GDS', () => {
   });
 
   async function créerTransparence() {
-    await new ImportNouvelleTransparenceUseCase(
-      new NullTransactionPerformer(),
-      dependencies.transparenceService,
-    ).execute(aCommand);
+    await importNouvelleTransparenceUseCase(dependencies);
   }
 
   function expectTransparence() {
@@ -33,18 +31,8 @@ describe('Nouvelle transparence GDS', () => {
         id: aTransparencyName,
         name: aTransparencyName,
         formations: [aFormation],
-        typeDeSaisine: aTypeDeSaisine,
+        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       },
     ]);
   }
 });
-
-const aTransparencyName = 'transparence-name';
-const aFormation = Magistrat.Formation.PARQUET;
-const aTypeDeSaisine = TypeDeSaisine.TRANSPARENCE_GDS;
-const aCommand = new ImportNouvelleTransparenceCommand(
-  aTypeDeSaisine,
-  aTransparencyName,
-  [aFormation],
-  [],
-);

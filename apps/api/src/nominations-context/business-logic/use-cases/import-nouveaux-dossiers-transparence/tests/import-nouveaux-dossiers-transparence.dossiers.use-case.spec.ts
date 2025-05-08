@@ -1,12 +1,13 @@
 import { Magistrat } from 'shared-models';
+import { getDependencies } from '../../../../tests-dependencies';
 import { DossierDeNominationSnapshot } from '../../../models/dossier-de-nomination';
-import { getDependencies } from '../../transparence.use-case.tests-dependencies';
 import {
   aDossierDeNominationId,
-  aTransparencyName,
-  importNouveauxDossiersUseCase,
-  givenUneSession,
+  aDossierDeNominationImportedId,
+  aSessionId,
   givenSomeUuids,
+  givenUneSession,
+  importNouveauxDossiersUseCase,
 } from './import-nouveaux-dossiers-transparence.tests-setup';
 
 describe('Import nouveaux dossiers dans une transparence - Dossiers de nominations', () => {
@@ -33,7 +34,8 @@ describe('Import nouveaux dossiers dans une transparence - Dossiers de nominatio
     >([
       {
         id: aDossierDeNominationId,
-        sessionId: aTransparencyName,
+        nominationFileImportedId: aDossierDeNominationImportedId,
+        sessionId: aSessionId,
         content: {
           biography: 'Nominee biography',
           birthDate: { day: 1, month: 1, year: 1980 },

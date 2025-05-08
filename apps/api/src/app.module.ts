@@ -8,14 +8,16 @@ import { ReportsModule } from './reports-context/adapters/primary/nestjs/reports
 import { DomainEventsPoller } from './shared-kernel/adapters/primary/nestjs/domain-event-poller';
 import { SharedKernelModule } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DOMAIN_EVENTS_POLLER } from './shared-kernel/adapters/primary/nestjs/tokens';
+import { NominationsContextModule } from './nominations-context/adapters/primary/nestjs/nominations-context.module';
 
 @Module({
   imports: [
-    FilesContextModule,
-    DataAdministrationContextModule,
-    ReportsModule,
-    IdentityAndAccessModule,
     SharedKernelModule,
+    FilesContextModule,
+    IdentityAndAccessModule,
+    DataAdministrationContextModule,
+    NominationsContextModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [{ provide: APP_PIPE, useClass: ZodValidationPipe }],

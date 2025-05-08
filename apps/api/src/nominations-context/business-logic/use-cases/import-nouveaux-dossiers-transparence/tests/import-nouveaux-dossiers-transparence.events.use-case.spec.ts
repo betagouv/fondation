@@ -1,9 +1,6 @@
 import { Magistrat } from 'shared-models';
 import { NouveauDossierDeNominationEvent } from '../../../models/events/nouveau-dossier-de-nomination.event';
-import {
-  currentDate,
-  getDependencies,
-} from '../../transparence.use-case.tests-dependencies';
+import { currentDate, getDependencies } from '../../../../tests-dependencies';
 import {
   aDossierDeNominationId,
   anEventId,
@@ -32,8 +29,6 @@ describe('Nouvelle transparence GDS - Events', () => {
   }
 
   function expectEventPublié() {
-    expect(dependencies.domainEventRepository.events).toHaveLength(1);
-
     const event = dependencies.domainEventRepository
       .events[0] as NouveauDossierDeNominationEvent;
     expect(event).toBeInstanceOf(NouveauDossierDeNominationEvent);

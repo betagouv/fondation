@@ -37,16 +37,15 @@ export class Session {
       dossier: DossierDeNomination;
       rapporteurIds: string[];
     }[],
-  ): Affectation[] {
-    return this._formations.map((formation) =>
-      Affectation.nouvelle(
-        this._id,
-        formation,
-        dossiers.map(({ dossier, rapporteurIds }) => ({
-          dossierDeNominationId: dossier.id,
-          rapporteurIds,
-        })),
-      ),
+    formation: Magistrat.Formation,
+  ): Affectation {
+    return Affectation.nouvelle(
+      this._id,
+      formation,
+      dossiers.map(({ dossier, rapporteurIds }) => ({
+        dossierDeNominationId: dossier.id,
+        rapporteurIds,
+      })),
     );
   }
 

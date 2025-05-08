@@ -1,6 +1,6 @@
 import { allRulesMapV2, NominationFile, RulesBuilder } from 'shared-models';
 import { PréAnalyseSnapshot } from '../../../models/pré-analyse';
-import { getDependencies } from '../../transparence.use-case.tests-dependencies';
+import { getDependencies } from '../../../../tests-dependencies';
 import {
   aDossierDeNominationId,
   aPréAnalyseId,

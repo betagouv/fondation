@@ -54,6 +54,12 @@ export class NominationFilesContentReadCollection {
     return this._nominationFileReadList.length > 0;
   }
 
+  hasRowNumber(rowNumber: number): boolean {
+    return this._nominationFileReadList.some(
+      (nominationFile) => nominationFile.rowNumber === rowNumber,
+    );
+  }
+
   formations(): Set<Magistrat.Formation> {
     const formations = _.uniq(
       this._nominationFileReadList.map(

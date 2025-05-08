@@ -131,8 +131,9 @@ export class TransparenceService {
         ] as const;
       }),
     );
+
     const reporters = Object.fromEntries(reportersList);
 
-    return transparence.nominationFilesEventPayload(reporters);
+    return transparence.nominationFilesEventPayload(nominationFiles, reporters);
   }
 }
