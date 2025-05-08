@@ -27,8 +27,6 @@ export const expectReportsInDbFactory =
     >(
       expectedReports.map((expectedReport) => ({
         ...expectedReport,
-        dueDate: expectedReport.dueDate?.toDbString() || null,
-        birthDate: expectedReport.birthDate.toDbString(),
       })),
     );
   };

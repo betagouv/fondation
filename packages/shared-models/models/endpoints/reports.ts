@@ -35,6 +35,7 @@ export interface ReportsContextRestContract extends RestContract {
     listReports: {
       method: "GET";
       path: "";
+      params: { sessionId: string };
       response: ReportListingVM;
     };
     uploadFiles: {

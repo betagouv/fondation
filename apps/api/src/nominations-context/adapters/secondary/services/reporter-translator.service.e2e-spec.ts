@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import { Gender } from 'src/identity-and-access-context/business-logic/models/gender';
 import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
@@ -12,7 +11,7 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { ReporterTranslatorService } from './reporter-translator.service';
-import { Role } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 import {
   Reporter,
   ReporterSnapshot,

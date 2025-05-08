@@ -6,7 +6,6 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import {
   GivenSomeReports,
   givenSomeReportsFactory,
@@ -47,16 +46,12 @@ describe('SQL Report Listing VM Query', () => {
     let anotherReport: NominationFileReportSnapshot;
 
     beforeEach(async () => {
-      aReport = new ReportBuilder('uuid')
-        .with('dueDate', new DateOnly(2030, 10, 1))
-        .with('observers', ['observer1'])
-        .build();
+      aReport = new ReportBuilder('uuid').build();
 
       anotherReport = new ReportBuilder()
         .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
         .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
-        .with('dueDate', new DateOnly(2040, 5, 1))
+        .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
         .build();
 
       await givenSomeReports(aReport, anotherReport);

@@ -7,6 +7,7 @@ import {
 } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
+import { RapportTransparenceCrééEvent } from './events/rapport-transparence-créé.event';
 
 export type NominationFileReportSnapshot = {
   id: string;
@@ -175,12 +176,12 @@ export class NominationFileReport {
     dossierDeNominationId: string,
     formation: Magistrat.Formation,
     reporterId: string,
-  ): NominationFileReport {
-    const reportId = DomainRegistry.uuidGenerator().generate();
+  ): [NominationFileReport, RapportTransparenceCrééEvent] {
+    const rapportId = DomainRegistry.uuidGenerator().generate();
     const currentDate = DomainRegistry.dateTimeProvider().now();
 
-    const report = new NominationFileReport(
-      reportId,
+    const rapport = new NominationFileReport(
+      rapportId,
       dossierDeNominationId,
       sessionId,
       currentDate,
@@ -192,6 +193,10 @@ export class NominationFileReport {
       null,
     );
 
-    return report;
+    const rapportCrééEvent = RapportTransparenceCrééEvent.fromRapportSnapshot(
+      rapport.toSnapshot(),
+    );
+
+    return [rapport, rapportCrééEvent];
   }
 }

@@ -1,4 +1,5 @@
 import { NominationFile } from 'shared-models';
+import { DomainRegistry } from './domain-registry';
 
 export class ReportRuleValidation {
   constructor(
@@ -64,6 +65,24 @@ export class ReportRule {
       reportRuleSnapshot.ruleGroup,
       reportRuleSnapshot.ruleName,
       reportRuleSnapshot.validated,
+    );
+  }
+
+  static créer(
+    reportId: string,
+    ruleGroup: NominationFile.RuleGroup,
+    ruleName: NominationFile.RuleName,
+    validated: boolean,
+  ): ReportRule {
+    const id = DomainRegistry.uuidGenerator().generate();
+    const createdAt = DomainRegistry.dateTimeProvider().now();
+    return new ReportRule(
+      id,
+      createdAt,
+      reportId,
+      ruleGroup,
+      ruleName,
+      validated,
     );
   }
 }

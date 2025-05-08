@@ -74,11 +74,13 @@ export type DossierDeNominationContent<
   ? ContenuDossierDeNominationTransparence
   : ContenuInconnu;
 
-export type DossierDeNominationSnapshot = {
+export type DossierDeNominationSnapshot<
+  S extends TypeDeSaisine | unknown = unknown,
+> = {
   id: string;
   sessionId: string;
   nominationFileImportedId: string;
-  content: DossierDeNominationContent;
+  content: DossierDeNominationContent<S>;
 };
 
 export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {

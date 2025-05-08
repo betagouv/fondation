@@ -67,7 +67,6 @@ describe('Change Rule Validation State', () => {
         reportRuleSnapshot.reportId,
         NominationFile.RuleGroup.MANAGEMENT,
         NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
-        reportRuleSnapshot.preValidated,
         expectValidated,
       ),
     );
