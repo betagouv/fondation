@@ -54,7 +54,6 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
         createdAt: row.createdAt,
         ruleGroup: row.ruleGroup,
         ruleName: row.ruleName,
-        preValidated: row.preValidated,
         validated: row.validated,
         reportId: row.reportId,
       };
@@ -70,10 +69,7 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
         .values(reportRuleRow)
         .onConflictDoUpdate({
           target: reportRules.id,
-          set: buildConflictUpdateColumns(reportRules, [
-            'preValidated',
-            'validated',
-          ]),
+          set: buildConflictUpdateColumns(reportRules, ['validated']),
         })
         .execute();
     };

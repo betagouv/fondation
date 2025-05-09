@@ -9,7 +9,7 @@ export interface ReportRetrievalQueried {
   formation: Magistrat.Formation;
   comment: string | null;
   files: ReportAttachedFilesSerialized;
-  rules: NominationFile.Rules;
+  rules: NominationFile.Rules<Omit<NominationFile.RuleValue, 'preValidated'>>;
 }
 
 export interface ReportRetrievalQuery {
