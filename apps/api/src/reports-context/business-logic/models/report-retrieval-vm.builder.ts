@@ -24,6 +24,12 @@ export class ReportRetrievalBuilder<
 
     this._report = {
       id: isFakeId ? 'report-id' : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      dossierDeNominationId: isFakeId
+        ? 'dossier-id'
+        : '10210165-8579-4f2f-a83a-87beb6658ce8',
+      sessionId: isFakeId
+        ? 'session-id'
+        : 'b584b5f5-c31e-4155-b479-3d5f5e07e944',
       folderNumber: 1,
       name: 'Ada Lovelace',
       biography: 'The biography',
@@ -124,20 +130,11 @@ export class ReportRetrievalBuilder<
     const report = this._report;
     return {
       id: report.id,
-      folderNumber: report.folderNumber,
-      biography: report.biography,
-      dueDate: report.dueDate,
-      name: report.name,
-      birthDate: report.birthDate,
+      dossierDeNominationId: report.dossierDeNominationId,
+      sessionId: report.sessionId,
       state: report.state,
       formation: report.formation,
-      transparency: report.transparency,
-      grade: report.grade,
-      currentPosition: report.currentPosition,
-      targettedPosition: report.targettedPosition,
       comment: report.comment,
-      rank: report.rank,
-      observers: report.observers,
       rules: report.rules,
       files: report.files?.length ? report.files : null,
     };
@@ -148,20 +145,9 @@ export class ReportRetrievalBuilder<
   ): ReportRetrievalBuilder {
     return new ReportRetrievalBuilder()
       .with('id', report.id)
-      .with('folderNumber', report.folderNumber)
-      .with('biography', report.biography)
-      .with('dueDate', report.dueDate)
-      .with('name', report.name)
-      .with('birthDate', report.birthDate)
       .with('state', report.state)
       .with('formation', report.formation)
-      .with('transparency', report.transparency)
-      .with('grade', report.grade)
-      .with('currentPosition', report.currentPosition)
-      .with('targettedPosition', report.targettedPosition)
       .with('comment', report.comment)
-      .with('rank', report.rank)
-      .with('observers', report.observers)
       .with('rules', report.rules);
   }
 

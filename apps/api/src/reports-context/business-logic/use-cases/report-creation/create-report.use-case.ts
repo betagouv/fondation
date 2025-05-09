@@ -1,36 +1,8 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
-import {
-  ManagementRule,
-  QualitativeRule,
-  StatutoryRule,
-} from 'src/data-administration-context/business-logic/models/rules';
+import { Magistrat } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { ReportRepository } from '../../gateways/repositories/report.repository';
 import { NominationFileReport } from '../../models/nomination-file-report';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
-
-export interface ReportToCreate {
-  folderNumber: number | null;
-  name: string;
-  reporterName: string;
-  formation: Magistrat.Formation;
-  dueDate: DateOnlyJson | null;
-  transparency: Transparency;
-  grade: Magistrat.Grade;
-  currentPosition: string;
-  targettedPosition: string;
-  rank: string;
-  birthDate: DateOnlyJson;
-  biography: string | null;
-  observers: string[] | null;
-  rules: NominationFile.Rules<
-    boolean,
-    ManagementRule,
-    StatutoryRule,
-    QualitativeRule
-  >;
-}
 
 export class CreateReportCommand {
   private constructor(

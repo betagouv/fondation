@@ -5,11 +5,11 @@ import {
   ReportListItemVM,
   Transparency,
 } from 'shared-models';
+import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
 import { ListReportsUseCase } from './list-reports.use-case';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/business-logic/models/dossier-de-nomination';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
-import { SessionSnapshot } from 'src/nominations-context/business-logic/models/session';
 
 describe('List reports', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -18,7 +18,7 @@ describe('List reports', () => {
     dependencies = getDependencies();
     dependencies.stubDossierDeNominationService.stubDossier =
       unDossierDeNomination;
-    dependencies.stubSessionService.sessionSnapshot = uneSession;
+    dependencies.stubSessionService.stubSession = uneSession;
   });
 
   it("returns an empty list when there's no reports", async () => {
@@ -26,27 +26,33 @@ describe('List reports', () => {
   });
 
   it('lists reports', async () => {
-    dependencies.fakeReportListingVMQuery.reportsList = {
-      [reporterId]: [unRapportQueried],
-    };
+    givenUnRapportQueried(reporterId, unRapportQueried);
     await expectReports([unRapportVM]);
   });
 
   it("does not list reports that the user doesn't own", async () => {
-    dependencies.fakeReportListingVMQuery.reportsList = {
-      'another-reporter-id': [unRapportAutreRapporteur],
-    };
+    givenUnRapportQueried('another-reporter-id', unRapportAutreRapporteur);
     await expectReports([]);
   });
 
+  const givenUnRapportQueried = (
+    rapportId: string,
+    rapportQueried: ReportListItemQueried,
+  ) => {
+    dependencies.fakeReportListingVMQuery.reportsList = {
+      [rapportId]: [rapportQueried],
+    };
+  };
+
+  const listReports = () =>
+    new ListReportsUseCase(
+      dependencies.fakeReportListingVMQuery,
+      dependencies.stubDossierDeNominationService,
+      dependencies.stubSessionService,
+    ).execute(reporterId, uneSessionId);
+
   const expectReports = async (reports: ReportListItemVM[]) => {
-    expect(
-      await new ListReportsUseCase(
-        dependencies.fakeReportListingVMQuery,
-        dependencies.stubDossierDeNominationService,
-        dependencies.stubSessionService,
-      ).execute(reporterId, uneSessionId),
-    ).toEqual({
+    expect(await listReports()).toEqual({
       data: reports,
     });
   };
@@ -88,23 +94,33 @@ const unRapportAutreRapporteur: ReportListItemQueried = {
   formation: Magistrat.Formation.PARQUET,
 };
 
-const unDossierDeNomination: DossierDeNominationSnapshot = {
-  id: unDossierDeNominationId,
-  sessionId: uneSessionId,
-  nominationFileImportedId: 'nomination-file-imported-id',
-  content: {
-    folderNumber: unRapportVM.folderNumber,
-    name: unRapportVM.name,
-    formation: unRapportVM.formation,
-    dueDate: unRapportVM.dueDate,
-    transparency: unRapportVM.transparency,
-    reporters: [reporterId],
-    grade: unRapportVM.grade,
-    targettedPosition: unRapportVM.targettedPosition,
-  },
-};
+const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
+  {
+    id: unDossierDeNominationId,
+    sessionId: uneSessionId,
+    nominationFileImportedId: 'nomination-file-imported-id',
+    content: {
+      folderNumber: unRapportVM.folderNumber,
+      name: unRapportVM.name,
+      formation: unRapportVM.formation,
+      dueDate: unRapportVM.dueDate,
+      transparency: unRapportVM.transparency,
+      reporters: [reporterId],
+      grade: unRapportVM.grade,
+      targettedPosition: unRapportVM.targettedPosition,
+      currentPosition: 'a current position',
+      birthDate: {
+        year: 1980,
+        month: 1,
+        day: 1,
+      },
+      biography: 'a biography',
+      rank: '1 sur 1',
+      observers: ['a list of observers'],
+    },
+  };
 
-const uneSession: SessionSnapshot = {
+const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: unRapportVM.transparency,
