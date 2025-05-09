@@ -11,7 +11,6 @@ export const reportRules = reportsContextSchema.table('report_rule', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   ruleGroup: ruleGroupEnum('rule_group').notNull(),
   ruleName: ruleNameEnum('rule_name').notNull(),
-  preValidated: boolean('pre_validated').notNull(),
   validated: boolean('validated').notNull(),
   reportId: uuid('report_id')
     .notNull()

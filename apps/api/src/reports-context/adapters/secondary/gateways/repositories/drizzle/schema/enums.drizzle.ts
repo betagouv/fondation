@@ -1,5 +1,5 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
-import { Magistrat, NominationFile } from 'shared-models';
+import { NominationFile } from 'shared-models';
 import { reportsContextSchema } from './reports-context-schema.drizzle';
 
 export const reportStateEnum = pgEnum(
@@ -8,11 +8,6 @@ export const reportStateEnum = pgEnum(
     NominationFile.ReportState,
     ...NominationFile.ReportState[],
   ],
-);
-
-export const gradeEnum = pgEnum(
-  'grade',
-  Object.values(Magistrat.Grade) as [Magistrat.Grade, ...Magistrat.Grade[]],
 );
 
 export const ruleGroupEnum = reportsContextSchema.enum(

@@ -1,5 +1,5 @@
 import { TransactionRollbackError } from 'drizzle-orm';
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import { NominationFile } from 'shared-models';
 import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportAttachedFileBuilder } from 'src/reports-context/business-logic/models/report-attached-file.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
@@ -10,7 +10,6 @@ import {
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import {
   GivenSomeReports,
   givenSomeReportsFactory,
@@ -41,10 +40,7 @@ describe('SQL Report Repository', () => {
   });
 
   it('saves a report', async () => {
-    const aReport = new ReportBuilder('uuid')
-      .with('dueDate', new DateOnly(2030, 10, 1))
-      .with('birthDate', new DateOnly(1980, 10, 1))
-      .build();
+    const aReport = new ReportBuilder('uuid').build();
 
     await transactionPerformer.perform(
       sqlReportRepository.save(NominationFileReport.fromSnapshot(aReport)),
@@ -53,23 +49,13 @@ describe('SQL Report Repository', () => {
     await expectReports({
       id: aReport.id,
       nominationFileId: aReport.dossierDeNominationId,
+      sessionId: aReport.sessionId,
       reporterId: aReport.reporterId,
       version: 1,
       createdAt: aReport.createdAt,
-      folderNumber: aReport.folderNumber,
-      biography: aReport.biography,
-      dueDate: '2030-10-01',
-      birthDate: '1980-10-01',
-      name: aReport.name,
       state: aReport.state,
       formation: aReport.formation,
-      transparency: aReport.transparency,
-      observers: aReport.observers,
-      grade: aReport.grade,
       comment: aReport.comment,
-      currentPosition: aReport.currentPosition,
-      targettedPosition: aReport.targettedPosition,
-      rank: aReport.rank,
       attachedFiles: null,
     });
   });
@@ -77,13 +63,7 @@ describe('SQL Report Repository', () => {
   describe('when there is a report', () => {
     const aReport = new ReportBuilder('uuid')
       .with('version', 1)
-      .with('folderNumber', 1)
-      .with('dueDate', new DateOnly(2030, 10, 1))
-      .with('birthDate', new DateOnly(1980, 10, 1))
       .with('state', NominationFile.ReportState.NEW)
-      .with('formation', Magistrat.Formation.SIEGE)
-      .with('transparency', Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
-      .with('grade', Magistrat.Grade.I)
       .build();
 
     beforeEach(async () => {
@@ -111,46 +91,23 @@ describe('SQL Report Repository', () => {
 
     describe('Updates', () => {
       const aReportUpdated = ReportBuilder.duplicateReport(aReport)
-        .with('folderNumber', 10)
-        .with('dueDate', new DateOnly(2040, 10, 2))
-        .with('birthDate', new DateOnly(1990, 10, 1))
-        .with('name', 'Updated name')
         .with('state', NominationFile.ReportState.SUPPORTED)
-        .with('formation', Magistrat.Formation.PARQUET)
-        .with(
-          'transparency',
-          Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024,
-        )
-        .with('grade', Magistrat.Grade.II)
-        .with('currentPosition', 'Updated current position')
-        .with('targettedPosition', 'Updated targetted position')
         .with('comment', 'Updated comment')
-        .with('rank', 'Updated rank')
-        .with('observers', ['Updated observer'])
-        .with('biography', 'Updated biography')
         .build();
-      const aReportDbUpdated =
-        SqlReportRepository.mapSnapshotToDb(aReportUpdated);
 
       const aReportUpdatedWithNullValues = ReportBuilder.duplicateReport(
         aReport,
       )
-        .with('folderNumber', null)
-        .with('dueDate', null)
         .with('comment', null)
-        .with('observers', null)
-        .with('biography', null)
         .build();
-      const aReportDbUpdatedWithNullValues =
-        SqlReportRepository.mapSnapshotToDb(aReportUpdatedWithNullValues);
 
       it.each`
-        testName                 | updatedReportSnapshot           | updatedReportDb
-        ${'all values'}          | ${aReportUpdated}               | ${aReportDbUpdated}
-        ${'some values removed'} | ${aReportUpdatedWithNullValues} | ${aReportDbUpdatedWithNullValues}
+        testName                 | updatedReportSnapshot
+        ${'all values'}          | ${aReportUpdated}
+        ${'some values removed'} | ${aReportUpdatedWithNullValues}
       `(
         'updates a report with $testName',
-        async ({ updatedReportSnapshot, updatedReportDb }) => {
+        async ({ updatedReportSnapshot }) => {
           await transactionPerformer.perform(
             sqlReportRepository.save(
               NominationFileReport.fromSnapshot(updatedReportSnapshot),
@@ -160,25 +117,14 @@ describe('SQL Report Repository', () => {
           await expectReports({
             id: updatedReportSnapshot.id,
             nominationFileId: updatedReportSnapshot.nominationFileId,
+            sessionId: updatedReportSnapshot.sessionId,
             reporterId: updatedReportSnapshot.reporterId,
             version: 2,
             createdAt: updatedReportSnapshot.createdAt,
-            folderNumber: updatedReportSnapshot.folderNumber,
-            biography: updatedReportSnapshot.biography,
-            name: updatedReportSnapshot.name,
             state: updatedReportSnapshot.state,
             formation: updatedReportSnapshot.formation,
-            transparency: updatedReportSnapshot.transparency,
-            observers: updatedReportSnapshot.observers,
-            grade: updatedReportSnapshot.grade,
             comment: updatedReportSnapshot.comment,
-            currentPosition: updatedReportSnapshot.currentPosition,
-            targettedPosition: updatedReportSnapshot.targettedPosition,
-            rank: updatedReportSnapshot.rank,
             attachedFiles: null,
-
-            dueDate: updatedReportDb.dueDate!,
-            birthDate: updatedReportDb.birthDate,
           });
         },
       );
@@ -196,28 +142,16 @@ describe('SQL Report Repository', () => {
         ),
       );
 
-      const aReportWithFileDb =
-        SqlReportRepository.mapSnapshotToDb(aReportWithFile);
       await expectReports({
         id: aReportWithFile.id,
         nominationFileId: aReportWithFile.dossierDeNominationId,
+        sessionId: aReportWithFile.sessionId,
         reporterId: aReportWithFile.reporterId,
         version: 2,
         createdAt: aReportWithFile.createdAt,
-        folderNumber: aReportWithFile.folderNumber,
-        biography: aReportWithFile.biography,
-        dueDate: aReportWithFileDb.dueDate!,
-        name: aReportWithFile.name,
-        birthDate: aReportWithFileDb.birthDate,
         state: aReportWithFile.state,
         formation: aReportWithFile.formation,
-        transparency: aReportWithFile.transparency,
-        grade: aReportWithFile.grade,
         comment: aReportWithFile.comment,
-        currentPosition: aReportWithFile.currentPosition,
-        targettedPosition: aReportWithFile.targettedPosition,
-        rank: aReportWithFile.rank,
-        observers: aReportWithFile.observers,
         attachedFiles: [attachedFile],
       });
     });
@@ -259,28 +193,16 @@ describe('SQL Report Repository', () => {
         ),
       );
 
-      const aReportWithNoFilesDb =
-        SqlReportRepository.mapSnapshotToDb(aReportWithNoFiles);
       await expectReports({
         id: aReportWithNoFiles.id,
         nominationFileId: aReportWithNoFiles.dossierDeNominationId,
+        sessionId: aReportWithNoFiles.sessionId,
         reporterId: aReportWithNoFiles.reporterId,
         version: 2,
         createdAt: aReportWithNoFiles.createdAt,
-        folderNumber: aReportWithNoFiles.folderNumber,
-        biography: aReportWithNoFiles.biography,
-        dueDate: aReportWithNoFilesDb.dueDate!,
-        name: aReportWithNoFiles.name,
-        birthDate: aReportWithNoFilesDb.birthDate,
         state: aReportWithNoFiles.state,
         formation: aReportWithNoFiles.formation,
-        transparency: aReportWithNoFiles.transparency,
-        grade: aReportWithNoFiles.grade,
         comment: aReportWithNoFiles.comment,
-        currentPosition: aReportWithNoFiles.currentPosition,
-        targettedPosition: aReportWithNoFiles.targettedPosition,
-        rank: aReportWithNoFiles.rank,
-        observers: aReportWithNoFiles.observers,
         attachedFiles: null,
       });
     });

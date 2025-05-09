@@ -1,4 +1,4 @@
-import { ReportListingVM } from 'shared-models';
+import { ReportListItemQueried } from 'shared-models';
 import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -61,26 +61,15 @@ describe('SQL Report Listing VM Query', () => {
       const result = await sqlReportListingVMRepository.listReports(
         aReport.reporterId!,
       );
-      expect(result).toEqual<ReportListingVM>({
-        data: [
-          {
-            id: aReport.id,
-            folderNumber: aReport.folderNumber,
-            state: aReport.state,
-            dueDate: {
-              year: 2030,
-              month: 10,
-              day: 1,
-            },
-            formation: aReport.formation,
-            name: aReport.name,
-            transparency: aReport.transparency,
-            grade: aReport.grade,
-            targettedPosition: aReport.targettedPosition,
-            observersCount: 1,
-          },
-        ],
-      });
+      expect(result).toEqual<ReportListItemQueried[]>([
+        {
+          id: aReport.id,
+          dossierDeNominationId: aReport.dossierDeNominationId,
+          sessionId: aReport.sessionId,
+          formation: aReport.formation,
+          state: aReport.state,
+        },
+      ]);
     });
   });
 });

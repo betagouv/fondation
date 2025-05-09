@@ -1,6 +1,6 @@
 {
-  "id": "abee4ddd-d7e5-4bb2-8919-cc56452eda93",
-  "prevId": "792a6898-b8d6-4565-9270-9de56b2308f8",
+  "id": "0d5cdb25-704c-4c9e-a4ad-99cf757fcdc9",
+  "prevId": "abee4ddd-d7e5-4bb2-8919-cc56452eda93",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -47,9 +47,16 @@
       "columns": {
         "id": {
           "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
           "type": "transparency",
           "typeSchema": "public",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "created_at": {
@@ -75,7 +82,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "transparences_name_unique": {
+          "name": "transparences_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "checkConstraints": {}
     },
     "files_context.files": {
@@ -216,7 +231,9 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "checkConstraints": {}
@@ -265,12 +282,67 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity_and_access_context",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nominations_context.session": {
+      "name": "session",
+      "schema": "nominations_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "formations": {
+          "name": "formations",
+          "type": "formation[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_de_saisine": {
+          "name": "type_de_saisine",
+          "type": "type_de_saisine",
+          "typeSchema": "nominations_context",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -307,12 +379,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "pre_validated": {
-          "name": "pre_validated",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
         "validated": {
           "name": "validated",
           "type": "boolean",
@@ -333,8 +399,12 @@
           "tableFrom": "report_rule",
           "tableTo": "reports",
           "schemaTo": "reports_context",
-          "columnsFrom": ["report_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -366,6 +436,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "version": {
           "name": "version",
           "type": "integer",
@@ -379,36 +455,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "folder_number": {
-          "name": "folder_number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "biography": {
-          "name": "biography",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "due_date": {
-          "name": "due_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "birth_date": {
-          "name": "birth_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
         },
         "state": {
           "name": "state",
@@ -425,47 +471,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "transparency": {
-          "name": "transparency",
-          "type": "transparency",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "grade": {
-          "name": "grade",
-          "type": "grade",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "current_position": {
-          "name": "current_position",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "targetted_position": {
-          "name": "targetted_position",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
         "comment": {
           "name": "comment",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "rank": {
-          "name": "rank",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "observers": {
-          "name": "observers",
-          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -530,7 +538,9 @@
     "files_context.storage_provider": {
       "name": "storage_provider",
       "schema": "files_context",
-      "values": ["SCALEWAY"]
+      "values": [
+        "SCALEWAY"
+      ]
     },
     "identity_and_access_context.file_type": {
       "name": "file_type",
@@ -544,27 +554,45 @@
     "identity_and_access_context.gender": {
       "name": "gender",
       "schema": "identity_and_access_context",
-      "values": ["MALE", "FEMALE"]
+      "values": [
+        "MALE",
+        "FEMALE"
+      ]
     },
     "identity_and_access_context.role": {
       "name": "role",
       "schema": "identity_and_access_context",
-      "values": ["MEMBRE_DU_SIEGE", "MEMBRE_DU_PARQUET", "MEMBRE_COMMUN"]
+      "values": [
+        "MEMBRE_DU_SIEGE",
+        "MEMBRE_DU_PARQUET",
+        "MEMBRE_COMMUN"
+      ]
     },
-    "public.grade": {
-      "name": "grade",
-      "schema": "public",
-      "values": ["I", "II", "HH"]
+    "nominations_context.type_de_saisine": {
+      "name": "type_de_saisine",
+      "schema": "nominations_context",
+      "values": [
+        "TRANSPARENCE_GDS"
+      ]
     },
     "public.report_state": {
       "name": "report_state",
       "schema": "public",
-      "values": ["NEW", "IN_PROGRESS", "READY_TO_SUPPORT", "SUPPORTED"]
+      "values": [
+        "NEW",
+        "IN_PROGRESS",
+        "READY_TO_SUPPORT",
+        "SUPPORTED"
+      ]
     },
     "reports_context.rule_group": {
       "name": "rule_group",
       "schema": "reports_context",
-      "values": ["management", "statutory", "qualitative"]
+      "values": [
+        "management",
+        "statutory",
+        "qualitative"
+      ]
     },
     "reports_context.rule_name": {
       "name": "rule_name",
@@ -591,12 +619,19 @@
     "shared_kernel_context.domain_event_status": {
       "name": "domain_event_status",
       "schema": "shared_kernel_context",
-      "values": ["NEW", "PENDING", "CONSUMED"]
+      "values": [
+        "NEW",
+        "PENDING",
+        "CONSUMED"
+      ]
     },
     "public.formation": {
       "name": "formation",
       "schema": "public",
-      "values": ["PARQUET", "SIEGE"]
+      "values": [
+        "PARQUET",
+        "SIEGE"
+      ]
     },
     "public.transparency": {
       "name": "transparency",
@@ -621,6 +656,7 @@
     "data_administration_context": "data_administration_context",
     "files_context": "files_context",
     "identity_and_access_context": "identity_and_access_context",
+    "nominations_context": "nominations_context",
     "reports_context": "reports_context",
     "shared_kernel_context": "shared_kernel_context"
   },

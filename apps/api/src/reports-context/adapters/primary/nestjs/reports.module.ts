@@ -22,6 +22,7 @@ import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/sh
 import {
   API_CONFIG,
   DATE_TIME_PROVIDER,
+  DOMAIN_EVENT_REPOSITORY,
   DRIZZLE_DB,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
@@ -40,13 +41,16 @@ import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
+  DOSSIER_DE_NOMINATION_SERVICE,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
   REPORT_REPOSITORY,
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
+  SESSION_SERVICE,
   USER_SERVICE,
 } from './tokens';
+import { DossierDeNominationTranslator } from '../../secondary/gateways/services/dossier-de-nomination.translator';
 
 @Module({
   imports: [SharedKernelModule],
@@ -60,13 +64,24 @@ import {
       TRANSACTION_PERFORMER,
     ]),
 
-    generateProvider(CreateReportUseCase, [REPORT_REPOSITORY]),
+    generateProvider(CreateReportUseCase, [
+      REPORT_REPOSITORY,
+      DOMAIN_EVENT_REPOSITORY,
+    ]),
     generateProvider(ChangeRuleValidationStateUseCase, [
       REPORT_RULE_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
-    generateProvider(RetrieveReportUseCase, [REPORT_RETRIEVAL_QUERY]),
-    generateProvider(ListReportsUseCase, [REPORT_LISTING_QUERY]),
+    generateProvider(RetrieveReportUseCase, [
+      REPORT_RETRIEVAL_QUERY,
+      SESSION_SERVICE,
+      DOSSIER_DE_NOMINATION_SERVICE,
+    ]),
+    generateProvider(ListReportsUseCase, [
+      REPORT_LISTING_QUERY,
+      SESSION_SERVICE,
+      DOSSIER_DE_NOMINATION_SERVICE,
+    ]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,
       TRANSACTION_PERFORMER,
@@ -76,6 +91,7 @@ import {
       TRANSACTION_PERFORMER,
       REPORT_REPOSITORY,
       ReporterTranslatorService,
+      DossierDeNominationTranslator,
     ]),
     generateProvider(DeleteReportAttachedFileUseCase, [
       REPORT_REPOSITORY,
@@ -114,6 +130,11 @@ import {
       },
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
+
+    generateProvider(DossierDeNominationTranslator, [
+      DOSSIER_DE_NOMINATION_SERVICE,
+      SESSION_SERVICE,
+    ]),
 
     generateProvider(SqlReportListingQuery, [DRIZZLE_DB], REPORT_LISTING_QUERY),
     generateProvider(
