@@ -8,6 +8,7 @@ import {
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
 import { RapportTransparenceCrééEvent } from './events/rapport-transparence-créé.event';
+import { DossierDeNomination } from './dossier-de-nomination';
 
 export type NominationFileReportSnapshot = {
   id: string;
@@ -36,44 +37,44 @@ export class NominationFileReport {
     private _attachedFiles: ReportAttachedFiles | null,
   ) {}
 
-  public get nominationFileId(): string {
+  get dossierDeNominationId(): string {
     return this._dossierDeNominationId;
   }
 
-  public get createdAt(): Date {
+  get createdAt(): Date {
     return this._createdAt;
   }
 
-  public get reporterId(): string {
+  get reporterId(): string {
     return this._reporterId;
   }
 
-  public get version(): number {
+  get version(): number {
     return this._version;
   }
   private set version(value: number) {
     this._version = z.number().int().min(0).parse(value);
   }
 
-  public get state(): NominationFile.ReportState {
+  get state(): NominationFile.ReportState {
     return this._state;
   }
   private set state(value: NominationFile.ReportState) {
     this._state = z.nativeEnum(NominationFile.ReportState).parse(value);
   }
 
-  public get formation(): Magistrat.Formation {
+  get formation(): Magistrat.Formation {
     return this._formation;
   }
 
-  public get comment(): string | null {
+  get comment(): string | null {
     return this._comment;
   }
   private set comment(value: string | null) {
     this._comment = z.string().nullable().parse(value);
   }
 
-  public get attachedFiles(): ReportAttachedFiles | null {
+  get attachedFiles(): ReportAttachedFiles | null {
     return this._attachedFiles;
   }
 
@@ -127,18 +128,25 @@ export class NominationFileReport {
     return !!this.attachedFiles?.alreadyExists(file);
   }
 
-  generateAttachedFilePath(reporter: Reporter): string[] {
-    return [this.transparency, this.name, reporter.fullName.fullName()];
+  generateAttachedFilePath(
+    reporter: Reporter,
+    dossierDeNomination: DossierDeNomination,
+  ): string[] {
+    return [
+      dossierDeNomination.sessionName,
+      dossierDeNomination.nomAspirant,
+      reporter.fullName.fullName(),
+    ];
   }
 
-  public get id(): string {
+  get id(): string {
     return this._id;
   }
 
   toSnapshot(): NominationFileReportSnapshot {
     return {
       id: this.id,
-      dossierDeNominationId: this.nominationFileId,
+      dossierDeNominationId: this.dossierDeNominationId,
       sessionId: this._sessionId,
       reporterId: this.reporterId,
       version: this.version,

@@ -6,9 +6,9 @@ import { DossierDeNominationRepository } from '../../gateways/repositories/dossi
 import { PréAnalyseRepository } from '../../gateways/repositories/pré-analyse.repository';
 import {
   DossierDeNomination,
-  DossierDeNominationSaisineInferer,
   DossierDeNominationTransparence,
 } from '../../models/dossier-de-nomination';
+import { DossierDeNominationSaisineInferer } from '../../models/dossier-de-nomination-saisine-inferer';
 import { GdsDossierTransparenceModifiéEventRulesTransformer } from '../../models/gds-dossier-transparence-modifié-event-rules-transformer';
 import { UpdateDossierDeNominationCommand } from './update-dossier-de-nomination.command';
 

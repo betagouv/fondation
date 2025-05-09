@@ -1,35 +1,57 @@
 import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
-import { DossierDeNominationService } from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
-import { DossierDeNominationTransparence } from 'src/reports-context/business-logic/models/dossier-de-nomination-transparence';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import {
+  DossierDeNominationDto,
+  DossierDeNominationService,
+} from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionService } from 'src/reports-context/business-logic/gateways/services/session.service';
+import { DossierDeNomination } from 'src/reports-context/business-logic/models/dossier-de-nomination';
 
 export class DossierDeNominationTranslator {
   constructor(
-    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
+    private readonly dossierDeNominationService: DossierDeNominationService,
+    private readonly sessionService: SessionService,
   ) {}
-  async dossierTransparence(
+
+  async dossierDeNomination(
     dossierDeNominationId: string,
-  ): Promise<DossierDeNominationTransparence> {
+  ): Promise<DossierDeNomination> {
     const dossierDeNomination =
       await this.dossierDeNominationService.dossierDeNomination(
         dossierDeNominationId,
       );
+    const session = await this.session(dossierDeNomination);
 
-    return DossierDeNominationTransparence.créer({
+    return DossierDeNomination.créer({
       dossierDeNominationId: dossierDeNomination.id,
-      sessionId: dossierDeNomination.sessionId,
-      folderNumber: dossierDeNomination.content.folderNumber,
-      biography: dossierDeNomination.content.biography,
-      dueDate: dossierDeNomination.content.dueDate
-        ? DateOnly.fromJson(dossierDeNomination.content.dueDate)
-        : null,
-      name: dossierDeNomination.content.name,
-      birthDate: DateOnly.fromJson(dossierDeNomination.content.birthDate),
-      grade: dossierDeNomination.content.grade,
-      currentPosition: dossierDeNomination.content.currentPosition,
-      targettedPosition: dossierDeNomination.content.targettedPosition,
-      rank: dossierDeNomination.content.rank,
-      observers: dossierDeNomination.content.observers,
+      nomSession: session.name,
+      nomAspirant: this.nomAspirant(dossierDeNomination),
     });
+  }
+
+  private nomAspirant(
+    dossierDeNomination: DossierDeNominationDto<TypeDeSaisine>,
+  ) {
+    if (
+      'grade' in dossierDeNomination.content &&
+      'rank' in dossierDeNomination.content
+    ) {
+      return dossierDeNomination.content.name;
+    }
+
+    throw new Error(
+      'Nom aspirant non trouvé. Type de saisine non pris en charge ?',
+    );
+  }
+
+  private async session(dossierDeNomination: DossierDeNominationDto) {
+    const session = await this.sessionService.session(
+      dossierDeNomination.sessionId,
+    );
+    if (!session) {
+      throw new Error(
+        `Session with id ${dossierDeNomination.sessionId} not found`,
+      );
+    }
+    return session;
   }
 }

@@ -15,7 +15,7 @@ export class ListReportsUseCase {
     reporterId: string,
     sessionId: string,
   ): Promise<ReportListingVM> {
-    const session = await this.sessionService.transparence(sessionId);
+    const session = await this.sessionService.session(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
@@ -41,15 +41,10 @@ export class ListReportsUseCase {
         state: reportQueried.state,
         formation: reportQueried.formation,
         folderNumber: dossier.content.folderNumber,
-        biography: dossier.content.biography,
         dueDate: dossier.content.dueDate,
         name: dossier.content.name,
-        birthDate: dossier.content.birthDate,
         grade: dossier.content.grade,
-        currentPosition: dossier.content.currentPosition,
         targettedPosition: dossier.content.targettedPosition,
-        rank: dossier.content.rank,
-        observers: dossier.content.observers,
       })),
     };
 

@@ -1,45 +1,69 @@
-import { Gender, ReportFileUsage, Role } from 'shared-models';
-import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
-import { FakeReportFileService } from 'src/reports-context/adapters/secondary/gateways/services/fake-report-file-service';
-import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
-import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
-import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
+import { Gender, Magistrat, ReportFileUsage, Role } from 'shared-models';
+import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { OptimisticLockError } from '../../errors/optimistic-lock.error';
-import { DomainRegistry } from '../../models/domain-registry';
+import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../gateways/services/session.service';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
 import { ReportBuilder } from '../../models/report.builder';
-import {
-  MAX_RETRIES_OF_UPLOADS,
-  ReportFile,
-  UploadReportFilesUseCase,
-} from './upload-report-files';
+import { getDependencies } from '../../test-dependencies';
+import { MAX_RETRIES_OF_UPLOADS, ReportFile } from './upload-report-files';
 
-const currentDate = new Date(2021, 10, 10);
 const fileId1 = 'file-id-1';
 const fileId2 = 'file-id-2';
-const aReportSnapshot = new ReportBuilder().build();
+const unDossierDeNominationId = 'un-dossier-de-nomination-id';
+const uneSessionId = 'une-session-id';
+
+const aReportSnapshot = new ReportBuilder()
+  .with('dossierDeNominationId', unDossierDeNominationId)
+  .with('sessionId', uneSessionId)
+  .build();
+
+const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
+  {
+    id: unDossierDeNominationId,
+    sessionId: uneSessionId,
+    nominationFileImportedId: 'nomination-file-imported-id',
+    content: {
+      folderNumber: 10,
+      dueDate: {
+        year: 2023,
+        month: 10,
+        day: 1,
+      },
+      name: 'a name',
+      formation: Magistrat.Formation.PARQUET,
+      grade: Magistrat.Grade.HH,
+      targettedPosition: 'a position',
+      currentPosition: 'a current position',
+      birthDate: {
+        year: 1980,
+        month: 1,
+        day: 1,
+      },
+      biography: 'a biography',
+      rank: '1 sur 1',
+      observers: ['a list of observers'],
+    },
+  };
+
+const uneSession: SessionDto = {
+  id: uneSessionId,
+  typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+  name: 'Nom de session',
+  formations: [Magistrat.Formation.PARQUET],
+};
 
 describe('Upload Report Files Use Case', () => {
-  let reportFileService: FakeReportFileService;
-  let dateTimeProvider: DeterministicDateProvider;
-  let transactionPerformer: NullTransactionPerformer;
-  let reportRepository: FakeNominationFileReportRepository;
-  let reporterTranslatorService: ReporterTranslatorService;
+  let dependencies: ReturnType<typeof getDependencies>;
 
   beforeEach(() => {
-    reportFileService = new FakeReportFileService();
-    dateTimeProvider = new DeterministicDateProvider();
-    dateTimeProvider.currentDate = currentDate;
-    reportRepository = new FakeNominationFileReportRepository();
-    const userService = new StubUserService();
-    userService.user = aUser;
-    reporterTranslatorService = new ReporterTranslatorService(userService);
-    transactionPerformer = new NullTransactionPerformer();
-
-    DomainRegistry.setDateTimeProvider(dateTimeProvider);
+    dependencies = getDependencies();
+    dependencies.stubUserService.user = aUser;
+    dependencies.stubDossierDeNominationService.stubDossier =
+      unDossierDeNomination;
+    dependencies.stubSessionService.stubSession = uneSession;
   });
 
   it('refuses to add attachments to a non-existing report', async () => {
@@ -59,20 +83,22 @@ describe('Upload Report Files Use Case', () => {
 
   describe('when a report exists', () => {
     beforeEach(() => {
-      reportRepository.reports = {
+      dependencies.fakeReportRepository.reports = {
         [aReportSnapshot.id]: aReportSnapshot,
       };
-      reportFileService.currentReport = aReportSnapshot;
+      dependencies.fakeReportFileService.currentReport = aReportSnapshot;
 
-      transactionPerformer = new NullTransactionPerformer(() => {
-        reportRepository.reports = {
+      dependencies.nullTransactionPerformer.setRollback(() => {
+        dependencies.fakeReportRepository.reports = {
           [aReportSnapshot.id]: aReportSnapshot,
         };
       });
     });
 
     it("doesn't upload the files if metadata cannot be saved", async () => {
-      reportRepository.saveError = new Error('Failed to save files');
+      dependencies.fakeReportRepository.saveError = new Error(
+        'Failed to save files',
+      );
 
       await expect(
         uploadFiles([
@@ -94,7 +120,9 @@ describe('Upload Report Files Use Case', () => {
     });
 
     it("doesn't save files' metadata if upload failed", async () => {
-      reportFileService.uploadError = new Error('Failed to upload files');
+      dependencies.fakeReportFileService.uploadError = new Error(
+        'Failed to upload files',
+      );
 
       await expect(
         uploadFiles([
@@ -152,12 +180,12 @@ describe('Upload Report Files Use Case', () => {
     });
 
     it('saves files after a failure due to stale repository data', async () => {
-      reportRepository.saveError = new OptimisticLockError({
+      dependencies.fakeReportRepository.saveError = new OptimisticLockError({
         entityName: 'Report',
         entityId: aReportSnapshot.id,
         version: 0,
       });
-      reportRepository.saveErrorCountLimit = 1;
+      dependencies.fakeReportRepository.saveErrorCountLimit = 1;
 
       await uploadFiles([
         {
@@ -190,6 +218,8 @@ describe('Upload Report Files Use Case', () => {
     describe('with existing attached files', () => {
       beforeEach(() => {
         const reportWithExistingFile = new ReportBuilder()
+          .with('dossierDeNominationId', unDossierDeNominationId)
+          .with('sessionId', uneSessionId)
           .with('attachedFiles', [
             {
               usage: ReportFileUsage.ATTACHMENT,
@@ -199,10 +229,10 @@ describe('Upload Report Files Use Case', () => {
           ])
           .build();
 
-        reportRepository.reports = {
+        dependencies.fakeReportRepository.reports = {
           [aReportSnapshot.id]: reportWithExistingFile,
         };
-        reportFileService.files = {
+        dependencies.fakeReportFileService.files = {
           'existing-id': { name: 'existing.pdf' },
         };
       });
@@ -234,12 +264,7 @@ describe('Upload Report Files Use Case', () => {
   });
 
   const uploadFiles = async (files: ReportFile[]) => {
-    await new UploadReportFilesUseCase(
-      reportFileService,
-      transactionPerformer,
-      reportRepository,
-      reporterTranslatorService,
-    ).execute(
+    await dependencies.uploadReportFilesUseCase.execute(
       aReportSnapshot.id,
       files,
       aUser.userId,
@@ -249,12 +274,12 @@ describe('Upload Report Files Use Case', () => {
   };
 
   const expectNoReport = () =>
-    expect(Object.values(reportRepository.reports)).toEqual<
+    expect(Object.values(dependencies.fakeReportRepository.reports)).toEqual<
       NominationFileReportSnapshot[]
     >([]);
 
   const expectReportWithFiles = (...files: ReportAttachedFileSnapshot[]) =>
-    expect(Object.values(reportRepository.reports)).toEqual<
+    expect(Object.values(dependencies.fakeReportRepository.reports)).toEqual<
       NominationFileReportSnapshot[]
     >([
       {
@@ -264,7 +289,9 @@ describe('Upload Report Files Use Case', () => {
     ]);
 
   const expectUploadedFiles = (expectedFiles: { name: string }[] = []) =>
-    expect(Object.values(reportFileService.files)).toEqual(expectedFiles);
+    expect(Object.values(dependencies.fakeReportFileService.files)).toEqual(
+      expectedFiles,
+    );
 });
 
 const aUser = {

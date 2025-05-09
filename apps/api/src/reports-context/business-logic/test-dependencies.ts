@@ -1,3 +1,4 @@
+import { Role } from 'shared-models';
 import { FakeNominationFileReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-nomination-file-report.repository';
 import { FakeReportListingVMRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-listing-vm.repository';
 import { FakeReportRetrievalVMQuery } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-retrieval-vm.query';
@@ -6,14 +7,17 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
-import { DomainRegistry } from './models/domain-registry';
-import { StubUserService } from '../adapters/secondary/gateways/services/stub-user.service';
-import { Role } from 'shared-models';
 import { ReporterTranslatorService } from '../adapters/secondary/gateways/services/reporter-translator.service';
-import { CreateReportUseCase } from './use-cases/report-creation/create-report.use-case';
 import { StubDossierDeNominationService } from '../adapters/secondary/gateways/services/stub-dossier-de-nomination.service';
 import { StubSessionService } from '../adapters/secondary/gateways/services/stub-session.service';
+import { StubUserService } from '../adapters/secondary/gateways/services/stub-user.service';
+import { DomainRegistry } from './models/domain-registry';
 import { CréerAnalyseUseCase } from './use-cases/création-analyse/créer-analyse.use-case';
+import { CreateReportUseCase } from './use-cases/report-creation/create-report.use-case';
+import { RetrieveReportUseCase } from './use-cases/report-retrieval/retrieve-report.use-case';
+import { FakeReportFileService } from '../adapters/secondary/gateways/services/fake-report-file-service';
+import { UploadReportFilesUseCase } from './use-cases/report-files-upload/upload-report-files';
+import { DossierDeNominationTranslator } from '../adapters/secondary/gateways/services/dossier-de-nomination.translator';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -46,12 +50,28 @@ export const getDependencies = () => {
   );
   const stubDossierDeNominationService = new StubDossierDeNominationService();
   const stubSessionService = new StubSessionService();
+  const fakeReportFileService = new FakeReportFileService();
 
   const createReportUseCase = new CreateReportUseCase(
     fakeReportRepository,
     fakeDomainEventRepository,
   );
   const créerAnalyseUseCase = new CréerAnalyseUseCase(nullTransactionPerformer);
+  const retrieveReportUseCase = new RetrieveReportUseCase(
+    fakeReportRetrievalVMQuery,
+    stubSessionService,
+    stubDossierDeNominationService,
+  );
+  const uploadReportFilesUseCase = new UploadReportFilesUseCase(
+    fakeReportFileService,
+    nullTransactionPerformer,
+    fakeReportRepository,
+    reporterTranslatorService,
+    new DossierDeNominationTranslator(
+      stubDossierDeNominationService,
+      stubSessionService,
+    ),
+  );
 
   return {
     nullTransactionPerformer,
@@ -68,8 +88,11 @@ export const getDependencies = () => {
     reporterTranslatorService,
     stubDossierDeNominationService,
     stubSessionService,
+    fakeReportFileService,
 
     createReportUseCase,
     créerAnalyseUseCase,
+    retrieveReportUseCase,
+    uploadReportFilesUseCase,
   };
 };

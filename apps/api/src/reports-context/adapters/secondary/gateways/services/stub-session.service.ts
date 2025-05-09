@@ -1,13 +1,15 @@
-import { SessionSnapshot } from 'src/nominations-context/business-logic/models/session';
-import { SessionService } from 'src/reports-context/business-logic/gateways/services/session.service';
+import {
+  SessionDto,
+  SessionService,
+} from 'src/reports-context/business-logic/gateways/services/session.service';
 
 export class StubSessionService implements SessionService {
-  sessionSnapshot: SessionSnapshot | null = null;
+  stubSession: SessionDto | null = null;
 
-  async transparence(sessionId: string): Promise<SessionSnapshot | null> {
-    if (this.sessionSnapshot && this.sessionSnapshot.id !== sessionId) {
+  async session(sessionId: string): Promise<SessionDto | null> {
+    if (this.stubSession && this.stubSession.id !== sessionId) {
       return null;
     }
-    return this.sessionSnapshot;
+    return this.stubSession;
   }
 }
