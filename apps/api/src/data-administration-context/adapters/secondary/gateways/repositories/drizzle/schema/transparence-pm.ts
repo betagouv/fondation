@@ -15,6 +15,6 @@ export const transparencesPm = dataAdministrationContextSchema.table(
     name: transparencyEnum('name').unique().notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     formations: formationEnum('formations').array().notNull(),
-    nominationFiles: jsonb('nomination_files_ids').array().notNull(),
+    nominationFiles: jsonb('nomination_files').array().notNull(),
   },
 );

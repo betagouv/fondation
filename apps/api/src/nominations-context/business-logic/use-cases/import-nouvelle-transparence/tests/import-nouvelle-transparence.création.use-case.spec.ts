@@ -3,7 +3,10 @@ import { TypeDeSaisine } from '../../../models/type-de-saisine';
 import { getDependencies } from '../../../../tests-dependencies';
 import {
   aFormation,
+  aSessionId,
+  aTransparenceImportId,
   aTransparencyName,
+  givenSomeUuids,
   importNouvelleTransparenceUseCase,
 } from './import-nouvelle-transparence.tests-setup';
 
@@ -12,6 +15,7 @@ describe('Nouvelle transparence GDS', () => {
 
   beforeEach(() => {
     dependencies = getDependencies();
+    givenSomeUuids(dependencies.uuidGenerator);
   });
 
   it('crée une nouvelle transparence', async () => {
@@ -28,10 +32,12 @@ describe('Nouvelle transparence GDS', () => {
       SessionSnapshot[]
     >([
       {
-        id: aTransparencyName,
+        id: aSessionId,
+        dataAdministrationImportId: aTransparenceImportId,
         name: aTransparencyName,
         formations: [aFormation],
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        version: 0,
       },
     ]);
   }

@@ -27,6 +27,7 @@ export class TransparenceService {
     return async (trx) => {
       const session = Session.nouvelle(
         command.transparenceId,
+        command.transparenceName,
         TypeDeSaisine.TRANSPARENCE_GDS,
         command.formations,
       );

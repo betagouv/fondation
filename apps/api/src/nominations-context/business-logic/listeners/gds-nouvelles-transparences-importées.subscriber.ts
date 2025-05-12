@@ -8,11 +8,12 @@ export class GdsNouvellesTransparencesImportéesSubscriber {
   ) {}
 
   async handle(payload: GdsNewTransparenceImportedEventPayload) {
-    const command = new ImportNouvelleTransparenceCommand(
-      payload.transparenceId,
-      payload.formations,
-      payload.nominationFiles,
-    );
+    const command = ImportNouvelleTransparenceCommand.create({
+      transparenceId: payload.transparenceId,
+      formations: payload.formations,
+      transparenceName: payload.transparenceName,
+      nominationFilesPayload: payload.nominationFiles,
+    });
     await this.nouvelleTransparenceUseCase.execute(command);
   }
 }
