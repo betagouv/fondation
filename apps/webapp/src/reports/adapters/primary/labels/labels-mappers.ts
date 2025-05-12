@@ -24,6 +24,8 @@ export const transparencyToLabel = (transparency: Transparency) => {
       return "T 03/03/2025";
     case Transparency.GRANDE_TRANSPA_DU_21_MARS_2025:
       return "T 21/03/2025 (annuelle)";
+    case Transparency.DU_30_AVRIL_2025:
+      return "T 30/04/2025";
     case Transparency.MARCH_2026:
       return "T 21/03/2026";
     default: {

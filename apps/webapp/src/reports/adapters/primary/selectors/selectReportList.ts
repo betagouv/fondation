@@ -135,5 +135,6 @@ const transparencyTitleMap: { [key in Transparency]: string } = {
   [Transparency.DU_03_MARS_2025]: "transparence du 03/03/2025",
   [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]:
     "transparence du 21/03/2025 (annuelle)",
+  [Transparency.DU_30_AVRIL_2025]: "transparence du 30/04/2025",
   [Transparency.MARCH_2026]: "transparence du 21/03/2026",
 };
