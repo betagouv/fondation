@@ -65,8 +65,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "nomination_files_ids": {
-          "name": "nomination_files_ids",
+        "nomination_files": {
+          "name": "nomination_files",
           "type": "jsonb[]",
           "primaryKey": false,
           "notNull": true
@@ -271,6 +271,187 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nominations_context.affectation": {
+      "name": "affectation",
+      "schema": "nominations_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "formation": {
+          "name": "formation",
+          "type": "formation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "affectations_dossiers_de_nominations": {
+          "name": "affectations_dossiers_de_nominations",
+          "type": "jsonb[]",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nominations_context.dossier_de_nomination": {
+      "name": "dossier_de_nomination",
+      "schema": "nominations_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dossier_de_nomination_importe_id": {
+          "name": "dossier_de_nomination_importe_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nominations_context.pre_analyse": {
+      "name": "pre_analyse",
+      "schema": "nominations_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "dossier_de_nomination_id": {
+          "name": "dossier_de_nomination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "regles": {
+          "name": "regles",
+          "type": "jsonb[]",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "nominations_context.session": {
+      "name": "session",
+      "schema": "nominations_context",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "formations": {
+          "name": "formations",
+          "type": "formation[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_de_saisine": {
+          "name": "type_de_saisine",
+          "type": "type_de_saisine",
+          "typeSchema": "nominations_context",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_administration_import_id": {
+          "name": "data_administration_import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -621,6 +802,7 @@
     "data_administration_context": "data_administration_context",
     "files_context": "files_context",
     "identity_and_access_context": "identity_and_access_context",
+    "nominations_context": "nominations_context",
     "reports_context": "reports_context",
     "shared_kernel_context": "shared_kernel_context"
   },

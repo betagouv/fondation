@@ -7,12 +7,13 @@ import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparen
 import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
+export const aTransparenceImportId = 'transparence-import-id';
+export const aSessionId = aTransparencyName;
 export const aFormation = Magistrat.Formation.PARQUET;
 export const aDossierDeNominationId = 'dossier-de-nomination-id';
 export const aDossierDeNominationImportedId =
   'dossier-de-nomination-imported-id';
 export const anEventId = 'dossier-de-nomination-event-id';
-export const aSessionId = aTransparencyName;
 export const aAffectationId = 'affectation-id';
 export const aPréAnalyseId = 'préanalyse-id';
 
@@ -48,6 +49,7 @@ export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload
   };
 
 export const aCommand = new ImportNouvelleTransparenceCommand(
+  aTransparenceImportId,
   aTransparencyName,
   [aFormation],
   [aDossierDeNominationPayload],
@@ -55,6 +57,7 @@ export const aCommand = new ImportNouvelleTransparenceCommand(
 
 export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
   uuidGenerator.nextUuids = [
+    aSessionId,
     aDossierDeNominationId,
     anEventId,
     aPréAnalyseId,
