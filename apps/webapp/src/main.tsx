@@ -35,23 +35,32 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
+import { ApiDataAdministrationGateway } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.gateway.ts";
+import { ApiDataAdministrationClient } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.client.ts";
 startReactDsfr({ defaultColorScheme: "light" });
 
-const authencationApiClient = new FetchAuthenticationApiClient(
-  import.meta.env.VITE_API_URL,
-);
+const BASE_VITE_URL = import.meta.env.VITE_API_URL;
+
+const authencationApiClient = new FetchAuthenticationApiClient(BASE_VITE_URL);
 const authenticationGateway = new ApiAuthenticationGateway(
   authencationApiClient,
 );
 
-const reportApiClient = new FetchReportApiClient(import.meta.env.VITE_API_URL);
+const reportApiClient = new FetchReportApiClient(BASE_VITE_URL);
 const reportGateway = new ApiReportGateway(reportApiClient);
 
-const fileApiClient = new FetchFileApiClient(import.meta.env.VITE_API_URL);
+const fileApiClient = new FetchFileApiClient(BASE_VITE_URL);
 const fileGateway = new ApiFileGateway(fileApiClient);
 
 const transparencyApiClient = new EnvTransparencyApiClient();
 const transparencyGateway = new ApiTransparencyGateway(transparencyApiClient);
+
+const dataAdministrationApiClient = new ApiDataAdministrationClient(
+  BASE_VITE_URL,
+);
+const dataAdministrationGateway = new ApiDataAdministrationGateway(
+  dataAdministrationApiClient,
+);
 
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
@@ -63,7 +72,13 @@ const uuidGenerator = new (class RealUuidGenerator implements UuidGenerator {
 })();
 
 const store = initReduxStore<false>(
-  { reportGateway, authenticationGateway, fileGateway, transparencyGateway },
+  {
+    reportGateway,
+    authenticationGateway,
+    fileGateway,
+    transparencyGateway,
+    dataAdministrationGateway,
+  },
   {
     routerProvider: new TypeRouterProvider(),
     logoutNotifierProvider,
