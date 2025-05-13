@@ -36,14 +36,15 @@ import { RouteChangedHandler } from "../router/core-logic/components/routeChange
 import { RouteToComponentFactory } from "../router/core-logic/components/routeToComponent";
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { createRouterSlice } from "../router/core-logic/reducers/router.slice";
+import { DataAdministrationGateway } from "../secretariat-general/core-logic/gateways/DataAdministration.gateway";
 import { RealDateProvider } from "../shared-kernel/adapters/secondary/providers/realDateProvider";
 import { DateProvider } from "../shared-kernel/core-logic/providers/dateProvider";
 import { FileProvider } from "../shared-kernel/core-logic/providers/fileProvider";
+import { UuidGenerator } from "../shared-kernel/core-logic/providers/uuidGenerator";
 import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/shared-kernel.slice";
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
-import { UuidGenerator } from "../shared-kernel/core-logic/providers/uuidGenerator";
 
 export interface Gateways<
   StoreTransparencies extends string[] = UnionToTuple<Transparency>,
@@ -52,6 +53,7 @@ export interface Gateways<
   authenticationGateway: AuthenticationGateway;
   fileGateway: FileApiClient;
   transparencyGateway: TransparencyGateway<StoreTransparencies>;
+  dataAdministrationGateway: DataAdministrationGateway;
 }
 
 export interface Providers {
