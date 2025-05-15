@@ -97,7 +97,9 @@ export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
     [aTransparencyName]: {
       id: aSessionId,
       name: aTransparencyName,
-      formations: [Magistrat.Formation.PARQUET],
+      dataAdministrationImportId: aSessionId,
+      version: 0,
+      formation: aFormation,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     },
   };

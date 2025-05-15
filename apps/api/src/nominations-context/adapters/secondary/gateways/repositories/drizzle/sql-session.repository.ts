@@ -26,7 +26,7 @@ export class SqlSessionRepository implements SessionRepository {
           .update(sessionPm)
           .set({
             name: sessionSnapshot.name,
-            formations: sessionSnapshot.formations,
+            formation: sessionSnapshot.formation,
             typeDeSaisine: sessionSnapshot.typeDeSaisine,
             version: sessionSnapshot.version + 1,
           })

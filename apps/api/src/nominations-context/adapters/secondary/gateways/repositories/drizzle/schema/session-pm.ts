@@ -11,7 +11,7 @@ export const sessionPm = nominationsContextSchema.table('session', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   version: integer('version').notNull().default(1),
   name: text('name').notNull(),
-  formations: formationEnum('formations').array().notNull(),
+  formation: formationEnum('formation').notNull(),
   typeDeSaisine: typeDeSaisineEnum('type_de_saisine').notNull(),
-  dataAdministrationImportId: text('data_administration_import_id').notNull(),
+  sessionImportéeId: text('session_import_id').unique().notNull(),
 });

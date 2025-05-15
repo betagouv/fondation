@@ -20,15 +20,12 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           id: snapshot.id,
           createdAt: snapshot.createdAt,
           name: snapshot.name,
-          formations: Array.from(snapshot.formations),
+          formation: snapshot.formation,
           nominationFiles: snapshot.nominationFiles,
         })
         .onConflictDoUpdate({
           target: transparencesPm.id,
-          set: buildConflictUpdateColumns(transparencesPm, [
-            'formations',
-            'nominationFiles',
-          ]),
+          set: buildConflictUpdateColumns(transparencesPm, ['nominationFiles']),
         })
         .execute();
     };
@@ -55,7 +52,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
         id: transparenceRow.id,
         createdAt: transparenceRow.createdAt,
         name: transparenceRow.name,
-        formations: new Set(transparenceRow.formations),
+        formation: transparenceRow.formation,
         nominationFiles: transparenceRow.nominationFiles.map((f) => ({
           ...(f as any),
           createdAt: new Date((f as any).createdAt),

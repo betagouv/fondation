@@ -5,7 +5,7 @@ export class ImportNouvelleTransparenceCommand {
   constructor(
     private readonly _transparenceId: string,
     private readonly _transparenceName: string,
-    private readonly _formations: Magistrat.Formation[],
+    private readonly _formation: Magistrat.Formation,
     private readonly _nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'],
   ) {}
 
@@ -15,8 +15,8 @@ export class ImportNouvelleTransparenceCommand {
   get transparenceName(): string {
     return this._transparenceName;
   }
-  get formations(): Magistrat.Formation[] {
-    return this._formations;
+  get formation(): Magistrat.Formation {
+    return this._formation;
   }
   get nominationFilesPayload(): GdsNewTransparenceImportedEventPayload['nominationFiles'] {
     return this._nominationFilesPayload;
@@ -25,13 +25,13 @@ export class ImportNouvelleTransparenceCommand {
   static create(arg: {
     transparenceId: string;
     transparenceName: string;
-    formations: Magistrat.Formation[];
+    formation: Magistrat.Formation;
     nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'];
   }): ImportNouvelleTransparenceCommand {
     return new ImportNouvelleTransparenceCommand(
       arg.transparenceId,
       arg.transparenceName,
-      arg.formations,
+      arg.formation,
       arg.nominationFilesPayload,
     );
   }

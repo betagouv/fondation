@@ -17,7 +17,7 @@ export type NominationFilesContentWithReporterIds = {
 export type GdsNewTransparenceImportedEventPayload = {
   transparenceId: string;
   transparenceName: Transparency;
-  formations: Magistrat.Formation[];
+  formation: Magistrat.Formation;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
@@ -37,7 +37,7 @@ export const nominationFilesPayloadSchema = z
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceId: z.string().uuid(),
   transparenceName: z.nativeEnum(Transparency),
-  formations: z.array(z.nativeEnum(Magistrat.Formation)).nonempty(),
+  formation: z.nativeEnum(Magistrat.Formation),
   nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
 

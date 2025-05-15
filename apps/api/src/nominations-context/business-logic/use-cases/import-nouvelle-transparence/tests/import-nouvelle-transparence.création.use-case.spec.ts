@@ -23,11 +23,10 @@ describe('Nouvelle transparence GDS', () => {
     expectTransparence();
   });
 
-  async function créerTransparence() {
-    await importNouvelleTransparenceUseCase(dependencies);
-  }
+  const créerTransparence = () =>
+    importNouvelleTransparenceUseCase(dependencies);
 
-  function expectTransparence() {
+  const expectTransparence = () => {
     expect(Object.values(dependencies.sessionRepository.sessions)).toEqual<
       SessionSnapshot[]
     >([
@@ -35,10 +34,10 @@ describe('Nouvelle transparence GDS', () => {
         id: aSessionId,
         dataAdministrationImportId: aTransparenceImportId,
         name: aTransparencyName,
-        formations: [aFormation],
+        formation: aFormation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         version: 0,
       },
     ]);
-  }
+  };
 });

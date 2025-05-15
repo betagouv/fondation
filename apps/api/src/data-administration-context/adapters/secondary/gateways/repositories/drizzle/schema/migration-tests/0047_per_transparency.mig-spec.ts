@@ -6,13 +6,13 @@ import { Pool } from 'pg';
 import { Magistrat, Transparency } from 'shared-models';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import { getDrizzleMigrationSql } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
-import { clearDB } from 'test/docker-postgresql-manager';
-import { dataAdministrationContextSchema } from '../nomination-file-schema.drizzle';
-import { transparencesPm } from '../transparence-pm';
 import {
   formationEnum,
   transparencyEnum,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+import { clearDB } from 'test/docker-postgresql-manager';
+import { dataAdministrationContextSchema } from '../nomination-file-schema.drizzle';
+import { transparencesPm } from '../transparence-pm';
 
 const nominationFiles = dataAdministrationContextSchema.table(
   'nomination_files',
@@ -65,7 +65,7 @@ const schema = {
   formationEnum,
 };
 
-const migrationNumber = 44;
+const migrationNumber = 47;
 
 describe(`migration 00${migrationNumber}`, () => {
   const pool = new Pool(drizzleConfigForTest);
@@ -111,14 +111,34 @@ describe(`migration 00${migrationNumber}`, () => {
       await db
         .select()
         .from(transparencesPm)
-        .orderBy(transparencesPm.name)
+        .orderBy(transparencesPm.name, transparencesPm.formation)
         .execute(),
     ).toEqual<(typeof transparencesPm.$inferSelect)[]>([
       {
         id: expect.any(String),
         createdAt: expect.any(Date),
         name: Transparency.AUTOMNE_2024,
-        formations: [Magistrat.Formation.PARQUET, Magistrat.Formation.SIEGE],
+        formation: Magistrat.Formation.PARQUET,
+        nominationFiles: [
+          {
+            id: prevSecondNominationFileRow.id,
+            createdAt: expect.any(String),
+            rowNumber: prevSecondNominationFileRow.rowNumber,
+            content: {
+              formation: (prevSecondNominationFileRow.content as any).formation,
+              folderNumber: (prevSecondNominationFileRow.content as any)
+                .folderNumber,
+              transparency: (prevSecondNominationFileRow.content as any)
+                .transparency,
+            },
+          },
+        ],
+      },
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        name: Transparency.AUTOMNE_2024,
+        formation: Magistrat.Formation.SIEGE,
         nominationFiles: [
           {
             id: prevFirstNominationFileRow.id,
@@ -128,16 +148,8 @@ describe(`migration 00${migrationNumber}`, () => {
               formation: (prevFirstNominationFileRow.content as any).formation,
               folderNumber: (prevFirstNominationFileRow.content as any)
                 .folderNumber,
-            },
-          },
-          {
-            id: prevSecondNominationFileRow.id,
-            createdAt: expect.any(String),
-            rowNumber: prevSecondNominationFileRow.rowNumber,
-            content: {
-              formation: (prevSecondNominationFileRow.content as any).formation,
-              folderNumber: (prevSecondNominationFileRow.content as any)
-                .folderNumber,
+              transparency: (prevFirstNominationFileRow.content as any)
+                .transparency,
             },
           },
         ],
@@ -146,7 +158,7 @@ describe(`migration 00${migrationNumber}`, () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         name: Transparency.DU_03_MARS_2025,
-        formations: [Magistrat.Formation.SIEGE],
+        formation: Magistrat.Formation.SIEGE,
         nominationFiles: [
           {
             id: prevOtherTransparencyNominationFileRow.id,
@@ -158,6 +170,9 @@ describe(`migration 00${migrationNumber}`, () => {
               folderNumber: (
                 prevOtherTransparencyNominationFileRow.content as any
               ).folderNumber,
+              transparency: (
+                prevOtherTransparencyNominationFileRow.content as any
+              ).transparency,
             },
           },
         ],

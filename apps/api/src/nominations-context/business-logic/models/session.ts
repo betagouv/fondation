@@ -11,7 +11,7 @@ export type SessionSnapshot = {
   id: string;
   dataAdministrationImportId: string;
   name: string;
-  formations: Magistrat.Formation[];
+  formation: Magistrat.Formation;
   typeDeSaisine: TypeDeSaisine;
   version: number;
 };
@@ -21,7 +21,7 @@ export class Session {
     private readonly _id: string,
     private readonly _dataAdministrationImportId: string,
     private readonly _name: string,
-    private readonly _formations: Magistrat.Formation[],
+    private readonly _formation: Magistrat.Formation,
     private readonly _typeDeSaisine: TypeDeSaisine,
     private readonly _version: number,
   ) {}
@@ -66,7 +66,7 @@ export class Session {
     return {
       id: this._id,
       name: this._name,
-      formations: this._formations,
+      formation: this._formation,
       typeDeSaisine: this._typeDeSaisine,
       version: this._version,
       dataAdministrationImportId: this._dataAdministrationImportId,
@@ -77,14 +77,14 @@ export class Session {
     dataAdministrationImportId: string,
     name: string,
     typeDeSaisine: TypeDeSaisine,
-    formations: Magistrat.Formation[],
+    formation: Magistrat.Formation,
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
     return new Session(
       id,
       dataAdministrationImportId,
       name,
-      formations,
+      formation,
       typeDeSaisine,
       0,
     );
@@ -95,7 +95,7 @@ export class Session {
       snapshot.id,
       snapshot.dataAdministrationImportId,
       snapshot.name,
-      snapshot.formations,
+      snapshot.formation,
       snapshot.typeDeSaisine,
       snapshot.version,
     );

@@ -1,10 +1,10 @@
-import { jsonb, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { dataAdministrationContextSchema } from './nomination-file-schema.drizzle';
+import { sql } from 'drizzle-orm';
+import { jsonb, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 import {
   formationEnum,
   transparencyEnum,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
-import { sql } from 'drizzle-orm';
+import { dataAdministrationContextSchema } from './nomination-file-schema.drizzle';
 
 export const transparencesPm = dataAdministrationContextSchema.table(
   'transparences',
@@ -12,9 +12,12 @@ export const transparencesPm = dataAdministrationContextSchema.table(
     id: uuid('id')
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    name: transparencyEnum('name').unique().notNull(),
+    name: transparencyEnum('name').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
-    formations: formationEnum('formations').array().notNull(),
+    formation: formationEnum('formation').notNull(),
     nominationFiles: jsonb('nomination_files').array().notNull(),
   },
+  (t) => ({
+    unique_name_and_formation: unique().on(t.name, t.formation),
+  }),
 );

@@ -90,7 +90,7 @@ describe('SQL Transparence Repository', () => {
       .insert(transparencesPm)
       .values({
         ...transpa,
-        formations: [...transpa.formations],
+        formation: transpa.formation,
         nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
           ...nominationFile,
           createdAt: currentDate.toISOString(),
@@ -106,7 +106,10 @@ describe('SQL Transparence Repository', () => {
 
   const transparence = () =>
     transactionPerformer.perform(
-      transparenceRepository.transparence(Transparency.AUTOMNE_2024),
+      transparenceRepository.transparence(
+        aTransparence.name,
+        aTransparence.formation,
+      ),
     );
 
   const expectTransparence = async (transpa: TransparenceSnapshot) => {
@@ -116,7 +119,7 @@ describe('SQL Transparence Repository', () => {
     expect(result).toEqual<(typeof transparencesPm.$inferSelect)[]>([
       {
         ...transpa,
-        formations: Array.from(transpa.formations),
+        formation: transpa.formation,
         nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
           ...nominationFile,
           createdAt: currentDate.toISOString(),
@@ -167,13 +170,12 @@ const aTransparence: TransparenceSnapshot = {
   id: aTransparenceId,
   createdAt: currentDate,
   name: Transparency.AUTOMNE_2024,
-  formations: new Set([Magistrat.Formation.PARQUET]),
+  formation: Magistrat.Formation.PARQUET,
   nominationFiles: [aNominationfile],
 };
 
 const aModifiedTransparence: TransparenceSnapshot = {
   ...aTransparence,
-  formations: new Set([Magistrat.Formation.PARQUET, Magistrat.Formation.SIEGE]),
   nominationFiles: [
     {
       ...aNominationfile,

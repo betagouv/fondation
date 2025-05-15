@@ -1,6 +1,6 @@
 import { Magistrat, Transparency } from 'shared-models';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { z } from 'zod';
-import { Affectation, NominationFileAffectation } from './affectation';
 import { DomainRegistry } from './domain-registry';
 import { GdsTransparenceNominationFilesModifiedEvent } from './events/gds-transparence-nomination-files-modified.event';
 import {
@@ -9,30 +9,29 @@ import {
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 import { NominationFilesUpdatedCollection } from './nomination-files-updated-collection';
-import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 
 export type TransparenceSnapshot = {
   id: string;
   createdAt: Date;
   name: Transparency;
-  formations: Set<Magistrat.Formation>;
+  formation: Magistrat.Formation;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
 export class Transparence {
-  private _formations: Set<Magistrat.Formation>;
+  private _formation: Magistrat.Formation;
   private _nominationFiles: Record<string, NominationFileModel>;
 
   private constructor(
     private readonly _id: string,
     private readonly _createdAt: Date,
     private _name: Transparency,
-    _formations: Set<Magistrat.Formation>,
-    _nominationFiles: NominationFileModel[],
+    formation: Magistrat.Formation,
+    nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
-    this.formations = _formations;
-    this.nominationFiles = _nominationFiles;
+    this.formation = formation;
+    this.nominationFiles = nominationFiles;
   }
 
   addNewNominationFiles(
@@ -69,10 +68,6 @@ export class Transparence {
     return updatedNominationFiles.length > 0
       ? nominationFilesUpdatedEvent
       : null;
-  }
-
-  replaceFormations(readCollection: NominationFilesContentReadCollection) {
-    this.formations = readCollection.formations();
   }
 
   nominationFilesEventPayload(
@@ -116,15 +111,11 @@ export class Transparence {
     this._name = z.nativeEnum(Transparency).parse(name);
   }
 
-  get formations(): Set<Magistrat.Formation> {
-    return this._formations;
+  get formation(): Magistrat.Formation {
+    return this._formation;
   }
-  set formations(formations: Set<Magistrat.Formation>) {
-    this._formations = z
-      .set(z.nativeEnum(Magistrat.Formation))
-      .nonempty()
-      .max(2)
-      .parse(new Set(formations));
+  set formation(formation: Magistrat.Formation) {
+    this._formation = z.nativeEnum(Magistrat.Formation).parse(formation);
   }
 
   get nominationFiles(): NominationFileModel[] {
@@ -153,7 +144,7 @@ export class Transparence {
       id: this._id,
       name: this._name,
       createdAt: this._createdAt,
-      formations: this._formations,
+      formation: this._formation,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
@@ -165,28 +156,18 @@ export class Transparence {
       snapshot.id,
       snapshot.createdAt,
       snapshot.name,
-      snapshot.formations,
+      snapshot.formation,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
     );
   }
 
   static nouvelle(
     name: Transparency,
-    formations: Set<Magistrat.Formation>,
+    formation: Magistrat.Formation,
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
     const createdAt = DomainRegistry.dateTimeProvider().now();
-    return new Transparence(id, createdAt, name, formations, nominationFiles);
-  }
-
-  affecterRapporteurs(
-    nominationFilesAffectations: NominationFileAffectation[],
-  ) {
-    return new Affectation(
-      this._id,
-      this._formations,
-      nominationFilesAffectations,
-    );
+    return new Transparence(id, createdAt, name, formation, nominationFiles);
   }
 }

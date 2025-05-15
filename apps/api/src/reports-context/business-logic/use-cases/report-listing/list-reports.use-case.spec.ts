@@ -124,5 +124,5 @@ const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: unRapportVM.transparency,
-  formations: [unRapportVM.formation],
+  formation: [unRapportVM.formation],
 };

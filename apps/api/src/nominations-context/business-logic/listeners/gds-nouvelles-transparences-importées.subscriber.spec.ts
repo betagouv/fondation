@@ -35,10 +35,14 @@ describe('GDS nouvelles transparences importées sbscriber', () => {
   const expectNouvelleTransparenceCalledWith = (transparence: Transparency) => {
     expect(
       dependencies.importNouvelleTransparenceUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(
+    ).toHaveBeenCalledOnce();
+    expect(
+      dependencies.importNouvelleTransparenceUseCase.execute,
+    ).toHaveBeenCalledWith(
       new ImportNouvelleTransparenceCommand(
+        uneTransparenceId,
         transparence,
-        firstPayload.formations,
+        uneFormation,
         [dossierDeNominationPayload],
       ),
     );
@@ -57,13 +61,16 @@ class PayloadRules extends RulesBuilder<
 }
 
 const lucLoïcReporterId = 'luc-loic-reporter-id';
+const uneTransparenceId = 'une-transparence-id';
 const uneTransparence = Transparency.AUTOMNE_2024;
+const uneFormation = Magistrat.Formation.SIEGE;
 
 const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
   {
     nominationFileId: 'nomination-file-id',
     content: {
       transparency: uneTransparence,
+      formation: uneFormation,
       biography: 'biography',
       birthDate: {
         day: 1,
@@ -78,7 +85,6 @@ const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nomina
         year: 2000,
       },
       folderNumber: 1,
-      formation: Magistrat.Formation.PARQUET,
       grade: Magistrat.Grade.I,
       name: 'name',
       observers: [],
@@ -88,8 +94,8 @@ const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nomina
     },
   };
 const firstPayload: GdsNewTransparenceImportedEventPayload = {
-  transparenceId: Transparency.AUTOMNE_2024,
-  transparenceName: Transparency.AUTOMNE_2024,
-  formations: [Magistrat.Formation.SIEGE],
+  transparenceId: uneTransparenceId,
+  transparenceName: uneTransparence,
+  formation: uneFormation,
   nominationFiles: [dossierDeNominationPayload],
 };

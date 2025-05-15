@@ -110,7 +110,7 @@ const sessionSnapshot: SessionSnapshot = {
   id: aSessionId,
   dataAdministrationImportId: 'test-data-administration-import-id',
   name: aSessionName,
-  formations: someFormations,
+  formation: someFormations,
   typeDeSaisine: aTypeDeSaisine,
   version: 1,
 };
