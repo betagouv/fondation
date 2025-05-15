@@ -1,6 +1,8 @@
+import { NouvelleTransparenceDto } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
 export type DataAdministrationUploadParams = {
+  nouvelleTransparenceForm: NouvelleTransparenceDto;
   file: File;
 };
 
@@ -10,16 +12,23 @@ export const dataAdministrationUpload = createAppAsyncThunk<
 >(
   "data-administration/uploadTransparency",
   async (
-    { file },
+    { nouvelleTransparenceForm, file },
     {
+      getState,
       extra: {
         gateways: { dataAdministrationGateway },
+        providers: { fileProvider },
       },
     },
   ) => {
-    await dataAdministrationGateway.uploadTransparency(file);
+    const acceptedMimeTypes =
+      getState().reportOverview.acceptedMimeTypes.attachedFiles;
+
+    fileProvider.assertMimeTypeFactory(acceptedMimeTypes);
+
+    await dataAdministrationGateway.uploadTransparency(
+      nouvelleTransparenceForm,
+      file,
+    );
   },
 );
-
-// TODO VERIFIER LE TYPE DE FICHIER
-// TODO CREER LES TESTS UNITAIRES POUR LE GATEWAY ET L'IMPLEMENTATION DU CLIENT

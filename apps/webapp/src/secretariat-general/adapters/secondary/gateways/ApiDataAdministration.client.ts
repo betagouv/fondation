@@ -1,5 +1,6 @@
 import {
   interpolateUrlParams,
+  NouvelleTransparenceDto,
   SecretariatGeneralContextRestContract,
 } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
@@ -15,22 +16,24 @@ const basePath: SecretariatGeneralContextRestContract["basePath"] =
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
-  uploadTransparency(file: File): Promise<void> {
+  uploadTransparency(form: NouvelleTransparenceDto, file: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", file);
     const { method, path, body }: ClientFetchOptions["uploadTransparency"] = {
       method: "POST",
       path: "transparency",
-      body: formData,
+      // Ajouter le fichier là dedans
+      body: form,
     };
 
     const url = this.resolveUrl(path);
     return this.fetch(url, {
       method,
-      body,
+      body: JSON.stringify(body),
     }).then(() => {});
   }
 
+  // TODO : USE THE FETCH WITH AUTHENTICATION
   private resolveUrl(path: string, params?: Record<string, string>): string {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
