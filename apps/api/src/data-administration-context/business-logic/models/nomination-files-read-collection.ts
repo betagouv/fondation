@@ -15,6 +15,7 @@ import { ManagementRule } from './rules';
 
 export type TransparenceCollection = {
   transparency: Transparency;
+  formation: Magistrat.Formation;
   readCollection: NominationFilesContentReadCollection;
 };
 
@@ -38,16 +39,29 @@ export class NominationFilesContentReadCollection {
       this._nominationFileReadList,
       (nominationFile) => nominationFile.content.transparency,
     );
-    return Object.entries(aggregatedLists).map(
-      ([transparence, nominationFiles]) => {
-        const nominationFilesContentReadCollection =
-          new NominationFilesContentReadCollection(nominationFiles);
-        return {
-          transparency: z.nativeEnum(Transparency).parse(transparence),
-          readCollection: nominationFilesContentReadCollection,
-        };
-      },
-    );
+    return Object.entries(aggregatedLists)
+      .map(([transparence, nominationFiles]) => {
+        const aggregatedPerFormation = _.groupBy(
+          nominationFiles,
+          (nominationFile) => nominationFile.content.formation,
+        );
+
+        return Object.entries(aggregatedPerFormation).map(
+          ([formation, nominationFilesPerFormation]) => {
+            const nominationFilesContentReadCollection =
+              new NominationFilesContentReadCollection(
+                nominationFilesPerFormation,
+              );
+
+            return {
+              transparency: z.nativeEnum(Transparency).parse(transparence),
+              formation: z.nativeEnum(Magistrat.Formation).parse(formation),
+              readCollection: nominationFilesContentReadCollection,
+            };
+          },
+        );
+      })
+      .flat();
   }
 
   hasNominationFiles() {
@@ -58,15 +72,6 @@ export class NominationFilesContentReadCollection {
     return this._nominationFileReadList.some(
       (nominationFile) => nominationFile.rowNumber === rowNumber,
     );
-  }
-
-  formations(): Set<Magistrat.Formation> {
-    const formations = _.uniq(
-      this._nominationFileReadList.map(
-        (nominationFile) => nominationFile.content.formation,
-      ),
-    );
-    return new Set(formations);
   }
 
   newNominationFiles(existingNominationFiles: NominationFileModelSnapshot[]) {

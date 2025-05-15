@@ -16,6 +16,7 @@ import { Pool } from 'pg';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
 import { dataAdministrationContextSchema } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
 import { NominationFileModelSnapshot } from 'src/data-administration-context/business-logic/models/nomination-file';
+import { AffectationsDossiersDeNominations } from 'src/nominations-context/business-logic/models/affectation';
 import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
 import {
   reportStateEnum,
@@ -49,8 +50,8 @@ const transparencesPm = dataAdministrationContextSchema.table('transparences', {
     .default(sql`gen_random_uuid()`),
   name: transparencyEnum('name').unique().notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  formations: formationEnum('formations').array().notNull(),
-  nominationFiles: jsonb('nomination_files_ids').array().notNull(),
+  formation: formationEnum('formation').notNull(),
+  nominationFiles: jsonb('nomination_files').array().notNull(),
 });
 const sessionPm = nominationsContextSchema.table('session', {
   id: uuid('id')
@@ -59,9 +60,9 @@ const sessionPm = nominationsContextSchema.table('session', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   version: integer('version').notNull().default(1),
   name: text('name').notNull(),
-  formations: formationEnum('formations').array().notNull(),
+  formation: formationEnum('formation').notNull(),
   typeDeSaisine: typeDeSaisineEnum('type_de_saisine').notNull(),
-  dataAdministrationImportId: text('data_administration_import_id').notNull(),
+  sessionImportId: text('session_import_id').notNull(),
 });
 
 const prevReportsPm = reportsContextSchema.table('reports', {
@@ -120,6 +121,7 @@ const prevReportRulesPm = reportsContextSchema.table('report_rule', {
     .notNull()
     .references(() => prevReportsPm.id),
 });
+
 const newDossierDeNominationPm = nominationsContextSchema.table(
   'dossier_de_nomination',
   {
@@ -129,11 +131,24 @@ const newDossierDeNominationPm = nominationsContextSchema.table(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     sessionId: uuid('session_id').notNull(),
     dossierDeNominationImportéId: uuid(
-      'dossier_de_nomination_importe_id',
+      'dossier_de_nomination_import_id',
     ).notNull(),
     content: jsonb('content').notNull(),
   },
 );
+const newAffectationPm = nominationsContextSchema.table('affectation', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  sessionId: uuid('session_id').unique().notNull(),
+  formation: formationEnum('formation').notNull(),
+  affectationsDossiersDeNominations: jsonb(
+    'affectations_dossiers_de_nominations',
+  )
+    .array()
+    .notNull(),
+});
 
 type NominationFileReducedSnapshot = PickDeep<
   NominationFileModelSnapshot,
@@ -174,14 +189,14 @@ const nominationFile3: NominationFileReducedSnapshot = {
 const transparenceA = {
   id: 'a4894798-3cb7-4204-873d-dc6a66e2a22e',
   createdAt: new Date(),
-  formations: [Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET],
+  formation: Magistrat.Formation.SIEGE,
   name: Transparency.AUTOMNE_2024,
   nominationFiles: [nominationFile1, nominationFile2],
 } satisfies typeof transparencesPm.$inferInsert;
 const transparenceB = {
   id: 'b8009edf-0955-4600-8840-56e91f3c68de',
   createdAt: new Date(),
-  formations: [Magistrat.Formation.PARQUET],
+  formation: Magistrat.Formation.PARQUET,
   name: Transparency.DU_03_MARS_2025,
   nominationFiles: [nominationFile3],
 } satisfies typeof transparencesPm.$inferInsert;
@@ -190,7 +205,7 @@ const jeanRapporteurId = '6029fde9-59b8-4e56-bb03-53f6293e259f';
 const lucRapporteurId = 'ef148f78-d057-47d8-83d6-efbc10879d37';
 
 const nominationFile1RapporteurJean = {
-  id: 'a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6',
+  id: '57f7df61-e095-4efb-910a-e51f6fa358b5',
   createdAt: new Date(),
   formation: Magistrat.Formation.SIEGE,
   nominationFileId: nominationFile1.id,
@@ -211,7 +226,7 @@ const nominationFile1RapporteurJean = {
   attachedFiles: null,
 } satisfies typeof prevReportsPm.$inferInsert;
 const nominationFile1RapporteurLuc = {
-  id: 'b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7',
+  id: 'a1e7d5f6-1e1f-4312-a9af-ea0bdd6bb716',
   createdAt: new Date(),
   formation: Magistrat.Formation.SIEGE,
   nominationFileId: nominationFile1.id,
@@ -232,7 +247,7 @@ const nominationFile1RapporteurLuc = {
   attachedFiles: null,
 } satisfies typeof prevReportsPm.$inferInsert;
 const nominationFile2RapporteurJean = {
-  id: 'c3d4e5f6-g7h8-i9j0-k1l2-m3n4o5p6q7r8',
+  id: '7220f137-1792-413b-ae3e-0a2d7deab74c',
   createdAt: new Date(),
   formation: Magistrat.Formation.PARQUET,
   nominationFileId: nominationFile2.id,
@@ -253,7 +268,7 @@ const nominationFile2RapporteurJean = {
   attachedFiles: null,
 } satisfies typeof prevReportsPm.$inferInsert;
 const nominationFile3RapporteurJean = {
-  id: 'd4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9',
+  id: '38ec1129-e77b-4169-8b5a-4a7a5bc7f7f1',
   createdAt: new Date(),
   formation: Magistrat.Formation.PARQUET,
   nominationFileId: nominationFile3.id,
@@ -310,7 +325,7 @@ describe(`migration 00${migrationNumber}`, () => {
     await db.$client.end();
   });
 
-  it.only('crée les sessions', async () => {
+  it('crée les sessions', async () => {
     await givenSomeDataAdminTranspa();
     await db.execute(getDrizzleMigrationSql(migrationNumber));
     await expectNouvellesSessions();
@@ -322,9 +337,34 @@ describe(`migration 00${migrationNumber}`, () => {
     await expectNouvellesNominations();
   });
 
+  it('crée les rapports', async () => {
+    await givenSomeDataAdminTranspa();
+    await givenSomeReports();
+    await db.execute(getDrizzleMigrationSql(migrationNumber));
+    await expectNouveauxRapports();
+  });
+
+  it('crée les affectations', async () => {
+    await givenSomeDataAdminTranspa();
+    await givenSomeReports();
+    await db.execute(getDrizzleMigrationSql(migrationNumber));
+    await expectNouvellesAffectations();
+  });
+
   const givenSomeDataAdminTranspa = async () => {
     for (const transpa of [transparenceA, transparenceB]) {
       await db.insert(transparencesPm).values(transpa).execute();
+    }
+  };
+
+  const givenSomeReports = async () => {
+    for (const report of [
+      nominationFile1RapporteurJean,
+      nominationFile1RapporteurLuc,
+      nominationFile2RapporteurJean,
+      nominationFile3RapporteurJean,
+    ]) {
+      await db.insert(prevReportsPm).values(report).execute();
     }
   };
 
@@ -336,18 +376,18 @@ describe(`migration 00${migrationNumber}`, () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         name: transparenceA.name,
-        formations: transparenceA.formations,
+        formation: transparenceA.formation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-        dataAdministrationImportId: transparenceA.id,
+        sessionImportId: transparenceA.id,
         version: 1,
       },
       {
         id: expect.any(String),
         createdAt: expect.any(Date),
         name: transparenceB.name,
-        formations: transparenceB.formations,
+        formation: transparenceB.formation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-        dataAdministrationImportId: transparenceB.id,
+        sessionImportId: transparenceB.id,
         version: 1,
       },
     ]);
@@ -377,6 +417,111 @@ describe(`migration 00${migrationNumber}`, () => {
         sessionId: expect.any(String),
         dossierDeNominationImportéId: nominationFile3.id,
         content: nominationFile3.content,
+      },
+    ]);
+  };
+
+  const expectNouveauxRapports = async () => {
+    expect(
+      await db
+        .select()
+        .from(newReportsPm)
+        .orderBy(newReportsPm.createdAt)
+        .execute(),
+    ).toEqual<(typeof newReportsPm.$inferSelect)[]>([
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        nominationFileId: expect.any(String),
+        sessionId: expect.any(String),
+        reporterId: jeanRapporteurId,
+        version: 1,
+        state: nominationFile1RapporteurJean.state,
+        formation: nominationFile1.content.formation,
+        comment: nominationFile1RapporteurJean.comment,
+        attachedFiles: nominationFile1RapporteurJean.attachedFiles,
+      },
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        nominationFileId: expect.any(String),
+        sessionId: expect.any(String),
+        reporterId: lucRapporteurId,
+        version: 1,
+        state: nominationFile1RapporteurLuc.state,
+        formation: nominationFile1.content.formation,
+        comment: nominationFile1RapporteurLuc.comment,
+        attachedFiles: nominationFile1RapporteurLuc.attachedFiles,
+      },
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        nominationFileId: expect.any(String),
+        sessionId: expect.any(String),
+        reporterId: jeanRapporteurId,
+        version: 1,
+        state: nominationFile2RapporteurJean.state,
+        formation: nominationFile2.content.formation,
+        comment: nominationFile2RapporteurJean.comment,
+        attachedFiles: nominationFile2RapporteurJean.attachedFiles,
+      },
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        nominationFileId: expect.any(String),
+        sessionId: expect.any(String),
+        reporterId: jeanRapporteurId,
+        version: 1,
+        state: nominationFile3RapporteurJean.state,
+        formation: nominationFile3.content.formation,
+        comment: nominationFile3RapporteurJean.comment,
+        attachedFiles: nominationFile3RapporteurJean.attachedFiles,
+      },
+    ]);
+  };
+
+  const expectNouvellesAffectations = async () => {
+    expect(
+      await db
+        .select()
+        .from(newAffectationPm)
+        .orderBy(newAffectationPm.createdAt)
+        .execute(),
+    ).toEqual<
+      (typeof newAffectationPm.$inferSelect & {
+        affectationsDossiersDeNominations: AffectationsDossiersDeNominations[];
+      })[]
+    >([
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        sessionId: expect.any(String),
+        formation: transparenceA.formation,
+        affectationsDossiersDeNominations: [
+          {
+            dossierDeNominationId: expect.any(String),
+            rapporteurIds: [
+              nominationFile1RapporteurJean.reporterId,
+              nominationFile1RapporteurLuc.reporterId,
+            ],
+          },
+          {
+            dossierDeNominationId: expect.any(String),
+            rapporteurIds: [nominationFile2RapporteurJean.reporterId],
+          },
+        ],
+      },
+      {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        sessionId: expect.any(String),
+        formation: transparenceB.formation,
+        affectationsDossiersDeNominations: [
+          {
+            dossierDeNominationId: expect.any(String),
+            rapporteurIds: [nominationFile3RapporteurJean.reporterId],
+          },
+        ],
       },
     ]);
   };

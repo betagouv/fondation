@@ -15,9 +15,12 @@ export class ImportNominationFilesUseCase {
       for (const {
         readCollection,
         transparency,
+        formation,
       } of nominationFilesPerTransparence) {
-        const transparence =
-          await this.transparenceService.transparence(transparency)(trx);
+        const transparence = await this.transparenceService.transparence(
+          transparency,
+          formation,
+        )(trx);
 
         if (transparence) {
           await this.transparenceService.updateTransparence(
@@ -27,6 +30,7 @@ export class ImportNominationFilesUseCase {
         } else {
           await this.transparenceService.nouvelleTransparence(
             transparency,
+            formation,
             readCollection,
           )(trx);
         }

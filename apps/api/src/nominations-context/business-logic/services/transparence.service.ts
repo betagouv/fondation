@@ -29,7 +29,7 @@ export class TransparenceService {
         command.transparenceId,
         command.transparenceName,
         TypeDeSaisine.TRANSPARENCE_GDS,
-        command.formations,
+        command.formation,
       );
       await this.sessionRepository.save(session)(trx);
       return session;

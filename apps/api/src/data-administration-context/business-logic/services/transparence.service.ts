@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Transparency } from 'shared-models';
+import { Magistrat, Transparency } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { TransparenceRepository } from '../gateways/repositories/transparence.repository';
@@ -30,13 +30,14 @@ export class TransparenceService {
 
   nouvelleTransparence(
     transparency: Transparency,
+    formation: Magistrat.Formation,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
     return async (trx) => {
       const nominationFiles = readCollection.toModels();
       const transparence = Transparence.nouvelle(
         transparency,
-        readCollection.formations(),
+        formation,
         nominationFiles,
       );
 
@@ -45,7 +46,7 @@ export class TransparenceService {
       const payload: GdsNewTransparenceImportedEventPayload = {
         transparenceId: transparence.id,
         transparenceName: transparence.name,
-        formations: [...readCollection.formations()],
+        formation,
         nominationFiles: await this.nominationFilesWithReportersIds(
           readCollection,
           transparence,
@@ -108,9 +109,13 @@ export class TransparenceService {
 
   transparence(
     transparence: Transparency,
+    formation: Magistrat.Formation,
   ): TransactionableAsync<Transparence | null> {
     return async (trx) =>
-      await this.transparenceRepository.transparence(transparence)(trx);
+      await this.transparenceRepository.transparence(
+        transparence,
+        formation,
+      )(trx);
   }
 
   private async nominationFilesWithReportersIds(

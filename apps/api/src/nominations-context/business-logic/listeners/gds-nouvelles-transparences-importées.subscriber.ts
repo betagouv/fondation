@@ -10,7 +10,7 @@ export class GdsNouvellesTransparencesImportéesSubscriber {
   async handle(payload: GdsNewTransparenceImportedEventPayload) {
     const command = ImportNouvelleTransparenceCommand.create({
       transparenceId: payload.transparenceId,
-      formations: payload.formations,
+      formation: payload.formation,
       transparenceName: payload.transparenceName,
       nominationFilesPayload: payload.nominationFiles,
     });

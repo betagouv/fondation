@@ -52,7 +52,7 @@ const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: 'Nom de session',
-  formations: [Magistrat.Formation.PARQUET],
+  formation: [Magistrat.Formation.PARQUET],
 };
 
 describe('Upload Report Files Use Case', () => {

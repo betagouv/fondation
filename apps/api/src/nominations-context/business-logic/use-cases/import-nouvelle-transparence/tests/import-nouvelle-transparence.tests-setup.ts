@@ -51,7 +51,7 @@ export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload
 export const aCommand = new ImportNouvelleTransparenceCommand(
   aTransparenceImportId,
   aTransparencyName,
-  [aFormation],
+  aFormation,
   [aDossierDeNominationPayload],
 );
 

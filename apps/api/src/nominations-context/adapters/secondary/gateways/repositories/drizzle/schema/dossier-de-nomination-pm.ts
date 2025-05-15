@@ -10,9 +10,9 @@ export const dossierDeNominationPm = nominationsContextSchema.table(
       .default(sql`gen_random_uuid()`),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     sessionId: uuid('session_id').notNull(),
-    dossierDeNominationImportéId: uuid(
-      'dossier_de_nomination_importe_id',
-    ).notNull(),
+    dossierDeNominationImportéId: uuid('dossier_de_nomination_import_id')
+      .unique()
+      .notNull(),
     content: jsonb('content').notNull(),
   },
 );

@@ -7,6 +7,6 @@ export const préAnalysePm = nominationsContextSchema.table('pre_analyse', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  dossierDeNominationId: uuid('dossier_de_nomination_id').notNull(),
+  dossierDeNominationId: uuid('dossier_de_nomination_id').unique().notNull(),
   règles: jsonb('regles').array().notNull(),
 });

@@ -44,7 +44,7 @@ const aGdsNewtransparenceImportedEvent = new GdsNewTransparenceImportedEvent(
   {
     transparenceId: gdsTransparenceId,
     transparenceName: gdsTransparenceName,
-    formations: [Magistrat.Formation.SIEGE],
+    formation: Magistrat.Formation.SIEGE,
     nominationFiles: [
       {
         nominationFileId,
@@ -155,7 +155,7 @@ describe('Import Nomination Files Use Case', () => {
         id: gdsTransparenceId,
         createdAt: currentDate,
         name: gdsTransparenceName,
-        formations: new Set([Magistrat.Formation.SIEGE]),
+        formation: Magistrat.Formation.SIEGE,
         nominationFiles: [firstNominationFile],
       });
     });

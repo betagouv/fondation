@@ -8,7 +8,7 @@ export const affectationPm = nominationsContextSchema.table('affectation', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  sessionId: uuid('session_id').notNull(),
+  sessionId: uuid('session_id').unique().notNull(),
   formation: formationEnum('formation').notNull(),
   affectationsDossiersDeNominations: jsonb(
     'affectations_dossiers_de_nominations',

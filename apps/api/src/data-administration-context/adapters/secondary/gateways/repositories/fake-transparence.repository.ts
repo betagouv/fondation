@@ -1,3 +1,4 @@
+import { Magistrat } from 'shared-models';
 import { TransparenceRepository } from 'src/data-administration-context/business-logic/gateways/repositories/transparence.repository';
 import {
   Transparence,
@@ -14,10 +15,13 @@ export class FakeTransparenceRepository implements TransparenceRepository {
     };
   }
 
-  transparence(name: string): TransactionableAsync<Transparence | null> {
+  transparence(
+    name: string,
+    formation: Magistrat.Formation,
+  ): TransactionableAsync<Transparence | null> {
     return async () => {
       const transparence = Object.values(this.transparences).find(
-        (transpa) => transpa.name === name,
+        (transpa) => transpa.name === name && transpa.formation === formation,
       );
       return transparence ? Transparence.fromSnapshot(transparence) : null;
     };

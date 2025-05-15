@@ -6,6 +6,7 @@ import {
   Transparency,
 } from 'shared-models';
 import { FakeTransparenceRepository } from 'src/data-administration-context/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeUserService } from 'src/nominations-context/adapters/secondary/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
@@ -39,7 +40,6 @@ import {
   lucLoïcUser,
   NominationFileReadRulesBuilder,
 } from './import-nomination-files.use-case.fixtures';
-import { FakeUserService } from 'src/nominations-context/adapters/secondary/services/fake-user.service';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
@@ -181,30 +181,32 @@ describe('Import Nomination Files Use Case', () => {
         .build(),
     );
 
-    expectTransparence([Magistrat.Formation.SIEGE], {
-      id: 'nomination-file-id',
-      createdAt: dateTimeProvider.currentDate,
-      rowNumber: marcelDupontSnapshot.rowNumber,
-      content: {
-        ...marcelDupontSnapshot.content,
-        folderNumber: 1,
-        reporters: ['FIRST Reporter', 'SECOND Reporter'],
-        observers: [anObserverExpected, 'SECOND OBSERVER'],
-        transparency: Transparency.AUTOMNE_2024,
-        biography: '- blabla',
-        formation: Magistrat.Formation.SIEGE,
-        dueDate: {
-          year: 2024,
-          month: 11,
-          day: 10,
+    expectTransparences(
+      uneTranspaSiègeAvecDossiers({
+        id: 'nomination-file-id',
+        createdAt: dateTimeProvider.currentDate,
+        rowNumber: marcelDupontSnapshot.rowNumber,
+        content: {
+          ...marcelDupontSnapshot.content,
+          folderNumber: 1,
+          reporters: ['FIRST Reporter', 'SECOND Reporter'],
+          observers: [anObserverExpected, 'SECOND OBSERVER'],
+          transparency: Transparency.AUTOMNE_2024,
+          biography: '- blabla',
+          formation: Magistrat.Formation.SIEGE,
+          dueDate: {
+            year: 2024,
+            month: 11,
+            day: 10,
+          },
+          birthDate: {
+            year: 1961,
+            month: 11,
+            day: 1,
+          },
         },
-        birthDate: {
-          year: 1961,
-          month: 11,
-          day: 1,
-        },
-      },
-    });
+      }),
+    );
   });
 
   it('parses a line with possible empty values unfilled and one rule pre-validated at true', async () => {
@@ -223,7 +225,7 @@ describe('Import Nomination Files Use Case', () => {
         .fromModelSnapshot(marcelDupontModelSnapshot)
         .build(),
     );
-    expectTransparence([Magistrat.Formation.SIEGE], marcelDupontModelSnapshot);
+    expectTransparences(uneTranspaSiègeAvecDossiers(marcelDupontModelSnapshot));
   });
 
   it('saves two lines', async () => {
@@ -237,9 +239,12 @@ describe('Import Nomination Files Use Case', () => {
     );
     uuidGenerator.nextUuids = [
       'nomination-file-id',
-      'second-nomination-file-id',
       gdsTransparenceId,
       nominationFilesImportedEventId,
+
+      'second-nomination-file-id',
+      'gds-transparence-parquet-id',
+      'parquet-event-id',
     ];
 
     await importAFile(
@@ -249,11 +254,13 @@ describe('Import Nomination Files Use Case', () => {
         .build(),
     );
 
-    expectTransparence(
-      [Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET],
-      marcelDupontModel,
-      lucienPierreModel,
-    );
+    expectTransparences(uneTranspaSiègeAvecDossiers(marcelDupontModel), {
+      id: 'gds-transparence-parquet-id',
+      createdAt: currentDate,
+      name: Transparency.AUTOMNE_2024,
+      formation: Magistrat.Formation.PARQUET,
+      nominationFiles: [lucienPierreModel],
+    });
   });
 
   describe('when an updated file is imported a second time', () => {
@@ -262,7 +269,7 @@ describe('Import Nomination Files Use Case', () => {
         id: gdsTransparenceId,
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
-        formations: new Set([Magistrat.Formation.SIEGE]),
+        formation: Magistrat.Formation.SIEGE,
         nominationFiles: [
           getFirstRow(),
           getMarcelDupontModelSnapshot('another-id', 2),
@@ -270,7 +277,7 @@ describe('Import Nomination Files Use Case', () => {
       });
 
       uuidGenerator.nextUuids = [
-        'lucien-nomination-file-id',
+        'third-nomination-file-id',
         nominationFilesImportedEventId,
         nominationFilesUpdatedEventId,
       ];
@@ -333,10 +340,11 @@ describe('Import Nomination Files Use Case', () => {
       'updates the $ruleName rule',
       async ({ genTsvValue, getExpectedNominationFile }) => {
         await importAFile(genTsvValue());
-        expectTransparence(
-          [Magistrat.Formation.SIEGE],
-          getExpectedNominationFile(),
-          getMarcelDupontModelSnapshot('another-id', 2),
+        expectTransparences(
+          uneTranspaSiègeAvecDossiers(
+            getExpectedNominationFile(),
+            getMarcelDupontModelSnapshot('another-id', 2),
+          ),
         );
       },
     );
@@ -365,10 +373,11 @@ describe('Import Nomination Files Use Case', () => {
           )
           .build(),
       );
-      expectTransparence(
-        [Magistrat.Formation.SIEGE],
-        getFirstRow(),
-        getMarcelDupontModelSnapshot('another-id', 2),
+      expectTransparences(
+        uneTranspaSiègeAvecDossiers(
+          getFirstRow(),
+          getMarcelDupontModelSnapshot('another-id', 2),
+        ),
       );
     });
 
@@ -378,15 +387,16 @@ describe('Import Nomination Files Use Case', () => {
           .fromModelSnapshot(getFirstRow())
           .fromModelSnapshot(getMarcelDupontModelSnapshot('another-id', 2))
           .fromModelSnapshot(
-            getLucienPierreModelSnapshot('lucien-nomination-file-id', 3),
+            getMarcelDupontModelSnapshot('third-nomination-file-id', 3),
           )
           .build(),
       );
-      expectTransparence(
-        [Magistrat.Formation.SIEGE],
-        getFirstRow(),
-        getMarcelDupontModelSnapshot('another-id', 2),
-        getLucienPierreModelSnapshot('lucien-nomination-file-id', 3),
+      expectTransparences(
+        uneTranspaSiègeAvecDossiers(
+          getFirstRow(),
+          getMarcelDupontModelSnapshot('another-id', 2),
+          getMarcelDupontModelSnapshot('third-nomination-file-id', 3),
+        ),
       );
     });
 
@@ -404,20 +414,19 @@ describe('Import Nomination Files Use Case', () => {
       ),
     ).execute(fileToImport);
 
-  const expectTransparence = (
-    formations: Magistrat.Formation[],
-    ...nominationFileSnapshots: NominationFileModelSnapshot[]
-  ) => {
+  const expectTransparences = (...transparences: TransparenceSnapshot[]) => {
     expect(transparenceRepository.getTransparences()).toEqual<
       TransparenceSnapshot[]
-    >([
-      {
-        id: gdsTransparenceId,
-        createdAt: dateTimeProvider.currentDate,
-        name: gdsTransparenceName,
-        formations: new Set(formations),
-        nominationFiles: nominationFileSnapshots,
-      },
-    ]);
+    >(transparences);
   };
+});
+
+const uneTranspaSiègeAvecDossiers = (
+  ...nominationFileSnapshots: NominationFileModelSnapshot[]
+): TransparenceSnapshot => ({
+  id: gdsTransparenceId,
+  createdAt: currentDate,
+  name: gdsTransparenceName,
+  formation: Magistrat.Formation.SIEGE,
+  nominationFiles: nominationFileSnapshots,
 });
