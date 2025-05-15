@@ -37,6 +37,7 @@ import { RouteToComponentFactory } from "../router/core-logic/components/routeTo
 import { RouterProvider } from "../router/core-logic/providers/router";
 import { createRouterSlice } from "../router/core-logic/reducers/router.slice";
 import { DataAdministrationGateway } from "../secretariat-general/core-logic/gateways/DataAdministration.gateway";
+import { createSecretariatGeneralSlice } from "../secretariat-general/core-logic/reducers/secretariatGeneral.slice";
 import { RealDateProvider } from "../shared-kernel/adapters/secondary/providers/realDateProvider";
 import { DateProvider } from "../shared-kernel/core-logic/providers/dateProvider";
 import { FileProvider } from "../shared-kernel/core-logic/providers/fileProvider";
@@ -205,6 +206,7 @@ export const initReduxStore = <
           nestedPrimaryAdapters.routeToComponentFactory?.(routeToComponentMap),
         routeChangedHandler: nestedPrimaryAdapters.routeChangedHandler,
       }).reducer,
+      secretariatGeneral: createSecretariatGeneralSlice().reducer,
     },
     middleware: (getDefaultMiddleware) => {
       const appDependencies: PartialAppDependencies<StoreTransparencies> = {

@@ -22,7 +22,8 @@ export const dataAdministrationUpload = createAppAsyncThunk<
     },
   ) => {
     const acceptedMimeTypes =
-      getState().reportOverview.acceptedMimeTypes.attachedFiles;
+      getState().secretariatGeneral.nouvelleTransparence.acceptedMimeTypes
+        .attachedFiles;
 
     fileProvider.assertMimeTypeFactory(acceptedMimeTypes);
 
