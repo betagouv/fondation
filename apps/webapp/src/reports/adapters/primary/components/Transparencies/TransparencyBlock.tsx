@@ -3,20 +3,17 @@ import { FC, PropsWithChildren } from "react";
 
 export type TransparencyBlockProps = {
   hidden?: boolean;
+  noTransparenciesText: string;
   title: string;
 } & PropsWithChildren;
 
 export const TransparencyBlock: FC<TransparencyBlockProps> = ({
   hidden = false,
   title,
+  noTransparenciesText,
   children,
 }) => (
-  <div
-    style={{
-      display: hidden ? "none" : undefined,
-    }}
-    className="flex-[1_1_0]"
-  >
+  <div className="flex-[1_1_0]">
     <h2
       style={{
         color: colors.decisions.text.title.blueFrance.default,
@@ -24,6 +21,7 @@ export const TransparencyBlock: FC<TransparencyBlockProps> = ({
     >
       {title}
     </h2>
-    {children}
+
+    {hidden ? noTransparenciesText : children}
   </div>
 );

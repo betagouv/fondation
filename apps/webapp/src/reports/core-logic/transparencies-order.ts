@@ -1,7 +1,7 @@
 import { Transparency } from "shared-models";
 import { UnionToTuple } from "type-fest";
 
-export const transparenciesOrder: UnionToTuple<Transparency> = [
+export const transparenciesOrder = [
   Transparency.AUTOMNE_2024,
   Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
   Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024,
@@ -14,4 +14,4 @@ export const transparenciesOrder: UnionToTuple<Transparency> = [
   Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
   Transparency.DU_30_AVRIL_2025,
   Transparency.MARCH_2026,
-];
+].reverse() as UnionToTuple<Transparency>;

@@ -92,7 +92,7 @@ describe("Transparencies Component", () => {
     expect(
       screen.getByText("Sur quel type de saisine souhaitez-vous travailler ?"),
     ).not.toBeVisible();
-    expect(screen.getByText(gdsTitle)).not.toBeVisible();
+    expect(screen.getByText(gdsTitle)).toBeVisible();
   });
 
   describe("GDS transparencies", () => {

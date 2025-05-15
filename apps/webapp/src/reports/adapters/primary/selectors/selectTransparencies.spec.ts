@@ -61,7 +61,7 @@ describe("Select Transparencies", () => {
     }[] = [
       {
         description: "reports for the parquet with a supported one",
-        reports: [aParquetReport, aSupportedParquetReport],
+        reports: [aParquetReport],
         formationsCount: 1,
         expectedTransparencies: {
           PARQUET: [
@@ -121,19 +121,19 @@ describe("Select Transparencies", () => {
         .buildListSM();
 
       store.dispatch(
-        listReport.fulfilled([secondReport, firstReport], "", undefined),
+        listReport.fulfilled([firstReport, secondReport], "", undefined),
       );
 
       expectGdsTransparencies(1, {
         [Magistrat.Formation.PARQUET]: [
           {
-            label: transparencyToLabel(firstReport.transparency),
-            href: `/transparences/${firstReport.transparency}`,
+            label: transparencyToLabel(secondReport.transparency),
+            href: `/transparences/${secondReport.transparency}`,
             onClick: expect.any(Function),
           },
           {
-            label: transparencyToLabel(secondReport.transparency),
-            href: `/transparences/${secondReport.transparency}`,
+            label: transparencyToLabel(firstReport.transparency),
+            href: `/transparences/${firstReport.transparency}`,
             onClick: expect.any(Function),
           },
         ],
@@ -200,12 +200,6 @@ const aSiegeReport = new ReportBuilder()
   .with("state", NominationFile.ReportState.NEW)
   .with("formation", Magistrat.Formation.SIEGE)
   .with("transparency", Transparency.SIEGE_DU_06_FEVRIER_2025)
-  .buildListSM();
-
-const aSupportedParquetReport = new ReportBuilder()
-  .with("state", NominationFile.ReportState.SUPPORTED)
-  .with("formation", Magistrat.Formation.PARQUET)
-  .with("transparency", Transparency.AUTOMNE_2024)
   .buildListSM();
 
 const activeParquetReportBuilder = new ReportBuilder()

@@ -14,6 +14,7 @@ export const Transparencies = () => {
   const gdsTransparencies = transparencies["GARDE DES SCEAUX"];
   const user = useAppSelector(selectAuthenticatedUser);
   const civility = user?.civility;
+
   return (
     <div className={clsx("gap-10", cx("fr-grid-row"))}>
       <div>
@@ -28,13 +29,7 @@ export const Transparencies = () => {
           </span>
           .
         </h1>
-        <p
-          style={{
-            display: transparencies.noTransparencies ? undefined : "none",
-          }}
-        >
-          Il n'y a pas de transparences actives.
-        </p>
+
         <p
           style={{
             display: transparencies.noTransparencies ? "none" : undefined,

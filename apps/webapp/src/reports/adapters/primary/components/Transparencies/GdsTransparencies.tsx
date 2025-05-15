@@ -62,6 +62,7 @@ export const GdsTransparencies = ({
     <TransparencyBlock
       hidden={gdsTransparencies.noGdsTransparencies}
       title="Pouvoir de proposition du GDS"
+      noTransparenciesText="Il n'y a pas de transparences actives."
     >
       <Tabs
         style={{

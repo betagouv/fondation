@@ -1,13 +1,13 @@
-import { Magistrat, NominationFile } from "shared-models";
+import _ from "lodash";
+import { Magistrat } from "shared-models";
+import { AppState, ReportListItem } from "../../../../store/appState";
 import { createAppSelector } from "../../../../store/createAppSelector";
+import { transparenciesOrder } from "../../../core-logic/transparencies-order";
 import {
   formationToLabel,
   TransparencyLabel,
   transparencyToLabel,
 } from "../labels/labels-mappers";
-import { AppState, ReportListItem } from "../../../../store/appState";
-import { transparenciesOrder } from "../../../core-logic/transparencies-order";
-import _ from "lodash";
 
 export type GdsFormationVM = {
   formationLabel: string;
@@ -111,14 +111,18 @@ function formatGdsTransparencies(
       report,
     ) => {
       const transparencyLabel = transparencyToLabel(report.transparency);
-      const activeReportInTransparency =
-        report.state !== NominationFile.ReportState.SUPPORTED;
 
-      if (activeReportInTransparency) {
-        if (report.formation === Magistrat.Formation.PARQUET)
+      switch (report.formation) {
+        case Magistrat.Formation.PARQUET:
           accumulateTransparency(Magistrat.Formation.PARQUET);
-        if (report.formation === Magistrat.Formation.SIEGE)
+          break;
+        case Magistrat.Formation.SIEGE:
           accumulateTransparency(Magistrat.Formation.SIEGE);
+          break;
+        default: {
+          const _exhaustiveCheck: never = report.formation;
+          throw new Error(`Unknown formation: ${_exhaustiveCheck}`);
+        }
       }
 
       return acc;
