@@ -44,9 +44,12 @@ describe("NouvelleTransparence", () => {
     renderNouvelleTransparence(store);
 
     expect(
-      await screen.findByLabelText("Nom de la transparence"),
+      await screen.findByLabelText("Nom de la transparence*"),
     ).toBeInTheDocument();
-    expect(await screen.findByLabelText("Formation")).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Date de la transparence*"),
+    ).toBeInTheDocument();
+    expect(await screen.findByLabelText("Formation*")).toBeInTheDocument();
     expect(
       await screen.getByText(formationToLabel(Magistrat.Formation.SIEGE)),
     ).toBeInTheDocument();
@@ -54,6 +57,9 @@ describe("NouvelleTransparence", () => {
       await screen.getByText(formationToLabel(Magistrat.Formation.PARQUET)),
     ).toBeInTheDocument();
     expect(await screen.findByLabelText("Date d'échéance")).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Date de la prise de poste"),
+    ).toBeInTheDocument();
     expect(await screen.findByText("Annuler")).toBeInTheDocument();
     expect(await screen.findByText("Enregistrer")).toBeInTheDocument();
   });
