@@ -126,4 +126,11 @@ export interface AppState<
     routeToComponent: ReturnType<RouteToComponentFactory>;
     routeChangedHandler: RouteChangedHandler;
   };
+  secretariatGeneral: {
+    nouvelleTransparence: {
+      acceptedMimeTypes: {
+        attachedFiles: string[];
+      };
+    };
+  };
 }
