@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { Provider } from "react-redux";
 import { Magistrat } from "shared-models";
@@ -68,5 +69,79 @@ describe("NouvelleTransparence", () => {
     expect(await screen.findByText("Fichier*")).toBeInTheDocument();
   });
 
-  // TODO CREATE A TEST FOR THE VALIDATION FORM
+  it("should display an error message if the form is invalid", async () => {
+    renderNouvelleTransparence(store);
+
+    const saveButton = await screen.findByText("Enregistrer");
+    userEvent.click(saveButton);
+
+    expect(
+      await screen.findByText("Le nom de la transparence est requis."),
+    ).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("La date de la transparence est requise."),
+    ).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("Le fichier de la transparence est requis."),
+    ).toBeInTheDocument();
+  });
+
+  it("should display an error message if the file is not valid", async () => {
+    renderNouvelleTransparence(store);
+    const fileInput = screen.getByLabelText(/fichier/i);
+    const invalidFile = new File(["test content"], "test.txt", {
+      type: "text/plain",
+    });
+
+    await userEvent.upload(fileInput, invalidFile);
+
+    const saveButton = screen.getByRole("button", { name: /enregistrer/i });
+    await userEvent.click(saveButton);
+
+    expect(
+      await screen.findByText("Veuillez importer un fichier au bon format."),
+    ).toBeInTheDocument();
+  });
+
+  it("should reset all form fields when the user clicks on the cancel button", async () => {
+    renderNouvelleTransparence(store);
+    const nameInput = screen.getByLabelText("Nom de la transparence*");
+    const dateInput = screen.getByLabelText("Date de la transparence*");
+    const formationSelect = screen.getByLabelText("Formation*");
+    const dueDateInput = screen.getByLabelText("Date d'échéance");
+    const jobDateInput = screen.getByLabelText("Date de la prise de poste");
+    const fileInput = screen.getByLabelText(/fichier/i) as HTMLInputElement;
+
+    await userEvent.type(nameInput, "Test Transparence");
+    await userEvent.type(dateInput, "2024-03-20");
+    await userEvent.selectOptions(formationSelect, "SIEGE");
+    await userEvent.type(dueDateInput, "2024-04-20");
+    await userEvent.type(jobDateInput, "2024-05-20");
+
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    await userEvent.upload(fileInput, file);
+
+    // Vérifier que les champs sont remplis
+    expect(nameInput).toHaveValue("Test Transparence");
+    expect(dateInput).toHaveValue("2024-03-20");
+    expect(formationSelect).toHaveValue("SIEGE");
+    expect(dueDateInput).toHaveValue("2024-04-20");
+    expect(jobDateInput).toHaveValue("2024-05-20");
+
+    // Cliquer sur le bouton Annuler
+    const cancelButton = screen.getByRole("button", { name: /annuler/i });
+    await userEvent.click(cancelButton);
+
+    // Vérifier que tous les champs sont vides
+    expect(nameInput).toHaveValue("");
+    expect(dateInput).toHaveValue("");
+    expect(formationSelect).toHaveValue("SIEGE");
+    expect(dueDateInput).toHaveValue("");
+    expect(jobDateInput).toHaveValue("");
+    expect(fileInput.files?.length).toBe(1);
+  });
 });
