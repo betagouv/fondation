@@ -158,6 +158,8 @@ export class ReportRetrievalBuilder<
       ReportRetrievalVM | ReportRetrievalQueried
     >()
       .with('id', report.id)
+      .with('dossierDeNominationId', report.dossierDeNominationId)
+      .with('sessionId', report.sessionId)
       .with('state', report.state)
       .with('formation', report.formation)
       .with('comment', report.comment);

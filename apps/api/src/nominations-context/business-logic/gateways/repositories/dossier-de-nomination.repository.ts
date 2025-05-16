@@ -3,11 +3,10 @@ import { DossierDeNomination } from '../../models/dossier-de-nomination';
 
 export interface DossierDeNominationRepository {
   save(dossier: DossierDeNomination): TransactionableAsync;
-  findById(id: string): TransactionableAsync<DossierDeNomination | null>;
-  findBySessionId(
-    sessionId: string,
-  ): TransactionableAsync<DossierDeNomination[]>;
+  dossierDeNomination(
+    id: string,
+  ): TransactionableAsync<DossierDeNomination | null>;
   findByImportedId(
-    nominationFileImportedId: string,
+    importedId: string,
   ): TransactionableAsync<DossierDeNomination | null>;
 }

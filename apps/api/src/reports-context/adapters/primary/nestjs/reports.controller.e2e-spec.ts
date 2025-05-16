@@ -98,7 +98,6 @@ describe('Reports Controller', () => {
       transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
       grade: Magistrat.Grade.HH,
       targettedPosition: 'a position',
-      observersCount: 1,
     };
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681138')

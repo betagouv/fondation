@@ -8,16 +8,19 @@ import { AffectationSnapshot } from 'src/nominations-context/business-logic/mode
 import { DossierDeNominationSnapshot } from 'src/nominations-context/business-logic/models/dossier-de-nomination';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { getDependencies } from '../../../../tests-dependencies';
-import { TypeDeSaisine } from '../../../models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
 import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-dossiers-transparence.use-case';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
+export const aParquetTransparenceImportId = 'transparence-import-id';
+export const aSiègeTransparenceImportId = 'siège-transparence-import-id';
 export const aDossierDeNominationId = 'dossier-de-nomination-id';
 export const aDossierDeNominationImportedId =
   'dossier-de-nomination-imported-id';
 export const anEventId = 'event-id';
-export const aSessionId = 'a-session-id';
+export const aParquetSessionId = 'a-session-id';
+export const aSiègeSessionId = 'siège-session-id';
 export const aFormation = Magistrat.Formation.PARQUET;
 export const aAffectationId = 'affectation-id';
 export const aPréAnalyseId = 'préanalyse-id';
@@ -56,11 +59,11 @@ export const aDossierDeNominationPayload: GdsTransparenceNominationFilesAddedEve
   };
 
 export const aParquetCommand = new ImportNouveauxDossiersTransparenceCommand(
-  aTransparencyName,
+  aParquetTransparenceImportId,
   [aDossierDeNominationPayload],
 );
 export const aSiègeCommand = new ImportNouveauxDossiersTransparenceCommand(
-  aTransparencyName,
+  aSiègeTransparenceImportId,
   [
     {
       nominationFileId: 'siege-dossier-imported-id',
@@ -73,7 +76,7 @@ export const aSiègeCommand = new ImportNouveauxDossiersTransparenceCommand(
 );
 
 export const aSecondSiègeCommand =
-  new ImportNouveauxDossiersTransparenceCommand(aTransparencyName, [
+  new ImportNouveauxDossiersTransparenceCommand(aSiègeTransparenceImportId, [
     {
       nominationFileId: 'second-siege-dossier-imported-id',
       content: {
@@ -94,10 +97,10 @@ export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
 };
 export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
   sessionRepository.sessions = {
-    [aTransparencyName]: {
-      id: aSessionId,
+    [aParquetSessionId]: {
+      id: aParquetSessionId,
       name: aTransparencyName,
-      dataAdministrationImportId: aSessionId,
+      sessionImportéeId: aParquetTransparenceImportId,
       version: 0,
       formation: aFormation,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
@@ -105,9 +108,24 @@ export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
   };
 };
 
+export const givenUneSessionSiège = (
+  sessionRepository: FakeSessionRepository,
+) => {
+  sessionRepository.sessions = {
+    [aSiègeSessionId]: {
+      id: aSiègeSessionId,
+      name: aTransparencyName,
+      sessionImportéeId: aSiègeTransparenceImportId,
+      version: 0,
+      formation: Magistrat.Formation.SIEGE,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+    },
+  };
+};
+
 export const unDossierSiège = {
   id: 'siege-dossier-id',
-  sessionId: aSessionId,
+  sessionId: aSiègeSessionId,
   nominationFileImportedId: 'siege-dossier-imported-id',
   content: {
     biography: 'Nominee biography',
@@ -129,7 +147,7 @@ export const givenUnDossierDuSiège = (
 
 export const uneAffectationParquet: AffectationSnapshot = {
   id: aAffectationId,
-  sessionId: aSessionId,
+  sessionId: aParquetSessionId,
   formation: aFormation,
   affectationsDossiersDeNominations: [
     {
@@ -141,7 +159,7 @@ export const uneAffectationParquet: AffectationSnapshot = {
 
 export const uneAffectionSiège = {
   id: 'affectation-siège-id',
-  sessionId: aSessionId,
+  sessionId: aSiègeSessionId,
   formation: Magistrat.Formation.SIEGE,
   affectationsDossiersDeNominations: [
     {
@@ -153,7 +171,7 @@ export const uneAffectionSiège = {
 
 export const uneAffectationSiègeAvecDeuxDossiers = {
   id: 'affectation-siège-id',
-  sessionId: aSessionId,
+  sessionId: aSiègeSessionId,
   formation: Magistrat.Formation.SIEGE,
   affectationsDossiersDeNominations: [
     {

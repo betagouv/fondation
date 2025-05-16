@@ -22,4 +22,17 @@ export class FakeSessionRepository implements SessionRepository {
       return Session.fromSnapshot(transparence);
     };
   }
+
+  bySessionImportéeId(
+    sessionImportéeId: string,
+  ): TransactionableAsync<Session | null> {
+    return async () => {
+      const session = Object.values(this.sessions).find(
+        (s) => s.sessionImportéeId === sessionImportéeId,
+      );
+      if (!session) return null;
+
+      return Session.fromSnapshot(session);
+    };
+  }
 }

@@ -21,7 +21,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     const reportWithRules = await this.db
       .select({
         reportId: reports.id,
-        dossierDeNominationId: reports.nominationFileId,
+        dossierDeNominationId: reports.dossierDeNominationId,
         sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,

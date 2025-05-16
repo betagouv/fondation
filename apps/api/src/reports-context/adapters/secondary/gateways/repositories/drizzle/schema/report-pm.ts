@@ -10,7 +10,7 @@ export const reports = reportsContextSchema.table('reports', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   reporterId: uuid('reporter_id').notNull(),
-  nominationFileId: uuid('nomination_file_id').notNull(),
+  dossierDeNominationId: uuid('nomination_file_id').notNull(),
   sessionId: uuid('session_id').notNull(),
   version: integer('version').notNull().default(1),
   createdAt: timestamp('created_at').notNull().defaultNow(),

@@ -2,7 +2,7 @@ import { DateOnlyJson, Magistrat } from 'shared-models';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
-import { TypeDeSaisine } from './type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 type ContenuInconnu = Record<string, unknown>;
 
@@ -50,6 +50,11 @@ export type DossierDeNominationSnapshot<
   nominationFileImportedId: string;
   content: DossierDeNominationContent<S>;
 };
+
+export const dossierDeNominationContentSchema = z.record(
+  z.string(),
+  z.unknown(),
+);
 
 export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
   private constructor(

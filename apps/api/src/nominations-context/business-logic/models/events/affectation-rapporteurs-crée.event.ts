@@ -6,7 +6,7 @@ import {
   AffectationSnapshot,
 } from '../affectation';
 import { DomainRegistry } from '../domain-registry';
-import { TypeDeSaisine } from '../type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 export type AffectationRapporteursCréeEventPayload = {
   id: string;

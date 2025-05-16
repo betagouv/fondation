@@ -1,9 +1,11 @@
 import { Magistrat } from 'shared-models';
+import { DomainRegistry } from 'src/nominations-context/business-logic/models/domain-registry';
 import {
   Session,
   SessionSnapshot,
 } from 'src/nominations-context/business-logic/models/session';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
+import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -18,6 +20,7 @@ import { SqlSessionRepository } from './sql-session.repository';
 describe('SQL Session Repository', () => {
   let sqlSessionRepository: SqlSessionRepository;
   let transactionPerformer: TransactionPerformer;
+  let uuidGenerator: DeterministicUuidGenerator;
   let db: DrizzleDb;
 
   beforeAll(() => {
@@ -28,6 +31,9 @@ describe('SQL Session Repository', () => {
     await clearDB(db);
     sqlSessionRepository = new SqlSessionRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
+    uuidGenerator = new DeterministicUuidGenerator();
+    uuidGenerator.nextUuids = [aSessionId];
+    DomainRegistry.setUuidGenerator(uuidGenerator);
   });
 
   afterAll(async () => {
@@ -36,10 +42,10 @@ describe('SQL Session Repository', () => {
 
   it('saves a session', async () => {
     const aSession = Session.nouvelle(
-      aSessionId,
+      aSessionimportéeId,
       aSessionName,
       aTypeDeSaisine,
-      someFormations,
+      aFormation,
     );
 
     await transactionPerformer.perform(sqlSessionRepository.save(aSession));
@@ -55,20 +61,42 @@ describe('SQL Session Repository', () => {
       await db.insert(sessionPm).values(sessionSnapshot);
     });
 
-    it('retrieves a session by id', async () => {
-      const result = await transactionPerformer.perform(
-        sqlSessionRepository.session(aSessionId),
-      );
+    describe('by ID', () => {
+      it('retrieves a session', async () => {
+        const result = await transactionPerformer.perform(
+          sqlSessionRepository.session(aSessionId),
+        );
 
-      expect(result?.snapshot()).toEqual<SessionSnapshot>(sessionSnapshot);
+        expect(result?.snapshot()).toEqual<SessionSnapshot>(sessionSnapshot);
+      });
+
+      it('returns null when a session is not found', async () => {
+        const nonExistentId = '885e0f4b-0ace-4023-a8bc-b3a678448e51';
+        const result = await transactionPerformer.perform(
+          sqlSessionRepository.session(nonExistentId),
+        );
+
+        expect(result).toBeNull();
+      });
     });
 
-    it('returns null when a session is not found', async () => {
-      const result = await transactionPerformer.perform(
-        sqlSessionRepository.session('non-existent-id'),
-      );
+    describe('by session import ID', () => {
+      it('retrieves a session', async () => {
+        const result = await transactionPerformer.perform(
+          sqlSessionRepository.bySessionImportéeId(aSessionimportéeId),
+        );
 
-      expect(result).toBeNull();
+        expect(result?.snapshot()).toEqual<SessionSnapshot>(sessionSnapshot);
+      });
+
+      it('returns null when a session is not found', async () => {
+        const nonExistentId = '885e0f4b-0ace-4023-a8bc-b3a678448e51';
+        const result = await transactionPerformer.perform(
+          sqlSessionRepository.bySessionImportéeId(nonExistentId),
+        );
+
+        expect(result).toBeNull();
+      });
     });
 
     it('updates an existing session', async () => {
@@ -101,16 +129,17 @@ describe('SQL Session Repository', () => {
   };
 });
 
-const aSessionId = 'test-session-id';
+const aSessionId = '733f92e9-57c7-4202-a742-d9a040104ccb';
 const aSessionName = 'test-session-name';
+const aSessionimportéeId = '2e470647-787c-474d-aa21-f8129b772aee';
 const aTypeDeSaisine = TypeDeSaisine.TRANSPARENCE_GDS;
-const someFormations = [Magistrat.Formation.PARQUET, Magistrat.Formation.SIEGE];
+const aFormation = Magistrat.Formation.PARQUET;
 
 const sessionSnapshot: SessionSnapshot = {
   id: aSessionId,
-  dataAdministrationImportId: 'test-data-administration-import-id',
+  sessionImportéeId: aSessionimportéeId,
   name: aSessionName,
-  formation: someFormations,
+  formation: aFormation,
   typeDeSaisine: aTypeDeSaisine,
   version: 1,
 };

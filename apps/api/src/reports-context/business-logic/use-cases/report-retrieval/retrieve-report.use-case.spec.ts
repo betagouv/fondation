@@ -1,5 +1,5 @@
 import { ReportRetrievalVM } from 'shared-models';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { ReportRetrievalQueried } from '../../gateways/queries/report-retrieval-vm.query';
 import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
@@ -78,5 +78,7 @@ const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: aReportVM.transparency,
-  formation: [aReportVM.formation],
+  formation: aReportVM.formation,
+  sessionImportéeId: 'data-administration-import-id',
+  version: 1,
 };

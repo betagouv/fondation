@@ -61,7 +61,7 @@ export class SqlReportRepository implements ReportRepository {
       const results = await db
         .select()
         .from(reports)
-        .where(eq(reports.nominationFileId, nominationFileId));
+        .where(eq(reports.dossierDeNominationId, nominationFileId));
       if (results.length === 0) return null;
 
       return results.map((reportRow) =>
@@ -79,7 +79,7 @@ export class SqlReportRepository implements ReportRepository {
   ): typeof reports.$inferInsert {
     return {
       id: reportSnapshot.id,
-      nominationFileId: reportSnapshot.dossierDeNominationId,
+      dossierDeNominationId: reportSnapshot.dossierDeNominationId,
       sessionId: reportSnapshot.sessionId,
       createdAt: reportSnapshot.createdAt,
       reporterId: reportSnapshot.reporterId,
@@ -94,7 +94,7 @@ export class SqlReportRepository implements ReportRepository {
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
-    const { nominationFileId: dossierDeNominationId, ...reportRow } = row;
+    const { dossierDeNominationId, ...reportRow } = row;
     const attachedFiles = attachedFilesValidationSchema.parse(
       row.attachedFiles,
     );

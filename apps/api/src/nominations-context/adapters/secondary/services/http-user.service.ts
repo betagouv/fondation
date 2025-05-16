@@ -5,7 +5,7 @@ import {
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { UserService } from 'src/nominations-context/business-logic/services/user.service';
-import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/systemRequestHeaderKey';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 type Endpoints = IdentityAndAccessRestContract['endpoints'];

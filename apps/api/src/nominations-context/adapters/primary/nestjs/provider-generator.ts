@@ -1,10 +1,10 @@
 import { FactoryProvider } from '@nestjs/common';
-import { Class } from 'type-fest';
-import { NominationsInjectionTokenMap, nominationsTokens } from './tokens';
 import {
   InjectedTokens,
   generateProvider,
 } from 'src/shared-kernel/adapters/primary/nestjs/provider-generator';
+import { Class } from 'type-fest';
+import { NominationsInjectionTokenMap, nominationsTokens } from './tokens';
 
 export function generateNominationsProvider<
   T extends Class<any>,

@@ -5,7 +5,7 @@ import {
   AffectationRapporteursCréeEvent,
   AffectationRapporteursCréeEventPayload,
 } from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
 import { MainAppConfigurator } from 'src/main.configurator';
 import {
@@ -58,6 +58,7 @@ describe('Affectation Rapporteurs Créée Nest subscriber', () => {
   afterAll(async () => await db.$client.end());
 
   it("forward l'évènement au subscriber métier", async () => {
+    const event = AffectationRapporteursCréeEvent.create(payload);
     await transactionPerformer.perform(domainEventRepository.save(event));
     await setTimeout(600);
 
@@ -77,5 +78,3 @@ const payload: AffectationRapporteursCréeEventPayload = {
     },
   ],
 };
-
-const event = AffectationRapporteursCréeEvent.create(payload);

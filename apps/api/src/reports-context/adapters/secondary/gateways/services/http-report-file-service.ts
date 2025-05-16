@@ -7,7 +7,7 @@ import {
   ReportFileService,
 } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { ReportAttachedFile } from 'src/reports-context/business-logic/models/report-attached-file';
-import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/systemRequestHeaderKey';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 
 type Endpoints = FilesContextRestContract['endpoints'];

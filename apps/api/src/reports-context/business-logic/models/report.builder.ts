@@ -76,6 +76,7 @@ export class ReportBuilder {
     return new ReportBuilder()
       .with('id', report.id)
       .with('dossierDeNominationId', report.dossierDeNominationId)
+      .with('sessionId', report.sessionId)
       .with('reporterId', report.reporterId)
       .with('version', report.version)
       .with('state', report.state)

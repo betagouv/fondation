@@ -1,3 +1,4 @@
+import { TypeDeSaisine } from 'shared-models';
 import {
   AffectationRapporteursCréeEvent,
   AffectationRapporteursCréeEventPayload,
@@ -6,7 +7,6 @@ import {
   AffectationRapporteursModifiéeEvent,
   AffectationRapporteursModifiéeEventPayload,
 } from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-modifiée.event';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
 import { currentDate, getDependencies } from '../../../../tests-dependencies';
 import { AffectationSnapshot } from '../../../models/affectation';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
@@ -16,6 +16,7 @@ import {
   givenSomeUuids,
   givenUneAffectationSiège,
   givenUneSession,
+  givenUneSessionSiège,
   importNouveauxDossiersUseCase,
   lucLoïcUser,
   uneAffectationParquet,
@@ -37,7 +38,7 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
 
   it("informe que l'affectation a été créée", async () => {
     await créerAffectationRapporteurs(aParquetCommand);
-    expectDomainEvent(AffectationRapporteursCréeEvent.name, {
+    expectDomainEvent(1, AffectationRapporteursCréeEvent.name, {
       ...uneAffectationParquet,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     });
@@ -49,9 +50,13 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
   });
 
   describe('Affectation "Siège" modifiée', () => {
+    beforeEach(() => {
+      givenUneSessionSiège(dependencies.sessionRepository);
+    });
+
     it("informe que l'affectation a été modifiée", async () => {
       await créerAffectationRapporteurs(aSecondSiègeCommand);
-      expectDomainEvent(AffectationRapporteursModifiéeEvent.name, {
+      expectDomainEvent(1, AffectationRapporteursModifiéeEvent.name, {
         ...uneAffectationSiègeAvecDeuxDossiers,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         affectationsDossiersDeNominations: [
@@ -79,13 +84,13 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
     >(affectations);
 
   const expectDomainEvent = (
+    index: number,
     name: string,
     payload:
       | AffectationRapporteursModifiéeEventPayload
       | AffectationRapporteursCréeEventPayload,
   ) => {
-    const event = dependencies.domainEventRepository.events[1]!;
-    expect(dependencies.domainEventRepository.events).toHaveLength(2);
+    const event = dependencies.domainEventRepository.events[index]!;
     expect(event.type).toEqual(name);
     expect(event.payload).toEqual(payload);
     expect(event.occurredOn).toEqual(currentDate);

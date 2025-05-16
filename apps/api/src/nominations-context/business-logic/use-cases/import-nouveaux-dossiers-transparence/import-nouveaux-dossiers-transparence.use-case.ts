@@ -13,7 +13,7 @@ export class ImportNouveauxDossiersTransparenceUseCase {
 
   execute(command: ImportNouveauxDossiersTransparenceCommand): Promise<void> {
     return this.transactionPerformer.perform(async (trx) => {
-      const session = await this.sessionRepository.session(
+      const session = await this.sessionRepository.bySessionImportéeId(
         command.transparenceId,
       )(trx);
 

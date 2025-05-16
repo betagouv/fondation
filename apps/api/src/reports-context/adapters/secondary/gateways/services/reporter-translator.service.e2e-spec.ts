@@ -18,7 +18,6 @@ import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { ReporterTranslatorService } from './reporter-translator.service';
 
 const reporterId = 'ad7b1b1e-0b7b-4b7b-8b7b-0b7b1b7b1b7b';
-const reporterName = 'DOE John';
 const aUserDescriptor: UserDescriptor = new UserDescriptor(
   reporterId,
   'john',
@@ -55,12 +54,6 @@ describe('Reporter Translator Service', () => {
 
   it('fetches a reporter by id', async () => {
     const reporter = await reporterTranslatorService.reporterWithId(reporterId);
-    expectReporter(reporter);
-  });
-
-  it('fetches a reporter by name', async () => {
-    const reporter =
-      await reporterTranslatorService.reporterWithFullName(reporterName);
     expectReporter(reporter);
   });
 

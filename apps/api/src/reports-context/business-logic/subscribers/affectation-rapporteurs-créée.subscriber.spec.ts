@@ -1,6 +1,6 @@
 import { Magistrat } from 'shared-models';
 import { AffectationRapporteursCréeEventPayload } from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { getDependencies } from '../test-dependencies';
 import { CreateReportCommand } from '../use-cases/report-creation/create-report.use-case';
 import { AffectationRapporteursCrééeSubscriber } from './affectation-rapporteurs-créée.subscriber';

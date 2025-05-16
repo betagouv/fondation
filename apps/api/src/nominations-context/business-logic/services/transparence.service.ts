@@ -1,4 +1,3 @@
-import { Magistrat } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -9,7 +8,7 @@ import { PréAnalyseRepository } from '../gateways/repositories/pré-analyse.rep
 import { SessionRepository } from '../gateways/repositories/session.repository';
 import { GdsTransparenceEventTransformer } from '../models/gds-transparence-event-transformer';
 import { Session } from '../models/session';
-import { TypeDeSaisine } from '../models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
 
 export class TransparenceService {
@@ -66,34 +65,29 @@ export class TransparenceService {
     dossiersTransformer: GdsTransparenceEventTransformer,
   ): TransactionableAsync {
     return async (trx) => {
-      const affectationsExistantes =
-        await this.affectationRepository.affectations(session.id)(trx);
+      const affectationExistante = await this.affectationRepository.bySessionId(
+        session.id,
+      )(trx);
 
-      for (const formation of Object.values(Magistrat.Formation)) {
-        const affectationExistante = affectationsExistantes[formation];
+      if (affectationExistante) {
+        const affectationModifiéeEvent =
+          dossiersTransformer.mettreàJourAffectationRapporteurs(
+            affectationExistante,
+          );
+        if (affectationModifiéeEvent) {
+          await this.affectationRepository.save(affectationExistante)(trx);
+          await this.domainEventRepository.save(affectationModifiéeEvent)(trx);
+        }
+      } else {
+        const [affectation, affectationcréeEvent] =
+          dossiersTransformer.créerAffectationRapporteurs(
+            session.formation,
+            TypeDeSaisine.TRANSPARENCE_GDS,
+          );
 
-        if (affectationExistante) {
-          const affectationModifiéeEvent =
-            dossiersTransformer.mettreàJourAffectationRapporteurs(
-              affectationExistante,
-            );
-          if (affectationModifiéeEvent) {
-            await this.affectationRepository.save(affectationExistante)(trx);
-            await this.domainEventRepository.save(affectationModifiéeEvent)(
-              trx,
-            );
-          }
-        } else {
-          const [affectation, affectationcréeEvent] =
-            dossiersTransformer.créerAffectationRapporteurs(
-              formation,
-              TypeDeSaisine.TRANSPARENCE_GDS,
-            );
-
-          if (affectation && affectationcréeEvent) {
-            await this.affectationRepository.save(affectation)(trx);
-            await this.domainEventRepository.save(affectationcréeEvent)(trx);
-          }
+        if (affectation && affectationcréeEvent) {
+          await this.affectationRepository.save(affectation)(trx);
+          await this.domainEventRepository.save(affectationcréeEvent)(trx);
         }
       }
     };
