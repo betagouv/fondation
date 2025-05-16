@@ -2,7 +2,7 @@ import { ReportRetrievalVM, Transparency } from 'shared-models';
 import { ReportRetrievalQuery } from '../../gateways/queries/report-retrieval-vm.query';
 import { SessionService } from '../../gateways/services/session.service';
 import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 export class RetrieveReportUseCase {
   constructor(

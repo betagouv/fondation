@@ -1,4 +1,4 @@
-import { ReportListItemQueried } from 'shared-models';
+import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -36,9 +36,7 @@ describe('SQL Report Listing VM Query', () => {
     const result = await sqlReportListingVMRepository.listReports(
       'bb8b1056-9573-4b9d-8161-d8e2b8fee462',
     );
-    expect(result).toEqual({
-      data: [],
-    });
+    expect(result).toEqual<Result>([]);
   });
 
   describe('when there is a report', () => {
@@ -50,8 +48,9 @@ describe('SQL Report Listing VM Query', () => {
 
       anotherReport = new ReportBuilder()
         .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
-        .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
+        .with('sessionId', '885e0f4b-0ace-4023-a8bc-b3a678448e51')
         .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
+        .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
         .build();
 
       await givenSomeReports(aReport, anotherReport);
@@ -61,7 +60,7 @@ describe('SQL Report Listing VM Query', () => {
       const result = await sqlReportListingVMRepository.listReports(
         aReport.reporterId!,
       );
-      expect(result).toEqual<ReportListItemQueried[]>([
+      expect(result).toEqual<Result>([
         {
           id: aReport.id,
           dossierDeNominationId: aReport.dossierDeNominationId,
@@ -73,3 +72,5 @@ describe('SQL Report Listing VM Query', () => {
     });
   });
 });
+
+type Result = Awaited<ReturnType<ReportListingQuery['listReports']>>;

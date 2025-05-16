@@ -1,7 +1,7 @@
 import { ReportListingVM } from 'shared-models';
 import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
 import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { SessionService } from '../../gateways/services/session.service';
 
 export class ListReportsUseCase {

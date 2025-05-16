@@ -15,22 +15,11 @@ export class FakeDossierDeNominationRepository
     };
   }
 
-  findById(id: string) {
+  dossierDeNomination(id: string) {
     return async () => {
       const snapshot = this.dossiers[id];
-      if (!snapshot) {
-        return null;
-      }
-
+      if (!snapshot) return null;
       return DossierDeNomination.fromSnapshot(snapshot);
-    };
-  }
-
-  findBySessionId(sessionId: string) {
-    return async () => {
-      return Object.values(this.dossiers)
-        .filter((snapshot) => snapshot.sessionId === sessionId)
-        .map(DossierDeNomination.fromSnapshot);
     };
   }
 

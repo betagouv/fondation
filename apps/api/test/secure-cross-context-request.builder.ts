@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
-import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/systemRequestHeaderKey';
 import supertest, { Test } from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 

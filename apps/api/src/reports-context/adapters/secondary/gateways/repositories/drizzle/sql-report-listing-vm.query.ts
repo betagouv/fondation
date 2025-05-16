@@ -10,7 +10,7 @@ export class SqlReportListingQuery implements ReportListingQuery {
     const reportsData = await this.db
       .select({
         id: reports.id,
-        dossierDeNominationId: reports.nominationFileId,
+        dossierDeNominationId: reports.dossierDeNominationId,
         sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,

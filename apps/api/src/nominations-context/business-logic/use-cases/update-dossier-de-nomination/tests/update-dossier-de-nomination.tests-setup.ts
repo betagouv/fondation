@@ -34,7 +34,7 @@ export const modifiedRules = {
 
 export const nominationFileModificationWithObservers: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
   {
-    nominationFileId: 'existing-dossier-de-nomination-id',
+    nominationFileId: dossierDeNominationImportedId,
     content: {
       observers: ['observer-1', 'observer-2'],
     },
@@ -42,7 +42,7 @@ export const nominationFileModificationWithObservers: GdsTransparenceNominationF
 
 export const nominationFileModificationWithFolderNumber: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
   {
-    nominationFileId: 'existing-dossier-de-nomination-id',
+    nominationFileId: dossierDeNominationImportedId,
     content: {
       folderNumber: 42,
     },
@@ -50,7 +50,7 @@ export const nominationFileModificationWithFolderNumber: GdsTransparenceNominati
 
 export const nominationFileModificationWithRules: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
   {
-    nominationFileId: 'existing-dossier-de-nomination-id',
+    nominationFileId: dossierDeNominationImportedId,
     content: {
       rules: modifiedRules,
     },

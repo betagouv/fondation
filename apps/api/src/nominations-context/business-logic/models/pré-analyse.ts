@@ -2,12 +2,20 @@ import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-
 import { DomainRegistry } from './domain-registry';
 import { Règle, RègleSnapshot } from './règle';
 import { TransparenceRulesMapper } from './transparence-rules.mapper';
+import { z } from 'zod';
 
 export type PréAnalyseSnapshot = {
   id: string;
   dossierDeNominationId: string;
   règles: RègleSnapshot[];
 };
+
+export const règleSchema = z.object({
+  group: z.string(),
+  name: z.string(),
+  value: z.boolean(),
+});
+export const règlesSchema = règleSchema.array();
 
 export class PréAnalyse {
   private constructor(

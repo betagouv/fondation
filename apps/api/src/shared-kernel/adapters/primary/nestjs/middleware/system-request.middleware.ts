@@ -1,8 +1,7 @@
 import { HttpStatus, Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
-
-export const systemRequestHeaderKey = 'x-system-request-token';
+import { systemRequestHeaderKey } from '../../systemRequestHeaderKey';
 
 @Injectable()
 export class SystemRequestValidationMiddleware implements NestMiddleware {

@@ -45,7 +45,7 @@ export class UpdateDossierDeNominationUseCase {
     nominationFileImportedId: string,
   ): TransactionableAsync<DossierDeNomination> {
     return async (trx) => {
-      const dossier = await this.dossierDeNominationRepository.findById(
+      const dossier = await this.dossierDeNominationRepository.findByImportedId(
         nominationFileImportedId,
       )(trx);
       if (!dossier)

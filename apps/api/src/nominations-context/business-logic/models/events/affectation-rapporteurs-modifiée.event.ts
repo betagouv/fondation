@@ -3,7 +3,7 @@ import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-even
 import { z } from 'zod';
 import { AffectationsDossiersDeNominations } from '../affectation';
 import { DomainRegistry } from '../domain-registry';
-import { TypeDeSaisine } from '../type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 export type AffectationRapporteursModifiéeEventPayload = {
   id: string;

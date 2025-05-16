@@ -20,7 +20,7 @@ export class SqlSessionRepository implements SessionRepository {
 
       if (existingSession.length === 0) {
         const sessionDb = SqlSessionRepository.mapToDb(session);
-        await db.insert(sessionPm).values(sessionDb);
+        await db.insert(sessionPm).values({ ...sessionDb, version: 1 });
       } else {
         await db
           .update(sessionPm)
@@ -41,6 +41,25 @@ export class SqlSessionRepository implements SessionRepository {
         .select()
         .from(sessionPm)
         .where(eq(sessionPm.id, id))
+        .limit(1);
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      const sessionRow = result[0]!;
+      return SqlSessionRepository.mapToDomain(sessionRow);
+    };
+  }
+
+  bySessionImportéeId(
+    sessionImportéeId: string,
+  ): DrizzleTransactionableAsync<Session | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(sessionPm)
+        .where(eq(sessionPm.sessionImportéeId, sessionImportéeId))
         .limit(1);
 
       if (result.length === 0) {

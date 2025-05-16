@@ -4,7 +4,7 @@ import { currentDate, getDependencies } from '../../../../tests-dependencies';
 import {
   aDossierDeNominationId,
   anEventId,
-  aSessionId,
+  aParquetSessionId,
   givenSomeUuids,
   givenUneSession,
   importNouveauxDossiersUseCase,
@@ -35,7 +35,7 @@ describe('Nouvelle transparence GDS - Events', () => {
     expect(event.id).toBe(anEventId);
     expect(event.occurredOn).toBe(currentDate);
     expect(event.payload.dossierDeNominationId).toBe(aDossierDeNominationId);
-    expect(event.payload.sessionId).toBe(aSessionId);
+    expect(event.payload.sessionId).toBe(aParquetSessionId);
     expect(event.payload.content).toEqual({
       biography: 'Nominee biography',
       birthDate: { day: 1, month: 1, year: 1980 },

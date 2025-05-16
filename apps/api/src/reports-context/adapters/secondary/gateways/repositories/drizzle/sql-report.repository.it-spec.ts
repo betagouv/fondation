@@ -1,6 +1,9 @@
 import { TransactionRollbackError } from 'drizzle-orm';
 import { NominationFile } from 'shared-models';
-import { NominationFileReport } from 'src/reports-context/business-logic/models/nomination-file-report';
+import {
+  NominationFileReport,
+  NominationFileReportSnapshot,
+} from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportAttachedFileBuilder } from 'src/reports-context/business-logic/models/report-attached-file.builder';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -48,7 +51,7 @@ describe('SQL Report Repository', () => {
 
     await expectReports({
       id: aReport.id,
-      nominationFileId: aReport.dossierDeNominationId,
+      dossierDeNominationId: aReport.dossierDeNominationId,
       sessionId: aReport.sessionId,
       reporterId: aReport.reporterId,
       version: 1,
@@ -107,7 +110,11 @@ describe('SQL Report Repository', () => {
         ${'some values removed'} | ${aReportUpdatedWithNullValues}
       `(
         'updates a report with $testName',
-        async ({ updatedReportSnapshot }) => {
+        async ({
+          updatedReportSnapshot,
+        }: {
+          updatedReportSnapshot: NominationFileReportSnapshot;
+        }) => {
           await transactionPerformer.perform(
             sqlReportRepository.save(
               NominationFileReport.fromSnapshot(updatedReportSnapshot),
@@ -116,7 +123,7 @@ describe('SQL Report Repository', () => {
 
           await expectReports({
             id: updatedReportSnapshot.id,
-            nominationFileId: updatedReportSnapshot.nominationFileId,
+            dossierDeNominationId: updatedReportSnapshot.dossierDeNominationId,
             sessionId: updatedReportSnapshot.sessionId,
             reporterId: updatedReportSnapshot.reporterId,
             version: 2,
@@ -144,7 +151,7 @@ describe('SQL Report Repository', () => {
 
       await expectReports({
         id: aReportWithFile.id,
-        nominationFileId: aReportWithFile.dossierDeNominationId,
+        dossierDeNominationId: aReportWithFile.dossierDeNominationId,
         sessionId: aReportWithFile.sessionId,
         reporterId: aReportWithFile.reporterId,
         version: 2,
@@ -195,7 +202,7 @@ describe('SQL Report Repository', () => {
 
       await expectReports({
         id: aReportWithNoFiles.id,
-        nominationFileId: aReportWithNoFiles.dossierDeNominationId,
+        dossierDeNominationId: aReportWithNoFiles.dossierDeNominationId,
         sessionId: aReportWithNoFiles.sessionId,
         reporterId: aReportWithNoFiles.reporterId,
         version: 2,

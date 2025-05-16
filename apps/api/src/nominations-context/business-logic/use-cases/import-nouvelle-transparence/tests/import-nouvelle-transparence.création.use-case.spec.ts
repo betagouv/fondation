@@ -1,5 +1,5 @@
 import { SessionSnapshot } from '../../../models/session';
-import { TypeDeSaisine } from '../../../models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { getDependencies } from '../../../../tests-dependencies';
 import {
   aFormation,
@@ -32,7 +32,7 @@ describe('Nouvelle transparence GDS', () => {
     >([
       {
         id: aSessionId,
-        dataAdministrationImportId: aTransparenceImportId,
+        sessionImportéeId: aTransparenceImportId,
         name: aTransparencyName,
         formation: aFormation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,

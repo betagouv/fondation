@@ -1,4 +1,4 @@
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { nominationsContextSchema } from './nominations-context-schema.drizzle';
 
 export const typeDeSaisineEnum = nominationsContextSchema.enum(

@@ -1,5 +1,5 @@
 import { DossierDeNominationSnapshot } from 'src/nominations-context/business-logic/models/dossier-de-nomination';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 export type DossierDeNominationDto<
   S extends TypeDeSaisine | unknown = unknown,

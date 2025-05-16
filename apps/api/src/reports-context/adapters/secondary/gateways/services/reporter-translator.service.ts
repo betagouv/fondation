@@ -12,12 +12,4 @@ export class ReporterTranslatorService {
       new FullName(user.firstName, user.lastName),
     );
   }
-
-  async reporterWithFullName(reporterName: string): Promise<Reporter> {
-    const user = await this.userService.userWithFullName(reporterName);
-    return new Reporter(
-      user.userId,
-      new FullName(user.firstName, user.lastName),
-    );
-  }
 }

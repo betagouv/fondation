@@ -5,6 +5,7 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
+import { NominationsContextRestContract } from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
@@ -28,19 +29,24 @@ import {
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { SqlReportListingQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
 import { SqlReportRetrievalQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
+import { DossierDeNominationTranslator } from '../../secondary/gateways/services/dossier-de-nomination.translator';
+import { HttpDossierDeNominationService } from '../../secondary/gateways/services/http-dossier-de-nomination.service';
 import { HttpReportFileService } from '../../secondary/gateways/services/http-report-file-service';
+import { HttpSessionService } from '../../secondary/gateways/services/http-session.service';
 import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
 import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers/affectation-rapporteurs-créée.nest-subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
+  BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT,
   DOSSIER_DE_NOMINATION_SERVICE,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
@@ -50,7 +56,6 @@ import {
   SESSION_SERVICE,
   USER_SERVICE,
 } from './tokens';
-import { DossierDeNominationTranslator } from '../../secondary/gateways/services/dossier-de-nomination.translator';
 
 @Module({
   imports: [SharedKernelModule],
@@ -131,6 +136,31 @@ import { DossierDeNominationTranslator } from '../../secondary/gateways/services
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
 
+    {
+      provide: BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<NominationsContextRestContract>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/nominations',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
+
+    generateProvider(
+      HttpSessionService,
+      [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT],
+      SESSION_SERVICE,
+    ),
+    generateProvider(
+      HttpDossierDeNominationService,
+      [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT],
+      DOSSIER_DE_NOMINATION_SERVICE,
+    ),
     generateProvider(DossierDeNominationTranslator, [
       DOSSIER_DE_NOMINATION_SERVICE,
       SESSION_SERVICE,

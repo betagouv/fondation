@@ -12,6 +12,8 @@ import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/g
 import { ImportNouvelleTransparenceUseCase } from './business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { UpdateDossierDeNominationUseCase } from './business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 import { ImportNouveauxDossiersTransparenceUseCase } from './business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
+import { GetDossierDeNominationSnapshotUseCase } from './business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { GetSessionSnapshotUseCase } from './business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -59,6 +61,16 @@ export const getDependencies = () => {
       transparenceService,
     );
 
+  const getDossierDeNominationSnapshotUseCase =
+    new GetDossierDeNominationSnapshotUseCase(
+      dossierDeNominationRepository,
+      nullTransactionPerformer,
+    );
+  const getSessionSnapshotUseCase = new GetSessionSnapshotUseCase(
+    sessionRepository,
+    nullTransactionPerformer,
+  );
+
   return {
     nullTransactionPerformer,
     uuidGenerator,
@@ -73,5 +85,7 @@ export const getDependencies = () => {
     importNouvelleTransparenceUseCase,
     updateDossierDeNominationUseCase,
     importNouveauxDossiersTransparenceUseCase,
+    getDossierDeNominationSnapshotUseCase,
+    getSessionSnapshotUseCase,
   };
 };

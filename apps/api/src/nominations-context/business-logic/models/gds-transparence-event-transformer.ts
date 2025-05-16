@@ -8,7 +8,7 @@ import { AffectationRapporteursModifiéeEvent } from './events/affectation-rappo
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
 import { PréAnalyse } from './pré-analyse';
 import { Session } from './session';
-import { TypeDeSaisine } from './type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 
 export type DossierAvecPayload<T extends boolean = boolean> = {
   dossier: DossierDeNomination;

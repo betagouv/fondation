@@ -1,6 +1,7 @@
 import { Magistrat } from 'shared-models';
 import { DomainRegistry } from './domain-registry';
 import { DossierDeNomination } from './dossier-de-nomination';
+import { z } from 'zod';
 
 export type AffectationsDossiersDeNominations = {
   dossierDeNominationId: string;
@@ -13,6 +14,11 @@ export type AffectationSnapshot = {
   formation: Magistrat.Formation;
   affectationsDossiersDeNominations: AffectationsDossiersDeNominations[];
 };
+
+export const affectationsDossiersDeNominationsSchema = z.object({
+  dossierDeNominationId: z.string(),
+  rapporteurIds: z.array(z.string()),
+});
 
 export class Affectation {
   private constructor(

@@ -1,5 +1,5 @@
 import { Gender, Magistrat, ReportFileUsage, Role } from 'shared-models';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { OptimisticLockError } from '../../errors/optimistic-lock.error';
 import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
@@ -52,7 +52,9 @@ const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: 'Nom de session',
-  formation: [Magistrat.Formation.PARQUET],
+  formation: Magistrat.Formation.PARQUET,
+  sessionImportéeId: 'session-importée-id',
+  version: 1,
 };
 
 describe('Upload Report Files Use Case', () => {

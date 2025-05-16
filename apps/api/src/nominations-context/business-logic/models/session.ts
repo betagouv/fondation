@@ -4,12 +4,12 @@ import {
   DossierDeNomination,
   DossierDeNominationContent,
 } from './dossier-de-nomination';
-import { TypeDeSaisine } from './type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { DomainRegistry } from './domain-registry';
 
 export type SessionSnapshot = {
   id: string;
-  dataAdministrationImportId: string;
+  sessionImportéeId: string;
   name: string;
   formation: Magistrat.Formation;
   typeDeSaisine: TypeDeSaisine;
@@ -19,7 +19,7 @@ export type SessionSnapshot = {
 export class Session {
   private constructor(
     private readonly _id: string,
-    private readonly _dataAdministrationImportId: string,
+    private readonly _sessionImportéeId: string,
     private readonly _name: string,
     private readonly _formation: Magistrat.Formation,
     private readonly _typeDeSaisine: TypeDeSaisine,
@@ -62,6 +62,10 @@ export class Session {
     return this._version;
   }
 
+  get formation() {
+    return this._formation;
+  }
+
   snapshot(): SessionSnapshot {
     return {
       id: this._id,
@@ -69,12 +73,12 @@ export class Session {
       formation: this._formation,
       typeDeSaisine: this._typeDeSaisine,
       version: this._version,
-      dataAdministrationImportId: this._dataAdministrationImportId,
+      sessionImportéeId: this._sessionImportéeId,
     };
   }
 
   static nouvelle(
-    dataAdministrationImportId: string,
+    sessionImportéeId: string,
     name: string,
     typeDeSaisine: TypeDeSaisine,
     formation: Magistrat.Formation,
@@ -82,7 +86,7 @@ export class Session {
     const id = DomainRegistry.uuidGenerator().generate();
     return new Session(
       id,
-      dataAdministrationImportId,
+      sessionImportéeId,
       name,
       formation,
       typeDeSaisine,
@@ -93,7 +97,7 @@ export class Session {
   static fromSnapshot(snapshot: SessionSnapshot): Session {
     return new Session(
       snapshot.id,
-      snapshot.dataAdministrationImportId,
+      snapshot.sessionImportéeId,
       snapshot.name,
       snapshot.formation,
       snapshot.typeDeSaisine,

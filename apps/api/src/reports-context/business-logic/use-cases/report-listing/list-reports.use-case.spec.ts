@@ -5,7 +5,7 @@ import {
   ReportListItemVM,
   Transparency,
 } from 'shared-models';
-import { TypeDeSaisine } from 'src/nominations-context/business-logic/models/type-de-saisine';
+import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
@@ -124,5 +124,7 @@ const uneSession: SessionDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: unRapportVM.transparency,
-  formation: [unRapportVM.formation],
+  formation: unRapportVM.formation,
+  sessionImportéeId: 'session-importée-id',
+  version: 1,
 };

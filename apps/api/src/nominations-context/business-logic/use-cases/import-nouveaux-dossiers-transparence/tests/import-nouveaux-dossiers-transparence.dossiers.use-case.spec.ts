@@ -4,7 +4,7 @@ import { DossierDeNominationSnapshot } from '../../../models/dossier-de-nominati
 import {
   aDossierDeNominationId,
   aDossierDeNominationImportedId,
-  aSessionId,
+  aParquetSessionId,
   givenSomeUuids,
   givenUneSession,
   importNouveauxDossiersUseCase,
@@ -35,7 +35,7 @@ describe('Import nouveaux dossiers dans une transparence - Dossiers de nominatio
       {
         id: aDossierDeNominationId,
         nominationFileImportedId: aDossierDeNominationImportedId,
-        sessionId: aSessionId,
+        sessionId: aParquetSessionId,
         content: {
           biography: 'Nominee biography',
           birthDate: { day: 1, month: 1, year: 1980 },

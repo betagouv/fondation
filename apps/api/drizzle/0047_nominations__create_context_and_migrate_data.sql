@@ -6,14 +6,14 @@ CREATE SCHEMA "nominations_context";
 CREATE TYPE "nominations_context"."type_de_saisine" AS ENUM('TRANSPARENCE_GDS');
 
 
--- CREATE TABLE "data_administration_context"."transparences" (
--- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
--- 	"name" "transparency" NOT NULL,
--- 	"created_at" timestamp DEFAULT now() NOT NULL,
--- 	"formation" "formation" NOT NULL,
--- 	"nomination_files" jsonb[] NOT NULL,
--- 	CONSTRAINT "transparences_name_formation_unique" UNIQUE("name","formation")
--- );
+CREATE TABLE "data_administration_context"."transparences" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" "transparency" NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"formation" "formation" NOT NULL,
+	"nomination_files" jsonb[] NOT NULL,
+	CONSTRAINT "transparences_name_formation_unique" UNIQUE("name","formation")
+);
 
 
 ALTER TABLE "reports_context"."reports" ADD COLUMN "session_id" uuid;
@@ -57,27 +57,27 @@ CREATE TABLE "nominations_context"."session" (
 );
 
 -- -- Migration des transparences importées
--- WITH transparencies_per_formation AS (
---     SELECT 
---          (content ->> 'transparency')::transparency,
---         (content ->> 'formation')::formation,
---         array_agg(jsonb_build_object(
---             'id', id,
---             'createdAt', created_at,
---             'rowNumber', row_number,
---             'content', content
---         )) as nomination_files_array
---     FROM data_administration_context.nomination_files
---     GROUP BY (content ->> 'transparency') , (content ->> 'formation')
--- )
--- INSERT INTO data_administration_context.transparences (id, name, created_at, formation, nomination_files)
--- SELECT 
---     gen_random_uuid(),
---     dt.transparency,
---     NOW(),
---     dt.formation,
---     dt.nomination_files_array
--- FROM transparencies_per_formation dt;
+WITH transparencies_per_formation AS (
+    SELECT 
+         (content ->> 'transparency')::transparency,
+        (content ->> 'formation')::formation,
+        array_agg(jsonb_build_object(
+            'id', id,
+            'createdAt', created_at,
+            'rowNumber', row_number,
+            'content', content
+        )) as nomination_files_array
+    FROM data_administration_context.nomination_files
+    GROUP BY (content ->> 'transparency') , (content ->> 'formation')
+)
+INSERT INTO data_administration_context.transparences (id, name, created_at, formation, nomination_files)
+SELECT 
+    gen_random_uuid(),
+    dt.transparency,
+    NOW(),
+    dt.formation,
+    dt.nomination_files_array
+FROM transparencies_per_formation dt;
 
 -- Création des sessions
 INSERT INTO "nominations_context"."session" (id, created_at, version, name, formation, type_de_saisine, session_import_id)

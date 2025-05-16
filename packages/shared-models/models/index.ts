@@ -9,3 +9,4 @@ export * from "./reports-listing-vm";
 export * from "./role";
 export * from "./rule.builder";
 export * from "./transparency.enum";
+export * from "./type-de-saisine.enum";
