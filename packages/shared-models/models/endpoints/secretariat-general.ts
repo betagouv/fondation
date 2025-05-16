@@ -10,7 +10,7 @@ export interface SecretariatGeneralContextRestContract extends RestContract {
     nouvelleTransparence: {
       method: "POST";
       path: "nouvelle-transparence";
-      body: NouvelleTransparenceDto;
+      body: NouvelleTransparenceSchemaDto;
       response: void
     };
   };
@@ -25,11 +25,11 @@ export const nouvelleTransparenceDtoSchema = z.object({
   dateEcheance: z.string(),
   jobDate: z.string(),
   file: z.instanceof(File, { message: "Un fichier est requis." })
-    .refine((file) => file.size > 0, { message: "Le fichier ne peut pas être vide." })
+    .refine((file) => file.size > 0, { message: "Le fichier de la transparence est requis." })
     .refine((file) => {
       const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
       return validTypes.includes(file.type);
-    }, { message: "Le fichier doit être au format PNG, JPEG ou PDF." })
+    }, { message: "Veuillez importer un fichier au bon format." })
 });
 
-export type NouvelleTransparenceDto = z.infer<typeof nouvelleTransparenceDtoSchema>;
+export type NouvelleTransparenceSchemaDto = z.infer<typeof nouvelleTransparenceDtoSchema>;

@@ -1,8 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import {
-  NouvelleTransparenceDto,
-  SecretariatGeneralContextRestContract,
-} from 'shared-models';
+import { SecretariatGeneralContextRestContract } from 'shared-models';
+import { NouvelleTransparenceDto } from 'src/secretariat-general-context/adapters/primary/nestjs/dto/nouvelle-trasparence.dto';
 import { NouvelleTransparenceUseCase } from 'src/secretariat-general-context/business-logic/use-cases/nouvelle-transparence/nouvelle-transparence.use-case';
 import {
   IController,

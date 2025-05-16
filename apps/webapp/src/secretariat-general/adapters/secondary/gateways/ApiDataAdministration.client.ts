@@ -13,12 +13,10 @@ type ClientFetchOptions = {
 const basePath: SecretariatGeneralContextRestContract["basePath"] =
   "api/secretariat-general";
 
-// TODO AEB CREATE A FAKE CLIENT API DATA ADMINISTRATION
-// TODO AEB AJOUTER DES TESTS POUR LA VALIDATION DU FORMULAIRE
-// TODO AEB CONNECTER LE FORMULAIRE A L'ENDPOINT
 // TODO AEB CREER LES TESTS E2E DU ENDPOINT
 // TODO AEB CONVERTIR LE FICHIER RECU EN TSV
 // TODO CENTRALISER LE FETCH QUELQUE PART dans un FETCHSERVICE-UTILS
+// TESTER LE USE CASE data administration upload - CF MAXIME
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
@@ -34,6 +32,7 @@ export class ApiDataAdministrationClient implements DataAdministrationClient {
     };
 
     const url = this.resolveUrl(path);
+
     const promise = await this.fetch(url, {
       method,
       credentials: "include",

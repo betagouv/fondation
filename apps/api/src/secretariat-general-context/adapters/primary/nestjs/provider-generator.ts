@@ -2,7 +2,8 @@ import { FactoryProvider } from '@nestjs/common';
 import {
   SECRETARIAT_GENERAL_TOKENS,
   SecretariatGeneralInjectionTokenMap,
-} from 'src/secretariat-general-context/adapters/primary/tokens';
+} from 'src/secretariat-general-context/adapters/primary/nestjs/tokens';
+
 import {
   InjectedTokens,
   generateProvider,
