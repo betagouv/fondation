@@ -7,7 +7,11 @@ export class ApiDataAdministrationGateway implements DataAdministrationGateway {
     private readonly dataAdministrationApiClient: DataAdministrationClient,
   ) {}
 
-  uploadTransparency(form: NouvelleTransparenceDto, file: File): Promise<void> {
-    return this.dataAdministrationApiClient.uploadTransparency(form, file);
+  async uploadTransparency(
+    nouvelleTransparenceDto: NouvelleTransparenceDto,
+  ): Promise<void> {
+    await this.dataAdministrationApiClient.uploadTransparency(
+      nouvelleTransparenceDto,
+    );
   }
 }
