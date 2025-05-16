@@ -13,27 +13,35 @@ type ClientFetchOptions = {
 const basePath: SecretariatGeneralContextRestContract["basePath"] =
   "api/secretariat-general";
 
+// TODO AEB CREATE A FAKE CLIENT API DATA ADMINISTRATION
+// TODO AEB AJOUTER DES TESTS POUR LA VALIDATION DU FORMULAIRE
+// TODO AEB CONNECTER LE FORMULAIRE A L'ENDPOINT
+// TODO AEB CREER LES TESTS E2E DU ENDPOINT
+// TODO AEB CONVERTIR LE FICHIER RECU EN TSV
+// TODO CENTRALISER LE FETCH QUELQUE PART dans un FETCHSERVICE-UTILS
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
-  uploadTransparency(form: NouvelleTransparenceDto, file: File): Promise<void> {
+  async uploadTransparency(
+    nouvelleTransparenceDto: NouvelleTransparenceDto,
+  ): Promise<void> {
     const formData = new FormData();
-    formData.append("file", file);
-    const { method, path, body }: ClientFetchOptions["uploadTransparency"] = {
+    formData.append("file", nouvelleTransparenceDto.file);
+    const { method, path, body }: ClientFetchOptions["nouvelleTransparence"] = {
       method: "POST",
-      path: "transparency",
-      // Ajouter le fichier là dedans
-      body: form,
+      path: "nouvelle-transparence",
+      body: nouvelleTransparenceDto,
     };
 
     const url = this.resolveUrl(path);
-    return this.fetch(url, {
+    const promise = await this.fetch(url, {
       method,
+      credentials: "include",
       body: JSON.stringify(body),
-    }).then(() => {});
+    });
+    return promise.json();
   }
 
-  // TODO : USE THE FETCH WITH AUTHENTICATION
   private resolveUrl(path: string, params?: Record<string, string>): string {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);

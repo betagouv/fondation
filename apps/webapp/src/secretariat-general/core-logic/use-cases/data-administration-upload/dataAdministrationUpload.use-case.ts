@@ -1,18 +1,13 @@
 import { NouvelleTransparenceDto } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 
-export type DataAdministrationUploadParams = {
-  nouvelleTransparenceForm: NouvelleTransparenceDto;
-  file: File;
-};
-
 export const dataAdministrationUpload = createAppAsyncThunk<
   void,
-  DataAdministrationUploadParams
+  NouvelleTransparenceDto
 >(
-  "data-administration/uploadTransparency",
+  "data-administration/nouvelleTransparence",
   async (
-    { nouvelleTransparenceForm, file },
+    nouvelleTransparenceDto,
     {
       getState,
       extra: {
@@ -27,9 +22,6 @@ export const dataAdministrationUpload = createAppAsyncThunk<
 
     fileProvider.assertMimeTypeFactory(acceptedMimeTypes);
 
-    await dataAdministrationGateway.uploadTransparency(
-      nouvelleTransparenceForm,
-      file,
-    );
+    await dataAdministrationGateway.uploadTransparency(nouvelleTransparenceDto);
   },
 );

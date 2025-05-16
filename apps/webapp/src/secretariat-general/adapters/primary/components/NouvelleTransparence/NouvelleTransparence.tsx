@@ -1,20 +1,27 @@
 import { ButtonsGroup } from "@codegouvfr/react-dsfr/ButtonsGroup";
 import Input from "@codegouvfr/react-dsfr/Input";
+import Select from "@codegouvfr/react-dsfr/Select";
+import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { FC } from "react";
+import { FC } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
   Magistrat,
   NouvelleTransparenceDto,
   nouvelleTransparenceDtoSchema,
 } from "shared-models";
-import { useAppSelector } from "../../../../../reports/adapters/primary/hooks/react-redux";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../../../../reports/adapters/primary/hooks/react-redux";
 import { formationToLabel } from "../../../../../reports/adapters/primary/labels/labels-mappers";
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
-import { selectBreadcrumb } from "../../selectors/selectBreadcrumb";
-import { BreadcrumCurrentPage } from "../../selectors/selectBreadcrumb";
-import Select from "@codegouvfr/react-dsfr/Select";
+import { dataAdministrationUpload } from "../../../../core-logic/use-cases/data-administration-upload/dataAdministrationUpload.use-case";
+import {
+  BreadcrumCurrentPage,
+  selectBreadcrumb,
+} from "../../selectors/selectBreadcrumb";
 
 const defaultValues: NouvelleTransparenceDto = {
   transparenceName: "",
@@ -22,9 +29,11 @@ const defaultValues: NouvelleTransparenceDto = {
   dateEcheance: "",
   jobDate: "",
   formation: Magistrat.Formation.SIEGE,
+  file: new File([], "", { type: "application/octet-stream" }),
 };
 
 const NouvelleTransparence: FC = () => {
+  const dispatch = useAppDispatch();
   const currentPage = {
     name: BreadcrumCurrentPage.sgNouvelleTransparence,
   } as const;
@@ -44,7 +53,7 @@ const NouvelleTransparence: FC = () => {
 
   const onSubmit: SubmitHandler<NouvelleTransparenceDto> = (data) => {
     console.log("Form submitted:", data);
-    // TODO DISPATCH THE FORM SUBMISSION
+    dispatch(dataAdministrationUpload(data));
   };
 
   return (
@@ -102,15 +111,12 @@ const NouvelleTransparence: FC = () => {
                 onChange,
               }}
             >
-              <React.Fragment key=".0">
-                <option selected value={Magistrat.Formation.SIEGE}>
-                  {formationToLabel(Magistrat.Formation.SIEGE)}
-                </option>
-                <option value={Magistrat.Formation.PARQUET}>
-                  {formationToLabel(Magistrat.Formation.PARQUET)}
-                </option>
-                <option value={"BOTH"}>Les 2</option>
-              </React.Fragment>
+              <option value={Magistrat.Formation.SIEGE}>
+                {formationToLabel(Magistrat.Formation.SIEGE)}
+              </option>
+              <option value={Magistrat.Formation.PARQUET}>
+                {formationToLabel(Magistrat.Formation.PARQUET)}
+              </option>
             </Select>
           )}
         />
@@ -147,6 +153,34 @@ const NouvelleTransparence: FC = () => {
               }}
               state={errors.jobDate ? "error" : "default"}
               stateRelatedMessage={errors.jobDate?.message}
+            />
+          )}
+        />
+        <Controller
+          name="file"
+          control={control}
+          render={({ field: { onChange } }) => (
+            <Upload
+              id="nouvelle-transparence-file-upload"
+              className="mb-4"
+              nativeInputProps={{
+                type: "file",
+                onChange: (e) => {
+                  // TODO AEB ESSAYER DE SAFE PARSE LE FICHIER ICI
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    onChange(file);
+                  } else {
+                    onChange(
+                      new File([], "", { type: "application/octet-stream" }),
+                    );
+                  }
+                },
+              }}
+              hint="Formats supportés : png, jpeg et pdf."
+              label="Fichier*"
+              state={errors.file ? "error" : "default"}
+              stateRelatedMessage={errors.file?.message}
             />
           )}
         />
