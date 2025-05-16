@@ -17,3 +17,16 @@ const ReportOverviewPage = import(
   "../../reports/adapters/primary/components/ReportOverview/ReportOverviewPage"
 );
 export const LazyReportOverview = lazy(() => ReportOverviewPage);
+
+const SecretariatGeneralDashboardPage = import(
+  "../../secretariat-general/adapters/primary/components/Dashboard"
+);
+
+export const LazySecretariatGeneralDashboard = lazy(
+  () => SecretariatGeneralDashboardPage,
+);
+
+const NouvelleTransparencePage = import(
+  "../../secretariat-general/adapters/primary/components/NouvelleTransparence/NouvelleTransparence"
+);
+export const LazyNouvelleTransparence = lazy(() => NouvelleTransparencePage);

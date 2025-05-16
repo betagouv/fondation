@@ -38,6 +38,8 @@ const routeToComponentMap: RouteToComponentMap<false> = {
     <div>a list with transparency: {props.transparency}</div>
   ),
   reportOverview: () => <div>an overview</div>,
+  secretariatGeneral: () => <div>Tableau de bord</div>,
+  sgNouvelleTransparence: () => <div>Nouvelle transparence</div>,
 };
 
 describe("App Router Component", () => {
@@ -103,6 +105,23 @@ describe("App Router Component", () => {
   });
 
   describe("Authenticated user", () => {
+    it("visits the secretariat general dashboard page", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+      visit("/secretariat-general");
+      await screen.findByText("Tableau de bord");
+      expect(window.location.pathname).toBe("/secretariat-general");
+    });
+
+    it("visits the secretariat general nouvelle transparence page", async () => {
+      renderAppRouter();
+      await givenAnAuthenticatedUser();
+      visit("/secretariat-general/nouvelle-transparence");
+      expect(window.location.pathname).toBe(
+        "/secretariat-general/nouvelle-transparence",
+      );
+    });
+
     it("visits the transparencies page by default", async () => {
       renderAppRouter();
       await givenAnAuthenticatedUser();
