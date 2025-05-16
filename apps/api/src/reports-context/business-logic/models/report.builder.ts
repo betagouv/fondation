@@ -7,6 +7,8 @@ import {
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { NominationFileReportSnapshot } from './nomination-file-report';
+import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../gateways/services/session.service';
 
 export class ReportBuilder {
   private _snapshot: NominationFileReportSnapshot;
@@ -82,5 +84,15 @@ export class ReportBuilder {
       .with('state', report.state)
       .with('formation', report.formation)
       .with('comment', report.comment);
+  }
+
+  static fromDossierDeNomination(
+    dossierDeNomination: DossierDeNominationDto,
+    session: SessionDto,
+  ): ReportBuilder {
+    return new ReportBuilder('uuid')
+      .with('id', dossierDeNomination.id)
+      .with('dossierDeNominationId', dossierDeNomination.id)
+      .with('sessionId', session.id);
   }
 }

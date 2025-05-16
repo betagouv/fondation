@@ -35,13 +35,14 @@ import { DeleteFilesQueryDto } from './dto/delete-files-query.dto';
 import { ReportUpdateDto } from './dto/report-update.dto';
 import { UploadFilesParamsDto } from './dto/upload-files-params.dto';
 import { UploadFilesQueryParamsDto } from './dto/upload-files-query-params.dto';
+import { ReportListParamsNestDto } from './dto/report-list-params.nest-dto';
 
 type IReportController = IController<ReportsContextRestContract>;
 
 const baseRoute: ReportsContextRestContract['basePath'] = 'api/reports';
 const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   retrieveReport: ':id',
-  listReports: '',
+  listReports: 'transparences/bySessionId/:sessionId',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
   uploadFiles: ':id/files/upload-many',
@@ -64,7 +65,7 @@ export class ReportsController implements IReportController {
   @Get(endpointsPaths.listReports)
   async listReports(
     @Param()
-    params: ReportsContextRestContract['endpoints']['listReports']['params'],
+    params: ReportListParamsNestDto,
     @Req() req: Request,
   ) {
     const userId = req.userId!;
