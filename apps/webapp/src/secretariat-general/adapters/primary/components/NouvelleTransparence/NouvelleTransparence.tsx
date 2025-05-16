@@ -166,7 +166,6 @@ const NouvelleTransparence: FC = () => {
               nativeInputProps={{
                 type: "file",
                 onChange: (e) => {
-                  // TODO AEB ESSAYER DE SAFE PARSE LE FICHIER ICI
                   const file = e.target.files?.[0];
                   if (file) {
                     onChange(file);
