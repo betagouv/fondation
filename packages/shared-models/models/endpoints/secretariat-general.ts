@@ -1,5 +1,5 @@
-import { Magistrat } from "../magistrat.namespace";
 import { z } from "zod";
+import { Magistrat } from "../magistrat.namespace";
 import {
   RestContract
 } from "./common";
@@ -7,9 +7,9 @@ import {
 export interface SecretariatGeneralContextRestContract extends RestContract {
   basePath: "api/secretariat-general";
   endpoints: {
-    uploadTransparency: {
+    nouvelleTransparence: {
       method: "POST";
-      path: "transparency";
+      path: "nouvelle-transparence";
       body: NouvelleTransparenceDto;
       response: void
     };
@@ -24,6 +24,12 @@ export const nouvelleTransparenceDtoSchema = z.object({
   formation: z.nativeEnum(Magistrat.Formation),
   dateEcheance: z.string(),
   jobDate: z.string(),
+  file: z.instanceof(File, { message: "Un fichier est requis." })
+    .refine((file) => file.size > 0, { message: "Le fichier ne peut pas être vide." })
+    .refine((file) => {
+      const validTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+      return validTypes.includes(file.type);
+    }, { message: "Le fichier doit être au format PNG, JPEG ou PDF." })
 });
 
 export type NouvelleTransparenceDto = z.infer<typeof nouvelleTransparenceDtoSchema>;

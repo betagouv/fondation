@@ -9,7 +9,6 @@ export type EndpointResponse<
 
 export interface DataAdministrationClient {
   uploadTransparency(
-    form: NouvelleTransparenceDto,
-    file: File,
-  ): EndpointResponse<"uploadTransparency">;
+    nouvelleTransparenceDto: NouvelleTransparenceDto,
+  ): EndpointResponse<"nouvelleTransparence">;
 }
