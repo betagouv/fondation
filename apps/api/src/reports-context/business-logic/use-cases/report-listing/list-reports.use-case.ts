@@ -17,7 +17,7 @@ export class ListReportsUseCase {
   ): Promise<ReportListingVM> {
     const session = await this.sessionService.session(sessionId);
     if (!session) {
-      throw new Error('Session not found');
+      throw new Error(`Session not found for ID: ${sessionId}`);
     }
     const rapports =
       await this.reportListingVMRepository.listReports(reporterId);

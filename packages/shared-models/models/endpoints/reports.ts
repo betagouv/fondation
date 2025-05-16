@@ -34,8 +34,8 @@ export interface ReportsContextRestContract extends RestContract {
     };
     listReports: {
       method: "GET";
-      path: "";
-      params: { sessionId: string };
+      path: "transparences/bySessionId/:sessionId";
+      params: ListReportsParamsDto;
       response: ReportListingVM;
     };
     uploadFiles: {
@@ -70,6 +70,13 @@ export interface ReportUpdateDto {
 export interface ChangeRuleValidationStateDto {
   validated: boolean;
 }
+
+export interface ListReportsParamsDto extends Record<string, string> {
+  sessionId: string;
+}
+export const listReportsParamsDtoSchema = z.object({
+  sessionId: z.string(),
+}) satisfies ZodParamsDto<ReportsContextRestContract, "listReports">;
 
 export const reportUpdateDto = z.object({
   state: z.nativeEnum(NominationFile.ReportState).optional(),

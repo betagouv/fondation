@@ -84,8 +84,8 @@ import {
     ]),
     generateProvider(ListReportsUseCase, [
       REPORT_LISTING_QUERY,
-      SESSION_SERVICE,
       DOSSIER_DE_NOMINATION_SERVICE,
+      SESSION_SERVICE,
     ]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,

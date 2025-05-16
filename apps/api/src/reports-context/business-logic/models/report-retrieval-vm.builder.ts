@@ -4,10 +4,13 @@ import {
   NominationFile,
   ReportRetrievalVM,
   Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
 import { NominationFileReportSnapshot } from './nomination-file-report';
+import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../gateways/services/session.service';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -163,5 +166,25 @@ export class ReportRetrievalBuilder<
       .with('state', report.state)
       .with('formation', report.formation)
       .with('comment', report.comment);
+  }
+
+  static fromDossierDeNominationTransparence(
+    dossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>,
+    session: SessionDto,
+  ): ReportRetrievalBuilder {
+    return new ReportRetrievalBuilder()
+      .with('id', dossierDeNomination.id)
+      .with('folderNumber', dossierDeNomination.content.folderNumber)
+      .with('name', dossierDeNomination.content.name)
+      .with('formation', session.formation)
+      .with('grade', dossierDeNomination.content.grade)
+      .with('targettedPosition', dossierDeNomination.content.targettedPosition)
+      .with('dueDate', dossierDeNomination.content.dueDate)
+      .with('birthDate', dossierDeNomination.content.birthDate)
+      .with('currentPosition', dossierDeNomination.content.currentPosition)
+      .with('biography', dossierDeNomination.content.biography)
+      .with('observers', dossierDeNomination.content.observers)
+      .with('rank', dossierDeNomination.content.rank)
+      .with('transparency', session.name as Transparency);
   }
 }
