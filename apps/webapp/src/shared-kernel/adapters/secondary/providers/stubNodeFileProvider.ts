@@ -1,6 +1,6 @@
+import { Buffer } from "node:buffer";
 import { InvalidMimeTypeError } from "../../../core-logic/errors/InvalidMimeType.error";
 import { FileProvider } from "../../../core-logic/providers/fileProvider";
-import { Buffer } from "node:buffer";
 
 export class StubNodeFileProvider implements FileProvider {
   mimeType?: string = undefined;

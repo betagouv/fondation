@@ -5,11 +5,8 @@ import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FC } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import {
-  Magistrat,
-  NouvelleTransparenceDto,
-  nouvelleTransparenceDtoSchema,
-} from "shared-models";
+import { Magistrat } from "shared-models";
+import { z } from "zod";
 import {
   useAppDispatch,
   useAppSelector,
@@ -25,12 +22,40 @@ import {
 
 const defaultValues: NouvelleTransparenceDto = {
   transparenceName: "",
-  transparencyDate: "",
+  transparenceDate: "",
   dateEcheance: "",
   jobDate: "",
   formation: Magistrat.Formation.SIEGE,
-  file: new File([], "", { type: "application/octet-stream" }),
+  fichier: new File([], "", { type: "application/octet-stream" }),
 };
+
+const nouvelleTransparenceDtoSchema = z.object({
+  transparenceName: z.string().min(1, "Le nom de la transparence est requis."),
+  transparenceDate: z
+    .string()
+    .min(1, "La date de la transparence est requise."),
+  formation: z.nativeEnum(Magistrat.Formation),
+  dateEcheance: z.string(),
+  jobDate: z.string(),
+  fichier: z
+    .instanceof(File, { message: "Un fichier est requis." })
+    .refine((file) => file.size > 0, {
+      message: "Le fichier de la transparence est requis.",
+    })
+    .refine(
+      (file) => {
+        const validTypes = [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ];
+        return validTypes.includes(file.type);
+      },
+      { message: "Veuillez importer un fichier au bon format." },
+    ),
+});
+
+export type NouvelleTransparenceDto = z.infer<
+  typeof nouvelleTransparenceDtoSchema
+>;
 
 const NouvelleTransparence: FC = () => {
   const dispatch = useAppDispatch();
@@ -82,7 +107,7 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller
-          name="transparencyDate"
+          name="transparenceDate"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -94,8 +119,8 @@ const NouvelleTransparence: FC = () => {
                 onChange,
                 ...field,
               }}
-              state={errors.transparencyDate ? "error" : "default"}
-              stateRelatedMessage={errors.transparencyDate?.message}
+              state={errors.transparenceDate ? "error" : "default"}
+              stateRelatedMessage={errors.transparenceDate?.message}
             />
           )}
         />
@@ -156,7 +181,7 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller
-          name="file"
+          name="fichier"
           control={control}
           render={({ field: { onChange } }) => (
             <Upload
@@ -175,10 +200,10 @@ const NouvelleTransparence: FC = () => {
                   }
                 },
               }}
-              hint="Formats supportés : png, jpeg et pdf."
+              hint="Format supporté : xlsx."
               label="Fichier*"
-              state={errors.file ? "error" : "default"}
-              stateRelatedMessage={errors.file?.message}
+              state={errors.fichier ? "error" : "default"}
+              stateRelatedMessage={errors.fichier?.message}
             />
           )}
         />
