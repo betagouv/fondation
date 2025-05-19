@@ -64,7 +64,7 @@ describe("NouvelleTransparence", () => {
     expect(await screen.findByText("Annuler")).toBeInTheDocument();
     expect(await screen.findByText("Enregistrer")).toBeInTheDocument();
     expect(
-      await screen.findByText("Formats supportés : png, jpeg et pdf."),
+      await screen.findByText("Format supporté : xlsx."),
     ).toBeInTheDocument();
     expect(await screen.findByText("Fichier*")).toBeInTheDocument();
   });

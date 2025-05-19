@@ -1,8 +1,8 @@
-import { NouvelleTransparenceDto } from "shared-models";
+import { NouvelleTransparenceDto } from "../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 import { DataAdministrationClient } from "./DataAdministration.client";
 
 export interface DataAdministrationGateway {
-  uploadTransparency(
+  uploadTransparence(
     nouvelleTransparenceDto: NouvelleTransparenceDto,
-  ): ReturnType<DataAdministrationClient["uploadTransparency"]>;
+  ): ReturnType<DataAdministrationClient["uploadTransparence"]>;
 }

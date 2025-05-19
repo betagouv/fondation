@@ -1,11 +1,11 @@
-import { NouvelleTransparenceDto } from "shared-models";
-import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
+import { createAppAsyncThunkFactory } from "../../../../store/createAppAsyncThunk";
+import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 
-export const dataAdministrationUpload = createAppAsyncThunk<
+export const dataAdministrationUpload = createAppAsyncThunkFactory<string[]>()<
   void,
   NouvelleTransparenceDto
 >(
-  "data-administration/nouvelleTransparence",
+  "secretariatGeneral/nouvelleTransparence",
   async (
     nouvelleTransparenceDto,
     {
@@ -20,8 +20,10 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       getState().secretariatGeneral.nouvelleTransparence.acceptedMimeTypes
         .attachedFiles;
 
-    fileProvider.assertMimeTypeFactory(acceptedMimeTypes);
+    await fileProvider.assertMimeTypeFactory(acceptedMimeTypes)(
+      nouvelleTransparenceDto.fichier,
+    );
 
-    await dataAdministrationGateway.uploadTransparency(nouvelleTransparenceDto);
+    await dataAdministrationGateway.uploadTransparence(nouvelleTransparenceDto);
   },
 );

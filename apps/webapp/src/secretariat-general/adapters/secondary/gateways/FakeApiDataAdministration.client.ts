@@ -1,13 +1,15 @@
-import { NouvelleTransparenceDto } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
+import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
 export class FakeApiDataAdministrationClient
   implements DataAdministrationClient
 {
-  async uploadTransparency(
-    nouvelleTransparenceDto: NouvelleTransparenceDto,
+  transparences: Record<string, NouvelleTransparenceDto> = {};
+
+  async uploadTransparence(
+    transparence: NouvelleTransparenceDto,
   ): Promise<void> {
-    const formData = new FormData();
-    formData.append("file", nouvelleTransparenceDto.file);
+    const id = `${transparence.transparenceName}-${transparence.transparenceDate}`;
+    this.transparences[id] = transparence;
   }
 }

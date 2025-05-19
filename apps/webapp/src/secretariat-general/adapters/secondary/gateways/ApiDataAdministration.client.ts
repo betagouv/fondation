@@ -1,9 +1,9 @@
 import {
   interpolateUrlParams,
-  NouvelleTransparenceDto,
   SecretariatGeneralContextRestContract,
 } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
+import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
 type Endpoints = SecretariatGeneralContextRestContract["endpoints"];
 type ClientFetchOptions = {
@@ -20,11 +20,11 @@ const basePath: SecretariatGeneralContextRestContract["basePath"] =
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
-  async uploadTransparency(
+  async uploadTransparence(
     nouvelleTransparenceDto: NouvelleTransparenceDto,
   ): Promise<void> {
     const formData = new FormData();
-    formData.append("file", nouvelleTransparenceDto.file);
+    formData.append("file", nouvelleTransparenceDto.fichier);
     const { method, path, body }: ClientFetchOptions["nouvelleTransparence"] = {
       method: "POST",
       path: "nouvelle-transparence",
