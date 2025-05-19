@@ -92,12 +92,17 @@ async function affectationTranspaAuxPrésidents() {
             attachedFiles,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             version,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             reporterId,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             state,
             ...newValues
           } = existingReport;
+
+          if (reporterId === présidentReporterId)
+            throw new Error(
+              `Report ${existingReport.id} already has the correct reporterId for the formation ${formation}`,
+            );
+
           const newReportRaw = await tx
             .insert(reports)
             .values({
