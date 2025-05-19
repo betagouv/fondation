@@ -270,10 +270,14 @@ describe('Import Nomination Files Use Case', () => {
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
         formation: Magistrat.Formation.SIEGE,
-        nominationFiles: [
-          getFirstRow(),
-          getMarcelDupontModelSnapshot('another-id', 2),
-        ],
+        nominationFiles: [getFirstRow()],
+      });
+      transparenceRepository.addTransparence('gds-transparence-parquet-id', {
+        id: 'gds-transparence-parquet-id',
+        createdAt: currentDate,
+        name: Transparency.AUTOMNE_2024,
+        formation: Magistrat.Formation.PARQUET,
+        nominationFiles: [getLucienPierreModelSnapshot('another-id', 2)],
       });
 
       uuidGenerator.nextUuids = [
@@ -283,16 +287,23 @@ describe('Import Nomination Files Use Case', () => {
       ];
     });
 
-    it('updates only the nomination file with changed values', async () => {
-      jest.spyOn(transparenceRepository, 'save');
+    it('updates the observers', async () => {
       await importAFile(
         new NominationFileTsvBuilder()
           .fromModelSnapshot(getFirstRow())
-          .withRuleTransferTime('FALSE')
-          .fromModelSnapshot(getMarcelDupontModelSnapshot('another-id', 2))
+          .fromModelSnapshot(getLucienPierreModelSnapshot('another-id', 2))
+          .with('observers', ['new observer'])
           .build(),
       );
-      expect(transparenceRepository.save).toHaveBeenCalledTimes(1);
+
+      expectTransparences(
+        uneTranspaSiègeAvecDossiers(getFirstRow()),
+        uneTranspaParquetAvecDossiers(
+          getLucienPierreModelSnapshot('another-id', 2, {
+            observers: ['new observer'],
+          }),
+        ),
+      );
     });
 
     const updatedRulesTestData: Array<{
@@ -341,9 +352,9 @@ describe('Import Nomination Files Use Case', () => {
       async ({ genTsvValue, getExpectedNominationFile }) => {
         await importAFile(genTsvValue());
         expectTransparences(
-          uneTranspaSiègeAvecDossiers(
-            getExpectedNominationFile(),
-            getMarcelDupontModelSnapshot('another-id', 2),
+          uneTranspaSiègeAvecDossiers(getExpectedNominationFile()),
+          uneTranspaParquetAvecDossiers(
+            getLucienPierreModelSnapshot('another-id', 2),
           ),
         );
       },
@@ -374,9 +385,9 @@ describe('Import Nomination Files Use Case', () => {
           .build(),
       );
       expectTransparences(
-        uneTranspaSiègeAvecDossiers(
-          getFirstRow(),
-          getMarcelDupontModelSnapshot('another-id', 2),
+        uneTranspaSiègeAvecDossiers(getFirstRow()),
+        uneTranspaParquetAvecDossiers(
+          getLucienPierreModelSnapshot('another-id', 2),
         ),
       );
     });
@@ -385,7 +396,7 @@ describe('Import Nomination Files Use Case', () => {
       await importAFile(
         new NominationFileTsvBuilder()
           .fromModelSnapshot(getFirstRow())
-          .fromModelSnapshot(getMarcelDupontModelSnapshot('another-id', 2))
+          .fromModelSnapshot(getLucienPierreModelSnapshot('another-id', 2))
           .fromModelSnapshot(
             getMarcelDupontModelSnapshot('third-nomination-file-id', 3),
           )
@@ -394,8 +405,10 @@ describe('Import Nomination Files Use Case', () => {
       expectTransparences(
         uneTranspaSiègeAvecDossiers(
           getFirstRow(),
-          getMarcelDupontModelSnapshot('another-id', 2),
           getMarcelDupontModelSnapshot('third-nomination-file-id', 3),
+        ),
+        uneTranspaParquetAvecDossiers(
+          getLucienPierreModelSnapshot('another-id', 2),
         ),
       );
     });
@@ -428,5 +441,15 @@ const uneTranspaSiègeAvecDossiers = (
   createdAt: currentDate,
   name: gdsTransparenceName,
   formation: Magistrat.Formation.SIEGE,
+  nominationFiles: nominationFileSnapshots,
+});
+
+const uneTranspaParquetAvecDossiers = (
+  ...nominationFileSnapshots: NominationFileModelSnapshot[]
+): TransparenceSnapshot => ({
+  id: 'gds-transparence-parquet-id',
+  createdAt: currentDate,
+  name: Transparency.AUTOMNE_2024,
+  formation: Magistrat.Formation.PARQUET,
   nominationFiles: nominationFileSnapshots,
 });

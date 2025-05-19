@@ -39,6 +39,7 @@ export class NominationFilesContentReadCollection {
       this._nominationFileReadList,
       (nominationFile) => nominationFile.content.transparency,
     );
+
     return Object.entries(aggregatedLists)
       .map(([transparence, nominationFiles]) => {
         const aggregatedPerFormation = _.groupBy(

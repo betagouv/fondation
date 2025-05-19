@@ -70,6 +70,8 @@ export class TransparenceService {
       const modifiedNominationFilesEvent =
         transparence.replaceModifiedNominationFiles(readCollection);
 
+      // TODO: Manque d'expressivité, le save est déclenché lors de l'ajout
+      // OU de la modification d'une transparence
       await this.transparenceRepository.save(transparence)(trx);
 
       if (nominationFilesToAdd) {

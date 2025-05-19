@@ -78,11 +78,22 @@ export type GetMarcelDupontModelSnapshot = ReturnType<
 
 export const getLucienPierreModelSnapshotFactory =
   (dateTimeProvider: DeterministicDateProvider) =>
-  (uuid: string, rowNumber = 1): NominationFileModelSnapshot => ({
+  (
+    uuid: string,
+    rowNumber = 1,
+    moreContent?: PartialDeep<
+      Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
+    >,
+    rules = getReadRules({
+      [NominationFile.RuleGroup.STATUTORY]: {
+        [NominationFile.StatutoryRule.MINISTER_CABINET]: true,
+      },
+    }),
+  ): NominationFileModelSnapshot => ({
     id: uuid,
     createdAt: dateTimeProvider.currentDate,
     rowNumber,
-    content: getLucienPierreRead(rowNumber).content,
+    content: getLucienPierreRead(rowNumber, moreContent, rules).content,
   });
 export type GetLucienPierreModelSnapshot = ReturnType<
   typeof getLucienPierreModelSnapshotFactory
@@ -128,7 +139,17 @@ export const getMarcelDupontRead = (
   },
 });
 
-const getLucienPierreRead = (rowNumber = 1): NominationFileRead => ({
+const getLucienPierreRead = (
+  rowNumber = 1,
+  moreContent?: PartialDeep<
+    Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
+  >,
+  rules = getReadRules({
+    [NominationFile.RuleGroup.STATUTORY]: {
+      [NominationFile.StatutoryRule.MINISTER_CABINET]: true,
+    },
+  }),
+): NominationFileRead => ({
   rowNumber,
   content: {
     folderNumber: 2,
@@ -148,11 +169,9 @@ const getLucienPierreRead = (rowNumber = 1): NominationFileRead => ({
     },
     biography: '- blablablablabla',
     observers: null,
-    rules: getReadRules({
-      [NominationFile.RuleGroup.STATUTORY]: {
-        [NominationFile.StatutoryRule.MINISTER_CABINET]: true,
-      },
-    }),
+
+    ...moreContent,
+    rules,
   },
 });
 
