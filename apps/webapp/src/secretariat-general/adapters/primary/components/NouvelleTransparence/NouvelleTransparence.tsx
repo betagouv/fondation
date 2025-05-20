@@ -24,7 +24,7 @@ const defaultValues: NouvelleTransparenceDto = {
   transparenceName: "",
   transparenceDate: "",
   dateEcheance: "",
-  jobDate: "",
+  datePriseDePoste: "",
   formation: Magistrat.Formation.SIEGE,
   fichier: new File([], "", { type: "application/octet-stream" }),
 };
@@ -36,7 +36,7 @@ const nouvelleTransparenceDtoSchema = z.object({
     .min(1, "La date de la transparence est requise."),
   formation: z.nativeEnum(Magistrat.Formation),
   dateEcheance: z.string(),
-  jobDate: z.string(),
+  datePriseDePoste: z.string(),
   fichier: z
     .instanceof(File, { message: "Un fichier est requis." })
     .refine((file) => file.size > 0, {
@@ -163,20 +163,20 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller
-          name="jobDate"
+          name="datePriseDePoste"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label="Date de la prise de poste"
-              id="date-job"
+              id="date-prise-de-poste"
               nativeInputProps={{
                 type: "date",
                 value: value || "",
                 onChange,
                 ...field,
               }}
-              state={errors.jobDate ? "error" : "default"}
-              stateRelatedMessage={errors.jobDate?.message}
+              state={errors.datePriseDePoste ? "error" : "default"}
+              stateRelatedMessage={errors.datePriseDePoste?.message}
             />
           )}
         />

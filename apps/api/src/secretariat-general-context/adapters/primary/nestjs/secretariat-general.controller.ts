@@ -1,6 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { SecretariatGeneralContextRestContract } from 'shared-models';
-import { NouvelleTransparenceDto } from 'src/secretariat-general-context/adapters/primary/nestjs/dto/nouvelle-trasparence.dto';
+import {
+  Body,
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  NouvelleTransparenceDto,
+  SecretariatGeneralContextRestContract,
+} from 'shared-models';
+
 import { NouvelleTransparenceUseCase } from 'src/secretariat-general-context/business-logic/use-cases/nouvelle-transparence/nouvelle-transparence.use-case';
 import {
   IController,
@@ -27,13 +37,18 @@ export class SecretariatGeneralController
   ) {}
 
   @Post(endpointsPaths.nouvelleTransparence)
+  @UseInterceptors(FileInterceptor('fichier'))
   async nouvelleTransparence(
-    @Body() nouvelleTransparenceDto: NouvelleTransparenceDto,
-  ) {
+    @UploadedFile() fichier: Express.Multer.File,
+    @Body() body: NouvelleTransparenceDto,
+  ): Promise<void> {
     console.log(
-      'Un coucou de mon controller, je reçois ton formulaire mon champion',
-      nouvelleTransparenceDto,
+      'voici un formulaire avec mon body',
+      body,
+      'et mon fichier',
+      fichier,
     );
-    return this.nouvelleTransparenceUseCase.execute(nouvelleTransparenceDto);
+    return;
+    // return this.nouvelleTransparenceUseCase.execute(nouvelleTransparenceDto);
   }
 }

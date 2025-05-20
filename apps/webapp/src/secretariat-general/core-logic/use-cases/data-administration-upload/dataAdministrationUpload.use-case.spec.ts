@@ -1,12 +1,10 @@
 import { Magistrat } from "shared-models";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
+import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 import { ApiDataAdministrationGateway } from "../../../adapters/secondary/gateways/ApiDataAdministration.gateway";
 import { FakeApiDataAdministrationClient } from "../../../adapters/secondary/gateways/FakeApiDataAdministration.client";
-import {
-  dataAdministrationUpload,
-  NouvelleTransparenceArgs,
-} from "./dataAdministrationUpload.use-case";
+import { dataAdministrationUpload } from "./dataAdministrationUpload.use-case";
 
 describe("Data Administration Upload", () => {
   let store: ReduxStore;
@@ -44,33 +42,33 @@ describe("Data Administration Upload", () => {
     expectClientTransparences();
   });
 
-  const uploadTransparence = async (transparence: NouvelleTransparenceArgs) =>
+  const uploadTransparence = async (transparence: NouvelleTransparenceDto) =>
     store.dispatch(dataAdministrationUpload(transparence));
 
   const expectClientTransparences = (
-    ...transparences: NouvelleTransparenceArgs[]
+    ...transparences: NouvelleTransparenceDto[]
   ) => {
     expect(Object.values(dataAdministrationClient.transparences)).toEqual<
-      NouvelleTransparenceArgs[]
+      NouvelleTransparenceDto[]
     >(transparences);
   };
 });
 
-const uneTransparenceImportée: NouvelleTransparenceArgs = {
+const uneTransparenceImportée: NouvelleTransparenceDto = {
   transparenceName: "Balai",
   formation: Magistrat.Formation.SIEGE,
-  transparenceDate: new Date(2023, 1, 1),
-  dateEcheance: new Date(2023, 1, 1),
-  dateDePriseDePoste: new Date(2024, 1, 1),
+  transparenceDate: "2023-01-01",
+  dateEcheance: "2023-01-01",
+  datePriseDePoste: "2024-01-01",
   fichier: new File([""], "transparence.xlsx"),
 };
 
-const unFichierPdf: NouvelleTransparenceArgs = {
+const unFichierPdf: NouvelleTransparenceDto = {
   transparenceName: "Balai",
   formation: Magistrat.Formation.SIEGE,
-  transparenceDate: new Date(2023, 1, 1),
-  dateEcheance: new Date(2023, 1, 1),
-  dateDePriseDePoste: new Date(2024, 1, 1),
+  transparenceDate: "2023-01-01",
+  dateEcheance: "2023-01-01",
+  datePriseDePoste: "2024-01-01",
   fichier: new File([""], "transparence.pdf", {
     type: "application/pdf",
   }),
