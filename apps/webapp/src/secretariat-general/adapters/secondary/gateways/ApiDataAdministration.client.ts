@@ -13,10 +13,6 @@ type ClientFetchOptions = {
 const basePath: SecretariatGeneralContextRestContract["basePath"] =
   "api/secretariat-general";
 
-// TODO AEB CREER LES TESTS E2E DU ENDPOINT
-// TODO AEB CONVERTIR LE FICHIER RECU EN TSV
-// TODO CENTRALISER LE FETCH QUELQUE PART dans un FETCHSERVICE-UTILS
-// TESTER LE USE CASE data administration upload - CF MAXIME
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
@@ -24,21 +20,29 @@ export class ApiDataAdministrationClient implements DataAdministrationClient {
     nouvelleTransparenceDto: NouvelleTransparenceDto,
   ): Promise<void> {
     const formData = new FormData();
-    formData.append("file", nouvelleTransparenceDto.fichier);
-    const { method, path, body }: ClientFetchOptions["nouvelleTransparence"] = {
+    Object.entries(nouvelleTransparenceDto).forEach(([key, value]) => {
+      if (value instanceof File) {
+        formData.append("fichier", value);
+      } else {
+        formData.append(key, value.toString());
+      }
+    });
+
+    const {
+      method,
+      path,
+    }: Omit<ClientFetchOptions["nouvelleTransparence"], "body"> = {
       method: "POST",
       path: "nouvelle-transparence",
-      body: nouvelleTransparenceDto,
     };
-
     const url = this.resolveUrl(path);
 
-    const promise = await this.fetch(url, {
+    const response = await this.fetch(url, {
       method,
       credentials: "include",
-      body: JSON.stringify(body),
+      body: formData,
     });
-    return promise.json();
+    return response.json();
   }
 
   private resolveUrl(path: string, params?: Record<string, string>): string {
