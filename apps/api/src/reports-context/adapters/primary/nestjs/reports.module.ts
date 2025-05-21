@@ -5,7 +5,7 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
-import { NominationsContextRestContract } from 'shared-models';
+import { NominationsContextSessionsRestContract } from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
@@ -142,10 +142,10 @@ import {
         apiConfig: ApiConfig,
         systemRequestSignatureProvider: SystemRequestSignatureProvider,
       ) => {
-        return new BoundedContextHttpClient<NominationsContextRestContract>(
+        return new BoundedContextHttpClient<NominationsContextSessionsRestContract>(
           apiConfig,
           systemRequestSignatureProvider,
-          'api/nominations',
+          'api/nominations/sessions',
         );
       },
       inject: [API_CONFIG, SystemRequestSignatureProvider],

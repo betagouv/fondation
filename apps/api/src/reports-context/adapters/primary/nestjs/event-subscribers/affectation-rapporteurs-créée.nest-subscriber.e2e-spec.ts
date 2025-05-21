@@ -4,7 +4,7 @@ import { Magistrat } from 'shared-models';
 import {
   AffectationRapporteursCréeEvent,
   AffectationRapporteursCréeEventPayload,
-} from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
+} from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-crée.event';
 import { TypeDeSaisine } from 'shared-models';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
 import { MainAppConfigurator } from 'src/main.configurator';

@@ -6,20 +6,6 @@ import {
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
-import { GdsNouvellesTransparencesImportéesSubscriber } from '../../../business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
-import { GdsTransparenceDossiersModifiésSubscriber } from '../../../business-logic/listeners/gds-transparence-dossiers-modifiés.subscriber';
-import { GdsTransparenceNouveauxDossiersSubscriber } from '../../../business-logic/listeners/gds-transparence-nouveaux-dossiers.subscriber';
-import { TransparenceService } from '../../../business-logic/services/transparence.service';
-import { ImportNouveauxDossiersTransparenceUseCase } from '../../../business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
-import { ImportNouvelleTransparenceUseCase } from '../../../business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
-import { UpdateDossierDeNominationUseCase } from '../../../business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
-import { SqlAffectationRepository } from '../../secondary/gateways/repositories/drizzle/sql-affectation.repository';
-import { SqlDossierDeNominationRepository } from '../../secondary/gateways/repositories/drizzle/sql-dossier-de-nomination.repository';
-import { SqlPréAnalyseRepository } from '../../secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
-import { SqlSessionRepository } from '../../secondary/gateways/repositories/drizzle/sql-session.repository';
-import { GdsNouvellesTransparencesImportéesNestSubscriber } from './event-subscribers/gds-nouvelles-transparences-importées.nest-subscriber';
-import { GdsTransparenceDossiersModifiésNestSubscriber } from './event-subscribers/gds-transparence-dossiers-modifiés.nest-subscriber';
-import { GdsTransparenceNouveauxDossiersNestSubscriber } from './event-subscribers/gds-transparence-nouveaux-dossiers.nest-subscriber';
 import { generateNominationsProvider as generateProvider } from './provider-generator';
 import {
   AFFECTATION_REPOSITORY,
@@ -29,14 +15,28 @@ import {
 } from './tokens';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import { DomainRegistry } from 'src/nominations-context/business-logic/models/domain-registry';
-import { NominationsController } from './nominations.controller';
-import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
-import { GetSessionSnapshotUseCase } from 'src/nominations-context/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
+import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
+import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
+import { GdsNouvellesTransparencesImportéesNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-nouvelles-transparences-importées.nest-subscriber';
+import { GdsTransparenceDossiersModifiésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-dossiers-modifiés.nest-subscriber';
+import { GdsTransparenceNouveauxDossiersNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-nouveaux-dossiers.nest-subscriber';
+import { GdsNouvellesTransparencesImportéesSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
+import { GdsTransparenceDossiersModifiésSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-dossiers-modifiés.subscriber';
+import { GdsTransparenceNouveauxDossiersSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-nouveaux-dossiers.subscriber';
+import { TransparenceService } from 'src/nominations-context/pp-gds/transparences/business-logic/services/transparence.service';
+import { UpdateDossierDeNominationUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
+import { ImportNouvelleTransparenceUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
+import { ImportNouveauxDossiersTransparenceUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
+import { SessionsController } from 'src/nominations-context/sessions/adapters/primary/nestjs/sessions.controller';
+import { SqlAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-affectation.repository';
+import { SqlDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-dossier-de-nomination.repository';
+import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
+import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [NominationsController],
+  controllers: [SessionsController],
   providers: [
     GdsNouvellesTransparencesImportéesNestSubscriber,
     GdsTransparenceNouveauxDossiersNestSubscriber,

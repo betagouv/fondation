@@ -12,8 +12,8 @@ type SessionSnapshotResponse = {
   version: number;
 };
 
-export interface NominationsContextRestContract extends RestContract {
-  basePath: "api/nominations";
+export interface NominationsContextSessionsRestContract extends RestContract {
+  basePath: "api/nominations/sessions";
   endpoints: {
     sessionSnapshot: {
       method: "GET";
@@ -47,7 +47,7 @@ export interface DossierDeNominationSnapshotParamsDto
 export const dossierDeNominationSnapshotParamsSchema = z.object({
   dossierId: z.string().uuid(),
 }) satisfies ZodParamsDto<
-  NominationsContextRestContract,
+  NominationsContextSessionsRestContract,
   "dossierDeNominationSnapshot"
 >;
 
@@ -56,4 +56,7 @@ export interface SessionSnapshotParamsDto extends Record<string, string> {
 }
 export const sessionSnapshotParamsSchema = z.object({
   sessionId: z.string().uuid(),
-}) satisfies ZodParamsDto<NominationsContextRestContract, "sessionSnapshot">;
+}) satisfies ZodParamsDto<
+  NominationsContextSessionsRestContract,
+  "sessionSnapshot"
+>;

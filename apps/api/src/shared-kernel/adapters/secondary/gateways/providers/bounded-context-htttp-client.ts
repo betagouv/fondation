@@ -3,7 +3,7 @@ import {
   IdentityAndAccessAuthzRestContract,
   IdentityAndAccessRestContract,
   interpolateUrlParams,
-  NominationsContextRestContract,
+  NominationsContextSessionsRestContract,
   ReportsContextRestContract,
   RestContract,
 } from 'shared-models';
@@ -16,7 +16,7 @@ type BasePath =
   | ReportsContextRestContract['basePath']
   | FilesContextRestContract['basePath']
   | IdentityAndAccessAuthzRestContract['basePath']
-  | NominationsContextRestContract['basePath'];
+  | NominationsContextSessionsRestContract['basePath'];
 
 type ClientFetchOptions<C extends RestContract> = {
   [K in keyof C['endpoints']]: Omit<C['endpoints'][K], 'response'>;

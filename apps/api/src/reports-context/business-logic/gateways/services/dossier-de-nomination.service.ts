@@ -1,4 +1,4 @@
-import { DossierDeNominationSnapshot } from 'src/nominations-context/business-logic/models/dossier-de-nomination';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { TypeDeSaisine } from 'shared-models';
 
 export type DossierDeNominationDto<

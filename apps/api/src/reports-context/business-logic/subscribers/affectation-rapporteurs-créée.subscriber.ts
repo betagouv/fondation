@@ -1,4 +1,4 @@
-import { AffectationRapporteursCréeEventPayload } from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
+import { AffectationRapporteursCréeEventPayload } from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-crée.event';
 import {
   CreateReportCommand,
   CreateReportUseCase,

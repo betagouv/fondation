@@ -1,4 +1,4 @@
-import { SessionSnapshot } from 'src/nominations-context/business-logic/models/session';
+import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 
 export type SessionDto = SessionSnapshot;
 

@@ -11,7 +11,7 @@ import { users } from 'src/identity-and-access-context/adapters/secondary/gatewa
 import {
   dossierDeNominationPm,
   sessionPm,
-} from 'src/nominations-context/adapters/secondary/gateways/repositories/drizzle/schema';
+} from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';

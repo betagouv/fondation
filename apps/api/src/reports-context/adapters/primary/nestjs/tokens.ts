@@ -1,4 +1,4 @@
-import { NominationsContextRestContract } from 'shared-models';
+import { NominationsContextSessionsRestContract } from 'shared-models';
 import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { ReportRetrievalQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
@@ -47,5 +47,5 @@ export interface ReportsInjectionTokenMap
   [USER_SERVICE]: UserService;
   [SESSION_SERVICE]: SessionService;
   [DOSSIER_DE_NOMINATION_SERVICE]: DossierDeNominationService;
-  [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT]: BoundedContextHttpClient<NominationsContextRestContract>;
+  [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT]: BoundedContextHttpClient<NominationsContextSessionsRestContract>;
 }

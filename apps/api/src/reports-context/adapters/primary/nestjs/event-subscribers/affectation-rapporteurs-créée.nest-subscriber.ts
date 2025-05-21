@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   AffectationRapporteursCréeEvent,
   AffectationRapporteursCréeEventPayload,
-} from 'src/nominations-context/business-logic/models/events/affectation-rapporteurs-crée.event';
+} from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-crée.event';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
 
 @Injectable()
