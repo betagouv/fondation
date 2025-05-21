@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { jsonb, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, timestamp, uuid } from 'drizzle-orm/pg-core';
 import {
   formationEnum,
   transparencyEnum,
@@ -17,7 +17,4 @@ export const transparencesPm = dataAdministrationContextSchema.table(
     formation: formationEnum('formation').notNull(),
     nominationFiles: jsonb('nomination_files').array().notNull(),
   },
-  (t) => ({
-    unique_name_and_formation: unique().on(t.name, t.formation),
-  }),
 );

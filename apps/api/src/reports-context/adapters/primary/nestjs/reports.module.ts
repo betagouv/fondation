@@ -5,7 +5,10 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
-import { NominationsContextSessionsRestContract } from 'shared-models';
+import {
+  IdentityAndAccessRestContract,
+  NominationsContextSessionsRestContract,
+} from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
@@ -46,7 +49,7 @@ import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
-  BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT,
+  NOMINATIONS_CONTEXT_HTTP_CLIENT,
   DOSSIER_DE_NOMINATION_SERVICE,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
@@ -55,6 +58,7 @@ import {
   REPORT_RULE_REPOSITORY,
   SESSION_SERVICE,
   USER_SERVICE,
+  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
 } from './tokens';
 
 @Module({
@@ -124,20 +128,28 @@ import {
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
     generateProvider(ReporterTranslatorService, [USER_SERVICE]),
+    generateProvider(
+      HttpUserService,
+      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT],
+      USER_SERVICE,
+    ),
+
     {
-      provide: USER_SERVICE,
-      // generateProvider function doesn't handle the union type in ApiConfig
+      provide: IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
       useFactory: (
         apiConfig: ApiConfig,
         systemRequestSignatureProvider: SystemRequestSignatureProvider,
       ) => {
-        return new HttpUserService(apiConfig, systemRequestSignatureProvider);
+        return new BoundedContextHttpClient<IdentityAndAccessRestContract>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/auth',
+        );
       },
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
-
     {
-      provide: BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT,
+      provide: NOMINATIONS_CONTEXT_HTTP_CLIENT,
       useFactory: (
         apiConfig: ApiConfig,
         systemRequestSignatureProvider: SystemRequestSignatureProvider,
@@ -153,12 +165,12 @@ import {
 
     generateProvider(
       HttpSessionService,
-      [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT],
+      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
       SESSION_SERVICE,
     ),
     generateProvider(
       HttpDossierDeNominationService,
-      [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT],
+      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
       DOSSIER_DE_NOMINATION_SERVICE,
     ),
     generateProvider(DossierDeNominationTranslator, [

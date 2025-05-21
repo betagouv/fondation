@@ -1,4 +1,7 @@
-import { NominationsContextSessionsRestContract } from 'shared-models';
+import {
+  IdentityAndAccessRestContract,
+  NominationsContextSessionsRestContract,
+} from 'shared-models';
 import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { ReportRetrievalQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
@@ -21,8 +24,10 @@ export const REPORT_FILE_SERVICE = 'REPORT_FILE_SERVICE';
 export const USER_SERVICE = 'USER_SERVICE';
 export const SESSION_SERVICE = 'SESSION_SERVICE';
 export const DOSSIER_DE_NOMINATION_SERVICE = 'DOSSIER_DE_NOMINATION_SERVICE';
-export const BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT =
-  'BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT';
+export const NOMINATIONS_CONTEXT_HTTP_CLIENT =
+  'NOMINATIONS_CONTEXT_HTTP_CLIENT';
+export const IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT =
+  'IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT';
 
 export const reportsTokens = [
   ...sharedKernelTokens,
@@ -34,7 +39,8 @@ export const reportsTokens = [
   USER_SERVICE,
   SESSION_SERVICE,
   DOSSIER_DE_NOMINATION_SERVICE,
-  BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT,
+  NOMINATIONS_CONTEXT_HTTP_CLIENT,
+  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
 ] as const;
 
 export interface ReportsInjectionTokenMap
@@ -47,5 +53,6 @@ export interface ReportsInjectionTokenMap
   [USER_SERVICE]: UserService;
   [SESSION_SERVICE]: SessionService;
   [DOSSIER_DE_NOMINATION_SERVICE]: DossierDeNominationService;
-  [BOUNDED_CONTEXT_NOMINATIONS_HTTP_CLIENT]: BoundedContextHttpClient<NominationsContextSessionsRestContract>;
+  [NOMINATIONS_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<NominationsContextSessionsRestContract>;
+  [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<IdentityAndAccessRestContract>;
 }

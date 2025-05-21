@@ -17,13 +17,11 @@ import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/pr
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { ImportNominationFileFromLocalFileCli } from '../../../business-logic/gateways/providers/import-nominations-from-local-file.cli';
-import { SqlNominationFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file.repository';
 import { SqlTransparenceRepository } from '../../secondary/gateways/repositories/drizzle/sql-transparence.repository';
 import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
 import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
-  NOMINATION_FILE_REPOSITORY,
   TRANSPARENCE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
@@ -50,11 +48,6 @@ import {
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
 
-    generateProvider(
-      SqlNominationFileRepository,
-      [],
-      NOMINATION_FILE_REPOSITORY,
-    ),
     generateProvider(SqlTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
 
     generateProvider(
