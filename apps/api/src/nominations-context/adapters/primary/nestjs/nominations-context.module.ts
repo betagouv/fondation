@@ -1,4 +1,9 @@
-import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  OnModuleInit,
+} from '@nestjs/common';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   DATE_TIME_PROVIDER,
@@ -28,11 +33,16 @@ import { TransparenceService } from 'src/nominations-context/pp-gds/transparence
 import { UpdateDossierDeNominationUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 import { ImportNouvelleTransparenceUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { ImportNouveauxDossiersTransparenceUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
-import { SessionsController } from 'src/nominations-context/sessions/adapters/primary/nestjs/sessions.controller';
+import {
+  baseRoute,
+  endpointsPaths,
+  SessionsController,
+} from 'src/nominations-context/sessions/adapters/primary/nestjs/sessions.controller';
 import { SqlAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-affectation.repository';
 import { SqlDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-dossier-de-nomination.repository';
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
+import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 
 @Module({
   imports: [SharedKernelModule],
@@ -105,5 +115,14 @@ export class NominationsContextModule implements OnModuleInit {
   onModuleInit() {
     DomainRegistry.setUuidGenerator(this.uuidGenerator);
     DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SystemRequestValidationMiddleware)
+      .forRoutes(
+        `${baseRoute}/${endpointsPaths.sessionSnapshot}`,
+        `${baseRoute}/${endpointsPaths.dossierDeNominationSnapshot}`,
+      );
   }
 }

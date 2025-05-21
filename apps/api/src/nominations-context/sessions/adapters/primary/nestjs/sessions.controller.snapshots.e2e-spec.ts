@@ -1,18 +1,18 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { dossierDeNominationPm } from '../../secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { sessionPm } from '../../secondary/gateways/repositories/drizzle/schema';
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
+import { dossierDeNominationPm } from '../../secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 
 const aDossierId = '885e0f4b-0ace-4023-a8bc-b3a678448e51';
 const aDossierDeNominationImportéId = '7d39c745-8186-46b6-8856-3f77cc93e5e8';
@@ -22,7 +22,7 @@ const dossierContent = {
   folderNumber: 123,
 };
 
-describe('Sessions Controller', () => {
+describe('Sessions Controller- Snapshots', () => {
   let app: INestApplication;
   let db: DrizzleDb;
 
@@ -59,9 +59,9 @@ describe('Sessions Controller', () => {
     });
 
     it('retrieves a session snapshot by ID', async () => {
-      const response = await supertest(app.getHttpServer())
-        .get(`/api/nominations/sessions/session/snapshot/by-id/${aSessionId}`)
-        .expect(HttpStatus.OK);
+      const response = await requestSessionSnapshot(aSessionId).expect(
+        HttpStatus.OK,
+      );
 
       expect(response.body).toEqual<SessionSnapshot>({
         id: aSessionId,
@@ -74,10 +74,15 @@ describe('Sessions Controller', () => {
     });
 
     it('returns 404 when dossier does not exist', async () => {
-      await supertest(app.getHttpServer())
-        .get(`/api/nominations/sessions/session/snapshot/by-id/${aDossierId}`)
-        .expect(HttpStatus.NOT_FOUND);
+      await requestSessionSnapshot(aDossierId).expect(HttpStatus.NOT_FOUND);
     });
+
+    const requestSessionSnapshot = (id: string) =>
+      new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((agent) =>
+          agent.get(`/api/nominations/sessions/session/snapshot/by-id/${id}`),
+        )
+        .request();
   });
 
   describe('Dossier de nomination snapshot', () => {
@@ -94,11 +99,9 @@ describe('Sessions Controller', () => {
     });
 
     it('retrieves a dossier de nomination snapshot by ID', async () => {
-      const response = await supertest(app.getHttpServer())
-        .get(
-          `/api/nominations/sessions/dossier-de-nomination/snapshot/by-id/${aDossierId}`,
-        )
-        .expect(HttpStatus.OK);
+      const response = await requestDossierSnapshot(aDossierId).expect(
+        HttpStatus.OK,
+      );
 
       expect(response.body).toEqual<DossierDeNominationSnapshot>({
         id: aDossierId,
@@ -109,12 +112,17 @@ describe('Sessions Controller', () => {
     });
 
     it('returns 404 when dossier does not exist', async () => {
-      await supertest(app.getHttpServer())
-        .get(
-          `/api/nominations/sessions/dossier-de-nomination/snapshot/by-id/${aSessionId}`,
-        )
-        .expect(HttpStatus.NOT_FOUND);
+      await requestDossierSnapshot(aSessionId).expect(HttpStatus.NOT_FOUND);
     });
+
+    const requestDossierSnapshot = (id: string) =>
+      new SecureCrossContextRequestBuilder(app)
+        .withTestedEndpoint((agent) =>
+          agent.get(
+            `/api/nominations/sessions/dossier-de-nomination/snapshot/by-id/${id}`,
+          ),
+        )
+        .request();
   });
 
   class AppTestingModule extends BaseAppTestingModule {
