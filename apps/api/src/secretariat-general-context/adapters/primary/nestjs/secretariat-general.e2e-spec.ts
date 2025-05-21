@@ -4,13 +4,11 @@ import { Role } from 'shared-models/models/role';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { USER_SERVICE } from 'src/reports-context/adapters/primary/nestjs/tokens';
 import { StubUserService } from 'src/reports-context/adapters/secondary/gateways/services/stub-user.service';
-import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import request from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
@@ -32,25 +30,21 @@ describe('Secretariat General Controller', () => {
   describe('Nouvelle Transparence', () => {
     it('requires a valid user session', async () => {
       await initApp({ validatedSession: false });
-      await app.listen(defaultApiConfig.port); // Run server to contact other contexts over REST
       const response = await uploadATestFile();
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     });
 
     it('should be able to upload a file', async () => {
-      initApp({ validatedSession: true });
+      await initApp({ validatedSession: true });
       const response = await uploadATestFile();
-      expect(response.status).toBe(HttpStatus.OK);
+      expect(response.status).toBe(HttpStatus.CREATED);
     });
 
-    const uploadATestFile = async () => {
-      const file = new File(['test'], 'test.txt', { type: 'text/plain' });
-
-      return request(app.getHttpServer())
+    const uploadATestFile = () =>
+      request(app.getHttpServer())
         .post('/api/secretariat-general/nouvelle-transparence')
         .set('Cookie', 'sessionId=unused')
-        .attach('file', file);
-    };
+        .attach('fichier', Buffer.from(''), 'test.txt');
   });
 
   const initApp = async ({
@@ -69,22 +63,10 @@ describe('Secretariat General Controller', () => {
 
     await app.init();
   };
+
   class AppTestingModule extends BaseAppTestingModule {
     constructor() {
       super(db);
-    }
-
-    withStubSessionValidationService(validated: boolean) {
-      this.moduleFixture.overrideProvider(SessionValidationService).useClass(
-        class StubSessionValidationService {
-          async validateSession(): ReturnType<
-            SessionValidationService['validateSession']
-          > {
-            return validated ? stubUser : null;
-          }
-        },
-      );
-      return this;
     }
 
     withStubUserService() {
