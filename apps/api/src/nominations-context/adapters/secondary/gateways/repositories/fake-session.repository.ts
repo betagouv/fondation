@@ -6,17 +6,17 @@ import {
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeSessionRepository implements SessionRepository {
-  sessions: Record<string, SessionSnapshot> = {};
+  fakeSessions: Record<string, SessionSnapshot> = {};
 
   save(transparence: Session) {
     return async () => {
-      this.sessions[transparence.id] = transparence.snapshot();
+      this.fakeSessions[transparence.id] = transparence.snapshot();
     };
   }
 
   session(id: string): TransactionableAsync<Session | null> {
     return async () => {
-      const transparence = this.sessions[id];
+      const transparence = this.fakeSessions[id];
       if (!transparence) return null;
 
       return Session.fromSnapshot(transparence);
@@ -27,7 +27,7 @@ export class FakeSessionRepository implements SessionRepository {
     sessionImportéeId: string,
   ): TransactionableAsync<Session | null> {
     return async () => {
-      const session = Object.values(this.sessions).find(
+      const session = Object.values(this.fakeSessions).find(
         (s) => s.sessionImportéeId === sessionImportéeId,
       );
       if (!session) return null;

@@ -1,10 +1,10 @@
 import {
   changeRuleValidationStateDto,
+  interpolateUrlParams,
+  ReportFileUsage,
   ReportsContextRestContract,
   ReportUpdateDto,
   reportUpdateDto,
-  interpolateUrlParams,
-  ReportFileUsage,
 } from "shared-models";
 import {
   ReportApiClient,
@@ -37,7 +37,7 @@ export class FetchReportApiClient implements ReportApiClient {
   async list() {
     const { method, path }: ClientFetchOptions["listReports"] = {
       method: "GET",
-      path: "",
+      path: "transparences",
     };
     const url = this.resolveUrl(path);
     const response = await this.fetch(url, {

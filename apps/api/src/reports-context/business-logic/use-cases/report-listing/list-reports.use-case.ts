@@ -11,14 +11,7 @@ export class ListReportsUseCase {
     private readonly sessionService: SessionService,
   ) {}
 
-  async execute(
-    reporterId: string,
-    sessionId: string,
-  ): Promise<ReportListingVM> {
-    const session = await this.sessionService.session(sessionId);
-    if (!session) {
-      throw new Error(`Session not found for ID: ${sessionId}`);
-    }
+  async execute(reporterId: string): Promise<ReportListingVM> {
     const rapports =
       await this.reportListingVMRepository.listReports(reporterId);
 
@@ -27,7 +20,15 @@ export class ListReportsUseCase {
         reportQueried.dossierDeNominationId,
       );
 
+      const session = await this.sessionService.session(
+        reportQueried.sessionId,
+      );
+      if (!session) {
+        throw new Error(`Session not found for ID: ${reportQueried.sessionId}`);
+      }
+
       return {
+        session,
         dossier,
         reportQueried,
       };
@@ -35,7 +36,7 @@ export class ListReportsUseCase {
     const dossierDeNomination = await Promise.all(rapportsAvecDossiersPromises);
 
     const rapportsVM: ReportListingVM = {
-      data: dossierDeNomination.map(({ dossier, reportQueried }) => ({
+      data: dossierDeNomination.map(({ session, dossier, reportQueried }) => ({
         id: reportQueried.id,
         transparency: session.name,
         state: reportQueried.state,
@@ -45,6 +46,7 @@ export class ListReportsUseCase {
         name: dossier.content.name,
         grade: dossier.content.grade,
         targettedPosition: dossier.content.targettedPosition,
+        observersCount: dossier.content.observers?.length ?? 0,
       })),
     };
 

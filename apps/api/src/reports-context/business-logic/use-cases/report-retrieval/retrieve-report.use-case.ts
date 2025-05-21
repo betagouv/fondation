@@ -1,8 +1,18 @@
-import { ReportRetrievalVM, Transparency } from 'shared-models';
-import { ReportRetrievalQuery } from '../../gateways/queries/report-retrieval-vm.query';
+import {
+  allRulesMapV2,
+  NominationFile,
+  ReportRetrievalVM,
+  RulesBuilder,
+  Transparency,
+} from 'shared-models';
+import {
+  ReportRetrievalQueried,
+  ReportRetrievalQuery,
+} from '../../gateways/queries/report-retrieval-vm.query';
 import { SessionService } from '../../gateways/services/session.service';
 import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
 import { TypeDeSaisine } from 'shared-models';
+import { UnionToIntersection } from 'type-fest';
 
 export class RetrieveReportUseCase {
   constructor(
@@ -41,7 +51,9 @@ export class RetrieveReportUseCase {
       comment: rapport.comment,
       formation: rapport.formation,
       state: rapport.state,
-      rules: rapport.rules,
+      rules: WithPreValidatedRulesBuilder.fromQueriedRules(
+        rapport.rules,
+      ).build(),
 
       transparency: transparence.name as Transparency,
 
@@ -58,5 +70,21 @@ export class RetrieveReportUseCase {
 
       attachedFiles: rapport.files,
     };
+  }
+}
+
+class WithPreValidatedRulesBuilder extends RulesBuilder {
+  static fromQueriedRules(rules: ReportRetrievalQueried['rules']) {
+    return new this(
+      ({ ruleGroup, ruleName }) => ({
+        ...(
+          rules[ruleGroup] as UnionToIntersection<
+            (typeof rules)[NominationFile.RuleGroup]
+          >
+        )[ruleName],
+        preValidated: false,
+      }),
+      allRulesMapV2,
+    );
   }
 }

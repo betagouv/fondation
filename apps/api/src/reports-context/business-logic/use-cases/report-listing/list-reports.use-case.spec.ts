@@ -4,8 +4,8 @@ import {
   ReportListItemQueried,
   ReportListItemVM,
   Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
-import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
@@ -49,7 +49,7 @@ describe('List reports', () => {
       dependencies.fakeReportListingVMQuery,
       dependencies.stubDossierDeNominationService,
       dependencies.stubSessionService,
-    ).execute(reporterId, uneSessionId);
+    ).execute(reporterId);
 
   const expectReports = async (reports: ReportListItemVM[]) => {
     expect(await listReports()).toEqual({
@@ -76,6 +76,7 @@ const unRapportVM: ReportListItemVM = {
   transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
   grade: Magistrat.Grade.HH,
   targettedPosition: 'a position',
+  observersCount: 1,
 };
 
 const unRapportQueried: ReportListItemQueried = {

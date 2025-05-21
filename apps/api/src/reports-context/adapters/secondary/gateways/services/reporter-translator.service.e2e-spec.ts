@@ -43,7 +43,9 @@ describe('Reporter Translator Service', () => {
       moduleFixture.createNestApplication(),
     ).configure();
 
-    reporterTranslatorService = moduleFixture.get(ReporterTranslatorService);
+    reporterTranslatorService = await moduleFixture.resolve(
+      ReporterTranslatorService,
+    );
 
     await app.init();
     await app.listen(defaultApiConfig.port);

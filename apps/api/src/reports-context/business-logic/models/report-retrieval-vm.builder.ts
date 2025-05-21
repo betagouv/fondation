@@ -21,7 +21,7 @@ export class ReportRetrievalBuilder<
     const isFakeId = idMode === 'fake';
     const defaultValue: NominationFile.RuleValue = {
       id: 'rule-id',
-      preValidated: true,
+      preValidated: false,
       validated: true,
     };
 
@@ -141,17 +141,6 @@ export class ReportRetrievalBuilder<
       rules: report.rules,
       files: report.files?.length ? report.files : null,
     };
-  }
-
-  static fromQueriedToVM(
-    report: ReportRetrievalQueried,
-  ): ReportRetrievalBuilder {
-    return new ReportRetrievalBuilder()
-      .with('id', report.id)
-      .with('state', report.state)
-      .with('formation', report.formation)
-      .with('comment', report.comment)
-      .with('rules', report.rules);
   }
 
   static fromWriteSnapshot<

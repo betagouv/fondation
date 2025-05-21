@@ -84,30 +84,29 @@ export const stubSession: SessionDto = {
   version: 1,
 };
 
-export const stubDossier: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
-  {
-    id: 'd619d2b0-6b1b-4793-bdf4-e27156c3df74',
-    sessionId: stubSessionId,
-    nominationFileImportedId: '0523baa3-c1dd-4d6b-bd2d-0d1df7c7a6d3',
-    content: {
-      biography: 'a biography',
-      folderNumber: 123,
-      formation: Magistrat.Formation.PARQUET,
-      grade: Magistrat.Grade.HH,
-      birthDate: {
-        year: 1980,
-        month: 1,
-        day: 1,
-      },
-      currentPosition: 'a current position',
-      dueDate: {
-        year: 2030,
-        month: 10,
-        day: 5,
-      },
-      name: 'a name',
-      targettedPosition: 'a targetted position',
-      observers: ['observer 1', 'observer 2'],
-      rank: '(1 sur 3)',
+export const stubDossier = {
+  id: 'd619d2b0-6b1b-4793-bdf4-e27156c3df74',
+  sessionId: stubSessionId,
+  nominationFileImportedId: '0523baa3-c1dd-4d6b-bd2d-0d1df7c7a6d3',
+  content: {
+    biography: 'a biography',
+    folderNumber: 123,
+    formation: Magistrat.Formation.PARQUET,
+    grade: Magistrat.Grade.HH,
+    birthDate: {
+      year: 1980,
+      month: 1,
+      day: 1,
     },
-  };
+    currentPosition: 'a current position',
+    dueDate: {
+      year: 2030,
+      month: 10,
+      day: 5,
+    },
+    name: 'a name',
+    targettedPosition: 'a targetted position',
+    observers: ['observer 1', 'observer 2'],
+    rank: '(1 sur 3)',
+  },
+} satisfies DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>;

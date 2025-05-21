@@ -29,7 +29,7 @@ export class BoundedContextHttpClient<Contract extends RestContract> {
     private readonly basePath: BasePath,
   ) {}
 
-  fetch<P extends keyof Contract['endpoints']>(
+  async fetch<P extends keyof Contract['endpoints']>(
     endpointFetchOptions: ClientFetchOptions<Contract>[P],
   ): Promise<Contract['endpoints'][P]['response']> {
     const url = this.resolveUrl(
@@ -37,9 +37,10 @@ export class BoundedContextHttpClient<Contract extends RestContract> {
       endpointFetchOptions.params,
     );
 
-    return this._fetch(url, {
+    const resp = await this._fetch(url, {
       method: endpointFetchOptions.method,
     });
+    return (await resp.json()) as Contract['endpoints'][P]['response'];
   }
 
   private resolveUrl(path: string, params?: Record<string, string>): string {

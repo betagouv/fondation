@@ -59,15 +59,15 @@ services:
       corepack prepare pnpm@9.11.0 --activate &&
 
       echo \"install dependencies\" &&
-      pnpm --filter api... install --frozen-lockfile &&
+      pnpm --filter api... install --frozen-lockfile
 
-      echo \"Migration starting\" &&
-      npm run drizzle:migrate &&
-      echo \"Migration done\" &&
+      # echo \"Migration starting\" &&
+      # npm run drizzle:migrate &&
+      # echo \"Migration done\" &&
 
-      echo \"Running npm cli:seed\" &&
-      npm run cli:seed &&
-      echo \"Seeding done\"
+      # echo \"Running npm cli:seed\" &&
+      # npm run cli:seed &&
+      # echo \"Seeding done\"
       "
     working_dir: /usr/src/fondation/apps/api
 

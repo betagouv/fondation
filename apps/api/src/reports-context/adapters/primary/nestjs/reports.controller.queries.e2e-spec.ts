@@ -76,6 +76,7 @@ describe('Reports Controller', () => {
       transparency: stubSession.name,
       grade: stubDossier.content.grade,
       targettedPosition: stubDossier.content.targettedPosition,
+      observersCount: stubDossier.content.observers.length,
     };
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('dossierDeNominationId', stubDossier.id)
@@ -84,7 +85,7 @@ describe('Reports Controller', () => {
       .build();
     const requestReportsList = () =>
       request(app.getHttpServer())
-        .get(`/api/reports/transparences/bySessionId/${stubSession.id}`)
+        .get(`/api/reports/transparences`)
         .set('Cookie', 'sessionId=unused');
   });
 
@@ -144,6 +145,7 @@ describe('Reports Controller', () => {
                 [reportRuleSnapshot.ruleName]: {
                   id: reportRuleSnapshot.id,
                   validated: reportRuleSnapshot.validated,
+                  preValidated: false,
                 },
               },
             }),

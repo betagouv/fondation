@@ -27,7 +27,7 @@ describe('Nouvelle transparence GDS', () => {
     importNouvelleTransparenceUseCase(dependencies);
 
   const expectTransparence = () => {
-    expect(Object.values(dependencies.sessionRepository.sessions)).toEqual<
+    expect(Object.values(dependencies.sessionRepository.fakeSessions)).toEqual<
       SessionSnapshot[]
     >([
       {

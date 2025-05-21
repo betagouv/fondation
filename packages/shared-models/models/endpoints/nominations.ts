@@ -1,7 +1,16 @@
 import { z } from "zod";
 import { RestContract, ZodParamsDto } from "./common";
-import { Magistrat } from "models/magistrat.namespace";
-import { TypeDeSaisine } from "models/type-de-saisine.enum";
+import { Magistrat } from "../magistrat.namespace";
+import { TypeDeSaisine } from "../type-de-saisine.enum";
+
+type SessionSnapshotResponse = {
+  id: string;
+  sessionImportéeId: string;
+  name: string;
+  formation: Magistrat.Formation;
+  typeDeSaisine: TypeDeSaisine;
+  version: number;
+};
 
 export interface NominationsContextRestContract extends RestContract {
   basePath: "api/nominations";
@@ -12,15 +21,9 @@ export interface NominationsContextRestContract extends RestContract {
       params: {
         sessionId: string;
       };
-      response: {
-        id: string;
-        sessionImportéeId: string;
-        name: string;
-        formation: Magistrat.Formation;
-        typeDeSaisine: TypeDeSaisine;
-        version: number;
-      };
+      response: SessionSnapshotResponse;
     };
+
     dossierDeNominationSnapshot: {
       method: "GET";
       path: "dossier-de-nomination/snapshot/by-id/:dossierId";

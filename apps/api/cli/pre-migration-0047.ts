@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   date,
   integer,
   jsonb,
@@ -18,33 +19,130 @@ import {
   Transparency,
 } from 'shared-models';
 import { dataAdministrationContextSchema } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
-import { NominationFileModelSnapshot } from 'src/data-administration-context/business-logic/models/nomination-file';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
-import { reportStateEnum } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import {
+  reportStateEnum,
+  ruleGroupEnum,
+  ruleNameEnum,
+} from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reportsContextSchema } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/reports-context-schema.drizzle';
 import { BooleanReportRulesBuilder } from 'src/reports-context/business-logic/models/boolean-report-rules.builder';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { getDrizzleInstance } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { getDrizzleMigrationSql } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
 import {
   formationEnum,
   transparencyEnum,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+
+const transpaA = Transparency.AUTOMNE_2024;
+const transpaB = Transparency.DU_03_MARS_2025;
 
 const gradeEnum = pgEnum(
   'grade',
   Object.values(Magistrat.Grade) as [Magistrat.Grade, ...Magistrat.Grade[]],
 );
 
-const transparencesPm = dataAdministrationContextSchema.table('transparences', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: transparencyEnum('name').unique().notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  formation: formationEnum('formation').notNull(),
-  nominationFiles: jsonb('nomination_files').array().notNull(),
-});
+const nominationFilesPm = dataAdministrationContextSchema.table(
+  'nomination_files',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    rowNumber: integer('row_number').notNull(),
+    content: jsonb('content').notNull(),
+  },
+);
+const nominationFile1 = {
+  id: 'ca1619e2-263d-49b6-b928-6a04ee681138',
+  createdAt: new Date(2020, 1, 1),
+  rowNumber: 1,
+  content: {
+    folderNumber: 1,
+    formation: Magistrat.Formation.SIEGE,
+    biography: 'bio 1',
+    birthDate: {
+      day: 1,
+      month: 1,
+      year: 1980,
+    },
+    currentPosition: 'current position 1',
+    dueDate: {
+      day: 1,
+      month: 1,
+      year: 2025,
+    },
+    grade: Magistrat.Grade.HH,
+    name: 'Jean Dupont',
+    rank: 'rank 1',
+    targettedPosition: 'targetted position 1',
+    observers: ['Jean Luc'],
+    transparency: Transparency.AUTOMNE_2024,
+    reporters: [],
+    rules: new BooleanReportRulesBuilder().build(),
+  },
+} satisfies typeof nominationFilesPm.$inferInsert;
+
+const nominationFile2 = {
+  id: 'e8e84c9f-7b2c-46a5-b47f-e1c6e9b80120',
+  createdAt: new Date(2021, 1, 1),
+  rowNumber: 3,
+  content: {
+    folderNumber: 2,
+    formation: Magistrat.Formation.PARQUET,
+    biography: 'bio 2',
+    birthDate: {
+      day: 1,
+      month: 1,
+      year: 1980,
+    },
+    currentPosition: 'current position 1',
+    dueDate: {
+      day: 2,
+      month: 1,
+      year: 2026,
+    },
+    grade: Magistrat.Grade.I,
+    name: 'Jean Aubry',
+    rank: 'rank 2',
+    targettedPosition: 'targetted position 2',
+    observers: ['Jean Luc 2'],
+    transparency: Transparency.AUTOMNE_2024,
+    reporters: [],
+    rules: new BooleanReportRulesBuilder(false).build(),
+  },
+} satisfies typeof nominationFilesPm.$inferInsert;
+
+const nominationFile3 = {
+  id: '258e2a60-a6aa-4a25-b4f2-e4a9194dd980',
+  createdAt: new Date(2022, 1, 1),
+  rowNumber: 3,
+  content: {
+    folderNumber: 3,
+    formation: Magistrat.Formation.PARQUET,
+    biography: 'bio 3',
+
+    birthDate: {
+      day: 1,
+      month: 1,
+      year: 1990,
+    },
+    currentPosition: 'current position 1',
+    dueDate: {
+      day: 1,
+      month: 1,
+      year: 2025,
+    },
+    grade: Magistrat.Grade.HH,
+    name: 'Jean Dupont 3',
+    rank: 'rank 3',
+    targettedPosition: 'targetted position 3',
+    observers: ['Jean Luc 3'],
+    transparency: Transparency.DU_03_MARS_2025,
+    reporters: [],
+    rules: new BooleanReportRulesBuilder(false).build(),
+  },
+} satisfies typeof nominationFilesPm.$inferInsert;
 
 const prevReportsPm = reportsContextSchema.table('reports', {
   id: uuid('id')
@@ -73,8 +171,24 @@ const prevReportsPm = reportsContextSchema.table('reports', {
   attachedFiles: jsonb('attached_files'),
 });
 
+const reportRulesPm = reportsContextSchema.table('report_rule', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  ruleGroup: ruleGroupEnum('rule_group').notNull(),
+  ruleName: ruleNameEnum('rule_name').notNull(),
+  validated: boolean('validated').notNull(),
+  preValidated: boolean('pre_validated').notNull(),
+  reportId: uuid('report_id')
+    .notNull()
+    .references(() => prevReportsPm.id),
+});
+
+const jeanRapporteurId = '6029fde9-59b8-4e56-bb03-53f6293e259f';
+const lucRapporteurId = 'ef148f78-d057-47d8-83d6-efbc10879d37';
 const jean: typeof users.$inferInsert = {
-  id: 'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
+  id: jeanRapporteurId,
   firstName: 'jean',
   lastName: 'jean',
   email: 'jean@example.fr',
@@ -84,7 +198,7 @@ const jean: typeof users.$inferInsert = {
   password: '$2b$10$ZsZ6Q01IdeksH/XkaZhzJuMLVCJC6TT2RbYkZ3oZDo85XkkOB5Ina',
 };
 const luc: typeof users.$inferInsert = {
-  id: '490558fb-67b8-4522-9dab-7dc82961e39a',
+  id: lucRapporteurId,
   firstName: 'luc',
   lastName: 'luc',
   email: 'luc@example.fr',
@@ -94,114 +208,6 @@ const luc: typeof users.$inferInsert = {
   password: '$2b$10$ZsZ6Q01IdeksH/XkaZhzJuMLVCJC6TT2RbYkZ3oZDo85XkkOB5Ina',
 };
 
-type NominationFileReducedSnapshot = NominationFileModelSnapshot;
-const nominationFile1: NominationFileReducedSnapshot = {
-  id: '6d0bfb26-c355-46a3-99cd-fba6ae9b410e',
-  createdAt: new Date(2020, 1, 1),
-  rowNumber: 1,
-  content: {
-    folderNumber: 1,
-    formation: Magistrat.Formation.SIEGE,
-    biography: 'bio 1',
-    birthDate: {
-      day: 1,
-      month: 1,
-      year: 1980,
-    },
-    currentPosition: 'current position 1',
-    dueDate: {
-      day: 1,
-      month: 1,
-      year: 2025,
-    },
-    grade: Magistrat.Grade.HH,
-    name: 'Jean Dupont',
-    rank: 'rank 1',
-    targettedPosition: 'targetted position 1',
-    observers: ['Jean Luc'],
-    transparency: Transparency.AUTOMNE_2024,
-    reporters: [],
-    rules: new BooleanReportRulesBuilder().build(),
-  },
-};
-const nominationFile2: NominationFileReducedSnapshot = {
-  id: '1f395754-0fe5-4429-a279-78872e4856e8',
-  createdAt: new Date(2021, 1, 1),
-  rowNumber: 2,
-  content: {
-    folderNumber: 2,
-    formation: Magistrat.Formation.PARQUET,
-    biography: 'bio 2',
-    birthDate: {
-      day: 1,
-      month: 1,
-      year: 1980,
-    },
-    currentPosition: 'current position 1',
-    dueDate: {
-      day: 2,
-      month: 1,
-      year: 2026,
-    },
-    grade: Magistrat.Grade.I,
-    name: 'Jean Aubry',
-    rank: 'rank 2',
-    targettedPosition: 'targetted position 2',
-    observers: ['Jean Luc 2'],
-    transparency: Transparency.AUTOMNE_2024,
-    reporters: [],
-    rules: new BooleanReportRulesBuilder(false).build(),
-  },
-};
-const nominationFile3: NominationFileReducedSnapshot = {
-  id: '6b2d13cb-177e-4ff8-9d39-9a279c9323af',
-  createdAt: new Date(2022, 1, 1),
-  rowNumber: 3,
-  content: {
-    folderNumber: 3,
-    formation: Magistrat.Formation.PARQUET,
-    biography: 'bio 3',
-
-    birthDate: {
-      day: 1,
-      month: 1,
-      year: 1990,
-    },
-    currentPosition: 'current position 1',
-    dueDate: {
-      day: 1,
-      month: 1,
-      year: 2025,
-    },
-    grade: Magistrat.Grade.HH,
-    name: 'Jean Dupont 3',
-    rank: 'rank 3',
-    targettedPosition: 'targetted position 3',
-    observers: ['Jean Luc 3'],
-    transparency: Transparency.DU_03_MARS_2025,
-    reporters: [],
-    rules: new BooleanReportRulesBuilder(false).build(),
-  },
-};
-
-const transparenceA = {
-  id: 'a4894798-3cb7-4204-873d-dc6a66e2a22e',
-  createdAt: new Date(),
-  formation: Magistrat.Formation.SIEGE,
-  name: Transparency.AUTOMNE_2024,
-  nominationFiles: [nominationFile1, nominationFile2],
-} satisfies typeof transparencesPm.$inferInsert;
-const transparenceB = {
-  id: 'b8009edf-0955-4600-8840-56e91f3c68de',
-  createdAt: new Date(),
-  formation: Magistrat.Formation.PARQUET,
-  name: Transparency.DU_03_MARS_2025,
-  nominationFiles: [nominationFile3],
-} satisfies typeof transparencesPm.$inferInsert;
-
-const jeanRapporteurId = '6029fde9-59b8-4e56-bb03-53f6293e259f';
-const lucRapporteurId = 'ef148f78-d057-47d8-83d6-efbc10879d37';
-
 const nominationFile1RapporteurJean = {
   id: '57f7df61-e095-4efb-910a-e51f6fa358b5',
   createdAt: new Date(),
@@ -209,7 +215,7 @@ const nominationFile1RapporteurJean = {
   nominationFileId: nominationFile1.id,
   reporterId: jeanRapporteurId,
   comment: 'rapport dossier 1 de jean',
-  transparency: transparenceA.name,
+  transparency: transpaA,
 
   birthDate: new Date('1980-01-01').toISOString(),
   currentPosition: 'current position 1',
@@ -230,7 +236,7 @@ const nominationFile1RapporteurLuc = {
   nominationFileId: nominationFile1.id,
   reporterId: lucRapporteurId,
   comment: 'rapport dossier 1 de luc',
-  transparency: transparenceA.name,
+  transparency: transpaA,
 
   birthDate: new Date('1980-01-01').toISOString(),
   currentPosition: 'current position 1',
@@ -251,7 +257,7 @@ const nominationFile2RapporteurJean = {
   nominationFileId: nominationFile2.id,
   reporterId: jeanRapporteurId,
   comment: 'rapport dossier 2 de jean',
-  transparency: transparenceA.name,
+  transparency: transpaA,
 
   birthDate: new Date('1980-01-01').toISOString(),
   currentPosition: 'current position 1',
@@ -272,7 +278,7 @@ const nominationFile3RapporteurJean = {
   nominationFileId: nominationFile3.id,
   reporterId: jeanRapporteurId,
   comment: 'rapport dossier 3 de jean',
-  transparency: transparenceB.name,
+  transparency: transpaB,
 
   birthDate: new Date('1990-01-01').toISOString(),
   currentPosition: 'current position 1',
@@ -290,16 +296,16 @@ const nominationFile3RapporteurJean = {
 export default async function preMigration0047() {
   const db = getDrizzleInstance(defaultApiConfig.database);
 
-  for (const num of Array.from({ length: 46 }, (_, i) => i + 1)) {
-    const sql = getDrizzleMigrationSql(num);
-    await db.execute(sql);
-  }
+  // for (const num of Array.from({ length: 46 }, (_, i) => i + 1)) {
+  //   const sql = getDrizzleMigrationSql(num);
+  //   await db.execute(sql);
+  // }
 
   await db.insert(users).values([jean, luc]).execute();
 
   await db
-    .insert(transparencesPm)
-    .values([transparenceA, transparenceB])
+    .insert(nominationFilesPm)
+    .values([nominationFile1, nominationFile2, nominationFile3])
     .execute();
 
   const allReports = [
@@ -312,18 +318,15 @@ export default async function preMigration0047() {
   await db.insert(prevReportsPm).values(allReports).execute();
 
   for (const report of allReports) {
-    const report1RulesPromises = allRulesTuple.map(
-      async ([ruleGroup, ruleName], i) => ({
-        id: crypto.randomUUID(),
-        createdAt: new Date(2021, 1, 1),
-        reportId: report.id,
-        ruleGroup,
-        ruleName,
-        validated: true,
-        preValidated: i <= 1,
-      }),
-    );
-    await Promise.all(report1RulesPromises);
+    const allRules = allRulesTuple.map(([ruleGroup, ruleName], i) => ({
+      createdAt: new Date(2021, 1, 1),
+      reportId: report.id,
+      ruleGroup,
+      ruleName,
+      validated: i <= 1,
+      preValidated: i <= 1,
+    }));
+    await db.insert(reportRulesPm).values(allRules).execute();
   }
 }
 

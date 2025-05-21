@@ -90,7 +90,7 @@ export class ApiReportGateway implements ReportGateway {
       dueDate: item.dueDate,
       state: item.state,
       formation: item.formation,
-      transparency: item.transparency,
+      transparency: item.transparency as Transparency,
       grade: item.grade,
       targettedPosition: item.targettedPosition,
       observersCount: item.observersCount,

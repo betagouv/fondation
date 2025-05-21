@@ -30,6 +30,6 @@ export interface ReportRetrievalVM {
   comment: string | null;
   rank: string;
   observers: string[] | null;
-  rules: NominationFile.Rules<Omit<NominationFile.RuleValue, "preValidated">>;
+  rules: NominationFile.Rules<NominationFile.RuleValue>;
   attachedFiles: AttachedFileVM[] | null;
 }

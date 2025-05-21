@@ -96,7 +96,7 @@ export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
   ];
 };
 export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
-  sessionRepository.sessions = {
+  sessionRepository.fakeSessions = {
     [aParquetSessionId]: {
       id: aParquetSessionId,
       name: aTransparencyName,
@@ -111,7 +111,7 @@ export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
 export const givenUneSessionSiège = (
   sessionRepository: FakeSessionRepository,
 ) => {
-  sessionRepository.sessions = {
+  sessionRepository.fakeSessions = {
     [aSiègeSessionId]: {
       id: aSiègeSessionId,
       name: aTransparencyName,
