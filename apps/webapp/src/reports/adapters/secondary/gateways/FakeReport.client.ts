@@ -23,6 +23,7 @@ export class FakeReportApiClient implements ReportApiClient {
   currentReportId: string | null = null;
 
   deleteFilesError?: Error;
+  uploadFilesError?: Error;
 
   addReports(...reports: ApiModel[]): void {
     for (const report of reports) {
@@ -113,6 +114,8 @@ export class FakeReportApiClient implements ReportApiClient {
     files: UploadFileArg[],
     usage: ReportFileUsage,
   ): Promise<void> {
+    if (this.uploadFilesError) throw this.uploadFilesError;
+
     const report = this.reports[reportId];
     if (!report) throw new Error("Report not found");
     this.VMGuard(report);

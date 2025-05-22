@@ -6,6 +6,7 @@ import { reportHtmlIds } from "../../../dom/html-ids";
 import { useAppDispatch } from "../../../hooks/react-redux";
 import { TextareaCard } from "../TextareaCard";
 import { InsertImages } from "../TipTapEditor";
+import { TipTapEditorProvider } from "../../../../../../shared-kernel/adapters/primary/react/TipTapEditorProvider";
 
 export type ReportEditorProps = {
   comment: string | null;
@@ -25,7 +26,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       reportEmbedScreenshot({
         files,
         reportId,
-        editor,
+        editor: new TipTapEditorProvider(editor),
       }),
     );
   };
