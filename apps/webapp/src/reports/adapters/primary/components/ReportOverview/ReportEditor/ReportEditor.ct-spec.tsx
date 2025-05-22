@@ -324,27 +324,37 @@ test.describe("Report Editor", () => {
     expect(htmlContent).toEqual(expectedHtml);
   });
 
-  test("Undo a text modification", async () => {
-    await renderReport("content");
-    await writeAtTheEnd(" with modification");
-    await expectStoredReport("<p>content with modification</p>");
+  [
+    [() => editor.press("Control+z"), "Control+z"] as const,
+    [() => clickOnMark("Annuler"), "a button click"] as const,
+  ].forEach(([undo, key]) => {
+    test(`Undo a text modification with ${key}`, async () => {
+      await renderReport("content");
+      await writeAtTheEnd(" with modification");
+      await expectStoredReport("<p>content with modification</p>");
 
-    await editor.press("Control+z");
+      await undo();
 
-    await expectContent("content");
-    await expectStoredReport("<p>content</p>");
+      await expectContent("content");
+      await expectStoredReport("<p>content</p>");
+    });
   });
 
-  test("Redo a text modification", async () => {
-    await renderReport("content");
-    await writeAtTheEnd(" with modification");
-    await expectStoredReport("<p>content with modification</p>");
+  [
+    [() => editor.press("Control+Shift+z"), "Control+Shift+z"] as const,
+    [() => clickOnMark("Rétablir"), "a button click"] as const,
+  ].forEach(([redo, key]) => {
+    test(`Redo a text modification with ${key}`, async () => {
+      await renderReport("content");
+      await writeAtTheEnd(" with modification");
+      await expectStoredReport("<p>content with modification</p>");
 
-    await editor.press("Control+z");
-    await expectContent("content");
-    await editor.press("Control+Shift+z");
+      await editor.press("Control+z");
+      await expectContent("content");
+      await redo();
 
-    await expectStoredReport("<p>content with modification</p>");
+      await expectStoredReport("<p>content with modification</p>");
+    });
   });
 
   test("disable the bold mark on a Title 2 line", async () => {

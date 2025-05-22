@@ -1,171 +1,72 @@
 import "@testing-library/jest-dom/vitest";
 import { Editor } from "@tiptap/react";
-import { File } from "node:buffer";
-import sharp, { FormatEnum } from "sharp";
-import { DeterministicDateProvider } from "../../../../shared-kernel/adapters/secondary/providers/deterministicDateProvider";
-import { DeterministicUuidGenerator } from "../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
-import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
-import { InvalidMimeTypeError } from "../../../../shared-kernel/core-logic/errors/InvalidMimeType.error";
-import { AppState, ReportSM } from "../../../../store/appState";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
-import {
-  ExpectStoredReports,
-  expectStoredReportsFactory,
-} from "../../../../test/reports";
+import { TipTapEditorProvider } from "../../../../shared-kernel/adapters/primary/react/TipTapEditorProvider";
+import { TextEditorProvider } from "../../../../shared-kernel/core-logic/providers/textEditor";
 import { createExtensions } from "../../../adapters/primary/components/ReportOverview/TipTapEditor/extensions";
-import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
-import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
-import { ReportBuilder } from "../../builders/Report.builder";
-import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { retrieveReport } from "../report-retrieval/retrieveReport.use-case";
-import { reportEmbedScreenshot } from "./report-embed-screenshot";
-import { ApiFileGateway } from "../../../../files/adapters/secondary/gateways/ApiFile.gateway";
-import { FakeFileApiClient } from "../../../../files/adapters/secondary/gateways/FakeFile.client";
+import {
+  file1FileClientVM,
+  file2FileClientVM,
+  fileId1,
+  fileId2,
+  setupTestStore,
+} from "./report-embed-screenshot.fixtures";
 
 describe("Report Embed Screenshot", () => {
-  let store: ReduxStore;
-  let initialState: AppState<true>;
-  let reportApiClient: FakeReportApiClient;
-  let fileApiClient: FakeFileApiClient;
-  let dateProvider: DeterministicDateProvider;
-  let fileProvider: StubNodeFileProvider;
-  let uuidGenerator: DeterministicUuidGenerator;
-  let expectStoredReports: ExpectStoredReports;
-  let editor: Editor;
+  let editor: TextEditorProvider;
+  let deps: ReturnType<typeof setupTestStore>;
 
   beforeEach(() => {
-    reportApiClient = new FakeReportApiClient();
-    reportApiClient.addReports(aReportApiModel);
-    const reportGateway = new ApiReportGateway(reportApiClient);
-    fileApiClient = new FakeFileApiClient();
-    const fileGateway = new ApiFileGateway(fileApiClient);
-    fileProvider = new StubNodeFileProvider();
-    dateProvider = new DeterministicDateProvider();
-    uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [fileId1, fileId2];
-
-    store = initReduxStore(
-      {
-        reportGateway,
-        fileGateway,
-      },
-      { fileProvider, dateProvider, uuidGenerator },
-      {},
+    editor = new TipTapEditorProvider(
+      new Editor({
+        extensions: createExtensions(),
+      }),
     );
-    initialState = store.getState();
-
-    expectStoredReports = expectStoredReportsFactory(store, initialState);
-
-    store.dispatch(retrieveReport.fulfilled(aReport, "", ""));
-    editor = new Editor({
-      extensions: createExtensions(),
-    });
+    deps = setupTestStore(editor);
   });
 
   it("refuses to embed a .txt file", async () => {
-    const file = new File(["test content"], "file.txt", {
-      type: "text/plain",
-    });
-    await file.arrayBuffer();
-    expectUploadError(await embedScreenshot(file), file.name);
+    const file = deps.givenATxtFile();
+    deps.expectUploadError(await deps.embedScreenshot(file), file.name);
   });
 
   it.each`
-    format
-    ${"png"}
-    ${"jpg"}
-  `("allows a $format image", async ({ format }) => {
-    const fileBuffer = await givenAnImageBuffer(format);
-    const file = new File([fileBuffer], `file.${format}`, {
-      type: `image/${format}`,
-    });
-    await expect(embedScreenshot(file)).resolves.toBeDefined();
-  });
-
-  it.each([
-    {
-      fileNames: ["screenshot.png"],
-    },
-    {
-      fileNames: ["screenshot1.png", "screenshot2.png"],
-    },
-  ])("stores a screenshot with its signed URL", async ({ fileNames }) => {
-    const expectedFiles = fileNames.map((fileName, index) => {
-      const fileNameWithTimestamp = `${fileName}-${dateProvider.timestamp}`;
-      return {
-        fileId: index === 0 ? fileId1 : fileId2,
-        name: fileNameWithTimestamp,
-        signedUrl: `${FakeReportApiClient.BASE_URI}/${fileNameWithTimestamp}`,
-      };
-    });
-    fileApiClient.setFiles(...expectedFiles);
-    const fileBuffer = await givenAnImageBuffer("png");
-    const files = fileNames.map(
-      (fileName) =>
-        new File([fileBuffer], fileName, {
-          type: "image/png",
-        }),
+    getImageFile                        | format   | fileVM
+    ${async () => deps.givenAPngFile()} | ${"png"} | ${file1FileClientVM}
+    ${async () => deps.givenAJpgFile()} | ${"jpg"} | ${file2FileClientVM}
+  `("allows a $format image", async ({ getImageFile, fileVM }) => {
+    deps.fileApiClient.signedUrlsVM = [fileVM];
+    const screenshot = await getImageFile();
+    expect((await deps.embedScreenshot(screenshot)).meta.requestStatus).toEqual(
+      "fulfilled",
     );
-
-    await embedScreenshot(...files);
-
-    expectStoredScreenshots({
-      files: expectedFiles,
-    });
   });
 
-  const givenAnImageBuffer = async (
-    format: Extract<keyof FormatEnum, "png" | "jpg">,
-  ) => {
-    fileProvider.mimeType = `image/${format}`;
-    const fileBuffer = await sharp({
-      create: {
-        width: 256,
-        height: 256,
-        channels: 3,
-        background: { r: 128, g: 0, b: 0 },
+  it("stores screenshots with its signed URLs", async () => {
+    const screenshot1 = await deps.givenAPngFile();
+    const screenshot2 = await deps.givenAJpgFile();
+
+    await deps.embedScreenshot(screenshot1, screenshot2);
+
+    deps.expectStoredScreenshots(
+      {
+        fileId: fileId1,
+        name: file1FileClientVM.name,
+        signedUrl: file1FileClientVM.signedUrl,
       },
-    })
-      .toFormat(format)
-      .toBuffer();
-
-    return fileBuffer;
-  };
-
-  const embedScreenshot = (...files: File[]) =>
-    store.dispatch(
-      reportEmbedScreenshot({
-        reportId: aReport.id,
-        // @ts-expect-error Problème d'appel à la méthode arrayBuffer avec le
-        // File du navigateur non investigué
-        files,
-        editor,
-      }),
+      {
+        fileId: fileId2,
+        name: file2FileClientVM.name,
+        signedUrl: file2FileClientVM.signedUrl,
+      },
     );
+  });
 
-  const expectStoredScreenshots = (
-    contentScreenshots: ReportSM["contentScreenshots"],
-  ) =>
-    expectStoredReports({
-      ...aReport,
-      contentScreenshots,
-    });
+  it("deletes a screenshot from the editor if upload failed", async () => {
+    const screenshot = await deps.givenAJpgFile();
+    deps.reportApiClient.uploadFilesError = new Error("Upload error");
 
-  const expectUploadError = (
-    resp: Awaited<ReturnType<typeof embedScreenshot>>,
-    fileName: string,
-  ) =>
-    expect(resp).toMatchObject({
-      error: expect.objectContaining({
-        message: new InvalidMimeTypeError({
-          fileName: `${fileName}-${new DeterministicDateProvider().timestamp}`,
-        }).message,
-      }),
-    });
+    await deps.embedScreenshot(screenshot);
+
+    expect(editor.isEmpty()).toBe(true);
+  });
 });
-
-const aReportApiModel = new ReportApiModelBuilder().build();
-const aReport = ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM();
-
-const fileId1 = "file-id1";
-const fileId2 = "file-id2";

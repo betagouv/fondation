@@ -15,6 +15,8 @@ import { UnderlineButton } from "./buttons/UnderlineButton";
 import { headingLevels } from "./constant";
 import { useScreenshotPaste } from "./useScreenshotPaste";
 import { InsertImages } from ".";
+import { UndoButton } from "./buttons/UndoButton";
+import { RedoButton } from "./buttons/RedoButton";
 
 export interface MenuBarProps {
   insertImages: InsertImages;
@@ -26,6 +28,8 @@ export const MenuBar: FC<MenuBarProps> = ({ insertImages }) => {
   return (
     <div className={clsx("sticky top-2 z-10 bg-white", cx("fr-my-4v"))}>
       <div className={clsx("gap-3", cx("fr-grid-row"))}>
+        <UndoButton />
+        <RedoButton />
         <TextColorButton />
         <HighlightButton />
         <BoldButton />

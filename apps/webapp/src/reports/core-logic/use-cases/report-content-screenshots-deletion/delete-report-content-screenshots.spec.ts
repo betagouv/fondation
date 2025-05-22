@@ -56,8 +56,10 @@ describe("Delete Report Attached Files", () => {
     reportApiClient.deleteFilesError = new Error();
     editor.chain().setImage({ src: aFile.signedUrl }).run();
     const editorStateWithImage = editor.getJSON();
-    editor.chain().clearContent().run();
 
+    // On supprime le contenu pour simuler le comportement dans l'UI,
+    // ce qui crée une nouvelle entrée dans l'historique de l'éditeur
+    editor.chain().clearContent().run();
     await deleteReports();
 
     expect(editor.getJSON()).toEqual(editorStateWithImage);

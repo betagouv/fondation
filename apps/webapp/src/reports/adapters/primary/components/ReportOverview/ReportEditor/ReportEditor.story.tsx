@@ -10,6 +10,9 @@ import { ApiReportGateway } from "../../../../secondary/gateways/ApiReport.gatew
 import { FakeReportApiClient } from "../../../../secondary/gateways/FakeReport.client";
 import { RulesLabelsMap } from "../../../labels/rules-labels";
 import ReportOverview from "../ReportOverview";
+import { DeterministicUuidGenerator } from "../../../../../../shared-kernel/adapters/secondary/providers/deterministicUuidGenerator";
+import { ApiFileGateway } from "../../../../../../files/adapters/secondary/gateways/ApiFile.gateway";
+import { FakeFileApiClient } from "../../../../../../files/adapters/secondary/gateways/FakeFile.client";
 
 declare const window: {
   store: ReduxStore;
@@ -41,13 +44,35 @@ export function ReportEditorForTest({ content }: ReportEditorForTestProps) {
   const fileProvider = new StubBrowserFileProvider();
   fileProvider.mimeType = "image/png";
 
+  const image1FileId = "image-1-file-id";
+  const image2FileId = "image-2-file-id";
+
+  const fileClient = new FakeFileApiClient();
+  fileClient.setFiles(
+    {
+      fileId: image1FileId,
+      name: "image.png-10",
+      signedUrl: `${FakeReportApiClient.BASE_URI}/image.png-10`,
+    },
+    {
+      fileId: image2FileId,
+      name: "image2.png-10",
+      signedUrl: `${FakeReportApiClient.BASE_URI}/image2.png-10`,
+    },
+  );
+
+  const uuidGenerator = new DeterministicUuidGenerator();
+  uuidGenerator.nextUuids = [image1FileId, image2FileId];
+
   const store = initReduxStore(
     {
       reportGateway,
+      fileGateway: new ApiFileGateway(fileClient),
     },
     {
       fileProvider,
       dateProvider: new DeterministicDateProvider(),
+      uuidGenerator: uuidGenerator,
     },
     {},
     {},

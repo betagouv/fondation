@@ -6,9 +6,14 @@ import {
   Magistrat,
   NominationFile,
   Role,
+  Transparency,
   TypeDeSaisine,
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import {
+  dossierDeNominationPm,
+  sessionPm,
+} from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
@@ -44,12 +49,13 @@ async function seed() {
 
     const sessionA: SessionSnapshot = {
       id: 'f474d12d-9a27-44c8-a90b-f233b131235c',
-      name: 'Session 1',
+      name: Transparency.AUTOMNE_2024,
       formation: Magistrat.Formation.PARQUET,
       sessionImportéeId: '4ebd0b50-d2e8-484c-a18d-7531879118ca',
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       version: 1,
     };
+    await db.insert(sessionPm).values(sessionA).execute();
 
     const dossier1: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
       {
@@ -71,9 +77,18 @@ async function seed() {
         },
       };
 
+    await db
+      .insert(dossierDeNominationPm)
+      .values({
+        ...dossier1,
+        dossierDeNominationImportéId: dossier1.nominationFileImportedId,
+      })
+      .execute();
+
     const reportSnapshot1 = new ReportBuilder('uuid')
       .with('version', 1)
       .with('dossierDeNominationId', dossier1.id)
+      .with('sessionId', sessionA.id)
       .with('reporterId', user.id!)
       .with('state', NominationFile.ReportState.IN_PROGRESS)
       .build();
@@ -102,6 +117,7 @@ async function seed() {
     const reportSnapshot2 = new ReportBuilder('uuid')
       .with('id', crypto.randomUUID())
       .with('dossierDeNominationId', dossier1.id)
+      .with('sessionId', sessionA.id)
       .with('reporterId', user.id!)
       .with('version', 1)
       .with('formation', Magistrat.Formation.PARQUET)
