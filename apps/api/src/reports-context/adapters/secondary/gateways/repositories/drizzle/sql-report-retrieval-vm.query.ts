@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NominationFile } from 'shared-models';
 import {
   ReportRetrievalQueried,
@@ -6,9 +6,10 @@ import {
 } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { reports } from './schema/report-pm'; // Drizzle ORM table definition
-import { reportRules } from './schema/report-rule-pm'; // Drizzle ORM table definition
+import { reports } from './schema/report-pm';
+import { reportRules } from './schema/report-rule-pm';
+
+type RuleValue = Omit<NominationFile.RuleValue, 'preValidated'>;
 
 export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -20,27 +21,16 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     const reportWithRules = await this.db
       .select({
         reportId: reports.id,
-        folderNumber: reports.folderNumber,
-        biography: reports.biography,
-        dueDate: reports.dueDate,
-        name: reports.name,
-        birthDate: reports.birthDate,
+        dossierDeNominationId: reports.dossierDeNominationId,
+        sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,
-        transparency: reports.transparency,
-        grade: reports.grade,
-        currentPosition: reports.currentPosition,
-        targettedPosition: reports.targettedPosition,
         comment: reports.comment,
-        rank: reports.rank,
-        observers: reports.observers,
-        observersCount: sql<number>`COALESCE(array_length(${reports.observers}, 1), 0)`,
         files: reports.attachedFiles,
         // Rule fields
         ruleId: reportRules.id,
         ruleGroup: reportRules.ruleGroup,
         ruleName: reportRules.ruleName,
-        preValidated: reportRules.preValidated,
         validated: reportRules.validated,
       })
       .from(reports)
@@ -56,8 +46,8 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     if (!reportData) {
       return null;
     }
-    const rules: NominationFile.Rules = reportWithRules.reduce(
-      (acc: NominationFile.Rules, row) => {
+    const rules: NominationFile.Rules<RuleValue> = reportWithRules.reduce(
+      (acc: NominationFile.Rules<RuleValue>, row) => {
         const ruleGroup = row.ruleGroup as NominationFile.RuleGroup;
         const ruleName = row.ruleName as NominationFile.RuleName;
 
@@ -69,40 +59,25 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
           acc[ruleGroup] = {} as any;
         }
 
-        (
-          acc[ruleGroup] as Record<
-            NominationFile.RuleName,
-            NominationFile.RuleValue
-          >
-        )[ruleName] = {
+        (acc[ruleGroup] as Record<NominationFile.RuleName, RuleValue>)[
+          ruleName
+        ] = {
           id: row.ruleId,
-          preValidated: row.preValidated,
           validated: row.validated,
         };
 
         return acc;
       },
-      {} as NominationFile.Rules,
+      {} as NominationFile.Rules<RuleValue>,
     );
 
     const reportRetrieval: ReportRetrievalQueried = {
       id: reportData.reportId,
-      folderNumber: reportData.folderNumber,
-      biography: reportData.biography,
-      dueDate: reportData.dueDate
-        ? DateOnly.fromDbDateOnlyString(reportData.dueDate).toJson()
-        : null,
-      name: reportData.name,
-      birthDate: DateOnly.fromDbDateOnlyString(reportData.birthDate).toJson(),
+      dossierDeNominationId: reportData.dossierDeNominationId,
+      sessionId: reportData.sessionId,
       state: reportData.state,
       formation: reportData.formation,
-      transparency: reportData.transparency,
-      grade: reportData.grade,
-      currentPosition: reportData.currentPosition,
-      targettedPosition: reportData.targettedPosition,
       comment: reportData.comment ? reportData.comment : null,
-      rank: reportData.rank,
-      observers: reportData.observers,
       rules,
       files: attachedFilesValidationSchema.parse(reportData.files),
     };

@@ -1,12 +1,5 @@
-import {
-  Magistrat,
-  NominationFile,
-  ReportFileUsage,
-  Transparency,
-} from 'shared-models';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { Magistrat, NominationFile, ReportFileUsage } from 'shared-models';
 import { z } from 'zod';
-import { ReportToCreate } from '../use-cases/report-creation/create-report.use-case';
 import { DomainRegistry } from './domain-registry';
 import {
   ReportAttachedFile,
@@ -14,142 +7,74 @@ import {
 } from './report-attached-file';
 import { ReportAttachedFiles } from './report-attached-files';
 import { Reporter } from './reporter';
+import { RapportTransparenceCrééEvent } from './events/rapport-transparence-créé.event';
+import { DossierDeNomination } from './dossier-de-nomination';
 
 export type NominationFileReportSnapshot = {
   id: string;
-  nominationFileId: string;
+  dossierDeNominationId: string;
+  sessionId: string;
   reporterId: string;
   version: number;
   createdAt: Date;
-  folderNumber: number | null;
-  biography: string | null;
-  dueDate: DateOnly | null;
-  name: string;
-  birthDate: DateOnly;
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
-  transparency: Transparency;
-  grade: Magistrat.Grade;
-  currentPosition: string;
-  targettedPosition: string;
   comment: string | null;
-  rank: string;
-  observers: string[] | null;
   attachedFiles: ReportAttachedFileSnapshot[] | null;
 };
 
 export class NominationFileReport {
   constructor(
     private readonly _id: string,
-    private readonly _nominationFileId: string,
+    private readonly _dossierDeNominationId: string,
+    private readonly _sessionId: string,
     private readonly _createdAt: Date,
     private readonly _reporterId: string,
     private _version: number,
-    private _folderNumber: number | null,
-    private readonly _biography: string | null,
-    private readonly _dueDate: DateOnly | null,
-    private readonly _name: string,
-    private readonly _birthDate: DateOnly,
     private _state: NominationFile.ReportState,
     private readonly _formation: Magistrat.Formation,
-    private readonly _transparency: Transparency,
-    private readonly _grade: Magistrat.Grade,
-    private readonly _currentPosition: string,
-    private readonly _targettedPosition: string,
     private _comment: string | null,
-    private readonly _rank: string,
-    private _observers: string[] | null,
     private _attachedFiles: ReportAttachedFiles | null,
   ) {}
 
-  public get nominationFileId(): string {
-    return this._nominationFileId;
+  get dossierDeNominationId(): string {
+    return this._dossierDeNominationId;
   }
 
-  public get createdAt(): Date {
+  get createdAt(): Date {
     return this._createdAt;
   }
 
-  public get reporterId(): string {
+  get reporterId(): string {
     return this._reporterId;
   }
 
-  public get version(): number {
+  get version(): number {
     return this._version;
   }
   private set version(value: number) {
     this._version = z.number().int().min(0).parse(value);
   }
 
-  public get folderNumber(): number | null {
-    return this._folderNumber;
-  }
-  private set folderNumber(value: number | null) {
-    this._folderNumber = z.number().int().min(1).nullable().parse(value);
-  }
-
-  public get biography(): string | null {
-    return this._biography;
-  }
-
-  public get dueDate(): DateOnly | null {
-    return this._dueDate;
-  }
-
-  public get name(): string {
-    return this._name;
-  }
-
-  public get birthDate(): DateOnly {
-    return this._birthDate;
-  }
-
-  public get state(): NominationFile.ReportState {
+  get state(): NominationFile.ReportState {
     return this._state;
   }
   private set state(value: NominationFile.ReportState) {
     this._state = z.nativeEnum(NominationFile.ReportState).parse(value);
   }
 
-  public get formation(): Magistrat.Formation {
+  get formation(): Magistrat.Formation {
     return this._formation;
   }
 
-  public get transparency(): Transparency {
-    return this._transparency;
-  }
-
-  public get grade(): Magistrat.Grade {
-    return this._grade;
-  }
-
-  public get currentPosition(): string {
-    return this._currentPosition;
-  }
-
-  public get targettedPosition(): string {
-    return this._targettedPosition;
-  }
-
-  public get comment(): string | null {
+  get comment(): string | null {
     return this._comment;
   }
   private set comment(value: string | null) {
     this._comment = z.string().nullable().parse(value);
   }
 
-  public get rank(): string {
-    return this._rank;
-  }
-
-  public get observers(): string[] | null {
-    return this._observers;
-  }
-  private set observers(value: string[] | null) {
-    this._observers = z.array(z.string().min(3)).nullable().parse(value);
-  }
-
-  public get attachedFiles(): ReportAttachedFiles | null {
+  get attachedFiles(): ReportAttachedFiles | null {
     return this._attachedFiles;
   }
 
@@ -159,14 +84,6 @@ export class NominationFileReport {
 
   updateState(state: NominationFile.ReportState) {
     this.state = state;
-  }
-
-  replaceFolderNumber(folderNumber: number | null) {
-    this._folderNumber = folderNumber;
-  }
-
-  replaceObservers(observers: string[]) {
-    this._observers = observers;
   }
 
   createAttachedFile(
@@ -211,35 +128,32 @@ export class NominationFileReport {
     return !!this.attachedFiles?.alreadyExists(file);
   }
 
-  generateAttachedFilePath(reporter: Reporter): string[] {
-    return [this.transparency, this.name, reporter.fullName.fullName()];
+  generateAttachedFilePath(
+    reporter: Reporter,
+    dossierDeNomination: DossierDeNomination,
+  ): string[] {
+    return [
+      dossierDeNomination.sessionName,
+      dossierDeNomination.nomAspirant,
+      reporter.fullName.fullName(),
+    ];
   }
 
-  public get id(): string {
+  get id(): string {
     return this._id;
   }
 
   toSnapshot(): NominationFileReportSnapshot {
     return {
       id: this.id,
-      nominationFileId: this.nominationFileId,
+      dossierDeNominationId: this.dossierDeNominationId,
+      sessionId: this._sessionId,
       reporterId: this.reporterId,
       version: this.version,
       createdAt: this.createdAt,
-      folderNumber: this.folderNumber,
-      biography: this.biography,
-      dueDate: this.dueDate,
-      name: this.name,
-      birthDate: this.birthDate,
       state: this.state,
       formation: this.formation,
-      transparency: this.transparency,
-      grade: this.grade,
-      currentPosition: this.currentPosition,
-      targettedPosition: this.targettedPosition,
       comment: this.comment,
-      rank: this.rank,
-      observers: this.observers,
       attachedFiles: this.attachedFiles?.toSnapshot() || null,
     };
   }
@@ -249,24 +163,14 @@ export class NominationFileReport {
   ): NominationFileReport {
     return new NominationFileReport(
       snapshot.id,
-      snapshot.nominationFileId,
+      snapshot.dossierDeNominationId,
+      snapshot.sessionId,
       snapshot.createdAt,
       snapshot.reporterId,
       snapshot.version,
-      snapshot.folderNumber,
-      snapshot.biography,
-      snapshot.dueDate,
-      snapshot.name,
-      snapshot.birthDate,
       snapshot.state,
       snapshot.formation,
-      snapshot.transparency,
-      snapshot.grade,
-      snapshot.currentPosition,
-      snapshot.targettedPosition,
       snapshot.comment,
-      snapshot.rank,
-      snapshot.observers,
       snapshot.attachedFiles
         ? new ReportAttachedFiles(
             snapshot.attachedFiles.map(ReportAttachedFile.fromSnapshot),
@@ -276,46 +180,31 @@ export class NominationFileReport {
   }
 
   static createFromImport(
-    importedNominationFileId: string,
-    createReportPayload: ReportToCreate,
-    reporter: Reporter,
-  ): NominationFileReport {
-    const reportId = DomainRegistry.uuidGenerator().generate();
+    sessionId: string,
+    dossierDeNominationId: string,
+    formation: Magistrat.Formation,
+    reporterId: string,
+  ): [NominationFileReport, RapportTransparenceCrééEvent] {
+    const rapportId = DomainRegistry.uuidGenerator().generate();
     const currentDate = DomainRegistry.dateTimeProvider().now();
 
-    const report = new NominationFileReport(
-      reportId,
-      importedNominationFileId,
+    const rapport = new NominationFileReport(
+      rapportId,
+      dossierDeNominationId,
+      sessionId,
       currentDate,
-      reporter.reporterId,
+      reporterId,
       0,
-      createReportPayload.folderNumber,
-      createReportPayload.biography,
-      createReportPayload.dueDate
-        ? new DateOnly(
-            createReportPayload.dueDate.year,
-            createReportPayload.dueDate.month,
-            createReportPayload.dueDate.day,
-          )
-        : null,
-      createReportPayload.name,
-      new DateOnly(
-        createReportPayload.birthDate.year,
-        createReportPayload.birthDate.month,
-        createReportPayload.birthDate.day,
-      ),
       NominationFile.ReportState.NEW,
-      createReportPayload.formation,
-      createReportPayload.transparency,
-      createReportPayload.grade,
-      createReportPayload.currentPosition,
-      createReportPayload.targettedPosition,
+      formation,
       null,
-      createReportPayload.rank,
-      createReportPayload.observers,
       null,
     );
 
-    return report;
+    const rapportCrééEvent = RapportTransparenceCrééEvent.fromRapportSnapshot(
+      rapport.toSnapshot(),
+    );
+
+    return [rapport, rapportCrééEvent];
   }
 }

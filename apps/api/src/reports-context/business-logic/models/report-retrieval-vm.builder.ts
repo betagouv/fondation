@@ -4,10 +4,13 @@ import {
   NominationFile,
   ReportRetrievalVM,
   Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
 import { NominationFileReportSnapshot } from './nomination-file-report';
+import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../gateways/services/session.service';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -18,12 +21,18 @@ export class ReportRetrievalBuilder<
     const isFakeId = idMode === 'fake';
     const defaultValue: NominationFile.RuleValue = {
       id: 'rule-id',
-      preValidated: true,
+      preValidated: false,
       validated: true,
     };
 
     this._report = {
       id: isFakeId ? 'report-id' : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      dossierDeNominationId: isFakeId
+        ? 'dossier-id'
+        : '10210165-8579-4f2f-a83a-87beb6658ce8',
+      sessionId: isFakeId
+        ? 'session-id'
+        : 'b584b5f5-c31e-4155-b479-3d5f5e07e944',
       folderNumber: 1,
       name: 'Ada Lovelace',
       biography: 'The biography',
@@ -124,45 +133,14 @@ export class ReportRetrievalBuilder<
     const report = this._report;
     return {
       id: report.id,
-      folderNumber: report.folderNumber,
-      biography: report.biography,
-      dueDate: report.dueDate,
-      name: report.name,
-      birthDate: report.birthDate,
+      dossierDeNominationId: report.dossierDeNominationId,
+      sessionId: report.sessionId,
       state: report.state,
       formation: report.formation,
-      transparency: report.transparency,
-      grade: report.grade,
-      currentPosition: report.currentPosition,
-      targettedPosition: report.targettedPosition,
       comment: report.comment,
-      rank: report.rank,
-      observers: report.observers,
       rules: report.rules,
       files: report.files?.length ? report.files : null,
     };
-  }
-
-  static fromQueriedToVM(
-    report: ReportRetrievalQueried,
-  ): ReportRetrievalBuilder {
-    return new ReportRetrievalBuilder()
-      .with('id', report.id)
-      .with('folderNumber', report.folderNumber)
-      .with('biography', report.biography)
-      .with('dueDate', report.dueDate)
-      .with('name', report.name)
-      .with('birthDate', report.birthDate)
-      .with('state', report.state)
-      .with('formation', report.formation)
-      .with('transparency', report.transparency)
-      .with('grade', report.grade)
-      .with('currentPosition', report.currentPosition)
-      .with('targettedPosition', report.targettedPosition)
-      .with('comment', report.comment)
-      .with('rank', report.rank)
-      .with('observers', report.observers)
-      .with('rules', report.rules);
   }
 
   static fromWriteSnapshot<
@@ -172,18 +150,30 @@ export class ReportRetrievalBuilder<
       ReportRetrievalVM | ReportRetrievalQueried
     >()
       .with('id', report.id)
-      .with('name', report.name)
-      .with('biography', report.biography)
-      .with('dueDate', report.dueDate ? report.dueDate.toJson() : null)
-      .with('birthDate', report.birthDate.toJson())
+      .with('dossierDeNominationId', report.dossierDeNominationId)
+      .with('sessionId', report.sessionId)
       .with('state', report.state)
       .with('formation', report.formation)
-      .with('transparency', report.transparency)
-      .with('grade', report.grade)
-      .with('currentPosition', report.currentPosition)
-      .with('targettedPosition', report.targettedPosition)
-      .with('comment', report.comment)
-      .with('rank', report.rank)
-      .with('observers', report.observers);
+      .with('comment', report.comment);
+  }
+
+  static fromDossierDeNominationTransparence(
+    dossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>,
+    session: SessionDto,
+  ): ReportRetrievalBuilder {
+    return new ReportRetrievalBuilder()
+      .with('id', dossierDeNomination.id)
+      .with('folderNumber', dossierDeNomination.content.folderNumber)
+      .with('name', dossierDeNomination.content.name)
+      .with('formation', session.formation)
+      .with('grade', dossierDeNomination.content.grade)
+      .with('targettedPosition', dossierDeNomination.content.targettedPosition)
+      .with('dueDate', dossierDeNomination.content.dueDate)
+      .with('birthDate', dossierDeNomination.content.birthDate)
+      .with('currentPosition', dossierDeNomination.content.currentPosition)
+      .with('biography', dossierDeNomination.content.biography)
+      .with('observers', dossierDeNomination.content.observers)
+      .with('rank', dossierDeNomination.content.rank)
+      .with('transparency', session.name as Transparency);
   }
 }

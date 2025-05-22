@@ -41,7 +41,7 @@ type IReportController = IController<ReportsContextRestContract>;
 const baseRoute: ReportsContextRestContract['basePath'] = 'api/reports';
 const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   retrieveReport: ':id',
-  listReports: '',
+  listReports: 'transparences',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
   uploadFiles: ':id/files/upload-many',

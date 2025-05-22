@@ -1,4 +1,4 @@
-import { FileType } from '../use-cases/file-read-permission/has-read-file-permission.use-case';
+import { FileType } from './file-type';
 
 export class FileModel {
   constructor(

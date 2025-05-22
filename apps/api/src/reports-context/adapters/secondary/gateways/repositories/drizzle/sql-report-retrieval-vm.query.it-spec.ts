@@ -14,17 +14,16 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import {
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalQuery } from './sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
 import { SqlReportRepository } from './sql-report.repository';
-import {
-  GivenSomeReports,
-  givenSomeReportsFactory,
-} from 'test/bounded-contexts/reports';
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
@@ -53,10 +52,7 @@ describe('SQL Report Retrieval VM Query', () => {
 
   describe('when there is a report', () => {
     it('retrieves a report', async () => {
-      const aReport = new ReportBuilder('uuid')
-        .with('dueDate', new DateOnly(2030, 10, 1))
-        .with('observers', ['observer1'])
-        .build();
+      const aReport = new ReportBuilder('uuid').build();
       await givenSomeReports(aReport);
       const aReportRuleSnapshot = await givenSomeRule(aReport.id);
 
@@ -79,8 +75,7 @@ describe('SQL Report Retrieval VM Query', () => {
       const aReportNotOwned = new ReportBuilder('uuid')
         .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
         .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
-        .with('dueDate', new DateOnly(2040, 5, 1))
+        .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
         .build();
       await givenSomeReports(aReport, aReportNotOwned);
 
@@ -121,11 +116,8 @@ describe('SQL Report Retrieval VM Query', () => {
     let aReportRuleSnapshot: ReportRuleSnapshot;
 
     beforeEach(async () => {
-      aReport = new ReportBuilder('uuid')
-        .with('dueDate', null)
-        .with('comment', null)
-        .build();
-      // Insert the report into the database
+      aReport = new ReportBuilder('uuid').with('comment', null).build();
+
       const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
       await db.insert(reports).values(reportRow).execute();
 
@@ -142,7 +134,6 @@ describe('SQL Report Retrieval VM Query', () => {
         ReportRetrievalBuilder.fromWriteSnapshot<ReportRetrievalQueried>(
           aReport,
         )
-          .with('dueDate', null)
           .with('comment', null)
           .with('rules', expectedRules)
           .buildQueried(),
@@ -151,9 +142,8 @@ describe('SQL Report Retrieval VM Query', () => {
   });
 
   const prepareExpectedRules = (reportRuleSnapshot: ReportRuleSnapshot) => {
-    const ruleValue: NominationFile.RuleValue = {
+    const ruleValue: Omit<NominationFile.RuleValue, 'preValidated'> = {
       id: reportRuleSnapshot.id,
-      preValidated: reportRuleSnapshot.preValidated,
       validated: reportRuleSnapshot.validated,
     };
     return {

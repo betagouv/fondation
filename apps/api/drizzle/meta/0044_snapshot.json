@@ -179,9 +179,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraints": {}
@@ -230,12 +228,8 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity_and_access_context",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -302,12 +296,8 @@
           "tableFrom": "report_rule",
           "tableTo": "reports",
           "schemaTo": "reports_context",
-          "columnsFrom": [
-            "report_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["report_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -503,9 +493,7 @@
     "files_context.storage_provider": {
       "name": "storage_provider",
       "schema": "files_context",
-      "values": [
-        "SCALEWAY"
-      ]
+      "values": ["SCALEWAY"]
     },
     "identity_and_access_context.file_type": {
       "name": "file_type",
@@ -519,55 +507,32 @@
     "identity_and_access_context.gender": {
       "name": "gender",
       "schema": "identity_and_access_context",
-      "values": [
-        "MALE",
-        "FEMALE"
-      ]
+      "values": ["MALE", "FEMALE"]
     },
     "identity_and_access_context.role": {
       "name": "role",
       "schema": "identity_and_access_context",
-      "values": [
-        "MEMBRE_DU_SIEGE",
-        "MEMBRE_DU_PARQUET",
-        "MEMBRE_COMMUN"
-      ]
+      "values": ["MEMBRE_DU_SIEGE", "MEMBRE_DU_PARQUET", "MEMBRE_COMMUN"]
     },
     "public.formation": {
       "name": "formation",
       "schema": "public",
-      "values": [
-        "PARQUET",
-        "SIEGE"
-      ]
+      "values": ["PARQUET", "SIEGE"]
     },
     "public.grade": {
       "name": "grade",
       "schema": "public",
-      "values": [
-        "I",
-        "II",
-        "HH"
-      ]
+      "values": ["I", "II", "HH"]
     },
     "public.report_state": {
       "name": "report_state",
       "schema": "public",
-      "values": [
-        "NEW",
-        "IN_PROGRESS",
-        "READY_TO_SUPPORT",
-        "SUPPORTED"
-      ]
+      "values": ["NEW", "IN_PROGRESS", "READY_TO_SUPPORT", "SUPPORTED"]
     },
     "reports_context.rule_group": {
       "name": "rule_group",
       "schema": "reports_context",
-      "values": [
-        "management",
-        "statutory",
-        "qualitative"
-      ]
+      "values": ["management", "statutory", "qualitative"]
     },
     "reports_context.rule_name": {
       "name": "rule_name",
@@ -611,11 +576,7 @@
     "shared_kernel_context.domain_event_status": {
       "name": "domain_event_status",
       "schema": "shared_kernel_context",
-      "values": [
-        "NEW",
-        "PENDING",
-        "CONSUMED"
-      ]
+      "values": ["NEW", "PENDING", "CONSUMED"]
     }
   },
   "schemas": {

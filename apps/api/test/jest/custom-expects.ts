@@ -32,7 +32,7 @@ const toBeUuidV4: MatcherFunction = (received: unknown) => {
 const toHaveDomainEvents: MatcherFunction = function (
   this: jest.MatcherContext,
   domainEventRepository: FakeDomainEventRepository,
-  ...expectedEvents: DomainEvent[]
+  ...expectedEvents: DomainEvent<unknown>[]
 ) {
   if (!(domainEventRepository instanceof FakeDomainEventRepository)) {
     return {
@@ -69,9 +69,7 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       toBeUuidV4(): R;
-      toHaveDomainEvents<D extends DomainEvent = DomainEvent>(
-        ...expectedEvents: D[]
-      ): R;
+      toHaveDomainEvents(...expectedEvents: DomainEvent[]): R;
     }
   }
 }

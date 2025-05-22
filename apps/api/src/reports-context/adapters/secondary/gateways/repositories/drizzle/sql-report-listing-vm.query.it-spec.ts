@@ -1,4 +1,4 @@
-import { ReportListingVM } from 'shared-models';
+import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { NominationFileReportSnapshot } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { ReportBuilder } from 'src/reports-context/business-logic/models/report.builder';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -6,7 +6,6 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import {
   GivenSomeReports,
   givenSomeReportsFactory,
@@ -37,9 +36,7 @@ describe('SQL Report Listing VM Query', () => {
     const result = await sqlReportListingVMRepository.listReports(
       'bb8b1056-9573-4b9d-8161-d8e2b8fee462',
     );
-    expect(result).toEqual({
-      data: [],
-    });
+    expect(result).toEqual<Result>([]);
   });
 
   describe('when there is a report', () => {
@@ -47,16 +44,13 @@ describe('SQL Report Listing VM Query', () => {
     let anotherReport: NominationFileReportSnapshot;
 
     beforeEach(async () => {
-      aReport = new ReportBuilder('uuid')
-        .with('dueDate', new DateOnly(2030, 10, 1))
-        .with('observers', ['observer1'])
-        .build();
+      aReport = new ReportBuilder('uuid').build();
 
       anotherReport = new ReportBuilder()
         .with('id', 'cd1619e2-263d-49b6-b928-6a04ee681133')
+        .with('sessionId', '885e0f4b-0ace-4023-a8bc-b3a678448e51')
+        .with('dossierDeNominationId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
         .with('reporterId', 'ad1619e2-263d-49b6-b928-6a04ee681133')
-        .with('nominationFileId', 'ca1619e2-263d-49b6-b928-6a04ee681139')
-        .with('dueDate', new DateOnly(2040, 5, 1))
         .build();
 
       await givenSomeReports(aReport, anotherReport);
@@ -66,26 +60,17 @@ describe('SQL Report Listing VM Query', () => {
       const result = await sqlReportListingVMRepository.listReports(
         aReport.reporterId!,
       );
-      expect(result).toEqual<ReportListingVM>({
-        data: [
-          {
-            id: aReport.id,
-            folderNumber: aReport.folderNumber,
-            state: aReport.state,
-            dueDate: {
-              year: 2030,
-              month: 10,
-              day: 1,
-            },
-            formation: aReport.formation,
-            name: aReport.name,
-            transparency: aReport.transparency,
-            grade: aReport.grade,
-            targettedPosition: aReport.targettedPosition,
-            observersCount: 1,
-          },
-        ],
-      });
+      expect(result).toEqual<Result>([
+        {
+          id: aReport.id,
+          dossierDeNominationId: aReport.dossierDeNominationId,
+          sessionId: aReport.sessionId,
+          formation: aReport.formation,
+          state: aReport.state,
+        },
+      ]);
     });
   });
 });
+
+type Result = Awaited<ReturnType<ReportListingQuery['listReports']>>;

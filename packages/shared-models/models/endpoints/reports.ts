@@ -34,7 +34,7 @@ export interface ReportsContextRestContract extends RestContract {
     };
     listReports: {
       method: "GET";
-      path: "";
+      path: "transparences";
       response: ReportListingVM;
     };
     uploadFiles: {

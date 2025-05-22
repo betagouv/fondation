@@ -6,9 +6,11 @@ import {
   Magistrat,
   NominationFile,
   Role,
-  Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';
@@ -20,7 +22,6 @@ import { ReportBuilder } from 'src/reports-context/business-logic/models/report.
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DRIZZLE_DB } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(SharedKernelModule);
@@ -41,11 +42,39 @@ async function seed() {
 
     await db.insert(users).values(user).execute();
 
+    const sessionA: SessionSnapshot = {
+      id: 'f474d12d-9a27-44c8-a90b-f233b131235c',
+      name: 'Session 1',
+      formation: Magistrat.Formation.PARQUET,
+      sessionImportéeId: '4ebd0b50-d2e8-484c-a18d-7531879118ca',
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      version: 1,
+    };
+
+    const dossier1: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
+      {
+        id: '4f275b00-e7f6-4a92-a52b-5a2514f0d2b3',
+        sessionId: sessionA.id,
+        nominationFileImportedId: '4fd1aae8-46ca-49f4-9abf-cf31238cad16',
+        content: {
+          biography: 'John Doe',
+          birthDate: { day: 1, month: 1, year: 1980 },
+          currentPosition: 'Current position',
+          targettedPosition: 'Target position',
+          dueDate: { day: 1, month: 6, year: 2023 },
+          folderNumber: 1,
+          formation: Magistrat.Formation.PARQUET,
+          grade: Magistrat.Grade.I,
+          name: 'Nominee Name',
+          observers: [],
+          rank: 'A',
+        },
+      };
+
     const reportSnapshot1 = new ReportBuilder('uuid')
       .with('version', 1)
-      .with('name', 'John Doe')
+      .with('dossierDeNominationId', dossier1.id)
       .with('reporterId', user.id!)
-      .with('transparency', Transparency.SIEGE_DU_06_FEVRIER_2025)
       .with('state', NominationFile.ReportState.IN_PROGRESS)
       .build();
 
@@ -61,7 +90,6 @@ async function seed() {
           .with('reportId', reportSnapshot1.id)
           .with('ruleGroup', ruleGroup)
           .with('ruleName', ruleName)
-          .with('preValidated', false)
           .with('validated', false)
           .build();
 
@@ -73,20 +101,12 @@ async function seed() {
 
     const reportSnapshot2 = new ReportBuilder('uuid')
       .with('id', crypto.randomUUID())
+      .with('dossierDeNominationId', dossier1.id)
       .with('reporterId', user.id!)
       .with('version', 1)
-      .with('name', 'Ada Lovelace')
-      .with('biography', '- Tribunal de grande instance de Paris')
-      .with('birthDate', new DateOnly(1990, 1, 1))
-      .with('dueDate', new DateOnly(2025, 10, 1))
       .with('formation', Magistrat.Formation.PARQUET)
-      .with('grade', Magistrat.Grade.HH)
       .with('state', NominationFile.ReportState.NEW)
-      .with('transparency', Transparency.AUTOMNE_2024)
-      .with('currentPosition', 'Juge')
-      .with('targettedPosition', 'Procureur')
       .with('comment', 'Commentaire')
-      .with('rank', '(1 sur une liste de 100)')
       .build();
 
     const reportRow2 = SqlReportRepository.mapSnapshotToDb(reportSnapshot2);
@@ -99,7 +119,6 @@ async function seed() {
           .with('reportId', reportSnapshot2.id)
           .with('ruleGroup', ruleGroup)
           .with('ruleName', ruleName)
-          .with('preValidated', true)
           .with('validated', true)
           .build();
 

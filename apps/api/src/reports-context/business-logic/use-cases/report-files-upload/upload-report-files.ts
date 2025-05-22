@@ -1,4 +1,5 @@
 import { ReportFileUsage } from 'shared-models';
+import { DossierDeNominationTranslator } from 'src/reports-context/adapters/secondary/gateways/services/dossier-de-nomination.translator';
 import { ReporterTranslatorService } from 'src/reports-context/adapters/secondary/gateways/services/reporter-translator.service';
 import { FileUpload } from 'src/reports-context/business-logic/gateways/services/report-file-service';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -20,6 +21,7 @@ export class UploadReportFilesUseCase {
     private readonly transactionPerformer: TransactionPerformer,
     private readonly reportRepository: ReportRepository,
     private readonly reporterTranslatorService: ReporterTranslatorService,
+    private readonly dossierDeNominationTranslator: DossierDeNominationTranslator,
   ) {}
 
   async execute(
@@ -45,7 +47,14 @@ export class UploadReportFilesUseCase {
 
         await this.reportRepository.save(report)(trx);
 
-        const filePath = report.generateAttachedFilePath(reporter);
+        const dossierDeNomination =
+          await this.dossierDeNominationTranslator.dossierDeNomination(
+            report.dossierDeNominationId,
+          );
+        const filePath = report.generateAttachedFilePath(
+          reporter,
+          dossierDeNomination,
+        );
         const fileUploads: FileUpload[] = files.map((f) => ({
           file: report.attachedFiles!.getByName(f.name)!,
           buffer: f.buffer,

@@ -4,7 +4,7 @@ import {
 } from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { PermissionsService } from 'src/files-context/business-logic/services/permissions.service';
-import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { systemRequestHeaderKey } from 'src/shared-kernel/adapters/primary/systemRequestHeaderKey';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { z } from 'zod';
 

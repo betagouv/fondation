@@ -1,70 +1,76 @@
-import { Module } from '@nestjs/common';
+import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import { DomainRegistry } from 'src/data-administration-context/business-logic/models/domain-registry';
+import { TransparenceService } from 'src/data-administration-context/business-logic/services/transparence.service';
 import { ImportNominationFilesUseCase } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
+import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
+  API_CONFIG,
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
-import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
+import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
+import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { ImportNominationFileFromLocalFileCli } from '../../../business-logic/gateways/providers/import-nominations-from-local-file.cli';
-import { SqlNominationFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-nomination-file.repository';
-
-export const NOMINATION_FILE_REPOSITORY = 'NOMINATION_FILE_REPOSITORY';
-export const IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI =
-  'IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI';
-
-const importNominationFilesUseCaseUseFactory: (
-  ...args: ConstructorParameters<typeof ImportNominationFilesUseCase>
-) => ImportNominationFilesUseCase = (
-  nominationFileRepository,
-  dateTimeProvider,
-  uuidGenerator,
-  transactionPerformer,
-  domainEventRepository,
-) =>
-  new ImportNominationFilesUseCase(
-    nominationFileRepository,
-    dateTimeProvider,
-    uuidGenerator,
-    transactionPerformer,
-    domainEventRepository,
-  );
+import { SqlTransparenceRepository } from '../../secondary/gateways/repositories/drizzle/sql-transparence.repository';
+import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
+import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
+import {
+  IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
+  TRANSPARENCE_REPOSITORY,
+  USER_SERVICE,
+} from './tokens';
 
 @Module({
   imports: [SharedKernelModule],
   providers: [
+    generateProvider(ImportNominationFilesUseCase, [
+      TRANSACTION_PERFORMER,
+      TransparenceService,
+    ]),
+
+    generateProvider(TransparenceService, [
+      DOMAIN_EVENT_REPOSITORY,
+      TRANSPARENCE_REPOSITORY,
+      USER_SERVICE,
+    ]),
     {
-      provide: ImportNominationFilesUseCase,
-      useFactory: importNominationFilesUseCaseUseFactory,
-      inject: [
-        NOMINATION_FILE_REPOSITORY,
-        DATE_TIME_PROVIDER,
-        UUID_GENERATOR,
-        TRANSACTION_PERFORMER,
-        DOMAIN_EVENT_REPOSITORY,
-      ],
+      provide: USER_SERVICE,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => new HttpUserService(apiConfig, systemRequestSignatureProvider),
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
 
-    {
-      provide: NOMINATION_FILE_REPOSITORY,
-      useFactory: (): SqlNominationFileRepository =>
-        new SqlNominationFileRepository(),
-    },
-    {
-      provide: IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
-      useFactory: (
-        fileReader: FileReaderProvider,
-        importNominationFilesUseCase: ImportNominationFilesUseCase,
-      ) =>
-        new ImportNominationFileFromLocalFileCli(
-          fileReader,
-          importNominationFilesUseCase,
-        ),
-      inject: [FileReaderProvider, ImportNominationFilesUseCase],
-    },
+    generateProvider(SqlTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
+
+    generateProvider(
+      ImportNominationFileFromLocalFileCli,
+      [FileReaderProvider, ImportNominationFilesUseCase],
+      IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
+    ),
   ],
   exports: [],
 })
-export class DataAdministrationContextModule {}
+export class DataAdministrationContextModule implements OnModuleInit {
+  constructor(
+    @Inject(UUID_GENERATOR)
+    private readonly uuidGenerator: UuidGenerator,
+    @Inject(DATE_TIME_PROVIDER)
+    private readonly dateTimeProvider: DateTimeProvider,
+    @Inject(DOMAIN_EVENT_REPOSITORY)
+    private readonly domainEventRepository: DomainEventRepository,
+  ) {}
+
+  onModuleInit() {
+    DomainRegistry.setUuidGenerator(this.uuidGenerator);
+    DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
+    DomainRegistry.setDomainEventRepository(this.domainEventRepository);
+  }
+}

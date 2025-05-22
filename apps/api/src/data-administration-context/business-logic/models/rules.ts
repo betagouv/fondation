@@ -30,8 +30,6 @@ export enum QualitativeRule {
 
 export type RuleName = ManagementRule | StatutoryRule | QualitativeRule;
 
-//! La persistence des règles va être supprimée,
-//! et par conséquent le code dans l'API dépendant des rules map.
 export const allRulesMapV1 = {
   [NominationFile.RuleGroup.MANAGEMENT]: Object.values(ManagementRule),
   [NominationFile.RuleGroup.STATUTORY]: Object.values(StatutoryRule),

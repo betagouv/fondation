@@ -17,7 +17,6 @@ export class ReportRuleBuilder {
           : 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
       ruleGroup: NominationFile.RuleGroup.MANAGEMENT,
       ruleName: NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
-      preValidated: true,
       validated: true,
     };
   }

@@ -1,6 +1,6 @@
 import { Gender, Role } from 'shared-models';
-import { FileType } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
 import { identityAndAccessContextSchema } from './identity-and-access-context-schema.drizzle';
+import { FileType } from 'src/identity-and-access-context/business-logic/models/file-type';
 
 export const roleEnum = identityAndAccessContextSchema.enum(
   'role',

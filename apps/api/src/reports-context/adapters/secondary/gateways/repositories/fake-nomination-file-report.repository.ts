@@ -37,7 +37,8 @@ export class FakeNominationFileReportRepository implements ReportRepository {
     return async () =>
       Object.values(this.reports)
         .map(NominationFileReport.fromSnapshot)
-        .filter((report) => report.nominationFileId === nominationFileId) ||
-      null;
+        .filter(
+          (report) => report.dossierDeNominationId === nominationFileId,
+        ) || null;
   }
 }

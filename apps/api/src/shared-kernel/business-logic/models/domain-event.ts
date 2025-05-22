@@ -5,6 +5,8 @@ export enum DomainEventStatus {
 }
 
 export class DomainEvent<T = unknown> {
+  readonly name: string;
+
   constructor(
     public readonly id: string,
     public readonly type: string,

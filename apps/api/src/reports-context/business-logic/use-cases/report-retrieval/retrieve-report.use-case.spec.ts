@@ -1,35 +1,48 @@
 import { ReportRetrievalVM } from 'shared-models';
-import { FakeReportRetrievalVMQuery } from 'src/reports-context/adapters/secondary/gateways/repositories/fake-report-retrieval-vm.query';
+import { TypeDeSaisine } from 'shared-models';
 import { ReportRetrievalQueried } from '../../gateways/queries/report-retrieval-vm.query';
+import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../gateways/services/session.service';
 import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
 import { ReportRetrievalBuilder } from '../../models/report-retrieval-vm.builder';
-import { RetrieveReportUseCase } from './retrieve-report.use-case';
+import { getDependencies } from '../../test-dependencies';
 
 const reporterId = 'reporter-id';
 
 describe('Report Retrieval', () => {
-  let fakeReportRetrievalVMQuery: FakeReportRetrievalVMQuery;
+  let dependencies: ReturnType<typeof getDependencies>;
 
   beforeEach(() => {
-    fakeReportRetrievalVMQuery = new FakeReportRetrievalVMQuery();
-    fakeReportRetrievalVMQuery.reports = {
+    dependencies = getDependencies();
+    dependencies.stubDossierDeNominationService.stubDossier =
+      unDossierDeNomination;
+    dependencies.stubSessionService.stubSession = uneSession;
+  });
+
+  beforeEach(() => {
+    dependencies.fakeReportRetrievalVMQuery.reports = {
       [aReportQueried.id]: aReportQueried,
     };
   });
 
   it('retrieves a report', async () => {
-    const retrieveReport = new RetrieveReportUseCase(
-      fakeReportRetrievalVMQuery,
-    );
-    expect(await retrieveReport.execute(aReportQueried.id, reporterId)).toEqual(
-      aReportVM,
-    );
+    expect(
+      await dependencies.retrieveReportUseCase.execute(
+        aReportQueried.id,
+        reporterId,
+      ),
+    ).toEqual(aReportVM);
   });
 });
+
+const uneSessionId = 'une-session-id';
+const unDossierDeNominationId = 'un-dossier-de-nomination-id';
 
 const aFile = new ReportAttachedFileBuilder().build();
 const aReportQueried = new ReportRetrievalBuilder<ReportRetrievalQueried>()
   .with('files', [aFile])
+  .with('dossierDeNominationId', unDossierDeNominationId)
+  .with('sessionId', uneSessionId)
   .buildQueried();
 const aReportVM = new ReportRetrievalBuilder<ReportRetrievalVM>()
   .with('attachedFiles', [
@@ -40,3 +53,32 @@ const aReportVM = new ReportRetrievalBuilder<ReportRetrievalVM>()
     },
   ])
   .buildVM();
+
+const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
+  {
+    id: unDossierDeNominationId,
+    sessionId: uneSessionId,
+    nominationFileImportedId: 'nomination-file-imported-id',
+    content: {
+      folderNumber: aReportVM.folderNumber,
+      name: aReportVM.name,
+      formation: aReportVM.formation,
+      dueDate: aReportVM.dueDate,
+      grade: aReportVM.grade,
+      targettedPosition: aReportVM.targettedPosition,
+      currentPosition: aReportVM.currentPosition,
+      birthDate: aReportVM.birthDate,
+      biography: aReportVM.biography,
+      rank: aReportVM.rank,
+      observers: aReportVM.observers,
+    },
+  };
+
+const uneSession: SessionDto = {
+  id: uneSessionId,
+  typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+  name: aReportVM.transparency,
+  formation: aReportVM.formation,
+  sessionImportéeId: 'data-administration-import-id',
+  version: 1,
+};

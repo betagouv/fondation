@@ -4,7 +4,7 @@ import {
 } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class NullTransactionPerformer implements TransactionPerformer {
-  constructor(private readonly rollback?: () => void) {}
+  constructor(private rollback?: () => void) {}
 
   async perform<T>(
     useCase: TransactionableAsync<T>,
@@ -19,5 +19,9 @@ export class NullTransactionPerformer implements TransactionPerformer {
       }
       throw err;
     }
+  }
+
+  setRollback(rollback: () => void): void {
+    this.rollback = rollback;
   }
 }

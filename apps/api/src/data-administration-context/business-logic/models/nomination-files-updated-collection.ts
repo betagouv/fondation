@@ -1,109 +1,102 @@
 import {
-  NominationFilesUpdatedEvent,
-  NominationFilesUpdatedEventPayload,
-  nominationFilesUpdatedEventPayloadSchema,
-} from './events/nomination-files-updated.event';
-import { NominationFileModel } from './nomination-file';
-import { NominationFileRead } from './nomination-file-read';
+  GdsTransparenceNominationFilesModifiedEvent,
+  GdsTransparenceNominationFilesModifiedEventPayload,
+  gdsTransparenceNominationFilesModifiedEventPayloadSchema,
+} from './events/gds-transparence-nomination-files-modified.event';
+import {
+  NominationFileModel,
+  NominationFileModelSnapshot,
+} from './nomination-file';
+import { UpdatedNominationFilesFields } from './nomination-files-read-collection';
+import { Transparence } from './transparence';
 
 export class NominationFilesUpdatedCollection {
   private _nominationFileModels: NominationFileModel[];
-  private _changedFieldsMap: Record<
-    string,
-    {
-      folderNumber: boolean;
-      observers: boolean;
-      rules: boolean;
-    }
-  > = {};
 
-  constructor(nominationFileModels: NominationFileModel[]) {
-    this._nominationFileModels = nominationFileModels;
+  constructor(
+    nominationFileModelSnapshots: NominationFileModelSnapshot[],
+    private readonly transparenceId: Transparence['id'],
+    private readonly transparenceName: Transparence['name'],
+  ) {
+    this._nominationFileModels = nominationFileModelSnapshots.map(
+      NominationFileModel.fromSnapshot,
+    );
   }
 
-  updateNominationFiles(
-    nominationFileReadList: NominationFileRead[],
-    eventId: string,
-    currentDate: Date,
-  ) {
+  updateNominationFiles(updatedFields: UpdatedNominationFilesFields[]) {
     const updatedNominationFiles = this.filterNominationFilesToUpdate(
-      nominationFileReadList,
+      updatedFields,
     ).map((nominationFile) => {
-      const matchedNominationFileRead = nominationFileReadList.find(
+      const matchedNominationFileFields = updatedFields.find(
         (nominationFileRead) =>
-          nominationFile.hasSameRowNumberAs(nominationFileRead),
+          nominationFileRead.rowNumber ===
+          nominationFile.toSnapshot().rowNumber,
       );
-      if (!matchedNominationFileRead) return nominationFile;
+      if (!matchedNominationFileFields)
+        throw new Error('Nomination file not found');
 
-      nominationFile.updateContent(matchedNominationFileRead.content);
-      return nominationFile;
+      if (
+        matchedNominationFileFields.content.folderNumber !== undefined &&
+        matchedNominationFileFields.content.folderNumber !== null
+      )
+        nominationFile.updateFolderNumber(
+          matchedNominationFileFields.content.folderNumber,
+        );
+      if (matchedNominationFileFields.content.observers)
+        nominationFile.updateObservers(
+          matchedNominationFileFields.content.observers,
+        );
+      if (matchedNominationFileFields.content.rules)
+        nominationFile.updateRules(matchedNominationFileFields.content.rules);
+      return { nominationFile, updatedField: matchedNominationFileFields };
     });
-    return this.toModelsWithEvent(updatedNominationFiles, eventId, currentDate);
+
+    return this.toModelsWithEvent(updatedNominationFiles);
   }
 
   private toModelsWithEvent(
-    updatedNominationFiles: NominationFileModel[],
-    eventId: string,
-    currentDate: Date,
-  ): [NominationFileModel[], NominationFilesUpdatedEvent | null] {
+    updatedNominationFiles: {
+      nominationFile: NominationFileModel;
+      updatedField: UpdatedNominationFilesFields;
+    }[],
+  ): [
+    NominationFileModel[],
+    GdsTransparenceNominationFilesModifiedEvent | null,
+  ] {
     if (updatedNominationFiles.length === 0) {
       return [[], null];
     }
 
-    const payload: NominationFilesUpdatedEventPayload =
-      updatedNominationFiles.map((nominationFile) => {
-        const { id, content } = nominationFile.toSnapshot();
+    const payload: GdsTransparenceNominationFilesModifiedEventPayload = {
+      transparenceId: this.transparenceId,
+      transparenceName: this.transparenceName,
+      nominationFiles: updatedNominationFiles.map(
+        ({ nominationFile, updatedField }) => ({
+          nominationFileId: nominationFile.id,
+          content: updatedField.content,
+        }),
+      ),
+    };
+    gdsTransparenceNominationFilesModifiedEventPayloadSchema.parse(payload);
 
-        const changedFieldsMap = this._changedFieldsMap[id];
-        return {
-          nominationFileId: id,
-          content: {
-            ...(changedFieldsMap?.folderNumber && {
-              folderNumber: content.folderNumber,
-            }),
-            ...(changedFieldsMap?.observers && {
-              observers: content.observers,
-            }),
-            ...(changedFieldsMap?.rules && {
-              rules: content.rules,
-            }),
-          },
-        };
-      });
-    nominationFilesUpdatedEventPayloadSchema.parse(payload);
+    const nominationFilesUpdatedEvent =
+      GdsTransparenceNominationFilesModifiedEvent.create(payload);
 
-    const nominationFilesUpdatedEvent = new NominationFilesUpdatedEvent(
-      eventId,
-      payload,
-      currentDate,
-    );
-
-    return [updatedNominationFiles, nominationFilesUpdatedEvent];
+    return [
+      updatedNominationFiles.map((f) => f.nominationFile),
+      nominationFilesUpdatedEvent,
+    ];
   }
 
   private filterNominationFilesToUpdate(
-    nominationFileReadList: NominationFileRead[],
+    updatedFields: UpdatedNominationFilesFields[],
   ) {
     return this._nominationFileModels.filter((nominationFile) =>
-      nominationFileReadList.some((nominationFileRead) => {
-        const folderNumberChanged =
-          !nominationFile.hasSameFolderNumberAs(nominationFileRead);
-        const observersChanged =
-          !nominationFile.hasSameObserversAs(nominationFileRead);
-        const rulesChanged = !nominationFile.hasSameRulesAs(nominationFileRead);
-
-        const nominationFileSnapshot = nominationFile.toSnapshot();
-        this._changedFieldsMap[nominationFileSnapshot.id] = {
-          folderNumber: folderNumberChanged,
-          observers: observersChanged,
-          rules: rulesChanged,
-        };
-
-        return (
-          nominationFile.hasSameRowNumberAs(nominationFileRead) &&
-          (folderNumberChanged || observersChanged || rulesChanged)
-        );
-      }),
+      updatedFields.some(
+        (nominationFileRead) =>
+          nominationFileRead.rowNumber ===
+          nominationFile.toSnapshot().rowNumber,
+      ),
     );
   }
 }

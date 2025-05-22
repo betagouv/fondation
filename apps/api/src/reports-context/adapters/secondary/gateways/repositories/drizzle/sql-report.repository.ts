@@ -7,7 +7,6 @@ import {
 } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { reports } from './schema/report-pm';
 
 export class SqlReportRepository implements ReportRepository {
@@ -21,20 +20,8 @@ export class SqlReportRepository implements ReportRepository {
           .update(reports)
           .set({
             version: report.version + 1,
-            folderNumber: reportRow.folderNumber,
-            biography: reportRow.biography,
-            dueDate: reportRow.dueDate,
-            name: reportRow.name,
-            birthDate: reportRow.birthDate,
             state: reportRow.state,
-            formation: reportRow.formation,
-            transparency: reportRow.transparency,
-            grade: reportRow.grade,
-            currentPosition: reportRow.currentPosition,
-            targettedPosition: reportRow.targettedPosition,
             comment: reportRow.comment,
-            rank: reportRow.rank,
-            observers: reportRow.observers,
             attachedFiles: reportRow.attachedFiles,
           })
           .where(
@@ -74,7 +61,7 @@ export class SqlReportRepository implements ReportRepository {
       const results = await db
         .select()
         .from(reports)
-        .where(eq(reports.nominationFileId, nominationFileId));
+        .where(eq(reports.dossierDeNominationId, nominationFileId));
       if (results.length === 0) return null;
 
       return results.map((reportRow) =>
@@ -92,26 +79,14 @@ export class SqlReportRepository implements ReportRepository {
   ): typeof reports.$inferInsert {
     return {
       id: reportSnapshot.id,
-      nominationFileId: reportSnapshot.nominationFileId,
+      dossierDeNominationId: reportSnapshot.dossierDeNominationId,
+      sessionId: reportSnapshot.sessionId,
       createdAt: reportSnapshot.createdAt,
       reporterId: reportSnapshot.reporterId,
       version: reportSnapshot.version,
-      folderNumber: reportSnapshot.folderNumber,
-      biography: reportSnapshot.biography,
-      dueDate: reportSnapshot.dueDate
-        ? reportSnapshot.dueDate.toDbString()
-        : null,
-      name: reportSnapshot.name,
-      birthDate: reportSnapshot.birthDate.toDbString(),
       state: reportSnapshot.state,
       formation: reportSnapshot.formation,
-      transparency: reportSnapshot.transparency,
-      grade: reportSnapshot.grade,
-      currentPosition: reportSnapshot.currentPosition,
-      targettedPosition: reportSnapshot.targettedPosition,
       comment: reportSnapshot.comment,
-      rank: reportSnapshot.rank,
-      observers: reportSnapshot.observers,
       attachedFiles: reportSnapshot.attachedFiles?.length
         ? reportSnapshot.attachedFiles
         : null,
@@ -119,14 +94,14 @@ export class SqlReportRepository implements ReportRepository {
   }
 
   static mapToDomain(row: typeof reports.$inferSelect): NominationFileReport {
+    const { dossierDeNominationId, ...reportRow } = row;
     const attachedFiles = attachedFilesValidationSchema.parse(
       row.attachedFiles,
     );
 
     return NominationFileReport.fromSnapshot({
-      ...row,
-      dueDate: row.dueDate ? DateOnly.fromDbDateOnlyString(row.dueDate) : null,
-      birthDate: DateOnly.fromDbDateOnlyString(row.birthDate),
+      ...reportRow,
+      dossierDeNominationId,
       attachedFiles,
     });
   }

@@ -1,5 +1,10 @@
 import _ from 'lodash';
-import { NominationFileRead } from './nomination-file-read';
+import { DomainRegistry } from './domain-registry';
+import {
+  NominationFileRead,
+  nominationFileReadSchema,
+} from './nomination-file-read';
+import { z } from 'zod';
 
 export type NominationFileModelSnapshot = {
   id: string;
@@ -13,53 +18,58 @@ export type NominationFileUpdatedContent = Pick<
   'folderNumber' | 'observers' | 'rules'
 >;
 export class NominationFileModel {
-  constructor(
-    private readonly id: string,
-    private readonly createdAt: Date,
-    private nominationFileRead: NominationFileRead,
-  ) {}
+  private _nominationFileRead: NominationFileRead;
+  private _createdAt: Date;
 
-  updateContent(updatedContent: NominationFileUpdatedContent) {
-    this.nominationFileRead.content = {
-      ...this.nominationFileRead.content,
-      folderNumber: updatedContent.folderNumber,
-      observers: updatedContent.observers,
-      rules: updatedContent.rules,
-    };
+  private constructor(
+    private readonly _id: string,
+    _createdAt: Date,
+    nominationFileRead: NominationFileRead,
+  ) {
+    this.setCreatedAt(_createdAt);
+    this.setNominationFileRead(nominationFileRead);
   }
 
-  hasSameRowNumberAs(nominationFileRead: NominationFileRead): boolean {
-    return this.nominationFileRead.rowNumber === nominationFileRead.rowNumber;
+  updateFolderNumber(folderNumber: number) {
+    this._nominationFileRead.content.folderNumber = folderNumber;
   }
-
-  hasSameFolderNumberAs(nominationFileRead: NominationFileRead) {
-    return (
-      this.nominationFileRead.content.folderNumber ===
-      nominationFileRead.content.folderNumber
+  updateObservers(observers: string[]) {
+    this._nominationFileRead.content.observers = observers;
+  }
+  updateRules(rules: NominationFileRead['content']['rules']) {
+    this._nominationFileRead.content.rules = _.merge(
+      this._nominationFileRead.content.rules,
+      rules,
     );
   }
 
-  hasSameObserversAs(nominationFileRead: NominationFileRead) {
-    return _.isEqual(
-      this.nominationFileRead.content.observers,
-      nominationFileRead.content.observers,
-    );
-  }
-
-  hasSameRulesAs(nominationFileRead: NominationFileRead): boolean {
-    return _.isEqual(
-      this.nominationFileRead.content.rules,
-      nominationFileRead.content.rules,
-    );
+  reporterNames() {
+    return this._nominationFileRead.content.reporters;
   }
 
   toSnapshot(): NominationFileModelSnapshot {
     return {
       id: this.id,
-      createdAt: this.createdAt,
-      rowNumber: this.nominationFileRead.rowNumber,
-      content: this.nominationFileRead.content,
+      createdAt: this._createdAt,
+      rowNumber: this._nominationFileRead.rowNumber,
+      content: this._nominationFileRead.content,
     };
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get rowNumber(): number {
+    return this._nominationFileRead.rowNumber;
+  }
+
+  private setCreatedAt(_createdAt: Date) {
+    this._createdAt = z.date().parse(_createdAt);
+  }
+  private setNominationFileRead(nominationFileRead: NominationFileRead) {
+    this._nominationFileRead =
+      nominationFileReadSchema.parse(nominationFileRead);
   }
 
   static fromSnapshot(
@@ -69,5 +79,11 @@ export class NominationFileModel {
       rowNumber: snapshot.rowNumber,
       content: snapshot.content,
     });
+  }
+
+  static create(nominationFileRead: NominationFileRead) {
+    const id = DomainRegistry.uuidGenerator().generate();
+    const createdAt = DomainRegistry.dateTimeProvider().now();
+    return new NominationFileModel(id, createdAt, nominationFileRead);
   }
 }

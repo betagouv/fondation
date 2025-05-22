@@ -30,6 +30,6 @@ export interface ReportRetrievalVM {
   comment: string | null;
   rank: string;
   observers: string[] | null;
-  rules: NominationFile.Rules;
+  rules: NominationFile.Rules<NominationFile.RuleValue>;
   attachedFiles: AttachedFileVM[] | null;
 }
