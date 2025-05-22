@@ -33,7 +33,7 @@ describe('Permissions Service', () => {
     ).configure();
 
     permissionsService =
-      moduleFixture.get<PermissionsService>(PERMISSIONS_SERVICE);
+      await moduleFixture.resolve<PermissionsService>(PERMISSIONS_SERVICE);
 
     await app.init();
     await app.listen(defaultApiConfig.port);
