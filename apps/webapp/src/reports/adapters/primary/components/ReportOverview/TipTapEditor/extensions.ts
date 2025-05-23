@@ -17,6 +17,7 @@ import { headingLevels } from "./constant";
 
 export const dataFileNameKey = "data-file-name";
 export const dataIsScreenshotKey = "data-is-screenshot";
+export const fileKey = "file";
 
 export const createExtensions = (opts?: {
   history: {
@@ -45,26 +46,38 @@ export const createExtensions = (opts?: {
   History.configure({
     newGroupDelay: opts?.history.newGroupDelay ?? 500,
   }),
+
   ImageResize.extend({
+    addStorage() {
+      return {
+        files: {},
+      };
+    },
     addCommands() {
       return {
         setImage:
           (attributes) =>
-          ({ tr }) => {
+          ({ editor, tr }) => {
             const { $from } = tr.selection;
             const pos = $from.pos;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { file, ...attrs } = attributes as any;
             // Lors de l'ajout de plusieurs images en même temps,
             // on suit les changements de positions.
             tr.insert(
               pos,
               this.type.createAndFill({
-                ...attributes,
+                ...attrs,
               })!,
             );
+
+            editor.storage.image.files[attrs[dataFileNameKey]] = file;
+            tr.setMeta("setImage", true);
             return true;
           },
       };
     },
+
     addAttributes() {
       return {
         src: {
@@ -81,6 +94,9 @@ export const createExtensions = (opts?: {
         },
         class: {
           default: "editor-resizable-image",
+        },
+        [fileKey]: {
+          default: null,
         },
       };
     },

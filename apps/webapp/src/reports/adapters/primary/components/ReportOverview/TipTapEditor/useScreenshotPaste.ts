@@ -21,7 +21,7 @@ export const useScreenshotPaste = (insertImages: InsertImages) => {
         .filter((item) => item.type.indexOf("image") === 0)
         .map((item) => item.getAsFile())
         .filter((file): file is File => file !== null);
-      insertImages(editor, images);
+      if (images.length) insertImages(editor, images);
     };
 
     editor.view.dom.addEventListener("paste", handlePaste);

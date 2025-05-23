@@ -12,6 +12,7 @@ import { generateReportFileUrl } from "../use-cases/report-file-url-generation/g
 import { retrieveReport } from "../use-cases/report-retrieval/retrieveReport.use-case";
 import { updateReportRule } from "../use-cases/report-rule-update/updateReportRule.use-case";
 import { updateReport } from "../use-cases/report-update/updateReport.use-case";
+import { reportRedoUploadScreenshot } from "../use-cases/report-redo-upload-screenshot/report-redo-upload-screenshot";
 
 export const createReportOverviewSlice = <IsTest extends boolean>(
   summarySections: SummarySection[],
@@ -142,6 +143,27 @@ export const createReportOverviewSlice = <IsTest extends boolean>(
       });
 
       builder.addCase(reportEmbedScreenshot.fulfilled, (state, action) => {
+        const { reportId } = action.meta.arg;
+        const files = action.payload;
+        const report = state.byIds?.[reportId];
+
+        if (report) {
+          for (const { file, signedUrl, fileId } of files) {
+            const screenshot: ReportScreenshotSM = {
+              name: file.name,
+              signedUrl,
+              fileId,
+            };
+
+            const currentFiles = report.contentScreenshots?.files || [];
+            report.contentScreenshots = {
+              files: [...currentFiles, screenshot],
+            };
+          }
+        }
+      });
+
+      builder.addCase(reportRedoUploadScreenshot.fulfilled, (state, action) => {
         const { reportId } = action.meta.arg;
         const files = action.payload;
         const report = state.byIds?.[reportId];

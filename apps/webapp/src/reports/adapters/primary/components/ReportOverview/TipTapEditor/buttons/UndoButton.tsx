@@ -6,8 +6,7 @@ export const UndoButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) =>
-      !ctx.editor || !ctx.editor.can().chain().focus().undo().run(),
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().undo(),
   });
 
   const undoChanges = () => {
