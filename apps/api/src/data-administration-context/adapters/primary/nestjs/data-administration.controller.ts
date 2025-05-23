@@ -8,29 +8,28 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   NouvelleTransparenceDto,
-  SecretariatGeneralContextRestContract,
+  DataAdministrationContextRestContract,
 } from 'shared-models';
 
-import { NouvelleTransparenceUseCase } from 'src/secretariat-general-context/business-logic/use-cases/nouvelle-transparence/nouvelle-transparence.use-case';
 import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
 
-type ISecretariatGeneralController =
-  IController<SecretariatGeneralContextRestContract>;
+type IDataAdministrationController =
+  IController<DataAdministrationContextRestContract>;
 
-const baseRoute: SecretariatGeneralContextRestContract['basePath'] =
-  'api/secretariat-general';
+const baseRoute: DataAdministrationContextRestContract['basePath'] =
+  'api/data-administration';
 
-const endpointsPaths: IControllerPaths<SecretariatGeneralContextRestContract> =
+const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
   {
     nouvelleTransparence: 'nouvelle-transparence',
   };
 
 @Controller(baseRoute)
-export class SecretariatGeneralController
-  implements ISecretariatGeneralController
+export class DataAdministrationController
+  implements IDataAdministrationController
 {
   constructor(
     private readonly nouvelleTransparenceUseCase: NouvelleTransparenceUseCase,
@@ -42,13 +41,6 @@ export class SecretariatGeneralController
     @UploadedFile() fichier: Express.Multer.File,
     @Body() body: NouvelleTransparenceDto,
   ): Promise<void> {
-    console.log(
-      'voici un formulaire avec mon body',
-      body,
-      'et mon fichier',
-      fichier,
-    );
-    return;
     // return this.nouvelleTransparenceUseCase.execute(nouvelleTransparenceDto);
   }
 }

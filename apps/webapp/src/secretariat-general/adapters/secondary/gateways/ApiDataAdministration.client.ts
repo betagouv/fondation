@@ -1,16 +1,16 @@
 import {
   interpolateUrlParams,
-  SecretariatGeneralContextRestContract,
+  DataAdministrationContextRestContract,
 } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
 import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
-type Endpoints = SecretariatGeneralContextRestContract["endpoints"];
+type Endpoints = DataAdministrationContextRestContract["endpoints"];
 type ClientFetchOptions = {
   [K in keyof Endpoints]: Omit<Endpoints[K], "response">;
 };
 
-const basePath: SecretariatGeneralContextRestContract["basePath"] =
+const basePath: DataAdministrationContextRestContract["basePath"] =
   "api/secretariat-general";
 
 export class ApiDataAdministrationClient implements DataAdministrationClient {

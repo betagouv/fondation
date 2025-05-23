@@ -1,9 +1,9 @@
-import { SecretariatGeneralContextRestContract } from "shared-models";
+import { DataAdministrationContextRestContract } from "shared-models";
 import { NouvelleTransparenceDto } from "../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 
 export type EndpointResponse<
-  T extends keyof SecretariatGeneralContextRestContract["endpoints"],
-> = Promise<SecretariatGeneralContextRestContract["endpoints"][T]["response"]>;
+  T extends keyof DataAdministrationContextRestContract["endpoints"],
+> = Promise<DataAdministrationContextRestContract["endpoints"][T]["response"]>;
 
 export interface DataAdministrationClient {
   uploadTransparence(

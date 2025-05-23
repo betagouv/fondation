@@ -23,7 +23,7 @@ describe("Data Administration Upload", () => {
         dataAdministrationGateway,
       },
       {
-        fileProvider: fileProvider,
+        fileProvider,
       },
       {},
     );
