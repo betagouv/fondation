@@ -1,6 +1,7 @@
 import React from "react";
 import { PageContentLayout } from "../../../shared-kernel/adapters/primary/react/PageContentLayout";
 import { RouteToComponentFactory } from "../../core-logic/components/routeToComponent";
+import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 import { RouterAccessControl } from "../../core-logic/models/RouterAccessControl";
 import {
@@ -8,7 +9,6 @@ import {
   routeToReactComponentMap,
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
-import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
@@ -31,6 +31,14 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
         case false:
           return <PageContentLayout>Page non trouvée.</PageContentLayout>;
         case "login": {
+          const Component = routeToComponentMap[route.name];
+          return suspensed(<Component />);
+        }
+        case "secretariatGeneral": {
+          const Component = routeToComponentMap[route.name];
+          return suspensed(<Component />);
+        }
+        case "sgNouvelleTransparence": {
           const Component = routeToComponentMap[route.name];
           return suspensed(<Component />);
         }
