@@ -2,8 +2,11 @@ import { Editor, EditorProvider } from "@tiptap/react";
 import { MenuBar } from "./MenuBar";
 import { createExtensions } from "./extensions";
 import { useOnDeletedImage } from "./useOnDeletedImage";
+import { useOnRedoImage } from "./useOnRedoImage";
+import { TipTapEditorProvider } from "../../../../../../shared-kernel/adapters/primary/react/TipTapEditorProvider";
 
 export type InsertImages = (editor: Editor, files: File[]) => void;
+export type RedoImages = (editor: Editor, files: File[]) => Promise<void>;
 export type DeleteImages = (
   editor: Editor,
   deletedImagesFileNames: string[],
@@ -15,6 +18,7 @@ type TipTapEditorProps = {
   ariaLabelledby: string;
   insertImages: InsertImages;
   deleteImages: DeleteImages;
+  redoImages: RedoImages;
 };
 
 export const TipTapEditor = ({
@@ -23,11 +27,14 @@ export const TipTapEditor = ({
   ariaLabelledby,
   insertImages,
   deleteImages,
+  redoImages,
 }: TipTapEditorProps) => {
   const {
     onCreate: initializeImageDeletionTracking,
     onUpdate: onDeletedImageUpdate,
   } = useOnDeletedImage(deleteImages);
+  const { onCreate: initializeImageRedoTracking, onUpdate: onRedoImageUpdate } =
+    useOnRedoImage(redoImages);
 
   const extensions = createExtensions();
 
@@ -43,11 +50,15 @@ export const TipTapEditor = ({
         },
       }}
       onCreate={({ editor }) => {
+        const provider = new TipTapEditorProvider(editor);
+        provider.persistImages();
         initializeImageDeletionTracking(editor);
+        initializeImageRedoTracking(editor);
       }}
-      onUpdate={async ({ editor }) => {
+      onUpdate={async ({ editor, transaction }) => {
         onChange(editor.getHTML());
         await onDeletedImageUpdate(editor);
+        onRedoImageUpdate(editor, transaction);
       }}
     />
   );

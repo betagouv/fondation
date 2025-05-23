@@ -1,6 +1,7 @@
 import { FileVM } from "shared-models";
 import { ReportScreenshotSM } from "../../../../store/appState.ts";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk.ts";
+import { dataFileNameKey } from "../../../adapters/primary/components/ReportOverview/TipTapEditor/extensions.ts";
 
 export const retrieveReport = createAppAsyncThunk(
   "report/retrieval",
@@ -42,7 +43,7 @@ function setSrc(
   signedUrlsVM: FileVM[],
 ): (value: HTMLImageElement) => void {
   return (img) => {
-    const imgFileName = img.getAttribute("data-file-name");
+    const imgFileName = img.getAttribute(dataFileNameKey);
     const screenshot = screenshots.find((file) => file.name === imgFileName);
     if (!screenshot) {
       console.warn(`Screenshot ${imgFileName} not found`);

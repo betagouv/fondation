@@ -1,7 +1,12 @@
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
-import { DeleteImages, InsertImages, TipTapEditor } from "./TipTapEditor";
+import {
+  DeleteImages,
+  InsertImages,
+  RedoImages,
+  TipTapEditor,
+} from "./TipTapEditor";
 
 export type TextareaCardProps = {
   cardId: string;
@@ -11,6 +16,7 @@ export type TextareaCardProps = {
   onContentChange: (content: string) => void;
   insertImages: InsertImages;
   deleteImages: DeleteImages;
+  redoImages: RedoImages;
 };
 
 const TEXT_AREA_DEBOUNCE_TIME = 400;
@@ -23,6 +29,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   onContentChange,
   insertImages,
   deleteImages,
+  redoImages,
 }) => {
   const [textareaContent, setTextareaContent] = useState(content);
 
@@ -51,6 +58,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
         ariaLabelledby={titleId}
         insertImages={insertImages}
         deleteImages={deleteImages}
+        redoImages={redoImages}
       />
     </Card>
   );

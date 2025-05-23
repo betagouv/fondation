@@ -1,6 +1,6 @@
 import { ReportFileUsage } from "shared-models";
-import { TextEditorProvider } from "../../../../shared-kernel/core-logic/providers/textEditor";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
+import { TextEditorProvider } from "../../../../shared-kernel/core-logic/providers/textEditor";
 
 export type ReportEmbedScreenshotParams = {
   reportId: string;
@@ -14,35 +14,30 @@ type FulfilledValue = {
   fileId: string;
 };
 
-export const reportEmbedScreenshot = createAppAsyncThunk<
+export const reportRedoUploadScreenshot = createAppAsyncThunk<
   FulfilledValue[],
   ReportEmbedScreenshotParams
 >(
-  "report/embedScreenshot",
+  "report/redoUploadScreenshot",
   async (
     args,
     {
       getState,
       extra: {
         gateways: { reportGateway, fileGateway },
-        providers: { fileProvider, dateProvider, uuidGenerator },
+        providers: { fileProvider, uuidGenerator },
       },
-      rejectWithValue,
     },
   ) => {
     const { reportId, files, editor } = args;
 
-    const timestamp = dateProvider.currentTimestamp();
-
-    const filesToUpload = await addTimestampToFiles(files, timestamp);
-
     const acceptedMimeTypes =
       getState().reportOverview.acceptedMimeTypes.embeddedScreenshots;
     await Promise.all(
-      filesToUpload.map(fileProvider.assertMimeTypeFactory(acceptedMimeTypes)),
+      files.map(fileProvider.assertMimeTypeFactory(acceptedMimeTypes)),
     );
 
-    const filesArg = filesToUpload.map((file) => ({
+    const filesArg = files.map((file) => ({
       file,
       fileId: uuidGenerator.generate(),
     }));
@@ -56,6 +51,8 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
     const fileVMs = await fileGateway.getSignedUrls(
       filesArg.map(({ fileId }) => fileId),
     );
+
+    editor.replaceImageUrls(fileVMs);
 
     const images = fileVMs.map((f) => {
       const file = filesArg.find((file) => file.file.name === f.name);
@@ -71,31 +68,7 @@ export const reportEmbedScreenshot = createAppAsyncThunk<
         fileId: file.fileId,
       };
     });
-    const success = editor.setImages(images);
-
-    if (!success) {
-      await Promise.all(
-        images.map((image) =>
-          reportGateway.deleteFile(reportId, image.file.name),
-        ),
-      );
-      throw rejectWithValue(
-        `Failed to embed the screenshot for report id ${reportId}`,
-      );
-    }
 
     return images;
   },
 );
-
-async function addTimestampToFiles(files: File[], timestamp: number) {
-  return await Promise.all(
-    files.map(async (file) => {
-      const screenshotName = `${file.name}-${timestamp}`;
-
-      return new File([await file.arrayBuffer()], screenshotName, {
-        type: file.type,
-      });
-    }),
-  );
-}
