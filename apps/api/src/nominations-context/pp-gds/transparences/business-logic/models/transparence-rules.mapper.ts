@@ -1,5 +1,5 @@
 import { allRulesMapV2, NominationFile } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { Règle } from 'src/nominations-context/sessions/business-logic/models/règle';
 
 const newRulesV2 = [

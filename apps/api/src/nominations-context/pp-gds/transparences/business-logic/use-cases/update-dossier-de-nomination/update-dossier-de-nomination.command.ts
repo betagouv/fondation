@@ -1,5 +1,5 @@
 import { Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 
 export class UpdateDossierDeNominationCommand {
   constructor(

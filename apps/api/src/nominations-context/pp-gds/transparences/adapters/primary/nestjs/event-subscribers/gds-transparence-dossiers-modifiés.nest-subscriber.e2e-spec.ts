@@ -4,7 +4,7 @@ import { Transparency } from 'shared-models';
 import {
   GdsTransparenceNominationFilesModifiedEvent,
   GdsTransparenceNominationFilesModifiedEventPayload,
-} from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { GdsTransparenceDossiersModifiésSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-dossiers-modifiés.subscriber';
 import {

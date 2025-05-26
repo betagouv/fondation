@@ -1,6 +1,6 @@
 import { Gender, Magistrat, Role, Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
-import { NominationFileReadRulesBuilder } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
+import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { NominationFileReadRulesBuilder } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 import { FakeAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-affectation.repository';
 import { FakeDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 import { FakeSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-session.repository';

@@ -3,10 +3,10 @@ import { asc } from 'drizzle-orm';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Gender, Magistrat, Role } from 'shared-models';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/adapters/primary/nestjs/tokens';
-import { transparencesPm } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/business-logic/gateways/providers/import-nominations-from-local-file.cli';
-import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
+import { transparencesPm } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import {
   dossierDeNominationPm,

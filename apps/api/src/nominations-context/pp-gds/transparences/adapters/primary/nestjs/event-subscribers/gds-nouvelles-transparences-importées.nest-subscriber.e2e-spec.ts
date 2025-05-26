@@ -4,13 +4,13 @@ import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
 import {
   GdsNewTransparenceImportedEvent,
   GdsNewTransparenceImportedEventPayload,
-} from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import {
   ManagementRule,
   StatutoryRule,
   QualitativeRule,
   allRulesMapV1,
-} from 'src/data-administration-context/business-logic/models/rules';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { GdsNouvellesTransparencesImportéesSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
 import {

@@ -1,5 +1,5 @@
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 

@@ -4,7 +4,7 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
+import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 

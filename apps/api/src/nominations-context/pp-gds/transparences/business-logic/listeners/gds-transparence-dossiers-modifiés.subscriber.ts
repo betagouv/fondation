@@ -1,4 +1,4 @@
-import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { UpdateDossierDeNominationCommand } from '../use-cases/update-dossier-de-nomination/update-dossier-de-nomination.command';
 import { UpdateDossierDeNominationUseCase } from '../use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 

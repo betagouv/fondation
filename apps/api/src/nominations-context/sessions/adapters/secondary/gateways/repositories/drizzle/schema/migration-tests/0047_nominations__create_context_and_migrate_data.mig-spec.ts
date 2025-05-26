@@ -14,8 +14,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { Pool } from 'pg';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
-import { dataAdministrationContextSchema } from 'src/data-administration-context/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
-import { NominationFileModelSnapshot } from 'src/data-administration-context/business-logic/models/nomination-file';
+import { dataAdministrationContextSchema } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
+import { NominationFileModelSnapshot } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file';
 import { AffectationsDossiersDeNominations } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { TypeDeSaisine } from 'shared-models';
 import {

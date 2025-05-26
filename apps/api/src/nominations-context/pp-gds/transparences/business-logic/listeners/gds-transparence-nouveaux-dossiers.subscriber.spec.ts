@@ -1,11 +1,11 @@
 import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import {
   allRulesMapV1,
   ManagementRule,
   QualitativeRule,
   StatutoryRule,
-} from 'src/data-administration-context/business-logic/models/rules';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { ImportNouveauxDossiersTransparenceCommand } from '../use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.command';
 import { GdsTransparenceNouveauxDossiersSubscriber } from './gds-transparence-nouveaux-dossiers.subscriber';

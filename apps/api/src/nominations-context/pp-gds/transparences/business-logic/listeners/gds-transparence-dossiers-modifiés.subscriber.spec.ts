@@ -1,5 +1,5 @@
 import { Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { UpdateDossierDeNominationCommand } from '../use-cases/update-dossier-de-nomination/update-dossier-de-nomination.command';
 import { GdsTransparenceDossiersModifiésSubscriber } from './gds-transparence-dossiers-modifiés.subscriber';

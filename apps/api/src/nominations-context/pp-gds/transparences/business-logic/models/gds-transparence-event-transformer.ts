@@ -1,6 +1,6 @@
 import { Magistrat } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
-import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
+import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
