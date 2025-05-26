@@ -35,11 +35,25 @@ export const useOnRedoImage: UseOnRedoImage = (redoImages) => {
 
       previousImageNames.current = currentImageNames;
 
+      // TODO Supprimer après debug en staging
       if (isRevertDeletion) {
+        console.debug(
+          "useOnRedoImage update",
+          "previousImageNames:",
+          previousImageNames.current,
+          "currentImageNames:",
+          currentImageNames,
+          "addedImageNames:",
+          addedImageNames,
+        );
         redoImages(
           editor,
           addedImageNames.map((name) => {
             const file = editor.storage.image.files[name];
+            if (!file)
+              throw new Error(
+                `File with name ${name} not found in editor storage.`,
+              );
             return file;
           }),
         );

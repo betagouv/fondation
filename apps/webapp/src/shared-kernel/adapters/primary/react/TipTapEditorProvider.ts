@@ -36,6 +36,9 @@ export class TipTapEditorProvider implements TextEditorProvider {
   }
 
   async persistImages() {
+    // TODO Supprimer après debug en staging
+    console.debug("persistImages");
+
     for (const n of this.editor.state.doc.toJSON().content) {
       if (n.type === "image") {
         const fileName = n.attrs[dataFileNameKey];
@@ -45,6 +48,8 @@ export class TipTapEditorProvider implements TextEditorProvider {
           const data = await response.blob();
           const fetchedFile = new File([data], fileName, { type: data.type });
           this.editor.storage.image.files[fileName] = fetchedFile;
+          // TODO Supprimer après debug en staging
+          console.debug("Fetched file from src:", fileName);
         }
       }
     }
