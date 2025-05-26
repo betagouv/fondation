@@ -1,4 +1,4 @@
-import { GetBucketVersioningCommand, S3Client } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import _ from 'lodash';
 import { FileVM } from 'shared-models';
@@ -147,18 +147,6 @@ export class RealS3StorageProvider implements S3StorageProvider {
           );
         }
       }
-    }
-  }
-
-  private async isBucketVersioningEnabled(bucket: string): Promise<boolean> {
-    try {
-      const response = await this.s3Client.send(
-        new GetBucketVersioningCommand({ Bucket: bucket }),
-      );
-      return response.Status === 'Enabled';
-    } catch (error) {
-      console.error(`Error checking versioning for bucket ${bucket}:`, error);
-      return false; // Assume versioning is not enabled if check fails
     }
   }
 

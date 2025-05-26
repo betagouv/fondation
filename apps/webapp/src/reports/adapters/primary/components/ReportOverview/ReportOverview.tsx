@@ -149,13 +149,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         <div
           className={clsx(
             "flex-col gap-2",
-            cx(
-              "fr-grid-row",
-              "fr-col-10",
-              "fr-col-md-5",
-              "fr-col-lg-6",
-              "fr-col-xl-8",
-            ),
+            cx("fr-grid-row", "fr-col-md-7", "fr-col-lg-8", "fr-col-xl-9"),
           )}
         >
           <ReportOverviewState

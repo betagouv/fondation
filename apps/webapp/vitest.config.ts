@@ -10,9 +10,7 @@ export default defineConfig({
     },
   },
   test: {
-    css: {
-      include: /.+/,
-    },
+    css: true,
     globals: true,
     environment: "jsdom",
     setupFiles: ["@testing-library/jest-dom", "./vitest/vitest.setup.ts"],

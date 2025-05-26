@@ -59,3 +59,8 @@ Object.defineProperty(HTMLElement.prototype, "getClientRects", {
     },
   ]),
 });
+
+global.CSS = {
+  supports: () => false,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;

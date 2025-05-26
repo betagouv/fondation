@@ -35,7 +35,11 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
               }
             },
           }}
-          hint="Formats supportés : png, jpeg et pdf."
+          hint={
+            <div>
+              Formats supportés : <strong>png, jpeg et pdf</strong>.
+            </div>
+          }
           label={null}
           multiple
         />

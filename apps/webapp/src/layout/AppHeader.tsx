@@ -9,16 +9,15 @@ export const AppHeader = () => {
   return (
     <Header
       serviceTitle="Fondation"
-      brandTop={
-        <>
-          CONSEIL SUPÉRIEUR DE LA MAGISTRATURE
-          <br />
-          FONDATION
-        </>
-      }
+      brandTop="CSM"
+      operatorLogo={{
+        orientation: "horizontal",
+        imgUrl: "/logo.png",
+        alt: "Conseil Supérieur de la Magistrature",
+      }}
       homeLinkProps={{
         ...loginHref,
-        title: "Mes rapports",
+        title: "Accueil",
       }}
       quickAccessItems={[<AppHeaderAvatar />]}
     />
