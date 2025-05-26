@@ -49,12 +49,12 @@ export class TransparenceCsv {
   static fromFichierXlsx(xlsxReader: XlsxReader) {
     const id = DomainRegistry.uuidGenerator().generate();
     const nom = xlsxReader.getFileName();
-    const buffer = xlsxReader.getData();
+    const data = xlsxReader.getData();
 
     return new TransparenceCsv(
       id,
       nom,
-      buffer.map((row) => row.join('\t')).join('\n'),
+      data.map((row) => row.join('\t')).join('\n'),
     );
   }
 }

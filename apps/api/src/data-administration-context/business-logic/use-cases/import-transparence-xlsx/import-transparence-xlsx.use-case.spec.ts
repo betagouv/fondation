@@ -10,7 +10,7 @@ describe('Import Transparence XLSX Use Case', () => {
   it('enregistre un fichier XLSX', async () => {
     const transparenceXlsxRepository = new FakeTransparenceCsvRepository();
     const uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [uneTransparenceCSv.id];
+    uuidGenerator.nextUuids = [uneTransparenceCsv.id];
     DomainRegistry.setUuidGenerator(uuidGenerator);
 
     await new ImportTransparenceXlsxUseCase(
@@ -19,16 +19,17 @@ describe('Import Transparence XLSX Use Case', () => {
     ).execute(uneTransparenceXlsx);
 
     expect(transparenceXlsxRepository.getFichiers()).toEqual([
-      uneTransparenceCSv,
+      uneTransparenceCsv,
     ]);
   });
 });
 
-const uneTransparenceCSv: TransparenceCsvSnapshot = {
+const uneTransparenceCsv: TransparenceCsvSnapshot = {
   id: 'une-transparence-id',
   nom: 'une-transparence.xlsx',
   csv: 'un\tcsv\nligne,\t2',
 };
+
 const data = [
   ['un', 'csv'],
   ['ligne,', '2'],
@@ -40,6 +41,6 @@ const buffer = xlsx.build([
     options: {},
   },
 ]);
-const uneTransparenceXlsx = new File([buffer], uneTransparenceCSv.nom, {
+const uneTransparenceXlsx = new File([buffer], uneTransparenceCsv.nom, {
   type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 });
