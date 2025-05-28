@@ -30,7 +30,7 @@ export class NominationFileModel {
   }
 
   updateFolderNumber(folderNumber: number) {
-    this._nominationFileRead.content.folderNumber = folderNumber;
+    this._nominationFileRead.content.numeroDeDossier = folderNumber;
   }
   updateObservers(observers: string[]) {
     this._nominationFileRead.content.observers = observers;

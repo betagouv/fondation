@@ -5,42 +5,42 @@ import { z, ZodType } from 'zod';
 export type NominationFileRead = {
   rowNumber: number;
   content: {
-    folderNumber: number | null;
-    name: string;
-    dueDate: DateOnlyJson | null;
-    reporters: string[] | null;
-    grade: Magistrat.Grade;
-    currentPosition: string;
-    targettedPosition: string;
-    rank: string;
-    birthDate: DateOnlyJson;
-    biography: string | null;
+    numeroDeDossier: number | null;
+    magistrat: string;
+    posteCible: string;
+    dateDeNaissance: DateOnlyJson;
+    posteActuel: string;
+    priseDeFonction: string;
+    passageAuGrade: DateOnlyJson;
     observers: string[] | null;
+    reporters: string[] | null;
+    informationCarriere: string;
+    historique: string | null;
+    grade: Magistrat.Grade;
   };
 };
 
 export const nominationFileReadContentSchema = z.object({
-  folderNumber: z.number().nullable(),
-  name: z.string(),
-  dueDate: z
-    .object({
-      year: z.number(),
-      month: z.number().min(1).max(12) as ZodType<Month>,
-      day: z.number(),
-    })
-    .nullable(),
-  reporters: z.array(z.string()).nullable(),
-  grade: z.nativeEnum(Magistrat.Grade),
-  currentPosition: z.string(),
-  targettedPosition: z.string(),
-  rank: z.string(),
-  birthDate: z.object({
+  numeroDeDossier: z.number().nullable(),
+  magistrat: z.string(),
+  posteCible: z.string(),
+  dateDeNaissance: z.object({
     year: z.number(),
     month: z.number().min(1).max(12) as ZodType<Month>,
     day: z.number(),
   }),
-  biography: z.string().nullable(),
+  posteActuel: z.string(),
+  priseDeFonction: z.string(),
+  passageAuGrade: z.object({
+    year: z.number(),
+    month: z.number().min(1).max(12) as ZodType<Month>,
+    day: z.number(),
+  }),
   observers: z.array(z.string()).nullable(),
+  reporters: z.array(z.string()).nullable(),
+  informationCarriere: z.string(),
+  historique: z.string().nullable(),
+  grade: z.nativeEnum(Magistrat.Grade),
 }) satisfies ZodType<NominationFileRead['content']>;
 
 export const nominationFileReadSchema = z.object({

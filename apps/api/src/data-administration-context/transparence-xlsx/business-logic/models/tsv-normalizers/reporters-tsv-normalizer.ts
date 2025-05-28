@@ -1,9 +1,7 @@
-import { GSHEET_CELL_LINE_BREAK_TOKEN } from '../nomination-file-content-reader';
-
 export class ReportersTsvNormalizer {
-  static normalize(reportersValue: string): string[] {
-    return reportersValue
-      .split(GSHEET_CELL_LINE_BREAK_TOKEN)
+  static normalize(...reportersValue: string[]): string[] {
+    return [...reportersValue]
+      .filter((reporter) => reporter)
       .map((value) => value.trim());
   }
 }

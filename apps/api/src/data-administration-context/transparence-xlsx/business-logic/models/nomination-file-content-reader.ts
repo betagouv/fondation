@@ -1,10 +1,10 @@
+import { FolderNumberTsvNormalizer } from 'src/data-administration-context/transparence-xlsx/business-logic/models/tsv-normalizers/folder-number-tsv-normalizer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import {
   NominationFileRead,
   nominationFileReadListSchema,
 } from './nomination-file-read';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
-import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
@@ -20,48 +20,56 @@ export class NominationFileContentReader {
 
   read(): NominationFilesContentReadCollection {
     const contentRead = this.content.map((row, rowIndex) => {
-      const dueDate = this.findValue("Date d'échéance", rowIndex, {
-        optional: true,
-      });
-      const reportersValue = this.findValue(
-        'Rapporteur(s) (pré-traitement pour import)',
-        rowIndex,
-      );
-      const observersValue = this.findValue(
-        'Observants (pré-traitement pour import)',
-        rowIndex,
-      );
+      const reportersValue = this.findValue('Rapporteur', rowIndex);
+      const observersValue = this.findValue('Observants', rowIndex);
 
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
         content: {
-          folderNumber: FolderNumberTsvNormalizer.normalize(
+          numeroDeDossier: FolderNumberTsvNormalizer.normalize(
             this.findValue('N° dossier', rowIndex)!,
             rowIndex,
           ),
-          dueDate: dueDate
-            ? DateOnly.fromString(dueDate, 'dd/M/yyyy', 'fr').toJson()
-            : null,
-          birthDate: DateOnly.fromString(
+          magistrat: this.findValue('Magistrat', rowIndex)!,
+          posteCible: this.findValue('Poste cible', rowIndex)!,
+          dateDeNaissance: DateOnly.fromString(
             this.findValue('Date de naissance', rowIndex)!,
             'dd/M/yyyy',
             'fr',
           ).toJson(),
-          name: this.findValue('Magistrat', rowIndex)!,
-          reporters: reportersValue
-            ? ReportersTsvNormalizer.normalize(reportersValue)
-            : null,
-          grade: GradeTsvNormalizer.normalize(
-            this.findValue('Grade actuel', rowIndex)!,
-            rowIndex,
-          ),
-          currentPosition: this.findValue('Poste actuel', rowIndex)!,
-          targettedPosition: this.findValue('Poste pressenti', rowIndex)!,
-          rank: this.findValue('Rang', rowIndex)!,
-          biography: this.findValue('Historique', rowIndex, { optional: true }),
+          posteActuel: this.findValue('Poste actuel', rowIndex)!,
+          priseDeFonction: this.findValue('Prise de fonction', rowIndex)!,
+          passageAuGrade: DateOnly.fromString(
+            this.findValue('Passage au grade', rowIndex)!,
+            'dd/M/yyyy',
+            'fr',
+          ).toJson(),
           observers: observersValue
             ? ObserversTsvNormalizer.normalize(observersValue)
             : null,
+          reporters: reportersValue
+            ? ReportersTsvNormalizer.normalize(
+                this.findValue('Rapporteur 1', rowIndex)!,
+                this.findValue('Rapporteur 2', rowIndex, { optional: true })!,
+                this.findValue(
+                  'Rapporteur 3 (note de synthèse pour le président de formation)',
+                  rowIndex,
+                  { optional: true },
+                )!,
+              )
+            : null,
+          informationCarriere: this.findValue(
+            'Information carrière',
+            rowIndex,
+          )!,
+          historique: this.findValue('Historique', rowIndex, {
+            optional: true,
+          }),
+          grade: GradeTsvNormalizer.normalize(
+            this.findValue('Poste cible', rowIndex)!,
+            this.findValue('Eq./Av.', rowIndex)!,
+            rowIndex,
+          ),
         },
       };
 

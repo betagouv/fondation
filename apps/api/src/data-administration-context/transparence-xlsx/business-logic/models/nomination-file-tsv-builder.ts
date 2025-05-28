@@ -11,7 +11,6 @@ import {
   GSHEET_CELL_LINE_BREAK_TOKEN,
 } from './nomination-file-content-reader';
 import { NominationFileRead } from './nomination-file-read';
-import { transparencyMap } from './tsv-normalizers/transparency-tsv-normalizer';
 import {
   allRulesMapV1,
   ManagementRule,
@@ -19,6 +18,7 @@ import {
   RuleName,
   StatutoryRule,
 } from './rules';
+import { transparencyMap } from './tsv-normalizers/transparency-tsv-normalizer';
 
 export type Line = {
   folderNumber: number | null;
@@ -233,22 +233,24 @@ export class NominationFileTsvBuilder {
     };
 
     return this.withNewLine().withLineContent({
-      folderNumber: content.folderNumber,
-      name: content.name,
+      folderNumber: content.numeroDeDossier,
+      name: content.magistratName,
       formation: formationMap[content.formation],
-      dueDate: content.dueDate
-        ? DateOnly.fromJson(content.dueDate).toFormattedString(gsheetDateFormat)
+      dueDate: content.dateDeNaissance
+        ? DateOnly.fromJson(content.dateDeNaissance).toFormattedString(
+            gsheetDateFormat,
+          )
         : null,
       transparency: transparencyMap[content.transparency],
       reporters: content.reporters,
       grade: gradeMap[content.grade],
-      currentPosition: content.currentPosition,
-      targettedPosition: content.targettedPosition,
+      currentPosition: content.posteActuel,
+      targettedPosition: content.posteCible,
       rank: content.rank,
-      birthDate: DateOnly.fromJson(content.birthDate).toFormattedString(
+      birthDate: DateOnly.fromJson(content.dateDeNaissance).toFormattedString(
         gsheetDateFormat,
       ),
-      biography: content.biography ?? '',
+      biography: content.historique ?? '',
       observers: content.observers,
       rules: NominationFileTsvRulesBuilder.fromRead(content.rules).build(),
     });

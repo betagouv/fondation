@@ -1,8 +1,8 @@
 import xlsx from 'node-xlsx';
 import { Magistrat } from 'shared-models';
-import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { FakeUserService } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/services/fake-user.service';
+import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
@@ -56,21 +56,21 @@ const unDossierSiège: NominationFileModelSnapshot = {
   createdAt: uneDate,
   rowNumber: 1,
   content: {
-    biography: 'Une biographie siège',
-    birthDate: {
+    historique: 'Une biographie siège',
+    dateDeNaissance: {
       year: 1980,
       month: 1,
       day: 1,
     },
-    currentPosition: 'Une position actuelle siège',
-    dueDate: null,
-    folderNumber: 12345,
+    posteActuel: 'Une position actuelle siège',
+    dateDeNaissance: null,
+    numeroDeDossier: 12345,
     grade: Magistrat.Grade.II,
-    name: 'Un Dossier Siège',
+    magistratName: 'Un Dossier Siège',
     observers: ['observer-id-1', 'observer-id-2'],
     rank: 'Un rang siège',
     reporters: ['reporter-id-1', 'reporter-id-2'],
-    targettedPosition: 'Président CA MARSEILLE - HH',
+    posteCible: 'Président CA MARSEILLE - HH',
   },
 };
 const uneTransparence: TransparenceSnapshot = {
@@ -88,9 +88,56 @@ const uneTransparenceCsv: TransparenceCsvSnapshot = {
 };
 
 const data = [
-  ['un', 'csv'],
-  ['ligne,', '2'],
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
+  [
+    'N° dossier',
+    'Magistrat',
+    'Poste cible',
+    'Date de naissance',
+    'Poste actuel',
+    'Prise de fonction',
+    'Passage au grade',
+    'Eq./Av.',
+    'Observants',
+    'Rapporteur',
+    'Information carrière',
+    'Historique',
+    'Rapporteur 1',
+    'Rapporteur 2',
+    'Rapporteur 3 (note de synthèse pour le président de formation)',
+  ],
+  [
+    '12345',
+    'Clara GRANDE ep. QUIMPER (1 sur une liste de 7)',
+    'Procureur de la République TJ  MONTESQUIEUX – I',
+    '25/01/1971',
+    'Procureur de la République TJ  CAMBRAI',
+    '5/09/2021',
+    '27/03/2012',
+    'E',
+    '',
+    'Clara GRANDE',
+    '',
+    '- Biographie de Clara GRANDE',
+    'Patrick TITIUN',
+  ],
+  [
+    '12346',
+    'Patrick TITIUN (1 sur une liste de 1)',
+    'Substitut général chargé du secrétariat général CA  BELLEVILLE - I',
+    '02/02/1973',
+    'Vice - procureur de la République TJ  BERGERAC',
+    '02/01/2024',
+    '10/12/2010',
+    'E',
+    '',
+    'Patrick TITIUN',
+    '- Stage fantastique',
+    'Patrick TITIUN',
+    'Clara GRANDE',
+  ],
 ];
+
 const buffer = xlsx.build([
   {
     name: 'mySheetName',
