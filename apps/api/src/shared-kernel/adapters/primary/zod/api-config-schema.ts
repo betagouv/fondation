@@ -25,7 +25,7 @@ const commonS3Schema = z.object({
     attachedFilesBucketName: z.string(),
   }),
   nominationsContext: z.object({
-    transparenceFilesBucketName: z.string(),
+    transparencesBucketName: z.string(),
   }),
   signedUrlExpiresIn: z.number(),
 });

@@ -16,7 +16,7 @@ const setup = async (): Promise<void> => {
       defaultApiConfig.s3.reportsContext.attachedFilesBucketName,
     );
     await createBucket(
-      defaultApiConfig.s3.nominationsContext.transparenceFilesBucketName,
+      defaultApiConfig.s3.nominationsContext.transparencesBucketName,
     );
   } catch {
     await teardown();

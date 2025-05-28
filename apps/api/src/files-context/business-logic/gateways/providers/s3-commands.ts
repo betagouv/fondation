@@ -19,7 +19,6 @@ export type SseHeaders = Required<
   >
 >;
 
-// TODO: Make it abstract then fix the generateProvider function typing
 export class S3Commands {
   private readonly sseHeaders: SseHeaders | undefined;
 

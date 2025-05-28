@@ -36,7 +36,7 @@ export const apiConfig: ProdApiConfig = {
       attachedFilesBucketName: process.env.S3_REPORTS_ATTACHED_FILES_BUCKET!,
     },
     nominationsContext: {
-      transparenceFilesBucketName: process.env.S3_TRANSPARENCE_FILES_BUCKET!,
+      transparencesBucketName: process.env.S3_TRANSPARENCES_BUCKET!,
     },
     scaleway: {
       endpoint: { scheme: 'https', baseDomain: baseScalewayDomain },
@@ -83,8 +83,8 @@ export const defaultApiConfig = {
         'sandbox-csm-fondation-reports-context',
     },
     nominationsContext: {
-      transparenceFilesBucketName:
-        process.env.S3_TRANSPARENCE_FILES_BUCKET ?? 'transparence-files',
+      transparencesBucketName:
+        process.env.S3_TRANSPARENCES_BUCKET ?? 'transparences',
     },
 
     minio: {

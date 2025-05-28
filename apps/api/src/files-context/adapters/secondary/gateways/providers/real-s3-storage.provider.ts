@@ -15,33 +15,63 @@ export class RealS3StorageProvider implements S3StorageProvider {
   ) {}
 
   async setupCors(): Promise<void> {
-    try {
-      const corsInput: PutBucketCorsCommandInput = {
-        Bucket: this.apiConfig.s3.reportsContext.attachedFilesBucketName,
-        CORSConfiguration: {
-          CORSRules: [
-            {
-              AllowedOrigins: [this.apiConfig.originUrl],
-              AllowedHeaders: ['*'],
-              ExposeHeaders: ['ETag'],
-              AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
-              MaxAgeSeconds: 86400, // 24h
-            },
-            {
-              AllowedOrigins: [this.apiConfig.frontendOriginUrl],
-              AllowedHeaders: ['*'],
-              ExposeHeaders: ['ETag'],
-              AllowedMethods: ['GET', 'HEAD'],
-              MaxAgeSeconds: 86400, // 24h,
-            },
-          ],
-        },
-      };
-      const command = this.s3Commands.putBucketCors(corsInput);
-      await this.s3Client.send(command);
-    } catch (error) {
-      console.error(error);
-      throw new Error('Error setting CORS configuration for S3 bucket');
+    const attachedFilesBucketCorsInput: PutBucketCorsCommandInput = {
+      Bucket: this.apiConfig.s3.reportsContext.attachedFilesBucketName,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedOrigins: [this.apiConfig.originUrl],
+            AllowedHeaders: ['*'],
+            ExposeHeaders: ['ETag'],
+            AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+            MaxAgeSeconds: 43200, // 12h
+          },
+          {
+            AllowedOrigins: [this.apiConfig.frontendOriginUrl],
+            AllowedHeaders: ['*'],
+            ExposeHeaders: ['ETag'],
+            AllowedMethods: ['GET', 'HEAD'],
+            MaxAgeSeconds: 43200, // 12h,
+          },
+        ],
+      },
+    };
+    const transparencesBucketCorsInput: PutBucketCorsCommandInput = {
+      Bucket: this.apiConfig.s3.nominationsContext.transparencesBucketName,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedOrigins: [this.apiConfig.originUrl],
+            AllowedHeaders: ['*'],
+            ExposeHeaders: ['ETag'],
+            AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+            MaxAgeSeconds: 43200, // 12h
+          },
+          {
+            AllowedOrigins: [this.apiConfig.frontendOriginUrl],
+            AllowedHeaders: ['*'],
+            ExposeHeaders: ['ETag'],
+            AllowedMethods: ['GET', 'HEAD'],
+            MaxAgeSeconds: 43200, // 12h,
+          },
+        ],
+      },
+    };
+
+    for (const command of [
+      transparencesBucketCorsInput,
+      attachedFilesBucketCorsInput,
+    ]) {
+      try {
+        const attachedFilesBucketCorsCommand =
+          this.s3Commands.putBucketCors(command);
+        await this.s3Client.send(attachedFilesBucketCorsCommand);
+      } catch (error) {
+        console.error(error);
+        throw new Error(
+          `Error setting CORS configuration for S3 bucket ${command.Bucket}`,
+        );
+      }
     }
   }
 
