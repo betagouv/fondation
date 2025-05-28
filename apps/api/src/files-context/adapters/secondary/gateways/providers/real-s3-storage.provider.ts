@@ -17,19 +17,20 @@ export class RealS3StorageProvider implements S3StorageProvider {
   async setupCors(): Promise<void> {
     try {
       const corsInput: PutBucketCorsCommandInput = {
-        Bucket:
-          this.apiConfig.s3.nominationsContext.transparenceFilesBucketName,
+        Bucket: this.apiConfig.s3.reportsContext.attachedFilesBucketName,
         CORSConfiguration: {
           CORSRules: [
             {
               AllowedOrigins: [this.apiConfig.originUrl],
               AllowedHeaders: ['*'],
+              ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
               MaxAgeSeconds: 86400, // 24h
             },
             {
               AllowedOrigins: [this.apiConfig.frontendOriginUrl],
               AllowedHeaders: ['*'],
+              ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'HEAD'],
               MaxAgeSeconds: 86400, // 24h,
             },

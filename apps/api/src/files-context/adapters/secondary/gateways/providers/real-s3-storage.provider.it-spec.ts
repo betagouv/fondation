@@ -78,9 +78,7 @@ describe.each`
       await expect(
         minioS3StorageClient.send(
           new GetBucketCorsCommand({
-            Bucket:
-              defaultApiConfig.s3.nominationsContext
-                .transparenceFilesBucketName,
+            Bucket: bucket,
           }),
         ),
       ).rejects.toThrow();

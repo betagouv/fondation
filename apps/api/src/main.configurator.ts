@@ -21,7 +21,7 @@ export class MainAppConfigurator {
 
   withCors(): MainAppConfigurator {
     this.app.enableCors({
-      origin: this.apiConfig.originUrl,
+      origin: this.apiConfig.frontendOriginUrl,
       credentials: true,
     });
     return this;

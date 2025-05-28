@@ -136,7 +136,10 @@ describe('Auth Controller', () => {
           'set-cookie',
           new SetCookieRegex().withMaxAge(cookieAgeInSeconds).build(),
         )
-        .expect('Access-Control-Allow-Origin', defaultApiConfig.originUrl)
+        .expect(
+          'Access-Control-Allow-Origin',
+          defaultApiConfig.frontendOriginUrl,
+        )
         .expect('Access-Control-Allow-Credentials', 'true');
 
       expectUserDescriptor(response.body);
