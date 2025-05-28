@@ -1,4 +1,4 @@
-import { S3Client } from '@aws-sdk/client-s3';
+import { PutBucketCorsCommandInput, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import _ from 'lodash';
 import { FileVM } from 'shared-models';
@@ -13,6 +13,36 @@ export class RealS3StorageProvider implements S3StorageProvider {
     private readonly apiConfig: ApiConfig,
     private readonly s3Commands: S3Commands,
   ) {}
+
+  async setupCors(): Promise<void> {
+    try {
+      const corsInput: PutBucketCorsCommandInput = {
+        Bucket:
+          this.apiConfig.s3.nominationsContext.transparenceFilesBucketName,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedOrigins: [this.apiConfig.originUrl],
+              AllowedHeaders: ['*'],
+              AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+              MaxAgeSeconds: 86400, // 24h
+            },
+            {
+              AllowedOrigins: [this.apiConfig.frontendOriginUrl],
+              AllowedHeaders: ['*'],
+              AllowedMethods: ['GET', 'HEAD'],
+              MaxAgeSeconds: 86400, // 24h,
+            },
+          ],
+        },
+      };
+      const command = this.s3Commands.putBucketCors(corsInput);
+      await this.s3Client.send(command);
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error setting CORS configuration for S3 bucket');
+    }
+  }
 
   async uploadFile(
     fileBuffer: Buffer,

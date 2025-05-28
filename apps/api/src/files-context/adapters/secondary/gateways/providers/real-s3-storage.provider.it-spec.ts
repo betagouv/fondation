@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetBucketCorsCommand,
   HeadObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -73,6 +74,23 @@ describe.each`
       }
     };
 
+    it("n'a aucune policy CORS par défaut", async () => {
+      await expect(
+        minioS3StorageClient.send(
+          new GetBucketCorsCommand({
+            Bucket:
+              defaultApiConfig.s3.nominationsContext
+                .transparenceFilesBucketName,
+          }),
+        ),
+      ).rejects.toThrow();
+    });
+
+    it.skip('Setup de la policy CORS', async () => {
+      // Intestable avec minio, la commande d'update de la policy CORS n'est pas supportée.
+      // https://github.com/minio/minio/issues/15874#issuecomment-1279771751
+    });
+
     describe.each`
       filePath
       ${null}
@@ -102,7 +120,7 @@ describe.each`
       },
     );
 
-    describe.only('With accents in file name', () => {
+    describe('With accents in file name', () => {
       const aFile = new FileDocumentBuilder()
         .with('bucket', bucket)
         .with('path', null)

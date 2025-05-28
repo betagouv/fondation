@@ -24,6 +24,9 @@ const commonS3Schema = z.object({
   reportsContext: z.object({
     attachedFilesBucketName: z.string(),
   }),
+  nominationsContext: z.object({
+    transparenceFilesBucketName: z.string(),
+  }),
   signedUrlExpiresIn: z.number(),
 });
 
@@ -43,6 +46,7 @@ const S3ConfigSchema = z.object({
 export const ProdApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('https://'),
+    frontendOriginUrl: z.string().url().startsWith('https://'),
     sentryDsn: z.string().url(),
     deployEnv: z.nativeEnum(DeployEnvMode),
     database: z.object({
@@ -59,6 +63,7 @@ export const ProdApiConfigSchema = commonBaseSchema.merge(
 export const DevApiConfigSchema = commonBaseSchema.merge(
   z.object({
     originUrl: z.string().url().startsWith('http://'),
+    frontendOriginUrl: z.string().url().startsWith('http://'),
     database: z.object({
       host: z.string(),
       port: z.number(),

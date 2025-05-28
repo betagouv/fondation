@@ -5,6 +5,8 @@ import {
   HeadBucketCommand,
   HeadObjectCommand,
   ListObjectVersionsCommand,
+  PutBucketCorsCommand,
+  PutBucketCorsCommandInput,
   PutObjectCommand,
   PutObjectRequest,
 } from '@aws-sdk/client-s3';
@@ -28,12 +30,18 @@ export class S3Commands {
   headBucket(bucketName: string) {
     return new HeadBucketCommand({ Bucket: bucketName });
   }
+
+  putBucketCors(input: PutBucketCorsCommandInput) {
+    return new PutBucketCorsCommand(input);
+  }
+
   headObject(bucket: string, filePath: string[] | null, fileName: string) {
     return new HeadObjectCommand({
       Bucket: bucket,
       Key: this.genKey(filePath, fileName),
     });
   }
+
   putObject(
     bucketName: string,
     file: Buffer,

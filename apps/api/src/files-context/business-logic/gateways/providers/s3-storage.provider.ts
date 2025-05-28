@@ -2,6 +2,7 @@ import { FileVM } from 'shared-models';
 import { FileDocument } from '../../models/file-document';
 
 export interface S3StorageProvider {
+  setupCors(): Promise<void>;
   uploadFile(
     file: Buffer,
     fileName: string,

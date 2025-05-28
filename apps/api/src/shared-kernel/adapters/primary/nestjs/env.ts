@@ -13,6 +13,7 @@ const baseUrl = `http://${process.env.APP}.osc-secnum-fr1.scalingo.io`;
 
 export const apiConfig: ProdApiConfig = {
   originUrl: process.env.ORIGIN_URL!,
+  frontendOriginUrl: process.env.FRONTEND_ORIGIN_URL!,
   sentryDsn: process.env.SENTRY_DSN!,
   deployEnv:
     (process.env.DEPLOY_ENV as DeployEnvMode) || DeployEnvMode.PRODUCTION,
@@ -34,6 +35,9 @@ export const apiConfig: ProdApiConfig = {
     reportsContext: {
       attachedFilesBucketName: process.env.S3_REPORTS_ATTACHED_FILES_BUCKET!,
     },
+    nominationsContext: {
+      transparenceFilesBucketName: process.env.S3_TRANSPARENCE_FILES_BUCKET!,
+    },
     scaleway: {
       endpoint: { scheme: 'https', baseDomain: baseScalewayDomain },
       region: 'fr-par',
@@ -52,6 +56,7 @@ const defaultBaseUrl = 'http://localhost:3000';
 
 export const defaultApiConfig = {
   originUrl: 'http://localhost:5173',
+  frontendOriginUrl: 'http://localhost:30000',
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   cookieMaxAgeInMs: 1000 * 60 * 60 * 24 * 90,
@@ -77,6 +82,11 @@ export const defaultApiConfig = {
         process.env.S3_REPORTS_ATTACHED_FILES_BUCKET ??
         'sandbox-csm-fondation-reports-context',
     },
+    nominationsContext: {
+      transparenceFilesBucketName:
+        process.env.S3_TRANSPARENCE_FILES_BUCKET ?? 'transparence-files',
+    },
+
     minio: {
       endpoint: { scheme: 'http', baseDomain: 'localhost:9000' },
       region: 'eu-west-2',

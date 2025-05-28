@@ -34,6 +34,10 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     >
   > = {};
 
+  async setupCors(): Promise<void> {
+    // No-op for the fake provider
+  }
+
   async uploadFile(
     file: Buffer,
     fileName: FileName,

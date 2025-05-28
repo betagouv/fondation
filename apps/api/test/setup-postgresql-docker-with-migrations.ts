@@ -11,8 +11,12 @@ const setup = async (): Promise<void> => {
   try {
     await startDockerPostgresql();
     await migrateDockerPostgresql();
+
     await createBucket(
       defaultApiConfig.s3.reportsContext.attachedFilesBucketName,
+    );
+    await createBucket(
+      defaultApiConfig.s3.nominationsContext.transparenceFilesBucketName,
     );
   } catch {
     await teardown();
