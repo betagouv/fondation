@@ -19,11 +19,11 @@ export class LoginUserUseCase {
     email: string,
     password: string,
   ): Promise<LoginUserUseCaseResponse> {
-    return this.transactionPerformer.perform(async (trx) => {
+    return this.transactionPerformer.perform(async () => {
       const user = await this.authenticationService.authenticate(
         email,
         password,
-      )(trx);
+      );
       if (!user) {
         throw new Error('User not found');
       }
@@ -32,7 +32,7 @@ export class LoginUserUseCase {
       const sessionId = await this.sessionProvider.createSession(
         user.id,
         expiresInDays,
-      )(trx);
+      );
 
       return {
         sessionId,

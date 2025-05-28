@@ -6,37 +6,40 @@ import {
   NominationFileReportSnapshot,
 } from 'src/reports-context/business-logic/models/nomination-file-report';
 import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
-import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import {
+  DrizzleTransactionableAsync,
+  tx,
+} from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { reports } from './schema/report-pm';
 
 export class SqlReportRepository implements ReportRepository {
-  save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
-    return async (db) => {
-      const reportRow = SqlReportRepository.mapToDb(report);
-      if (report.version === 0) {
-        await db.insert(reports).values({ ...reportRow, version: 1 });
-      } else {
-        const updatedRows = await db
-          .update(reports)
-          .set({
-            version: report.version + 1,
-            state: reportRow.state,
-            comment: reportRow.comment,
-            attachedFiles: reportRow.attachedFiles,
-          })
-          .where(
-            and(eq(reports.id, report.id), eq(reports.version, report.version)),
-          );
+  async save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
+    const trx = tx();
 
-        if (updatedRows.rowCount === 0) {
-          throw new OptimisticLockError({
-            entityName: 'Report',
-            entityId: report.id,
-            version: report.version,
-          });
-        }
+    const reportRow = SqlReportRepository.mapToDb(report);
+    if (report.version === 0) {
+      await trx.insert(reports).values({ ...reportRow, version: 1 });
+    } else {
+      const updatedRows = await trx
+        .update(reports)
+        .set({
+          version: report.version + 1,
+          state: reportRow.state,
+          comment: reportRow.comment,
+          attachedFiles: reportRow.attachedFiles,
+        })
+        .where(
+          and(eq(reports.id, report.id), eq(reports.version, report.version)),
+        );
+
+      if (updatedRows.rowCount === 0) {
+        throw new OptimisticLockError({
+          entityName: 'Report',
+          entityId: report.id,
+          version: report.version,
+        });
       }
-    };
+    }
   }
 
   byId(id: string): DrizzleTransactionableAsync<NominationFileReport | null> {

@@ -1,6 +1,4 @@
-export type TransactionableAsync<T = void, Trx = unknown> = (
-  trx: Trx,
-) => Promise<T>;
+export type TransactionableAsync<T = void> = () => Promise<T>;
 
 export interface TransactionPerformer {
   perform<T>(

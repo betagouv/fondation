@@ -1,27 +1,28 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
-import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import {
+  DrizzleTransactionableAsync,
+  tx,
+} from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
 
 export class SqlUserRepository implements UserRepository {
-  save(user: User): DrizzleTransactionableAsync<void> {
-    return async (db) => {
-      const userRow = SqlUserRepository.mapToDb(user);
-      await db
-        .insert(users)
-        .values(userRow)
-        .onConflictDoUpdate({
-          target: users.id,
-          set: {
-            email: userRow.email,
-            password: userRow.password,
-            role: userRow.role,
-            firstName: userRow.firstName,
-            lastName: userRow.lastName,
-          },
-        });
-    };
+  async save(user: User): Promise<void> {
+    const userRow = SqlUserRepository.mapToDb(user);
+    await tx()
+      .insert(users)
+      .values(userRow)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: userRow.email,
+          password: userRow.password,
+          role: userRow.role,
+          firstName: userRow.firstName,
+          lastName: userRow.lastName,
+        },
+      });
   }
 
   userWithEmail(email: string): DrizzleTransactionableAsync<User | null> {
