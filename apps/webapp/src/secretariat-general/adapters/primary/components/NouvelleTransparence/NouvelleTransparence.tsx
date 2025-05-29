@@ -88,7 +88,7 @@ const NouvelleTransparence: FC = () => {
         breadcrumb={breadcrumb}
       />
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
-        <Controller
+        <Controller<NouvelleTransparenceDto, "transparenceName">
           name="transparenceName"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -106,7 +106,7 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-        <Controller
+        <Controller<NouvelleTransparenceDto, "transparenceDate">
           name="transparenceDate"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -124,7 +124,7 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-        <Controller
+        <Controller<NouvelleTransparenceDto, "formation">
           name="formation"
           control={control}
           render={({ field: { value, onChange } }) => (
@@ -144,7 +144,7 @@ const NouvelleTransparence: FC = () => {
             </Select>
           )}
         />
-        <Controller
+        <Controller<NouvelleTransparenceDto, "dateEcheance">
           name="dateEcheance"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -162,7 +162,7 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-        <Controller
+        <Controller<NouvelleTransparenceDto, "datePriseDePoste">
           name="datePriseDePoste"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -180,7 +180,7 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-        <Controller
+        <Controller<NouvelleTransparenceDto, "fichier">
           name="fichier"
           control={control}
           render={({ field: { onChange } }) => (

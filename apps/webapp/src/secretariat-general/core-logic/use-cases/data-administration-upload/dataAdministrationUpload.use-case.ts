@@ -18,7 +18,7 @@ export const dataAdministrationUpload = createAppAsyncThunkFactory<string[]>()<
   ) => {
     const acceptedMimeTypes =
       getState().secretariatGeneral.nouvelleTransparence.acceptedMimeTypes
-        .attachedFiles;
+        .sourceDeDonnées;
 
     await fileProvider.assertMimeTypeFactory(acceptedMimeTypes)(
       nouvelleTransparenceDto.fichier,

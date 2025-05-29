@@ -129,7 +129,7 @@ export interface AppState<
   secretariatGeneral: {
     nouvelleTransparence: {
       acceptedMimeTypes: {
-        attachedFiles: string[];
+        sourceDeDonnées: string[];
       };
     };
   };
