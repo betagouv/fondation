@@ -1,15 +1,6 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Post, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  NouvelleTransparenceDto,
-  DataAdministrationContextRestContract,
-} from 'shared-models';
+import { DataAdministrationContextRestContract } from 'shared-models';
 
 import {
   IController,
@@ -31,16 +22,9 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
 export class DataAdministrationController
   implements IDataAdministrationController
 {
-  constructor(
-    private readonly nouvelleTransparenceUseCase: NouvelleTransparenceUseCase,
-  ) {}
+  constructor() {}
 
   @Post(endpointsPaths.nouvelleTransparence)
   @UseInterceptors(FileInterceptor('fichier'))
-  async nouvelleTransparence(
-    @UploadedFile() fichier: Express.Multer.File,
-    @Body() body: NouvelleTransparenceDto,
-  ): Promise<void> {
-    // return this.nouvelleTransparenceUseCase.execute(nouvelleTransparenceDto);
-  }
+  async nouvelleTransparence(): Promise<void> {}
 }

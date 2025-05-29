@@ -10,37 +10,40 @@ export type NominationFileRead = {
     posteCible: string;
     dateDeNaissance: DateOnlyJson;
     posteActuel: string;
-    priseDeFonction: string;
-    passageAuGrade: DateOnlyJson;
+    priseDeFonction: DateOnlyJson;
+    datePassageAuGrade: DateOnlyJson;
+    equivalenceOuAvancement: 'E' | 'A';
+    grade: Magistrat.Grade;
     observers: string[] | null;
     reporters: string[] | null;
     informationCarriere: string;
     historique: string | null;
-    grade: Magistrat.Grade;
   };
 };
 
+const dateOnlyJsonSchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12) as ZodType<Month>,
+  day: z.number(),
+});
 export const nominationFileReadContentSchema = z.object({
   numeroDeDossier: z.number().nullable(),
   magistrat: z.string(),
   posteCible: z.string(),
-  dateDeNaissance: z.object({
-    year: z.number(),
-    month: z.number().min(1).max(12) as ZodType<Month>,
-    day: z.number(),
-  }),
+  dateDeNaissance: dateOnlyJsonSchema,
   posteActuel: z.string(),
-  priseDeFonction: z.string(),
-  passageAuGrade: z.object({
+  priseDeFonction: dateOnlyJsonSchema,
+  datePassageAuGrade: z.object({
     year: z.number(),
     month: z.number().min(1).max(12) as ZodType<Month>,
     day: z.number(),
   }),
+  equivalenceOuAvancement: z.enum(['E', 'A']),
+  grade: z.nativeEnum(Magistrat.Grade),
   observers: z.array(z.string()).nullable(),
   reporters: z.array(z.string()).nullable(),
   informationCarriere: z.string(),
   historique: z.string().nullable(),
-  grade: z.nativeEnum(Magistrat.Grade),
 }) satisfies ZodType<NominationFileRead['content']>;
 
 export const nominationFileReadSchema = z.object({

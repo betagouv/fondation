@@ -5,7 +5,7 @@ import {
   Role,
   Transparency,
 } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
@@ -39,7 +39,7 @@ import {
   lucLoïcUser,
   NominationFileReadRulesBuilder,
 } from './import-nomination-files.use-case.fixtures';
-import { FakeUserService } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/services/fake-user.service';
+import { FakeUserService } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/services/fake-user.service';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';

@@ -8,6 +8,7 @@ import { NominationFilesContentReadCollection } from './nomination-files-read-co
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
+import { AvancementNormalizer } from './tsv-normalizers/avancement-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -20,7 +21,7 @@ export class NominationFileContentReader {
 
   read(): NominationFilesContentReadCollection {
     const contentRead = this.content.map((row, rowIndex) => {
-      const reportersValue = this.findValue('Rapporteur', rowIndex);
+      const reporter1Value = this.findValue('Rapporteur 1', rowIndex);
       const observersValue = this.findValue('Observants', rowIndex);
 
       const nominationFileRead: NominationFileRead = {
@@ -38,18 +39,30 @@ export class NominationFileContentReader {
             'fr',
           ).toJson(),
           posteActuel: this.findValue('Poste actuel', rowIndex)!,
-          priseDeFonction: this.findValue('Prise de fonction', rowIndex)!,
-          passageAuGrade: DateOnly.fromString(
+          priseDeFonction: DateOnly.fromString(
+            this.findValue('Prise de fonction', rowIndex)!,
+            'dd/M/yyyy',
+            'fr',
+          ).toJson(),
+          equivalenceOuAvancement: AvancementNormalizer.normalize(
+            this.findValue('Eq./Av.', rowIndex)!,
+          ),
+          datePassageAuGrade: DateOnly.fromString(
             this.findValue('Passage au grade', rowIndex)!,
             'dd/M/yyyy',
             'fr',
           ).toJson(),
+          grade: GradeTsvNormalizer.normalize(
+            this.findValue('Poste cible', rowIndex)!,
+            this.findValue('Eq./Av.', rowIndex)!,
+            rowIndex,
+          ),
           observers: observersValue
             ? ObserversTsvNormalizer.normalize(observersValue)
             : null,
-          reporters: reportersValue
+          reporters: reporter1Value
             ? ReportersTsvNormalizer.normalize(
-                this.findValue('Rapporteur 1', rowIndex)!,
+                reporter1Value,
                 this.findValue('Rapporteur 2', rowIndex, { optional: true })!,
                 this.findValue(
                   'Rapporteur 3 (note de synthèse pour le président de formation)',
@@ -65,11 +78,6 @@ export class NominationFileContentReader {
           historique: this.findValue('Historique', rowIndex, {
             optional: true,
           }),
-          grade: GradeTsvNormalizer.normalize(
-            this.findValue('Poste cible', rowIndex)!,
-            this.findValue('Eq./Av.', rowIndex)!,
-            rowIndex,
-          ),
         },
       };
 

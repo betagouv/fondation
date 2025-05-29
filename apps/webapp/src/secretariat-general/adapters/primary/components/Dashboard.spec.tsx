@@ -46,17 +46,17 @@ describe("Dashboard component", () => {
     it("should display the card title", async () => {
       renderSgDashboard(store);
 
-      const cardTitle = await screen.getByRole("heading", {
+      const cardTitle = await screen.findByRole("heading", {
         level: 3,
         name: "Créer une nouvelle transparence",
       });
       expect(cardTitle).toBeInTheDocument();
     });
 
-    it("should display the card description", () => {
+    it("should display the card description", async () => {
       renderSgDashboard(store);
 
-      const cardDescription = screen.getByText(
+      const cardDescription = await screen.findByText(
         "Renseignez les premières informations à votre disposition concernant une nouvelle transparence.",
       );
       expect(cardDescription).toBeInTheDocument();

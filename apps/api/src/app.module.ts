@@ -1,7 +1,6 @@
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { SecretariatGeneralModule } from 'src/secretariat-general-context/adapters/primary/nestjs/secretariat-general.module';
 import { DataAdministrationContextModule } from './data-administration-context/transparence-xlsx/adapters/primary/nestjs/data-administration-context.module';
 import { FilesContextModule } from './files-context/adapters/primary/nestjs/files-context.module';
 import { IdentityAndAccessModule } from './identity-and-access-context/adapters/primary/nestjs/identity-and-access.module';
@@ -19,7 +18,7 @@ import { NominationsContextModule } from './nominations-context/adapters/primary
     DataAdministrationContextModule,
     NominationsContextModule,
     ReportsModule,
-    SecretariatGeneralModule,
+    DataAdministrationContextModule,
   ],
   controllers: [],
   providers: [{ provide: APP_PIPE, useClass: ZodValidationPipe }],

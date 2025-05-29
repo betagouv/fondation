@@ -12,10 +12,6 @@ export type NominationFileModelSnapshot = {
   content: NominationFileRead['content'];
 };
 
-export type NominationFileUpdatedContent = Pick<
-  NominationFileRead['content'],
-  'folderNumber' | 'observers'
->;
 export class NominationFileModel {
   private _nominationFileRead: NominationFileRead;
   private _createdAt: Date;
@@ -27,13 +23,6 @@ export class NominationFileModel {
   ) {
     this.setCreatedAt(_createdAt);
     this.setNominationFileRead(nominationFileRead);
-  }
-
-  updateFolderNumber(folderNumber: number) {
-    this._nominationFileRead.content.numeroDeDossier = folderNumber;
-  }
-  updateObservers(observers: string[]) {
-    this._nominationFileRead.content.observers = observers;
   }
 
   reporterNames() {

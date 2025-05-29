@@ -11,7 +11,7 @@ type ClientFetchOptions = {
 };
 
 const basePath: DataAdministrationContextRestContract["basePath"] =
-  "api/secretariat-general";
+  "api/data-administration";
 
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
