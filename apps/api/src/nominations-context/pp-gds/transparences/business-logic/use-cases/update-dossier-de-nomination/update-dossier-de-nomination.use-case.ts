@@ -1,14 +1,13 @@
+import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
+import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
+import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import {
   TransactionableAsync,
   TransactionPerformer,
 } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { PropositionDeNominationTransparence } from '../../models/proposition-de-nomination';
 import { GdsDossierTransparenceModifiéEventRulesTransformer } from '../../models/gds-dossier-transparence-modifié-event-rules-transformer';
+import { PropositionDeNominationTransparence } from '../../models/proposition-de-nomination';
 import { UpdateDossierDeNominationCommand } from './update-dossier-de-nomination.command';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
-import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
-import { DossierDeNominationSaisineInferer } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination-saisine-inferer';
-import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 
 export class UpdateDossierDeNominationUseCase {
   constructor(
@@ -23,25 +22,30 @@ export class UpdateDossierDeNominationUseCase {
         const { content, nominationFileId: nominationFileImportedId } =
           nominationFile;
 
-        const dossier = await this.dossierDeNomination(
+        const propositionDeNomination = await this.propositionDeNomination(
           nominationFileImportedId,
         )(trx);
 
-        const dossierTransparence =
-          DossierDeNominationSaisineInferer.parseTransparence(dossier);
+        this.mettreàJourNuméroDossier(content, propositionDeNomination);
+        this.mettreàJourObservants(content, propositionDeNomination);
+        this.mettreàJourDatePassageAuGrade(content, propositionDeNomination);
+        this.mettreàJourDatePriseDeFonctionPosteActuel(
+          content,
+          propositionDeNomination,
+        );
+        this.mettreàJourInformationCarrière(content, propositionDeNomination);
+        await this.dossierDeNominationRepository.save(propositionDeNomination)(
+          trx,
+        );
 
-        this.mettreàJourNuméroDossier(content, dossierTransparence);
-        this.mettreàJourObservants(content, dossierTransparence);
-        await this.dossierDeNominationRepository.save(dossier)(trx);
-
-        await this.mettreàJourPréAnalyse(content, dossier)(trx);
+        await this.mettreàJourPréAnalyse(content, propositionDeNomination)(trx);
       }
     });
   }
 
-  private dossierDeNomination(
+  private propositionDeNomination(
     nominationFileImportedId: string,
-  ): TransactionableAsync<DossierDeNomination> {
+  ): TransactionableAsync<PropositionDeNominationTransparence> {
     return async (trx) => {
       const dossier = await this.dossierDeNominationRepository.findByImportedId(
         nominationFileImportedId,
@@ -50,7 +54,10 @@ export class UpdateDossierDeNominationUseCase {
         throw new Error(
           `Dossier non trouvé avec l'import id : ${nominationFileImportedId}`,
         );
-      return dossier;
+
+      const dossierTransparence =
+        PropositionDeNominationTransparence.fromDossierDeNomination(dossier);
+      return dossierTransparence;
     };
   }
 
@@ -92,5 +99,31 @@ export class UpdateDossierDeNominationUseCase {
   ) {
     if (content.folderNumber != null)
       proposition.updateFolderNumber(content.folderNumber);
+  }
+
+  private mettreàJourDatePassageAuGrade(
+    content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
+    proposition: PropositionDeNominationTransparence,
+  ) {
+    if (content.datePassageAuGrade)
+      proposition.updateDatePassageAuGrade(content.datePassageAuGrade);
+  }
+
+  private mettreàJourDatePriseDeFonctionPosteActuel(
+    content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
+    proposition: PropositionDeNominationTransparence,
+  ) {
+    if (content.datePriseDeFonctionPosteActuel)
+      proposition.updateDatePriseDeFonctionPosteActuel(
+        content.datePriseDeFonctionPosteActuel,
+      );
+  }
+
+  private mettreàJourInformationCarrière(
+    content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
+    proposition: PropositionDeNominationTransparence,
+  ) {
+    if (content.informationCarrière)
+      proposition.updateInformationCarrière(content.informationCarrière);
   }
 }

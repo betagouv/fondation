@@ -1,17 +1,19 @@
-import { Magistrat } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
+import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
+import {
+  currentDate,
+  getDependencies,
+} from 'src/nominations-context/tests-dependencies';
+import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 import {
   aDossierDeNominationId,
+  aDossierDeNominationPayload,
   anEventId,
   aParquetSessionId,
   givenSomeUuids,
   givenUneSession,
   importNouveauxDossiersUseCase,
 } from './import-nouveaux-dossiers-transparence.tests-setup';
-import {
-  currentDate,
-  getDependencies,
-} from 'src/nominations-context/tests-dependencies';
-import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
 
 describe('Nouvelle transparence GDS - Events', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -33,24 +35,33 @@ describe('Nouvelle transparence GDS - Events', () => {
 
   function expectEventPublié() {
     const event = dependencies.domainEventRepository
-      .events[0] as NouveauDossierDeNominationEvent;
+      .events[0] as NouveauDossierDeNominationEvent<TypeDeSaisine.TRANSPARENCE_GDS>;
     expect(event).toBeInstanceOf(NouveauDossierDeNominationEvent);
     expect(event.id).toBe(anEventId);
     expect(event.occurredOn).toBe(currentDate);
     expect(event.payload.dossierDeNominationId).toBe(aDossierDeNominationId);
     expect(event.payload.sessionId).toBe(aParquetSessionId);
-    expect(event.payload.content).toEqual({
-      biography: 'Nominee biography',
-      birthDate: { day: 1, month: 1, year: 1980 },
-      currentPosition: 'Current position',
-      targettedPosition: 'Target position',
-      dueDate: { day: 1, month: 6, year: 2023 },
-      folderNumber: 1,
-      formation: Magistrat.Formation.PARQUET,
-      grade: Magistrat.Grade.I,
-      name: 'Nominee Name',
-      observers: [],
-      rank: 'A',
+    expect(
+      event.payload.content,
+    ).toEqual<ContenuPropositionDeNominationTransparenceV2>({
+      version: 2,
+      biography: aDossierDeNominationPayload.content.biography,
+      birthDate: aDossierDeNominationPayload.content.birthDate,
+      currentPosition: aDossierDeNominationPayload.content.currentPosition,
+      targettedPosition: aDossierDeNominationPayload.content.targettedPosition,
+      dueDate: aDossierDeNominationPayload.content.dueDate,
+      folderNumber: aDossierDeNominationPayload.content.folderNumber,
+      formation: aDossierDeNominationPayload.content.formation,
+      grade: aDossierDeNominationPayload.content.grade,
+      name: aDossierDeNominationPayload.content.name,
+      observers: aDossierDeNominationPayload.content.observers,
+      rank: aDossierDeNominationPayload.content.rank,
+      datePassageAuGrade:
+        aDossierDeNominationPayload.content.datePassageAuGrade,
+      datePriseDeFonctionPosteActuel:
+        aDossierDeNominationPayload.content.datePriseDeFonctionPosteActuel,
+      informationCarrière:
+        aDossierDeNominationPayload.content.informationCarrière,
     });
   }
 });

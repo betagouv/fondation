@@ -7,6 +7,7 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from './rules';
+import { Avancement } from './avancement';
 
 export type NominationFileRead = {
   rowNumber: number;
@@ -17,6 +18,10 @@ export type NominationFileRead = {
     dueDate: DateOnlyJson | null;
     transparency: Transparency;
     reporters: string[] | null;
+    datePriseDeFonctionPosteActuel: DateOnlyJson;
+    datePassageAuGrade: DateOnlyJson | null;
+    avancement: Avancement;
+    informationCarrière: string | null;
     grade: Magistrat.Grade;
     currentPosition: string;
     targettedPosition: string;
@@ -98,17 +103,20 @@ export const zodGroupRulesPartial = z
   })
   .partial();
 
+const dateOnlyJsonSchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12) as ZodType<Month>,
+  day: z.number(),
+});
 export const nominationFileReadContentSchema = z.object({
   folderNumber: z.number().nullable(),
   name: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
-  dueDate: z
-    .object({
-      year: z.number(),
-      month: z.number().min(1).max(12) as ZodType<Month>,
-      day: z.number(),
-    })
-    .nullable(),
+  dueDate: dateOnlyJsonSchema.nullable(),
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
+  datePassageAuGrade: dateOnlyJsonSchema,
+  avancement: z.nativeEnum(Avancement),
+  informationCarrière: z.string().nullable(),
   transparency: z.nativeEnum(Transparency),
   reporters: z.array(z.string()).nullable(),
   grade: z.nativeEnum(Magistrat.Grade),

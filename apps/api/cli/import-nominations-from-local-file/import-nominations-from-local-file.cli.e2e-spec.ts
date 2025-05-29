@@ -1,17 +1,18 @@
 import { NestApplication } from '@nestjs/core';
-import { asc } from 'drizzle-orm';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { Gender, Magistrat, Role } from 'shared-models';
-import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
-import { transparencesPm } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
+import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
+import { transparencesPm } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { ContenuPropositionDeNominationTransparenceV2 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import {
   dossierDeNominationPm,
   sessionPm,
 } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -260,11 +261,16 @@ describe('Import Nominations from local file', () => {
     const existingDossiers = await db
       .select()
       .from(dossierDeNominationPm)
-      .orderBy(asc(dossierDeNominationPm.createdAt))
       .execute();
 
     expect(existingDossiers.length).toBe(expectedDossiers.length);
-    expect(existingDossiers).toEqual(expect.arrayContaining(expectedDossiers));
+    expect(
+      existingDossiers.sort(
+        (a, b) =>
+          Number((a.content as any).folderNumber) -
+          Number((b.content as any).folderNumber),
+      ),
+    ).toEqual(expectedDossiers);
   };
 
   const expectRapports = async (
@@ -291,13 +297,22 @@ const expectedDossierDeNominationFromContent = (
   content: NominationFileRead['content'],
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { transparency, reporters, rules, ...dossierContent } = content;
+  const { transparency, reporters, rules, avancement, ...dossierContent } =
+    content;
+  const expectedContent: DossierDeNominationSnapshot<
+    unknown,
+    ContenuPropositionDeNominationTransparenceV2
+  >['content'] = {
+    version: 2,
+    ...dossierContent,
+  };
+
   return {
     id: expect.any(String),
     createdAt: expect.any(Date),
     sessionId: expect.any(String),
     dossierDeNominationImportéId: expect.any(String),
-    content: dossierContent,
+    content: expectedContent,
   };
 };
 
@@ -308,11 +323,20 @@ const dbInsertDossierDeNominationFromContent = (
   dossierDeNominationImportéId: string,
 ): typeof dossierDeNominationPm.$inferInsert => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { transparency, reporters, rules, ...dossierContent } = content;
+  const { transparency, reporters, rules, avancement, ...dossierContent } =
+    content;
+  const contentToInsert: DossierDeNominationSnapshot<
+    unknown,
+    ContenuPropositionDeNominationTransparenceV2
+  >['content'] = {
+    version: 2,
+    ...dossierContent,
+  };
+
   return {
     id,
     sessionId,
     dossierDeNominationImportéId,
-    content: dossierContent,
+    content: contentToInsert,
   };
 };

@@ -5,6 +5,7 @@ import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary
 import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparence.command';
 import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
+import { Avancement } from 'src/data-administration-context/transparence-tsv/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aTransparenceImportId = 'transparence-import-id';
@@ -45,6 +46,11 @@ export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload
       rank: 'A',
       reporterIds: [lucLoïcReporterId],
       rules: new NominationFileReadRulesBuilder().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: { day: 1, month: 1, year: 2020 },
+      datePriseDeFonctionPosteActuel: { day: 1, month: 1, year: 2021 },
+      informationCarrière: 'Carrière',
     },
   };
 

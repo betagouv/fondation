@@ -111,6 +111,11 @@ export class NominationFilesContentReadCollection {
             folderNumber: f.content.folderNumber,
             observers: f.content.observers,
             rules: f.content.rules,
+            datePriseDeFonctionPosteActuel:
+              f.content.datePriseDeFonctionPosteActuel,
+            datePassageAuGrade: f.content.datePassageAuGrade,
+            avancement: f.content.avancement,
+            informationCarrière: f.content.informationCarrière,
           },
         ]),
       ),
@@ -121,6 +126,11 @@ export class NominationFilesContentReadCollection {
             folderNumber: f.content.folderNumber,
             observers: f.content.observers,
             rules: f.content.rules,
+            datePriseDeFonctionPosteActuel:
+              f.content.datePriseDeFonctionPosteActuel,
+            datePassageAuGrade: f.content.datePassageAuGrade,
+            avancement: f.content.avancement,
+            informationCarrière: f.content.informationCarrière,
           },
         ]),
       ),
@@ -184,6 +194,10 @@ const updatedNominationFilesFieldsSchema = z.object({
     .pick({
       folderNumber: true,
       observers: true,
+      datePriseDeFonctionPosteActuel: true,
+      datePassageAuGrade: true,
+      avancement: true,
+      informationCarrière: true,
     })
     .partial()
     .extend({

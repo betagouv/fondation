@@ -27,6 +27,10 @@ export type Line = {
   dueDate: string | null;
   transparency: string;
   reporters: string[] | null;
+  passageAuGrade: string | null;
+  datePriseDeFonctionPosteActuel: string;
+  equivalenceOuAvancement: 'E' | 'A';
+  informationCarriere: string | null;
   grade: string;
   currentPosition: string;
   targettedPosition: string;
@@ -48,7 +52,7 @@ export type Line = {
 };
 
 const firstHeader = `									Eléments du dossier								Règles automatisées de gestion (pour débat) et statutaires (bloquantes)													Règles statutaires (bloquantes) et éléments qualitatifs à vérifier dans le dossier																														`;
-const secondHeader = `Point(s) d'attention(s) repéré(s) dans le dossier	N° dossier                                                   	Magistrat	Formation	Date d'échéance	Transparence	Rapporteur(s) (pré-traitement pour import)	Rapporteur(s)	Grade actuel	Poste actuel	Poste pressenti	Rang	Date de naissance	Historique	Observants (pré-traitement pour import)	Observants		Mutation en - de 3 ans	Passer au 1er grade	Passe au grade "HH"	Prendre son grade sur place	Poste "profilé"	Nomination à la CC	"Outremer sur Outremer"	Siège <> Parquet et TJ <> CA	Siège <> Parquet du même ressort	Siège <> Parquet d'une même juridiction	Prendre son grade sur place après 7 ans	Ministère de la Justice à - de 3 ans d'exercice		Cabinet du ministre	Inscription au tableau pour prise de grade	Accéder à la HH sans avoir fait 2 postes au 1er grade	Prof. jur. dans le ressort du TJ il y a - de 5 ans	Conflit d'intérêt avec parcours pré magistrature	Conflit d'intérêt avec la prof. d'un proche	Evaluations	Eléments disciplinaires	Conditions de nomination HH 		Point d'attention sur ce dossier ?	Grade actuel	Intitulé du poste actuel	Reformulation du poste actuel	Date de prise du poste actuel	Lieu d'exercice du poste actuel (nom de la juridiction)	Localisation du poste actuel (Métropole ou Outremer)	Cour d'appel de rattachement du poste actuel	Poste au Ministère ?	Grade du poste pressenti	Titre du poste pressenti	Poste profilé ?	Intitulé du poste pressenti	Reformulation du poste pressenti, sans le grade II	Reformulation du poste pressenti, sans les grades II et I	Reformulation du poste pressenti, sans les grades II, I et HH	Lieu d'exercice du poste pressenti (nom de la juridiction)	Localisation du poste pressenti (Métropole ou Outremer)	Cour d'appel de rattachement du poste pressenti	Date pour la prise de poste (si nomination confirmée)	Observations`;
+const secondHeader = `Point(s) d'attention(s) repéré(s) dans le dossier	N° dossier                                                   	Magistrat	Formation	Date d'échéance	Transparence	Rapporteur(s) (pré-traitement pour import)	Rapporteur(s)	Grade actuel\tPrise de grade ?\tPassage au grade\tPrise de fonction\tInformation carrière	Poste actuel	Poste pressenti	Rang	Date de naissance	Historique	Observants (pré-traitement pour import)	Observants		Mutation en - de 3 ans	Passer au 1er grade	Passe au grade "HH"	Prendre son grade sur place	Poste "profilé"	Nomination à la CC	"Outremer sur Outremer"	Siège <> Parquet et TJ <> CA	Siège <> Parquet du même ressort	Siège <> Parquet d'une même juridiction	Prendre son grade sur place après 7 ans	Ministère de la Justice à - de 3 ans d'exercice		Cabinet du ministre	Inscription au tableau pour prise de grade	Accéder à la HH sans avoir fait 2 postes au 1er grade	Prof. jur. dans le ressort du TJ il y a - de 5 ans	Conflit d'intérêt avec parcours pré magistrature	Conflit d'intérêt avec la prof. d'un proche	Evaluations	Eléments disciplinaires	Conditions de nomination HH 		Point d'attention sur ce dossier ?	Grade actuel	Intitulé du poste actuel	Reformulation du poste actuel	Date de prise du poste actuel	Lieu d'exercice du poste actuel (nom de la juridiction)	Localisation du poste actuel (Métropole ou Outremer)	Cour d'appel de rattachement du poste actuel	Poste au Ministère ?	Grade du poste pressenti	Titre du poste pressenti	Poste profilé ?	Intitulé du poste pressenti	Reformulation du poste pressenti, sans le grade II	Reformulation du poste pressenti, sans les grades II et I	Reformulation du poste pressenti, sans les grades II, I et HH	Lieu d'exercice du poste pressenti (nom de la juridiction)	Localisation du poste pressenti (Métropole ou Outremer)	Cour d'appel de rattachement du poste pressenti	Date pour la prise de poste (si nomination confirmée)	Observations`;
 
 export class NominationFileTsvBuilder {
   private _header = '';
@@ -119,6 +123,10 @@ export class NominationFileTsvBuilder {
     dueDate,
     transparency,
     reporters,
+    datePriseDeFonctionPosteActuel,
+    equivalenceOuAvancement,
+    informationCarriere,
+    passageAuGrade,
     grade,
     currentPosition,
     targettedPosition,
@@ -206,7 +214,7 @@ export class NominationFileTsvBuilder {
     const observersForDisplay = observers?.join('     ') || '';
 
     const folderNumberString = `${folderNumber || 'profilé'} (${formation.trim()})`;
-    return `TRUE\t${folderNumberString}\t${name}\t${formation}\t${dueDate || ''}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t${grade}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
+    return `TRUE\t${folderNumberString}\t${name}\t${formation}\t${dueDate || ''}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t${grade}\t${equivalenceOuAvancement}\t${passageAuGrade ?? 'NON DEFINI'}\t${datePriseDeFonctionPosteActuel}\t${informationCarriere ?? ''}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
   }
 
   build() {
@@ -239,6 +247,16 @@ export class NominationFileTsvBuilder {
       dueDate: content.dueDate
         ? DateOnly.fromJson(content.dueDate).toFormattedString(gsheetDateFormat)
         : null,
+      datePriseDeFonctionPosteActuel: DateOnly.fromJson(
+        content.datePriseDeFonctionPosteActuel,
+      ).toFormattedString(gsheetDateFormat),
+      passageAuGrade: content.datePassageAuGrade
+        ? DateOnly.fromJson(content.datePassageAuGrade).toFormattedString(
+            gsheetDateFormat,
+          )
+        : null,
+      equivalenceOuAvancement: content.avancement,
+      informationCarriere: content.informationCarrière,
       transparency: transparencyMap[content.transparency],
       reporters: content.reporters,
       grade: gradeMap[content.grade],

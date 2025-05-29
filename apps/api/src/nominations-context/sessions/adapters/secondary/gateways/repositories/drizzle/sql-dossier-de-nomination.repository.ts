@@ -87,7 +87,7 @@ export class SqlDossierDeNominationRepository
       id: snapshot.id,
       sessionId: snapshot.sessionId,
       dossierDeNominationImportéId: snapshot.nominationFileImportedId,
-      content: snapshot.content,
+      content: JSON.stringify(snapshot.content),
     };
   }
 

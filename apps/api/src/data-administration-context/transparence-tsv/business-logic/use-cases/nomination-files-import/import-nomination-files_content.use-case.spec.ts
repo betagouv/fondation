@@ -6,12 +6,13 @@ import {
   Transparency,
 } from 'shared-models';
 import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeUserService } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { Get, Paths } from 'type-fest';
+import { Get, Paths, SetOptional } from 'type-fest';
 import { EmptyFileError } from '../../errors/empty-file.error';
 import { FileLengthTooShortError } from '../../errors/file-length-too-short.error';
 import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
@@ -39,7 +40,6 @@ import {
   lucLoïcUser,
   NominationFileReadRulesBuilder,
 } from './import-nomination-files.use-case.fixtures';
-import { FakeUserService } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/services/fake-user.service';
 
 const nominationFilesImportedEventId = 'nomination-files-imported-event-id';
 const nominationFilesUpdatedEventId = 'nomination-files-updated-event-id';
@@ -260,6 +260,56 @@ describe('Import Nomination Files Use Case', () => {
       name: Transparency.AUTOMNE_2024,
       formation: Magistrat.Formation.PARQUET,
       nominationFiles: [lucienPierreModel],
+    });
+  });
+
+  describe('when adding columns and re-uploading a file', () => {
+    beforeEach(() => {
+      const firstRowMissingColumns: {
+        content: SetOptional<
+          NominationFileModelSnapshot['content'],
+          | 'datePassageAuGrade'
+          | 'datePriseDeFonctionPosteActuel'
+          | 'informationCarrière'
+          | 'avancement'
+        >;
+      } & Omit<NominationFileModelSnapshot, 'content'> = {
+        ...getMarcelDupontModelSnapshot('nomination-file-id', 1),
+      };
+      delete firstRowMissingColumns.content.datePassageAuGrade;
+      delete firstRowMissingColumns.content.avancement;
+      delete firstRowMissingColumns.content.datePriseDeFonctionPosteActuel;
+      delete firstRowMissingColumns.content.informationCarrière;
+
+      transparenceRepository.addTransparence(gdsTransparenceId, {
+        id: gdsTransparenceId,
+        createdAt: dateTimeProvider.currentDate,
+        name: gdsTransparenceName,
+        formation: Magistrat.Formation.SIEGE,
+        nominationFiles: [firstRowMissingColumns as any],
+      });
+
+      uuidGenerator.nextUuids = [
+        'third-nomination-file-id',
+        nominationFilesImportedEventId,
+        nominationFilesUpdatedEventId,
+      ];
+    });
+
+    it('updates the nomination file with new fields', async () => {
+      await importAFile(
+        new NominationFileTsvBuilder()
+          .fromModelSnapshot(
+            getMarcelDupontModelSnapshot('nomination-file-id', 1),
+          )
+          .build(),
+      );
+
+      expectTransparences(
+        uneTranspaSiègeAvecDossiers(
+          getMarcelDupontModelSnapshot('nomination-file-id', 1),
+        ),
+      );
     });
   });
 

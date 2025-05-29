@@ -48,6 +48,23 @@ export class NominationFilesUpdatedCollection {
         );
       if (matchedNominationFileFields.content.rules)
         nominationFile.updateRules(matchedNominationFileFields.content.rules);
+      if (matchedNominationFileFields.content.datePassageAuGrade)
+        nominationFile.updateDatePassageAuGrade(
+          matchedNominationFileFields.content.datePassageAuGrade,
+        );
+      if (matchedNominationFileFields.content.datePriseDeFonctionPosteActuel)
+        nominationFile.updateDatePriseDeFonctionPosteActuel(
+          matchedNominationFileFields.content.datePriseDeFonctionPosteActuel,
+        );
+      if (matchedNominationFileFields.content.avancement)
+        nominationFile.updateAvancement(
+          matchedNominationFileFields.content.avancement,
+        );
+      if (matchedNominationFileFields.content.informationCarrière)
+        nominationFile.updateInformationCarriere(
+          matchedNominationFileFields.content.informationCarrière,
+        );
+
       return { nominationFile, updatedField: matchedNominationFileFields };
     });
 

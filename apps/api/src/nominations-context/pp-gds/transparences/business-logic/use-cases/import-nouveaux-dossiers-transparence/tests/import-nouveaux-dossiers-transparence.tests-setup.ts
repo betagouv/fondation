@@ -11,6 +11,7 @@ import { TypeDeSaisine } from 'shared-models';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
 import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-dossiers-transparence.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
+import { Avancement } from 'src/data-administration-context/transparence-tsv/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aParquetTransparenceImportId = 'transparence-import-id';
@@ -55,6 +56,11 @@ export const aDossierDeNominationPayload: GdsTransparenceNominationFilesAddedEve
       observers: [],
       rank: 'A',
       rules: new NominationFileReadRulesBuilder().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: { day: 1, month: 1, year: 2020 },
+      datePriseDeFonctionPosteActuel: { day: 1, month: 1, year: 2021 },
+      informationCarrière: 'Carrière',
     },
   };
 

@@ -17,6 +17,7 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from '../../models/rules';
+import { Avancement } from '../../models/avancement';
 
 export const gdsTransparenceEventId = 'gds-transparence-event-id';
 export const gdsTransparenceId = 'gds-transparence-id';
@@ -102,7 +103,14 @@ export type GetLucienPierreModelSnapshot = ReturnType<
 export const getMarcelDupontRead = (
   rowNumber = 1,
   moreContent?: PartialDeep<
-    Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
+    Omit<
+      NominationFileRead['content'],
+      | 'dueDate'
+      | 'birthDate'
+      | 'datePriseDeFonctionPosteActuel'
+      | 'datePassageAuGrade'
+      | 'rules'
+    >
   >,
   rules = new NominationFileReadRulesBuilder().build(),
 ): NominationFileRead => ({
@@ -122,6 +130,18 @@ export const getMarcelDupontRead = (
       'ÉMILIEN-RENAUD Jules ep. Françoise',
       'JEANNE LOUISE DE FRANCE Aude',
     ],
+    datePriseDeFonctionPosteActuel: {
+      year: 2023,
+      month: 11,
+      day: 10,
+    },
+    datePassageAuGrade: {
+      year: 2024,
+      month: 11,
+      day: 10,
+    },
+    avancement: Avancement.AVANCEMENT,
+    informationCarrière: 'blablabla carrière',
     grade: Magistrat.Grade.I,
     currentPosition: 'Avocat général - service extraordinaire CC  PARIS',
     targettedPosition: 'Premier avocat général CC  PARIS - HH',
@@ -142,7 +162,14 @@ export const getMarcelDupontRead = (
 const getLucienPierreRead = (
   rowNumber = 1,
   moreContent?: PartialDeep<
-    Omit<NominationFileRead['content'], 'dueDate' | 'birthDate' | 'rules'>
+    Omit<
+      NominationFileRead['content'],
+      | 'dueDate'
+      | 'birthDate'
+      | 'datePriseDeFonctionPosteActuel'
+      | 'datePassageAuGrade'
+      | 'rules'
+    >
   >,
   rules = getReadRules({
     [NominationFile.RuleGroup.STATUTORY]: {
@@ -169,6 +196,18 @@ const getLucienPierreRead = (
     },
     biography: '- blablablablabla',
     observers: null,
+    datePriseDeFonctionPosteActuel: {
+      year: 2023,
+      month: 11,
+      day: 10,
+    },
+    datePassageAuGrade: {
+      year: 2020,
+      month: 9,
+      day: 10,
+    },
+    avancement: Avancement.EQUIVALENCE,
+    informationCarrière: 'blablabla carrière pierre',
 
     ...moreContent,
     rules,

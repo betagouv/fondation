@@ -1,5 +1,6 @@
 import { differenceInMonths, format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { z, ZodType } from 'zod';
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyJson = {
@@ -10,6 +11,12 @@ export type DateOnlyJson = {
 
 const dbDateFormat = 'yyyy-MM-dd';
 export const gsheetDateFormat = 'dd/MM/yyyy';
+
+export const dateOnlyJsonSchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12) as ZodType<Month>,
+  day: z.number(),
+});
 
 export class DateOnly {
   private readonly value: Date;

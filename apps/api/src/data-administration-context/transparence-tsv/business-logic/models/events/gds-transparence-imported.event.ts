@@ -35,7 +35,7 @@ export const nominationFilesPayloadSchema = z
   .nonempty();
 
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
-  transparenceId: z.string().uuid(),
+  transparenceId: z.string(),
   transparenceName: z.nativeEnum(Transparency),
   formation: z.nativeEnum(Magistrat.Formation),
   nominationFiles: nominationFilesPayloadSchema,
@@ -49,6 +49,7 @@ export class GdsNewTransparenceImportedEvent extends DomainEvent<GdsNewTranspare
     payload: GdsNewTransparenceImportedEventPayload,
     currentDate: Date,
   ) {
+    gdsNewTransparenceImportedEventPayloadSchema.parse(payload);
     super(id, GdsNewTransparenceImportedEvent.name, payload, currentDate);
   }
 

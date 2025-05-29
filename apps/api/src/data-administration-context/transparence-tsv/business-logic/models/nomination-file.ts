@@ -1,10 +1,9 @@
 import _ from 'lodash';
-import { DomainRegistry } from './domain-registry';
-import {
-  NominationFileRead,
-  nominationFileReadSchema,
-} from './nomination-file-read';
+import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
+import { Avancement } from './avancement';
+import { DomainRegistry } from './domain-registry';
+import { NominationFileRead } from './nomination-file-read';
 
 export type NominationFileModelSnapshot = {
   id: string;
@@ -42,6 +41,21 @@ export class NominationFileModel {
       rules,
     );
   }
+  updateDatePassageAuGrade(datePassageAuGrade: DateOnlyJson) {
+    this._nominationFileRead.content.datePassageAuGrade = datePassageAuGrade;
+  }
+  updateDatePriseDeFonctionPosteActuel(
+    datePriseDeFonctionPosteActuel: DateOnlyJson,
+  ) {
+    this._nominationFileRead.content.datePriseDeFonctionPosteActuel =
+      datePriseDeFonctionPosteActuel;
+  }
+  updateAvancement(avancement: Avancement) {
+    this._nominationFileRead.content.avancement = avancement;
+  }
+  updateInformationCarriere(informationCarriere: string) {
+    this._nominationFileRead.content.informationCarrière = informationCarriere;
+  }
 
   reporterNames() {
     return this._nominationFileRead.content.reporters;
@@ -68,8 +82,9 @@ export class NominationFileModel {
     this._createdAt = z.date().parse(_createdAt);
   }
   private setNominationFileRead(nominationFileRead: NominationFileRead) {
-    this._nominationFileRead =
-      nominationFileReadSchema.parse(nominationFileRead);
+    // TODO - revalider avec zod après ajout des colonnes dans le tsv
+    // nominationFileReadSchema.parse(nominationFileRead);
+    this._nominationFileRead = nominationFileRead;
   }
 
   static fromSnapshot(

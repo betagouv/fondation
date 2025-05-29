@@ -1,13 +1,16 @@
+import { TypeDeSaisine } from 'shared-models';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../domain-registry';
 import { DossierDeNominationContent } from '../dossier-de-nomination';
 
-export type NouveauDossierDeNominationEventPayload = {
+export type NouveauDossierDeNominationEventPayload<
+  S extends TypeDeSaisine | unknown = unknown,
+> = {
   dossierDeNominationId: string;
   sessionId: string;
   nominationFileImportedId: string;
-  content: DossierDeNominationContent;
+  content: DossierDeNominationContent<S>;
 };
 
 export const nouveauDossierDeNominationEventPayloadSchema = z.object({
@@ -17,14 +20,17 @@ export const nouveauDossierDeNominationEventPayloadSchema = z.object({
   content: z.record(z.string(), z.unknown()),
 }) satisfies z.ZodType<NouveauDossierDeNominationEventPayload>;
 
-export class NouveauDossierDeNominationEvent extends DomainEvent<NouveauDossierDeNominationEventPayload> {
+export class NouveauDossierDeNominationEvent<
+  S extends TypeDeSaisine | unknown = unknown,
+> extends DomainEvent<NouveauDossierDeNominationEventPayload<S>> {
   readonly name = 'NOUVEAU_DOSSIER_DE_NOMINATION';
 
   private constructor(
     id: string,
-    payload: NouveauDossierDeNominationEventPayload,
+    payload: NouveauDossierDeNominationEventPayload<S>,
     currentDate: Date,
   ) {
+    nouveauDossierDeNominationEventPayloadSchema.parse(payload);
     super(id, NouveauDossierDeNominationEvent.name, payload, currentDate);
   }
 

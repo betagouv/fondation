@@ -24,6 +24,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { transparencesPm } from './schema/transparence-pm';
 import { SqlTransparenceRepository } from './sql-transparence.repository';
+import { Avancement } from 'src/data-administration-context/transparence-xlsx/business-logic/models/avancement';
 
 const aTransparenceId = 'ad0b430b-e647-475d-b942-9908901120da';
 const aNominationFileId = 'e022252d-913c-4523-8ae3-ad9b9fcb4757';
@@ -163,6 +164,19 @@ const aNominationfile: NominationFileModelSnapshot = {
     biography: 'Test biography',
     observers: ['Test Observer'],
     rules: new TrueRulesBuilder().build(),
+
+    avancement: Avancement.AVANCEMENT,
+    datePassageAuGrade: {
+      day: 1,
+      month: 1,
+      year: 2000,
+    },
+    datePriseDeFonctionPosteActuel: {
+      day: 1,
+      month: 1,
+      year: 2002,
+    },
+    informationCarrière: 'information de carrière',
   },
 };
 

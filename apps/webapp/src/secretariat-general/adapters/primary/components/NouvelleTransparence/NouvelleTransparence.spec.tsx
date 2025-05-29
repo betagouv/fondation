@@ -32,10 +32,6 @@ describe("NouvelleTransparence", () => {
       expectSecretariatGeneralBreadcrumbFactory(routerProvider);
   });
 
-  it("should render", () => {
-    renderNouvelleTransparence(store);
-  });
-
   it("should display a breadcrumb", async () => {
     renderNouvelleTransparence(store);
     await expectSecretariatGeneralBreadcrumb();
@@ -73,7 +69,7 @@ describe("NouvelleTransparence", () => {
     renderNouvelleTransparence(store);
 
     const saveButton = await screen.findByText("Enregistrer");
-    userEvent.click(saveButton);
+    await userEvent.click(saveButton);
 
     expect(
       await screen.findByText("Le nom de la transparence est requis."),
@@ -90,7 +86,7 @@ describe("NouvelleTransparence", () => {
 
   it("should display an error message if the file is not valid", async () => {
     renderNouvelleTransparence(store);
-    const fileInput = screen.getByLabelText(/fichier/i);
+    const fileInput = await screen.findByLabelText(/fichier/i);
     const invalidFile = new File(["test content"], "test.txt", {
       type: "text/plain",
     });
@@ -107,7 +103,7 @@ describe("NouvelleTransparence", () => {
 
   it("should reset all form fields when the user clicks on the cancel button", async () => {
     renderNouvelleTransparence(store);
-    const nameInput = screen.getByLabelText("Nom de la transparence*");
+    const nameInput = await screen.findByLabelText("Nom de la transparence*");
     const dateInput = screen.getByLabelText("Date de la transparence*");
     const formationSelect = screen.getByLabelText("Formation*");
     const dueDateInput = screen.getByLabelText("Date d'échéance");

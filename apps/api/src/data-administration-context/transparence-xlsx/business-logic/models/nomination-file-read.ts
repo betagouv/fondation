@@ -1,6 +1,7 @@
 import { Magistrat, Month } from 'shared-models';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { z, ZodType } from 'zod';
+import { Avancement } from './avancement';
 
 export type NominationFileRead = {
   rowNumber: number;
@@ -16,7 +17,7 @@ export type NominationFileRead = {
     grade: Magistrat.Grade;
     observers: string[] | null;
     reporters: string[] | null;
-    informationCarriere: string;
+    informationCarriere: string | null;
     historique: string | null;
   };
 };
@@ -33,16 +34,12 @@ export const nominationFileReadContentSchema = z.object({
   dateDeNaissance: dateOnlyJsonSchema,
   posteActuel: z.string(),
   priseDeFonction: dateOnlyJsonSchema,
-  datePassageAuGrade: z.object({
-    year: z.number(),
-    month: z.number().min(1).max(12) as ZodType<Month>,
-    day: z.number(),
-  }),
-  equivalenceOuAvancement: z.enum(['E', 'A']),
+  datePassageAuGrade: dateOnlyJsonSchema,
+  equivalenceOuAvancement: z.nativeEnum(Avancement),
   grade: z.nativeEnum(Magistrat.Grade),
   observers: z.array(z.string()).nullable(),
   reporters: z.array(z.string()).nullable(),
-  informationCarriere: z.string(),
+  informationCarriere: z.string().nullable(),
   historique: z.string().nullable(),
 }) satisfies ZodType<NominationFileRead['content']>;
 

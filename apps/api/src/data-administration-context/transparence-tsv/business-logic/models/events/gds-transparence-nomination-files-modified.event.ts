@@ -20,6 +20,9 @@ const nominationFileContentUpdateSchema = nominationFileReadContentSchema
   .pick({
     folderNumber: true,
     observers: true,
+    datePassageAuGrade: true,
+    datePriseDeFonctionPosteActuel: true,
+    informationCarrière: true,
   })
   .extend({
     rules: zodGroupRulesPartial,

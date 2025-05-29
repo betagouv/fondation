@@ -9,6 +9,7 @@ import { AffectationRapporteursModifiéeEvent } from 'src/nominations-context/se
 import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
 import { PréAnalyse } from 'src/nominations-context/sessions/business-logic/models/pré-analyse';
 import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { ContenuPropositionDeNominationTransparenceV2 } from './proposition-de-nomination';
 
 export type DossierAvecPayload<T extends boolean = boolean> = {
   dossier: DossierDeNomination;
@@ -30,7 +31,8 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
       | GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'],
   ): GdsTransparenceEventTransformer {
     const dossiers = nominationFiles.map(({ nominationFileId, content }) => {
-      const contenu = {
+      const contenu: ContenuPropositionDeNominationTransparenceV2 = {
+        version: 2,
         biography: content.biography,
         birthDate: content.birthDate,
         currentPosition: content.currentPosition,
@@ -42,6 +44,9 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
         name: content.name,
         observers: content.observers,
         rank: content.rank,
+        datePassageAuGrade: content.datePassageAuGrade,
+        datePriseDeFonctionPosteActuel: content.datePriseDeFonctionPosteActuel,
+        informationCarrière: content.informationCarrière,
       };
 
       const [dossier, nouveauDossierEvent] = this._session.nouveauDossier(

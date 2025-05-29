@@ -6,18 +6,19 @@ import {
   nominationFileReadListSchema,
 } from './nomination-file-read';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
-import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
-import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normalizer';
-import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
-import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
-import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
-import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
 import {
   ManagementRule,
   QualitativeRule,
   RuleName,
   StatutoryRule,
 } from './rules';
+import { AvancementNormalizer } from './tsv-normalizers/avancement-normalizer';
+import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
+import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normalizer';
+import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
+import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
+import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
+import { TransparencyTsvNormalizer } from './tsv-normalizers/transparency-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -64,6 +65,11 @@ export class NominationFileContentReader {
         'Observants (pré-traitement pour import)',
         rowIndex,
       );
+      const datePassageAuGrade = this.findValue('Passage au grade', rowIndex)!;
+      const datePriseDeFonctionPosteActuel = this.findValue(
+        'Prise de fonction',
+        rowIndex,
+      )!;
 
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
@@ -92,10 +98,27 @@ export class NominationFileContentReader {
           reporters: reportersValue
             ? ReportersTsvNormalizer.normalize(reportersValue)
             : null,
+          datePriseDeFonctionPosteActuel: DateOnly.fromString(
+            datePriseDeFonctionPosteActuel,
+            'dd/M/yyyy',
+            'fr',
+          ).toJson(),
+          datePassageAuGrade:
+            datePassageAuGrade === 'NON DEFINI'
+              ? null
+              : DateOnly.fromString(datePassageAuGrade).toJson(),
+          avancement: AvancementNormalizer.normalize(
+            this.findValue('Prise de grade ?', rowIndex)!,
+          ),
           grade: GradeTsvNormalizer.normalize(
             this.findValue('Grade actuel', rowIndex)!,
             rowIndex,
           ),
+          informationCarrière: this.findValue(
+            'Information carrière',
+            rowIndex,
+            { optional: true },
+          )!,
           currentPosition: this.findValue('Poste actuel', rowIndex)!,
           targettedPosition: this.findValue('Poste pressenti', rowIndex)!,
           rank: this.findValue('Rang', rowIndex)!,

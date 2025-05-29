@@ -206,6 +206,67 @@ describe('Import Nomination Files Use Case', () => {
         ],
       },
       {
+        testName: 'date passage au grade',
+        getNominationFile: () =>
+          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
+            datePassageAuGrade: {
+              year: 2003,
+              month: 1,
+              day: 1,
+            },
+          }),
+        eventPayload: [
+          {
+            nominationFileId: 'nomination-file-id',
+            content: {
+              datePassageAuGrade: {
+                year: 2003,
+                month: 1,
+                day: 1,
+              },
+            },
+          },
+        ],
+      },
+      {
+        testName: 'date prise de fonction poste actuel',
+        getNominationFile: () =>
+          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
+            datePriseDeFonctionPosteActuel: {
+              year: 2003,
+              month: 1,
+              day: 1,
+            },
+          }),
+        eventPayload: [
+          {
+            nominationFileId: 'nomination-file-id',
+            content: {
+              datePriseDeFonctionPosteActuel: {
+                year: 2003,
+                month: 1,
+                day: 1,
+              },
+            },
+          },
+        ],
+      },
+      {
+        testName: 'Information carrière',
+        getNominationFile: () =>
+          getMarcelDupontModelSnapshot('nomination-file-id', 1, {
+            informationCarrière: 'Nouvelle information de carrière',
+          }),
+        eventPayload: [
+          {
+            nominationFileId: 'nomination-file-id',
+            content: {
+              informationCarrière: 'Nouvelle information de carrière',
+            },
+          },
+        ],
+      },
+      {
         testName: 'rules',
         getNominationFile: () =>
           getMarcelDupontModelSnapshot(
@@ -231,13 +292,13 @@ describe('Import Nomination Files Use Case', () => {
       },
     ])(
       'informs about a nomination file modification on $testName',
-      async ({ getNominationFile: getTsvValue, eventPayload }) => {
+      async ({ getNominationFile, eventPayload }) => {
         uuidGenerator.nextUuids = [
           gdsTransparenceEventId,
           nominationFileId,
           nominationFilesImportedEventId,
         ];
-        await importNominationFiles(getTsvValue());
+        await importNominationFiles(getNominationFile());
         expectDomainEvents(
           getGdsTransparenceNominationFilesModifiedEvent(eventPayload),
         );

@@ -1,13 +1,14 @@
-import { Magistrat } from 'shared-models';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
+import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 import {
   aDossierDeNominationId,
   aDossierDeNominationImportedId,
+  aDossierDeNominationPayload,
   aTransparencyName,
   givenSomeUuids,
   importNouvelleTransparenceUseCase,
 } from './import-nouvelle-transparence.tests-setup';
-import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 
 describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -28,24 +29,35 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
 
   function expectDossierDeNominationCréé() {
     expect(dependencies.dossierDeNominationRepository.getDossiers()).toEqual<
-      DossierDeNominationSnapshot[]
+      DossierDeNominationSnapshot<
+        unknown,
+        ContenuPropositionDeNominationTransparenceV2
+      >[]
     >([
       {
         id: aDossierDeNominationId,
         nominationFileImportedId: aDossierDeNominationImportedId,
         sessionId: aTransparencyName,
         content: {
-          biography: 'Nominee biography',
-          birthDate: { day: 1, month: 1, year: 1980 },
-          currentPosition: 'Current position',
-          targettedPosition: 'Target position',
-          dueDate: { day: 1, month: 6, year: 2023 },
-          folderNumber: 1,
-          formation: Magistrat.Formation.PARQUET,
-          grade: Magistrat.Grade.I,
-          name: 'Nominee Name',
-          observers: [],
-          rank: 'A',
+          version: 2,
+          biography: aDossierDeNominationPayload.content.biography,
+          birthDate: aDossierDeNominationPayload.content.birthDate,
+          currentPosition: aDossierDeNominationPayload.content.currentPosition,
+          targettedPosition:
+            aDossierDeNominationPayload.content.targettedPosition,
+          dueDate: aDossierDeNominationPayload.content.dueDate,
+          folderNumber: aDossierDeNominationPayload.content.folderNumber,
+          formation: aDossierDeNominationPayload.content.formation,
+          grade: aDossierDeNominationPayload.content.grade,
+          name: aDossierDeNominationPayload.content.name,
+          observers: aDossierDeNominationPayload.content.observers,
+          rank: aDossierDeNominationPayload.content.rank,
+          datePassageAuGrade:
+            aDossierDeNominationPayload.content.datePassageAuGrade,
+          datePriseDeFonctionPosteActuel:
+            aDossierDeNominationPayload.content.datePriseDeFonctionPosteActuel,
+          informationCarrière:
+            aDossierDeNominationPayload.content.informationCarrière,
         },
       },
     ]);

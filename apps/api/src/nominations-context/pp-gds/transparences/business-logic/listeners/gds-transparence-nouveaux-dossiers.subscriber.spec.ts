@@ -9,6 +9,7 @@ import {
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { ImportNouveauxDossiersTransparenceCommand } from '../use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.command';
 import { GdsTransparenceNouveauxDossiersSubscriber } from './gds-transparence-nouveaux-dossiers.subscriber';
+import { Avancement } from 'src/data-administration-context/transparence-tsv/business-logic/models/avancement';
 
 describe('GDS transparence nouveaux dossiers sbscriber', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -84,6 +85,19 @@ const dossierDeNominationPayload: GdsTransparenceNominationFilesAddedEventPayloa
       rank: 'nouveau rang',
       reporterIds: [lucLoïcReporterId],
       rules: new PayloadRules().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: {
+        day: 1,
+        month: 1,
+        year: 2000,
+      },
+      datePriseDeFonctionPosteActuel: {
+        day: 1,
+        month: 1,
+        year: 2002,
+      },
+      informationCarrière: 'information de carrière',
     },
   };
 

@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile,
+  Transparency,
+  TypeDeSaisine,
+} from 'shared-models';
 import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
@@ -56,6 +61,30 @@ export const nominationFileModificationWithRules: GdsTransparenceNominationFiles
     },
   };
 
+export const nominationFileModificationWithDatePassageAuGrade: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
+  {
+    nominationFileId: dossierDeNominationImportedId,
+    content: {
+      datePassageAuGrade: { day: 15, month: 5, year: 2022 },
+    },
+  };
+
+export const nominationFileModificationWithDatePriseDeFonctionPosteActuel: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
+  {
+    nominationFileId: dossierDeNominationImportedId,
+    content: {
+      datePriseDeFonctionPosteActuel: { day: 10, month: 3, year: 2021 },
+    },
+  };
+
+export const nominationFileModificationWithInformationCarriere: GdsTransparenceNominationFilesModifiedEventPayload['nominationFiles'][number] =
+  {
+    nominationFileId: dossierDeNominationImportedId,
+    content: {
+      informationCarrière: "20 ans d'expérience dans la magistrature",
+    },
+  };
+
 export const commandWithNewObservers = new UpdateDossierDeNominationCommand(
   aTransparencyId,
   aTransparencyName,
@@ -74,21 +103,37 @@ export const commandWithModifiedRules = new UpdateDossierDeNominationCommand(
   [nominationFileModificationWithRules],
 );
 
-export const aDossierDeNomination: DossierDeNominationSnapshot = {
-  id: existingDossierDeNominationId,
-  nominationFileImportedId: dossierDeNominationImportedId,
-  sessionId: aTransparencyName,
-  content: {
-    folderNumber: 1,
-    observers: [],
-    biography: 'Nominee biography',
-    birthDate: { day: 1, month: 1, year: 1980 },
-    currentPosition: 'Current position',
-    targettedPosition: 'Target position',
-    dueDate: { day: 1, month: 6, year: 2023 },
-    formation: Magistrat.Formation.PARQUET,
-    grade: Magistrat.Grade.I,
-    name: 'Nominee Name',
-    rank: 'A',
-  },
-};
+export const commandWithDatePassageAuGrade =
+  new UpdateDossierDeNominationCommand(aTransparencyId, aTransparencyName, [
+    nominationFileModificationWithDatePassageAuGrade,
+  ]);
+
+export const commandWithDatePriseDeFonctionPosteActuel =
+  new UpdateDossierDeNominationCommand(aTransparencyId, aTransparencyName, [
+    nominationFileModificationWithDatePriseDeFonctionPosteActuel,
+  ]);
+
+export const commandWithInformationCarriere =
+  new UpdateDossierDeNominationCommand(aTransparencyId, aTransparencyName, [
+    nominationFileModificationWithInformationCarriere,
+  ]);
+
+export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
+  {
+    id: existingDossierDeNominationId,
+    nominationFileImportedId: dossierDeNominationImportedId,
+    sessionId: aTransparencyName,
+    content: {
+      folderNumber: 1,
+      observers: [],
+      biography: 'Nominee biography',
+      birthDate: { day: 1, month: 1, year: 1980 },
+      currentPosition: 'Current position',
+      targettedPosition: 'Target position',
+      dueDate: { day: 1, month: 6, year: 2023 },
+      formation: Magistrat.Formation.PARQUET,
+      grade: Magistrat.Grade.I,
+      name: 'Nominee Name',
+      rank: 'A',
+    },
+  };

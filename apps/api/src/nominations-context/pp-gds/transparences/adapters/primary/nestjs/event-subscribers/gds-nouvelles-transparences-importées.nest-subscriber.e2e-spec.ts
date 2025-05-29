@@ -11,6 +11,7 @@ import {
   QualitativeRule,
   allRulesMapV1,
 } from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
+import { Avancement } from 'src/data-administration-context/transparence-xlsx/business-logic/models/avancement';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { GdsNouvellesTransparencesImportéesSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
 import {
@@ -106,6 +107,19 @@ const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nomina
       rank: 'rank',
       reporterIds: ['luc-loic-reporter-id'],
       rules: new PayloadRules().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: {
+        day: 1,
+        month: 1,
+        year: 2000,
+      },
+      datePriseDeFonctionPosteActuel: {
+        day: 1,
+        month: 1,
+        year: 2002,
+      },
+      informationCarrière: 'information de carrière',
     },
   };
 const payload: GdsNewTransparenceImportedEventPayload = {
