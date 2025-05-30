@@ -55,8 +55,8 @@ export const apiConfig: ProdApiConfig = {
 const defaultBaseUrl = 'http://localhost:3000';
 
 export const defaultApiConfig = {
-  originUrl: 'http://localhost:5173',
-  frontendOriginUrl: 'http://localhost:3000',
+  originUrl: 'http://localhost:3000',
+  frontendOriginUrl: 'http://localhost:5173',
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   cookieMaxAgeInMs: 1000 * 60 * 60 * 24 * 90,

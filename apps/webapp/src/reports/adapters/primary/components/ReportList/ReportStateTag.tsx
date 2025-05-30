@@ -19,22 +19,22 @@ const statesSpec: {
   Nouveau: {
     iconId: "fr-icon-folder-2-line",
     backgroundColor: colors.options.redMarianne._925_125.default,
-    color: colors.options.blueFrance.sun113_625.default,
+    color: colors.options.redMarianne._425_625.default,
   },
   "En cours": {
     iconId: "ri-quill-pen-line",
-    backgroundColor: colors.options.purpleGlycine._950_100.default,
-    color: colors.options.purpleGlycine.sun319moon630.default,
+    backgroundColor: colors.options.blueFrance._950_100.default,
+    color: colors.options.blueFrance.sun113_625.default,
   },
   "Prêt à soutenir": {
     iconId: "fr-icon-file-text-line",
     backgroundColor: colors.options.greenEmeraude._950_100.default,
-    color: colors.options.greenMenthe.sun373moon652.default,
+    color: colors.options.greenEmeraude.sun425moon753.default,
   },
   Soutenu: {
     iconId: "fr-icon-heart-line",
-    backgroundColor: colors.options.brownCaramel._925_125.default,
-    color: colors.options.yellowMoutarde.sun348moon860.default,
+    backgroundColor: colors.options.grey._925_125.default,
+    color: colors.options.grey._50_1000.default,
   },
 };
 
