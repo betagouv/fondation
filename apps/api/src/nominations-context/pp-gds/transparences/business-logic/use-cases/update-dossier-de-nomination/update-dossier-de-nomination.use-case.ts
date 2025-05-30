@@ -106,7 +106,7 @@ export class UpdateDossierDeNominationUseCase {
     content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
     proposition: PropositionDeNominationTransparence,
   ) {
-    if (content.datePassageAuGrade)
+    if (content.datePassageAuGrade !== undefined)
       proposition.updateDatePassageAuGrade(content.datePassageAuGrade);
   }
 
@@ -114,7 +114,7 @@ export class UpdateDossierDeNominationUseCase {
     content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
     proposition: PropositionDeNominationTransparence,
   ) {
-    if (content.datePriseDeFonctionPosteActuel)
+    if (content.datePriseDeFonctionPosteActuel !== undefined)
       proposition.updateDatePriseDeFonctionPosteActuel(
         content.datePriseDeFonctionPosteActuel,
       );
@@ -124,7 +124,7 @@ export class UpdateDossierDeNominationUseCase {
     content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
     proposition: PropositionDeNominationTransparence,
   ) {
-    if (content.informationCarrière)
+    if (content.informationCarrière !== undefined)
       proposition.updateInformationCarrière(content.informationCarrière);
   }
 }
