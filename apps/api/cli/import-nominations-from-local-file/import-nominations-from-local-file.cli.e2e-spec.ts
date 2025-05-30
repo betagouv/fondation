@@ -1,7 +1,7 @@
 import { NestApplication } from '@nestjs/core';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import { Gender, Magistrat, Role } from 'shared-models';
+import { Gender, Magistrat, Role, TypeDeSaisine } from 'shared-models';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
@@ -300,7 +300,7 @@ const expectedDossierDeNominationFromContent = (
   const { transparency, reporters, rules, avancement, ...dossierContent } =
     content;
   const expectedContent: DossierDeNominationSnapshot<
-    unknown,
+    TypeDeSaisine.TRANSPARENCE_GDS,
     ContenuPropositionDeNominationTransparenceV2
   >['content'] = {
     version: 2,
@@ -326,7 +326,7 @@ const dbInsertDossierDeNominationFromContent = (
   const { transparency, reporters, rules, avancement, ...dossierContent } =
     content;
   const contentToInsert: DossierDeNominationSnapshot<
-    unknown,
+    TypeDeSaisine.TRANSPARENCE_GDS,
     ContenuPropositionDeNominationTransparenceV2
   >['content'] = {
     version: 2,

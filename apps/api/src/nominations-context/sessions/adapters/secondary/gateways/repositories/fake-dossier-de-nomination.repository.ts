@@ -1,15 +1,17 @@
+import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import {
   DossierDeNomination,
   DossierDeNominationSnapshot,
 } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 
-export class FakeDossierDeNominationRepository
-  implements DossierDeNominationRepository
+export class FakeDossierDeNominationRepository<
+  S extends TypeDeSaisine | unknown = unknown,
+> implements DossierDeNominationRepository<S>
 {
-  private dossiers: Record<string, DossierDeNominationSnapshot> = {};
+  private dossiers: Record<string, DossierDeNominationSnapshot<S>> = {};
 
-  save(dossier: DossierDeNomination) {
+  save(dossier: DossierDeNomination<S>) {
     return async () => {
       this.dossiers[dossier.id] = dossier.snapshot();
     };
@@ -36,7 +38,7 @@ export class FakeDossierDeNominationRepository
     };
   }
 
-  ajouterDossiers(...dossiers: DossierDeNominationSnapshot[]) {
+  ajouterDossiers(...dossiers: DossierDeNominationSnapshot<S>[]) {
     for (const dossier of dossiers) {
       this.dossiers[dossier.id] = dossier;
     }

@@ -3,11 +3,12 @@ import {
   ContenuPropositionDeNominationTransparenceV1,
   ContenuPropositionDeNominationTransparenceV2,
 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+import { Exact } from 'type-fest/source/exact';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
 
-type ContenuInconnu = Record<string, unknown>;
+export type ContenuInconnu = object;
 
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,
@@ -40,7 +41,12 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
     private _content: DossierDeNominationContent<S>,
   ) {}
 
-  protected updateContent(content: Partial<DossierDeNominationContent<S>>) {
+  protected updateContent(
+    content: Exact<
+      Partial<DossierDeNominationContent<S>>,
+      Partial<DossierDeNominationContent<S>>
+    >,
+  ) {
     this.setContent({
       ...this._content,
       ...content,
@@ -58,7 +64,7 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
     this._content = z.record(z.string(), z.any()).parse(content) as any;
   }
 
-  snapshot(): DossierDeNominationSnapshot {
+  snapshot(): DossierDeNominationSnapshot<S> {
     return {
       id: this._id,
       sessionId: this._sessionId,

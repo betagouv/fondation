@@ -51,6 +51,7 @@ export class GdsTransparenceNominationFilesModifiedEvent extends DomainEvent<Gds
     payload: GdsTransparenceNominationFilesModifiedEventPayload,
     currentDate: Date,
   ) {
+    gdsTransparenceNominationFilesModifiedEventPayloadSchema.parse(payload);
     super(
       id,
       GdsTransparenceNominationFilesModifiedEvent.name,

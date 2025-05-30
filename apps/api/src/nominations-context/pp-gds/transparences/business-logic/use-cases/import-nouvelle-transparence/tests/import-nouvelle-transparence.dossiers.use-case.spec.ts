@@ -28,7 +28,9 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
   }
 
   function expectDossierDeNominationCréé() {
-    expect(dependencies.dossierDeNominationRepository.getDossiers()).toEqual<
+    expect(
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers(),
+    ).toEqual<
       DossierDeNominationSnapshot<
         unknown,
         ContenuPropositionDeNominationTransparenceV2

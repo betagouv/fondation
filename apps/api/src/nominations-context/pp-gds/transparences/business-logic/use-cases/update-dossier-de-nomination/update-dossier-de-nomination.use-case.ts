@@ -1,3 +1,4 @@
+import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
 import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
@@ -12,7 +13,7 @@ import { UpdateDossierDeNominationCommand } from './update-dossier-de-nomination
 export class UpdateDossierDeNominationUseCase {
   constructor(
     private readonly transactionPerformer: TransactionPerformer,
-    private readonly dossierDeNominationRepository: DossierDeNominationRepository,
+    private readonly dossierDeNominationRepository: DossierDeNominationRepository<TypeDeSaisine.TRANSPARENCE_GDS>,
     private readonly préAnalyseRepository: PréAnalyseRepository,
   ) {}
 
@@ -63,7 +64,7 @@ export class UpdateDossierDeNominationUseCase {
 
   private mettreàJourPréAnalyse(
     content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
-    dossier: DossierDeNomination,
+    dossier: DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS>,
   ): TransactionableAsync {
     return async (trx) => {
       if (content.rules != null) {

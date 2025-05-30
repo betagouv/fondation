@@ -1,12 +1,12 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
-import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import {
+  ContenuInconnu,
+  DossierDeNomination,
+} from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
 
-type ContenuInconnu = Record<string, unknown>;
-
-export interface ContenuPropositionDeNominationTransparenceV1
-  extends ContenuInconnu {
+export interface ContenuPropositionDeNominationTransparenceV1 {
   folderNumber: number | null;
   name: string;
   formation: Magistrat.Formation;

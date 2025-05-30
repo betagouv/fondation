@@ -34,7 +34,7 @@ export interface NominationsContextSessionsRestContract extends RestContract {
         id: string;
         sessionId: string;
         nominationFileImportedId: string;
-        content: Record<string, unknown>;
+        content: object;
       };
     };
   };

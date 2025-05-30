@@ -57,7 +57,7 @@ describe('Update dossier de nomination', () => {
   });
 
   const setupExistingDossierDeNomination = () => {
-    dependencies.dossierDeNominationRepository.ajouterDossiers(
+    dependencies.propropositionDeNominationTransparenceRepository.ajouterDossiers(
       aDossierDeNomination,
     );
   };
@@ -75,13 +75,14 @@ describe('Update dossier de nomination', () => {
   ) => {
     await new UpdateDossierDeNominationUseCase(
       dependencies.nullTransactionPerformer,
-      dependencies.dossierDeNominationRepository,
+      dependencies.propropositionDeNominationTransparenceRepository,
       dependencies.préAnalyseRepository,
     ).execute(command);
   };
 
   function expectDossierWithNewObservers() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
       ...aDossierDeNomination,
@@ -93,7 +94,8 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithNewFolderNumber() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
       ...aDossierDeNomination,
@@ -127,7 +129,8 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithDatePassageAuGrade() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
       ...aDossierDeNomination,
@@ -139,7 +142,8 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithDatePriseDeFonctionPosteActuel() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<
       DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
@@ -153,7 +157,8 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithInformationCarrière() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<
       DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>

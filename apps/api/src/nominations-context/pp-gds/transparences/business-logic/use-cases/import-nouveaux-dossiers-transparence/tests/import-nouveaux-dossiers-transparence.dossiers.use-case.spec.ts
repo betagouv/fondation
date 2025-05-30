@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, TypeDeSaisine } from 'shared-models';
 import {
   aDossierDeNominationId,
   aDossierDeNominationImportedId,
@@ -30,9 +30,11 @@ describe('Import nouveaux dossiers dans une transparence - Dossiers de nominatio
   }
 
   function expectDossierDeNominationCréé() {
-    expect(dependencies.dossierDeNominationRepository.getDossiers()).toEqual<
+    expect(
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers(),
+    ).toEqual<
       DossierDeNominationSnapshot<
-        unknown,
+        TypeDeSaisine.TRANSPARENCE_GDS,
         ContenuPropositionDeNominationTransparenceV2
       >[]
     >([

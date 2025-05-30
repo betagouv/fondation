@@ -13,6 +13,7 @@ import { GetSessionSnapshotUseCase } from './sessions/business-logic/use-cases/g
 import { ImportNouvelleTransparenceUseCase } from './pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { UpdateDossierDeNominationUseCase } from './pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 import { ImportNouveauxDossiersTransparenceUseCase } from './pp-gds/transparences/business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
+import { TypeDeSaisine } from 'shared-models';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -20,12 +21,14 @@ export const getDependencies = () => {
   const affectationRepository = new FakeAffectationRepository();
   const sessionRepository = new FakeSessionRepository();
   const dossierDeNominationRepository = new FakeDossierDeNominationRepository();
+  const propropositionDeNominationTransparenceRepository =
+    new FakeDossierDeNominationRepository<TypeDeSaisine.TRANSPARENCE_GDS>();
   const domainEventRepository = new FakeDomainEventRepository();
   const préAnalyseRepository = new FakePréAnalyseRepository();
   const nullTransactionPerformer = new NullTransactionPerformer();
 
   const transparenceService = new TransparenceService(
-    dossierDeNominationRepository,
+    propropositionDeNominationTransparenceRepository,
     préAnalyseRepository,
     sessionRepository,
     affectationRepository,
@@ -47,7 +50,7 @@ export const getDependencies = () => {
 
   const updateDossierDeNominationUseCase = new UpdateDossierDeNominationUseCase(
     nullTransactionPerformer,
-    dossierDeNominationRepository,
+    propropositionDeNominationTransparenceRepository,
     préAnalyseRepository,
   );
 
@@ -75,6 +78,7 @@ export const getDependencies = () => {
     affectationRepository,
     sessionRepository,
     dossierDeNominationRepository,
+    propropositionDeNominationTransparenceRepository,
     transparenceService,
     domainEventRepository,
     préAnalyseRepository,
