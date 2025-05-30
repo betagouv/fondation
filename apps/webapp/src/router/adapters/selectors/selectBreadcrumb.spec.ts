@@ -2,13 +2,10 @@ import { Magistrat } from "shared-models";
 import { transparencyToLabel } from "../../../reports/adapters/primary/labels/labels-mappers";
 import { ReportBuilder } from "../../../reports/core-logic/builders/Report.builder";
 import { retrieveReport } from "../../../reports/core-logic/use-cases/report-retrieval/retrieveReport.use-case";
+import { BreadcrumbVM } from "../../../shared-kernel/core-logic/models/breadcrumb-vm";
 import { initReduxStore, ReduxStore } from "../../../store/reduxStore";
 import { StubRouterProvider } from "../stubRouterProvider";
-import {
-  BreadcrumbVM,
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "./selectBreadcrumb";
+import { BreadcrumCurrentPage, selectBreadcrumb } from "./selectBreadcrumb";
 
 describe("Breadcrumb", () => {
   let store: ReduxStore;

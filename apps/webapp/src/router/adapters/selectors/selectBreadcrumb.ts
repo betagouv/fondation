@@ -1,23 +1,15 @@
 import { Magistrat } from "shared-models";
-import { createAppSelector } from "../../../store/createAppSelector";
 import {
   formationToLabel,
   transparencyToLabel,
 } from "../../../reports/adapters/primary/labels/labels-mappers";
+import { BreadcrumbVM } from "../../../shared-kernel/core-logic/models/breadcrumb-vm";
+import { createAppSelector } from "../../../store/createAppSelector";
 
 export enum BreadcrumCurrentPage {
   perGdsTransparencyReports = "per-gds-transparency-reports",
   gdsReport = "gds-report",
 }
-
-export type BreadcrumbVM = {
-  currentPageLabel: string;
-  segments: {
-    label: string;
-    href: string;
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
-  }[];
-};
 
 type CurrentPage =
   | {

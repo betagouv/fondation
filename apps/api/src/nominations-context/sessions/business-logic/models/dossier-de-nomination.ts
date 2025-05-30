@@ -1,24 +1,31 @@
 import { TypeDeSaisine } from 'shared-models';
-import { ContenuPropositionDeNominationTransparence } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+import {
+  ContenuPropositionDeNominationTransparenceV1,
+  ContenuPropositionDeNominationTransparenceV2,
+} from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+import { Exact } from 'type-fest/source/exact';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
 
-type ContenuInconnu = Record<string, unknown>;
+export type ContenuInconnu = object;
 
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,
 > = S extends TypeDeSaisine.TRANSPARENCE_GDS
-  ? ContenuPropositionDeNominationTransparence
+  ?
+      | ContenuPropositionDeNominationTransparenceV1
+      | ContenuPropositionDeNominationTransparenceV2
   : ContenuInconnu;
 
 export type DossierDeNominationSnapshot<
   S extends TypeDeSaisine | unknown = unknown,
+  Content extends DossierDeNominationContent<S> = DossierDeNominationContent<S>,
 > = {
   id: string;
   sessionId: string;
   nominationFileImportedId: string;
-  content: DossierDeNominationContent<S>;
+  content: Content;
 };
 
 export const dossierDeNominationContentSchema = z.record(
@@ -27,14 +34,19 @@ export const dossierDeNominationContentSchema = z.record(
 );
 
 export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
-  private constructor(
+  protected constructor(
     private readonly _id: string,
     private readonly _sessionId: string,
     private readonly _nominationFileImportedId: string,
     private _content: DossierDeNominationContent<S>,
   ) {}
 
-  updateContent(content: Partial<DossierDeNominationContent<S>>) {
+  protected updateContent(
+    content: Exact<
+      Partial<DossierDeNominationContent<S>>,
+      Partial<DossierDeNominationContent<S>>
+    >,
+  ) {
     this.setContent({
       ...this._content,
       ...content,
@@ -45,14 +57,14 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
     return this._id;
   }
 
-  get content(): DossierDeNominationContent<S> {
+  protected get content(): DossierDeNominationContent<S> {
     return this._content;
   }
-  setContent(content: DossierDeNominationContent<S>) {
+  protected setContent(content: DossierDeNominationContent<S>) {
     this._content = z.record(z.string(), z.any()).parse(content) as any;
   }
 
-  snapshot(): DossierDeNominationSnapshot {
+  snapshot(): DossierDeNominationSnapshot<S> {
     return {
       id: this._id,
       sessionId: this._sessionId,
@@ -84,8 +96,10 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
     return [dossier, event] as const;
   }
 
-  static fromSnapshot(snapshot: DossierDeNominationSnapshot) {
-    return new DossierDeNomination(
+  static fromSnapshot<S extends TypeDeSaisine | unknown = unknown>(
+    snapshot: DossierDeNominationSnapshot<S>,
+  ) {
+    return new DossierDeNomination<S>(
       snapshot.id,
       snapshot.sessionId,
       snapshot.nominationFileImportedId,

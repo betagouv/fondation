@@ -1,4 +1,4 @@
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { DomainRegistry } from './domain-registry';
 import { Règle, RègleSnapshot } from './règle';
 import { z } from 'zod';

@@ -337,6 +337,13 @@
       "when": 1747330426710,
       "tag": "0047_nominations__create_context_and_migrate_data",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1748605795145,
+      "tag": "0048_data_admin__text_nom_transparence",
+      "breakpoints": true
     }
   ]
 }

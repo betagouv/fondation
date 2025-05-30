@@ -1,4 +1,4 @@
-import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { Règle } from 'src/nominations-context/sessions/business-logic/models/règle';
 
 export class GdsDossierTransparenceModifiéEventRulesTransformer {

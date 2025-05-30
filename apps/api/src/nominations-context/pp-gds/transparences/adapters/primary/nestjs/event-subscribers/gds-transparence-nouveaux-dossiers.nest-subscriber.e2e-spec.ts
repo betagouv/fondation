@@ -4,14 +4,15 @@ import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
 import {
   GdsTransparenceNominationFilesAddedEvent,
   GdsTransparenceNominationFilesAddedEventPayload,
-} from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import {
   allRulesMapV1,
   ManagementRule,
   QualitativeRule,
   StatutoryRule,
-} from 'src/data-administration-context/business-logic/models/rules';
-import { lucLoïcReporterId } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
+import { lucLoïcReporterId } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { GdsTransparenceNouveauxDossiersSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-nouveaux-dossiers.subscriber';
 import {
@@ -109,6 +110,19 @@ const dossierDeNominationPayload: GdsTransparenceNominationFilesAddedEventPayloa
       rank: 'nouveau rang',
       reporterIds: [lucLoïcReporterId],
       rules: new PayloadRules().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: {
+        day: 1,
+        month: 1,
+        year: 2000,
+      },
+      datePriseDeFonctionPosteActuel: {
+        day: 1,
+        month: 1,
+        year: 2002,
+      },
+      informationCarrière: 'information de carrière',
     },
   };
 

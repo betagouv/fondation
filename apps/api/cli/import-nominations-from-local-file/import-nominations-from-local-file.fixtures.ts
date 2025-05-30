@@ -4,7 +4,8 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { NominationFileRead } from 'src/data-administration-context/business-logic/models/nomination-file-read';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
+import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 
@@ -34,6 +35,18 @@ export const firstRow: NominationFileRead['content'] = {
   },
   formation: Magistrat.Formation.SIEGE,
   grade: Magistrat.Grade.I,
+  avancement: Avancement.AVANCEMENT,
+  datePassageAuGrade: {
+    day: 10,
+    month: 11,
+    year: 2022,
+  },
+  datePriseDeFonctionPosteActuel: {
+    day: 1,
+    month: 9,
+    year: 2024,
+  },
+  informationCarrière: 'info carrière 1',
   name: 'Julien Pierre',
   rank: '(1 sur une liste de 4)',
   reporters: ['ROUSSIN Jules'],
@@ -93,6 +106,18 @@ export const secondRow: NominationFileRead['content'] = {
   },
   formation: Magistrat.Formation.SIEGE,
   grade: Magistrat.Grade.I,
+  avancement: Avancement.AVANCEMENT,
+  datePassageAuGrade: {
+    day: 10,
+    month: 4,
+    year: 2022,
+  },
+  datePriseDeFonctionPosteActuel: {
+    day: 10,
+    month: 9,
+    year: 2024,
+  },
+  informationCarrière: 'info carrière 2',
   name: 'Dupont Marcel',
   rank: '(1 sur une liste de 1)',
   reporters: ['ROUSSIN Jules'],
@@ -143,6 +168,18 @@ export const thirdRow: NominationFileRead['content'] = {
   dueDate: null,
   formation: Magistrat.Formation.PARQUET,
   grade: Magistrat.Grade.I,
+  avancement: Avancement.EQUIVALENCE,
+  datePassageAuGrade: {
+    day: 10,
+    month: 11,
+    year: 2021,
+  },
+  datePriseDeFonctionPosteActuel: {
+    day: 1,
+    month: 1,
+    year: 2023,
+  },
+  informationCarrière: 'info carrière 3',
   name: 'Brusse Emilien Ep. François',
   rank: '1 sur une liste de 12)',
   reporters: ['ROUSSIN Jules', 'JOSSELIN-MARTEL Martin-Luc'],

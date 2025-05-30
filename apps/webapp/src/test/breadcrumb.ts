@@ -17,3 +17,23 @@ export const expectTransparenciesBreadcrumbFactory =
 export type ExpectTransparenciesBreadcrumb = ReturnType<
   typeof expectTransparenciesBreadcrumbFactory
 >;
+
+export const expectSecretariatGeneralBreadcrumbFactory =
+  (routerProvider: StubRouterProvider) => async () => {
+    const secretariatGeneralLink = await screen.findByText(
+      "Secretariat général",
+      {
+        selector: "a",
+      },
+    );
+
+    expect(secretariatGeneralLink).toHaveAttribute(
+      "href",
+      routerProvider.secretariatGeneralHref,
+    );
+    expect(secretariatGeneralLink).toHaveProperty("onclick");
+  };
+
+export type ExpectSecretariatGeneralBreadcrumb = ReturnType<
+  typeof expectSecretariatGeneralBreadcrumbFactory
+>;

@@ -1,4 +1,4 @@
-import { NominationFile } from 'shared-models';
+import { NominationFile, TypeDeSaisine } from 'shared-models';
 import { PréAnalyseSnapshot } from 'src/nominations-context/sessions/business-logic/models/pré-analyse';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 import { UpdateDossierDeNominationUseCase } from '../update-dossier-de-nomination.use-case';
@@ -7,6 +7,9 @@ import {
   commandWithModifiedRules,
   commandWithNewFolderNumber,
   commandWithNewObservers,
+  commandWithDatePassageAuGrade,
+  commandWithDatePriseDeFonctionPosteActuel,
+  commandWithInformationCarriere,
   existingDossierDeNominationId,
   existingPréAnalyseId,
   initialRules,
@@ -38,8 +41,23 @@ describe('Update dossier de nomination', () => {
     expectPréAnalyseWithModifiedRules();
   });
 
+  it('updates an existing dossier de nomination with date passage au grade', async () => {
+    await updateDossierDeNomination(commandWithDatePassageAuGrade);
+    expectDossierWithDatePassageAuGrade();
+  });
+
+  it('updates an existing dossier de nomination with date prise de fonction poste actuel', async () => {
+    await updateDossierDeNomination(commandWithDatePriseDeFonctionPosteActuel);
+    expectDossierWithDatePriseDeFonctionPosteActuel();
+  });
+
+  it('updates an existing dossier de nomination with information carriere', async () => {
+    await updateDossierDeNomination(commandWithInformationCarriere);
+    expectDossierWithInformationCarrière();
+  });
+
   const setupExistingDossierDeNomination = () => {
-    dependencies.dossierDeNominationRepository.ajouterDossiers(
+    dependencies.propropositionDeNominationTransparenceRepository.ajouterDossiers(
       aDossierDeNomination,
     );
   };
@@ -57,13 +75,14 @@ describe('Update dossier de nomination', () => {
   ) => {
     await new UpdateDossierDeNominationUseCase(
       dependencies.nullTransactionPerformer,
-      dependencies.dossierDeNominationRepository,
+      dependencies.propropositionDeNominationTransparenceRepository,
       dependencies.préAnalyseRepository,
     ).execute(command);
   };
 
   function expectDossierWithNewObservers() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
       ...aDossierDeNomination,
@@ -75,7 +94,8 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithNewFolderNumber() {
-    const dossiers = dependencies.dossierDeNominationRepository.getDossiers();
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
       ...aDossierDeNomination,
@@ -105,6 +125,49 @@ describe('Update dossier de nomination', () => {
           value: false,
         },
       ],
+    });
+  }
+
+  function expectDossierWithDatePassageAuGrade() {
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
+    expect(dossiers).toHaveLength(1);
+    expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
+      ...aDossierDeNomination,
+      content: {
+        ...aDossierDeNomination.content,
+        datePassageAuGrade: { day: 15, month: 5, year: 2022 },
+      },
+    });
+  }
+
+  function expectDossierWithDatePriseDeFonctionPosteActuel() {
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
+    expect(dossiers).toHaveLength(1);
+    expect(dossiers[0]).toEqual<
+      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
+    >({
+      ...aDossierDeNomination,
+      content: {
+        ...aDossierDeNomination.content,
+        datePriseDeFonctionPosteActuel: { day: 10, month: 3, year: 2021 },
+      },
+    });
+  }
+
+  function expectDossierWithInformationCarrière() {
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
+    expect(dossiers).toHaveLength(1);
+    expect(dossiers[0]).toEqual<
+      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
+    >({
+      ...aDossierDeNomination,
+      content: {
+        ...aDossierDeNomination.content,
+        informationCarrière: "20 ans d'expérience dans la magistrature",
+      },
     });
   }
 });

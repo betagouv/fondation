@@ -1,14 +1,15 @@
 import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-imported.event';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import {
   allRulesMapV1,
   ManagementRule,
   QualitativeRule,
   StatutoryRule,
-} from 'src/data-administration-context/business-logic/models/rules';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
 import { GdsNouvellesTransparencesImportéesSubscriber } from './gds-nouvelles-transparences-importées.subscriber';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 describe('GDS nouvelles transparences importées sbscriber', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -91,6 +92,19 @@ const dossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nomina
       rank: 'rank',
       reporterIds: [lucLoïcReporterId],
       rules: new PayloadRules().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: {
+        day: 1,
+        month: 1,
+        year: 2000,
+      },
+      datePriseDeFonctionPosteActuel: {
+        day: 1,
+        month: 1,
+        year: 2002,
+      },
+      informationCarrière: 'information de carrière',
     },
   };
 const firstPayload: GdsNewTransparenceImportedEventPayload = {

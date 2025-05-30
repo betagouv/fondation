@@ -1,6 +1,6 @@
 import { Gender, Magistrat, Role, Transparency } from 'shared-models';
-import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-added.event';
-import { NominationFileReadRulesBuilder } from 'src/data-administration-context/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
+import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { NominationFileReadRulesBuilder } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 import { FakeAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-affectation.repository';
 import { FakeDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 import { FakeSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-session.repository';
@@ -11,6 +11,7 @@ import { TypeDeSaisine } from 'shared-models';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
 import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-dossiers-transparence.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aParquetTransparenceImportId = 'transparence-import-id';
@@ -55,6 +56,11 @@ export const aDossierDeNominationPayload: GdsTransparenceNominationFilesAddedEve
       observers: [],
       rank: 'A',
       rules: new NominationFileReadRulesBuilder().build(),
+
+      avancement: Avancement.AVANCEMENT,
+      datePassageAuGrade: { day: 1, month: 1, year: 2020 },
+      datePriseDeFonctionPosteActuel: { day: 1, month: 1, year: 2021 },
+      informationCarrière: 'Carrière',
     },
   };
 

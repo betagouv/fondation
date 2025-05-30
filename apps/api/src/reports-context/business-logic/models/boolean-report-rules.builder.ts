@@ -4,7 +4,7 @@ import {
   ManagementRule,
   QualitativeRule,
   StatutoryRule,
-} from 'src/data-administration-context/business-logic/models/rules';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
 
 export class BooleanReportRulesBuilder extends RulesBuilder<
   boolean,

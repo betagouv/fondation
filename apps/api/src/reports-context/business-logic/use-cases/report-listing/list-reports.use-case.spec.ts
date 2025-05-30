@@ -105,8 +105,6 @@ const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_G
       name: unRapportVM.name,
       formation: unRapportVM.formation,
       dueDate: unRapportVM.dueDate,
-      transparency: unRapportVM.transparency,
-      reporters: [reporterId],
       grade: unRapportVM.grade,
       targettedPosition: unRapportVM.targettedPosition,
       currentPosition: 'a current position',

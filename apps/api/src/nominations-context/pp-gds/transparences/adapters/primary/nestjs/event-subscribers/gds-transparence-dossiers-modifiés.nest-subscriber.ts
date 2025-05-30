@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   GdsTransparenceNominationFilesModifiedEvent,
   GdsTransparenceNominationFilesModifiedEventPayload,
-} from 'src/data-administration-context/business-logic/models/events/gds-transparence-nomination-files-modified.event';
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
 import { GdsTransparenceDossiersModifiésSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-dossiers-modifiés.subscriber';
 
 @Injectable()

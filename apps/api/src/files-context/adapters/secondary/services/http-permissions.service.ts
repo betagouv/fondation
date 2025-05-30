@@ -39,6 +39,7 @@ export class HttpPermissionsService implements PermissionsService {
       const jsonResp = await response.json();
       return z.boolean().parse(jsonResp);
     } catch (error) {
+      console.error(error);
       throw new Error(`Failed to check permissions: ${error.message}`);
     }
   }
