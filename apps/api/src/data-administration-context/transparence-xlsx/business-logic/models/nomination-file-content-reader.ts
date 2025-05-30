@@ -9,6 +9,7 @@ import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
 import { AvancementNormalizer } from '../../../lodam/business-logic/models/valeur-csv-normalizers/avancement-normalizer';
+import { PosteCibleTsvNormalizer } from './tsv-normalizers/poste-cible-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -16,11 +17,11 @@ export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
 export class NominationFileContentReader {
   constructor(
     private readonly secondHeader: string[],
-    private readonly content: string[],
+    private readonly content: string[][],
   ) {}
 
   read(): NominationFilesContentReadCollection {
-    const contentRead = this.content.map((row, rowIndex) => {
+    const contentRead = this.content.map((_, rowIndex) => {
       const reporter1Value = this.findValue('Rapporteur 1', rowIndex);
       const observersValue = this.findValue('Observants', rowIndex);
       const datePassageAuGrade = this.findValue('Passage au grade', rowIndex, {
@@ -38,11 +39,13 @@ export class NominationFileContentReader {
         rowNumber: rowIndex + 1,
         content: {
           numeroDeDossier: FolderNumberTsvNormalizer.normalize(
-            this.findValue('N° dossier', rowIndex)!,
+            this.findValue('N°', rowIndex)!,
             rowIndex,
           ),
           magistrat: this.findValue('Magistrat', rowIndex)!,
-          posteCible: this.findValue('Poste cible', rowIndex)!,
+          posteCible: PosteCibleTsvNormalizer.normalize(
+            this.findValue('Poste cible', rowIndex)!,
+          ),
           dateDeNaissance: DateOnly.fromString(
             this.findValue('Date de naissance', rowIndex)!,
             'dd/M/yyyy',

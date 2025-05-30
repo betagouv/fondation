@@ -12,7 +12,7 @@ import {
 import { NominationFileContentReader } from '../models/nomination-file-content-reader';
 import { NominationFilesContentReadCollection } from '../models/nomination-files-read-collection';
 import { Transparence } from '../models/transparence';
-import { TsvParser } from '../models/tsv-parser';
+import { TransparenceCsv } from '../models/transparence-csv';
 
 export class TransparenceService {
   constructor(
@@ -53,15 +53,12 @@ export class TransparenceService {
     };
   }
 
-  readFromTsvFile(
-    fileContentToImport: string,
+  readFromCsv(
+    transparenceCsv: TransparenceCsv,
   ): NominationFilesContentReadCollection {
-    const parsedContent = new TsvParser().parse(fileContentToImport);
-    const [, secondHeader, ...content] = parsedContent;
-
     const nominationFileReadCollection = new NominationFileContentReader(
-      secondHeader,
-      content,
+      transparenceCsv.getHeader(),
+      transparenceCsv.getLignes(),
     ).read();
 
     return nominationFileReadCollection;

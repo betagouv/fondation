@@ -19,9 +19,8 @@ export class ImportTransparenceXlsxUseCase {
       const xlsxRead = await XlsxReader.read(file);
       const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
-      const readCollection = this.transparenceService.readFromTsvFile(
-        transparenceCsv.getTsv(),
-      );
+      const readCollection =
+        this.transparenceService.readFromCsv(transparenceCsv);
 
       await this.transparenceService.nouvelleTransparence(
         nomTransparence,
