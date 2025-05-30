@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import path from 'path';
 import { DataAdministrationContextModule } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/data-administration-context.module';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
-import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { setTimeout } from 'timers/promises';
 
 const runImportNominationsFromLocalFileCli = async (

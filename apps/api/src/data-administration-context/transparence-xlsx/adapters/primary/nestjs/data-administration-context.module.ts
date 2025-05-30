@@ -16,7 +16,7 @@ import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/prov
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
-import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
+import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { SqlTransparenceRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
 import { HttpUserService } from '../../../../transparences/adapters/secondary/gateways/services/http-user.service';
 import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
