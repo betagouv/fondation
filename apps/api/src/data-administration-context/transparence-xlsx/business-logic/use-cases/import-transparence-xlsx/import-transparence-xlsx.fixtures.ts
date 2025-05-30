@@ -83,7 +83,7 @@ export const unDossierSiège: NominationFileModelSnapshot = {
       year: 1971,
     },
     posteActuel: ligne1['Poste actuel'],
-    priseDeFonction: {
+    datePriseDeFonctionPosteActuel: {
       day: 5,
       month: 9,
       year: 2021,
@@ -97,7 +97,7 @@ export const unDossierSiège: NominationFileModelSnapshot = {
     grade: Magistrat.Grade.I,
     observers: ligne1.Observants ? [ligne1.Observants] : [],
     reporters: [lucLoïcUser.fullName],
-    informationCarriere: ligne1['Information carrière'],
+    informationCarriere: null,
     historique: ligne1.Historique || null,
   },
 };

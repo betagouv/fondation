@@ -23,6 +23,16 @@ export class NominationFileContentReader {
     const contentRead = this.content.map((row, rowIndex) => {
       const reporter1Value = this.findValue('Rapporteur 1', rowIndex);
       const observersValue = this.findValue('Observants', rowIndex);
+      const datePassageAuGrade = this.findValue('Passage au grade', rowIndex, {
+        optional: true,
+      });
+      const datePriseDeFonctionPosteActuel = this.findValue(
+        'Prise de fonction',
+        rowIndex,
+        {
+          optional: true,
+        },
+      );
 
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
@@ -39,19 +49,22 @@ export class NominationFileContentReader {
             'fr',
           ).toJson(),
           posteActuel: this.findValue('Poste actuel', rowIndex)!,
-          priseDeFonction: DateOnly.fromString(
-            this.findValue('Prise de fonction', rowIndex)!,
-            'dd/M/yyyy',
-            'fr',
-          ).toJson(),
+
+          datePriseDeFonctionPosteActuel: datePriseDeFonctionPosteActuel
+            ? DateOnly.fromString(
+                datePriseDeFonctionPosteActuel,
+                'dd/M/yyyy',
+                'fr',
+              ).toJson()
+            : null,
+          datePassageAuGrade:
+            !datePassageAuGrade || datePassageAuGrade === 'NON DEFINI'
+              ? null
+              : DateOnly.fromString(datePassageAuGrade).toJson(),
+
           equivalenceOuAvancement: AvancementNormalizer.normalize(
             this.findValue('Eq./Av.', rowIndex)!,
           ),
-          datePassageAuGrade: DateOnly.fromString(
-            this.findValue('Passage au grade', rowIndex)!,
-            'dd/M/yyyy',
-            'fr',
-          ).toJson(),
           grade: GradeTsvNormalizer.normalize(
             this.findValue('Poste cible', rowIndex)!,
             this.findValue('Eq./Av.', rowIndex)!,
@@ -74,7 +87,8 @@ export class NominationFileContentReader {
           informationCarriere: this.findValue(
             'Information carrière',
             rowIndex,
-          )!,
+            { optional: true },
+          ),
           historique: this.findValue('Historique', rowIndex, {
             optional: true,
           }),

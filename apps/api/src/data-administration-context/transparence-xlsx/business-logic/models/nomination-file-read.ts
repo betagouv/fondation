@@ -11,7 +11,7 @@ export type NominationFileRead = {
     posteCible: string;
     dateDeNaissance: DateOnlyJson;
     posteActuel: string;
-    priseDeFonction: DateOnlyJson | null;
+    datePriseDeFonctionPosteActuel: DateOnlyJson | null;
     datePassageAuGrade: DateOnlyJson | null;
     equivalenceOuAvancement: Avancement;
     grade: Magistrat.Grade;
@@ -33,7 +33,7 @@ export const nominationFileReadContentSchema = z.object({
   posteCible: z.string(),
   dateDeNaissance: dateOnlyJsonSchema,
   posteActuel: z.string(),
-  priseDeFonction: dateOnlyJsonSchema,
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
   datePassageAuGrade: dateOnlyJsonSchema,
   equivalenceOuAvancement: z.nativeEnum(Avancement),
   grade: z.nativeEnum(Magistrat.Grade),
