@@ -48,11 +48,14 @@ export class NominationFilesUpdatedCollection {
         );
       if (matchedNominationFileFields.content.rules)
         nominationFile.updateRules(matchedNominationFileFields.content.rules);
-      if (matchedNominationFileFields.content.datePassageAuGrade)
+      if (matchedNominationFileFields.content.datePassageAuGrade !== undefined)
         nominationFile.updateDatePassageAuGrade(
           matchedNominationFileFields.content.datePassageAuGrade,
         );
-      if (matchedNominationFileFields.content.datePriseDeFonctionPosteActuel)
+      if (
+        matchedNominationFileFields.content.datePriseDeFonctionPosteActuel !==
+        undefined
+      )
         nominationFile.updateDatePriseDeFonctionPosteActuel(
           matchedNominationFileFields.content.datePriseDeFonctionPosteActuel,
         );
@@ -60,7 +63,7 @@ export class NominationFilesUpdatedCollection {
         nominationFile.updateAvancement(
           matchedNominationFileFields.content.avancement,
         );
-      if (matchedNominationFileFields.content.informationCarrière)
+      if (matchedNominationFileFields.content.informationCarrière !== undefined)
         nominationFile.updateInformationCarriere(
           matchedNominationFileFields.content.informationCarrière,
         );

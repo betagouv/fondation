@@ -53,7 +53,7 @@ export class NominationFileModel {
   updateAvancement(avancement: Avancement) {
     this._nominationFileRead.content.avancement = avancement;
   }
-  updateInformationCarriere(informationCarriere: string) {
+  updateInformationCarriere(informationCarriere: string | null) {
     this._nominationFileRead.content.informationCarrière = informationCarriere;
   }
 
