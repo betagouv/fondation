@@ -87,7 +87,7 @@ export class SqlDossierDeNominationRepository
       id: snapshot.id,
       sessionId: snapshot.sessionId,
       dossierDeNominationImportéId: snapshot.nominationFileImportedId,
-      content: JSON.stringify(snapshot.content),
+      content: snapshot.content,
     };
   }
 
@@ -98,7 +98,10 @@ export class SqlDossierDeNominationRepository
       id: row.id,
       sessionId: row.sessionId,
       nominationFileImportedId: row.dossierDeNominationImportéId,
-      content: dossierDeNominationContentSchema.parse(row.content),
+      content: dossierDeNominationContentSchema.parse(
+        // TODO Supprimer lorsqu'il n'y plus de string content
+        typeof row.content === 'string' ? JSON.parse(row.content) : row.content,
+      ),
     });
   }
 }

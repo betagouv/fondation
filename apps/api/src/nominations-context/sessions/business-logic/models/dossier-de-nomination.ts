@@ -60,7 +60,7 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
   protected get content(): DossierDeNominationContent<S> {
     return this._content;
   }
-  protected setContent(content: DossierDeNominationContent<S>) {
+  private setContent(content: DossierDeNominationContent<S>) {
     this._content = z.record(z.string(), z.any()).parse(content) as any;
   }
 
