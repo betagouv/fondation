@@ -17,7 +17,7 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from '../../models/rules';
-import { Avancement } from '../../models/avancement';
+import { Avancement } from '../../../../lodam/business-logic/models/avancement';
 
 export const gdsTransparenceEventId = 'gds-transparence-event-id';
 export const gdsTransparenceId = 'gds-transparence-id';

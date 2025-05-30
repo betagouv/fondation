@@ -1,6 +1,6 @@
 import { NominationFile } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { InvalidRowValueError } from '../errors/invalid-row-value.error';
+import { InvalidRowValueError } from '../../../transparences/business-logic/errors/invalid-row-value.error';
 import {
   NominationFileRead,
   nominationFileReadListSchema,
@@ -12,7 +12,7 @@ import {
   RuleName,
   StatutoryRule,
 } from './rules';
-import { AvancementNormalizer } from './tsv-normalizers/avancement-normalizer';
+import { AvancementNormalizer } from '../../../lodam/business-logic/models/valeur-csv-normalizers/avancement-normalizer';
 import { FolderNumberTsvNormalizer } from './tsv-normalizers/folder-number-tsv-normalizer';
 import { FormationTsvNormalizer } from './tsv-normalizers/formation-tsv-normalizer';
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
@@ -65,11 +65,16 @@ export class NominationFileContentReader {
         'Observants (pré-traitement pour import)',
         rowIndex,
       );
-      const datePassageAuGrade = this.findValue('Passage au grade', rowIndex)!;
+      const datePassageAuGrade = this.findValue('Passage au grade', rowIndex, {
+        optional: true,
+      });
       const datePriseDeFonctionPosteActuel = this.findValue(
         'Prise de fonction',
         rowIndex,
-      )!;
+        {
+          optional: true,
+        },
+      );
 
       const nominationFileRead: NominationFileRead = {
         rowNumber: rowIndex + 1,
@@ -98,13 +103,15 @@ export class NominationFileContentReader {
           reporters: reportersValue
             ? ReportersTsvNormalizer.normalize(reportersValue)
             : null,
-          datePriseDeFonctionPosteActuel: DateOnly.fromString(
-            datePriseDeFonctionPosteActuel,
-            'dd/M/yyyy',
-            'fr',
-          ).toJson(),
+          datePriseDeFonctionPosteActuel: datePriseDeFonctionPosteActuel
+            ? DateOnly.fromString(
+                datePriseDeFonctionPosteActuel,
+                'dd/M/yyyy',
+                'fr',
+              ).toJson()
+            : null,
           datePassageAuGrade:
-            datePassageAuGrade === 'NON DEFINI'
+            !datePassageAuGrade || datePassageAuGrade === 'NON DEFINI'
               ? null
               : DateOnly.fromString(datePassageAuGrade).toJson(),
           avancement: AvancementNormalizer.normalize(

@@ -1,5 +1,5 @@
 import { Magistrat } from 'shared-models';
-import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
+import { InvalidRowValueError } from '../../../../transparences/business-logic/errors/invalid-row-value.error';
 
 export class GradeTsvNormalizer {
   static normalize(

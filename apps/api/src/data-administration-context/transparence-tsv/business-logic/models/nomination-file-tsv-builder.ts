@@ -19,6 +19,7 @@ import {
   RuleName,
   StatutoryRule,
 } from './rules';
+import { Avancement } from '../../../lodam/business-logic/models/avancement';
 
 export type Line = {
   folderNumber: number | null;
@@ -28,8 +29,8 @@ export type Line = {
   transparency: string;
   reporters: string[] | null;
   passageAuGrade: string | null;
-  datePriseDeFonctionPosteActuel: string;
-  equivalenceOuAvancement: 'E' | 'A';
+  datePriseDeFonctionPosteActuel: string | null;
+  equivalenceOuAvancement: Avancement;
   informationCarriere: string | null;
   grade: string;
   currentPosition: string;
@@ -214,7 +215,7 @@ export class NominationFileTsvBuilder {
     const observersForDisplay = observers?.join('     ') || '';
 
     const folderNumberString = `${folderNumber || 'profilé'} (${formation.trim()})`;
-    return `TRUE\t${folderNumberString}\t${name}\t${formation}\t${dueDate || ''}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t${grade}\t${equivalenceOuAvancement}\t${passageAuGrade ?? 'NON DEFINI'}\t${datePriseDeFonctionPosteActuel}\t${informationCarriere ?? ''}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
+    return `TRUE\t${folderNumberString}\t${name}\t${formation}\t${dueDate || ''}\t${transparency}\t${reportersForImport}\t${reportersForDisplay}\t${grade}\t${equivalenceOuAvancement}\t${passageAuGrade ?? 'NON DEFINI'}\t${datePriseDeFonctionPosteActuel ?? ''}\t${informationCarriere ?? ''}\t${currentPosition}\t${targettedPosition}\t${rank}\t${birthDate}\t${biography}\t${observersForImport}\t${observersForDisplay}\t\t${rulesValues}\t\tTRUE\tI\tAvocat général - service extraordinaire CC  PARIS\tAvocat\tmars 2022\tPARIS\tMétropole\tCA PARIS\tFALSE\tHH\tPremier\tFALSE\tPremier avocat général CC  PARIS - HH\tPremier avocat général I  PARIS - HH\tPremier avocat général CC  PARIS - I\tPremier avocat général CC  PARIS\tPARIS\tMétropole\tCA PARIS\tseptembre 2024\t  MATHIAS PASCAL VPI TJ PARIS (9 sur une liste de 11)`;
   }
 
   build() {
@@ -247,9 +248,11 @@ export class NominationFileTsvBuilder {
       dueDate: content.dueDate
         ? DateOnly.fromJson(content.dueDate).toFormattedString(gsheetDateFormat)
         : null,
-      datePriseDeFonctionPosteActuel: DateOnly.fromJson(
-        content.datePriseDeFonctionPosteActuel,
-      ).toFormattedString(gsheetDateFormat),
+      datePriseDeFonctionPosteActuel: content.datePriseDeFonctionPosteActuel
+        ? DateOnly.fromJson(
+            content.datePriseDeFonctionPosteActuel,
+          ).toFormattedString(gsheetDateFormat)
+        : null,
       passageAuGrade: content.datePassageAuGrade
         ? DateOnly.fromJson(content.datePassageAuGrade).toFormattedString(
             gsheetDateFormat,

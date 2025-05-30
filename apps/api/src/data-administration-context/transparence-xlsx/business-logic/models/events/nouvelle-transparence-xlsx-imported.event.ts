@@ -1,5 +1,5 @@
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
-import { DomainRegistry } from '../domain-registry';
+import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 
 export type NouvelleTransparenceXlsxImportedEventPayload = {
   transparenceId: string;

@@ -5,18 +5,18 @@ import {
   Role,
   Transparency,
 } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/repositories/fake-transparence.repository';
-import { FakeUserService } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/services/fake-user.service';
+import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { Get, Paths, SetOptional } from 'type-fest';
-import { EmptyFileError } from '../../errors/empty-file.error';
-import { FileLengthTooShortError } from '../../errors/file-length-too-short.error';
-import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
-import { DomainRegistry } from '../../models/domain-registry';
+import { EmptyFileError } from '../../../../transparences/business-logic/errors/empty-file.error';
+import { FileLengthTooShortError } from '../../../../transparences/business-logic/errors/file-length-too-short.error';
+import { InvalidRowValueError } from '../../../../transparences/business-logic/errors/invalid-row-value.error';
+import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import {
   Line,
@@ -218,6 +218,9 @@ describe('Import Nomination Files Use Case', () => {
         reporters: null,
         observers: null,
         biography: null,
+        datePassageAuGrade: null,
+        datePriseDeFonctionPosteActuel: null,
+        informationCarrière: null,
       },
     );
     await importAFile(

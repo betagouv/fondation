@@ -11,7 +11,7 @@ import { TypeDeSaisine } from 'shared-models';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
 import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-dossiers-transparence.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { Avancement } from 'src/data-administration-context/transparence-tsv/business-logic/models/avancement';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aParquetTransparenceImportId = 'transparence-import-id';

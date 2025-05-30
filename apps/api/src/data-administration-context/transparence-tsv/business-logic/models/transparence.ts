@@ -1,7 +1,7 @@
 import { Magistrat, Transparency } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { z } from 'zod';
-import { DomainRegistry } from './domain-registry';
+import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
 import { GdsTransparenceNominationFilesModifiedEvent } from './events/gds-transparence-nomination-files-modified.event';
 import {
   NominationFileModel,

@@ -2,6 +2,7 @@ import xlsx from 'node-xlsx';
 import { Gender, Magistrat, Role } from 'shared-models';
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
 
@@ -42,7 +43,7 @@ const ligne1 = {
   'Poste actuel': 'Procureur de la République TJ  CAMBRAI',
   'Prise de fonction': '5/09/2021',
   'Passage au grade': '27/03/2012',
-  'Eq./Av.': 'E' as const,
+  'Eq./Av.': Avancement.EQUIVALENCE,
   Observants: 'un observant',
   'Information carrière': '',
   Historique: '- Biographie de E - poste 2',

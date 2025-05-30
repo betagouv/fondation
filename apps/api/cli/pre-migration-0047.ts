@@ -18,7 +18,7 @@ import {
   Role,
   Transparency,
 } from 'shared-models';
-import { dataAdministrationContextSchema } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
+import { dataAdministrationContextSchema } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema/user-pm';
 import {
   reportStateEnum,

@@ -1,7 +1,7 @@
 import { Magistrat, Month } from 'shared-models';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { z, ZodType } from 'zod';
-import { Avancement } from './avancement';
+import { Avancement } from '../../../lodam/business-logic/models/avancement';
 
 export type NominationFileRead = {
   rowNumber: number;
@@ -11,9 +11,9 @@ export type NominationFileRead = {
     posteCible: string;
     dateDeNaissance: DateOnlyJson;
     posteActuel: string;
-    priseDeFonction: DateOnlyJson;
-    datePassageAuGrade: DateOnlyJson;
-    equivalenceOuAvancement: 'E' | 'A';
+    priseDeFonction: DateOnlyJson | null;
+    datePassageAuGrade: DateOnlyJson | null;
+    equivalenceOuAvancement: Avancement;
     grade: Magistrat.Grade;
     observers: string[] | null;
     reporters: string[] | null;

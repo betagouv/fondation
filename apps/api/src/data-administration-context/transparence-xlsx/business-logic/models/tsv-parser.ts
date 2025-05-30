@@ -1,5 +1,5 @@
-import { EmptyFileError } from '../errors/empty-file.error';
-import { FileLengthTooShortError } from '../errors/file-length-too-short.error';
+import { EmptyFileError } from '../../../transparences/business-logic/errors/empty-file.error';
+import { FileLengthTooShortError } from '../../../transparences/business-logic/errors/file-length-too-short.error';
 
 export class TsvParser {
   parse(fileContent: string): [string[], string[], ...string[]] {

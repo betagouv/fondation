@@ -1,12 +1,12 @@
 import { Magistrat, NominationFile } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/repositories/fake-transparence.repository';
-import { FakeUserService } from 'src/data-administration-context/transparence-tsv/adapters/secondary/gateways/services/fake-user.service';
+import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DomainRegistry } from '../../models/domain-registry';
+import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 import { GdsNewTransparenceImportedEvent } from '../../models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEvent } from '../../models/events/gds-transparence-nomination-files-added.event';
 import {

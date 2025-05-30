@@ -11,7 +11,7 @@ import {
   QualitativeRule,
   allRulesMapV1,
 } from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
-import { Avancement } from 'src/data-administration-context/transparence-xlsx/business-logic/models/avancement';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { GdsNouvellesTransparencesImportéesSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
 import {

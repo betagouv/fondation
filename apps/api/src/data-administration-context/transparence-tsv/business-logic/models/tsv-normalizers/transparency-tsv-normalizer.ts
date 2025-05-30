@@ -1,5 +1,5 @@
 import { Transparency } from 'shared-models';
-import { InvalidRowValueError } from '../../errors/invalid-row-value.error';
+import { InvalidRowValueError } from '../../../../transparences/business-logic/errors/invalid-row-value.error';
 
 export const transparencyMap: { [key in Transparency]: string } = {
   [Transparency.AUTOMNE_2024]: 'Automne 2024',

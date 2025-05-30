@@ -4,7 +4,7 @@ import {
   NominationFileRead,
   nominationFileReadContentSchema,
 } from '../nomination-file-read';
-import { DomainRegistry } from '../domain-registry';
+import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 
 export type NominationFilesImportedEventPayload = ({
   content: NominationFileRead['content'];

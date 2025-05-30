@@ -9,7 +9,7 @@ import {
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
 import { GdsNouvellesTransparencesImportéesSubscriber } from './gds-nouvelles-transparences-importées.subscriber';
-import { Avancement } from 'src/data-administration-context/transparence-tsv/business-logic/models/avancement';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 describe('GDS nouvelles transparences importées sbscriber', () => {
   let dependencies: ReturnType<typeof getDependencies>;

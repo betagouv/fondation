@@ -7,7 +7,7 @@ import {
   QualitativeRule,
   StatutoryRule,
 } from './rules';
-import { Avancement } from './avancement';
+import { Avancement } from '../../../lodam/business-logic/models/avancement';
 
 export type NominationFileRead = {
   rowNumber: number;
@@ -18,7 +18,7 @@ export type NominationFileRead = {
     dueDate: DateOnlyJson | null;
     transparency: Transparency;
     reporters: string[] | null;
-    datePriseDeFonctionPosteActuel: DateOnlyJson;
+    datePriseDeFonctionPosteActuel: DateOnlyJson | null;
     datePassageAuGrade: DateOnlyJson | null;
     avancement: Avancement;
     informationCarrière: string | null;
@@ -113,8 +113,8 @@ export const nominationFileReadContentSchema = z.object({
   name: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
   dueDate: dateOnlyJsonSchema.nullable(),
-  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
-  datePassageAuGrade: dateOnlyJsonSchema,
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
+  datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   avancement: z.nativeEnum(Avancement),
   informationCarrière: z.string().nullable(),
   transparency: z.nativeEnum(Transparency),
@@ -123,11 +123,7 @@ export const nominationFileReadContentSchema = z.object({
   currentPosition: z.string(),
   targettedPosition: z.string(),
   rank: z.string(),
-  birthDate: z.object({
-    year: z.number(),
-    month: z.number().min(1).max(12) as ZodType<Month>,
-    day: z.number(),
-  }),
+  birthDate: dateOnlyJsonSchema,
   biography: z.string().nullable(),
   observers: z.array(z.string()).nullable(),
   rules: zodGroupRules,

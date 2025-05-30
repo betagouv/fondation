@@ -1,5 +1,5 @@
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
-import { DomainRegistry } from 'src/data-administration-context/transparence-tsv/business-logic/models/domain-registry';
+import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
 import { TransparenceService } from 'src/data-administration-context/transparence-tsv/business-logic/services/transparence.service';
 import { ImportNominationFilesUseCase } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
@@ -17,8 +17,8 @@ import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/pr
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
-import { SqlTransparenceRepository } from '../../secondary/gateways/repositories/drizzle/sql-transparence.repository';
-import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
+import { SqlTransparenceRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
+import { HttpUserService } from '../../../../transparences/adapters/secondary/gateways/services/http-user.service';
 import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
 import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,

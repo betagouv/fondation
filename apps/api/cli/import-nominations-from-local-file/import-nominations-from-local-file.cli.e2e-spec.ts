@@ -5,7 +5,7 @@ import { Gender, Magistrat, Role } from 'shared-models';
 import { ImportNominationFileFromLocalFileCli } from 'src/data-administration-context/transparence-tsv/business-logic/gateways/providers/import-nominations-from-local-file.cli';
 import { NominationFileRead } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file-read';
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
-import { transparencesPm } from 'src/data-administration-context/transparence-xlsx/adapters/secondary/gateways/repositories/drizzle/schema';
+import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { ContenuPropositionDeNominationTransparenceV2 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import {

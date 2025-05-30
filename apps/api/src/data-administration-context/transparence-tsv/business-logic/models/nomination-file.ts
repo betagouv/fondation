@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
-import { Avancement } from './avancement';
-import { DomainRegistry } from './domain-registry';
+import { Avancement } from '../../../lodam/business-logic/models/avancement';
+import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
 import { NominationFileRead } from './nomination-file-read';
 
 export type NominationFileModelSnapshot = {
@@ -41,11 +41,11 @@ export class NominationFileModel {
       rules,
     );
   }
-  updateDatePassageAuGrade(datePassageAuGrade: DateOnlyJson) {
+  updateDatePassageAuGrade(datePassageAuGrade: DateOnlyJson | null) {
     this._nominationFileRead.content.datePassageAuGrade = datePassageAuGrade;
   }
   updateDatePriseDeFonctionPosteActuel(
-    datePriseDeFonctionPosteActuel: DateOnlyJson,
+    datePriseDeFonctionPosteActuel: DateOnlyJson | null,
   ) {
     this._nominationFileRead.content.datePriseDeFonctionPosteActuel =
       datePriseDeFonctionPosteActuel;

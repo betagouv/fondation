@@ -1,7 +1,7 @@
 import { Magistrat } from 'shared-models';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
-import { DomainRegistry } from '../domain-registry';
+import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 import {
   NominationFileRead,
   nominationFileReadContentSchema,

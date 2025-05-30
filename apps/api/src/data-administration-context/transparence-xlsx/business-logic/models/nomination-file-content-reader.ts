@@ -8,7 +8,7 @@ import { NominationFilesContentReadCollection } from './nomination-files-read-co
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
-import { AvancementNormalizer } from './tsv-normalizers/avancement-normalizer';
+import { AvancementNormalizer } from '../../../lodam/business-logic/models/valeur-csv-normalizers/avancement-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DomainRegistry } from './domain-registry';
+import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
 import { XlsxReader } from './xlsx-reader';
 
 export type TransparenceCsvSnapshot = {
