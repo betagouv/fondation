@@ -48,9 +48,9 @@ export class ReportVM<
   );
   static magistratIdentityLabels = {
     birthDate: "Date de naissance",
-    grade: "Grade",
     currentPosition: "Poste actuel",
     targettedPosition: "Poste pressenti",
+    dureeDuPoste: "Durée du poste",
     rank: "Rang",
   };
 
@@ -101,6 +101,7 @@ export class ReportVM<
           QualitativeRules
         >
     >,
+    public readonly dureeDuPoste: number | null,
   ) {}
 }
 

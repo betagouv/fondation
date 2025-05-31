@@ -58,6 +58,7 @@ export class ReportApiModelBuilder {
       observers: ["observer 1", "observer 2"],
       observersCount: 2,
       attachedFiles: null,
+      dureeDuPoste: 48,
       rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }

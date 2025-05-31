@@ -69,6 +69,7 @@ describe("Api Report Gateway", () => {
       },
       attachedFiles: aReportRetrievedSM.attachedFiles,
       contentScreenshots: aReportRetrievedSM.contentScreenshots,
+      dureeDuPoste: aReportRetrievedSM.dureeDuPoste,
     });
   });
 

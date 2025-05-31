@@ -8,9 +8,9 @@ import {
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
-import { NominationFileReportSnapshot } from './nomination-file-report';
 import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../gateways/services/session.service';
+import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -93,6 +93,7 @@ export class ReportRetrievalBuilder<
       },
       attachedFiles: null,
       files: [],
+      dureeDuPoste: 48,
     };
   }
 
@@ -124,6 +125,7 @@ export class ReportRetrievalBuilder<
       observers: report.observers,
       rules: report.rules,
       attachedFiles: report.attachedFiles,
+      dureeDuPoste: report.dureeDuPoste,
     };
   }
 
