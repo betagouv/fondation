@@ -118,7 +118,7 @@ export const commandWithInformationCarriere =
     nominationFileModificationWithInformationCarriere,
   ]);
 
-export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
+export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS_V2> =
   {
     id: existingDossierDeNominationId,
     nominationFileImportedId: dossierDeNominationImportedId,
@@ -135,5 +135,9 @@ export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRA
       grade: Magistrat.Grade.I,
       name: 'Nominee Name',
       rank: 'A',
+      version: 2,
+      datePassageAuGrade: { day: 15, month: 5, year: 2022 },
+      datePriseDeFonctionPosteActuel: { day: 10, month: 3, year: 2021 },
+      informationCarrière: "20 ans d'expérience dans la magistrature",
     },
   };

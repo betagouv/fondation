@@ -108,5 +108,9 @@ export const stubDossier = {
     targettedPosition: 'a targetted position',
     observers: ['observer 1', 'observer 2'],
     rank: '(1 sur 3)',
+    datePassageAuGrade: { day: 15, month: 5, year: 2024 },
+    datePriseDeFonctionPosteActuel: { day: 10, month: 5, year: 2020 },
+    informationCarrière: 'a information carrière',
+    version: 2,
   },
-} satisfies DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>;
+} satisfies DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS_V2>;

@@ -54,7 +54,7 @@ export const propositionDeNominationTransparenceContentV2Schema =
     informationCarrière: z.string().nullable(),
   }) satisfies z.ZodType<ContenuV2>;
 
-export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS> {
+export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS_V2> {
   updateFolderNumber(folderNumber: ContenuV2['folderNumber']) {
     this.updateContent({
       folderNumber,
@@ -96,7 +96,7 @@ export class PropositionDeNominationTransparence extends DossierDeNomination<Typ
 
     const content = PropositionDeNominationTransparence.getSafeContent(
       snapshot.content,
-    );
+    ) as ContenuV2;
 
     return new PropositionDeNominationTransparence(
       snapshot.id,

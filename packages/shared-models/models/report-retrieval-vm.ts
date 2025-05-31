@@ -32,4 +32,5 @@ export interface ReportRetrievalVM {
   observers: string[] | null;
   rules: NominationFile.Rules<NominationFile.RuleValue>;
   attachedFiles: AttachedFileVM[] | null;
+  dureeDuPoste: number | null;
 }

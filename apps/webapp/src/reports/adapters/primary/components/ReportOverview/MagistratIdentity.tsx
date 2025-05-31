@@ -11,6 +11,7 @@ export type MagistratIdentityProps = Pick<
   | "currentPosition"
   | "targettedPosition"
   | "rank"
+  | "dureeDuPoste"
 >;
 
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
@@ -19,20 +20,44 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   grade,
   currentPosition,
   targettedPosition,
+  dureeDuPoste,
   rank,
 }) => {
   return (
     <Card label="Identité du magistrat">
       <h1>{name}</h1>
-      <div className={cx("fr-text--bold")}>
-        {`${ReportVM.magistratIdentityLabels.currentPosition} : ${currentPosition}`}
+      <div>
+        <span
+          className={cx("fr-text--bold")}
+        >{`${ReportVM.magistratIdentityLabels.currentPosition} : `}</span>
+        <span>{`${currentPosition} - ${grade}`}</span>
       </div>
-      <div>{`${ReportVM.magistratIdentityLabels.grade} : ${grade}`}</div>
-      <div
-        className={cx("fr-text--bold")}
-      >{`${ReportVM.magistratIdentityLabels.targettedPosition} : ${targettedPosition}`}</div>
-      <div>{`${ReportVM.magistratIdentityLabels.rank} : ${rank}`}</div>
-      <div>{`${ReportVM.magistratIdentityLabels.birthDate} : ${birthDate}`}</div>
+      {dureeDuPoste && (
+        <div>
+          <span
+            className={cx("fr-text--bold")}
+          >{`${ReportVM.magistratIdentityLabels.dureeDuPoste} : `}</span>
+          <span>{`${dureeDuPoste} mois`}</span>
+        </div>
+      )}
+      <div>
+        <span
+          className={cx("fr-text--bold")}
+        >{`${ReportVM.magistratIdentityLabels.targettedPosition} : `}</span>
+        <span>{`${targettedPosition}`}</span>
+      </div>
+      <div>
+        <span
+          className={cx("fr-text--bold")}
+        >{`${ReportVM.magistratIdentityLabels.rank} : `}</span>
+        <span>{`${rank}`}</span>
+      </div>
+      <div>
+        <span
+          className={cx("fr-text--bold")}
+        >{`${ReportVM.magistratIdentityLabels.birthDate} : `}</span>
+        <span>{`${birthDate}`}</span>
+      </div>
     </Card>
   );
 };

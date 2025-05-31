@@ -1,5 +1,4 @@
-import { ReportRetrievalVM } from 'shared-models';
-import { TypeDeSaisine } from 'shared-models';
+import { ReportRetrievalVM, TypeDeSaisine } from 'shared-models';
 import { ReportRetrievalQueried } from '../../gateways/queries/report-retrieval-vm.query';
 import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
@@ -54,7 +53,7 @@ const aReportVM = new ReportRetrievalBuilder<ReportRetrievalVM>()
   ])
   .buildVM();
 
-const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
+const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS_V2> =
   {
     id: unDossierDeNominationId,
     sessionId: uneSessionId,
@@ -71,6 +70,10 @@ const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_G
       biography: aReportVM.biography,
       rank: aReportVM.rank,
       observers: aReportVM.observers,
+      version: 2,
+      datePassageAuGrade: { day: 15, month: 5, year: 2024 },
+      datePriseDeFonctionPosteActuel: { day: 10, month: 5, year: 2020 },
+      informationCarrière: "20 ans d'expérience dans la magistrature",
     },
   };
 

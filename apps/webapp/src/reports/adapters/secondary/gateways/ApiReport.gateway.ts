@@ -78,6 +78,7 @@ export class ApiReportGateway implements ReportGateway {
       contentScreenshots: contentScreenshots?.files.length
         ? contentScreenshots
         : null,
+      dureeDuPoste: report.dureeDuPoste,
     };
   }
 
