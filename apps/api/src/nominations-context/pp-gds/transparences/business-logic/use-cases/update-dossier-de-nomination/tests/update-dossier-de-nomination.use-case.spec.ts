@@ -1,21 +1,21 @@
 import { NominationFile, TypeDeSaisine } from 'shared-models';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { PréAnalyseSnapshot } from 'src/nominations-context/sessions/business-logic/models/pré-analyse';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 import { UpdateDossierDeNominationUseCase } from '../update-dossier-de-nomination.use-case';
 import {
   aDossierDeNomination,
-  commandWithModifiedRules,
-  commandWithNewFolderNumber,
-  commandWithNewObservers,
   commandWithDatePassageAuGrade,
   commandWithDatePriseDeFonctionPosteActuel,
   commandWithInformationCarriere,
+  commandWithModifiedRules,
+  commandWithNewFolderNumber,
+  commandWithNewObservers,
   existingDossierDeNominationId,
   existingPréAnalyseId,
   initialRules,
 } from './update-dossier-de-nomination.tests-setup';
-import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 
 describe('Update dossier de nomination', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -146,7 +146,7 @@ describe('Update dossier de nomination', () => {
       dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<
-      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
+      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS_V2>
     >({
       ...aDossierDeNomination,
       content: {
@@ -161,7 +161,7 @@ describe('Update dossier de nomination', () => {
       dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);
     expect(dossiers[0]).toEqual<
-      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
+      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS_V2>
     >({
       ...aDossierDeNomination,
       content: {

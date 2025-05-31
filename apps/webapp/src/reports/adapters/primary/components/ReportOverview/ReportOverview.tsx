@@ -36,6 +36,7 @@ export type ReportOverviewProps = {
 
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const report = useAppSelector((state) => selectReport(state, id));
+  console.log(report);
   const currentPage = {
     name: BreadcrumCurrentPage.gdsReport,
     reportId: id,
@@ -163,6 +164,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             currentPosition={report.currentPosition}
             targettedPosition={report.targettedPosition}
             rank={report.rank}
+            dureeDuPoste={report.dureeDuPoste}
           />
           <Biography biography={report.biography} />
           <ReportEditor

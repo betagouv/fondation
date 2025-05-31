@@ -1,24 +1,26 @@
+import { differenceInMonths } from 'date-fns';
 import {
   allRulesMapV2,
   NominationFile,
   ReportRetrievalVM,
   RulesBuilder,
   Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { UnionToIntersection } from 'type-fest';
 import {
   ReportRetrievalQueried,
   ReportRetrievalQuery,
 } from '../../gateways/queries/report-retrieval-vm.query';
-import { SessionService } from '../../gateways/services/session.service';
 import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
-import { TypeDeSaisine } from 'shared-models';
-import { UnionToIntersection } from 'type-fest';
+import { SessionService } from '../../gateways/services/session.service';
 
 export class RetrieveReportUseCase {
   constructor(
     private reportRetrievalVMQuery: ReportRetrievalQuery,
     private readonly sessionService: SessionService,
-    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
+    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS_V2>,
   ) {}
 
   async execute(
@@ -41,10 +43,14 @@ export class RetrieveReportUseCase {
       await this.dossierDeNominationService.dossierDeNomination(
         rapport.dossierDeNominationId,
       );
+
     if (!dossierDeNomination)
       throw new Error(
         `Dossier de nomination non trouvé avec l'ID ${rapport.dossierDeNominationId}`,
       );
+
+    const { datePriseDeFonctionPosteActuel, datePassageAuGrade } =
+      dossierDeNomination.content;
 
     return {
       id: rapport.id,
@@ -54,9 +60,7 @@ export class RetrieveReportUseCase {
       rules: WithPreValidatedRulesBuilder.fromQueriedRules(
         rapport.rules,
       ).build(),
-
       transparency: transparence.name as Transparency,
-
       biography: dossierDeNomination.content.biography,
       dueDate: dossierDeNomination.content.dueDate,
       name: dossierDeNomination.content.name,
@@ -67,7 +71,13 @@ export class RetrieveReportUseCase {
       rank: dossierDeNomination.content.rank,
       observers: dossierDeNomination.content.observers,
       folderNumber: dossierDeNomination.content.folderNumber,
-
+      dureeDuPoste:
+        datePriseDeFonctionPosteActuel && datePassageAuGrade
+          ? differenceInMonths(
+              DateOnly.fromJson(datePassageAuGrade).toDate(),
+              DateOnly.fromJson(datePriseDeFonctionPosteActuel).toDate(),
+            )
+          : null,
       attachedFiles: rapport.files,
     };
   }
