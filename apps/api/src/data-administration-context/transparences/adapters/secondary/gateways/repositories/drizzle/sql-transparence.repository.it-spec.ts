@@ -80,24 +80,25 @@ describe('SQL Transparence Repository', () => {
     });
 
     it('returns the transparence when it exists', async () => {
-      await givenSomeTransparence(aTransparence);
+      await givenSomeTransparence(anotherTransparence, aTransparence);
       const transpa = await transparence();
       expect(transpa?.snapshot()).toEqual<TransparenceSnapshot>(aTransparence);
     });
   });
 
-  const givenSomeTransparence = async (transpa: TransparenceSnapshot) => {
-    await db
-      .insert(transparencesPm)
-      .values({
-        ...transpa,
-        formation: transpa.formation,
-        nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
-          ...nominationFile,
-          createdAt: currentDate.toISOString(),
-        })),
-      })
-      .execute();
+  const givenSomeTransparence = async (...transpas: TransparenceSnapshot[]) => {
+    for (const transpa of transpas) {
+      await db
+        .insert(transparencesPm)
+        .values({
+          ...transpa,
+          nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
+            ...nominationFile,
+            createdAt: currentDate.toISOString(),
+          })),
+        })
+        .execute();
+    }
   };
 
   const saveTransparence = (transpa: TransparenceSnapshot) =>
@@ -197,6 +198,18 @@ const aModifiedTransparence: TransparenceSnapshot = {
         ...aNominationfile.content,
         folderNumber: 100,
       },
+    },
+  ],
+};
+
+const anotherTransparence: TransparenceSnapshot = {
+  ...aTransparence,
+  id: 'fbb7ae24-bd41-43c3-bac1-554512726c78',
+  formation: Magistrat.Formation.SIEGE,
+  nominationFiles: [
+    {
+      ...aNominationfile,
+      id: 'e3fb8d3f-1553-4c77-89cb-e5dd5843b9ae',
     },
   ],
 };

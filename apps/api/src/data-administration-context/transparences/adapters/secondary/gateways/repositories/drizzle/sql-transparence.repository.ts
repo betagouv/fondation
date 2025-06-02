@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { Transparency } from 'shared-models';
+import { and, eq } from 'drizzle-orm';
+import { Magistrat, Transparency } from 'shared-models';
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 import {
   Transparence as TransparenceTsv,
@@ -37,12 +37,18 @@ export class SqlTransparenceRepository implements TransparenceRepository {
 
   transparence(
     name: Transparency,
+    formation: Magistrat.Formation,
   ): DrizzleTransactionableAsync<TransparenceTsv | null> {
     return async (db) => {
       const transparenceResult = await db
         .select()
         .from(transparencesPm)
-        .where(eq(transparencesPm.name, name))
+        .where(
+          and(
+            eq(transparencesPm.name, name),
+            eq(transparencesPm.formation, formation),
+          ),
+        )
         .limit(1)
         .execute();
 

@@ -81,10 +81,7 @@ describe('Update dossier de nomination', () => {
   };
 
   function expectDossierWithNewObservers() {
-    const dossiers =
-      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
+    expectDossierWith({
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
@@ -94,10 +91,7 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithNewFolderNumber() {
-    const dossiers =
-      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
+    expectDossierWith({
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
@@ -129,10 +123,7 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithDatePassageAuGrade() {
-    const dossiers =
-      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0]).toEqual<DossierDeNominationSnapshot>({
+    expectDossierWith({
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
@@ -142,12 +133,7 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithDatePriseDeFonctionPosteActuel() {
-    const dossiers =
-      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0]).toEqual<
-      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
-    >({
+    expectDossierWith({
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
@@ -157,17 +143,21 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWithInformationCarrière() {
-    const dossiers =
-      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0]).toEqual<
-      DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>
-    >({
+    expectDossierWith({
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
         informationCarrière: "20 ans d'expérience dans la magistrature",
       },
     });
+  }
+
+  function expectDossierWith(
+    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>,
+  ) {
+    const dossiers =
+      dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
+    expect(dossiers).toHaveLength(1);
+    expect(dossiers[0]).toEqual(dossierDeNomination);
   }
 });

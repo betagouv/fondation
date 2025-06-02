@@ -98,10 +98,7 @@ export class SqlDossierDeNominationRepository
       id: row.id,
       sessionId: row.sessionId,
       nominationFileImportedId: row.dossierDeNominationImportéId,
-      content: dossierDeNominationContentSchema.parse(
-        // TODO Supprimer lorsqu'il n'y plus de string content
-        typeof row.content === 'string' ? JSON.parse(row.content) : row.content,
-      ),
+      content: dossierDeNominationContentSchema.parse(row.content),
     });
   }
 }
