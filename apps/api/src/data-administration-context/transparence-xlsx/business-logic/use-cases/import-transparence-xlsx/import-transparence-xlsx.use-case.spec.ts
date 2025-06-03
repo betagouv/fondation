@@ -10,6 +10,7 @@ import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways
 import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 import {
   currentDate,
+  jocelinUser,
   lucLoïcUser,
   unDossierSiège,
   uneTransparence,
@@ -37,7 +38,7 @@ describe('Import Transparence XLSX Use Case', () => {
     DomainRegistry.setDateTimeProvider(dateTimeProvider);
 
     userService = new FakeUserService();
-    userService.addUsers(lucLoïcUser);
+    userService.addUsers(lucLoïcUser, jocelinUser);
   });
 
   it('enregistre un fichier XLSX', async () => {

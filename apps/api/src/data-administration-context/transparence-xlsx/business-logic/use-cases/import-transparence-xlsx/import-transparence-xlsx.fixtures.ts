@@ -5,13 +5,24 @@ import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
-
 export const lucLoïcUser = {
   userId: lucLoïcReporterId,
   firstName: 'LOIC',
   lastName: 'LUC',
   fullName: 'LUC Loïc',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
+};
+
+export const jocelinReporterId = 'jocelin-reporter-id';
+export const jocelinUser = {
+  userId: jocelinReporterId,
+  firstName: 'martin-luc',
+  lastName: 'josselin-martel',
+  fullName: 'JOSSELIN-MARTEL Martin-Luc',
+  email: 'martin-luc@example.fr',
+  password: 'some-password',
+  role: Role.MEMBRE_DU_SIEGE,
   gender: Gender.M,
 };
 
@@ -35,7 +46,7 @@ type Ligne = Record<Colonne, string | number | null>;
 
 const ligne1 = {
   'N°': '12345',
-  Magistrat: 'Elise PREGENT ep. QUIMPER (1 sur une liste de 7)',
+  Magistrat: 'Elise PREGENT ep. QUIMPER\n(1 sur une liste de 7)',
   'Poste cible': 'Procureur de la République TJ  RENNES – I',
   'Date de naissance': '1/1/1971',
   'Poste actuel': 'Procureur de la République TJ  CAMBRAI',
@@ -43,7 +54,7 @@ const ligne1 = {
   'Passage au grade': '27/3/2012',
   'Eq./Av.': Avancement.EQUIVALENCE,
   Observants: 'un observant',
-  Rapporteur: lucLoïcUser.fullName,
+  Rapporteur: `${lucLoïcUser.fullName}\n${jocelinUser.fullName}`,
   'Information carrière': '',
   Historique: '- Biographie de E - poste 2',
 } satisfies Ligne;
@@ -117,9 +128,10 @@ const genDossierSiège = (
     equivalenceOuAvancement: ligne1['Eq./Av.'],
     grade: Magistrat.Grade.I,
     observers: ligne1.Observants ? [ligne1.Observants] : [],
-    reporters: [lucLoïcUser.fullName],
+    reporters: [lucLoïcUser.fullName, jocelinUser.fullName],
     informationCarriere: null,
     historique: ligne1.Historique || null,
+    rank: '(1 sur une liste de 7)',
     ...content,
   },
 });

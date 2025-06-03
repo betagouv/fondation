@@ -2,7 +2,6 @@ import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { FC } from "react";
 import { Card } from "./Card";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { formatMonthsToYearsAndMonths } from "../../../../../shared-kernel/core-logic/utils/date-utils";
 
 export type MagistratIdentityProps = Pick<
   ReportVM,

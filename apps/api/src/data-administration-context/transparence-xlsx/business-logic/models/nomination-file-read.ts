@@ -19,6 +19,7 @@ export type NominationFileRead = {
     reporters: string[] | null;
     informationCarriere: string | null;
     historique: string | null;
+    rank: string;
   };
 };
 
@@ -41,6 +42,7 @@ export const nominationFileReadContentSchema = z.object({
   reporters: z.array(z.string()).nullable(),
   informationCarriere: z.string().nullable(),
   historique: z.string().nullable(),
+  rank: z.string(),
 }) satisfies ZodType<NominationFileRead['content']>;
 
 export const nominationFileReadSchema = z.object({
