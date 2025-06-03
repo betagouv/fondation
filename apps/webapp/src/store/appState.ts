@@ -50,7 +50,7 @@ export interface ReportSM {
       }[]
     | null;
   contentScreenshots: ReportScreenshots | null;
-  dureeDuPoste: number | null;
+  dureeDuPoste: string | null;
 }
 export type ReportListItem = Pick<
   ReportSM,

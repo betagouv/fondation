@@ -85,7 +85,7 @@ describe("Report Overview Component - Magistrate identity", () => {
     await section.findByText(`PG TJ Paris - I`);
     if (isDureeDuPosteValid) {
       await section.findByText(`${labels.dureeDuPoste} :`);
-      await section.findByText(`48 mois`);
+      await section.findByText(`3 ans et 6 mois`);
     }
     await section.findByText(`${labels.rank} :`);
     await section.findByText(`(2 sur une liste de 3)`);

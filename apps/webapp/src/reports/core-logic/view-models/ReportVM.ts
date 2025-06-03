@@ -50,7 +50,7 @@ export class ReportVM<
     birthDate: "Date de naissance",
     currentPosition: "Poste actuel",
     targettedPosition: "Poste pressenti",
-    dureeDuPoste: "Durée du poste",
+    dureeDuPoste: "Durée sur le poste",
     rank: "Rang",
   };
 
@@ -101,7 +101,7 @@ export class ReportVM<
           QualitativeRules
         >
     >,
-    public readonly dureeDuPoste: number | null,
+    public readonly dureeDuPoste: string | null,
   ) {}
 }
 

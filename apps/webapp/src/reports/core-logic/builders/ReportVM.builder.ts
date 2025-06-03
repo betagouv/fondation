@@ -23,7 +23,7 @@ export class ReportBuilderVM<RulesMap extends AllRulesMapV2 = AllRulesMapV2> {
   constructor() {
     this._reportVM = {
       id: "report-id",
-      dureeDuPoste: 48,
+      dureeDuPoste: "3 ans et 6 mois",
       name: "John Doe",
       biography: "John Doe's biography",
       dueDate: new DateOnly(2030, 10, 30),

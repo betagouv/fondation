@@ -7,6 +7,7 @@ import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date
 import { z } from 'zod';
 
 export interface ContenuPropositionDeNominationTransparenceV1 {
+  version?: undefined;
   folderNumber: number | null;
   name: string;
   formation: Magistrat.Formation;
@@ -23,7 +24,7 @@ export interface ContenuPropositionDeNominationTransparenceV1 {
 type ContenuV1 = ContenuPropositionDeNominationTransparenceV1;
 
 export interface ContenuPropositionDeNominationTransparenceV2
-  extends ContenuPropositionDeNominationTransparenceV1 {
+  extends Omit<ContenuPropositionDeNominationTransparenceV1, 'version'> {
   version: 2;
   datePassageAuGrade: DateOnlyJson | null;
   datePriseDeFonctionPosteActuel: DateOnlyJson | null;
@@ -33,6 +34,7 @@ export interface ContenuPropositionDeNominationTransparenceV2
 type ContenuV2 = ContenuPropositionDeNominationTransparenceV2;
 
 export const propositionDeNominationTransparenceContentV1Schema = z.object({
+  version: z.undefined().optional(),
   folderNumber: z.number().nullable(),
   name: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
@@ -54,7 +56,7 @@ export const propositionDeNominationTransparenceContentV2Schema =
     informationCarrière: z.string().nullable(),
   }) satisfies z.ZodType<ContenuV2>;
 
-export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS_V2> {
+export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS> {
   updateFolderNumber(folderNumber: ContenuV2['folderNumber']) {
     this.updateContent({
       folderNumber,

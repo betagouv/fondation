@@ -2,6 +2,7 @@ import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { FC } from "react";
 import { Card } from "./Card";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
+import { formatMonthsToYearsAndMonths } from "../../../../../shared-kernel/core-logic/utils/date-utils";
 
 export type MagistratIdentityProps = Pick<
   ReportVM,
@@ -37,7 +38,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
           <span
             className={cx("fr-text--bold")}
           >{`${ReportVM.magistratIdentityLabels.dureeDuPoste} : `}</span>
-          <span>{`${dureeDuPoste} mois`}</span>
+          <span>{dureeDuPoste}</span>
         </div>
       )}
       <div>

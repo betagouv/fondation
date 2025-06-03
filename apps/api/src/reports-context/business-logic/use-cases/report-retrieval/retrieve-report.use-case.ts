@@ -7,6 +7,7 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
+import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';
 import {
@@ -16,11 +17,26 @@ import {
 import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionService } from '../../gateways/services/session.service';
 
+const formatMonthsToYearsAndMonths = (months: number): string => {
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  if (years === 0) {
+    return `${remainingMonths} mois`;
+  }
+
+  if (remainingMonths === 0) {
+    return `${years} an${years > 1 ? 's' : ''}`;
+  }
+
+  return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
+};
+
 export class RetrieveReportUseCase {
   constructor(
     private reportRetrievalVMQuery: ReportRetrievalQuery,
     private readonly sessionService: SessionService,
-    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS_V2>,
+    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
   ) {}
 
   async execute(
@@ -49,8 +65,20 @@ export class RetrieveReportUseCase {
         `Dossier de nomination non trouvé avec l'ID ${rapport.dossierDeNominationId}`,
       );
 
-    const { datePriseDeFonctionPosteActuel, datePassageAuGrade } =
-      dossierDeNomination.content;
+    const datePriseDeFonctionPosteActuel = this.datePriseDeFonctionPosteActuel(
+      dossierDeNomination.content,
+    );
+    const datePassageAuGrade = this.datePassageAuGrade(
+      dossierDeNomination.content,
+    );
+
+    const dureeDuPosteEnMois =
+      datePriseDeFonctionPosteActuel && datePassageAuGrade
+        ? differenceInMonths(
+            DateOnly.fromJson(datePassageAuGrade).toDate(),
+            DateOnly.fromJson(datePriseDeFonctionPosteActuel).toDate(),
+          )
+        : null;
 
     return {
       id: rapport.id,
@@ -71,15 +99,23 @@ export class RetrieveReportUseCase {
       rank: dossierDeNomination.content.rank,
       observers: dossierDeNomination.content.observers,
       folderNumber: dossierDeNomination.content.folderNumber,
-      dureeDuPoste:
-        datePriseDeFonctionPosteActuel && datePassageAuGrade
-          ? differenceInMonths(
-              DateOnly.fromJson(datePassageAuGrade).toDate(),
-              DateOnly.fromJson(datePriseDeFonctionPosteActuel).toDate(),
-            )
-          : null,
+      dureeDuPoste: dureeDuPosteEnMois
+        ? formatMonthsToYearsAndMonths(dureeDuPosteEnMois)
+        : null,
       attachedFiles: rapport.files,
     };
+  }
+
+  datePriseDeFonctionPosteActuel(
+    content: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>['content'],
+  ) {
+    return content.version ? content.datePriseDeFonctionPosteActuel : null;
+  }
+
+  datePassageAuGrade(
+    content: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>['content'],
+  ) {
+    return content.version ? content.datePassageAuGrade : null;
   }
 }
 

@@ -1,11 +1,10 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { Affectation } from './affectation';
+import { DomainRegistry } from './domain-registry';
 import {
   DossierDeNomination,
   DossierDeNominationContent,
 } from './dossier-de-nomination';
-import { TypeDeSaisine } from 'shared-models';
-import { DomainRegistry } from './domain-registry';
 
 export type SessionSnapshot = {
   id: string;

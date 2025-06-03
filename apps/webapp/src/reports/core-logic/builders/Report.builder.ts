@@ -49,7 +49,7 @@ export class ReportBuilder {
       observers: ["observer 1", "observer 2"],
       attachedFiles: null,
       contentScreenshots: null,
-      dureeDuPoste: 48,
+      dureeDuPoste: "3 ans et 6 mois",
       rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }

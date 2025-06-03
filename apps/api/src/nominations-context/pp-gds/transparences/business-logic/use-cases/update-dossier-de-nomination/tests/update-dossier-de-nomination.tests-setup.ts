@@ -118,7 +118,7 @@ export const commandWithInformationCarriere =
     nominationFileModificationWithInformationCarriere,
   ]);
 
-export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS_V2> =
+export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
   {
     id: existingDossierDeNominationId,
     nominationFileImportedId: dossierDeNominationImportedId,

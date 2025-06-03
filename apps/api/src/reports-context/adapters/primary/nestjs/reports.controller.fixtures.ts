@@ -113,4 +113,4 @@ export const stubDossier = {
     informationCarrière: 'a information carrière',
     version: 2,
   },
-} satisfies DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS_V2>;
+} satisfies DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>;

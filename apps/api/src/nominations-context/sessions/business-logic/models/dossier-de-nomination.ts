@@ -13,10 +13,10 @@ export type ContenuInconnu = object;
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,
 > = S extends TypeDeSaisine.TRANSPARENCE_GDS
-  ? ContenuPropositionDeNominationTransparenceV1
-  : S extends TypeDeSaisine.TRANSPARENCE_GDS_V2
-    ? ContenuPropositionDeNominationTransparenceV2
-    : ContenuInconnu;
+  ?
+      | ContenuPropositionDeNominationTransparenceV1
+      | ContenuPropositionDeNominationTransparenceV2
+  : ContenuInconnu;
 
 export type DossierDeNominationSnapshot<
   S extends TypeDeSaisine | unknown = unknown,

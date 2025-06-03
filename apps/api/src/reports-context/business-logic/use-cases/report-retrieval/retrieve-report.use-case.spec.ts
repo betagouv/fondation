@@ -53,7 +53,7 @@ const aReportVM = new ReportRetrievalBuilder<ReportRetrievalVM>()
   ])
   .buildVM();
 
-const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS_V2> =
+const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
   {
     id: unDossierDeNominationId,
     sessionId: uneSessionId,

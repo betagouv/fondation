@@ -153,7 +153,7 @@ describe('Update dossier de nomination', () => {
   }
 
   function expectDossierWith(
-    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS_V2>,
+    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>,
   ) {
     const dossiers =
       dependencies.propropositionDeNominationTransparenceRepository.getDossiers();

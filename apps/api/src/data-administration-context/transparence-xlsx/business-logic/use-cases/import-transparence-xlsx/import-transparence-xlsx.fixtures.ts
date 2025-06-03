@@ -1,8 +1,8 @@
 import xlsx from 'node-xlsx';
 import { Gender, Magistrat, Role } from 'shared-models';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
-import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
 
@@ -27,11 +27,9 @@ type Colonne =
   | 'Passage au grade'
   | 'Eq./Av.'
   | 'Observants'
+  | 'Rapporteur'
   | 'Information carrière'
-  | 'Historique'
-  | 'Rapporteur 1'
-  | 'Rapporteur 2'
-  | 'Rapporteur 3 (note de synthèse pour le président de formation)';
+  | 'Historique';
 
 type Ligne = Record<Colonne, string | number | null>;
 
@@ -45,11 +43,9 @@ const ligne1 = {
   'Passage au grade': '27/3/2012',
   'Eq./Av.': Avancement.EQUIVALENCE,
   Observants: 'un observant',
+  Rapporteur: lucLoïcUser.fullName,
   'Information carrière': '',
   Historique: '- Biographie de E - poste 2',
-  'Rapporteur 1': lucLoïcUser.fullName,
-  'Rapporteur 2': '',
-  'Rapporteur 3 (note de synthèse pour le président de formation)': '',
 } satisfies Ligne;
 
 const genXlsxFile = (ligneOverride?: Partial<Ligne>) => {
