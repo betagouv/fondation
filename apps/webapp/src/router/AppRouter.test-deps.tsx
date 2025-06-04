@@ -17,10 +17,10 @@ import { initReduxStore, ReduxStore } from "../store/reduxStore";
 import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
 import {
   RouteProvider,
-  routeSegments,
   sessionForTestingPurpose,
   TypeRouterProvider,
 } from "./adapters/type-route/typeRouter";
+import { routeSegments } from "./core-logic/models/routeSegments";
 import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
 import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponentFactory";
 import { AppRouter } from "./AppRouter";
@@ -80,6 +80,12 @@ export const getTestDependencies = () => {
     await screen.findByText("transparencies");
     expect(window.location.pathname).toBe("/transparences");
   };
+
+  const expectSecrétariatGénéralDashboardPage = async () => {
+    await screen.findByText("Tableau de bord");
+    expect(window.location.pathname).toBe("/secretariat-general");
+  };
+
   const expectGdsReportsListPage = async () => {
     await screen.findByText(
       `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
@@ -125,6 +131,8 @@ export const getTestDependencies = () => {
       sessionForTestingPurpose.push(urlPath);
     });
   };
+
+  const visitTransparencesPage = () => visit("/transparences");
 
   const expectLoginPage = async () => {
     await screen.findByText("a login");
@@ -172,10 +180,12 @@ export const getTestDependencies = () => {
     routerProvider,
     logoutNotifierProvider,
     expectTransparenciesPage,
+    expectSecrétariatGénéralDashboardPage,
     expectGdsReportsListPage,
     expectGdsReportPage,
     expectDisallowedGdsReportPage,
     visitTransparencyPerFormationReports,
+    visitTransparencesPage,
     visitSomeReport,
     visit,
     expectLoginPage,

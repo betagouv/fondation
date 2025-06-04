@@ -4,15 +4,7 @@ import { RouterProvider } from "../../core-logic/providers/router";
 import { createRouter, defineRoute, param } from "type-route";
 import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
-
-export const routeSegments = {
-  propositionduGardeDesSceaux: "pouvoir-de-proposition-du-garde-des-sceaux",
-  transparences: "transparences",
-  dossiersDeNomination: "dossiers-de-nomination",
-  rapports: "rapports",
-  secretariatGeneral: "secretariat-general",
-  sgNouvelleTransparence: "secretariat-general/nouvelle-transparence",
-};
+import { routeSegments } from "../../core-logic/models/routeSegments";
 
 const secretariatGeneralRoute = defineRoute(
   `/${routeSegments.secretariatGeneral}`,
@@ -61,6 +53,7 @@ export class TypeRouterProvider implements RouterProvider {
   getLoginHref(): string {
     return routes.login().href;
   }
+
   getLoginAnchorAttributes() {
     return routes.login().link;
   }

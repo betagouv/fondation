@@ -41,14 +41,19 @@ describe("Composant Routeur de l'Application", () => {
       await deps.expectDisallowedGdsReportPage();
     });
 
+    it("accède à la page d'accueil du SG par défaut", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+      await deps.expectSecrétariatGénéralDashboardPage();
+    });
+
     it("accède à la page du tableau de bord du secrétariat général", async () => {
       deps.renderAppRouter();
       await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
 
       await deps.visit("/secretariat-general");
 
-      await screen.findByText("Tableau de bord");
-      expect(window.location.pathname).toBe("/secretariat-general");
+      await deps.expectSecrétariatGénéralDashboardPage();
     });
 
     it("accède à la page de nouvelle transparence du secrétariat général", async () => {
@@ -60,6 +65,15 @@ describe("Composant Routeur de l'Application", () => {
       expect(window.location.pathname).toBe(
         "/secretariat-general/nouvelle-transparence",
       );
+    });
+
+    it("redirige l'URL de la page transparences vers l'URL par défaut", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+
+      await deps.visitTransparencesPage();
+
+      await deps.expectSecrétariatGénéralDashboardPage();
     });
   });
 

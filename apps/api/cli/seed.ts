@@ -34,7 +34,7 @@ async function seed() {
   try {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
 
-    const user: typeof users.$inferInsert = {
+    const lucUser: typeof users.$inferInsert = {
       id: 'f8e4f8e4-4f5b-4c8b-9b2d-e7b8a9d6e7b8',
       firstName: 'luc',
       lastName: 'denan',
@@ -45,7 +45,18 @@ async function seed() {
       password: '$2b$10$ZsZ6Q01IdeksH/XkaZhzJuMLVCJC6TT2RbYkZ3oZDo85XkkOB5Ina',
     };
 
-    await db.insert(users).values(user).execute();
+    const jeanUser: typeof users.$inferInsert = {
+      id: '46f440ed-4421-4308-a65e-1241553a6cc4',
+      firstName: 'jean',
+      lastName: 'denan',
+      email: 'jean@example.fr',
+      role: Role.ADJOINT_SECRETAIRE_GENERAL,
+      gender: Gender.M,
+      // Unencrypted password is 'password+00'
+      password: '$2b$10$ZsZ6Q01IdeksH/XkaZhzJuMLVCJC6TT2RbYkZ3oZDo85XkkOB5Ina',
+    };
+
+    await db.insert(users).values([lucUser, jeanUser]).execute();
 
     const sessionA: SessionSnapshot = {
       id: 'f474d12d-9a27-44c8-a90b-f233b131235c',
@@ -89,7 +100,7 @@ async function seed() {
       .with('version', 1)
       .with('dossierDeNominationId', dossier1.id)
       .with('sessionId', sessionA.id)
-      .with('reporterId', user.id!)
+      .with('reporterId', lucUser.id!)
       .with('state', NominationFile.ReportState.IN_PROGRESS)
       .build();
 
@@ -118,7 +129,7 @@ async function seed() {
       .with('id', crypto.randomUUID())
       .with('dossierDeNominationId', dossier1.id)
       .with('sessionId', sessionA.id)
-      .with('reporterId', user.id!)
+      .with('reporterId', lucUser.id!)
       .with('version', 1)
       .with('formation', Magistrat.Formation.PARQUET)
       .with('state', NominationFile.ReportState.NEW)
