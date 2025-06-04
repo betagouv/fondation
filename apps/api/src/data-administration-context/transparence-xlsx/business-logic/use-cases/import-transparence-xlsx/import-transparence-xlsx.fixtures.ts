@@ -4,6 +4,8 @@ import { Avancement } from 'src/data-administration-context/lodam/business-logic
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
 
+export const nouvellTranspaEventId = 'event-id';
+
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
 export const lucLoïcUser = {
   userId: lucLoïcReporterId,

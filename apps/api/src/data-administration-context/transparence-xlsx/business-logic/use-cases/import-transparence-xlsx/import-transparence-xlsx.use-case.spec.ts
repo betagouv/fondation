@@ -1,4 +1,8 @@
 import { Magistrat } from 'shared-models';
+import {
+  GdsNewTransparenceImportedEvent,
+  GdsNewTransparenceImportedEventPayload,
+} from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
 import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
@@ -6,12 +10,12 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
 import {
   currentDate,
   jocelinUser,
   lucLoïcUser,
+  nouvellTranspaEventId as nouvelleTranspaEventId,
   unDossierSiège,
   uneTransparence,
   uneTransparenceAvecProfilé,
@@ -24,14 +28,18 @@ import { ImportTransparenceXlsxUseCase } from './import-transparence-xlsx.use-ca
 
 describe('Import Transparence XLSX Use Case', () => {
   let transparenceRepository: FakeTransparenceRepository;
-  let domainEventRepository: DomainEventRepository;
+  let domainEventRepository: FakeDomainEventRepository;
   let userService: FakeUserService;
 
   beforeEach(() => {
     domainEventRepository = new FakeDomainEventRepository();
     transparenceRepository = new FakeTransparenceRepository();
     const uuidGenerator = new DeterministicUuidGenerator();
-    uuidGenerator.nextUuids = [unDossierSiège.id, uneTransparence.id];
+    uuidGenerator.nextUuids = [
+      unDossierSiège.id,
+      uneTransparence.id,
+      nouvelleTranspaEventId,
+    ];
     DomainRegistry.setUuidGenerator(uuidGenerator);
     const dateTimeProvider = new DeterministicDateProvider();
     dateTimeProvider.currentDate = currentDate;
@@ -69,6 +77,47 @@ describe('Import Transparence XLSX Use Case', () => {
       expect(transparenceRepository.getTransparences()).toEqual([transparence]);
     },
   );
+
+  it("publie l'évènement Nouvelle transparence", async () => {
+    await importerTransparenceXlsx(
+      uneTransparenceXlsx,
+      uneTransparence.formation,
+      uneTransparence.name,
+    );
+
+    const event = domainEventRepository.events[0]!;
+    expect(event.id).toEqual(nouvelleTranspaEventId);
+    expect(event.type).toEqual(GdsNewTransparenceImportedEvent.name);
+    expect(event.occurredOn).toEqual(currentDate);
+    expect(event.payload).toEqual<GdsNewTransparenceImportedEventPayload>({
+      transparenceId: uneTransparence.id,
+      transparenceName: uneTransparence.name,
+      formation: uneTransparence.formation,
+      nominationFiles: [
+        {
+          nominationFileId: unDossierSiège.id,
+          content: {
+            numeroDeDossier: unDossierSiège.content.numeroDeDossier,
+            magistrat: unDossierSiège.content.magistrat,
+            posteCible: unDossierSiège.content.posteCible,
+            posteActuel: unDossierSiège.content.posteActuel,
+            dateDeNaissance: unDossierSiège.content.dateDeNaissance,
+            datePriseDeFonctionPosteActuel:
+              unDossierSiège.content.datePriseDeFonctionPosteActuel,
+            datePassageAuGrade: unDossierSiège.content.datePassageAuGrade,
+            equivalenceOuAvancement:
+              unDossierSiège.content.equivalenceOuAvancement,
+            grade: unDossierSiège.content.grade,
+            observers: unDossierSiège.content.observers,
+            informationCarriere: unDossierSiège.content.informationCarriere,
+            historique: unDossierSiège.content.historique,
+            rank: unDossierSiège.content.rank,
+            reporterIds: [lucLoïcUser.userId, jocelinUser.userId],
+          },
+        },
+      ],
+    });
+  });
 
   const importerTransparenceXlsx = async (
     xlsxFile: File,

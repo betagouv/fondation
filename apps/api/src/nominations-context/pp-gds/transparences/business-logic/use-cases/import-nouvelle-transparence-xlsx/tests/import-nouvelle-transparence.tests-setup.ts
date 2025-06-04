@@ -1,0 +1,77 @@
+import { Gender, Magistrat, Role, Transparency } from 'shared-models';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
+import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { ImportNouvelleTransparenceCommand } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/Import-nouvelle-transparence-xlsx.command';
+import { ImportNouvelleTransparenceUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
+import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
+
+export const aTransparencyName = Transparency.AUTOMNE_2024;
+export const aTransparenceImportId = 'transparence-import-id';
+export const aSessionId = aTransparencyName;
+export const aFormation = Magistrat.Formation.PARQUET;
+export const aDossierDeNominationId = 'dossier-de-nomination-id';
+export const aDossierDeNominationImportedId =
+  'dossier-de-nomination-imported-id';
+export const anEventId = 'dossier-de-nomination-event-id';
+export const aAffectationId = 'affectation-id';
+export const aPréAnalyseId = 'préanalyse-id';
+
+export const lucLoïcReporterId = 'luc-loic-reporter-id';
+export const lucLoïcUser = {
+  userId: lucLoïcReporterId,
+  firstName: 'LOIC',
+  lastName: 'LUC',
+  fullName: 'LUC Loïc',
+  role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
+};
+
+export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
+  {
+    nominationFileId: aDossierDeNominationImportedId,
+    content: {
+      historique: 'Nominee biography',
+      dateDeNaissance: { day: 1, month: 1, year: 1980 },
+      posteActuel: 'Current position',
+      posteCible: 'Target position',
+      dateEcheance: { day: 1, month: 6, year: 2023 },
+      numeroDeDossier: 1,
+      grade: Magistrat.Grade.I,
+      magistrat: 'Nominee Name',
+      observers: [],
+      rank: 'A',
+      reporterIds: [lucLoïcReporterId],
+      equivalenceOuAvancement: Avancement.AVANCEMENT,
+
+      datePassageAuGrade: { day: 1, month: 1, year: 2020 },
+      datePriseDeFonctionPosteActuel: { day: 1, month: 1, year: 2021 },
+      informationCarriere: 'Carrière',
+    },
+  };
+
+export const aCommand = new ImportNouvelleTransparenceCommand(
+  aTransparenceImportId,
+  aTransparencyName,
+  aFormation,
+  [aDossierDeNominationPayload],
+);
+
+export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
+  uuidGenerator.nextUuids = [
+    aSessionId,
+    aDossierDeNominationId,
+    anEventId,
+    aPréAnalyseId,
+    aAffectationId,
+  ];
+};
+
+export const importNouvelleTransparenceUseCase = async (
+  dependencies: ReturnType<typeof getDependencies>,
+) => {
+  await new ImportNouvelleTransparenceUseCase(
+    dependencies.nullTransactionPerformer,
+    dependencies.transparenceService,
+  ).execute(aCommand);
+};

@@ -51,8 +51,8 @@ export const propositionDeNominationTransparenceContentV1Schema = z.object({
 export const propositionDeNominationTransparenceContentV2Schema =
   propositionDeNominationTransparenceContentV1Schema.extend({
     version: z.literal(2),
-    datePassageAuGrade: dateOnlyJsonSchema,
-    datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
+    datePassageAuGrade: dateOnlyJsonSchema.nullable(),
+    datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
     informationCarrière: z.string().nullable(),
   }) satisfies z.ZodType<ContenuV2>;
 

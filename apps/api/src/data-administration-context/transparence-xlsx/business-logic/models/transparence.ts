@@ -57,20 +57,26 @@ export class Transparence {
       .filter((nominationFile) =>
         nominationFiles.hasRowNumber(nominationFile.rowNumber),
       )
-      .map((nominationFile) => ({
-        nominationFileId: nominationFile.id,
-        content: {
-          ...nominationFile.toSnapshot().content,
-          reporterIds:
-            nominationFile.reporterNames()?.map((reporter) => {
-              const userReporter = reporters[reporter];
-              if (!userReporter)
-                throw new Error(`User for reporter ${reporter} not found`);
+      .map((nominationFile) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { reporters: unusedReporters, ...content } =
+          nominationFile.toSnapshot().content;
 
-              return userReporter.userId;
-            }) || null,
-        },
-      }));
+        return {
+          nominationFileId: nominationFile.id,
+          content: {
+            ...content,
+            reporterIds:
+              nominationFile.reporterNames()?.map((reporter) => {
+                const userReporter = reporters[reporter];
+                if (!userReporter)
+                  throw new Error(`User for reporter ${reporter} not found`);
+
+                return userReporter.userId;
+              }) || null,
+          },
+        };
+      });
   }
 
   get id(): string {

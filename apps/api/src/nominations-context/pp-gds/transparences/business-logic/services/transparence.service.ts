@@ -1,15 +1,14 @@
+import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
-import { GdsTransparenceEventTransformer } from '../models/gds-transparence-event-transformer';
-import { TypeDeSaisine } from 'shared-models';
-import { ImportNouvelleTransparenceCommand } from '../use-cases/import-nouvelle-transparence/Import-nouvelle-transparence.command';
-import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
+import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
+import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { GdsTransparenceEventTransformer } from '../models/gds-transparence-event-transformer';
 
 export class TransparenceService {
   constructor(
@@ -20,15 +19,17 @@ export class TransparenceService {
     private readonly domainEventRepository: DomainEventRepository,
   ) {}
 
-  nouvelleSession(
-    command: ImportNouvelleTransparenceCommand,
+  nouvelleTransparence(
+    transparenceImportéeId: string,
+    transparenceName: string,
+    formation: Magistrat.Formation,
   ): TransactionableAsync<Session> {
     return async (trx) => {
       const session = Session.nouvelle(
-        command.transparenceId,
-        command.transparenceName,
+        transparenceImportéeId,
+        transparenceName,
         TypeDeSaisine.TRANSPARENCE_GDS,
-        command.formation,
+        formation,
       );
       await this.sessionRepository.save(session)(trx);
       return session;
