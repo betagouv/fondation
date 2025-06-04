@@ -1,0 +1,1 @@
+ALTER TYPE "identity_and_access_context"."role" ADD VALUE 'ADJOINT_SECRETAIRE_GENERAL';

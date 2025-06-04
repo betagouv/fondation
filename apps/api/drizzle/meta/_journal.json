@@ -344,6 +344,13 @@
       "when": 1748605795145,
       "tag": "0048_data_admin__text_nom_transparence",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1749031103984,
+      "tag": "0049_iac__role-adjoint-secretaire-general",
+      "breakpoints": true
     }
   ]
 }

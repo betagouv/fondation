@@ -4,6 +4,8 @@ export const selectRouteToComponent = createAppSelector(
   [
     (state) => state.router.routeToComponent,
     (state) => state.authentication.authenticated,
+    (state) => state.authentication.user?.role,
   ],
-  (routeToComponent, authenticated) => routeToComponent(authenticated),
+  (routeToComponent, authenticated, role) =>
+    routeToComponent(authenticated, role || null),
 );

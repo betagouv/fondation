@@ -30,11 +30,20 @@ export class HasReadFilePermissionUseCase {
           Role.MEMBRE_COMMUN,
           Role.MEMBRE_DU_SIEGE,
           Role.MEMBRE_DU_PARQUET,
+          Role.ADJOINT_SECRETAIRE_GENERAL,
         ];
       case FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET:
-        return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_PARQUET];
+        return [
+          Role.MEMBRE_COMMUN,
+          Role.MEMBRE_DU_PARQUET,
+          Role.ADJOINT_SECRETAIRE_GENERAL,
+        ];
       case FileType.PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE:
-        return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_SIEGE];
+        return [
+          Role.MEMBRE_COMMUN,
+          Role.MEMBRE_DU_SIEGE,
+          Role.ADJOINT_SECRETAIRE_GENERAL,
+        ];
       default:
         const _exhaustiveCheck: never = fileType;
         throw new Error(`Unhandled file type: ${_exhaustiveCheck}`);

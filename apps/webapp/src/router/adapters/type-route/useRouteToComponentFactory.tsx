@@ -9,10 +9,11 @@ import {
   routeToReactComponentMap,
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
+import { Role } from "shared-models";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
-  (isAuthenticated: boolean) => {
+  (isAuthenticated: boolean, role: Role | null) => {
     const useRouteToComponent = () => {
       const route = useRoute();
 
@@ -22,7 +23,11 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
 
       const protectedComponent = (component: JSX.Element) => {
         return route.name &&
-          new RouterAccessControl().safeAccess(route.name, isAuthenticated)
+          new RouterAccessControl().safeAccess(
+            route.name,
+            isAuthenticated,
+            role,
+          )
           ? component
           : null;
       };
@@ -36,11 +41,11 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
         }
         case "secretariatGeneral": {
           const Component = routeToComponentMap[route.name];
-          return suspensed(<Component />);
+          return suspensed(protectedComponent(<Component />));
         }
         case "sgNouvelleTransparence": {
           const Component = routeToComponentMap[route.name];
-          return suspensed(<Component />);
+          return suspensed(protectedComponent(<Component />));
         }
         case "transparencies": {
           const Component = routeToComponentMap[route.name];

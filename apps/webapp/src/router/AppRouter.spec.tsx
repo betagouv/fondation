@@ -1,176 +1,138 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { join } from "node:path";
-import { Provider } from "react-redux";
-import { Gender, Magistrat, Role, Transparency } from "shared-models";
-import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
-import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
-import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
-import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
-import { initializeAuthenticationState } from "../authentication/core-logic/listeners/authentication.listeners";
-import {
-  authenticate,
-  AuthenticateParams,
-} from "../authentication/core-logic/use-cases/authentication/authenticate";
-import { ReportListProps } from "../reports/adapters/primary/components/ReportList/ReportList";
-import { sleep } from "../shared-kernel/core-logic/sleep";
-import { initReduxStore, ReduxStore } from "../store/reduxStore";
-import { RouteToComponentMap } from "./adapters/routeToReactComponentMap";
-import {
-  RouteProvider,
-  routeSegments,
-  sessionForTestingPurpose,
-  TypeRouterProvider,
-} from "./adapters/type-route/typeRouter";
-import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
-import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponentFactory";
-import { AppRouter } from "./AppRouter";
-import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listeners";
-import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
-import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
-import { FormationsRoutesMapper } from "./core-logic/models/formations-routes-mapper";
-import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
+import { getTestDependencies, TestDependencies } from "./AppRouter.test-deps";
 
-const routeToComponentMap: RouteToComponentMap<false> = {
-  login: () => <div>a login</div>,
-  transparencies: () => <div>transparencies</div>,
-  reportList: (props: Partial<ReportListProps>) => (
-    <div>a list with transparency: {props.transparency}</div>
-  ),
-  reportOverview: () => <div>an overview</div>,
-  secretariatGeneral: () => <div>Tableau de bord</div>,
-  sgNouvelleTransparence: () => <div>Nouvelle transparence</div>,
-};
-
-describe("App Router Component", () => {
-  let store: ReduxStore;
-  let authenticationGateway: ApiAuthenticationGateway;
-  let routerProvider: TypeRouterProvider;
-  let apiClient: FakeAuthenticationApiClient;
-  let logoutNotifierProvider: StubLogoutNotifierProvider;
+describe("Composant Routeur de l'Application", () => {
+  let deps: TestDependencies;
 
   beforeEach(() => {
-    apiClient = new FakeAuthenticationApiClient();
-    authenticationGateway = new ApiAuthenticationGateway(apiClient);
-    routerProvider = new TypeRouterProvider();
-    logoutNotifierProvider = new StubLogoutNotifierProvider();
-
-    store = initReduxStore(
-      { authenticationGateway },
-      { routerProvider, logoutNotifierProvider },
-      {
-        routeToComponentFactory: useRouteToComponentFactory,
-        routeChangedHandler: useRouteChanged,
-      },
-
-      {
-        redirectOnRouteChange,
-        redirectOnLogin,
-        redirectOnLogout,
-        initializeAuthenticationState,
-      },
-      routeToComponentMap,
-    );
+    deps = getTestDependencies();
   });
 
-  it("visits the login page by default", async () => {
-    renderAppRouter();
-    await expectLoginPage();
+  it("affiche la page de connexion par défaut", async () => {
+    deps.renderAppRouter();
+    await deps.expectLoginPage();
   });
 
-  it("cannot visit the transparencies page", async () => {
-    renderAppRouter();
-    visit("/transparences");
-    await expectLoginPage();
+  it("ne peut pas accéder à la page des transparences", async () => {
+    deps.renderAppRouter();
+    await deps.visit("/transparences");
+    await deps.expectLoginPage();
   });
 
-  it("cannot show the report list page before the redirection", async () => {
-    store = initReduxStore(
-      { authenticationGateway },
-      { routerProvider },
-      {
-        routeToComponentFactory: useRouteToComponentFactory,
-        // routeChangedHandler is omitted here to prevent the redirection
-      },
-      {},
-      routeToComponentMap,
-    );
-    renderAppRouter();
+  it("ne peut pas afficher la page de liste des rapports avant la redirection", async () => {
+    deps.initStoreNoRouteChangedHandler();
+    deps.renderAppRouter();
 
     act(() => {
-      routerProvider.goToTransparencies();
+      deps.routerProvider.goToTransparencies();
     });
 
     await expect(screen.findByText("transparencies")).rejects.toThrow();
   });
 
-  describe("Authenticated user", () => {
-    it("visits the secretariat general dashboard page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
-      visit("/secretariat-general");
+  describe("Adjoint Secrétaire Général authentifié", () => {
+    it("n'accède pas aux rapports des membres", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+
+      await deps.visitSomeReport();
+
+      await deps.expectDisallowedGdsReportPage();
+    });
+
+    it("accède à la page du tableau de bord du secrétariat général", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+
+      await deps.visit("/secretariat-general");
+
       await screen.findByText("Tableau de bord");
       expect(window.location.pathname).toBe("/secretariat-general");
     });
 
-    it("visits the secretariat general nouvelle transparence page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
-      visit("/secretariat-general/nouvelle-transparence");
+    it("accède à la page de nouvelle transparence du secrétariat général", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+
+      await deps.visit("/secretariat-general/nouvelle-transparence");
+
       expect(window.location.pathname).toBe(
         "/secretariat-general/nouvelle-transparence",
       );
     });
+  });
 
-    it("visits the transparencies page by default", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
-      await expectTransparenciesPage();
+  describe("Membre authentifié", () => {
+    it("n'accède pas à la page du tableau de bord du secrétariat général", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
+
+      await deps.visit("/secretariat-general");
+
+      await expect(screen.findByText("Tableau de bord")).rejects.toThrow();
     });
 
-    it("redirects root url to the transparencies page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
+    it("n'accède pas à la page de nouvelle transparence du secrétariat général", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
 
-      visit("/");
+      await deps.visit("/secretariat-general/nouvelle-transparence");
 
-      await expectTransparenciesPage();
+      await expect(
+        screen.findByText("Nouvelle transparence"),
+      ).rejects.toThrow();
     });
 
-    it("redirects from login to the transparencies page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
-
-      visit("/login");
-
-      await expectTransparenciesPage();
+    it("accède à la page des transparences par défaut", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
+      await deps.expectTransparenciesPage();
     });
 
-    it("visits the report list page filtered by transparency", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
+    it("redirige l'URL racine vers la page des transparences", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
 
-      visitTransparencyPerFormationReports();
+      await deps.visit("/");
 
-      await expectGdsReportsListPage();
+      await deps.expectTransparenciesPage();
     });
 
-    it("redirects from '/dossiers-de-nomination' to the transparencies page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
+    it("redirige depuis la page de connexion vers la page des transparences", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
 
-      visit("/dossiers-de-nomination");
+      await deps.visit("/login");
 
-      await expectTransparenciesPage();
+      await deps.expectTransparenciesPage();
     });
 
-    it("visits the report overview page", async () => {
-      renderAppRouter();
-      await givenAnAuthenticatedUser();
+    it("accède à la page de liste des rapports filtrée par transparence", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
 
-      visitSomeReport();
+      await deps.visitTransparencyPerFormationReports();
 
-      await expectGdsReportPage();
+      await deps.expectGdsReportsListPage();
+    });
+
+    it("redirige depuis '/dossiers-de-nomination' vers la page des transparences", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
+
+      await deps.visit("/dossiers-de-nomination");
+
+      await deps.expectTransparenciesPage();
+    });
+
+    it("accède à la page de détail du rapport", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedMembre();
+
+      await deps.visitSomeReport();
+
+      await deps.expectGdsReportPage();
     });
 
     const logoutTestData: {
@@ -181,120 +143,18 @@ describe("App Router Component", () => {
       { elementIndex: 1, device: "mobile" },
     ];
     it.each(logoutTestData)(
-      "on $device, it disconnects the user and redirects it to the login page",
+      "sur $device, déconnecte l'utilisateur et le redirige vers la page de connexion",
       async ({ elementIndex }) => {
-        renderAppRouter();
-        await givenAnAuthenticatedUser();
+        deps.renderAppRouter();
+        await deps.givenAnAuthenticatedMembre();
 
         await userEvent.click(
           screen.getAllByText("Se déconnecter")[elementIndex]!,
         );
-        await waitListenersCompletion();
+        await deps.waitListenersCompletion();
 
-        await expectLoginPage();
+        await deps.expectLoginPage();
       },
     );
-
-    const expectTransparenciesPage = async () => {
-      await screen.findByText("transparencies");
-      expect(window.location.pathname).toBe("/transparences");
-    };
-    const expectGdsReportsListPage = async () => {
-      await screen.findByText(
-        `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
-      );
-      expect(window.location.pathname).toBe(
-        join(
-          baseTransaparencySegment,
-          FormationsRoutesMapper.formationToPathSegmentMap[
-            Magistrat.Formation.PARQUET
-          ],
-          routeSegments.rapports,
-        ),
-      );
-    };
-    const expectGdsReportPage = async () => {
-      await screen.findByText("an overview");
-      expect(window.location.pathname).toBe(
-        join(
-          baseTransaparencySegment,
-          routeSegments.rapports,
-          "some-report-id",
-        ),
-      );
-    };
   });
-
-  const visitTransparencyPerFormationReports = async () =>
-    visit(
-      join(
-        baseTransaparencySegment,
-        FormationsRoutesMapper.formationToPathSegmentMap[
-          Magistrat.Formation.PARQUET
-        ],
-        routeSegments.rapports,
-      ),
-    );
-
-  const visitSomeReport = async () =>
-    visit(
-      join(baseTransaparencySegment, routeSegments.rapports, "some-report-id"),
-    );
-
-  const visit = async (urlPath: string) => {
-    act(() => {
-      sessionForTestingPurpose.push(urlPath);
-    });
-  };
-
-  const expectLoginPage = async () => {
-    await screen.findByText("a login");
-    expect(window.location.pathname).toBe(routerProvider.getLoginHref());
-  };
-
-  const waitListenersCompletion = () => sleep(50);
-
-  const givenAnAuthenticatedUser = async () => {
-    await act(async () => {
-      apiClient.setEligibleAuthUser(
-        userCredentials.email,
-        userCredentials.password,
-        user.firstName,
-        user.lastName,
-        user.role,
-        user.gender,
-      );
-      store.dispatch(authenticate.fulfilled(user, "", userCredentials));
-      await waitListenersCompletion();
-    });
-  };
-
-  const renderAppRouter = () => {
-    return render(
-      <Provider store={store}>
-        <RouteProvider>
-          <AppRouter />
-        </RouteProvider>
-      </Provider>,
-    );
-  };
 });
-
-const baseTransaparencySegment = join(
-  `/${routeSegments.transparences}`,
-  routeSegments.propositionduGardeDesSceaux,
-  GdsTransparenciesRoutesMapper.transparencyToPathSegmentMap[
-    Transparency.PARQUET_DU_06_FEVRIER_2025
-  ],
-);
-
-const user: AuthenticatedUserSM = {
-  firstName: "John",
-  lastName: "Doe",
-  role: Role.MEMBRE_COMMUN,
-  gender: Gender.M,
-};
-const userCredentials: AuthenticateParams = {
-  email: "user@example.fr",
-  password: "password",
-};

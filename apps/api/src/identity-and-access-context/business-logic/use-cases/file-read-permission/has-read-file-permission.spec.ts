@@ -1,49 +1,52 @@
-import { FakeFileRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-file.repository';
-import { FakeUserRepository } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/fake-user-repository';
-import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { UserBuilder } from '../../builders/user.builder';
-import { Role } from 'shared-models';
-import { HasReadFilePermissionUseCase } from './has-read-file-permission.use-case';
 import { FileType } from '../../models/file-type';
+import {
+  adjointSecrétaireGeneral,
+  fileId,
+  getTestDependencies,
+  membreCommun,
+  membreDuParquet,
+  membreDuSiege,
+  TestDependencies,
+} from './test-dependencies';
 
-const membreCommun = new UserBuilder().with('role', Role.MEMBRE_COMMUN).build();
-const membreDuSiege = new UserBuilder()
-  .with('role', Role.MEMBRE_DU_SIEGE)
-  .build();
-const membreDuParquet = new UserBuilder()
-  .with('role', Role.MEMBRE_DU_PARQUET)
-  .build();
-
-describe('Has Read File Permission', () => {
-  let transactionPerformer: TransactionPerformer;
-  let userRepository: FakeUserRepository;
-  let fileRepository: FakeFileRepository;
+describe('Permissions de lecture de fichier', () => {
+  let deps: TestDependencies;
 
   beforeEach(() => {
-    transactionPerformer = new NullTransactionPerformer();
-    userRepository = new FakeUserRepository();
-    fileRepository = new FakeFileRepository();
+    deps = getTestDependencies();
   });
 
-  it('should deny a non-registered user to access a transparency attachment file', async () => {
-    fileRepository.addFile({
+  it("refuse à un utilisateur non enregistré l'accès à une pièce jointe de transparence", async () => {
+    deps.fileRepository.addFile({
       fileId,
       type: FileType.PIECE_JOINTE_TRANSPARENCE,
     });
-    expect(await hasReadFilePermission()).toBe(false);
+    expect(await deps.hasReadFilePermission()).toBe(false);
   });
 
-  describe('Membre commun', () => {
+  describe.each([
+    {
+      role: 'Membre Commun',
+      user: membreCommun,
+    },
+    {
+      role: 'Adjoint Secrétaire Général',
+      user: adjointSecrétaireGeneral,
+    },
+  ])('$role', ({ user }) => {
     beforeEach(() => {
-      userRepository.users = {
-        [membreCommun.id]: membreCommun,
+      deps.userRepository.users = {
+        [user.id]: user,
       };
     });
 
-    it('should allow a reporter to access a transparency attachment file', async () => {
-      givenSomeFile();
-      expect(await hasReadFilePermission()).toBe(true);
+    it.each([
+      FileType.PIECE_JOINTE_TRANSPARENCE,
+      FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET,
+      FileType.PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE,
+    ])(`autorise l'accès à une pièce jointe de type %s`, async (fileType) => {
+      deps.givenSomeFile(fileType);
+      await deps.expectReadApproved();
     });
   });
 
@@ -60,34 +63,14 @@ describe('Has Read File Permission', () => {
     },
   ])('$describeName', ({ fileType, user }) => {
     beforeEach(() => {
-      userRepository.users = {
+      deps.userRepository.users = {
         [user.id]: user,
       };
     });
 
-    it(`should deny access to transparency attachment file of type: ${fileType}`, async () => {
-      givenSomeFile(fileType);
-      expect(await hasReadFilePermission()).toBe(false);
+    it(`devrait refuser l'accès à une pièce jointe de transparence de type: ${fileType}`, async () => {
+      deps.givenSomeFile(fileType);
+      await deps.expectReadDenied();
     });
   });
-
-  const hasReadFilePermission = () => {
-    return new HasReadFilePermissionUseCase(
-      transactionPerformer,
-      userRepository,
-      fileRepository,
-    ).execute({
-      userId: membreCommun.id,
-      fileId,
-    });
-  };
-
-  const givenSomeFile = (fileType = FileType.PIECE_JOINTE_TRANSPARENCE) => {
-    fileRepository.addFile({
-      fileId,
-      type: fileType,
-    });
-  };
 });
-
-const fileId = 'file-id';
