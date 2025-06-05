@@ -20,6 +20,8 @@ export type GdsNewTransparenceImportedEventPayload = {
   transparenceName: string;
   formation: Magistrat.Formation;
   dateEchéance: DateOnlyJson;
+  dateTransparence: DateOnlyJson;
+  dateClôtureDélaiObservation: DateOnlyJson | null;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
@@ -41,6 +43,8 @@ export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceName: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
   dateEchéance: DateOnly.ZOD_JSON_SCHEMA,
+  dateTransparence: DateOnly.ZOD_JSON_SCHEMA,
+  dateClôtureDélaiObservation: DateOnly.ZOD_JSON_SCHEMA.nullable(),
   nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
 

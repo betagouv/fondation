@@ -164,6 +164,16 @@ const genUneTransparence = (
     month: 1,
     year: 2025,
   },
+  dateTransparence: {
+    day: 1,
+    month: 1,
+    year: 2024,
+  },
+  dateClôtureDélaiObservation: {
+    day: 1,
+    month: 10,
+    year: 2023,
+  },
   nominationFiles: [dossier],
 });
 

@@ -22,13 +22,17 @@ export class TransparenceService {
     transparenceImportéeId: string,
     transparenceName: string,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
   ): TransactionableAsync<Session> {
     return async (trx) => {
-      const session = Session.nouvelle(
+      const session = Session.nouvelleTransparence(
         transparenceImportéeId,
         transparenceName,
         TypeDeSaisine.TRANSPARENCE_GDS,
         formation,
+        dateTransparence,
+        dateClôtureDélaiObservation,
       );
       await this.sessionRepository.save(session)(trx);
       return session;

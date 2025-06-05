@@ -7,6 +7,8 @@ export class ImportNouvelleTransparenceXlsxCommand {
     private readonly _transparenceName: string,
     private readonly _formation: Magistrat.Formation,
     private readonly _dateEchéance: DateOnlyJson,
+    private readonly _dateTransparence: DateOnlyJson,
+    private readonly _dateClôtureDélaiObservation: DateOnlyJson | null,
     private readonly _nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'],
   ) {}
 
@@ -22,6 +24,12 @@ export class ImportNouvelleTransparenceXlsxCommand {
   get dateEchéance(): DateOnlyJson {
     return this._dateEchéance;
   }
+  get dateTransparence(): DateOnlyJson {
+    return this._dateTransparence;
+  }
+  get dateClôtureDélaiObservation(): DateOnlyJson | null {
+    return this._dateClôtureDélaiObservation;
+  }
   get nominationFilesPayload(): GdsNewTransparenceImportedEventPayload['nominationFiles'] {
     return this._nominationFilesPayload;
   }
@@ -31,6 +39,8 @@ export class ImportNouvelleTransparenceXlsxCommand {
     transparenceName: string;
     formation: Magistrat.Formation;
     dateEchéance: DateOnlyJson;
+    dateTransparence: DateOnlyJson;
+    dateClôtureDélaiObservation: DateOnlyJson | null;
     nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'];
   }): ImportNouvelleTransparenceXlsxCommand {
     return new ImportNouvelleTransparenceXlsxCommand(
@@ -38,6 +48,8 @@ export class ImportNouvelleTransparenceXlsxCommand {
       arg.transparenceName,
       arg.formation,
       arg.dateEchéance,
+      arg.dateTransparence,
+      arg.dateClôtureDélaiObservation,
       arg.nominationFilesPayload,
     );
   }

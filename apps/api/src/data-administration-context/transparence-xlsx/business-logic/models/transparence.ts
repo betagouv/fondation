@@ -15,6 +15,8 @@ export type TransparenceSnapshot = {
   name: string;
   formation: Magistrat.Formation;
   dateEchéance: DateOnlyJson;
+  dateTransparence: DateOnlyJson;
+  dateClôtureDélaiObservation: DateOnlyJson | null;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -28,12 +30,17 @@ export class Transparence {
     private _name: string,
     formation: Magistrat.Formation,
     private _dateEchéance: DateOnlyJson,
+    private _dateTransparence: DateOnlyJson,
+    private _dateClôtureDélaiObservation: DateOnlyJson | null,
+
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
     this.formation = formation;
     this.nominationFiles = nominationFiles;
     this.setDateEchéance(_dateEchéance);
+    this.setDateTransparence(_dateTransparence);
+    this.setDateClôtureDélaiObservation(_dateClôtureDélaiObservation);
   }
 
   addNewNominationFiles(
@@ -107,6 +114,16 @@ export class Transparence {
   setDateEchéance(_dateEchéance: DateOnlyJson) {
     this._dateEchéance = dateOnlyJsonSchema.parse(_dateEchéance);
   }
+  setDateTransparence(_dateTransparence: DateOnlyJson) {
+    this._dateTransparence = dateOnlyJsonSchema.parse(_dateTransparence);
+  }
+  setDateClôtureDélaiObservation(
+    _dateClôtureDélaiObservation: DateOnlyJson | null,
+  ) {
+    this._dateClôtureDélaiObservation = dateOnlyJsonSchema
+      .nullable()
+      .parse(_dateClôtureDélaiObservation);
+  }
 
   get nominationFiles(): NominationFileModel[] {
     return Object.values(this._nominationFiles);
@@ -136,6 +153,8 @@ export class Transparence {
       createdAt: this._createdAt,
       formation: this._formation,
       dateEchéance: this._dateEchéance,
+      dateTransparence: this._dateTransparence,
+      dateClôtureDélaiObservation: this._dateClôtureDélaiObservation,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
@@ -149,6 +168,8 @@ export class Transparence {
       snapshot.name,
       snapshot.formation,
       snapshot.dateEchéance,
+      snapshot.dateTransparence,
+      snapshot.dateClôtureDélaiObservation,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
     );
   }
@@ -157,6 +178,8 @@ export class Transparence {
     name: string,
     formation: Magistrat.Formation,
     dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
@@ -166,8 +189,9 @@ export class Transparence {
       createdAt,
       name,
       formation,
-
       dateEchéance,
+      dateTransparence,
+      dateClôtureDélaiObservation,
       nominationFiles,
     );
   }

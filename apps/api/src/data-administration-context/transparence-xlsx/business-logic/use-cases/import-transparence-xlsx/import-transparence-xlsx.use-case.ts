@@ -15,6 +15,8 @@ export class ImportTransparenceXlsxUseCase {
     formation: Magistrat.Formation,
     nomTransparence: string,
     dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
   ): Promise<void> {
     await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
@@ -27,6 +29,8 @@ export class ImportTransparenceXlsxUseCase {
         nomTransparence,
         formation,
         dateEchéance,
+        dateTransparence,
+        dateClôtureDélaiObservation,
         readCollection,
       )(trx);
     });

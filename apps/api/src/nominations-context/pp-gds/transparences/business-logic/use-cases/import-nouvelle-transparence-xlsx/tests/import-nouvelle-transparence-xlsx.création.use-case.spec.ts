@@ -1,5 +1,7 @@
 import { TypeDeSaisine } from 'shared-models';
 import {
+  aDateClôtureDélaiObservation,
+  aDateTransparence,
   aFormation,
   aSessionId,
   aTransparenceImportId,
@@ -28,7 +30,7 @@ describe('Nouvelle transparence', () => {
 
   const expectTransparence = () => {
     expect(Object.values(dependencies.sessionRepository.fakeSessions)).toEqual<
-      SessionSnapshot[]
+      SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>[]
     >([
       {
         id: aSessionId,
@@ -37,6 +39,10 @@ describe('Nouvelle transparence', () => {
         formation: aFormation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         version: 0,
+        content: {
+          dateTransparence: aDateTransparence,
+          dateClôtureDélaiObservation: aDateClôtureDélaiObservation,
+        },
       },
     ]);
   };

@@ -25,6 +25,8 @@ export class TransparenceService {
     nomTransparence: string,
     formation: Magistrat.Formation,
     dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
     return async (trx) => {
@@ -33,6 +35,8 @@ export class TransparenceService {
         nomTransparence,
         formation,
         dateEchéance,
+        dateTransparence,
+        dateClôtureDélaiObservation,
         nominationFiles,
       );
 
@@ -43,6 +47,8 @@ export class TransparenceService {
         transparenceName: transparence.name,
         formation,
         dateEchéance,
+        dateTransparence,
+        dateClôtureDélaiObservation,
         nominationFiles: await this.nominationFilesWithReportersIds(
           readCollection,
           transparence,

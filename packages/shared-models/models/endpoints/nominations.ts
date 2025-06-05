@@ -2,6 +2,7 @@ import { z } from "zod";
 import { RestContract, ZodParamsDto } from "./common";
 import { Magistrat } from "../magistrat.namespace";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
+import { DateOnlyJson } from "models/date";
 
 type SessionSnapshotResponse = {
   id: string;
@@ -35,6 +36,22 @@ export interface NominationsContextSessionsRestContract extends RestContract {
         sessionId: string;
         nominationFileImportedId: string;
         content: object;
+      };
+    };
+  };
+}
+
+export interface NominationsContextTransparenceRestContract
+  extends RestContract {
+  basePath: "api/nominations/transparence";
+  endpoints: {
+    transparenceSnapshot: {
+      method: "GET";
+      path: "snapshot/by-nom-formation-et-date";
+      queryParams: {
+        nom: string;
+        formation: Magistrat.Formation;
+        dateTransparence: DateOnlyJson;
       };
     };
   };

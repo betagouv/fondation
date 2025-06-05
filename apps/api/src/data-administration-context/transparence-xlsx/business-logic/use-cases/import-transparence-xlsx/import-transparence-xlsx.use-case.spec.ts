@@ -55,6 +55,8 @@ describe('Import Transparence XLSX Use Case', () => {
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,
+      uneTransparence.dateTransparence,
+      uneTransparence.dateClôtureDélaiObservation,
     );
 
     expect(transparenceRepository.getTransparences()).toEqual([
@@ -74,6 +76,8 @@ describe('Import Transparence XLSX Use Case', () => {
         transparence.formation,
         transparence.name,
         transparence.dateEchéance,
+        transparence.dateTransparence,
+        transparence.dateClôtureDélaiObservation,
       );
 
       expect(transparenceRepository.getTransparences()).toEqual([transparence]);
@@ -86,6 +90,8 @@ describe('Import Transparence XLSX Use Case', () => {
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,
+      uneTransparence.dateTransparence,
+      uneTransparence.dateClôtureDélaiObservation,
     );
 
     const event = domainEventRepository.events[0]!;
@@ -97,6 +103,8 @@ describe('Import Transparence XLSX Use Case', () => {
       transparenceName: uneTransparence.name,
       formation: uneTransparence.formation,
       dateEchéance: uneTransparence.dateEchéance,
+      dateTransparence: uneTransparence.dateTransparence,
+      dateClôtureDélaiObservation: uneTransparence.dateClôtureDélaiObservation,
       nominationFiles: [
         {
           nominationFileId: unDossierSiège.id,
@@ -128,6 +136,8 @@ describe('Import Transparence XLSX Use Case', () => {
     formation: Magistrat.Formation,
     name: string,
     dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
   ) =>
     new ImportTransparenceXlsxUseCase(
       new NullTransactionPerformer(),
@@ -136,5 +146,12 @@ describe('Import Transparence XLSX Use Case', () => {
         transparenceRepository,
         userService,
       ),
-    ).execute(xlsxFile, formation, name, dateEchéance);
+    ).execute(
+      xlsxFile,
+      formation,
+      name,
+      dateEchéance,
+      dateTransparence,
+      dateClôtureDélaiObservation,
+    );
 });

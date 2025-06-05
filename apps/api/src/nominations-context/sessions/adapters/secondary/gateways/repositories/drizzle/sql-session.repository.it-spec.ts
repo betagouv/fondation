@@ -41,12 +41,15 @@ describe('SQL Session Repository', () => {
   });
 
   it('saves a session', async () => {
-    const aSession = Session.nouvelle(
-      aSessionimportéeId,
-      aSessionName,
-      aTypeDeSaisine,
-      aFormation,
-    );
+    const aSession = Session.fromSnapshot({
+      id: aSessionId,
+      name: aSessionName,
+      sessionImportéeId: aSessionimportéeId,
+      typeDeSaisine: aTypeDeSaisine,
+      formation: aFormation,
+      version: 0,
+      content: {},
+    });
 
     await transactionPerformer.perform(sqlSessionRepository.save(aSession));
 
@@ -142,4 +145,5 @@ const sessionSnapshot: SessionSnapshot = {
   formation: aFormation,
   typeDeSaisine: aTypeDeSaisine,
   version: 1,
+  content: {},
 };

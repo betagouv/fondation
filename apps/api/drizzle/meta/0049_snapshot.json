@@ -223,9 +223,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraints": {}
@@ -274,12 +272,8 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity_and_access_context",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -333,9 +327,7 @@
         "affectation_session_id_unique": {
           "name": "affectation_session_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_id"
-          ]
+          "columns": ["session_id"]
         }
       },
       "checkConstraints": {}
@@ -384,9 +376,7 @@
         "dossier_de_nomination_dossier_de_nomination_import_id_unique": {
           "name": "dossier_de_nomination_dossier_de_nomination_import_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "dossier_de_nomination_import_id"
-          ]
+          "columns": ["dossier_de_nomination_import_id"]
         }
       },
       "checkConstraints": {}
@@ -429,9 +419,7 @@
         "pre_analyse_dossier_de_nomination_id_unique": {
           "name": "pre_analyse_dossier_de_nomination_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "dossier_de_nomination_id"
-          ]
+          "columns": ["dossier_de_nomination_id"]
         }
       },
       "checkConstraints": {}
@@ -495,9 +483,7 @@
         "session_session_import_id_unique": {
           "name": "session_session_import_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_import_id"
-          ]
+          "columns": ["session_import_id"]
         }
       },
       "checkConstraints": {}
@@ -554,12 +540,8 @@
           "tableFrom": "report_rule",
           "tableTo": "reports",
           "schemaTo": "reports_context",
-          "columnsFrom": [
-            "report_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["report_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -693,9 +675,7 @@
     "files_context.storage_provider": {
       "name": "storage_provider",
       "schema": "files_context",
-      "values": [
-        "SCALEWAY"
-      ]
+      "values": ["SCALEWAY"]
     },
     "identity_and_access_context.file_type": {
       "name": "file_type",
@@ -709,10 +689,7 @@
     "identity_and_access_context.gender": {
       "name": "gender",
       "schema": "identity_and_access_context",
-      "values": [
-        "MALE",
-        "FEMALE"
-      ]
+      "values": ["MALE", "FEMALE"]
     },
     "identity_and_access_context.role": {
       "name": "role",
@@ -727,28 +704,17 @@
     "nominations_context.type_de_saisine": {
       "name": "type_de_saisine",
       "schema": "nominations_context",
-      "values": [
-        "TRANSPARENCE_GDS"
-      ]
+      "values": ["TRANSPARENCE_GDS"]
     },
     "public.report_state": {
       "name": "report_state",
       "schema": "public",
-      "values": [
-        "NEW",
-        "IN_PROGRESS",
-        "READY_TO_SUPPORT",
-        "SUPPORTED"
-      ]
+      "values": ["NEW", "IN_PROGRESS", "READY_TO_SUPPORT", "SUPPORTED"]
     },
     "reports_context.rule_group": {
       "name": "rule_group",
       "schema": "reports_context",
-      "values": [
-        "management",
-        "statutory",
-        "qualitative"
-      ]
+      "values": ["management", "statutory", "qualitative"]
     },
     "reports_context.rule_name": {
       "name": "rule_name",
@@ -775,19 +741,12 @@
     "shared_kernel_context.domain_event_status": {
       "name": "domain_event_status",
       "schema": "shared_kernel_context",
-      "values": [
-        "NEW",
-        "PENDING",
-        "CONSUMED"
-      ]
+      "values": ["NEW", "PENDING", "CONSUMED"]
     },
     "public.formation": {
       "name": "formation",
       "schema": "public",
-      "values": [
-        "PARQUET",
-        "SIEGE"
-      ]
+      "values": ["PARQUET", "SIEGE"]
     },
     "public.transparency": {
       "name": "transparency",
