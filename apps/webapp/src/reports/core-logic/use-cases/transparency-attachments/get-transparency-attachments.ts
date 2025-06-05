@@ -1,45 +1,40 @@
-import { FileVM, Magistrat, Role, Transparency } from "shared-models";
-import { UnionToTuple } from "type-fest";
-import { createAppAsyncThunkFactory } from "../../../../store/createAppAsyncThunk";
+import { FileVM, Magistrat, Role } from "shared-models";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 import { TransparencyAttachments } from "../../gateways/TransparencyApi.client";
 
-export const getTransparencyAttachmentsFactory = <
-  T extends string[] = UnionToTuple<Transparency>,
->() =>
-  createAppAsyncThunkFactory<T>()<
-    FileVM[],
+export const getTransparencyAttachments = createAppAsyncThunk<
+  FileVM[],
+  {
+    transparency: string;
+    formation: Magistrat.Formation;
+  }
+>(
+  "transparencies/getAttachments",
+  async (
+    { transparency, formation },
     {
-      transparency: T[number];
-      formation: Magistrat.Formation;
-    }
-  >(
-    "transparencies/getAttachments",
-    async (
-      { transparency, formation },
-      {
-        getState,
-        extra: {
-          gateways: { transparencyGateway, fileGateway },
-        },
+      getState,
+      extra: {
+        gateways: { transparencyGateway, fileGateway },
       },
-    ) => {
-      const user = getState().authentication.user;
-      if (!user) throw new Error("User not found");
-
-      const attachments =
-        await transparencyGateway.getAttachments(transparency);
-
-      const filteredAttachments = filterAttachments(
-        user.role,
-        formation,
-        attachments,
-      );
-
-      const fileVMs = await fileGateway.getSignedUrls(filteredAttachments);
-
-      return fileVMs.sort((a, b) => a.name.localeCompare(b.name));
     },
-  );
+  ) => {
+    const user = getState().authentication.user;
+    if (!user) throw new Error("User not found");
+
+    const attachments = await transparencyGateway.getAttachments(transparency);
+
+    const filteredAttachments = filterAttachments(
+      user.role,
+      formation,
+      attachments,
+    );
+
+    const fileVMs = await fileGateway.getSignedUrls(filteredAttachments);
+
+    return fileVMs.sort((a, b) => a.name.localeCompare(b.name));
+  },
+);
 
 const filterAttachments = (
   role: Role,

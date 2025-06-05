@@ -169,8 +169,12 @@ function formatGdsTransparencies(
 
 const sortTransparencies = (transparencies: GdsFormationVM["transparencies"]) =>
   _.orderBy(transparencies, [
-    (transparency) =>
-      transparenciesOrder.map(transparencyToLabel).indexOf(transparency.label),
+    (transparency) => {
+      const index = transparenciesOrder
+        .map(transparencyToLabel)
+        .indexOf(transparency.label);
+      return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+    },
   ]);
 
 const toNullableTransparencyGroup = (

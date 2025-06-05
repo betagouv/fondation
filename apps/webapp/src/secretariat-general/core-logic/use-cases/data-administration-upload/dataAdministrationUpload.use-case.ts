@@ -1,7 +1,7 @@
-import { createAppAsyncThunkFactory } from "../../../../store/createAppAsyncThunk";
+import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 
-export const dataAdministrationUpload = createAppAsyncThunkFactory<string[]>()<
+export const dataAdministrationUpload = createAppAsyncThunk<
   void,
   NouvelleTransparenceDto
 >(

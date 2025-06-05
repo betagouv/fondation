@@ -1,11 +1,5 @@
 import { Action, configureStore, ThunkDispatch } from "@reduxjs/toolkit";
-import {
-  allRulesMapV2,
-  AllRulesMapV2,
-  NominationFile,
-  Transparency,
-} from "shared-models";
-import { UnionToTuple } from "type-fest";
+import { allRulesMapV2, AllRulesMapV2, NominationFile } from "shared-models";
 import { AuthenticationGateway } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { loginNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/loginNotifier.middleware";
 import { logoutNotifierMiddlewareFactory } from "../authentication/core-logic/middlewares/logoutNotifier.middleware";
@@ -47,13 +41,11 @@ import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
 
-export interface Gateways<
-  StoreTransparencies extends string[] = UnionToTuple<Transparency>,
-> {
+export interface Gateways {
   reportGateway: ReportGateway;
   authenticationGateway: AuthenticationGateway;
   fileGateway: FileApiClient;
-  transparencyGateway: TransparencyGateway<StoreTransparencies>;
+  transparencyGateway: TransparencyGateway;
   dataAdministrationGateway: DataAdministrationGateway;
 }
 
@@ -71,19 +63,13 @@ export interface NestedPrimaryAdapters {
   routeChangedHandler: RouteChangedHandler;
 }
 
-export type AppDependencies<
-  StoreTransparencies extends string[] = UnionToTuple<Transparency>,
-> = {
-  gateways: Gateways<StoreTransparencies>;
+export type AppDependencies = {
+  gateways: Gateways;
   providers: Providers;
 };
 
-export type PartialAppDependencies<
-  StoreTransparencies extends string[] = UnionToTuple<Transparency>,
-> = {
-  [K in keyof AppDependencies]: Partial<
-    AppDependencies<StoreTransparencies>[K]
-  >;
+export type PartialAppDependencies = {
+  [K in keyof AppDependencies]: Partial<AppDependencies[K]>;
 };
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -119,28 +105,8 @@ export const defaultReportSummarySections: SummarySection[] = [
   },
 ];
 
-const prodTransparencies: UnionToTuple<Transparency> = [
-  Transparency.AUTOMNE_2024,
-  Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024,
-  Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024,
-  Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024,
-  Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025,
-  Transparency.SIEGE_DU_06_FEVRIER_2025,
-  Transparency.PARQUET_DU_06_FEVRIER_2025,
-  Transparency.PARQUET_DU_20_FEVRIER_2025,
-  Transparency.DU_03_MARS_2025,
-  Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
-  Transparency.DU_30_AVRIL_2025,
-  Transparency.MARCH_2026,
-];
-
-export const initReduxStore = <
-  IsTest extends boolean = true,
-  StoreTransparencies extends string[] = UnionToTuple<Transparency>,
->(
-  gateways: IsTest extends true
-    ? Partial<Gateways<StoreTransparencies>>
-    : Gateways<StoreTransparencies>,
+export const initReduxStore = <IsTest extends boolean = true>(
+  gateways: IsTest extends true ? Partial<Gateways> : Gateways,
   providers: IsTest extends true ? Partial<Providers> : Providers,
   nestedPrimaryAdapters: IsTest extends true
     ? Partial<NestedPrimaryAdapters>
@@ -169,9 +135,6 @@ export const initReduxStore = <
       } as RulesLabelsMap),
   reportSummarySections: SummarySection[] = defaultReportSummarySections,
   currentDate = new Date(),
-  transparencies: StoreTransparencies = isProduction || import.meta.env.DEV
-    ? (prodTransparencies as unknown as StoreTransparencies)
-    : ([] as unknown as StoreTransparencies),
 ) => {
   const loginNotifierMiddleware = loginNotifierMiddlewareFactory(
     providers.loginNotifierProvider,
@@ -192,7 +155,7 @@ export const initReduxStore = <
   return configureStore({
     reducer: {
       sharedKernel: createSharedKernelSlice(currentDate).reducer,
-      transparencies: createTransparenciesSlice(transparencies).reducer,
+      transparencies: createTransparenciesSlice().reducer,
       reportOverview: createReportOverviewSlice(
         reportSummarySections,
         rulesMap,
@@ -209,7 +172,7 @@ export const initReduxStore = <
       secretariatGeneral: createSecretariatGeneralSlice().reducer,
     },
     middleware: (getDefaultMiddleware) => {
-      const appDependencies: PartialAppDependencies<StoreTransparencies> = {
+      const appDependencies: PartialAppDependencies = {
         gateways: gateways ?? {},
         providers: providersWithDefaults,
       };
@@ -240,21 +203,15 @@ export const initReduxStore = <
   });
 };
 
-type AppThunkDispatch<
-  IsTest extends boolean,
-  AppStateTransparencies extends string[],
-> = ThunkDispatch<
-  AppState<IsTest, AppStateTransparencies>,
-  AppDependencies<AppStateTransparencies>,
+type AppThunkDispatch<IsTest extends boolean> = ThunkDispatch<
+  AppState<IsTest>,
+  AppDependencies,
   Action
 >;
-export type ReduxStore<
-  IsTest extends boolean = boolean,
-  AppStateTransparencies extends string[] = string[],
-> = ReturnType<typeof initReduxStore<IsTest, AppStateTransparencies>> & {
-  dispatch: AppThunkDispatch<IsTest, AppStateTransparencies>;
+export type ReduxStore<IsTest extends boolean = boolean> = ReturnType<
+  typeof initReduxStore<IsTest>
+> & {
+  dispatch: AppThunkDispatch<IsTest>;
 };
-export type AppDispatch<
-  IsTest extends boolean = boolean,
-  AppStateTransparencies extends string[] = string[],
-> = AppThunkDispatch<IsTest, AppStateTransparencies>;
+export type AppDispatch<IsTest extends boolean = boolean> =
+  AppThunkDispatch<IsTest>;

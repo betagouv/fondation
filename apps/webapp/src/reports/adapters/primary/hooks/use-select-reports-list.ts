@@ -1,9 +1,9 @@
-import { Magistrat, Transparency } from "shared-models";
+import { Magistrat } from "shared-models";
 import { selectReportList } from "../selectors/selectReportList";
 import { useAppSelector } from "./react-redux";
 
 export const useSelectReportsList = (
-  transparency: Transparency,
+  transparency: string,
   formation: Magistrat.Formation,
 ) => {
   const reportListArgs = {

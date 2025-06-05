@@ -20,7 +20,6 @@ import {
   sessionForTestingPurpose,
   TypeRouterProvider,
 } from "./adapters/type-route/typeRouter";
-import { routeSegments } from "./core-logic/models/routeSegments";
 import { useRouteChanged } from "./adapters/type-route/useRouteChanged";
 import { useRouteToComponentFactory } from "./adapters/type-route/useRouteToComponentFactory";
 import { AppRouter } from "./AppRouter";
@@ -28,7 +27,7 @@ import { redirectOnLogin } from "./core-logic/listeners/redirectOnLogin.listener
 import { redirectOnLogout } from "./core-logic/listeners/redirectOnLogout.listeners";
 import { redirectOnRouteChange } from "./core-logic/listeners/redirectOnRouteChange.listeners";
 import { FormationsRoutesMapper } from "./core-logic/models/formations-routes-mapper";
-import { GdsTransparenciesRoutesMapper } from "./core-logic/models/gds-transparencies-routes-mapper";
+import { routeSegments } from "./core-logic/models/routeSegments";
 
 const routeToComponentMap: RouteToComponentMap<false> = {
   login: () => <div>a login</div>,
@@ -201,9 +200,7 @@ export type TestDependencies = ReturnType<typeof getTestDependencies>;
 const baseTransaparencySegment = join(
   `/${routeSegments.transparences}`,
   routeSegments.propositionduGardeDesSceaux,
-  GdsTransparenciesRoutesMapper.transparencyToPathSegmentMap[
-    Transparency.PARQUET_DU_06_FEVRIER_2025
-  ],
+  "PARQUET_DU_06_FEVRIER_2025",
 );
 
 const membreCommun: AuthenticatedUserSM = {

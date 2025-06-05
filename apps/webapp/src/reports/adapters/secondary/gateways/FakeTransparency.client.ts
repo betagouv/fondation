@@ -4,17 +4,13 @@ import {
   TransparencyAttachments,
 } from "../../../core-logic/gateways/TransparencyApi.client";
 
-export class FakeTransparencyApiClient<
-  T extends string[] = string[],
-  K extends T[number] = string,
-> implements TransparencyApiClient<T, K>
-{
-  files: { GDS: Record<K, TransparencyAttachments | undefined> } = {
-    GDS: {} as Record<K, TransparencyAttachments | undefined>,
+export class FakeTransparencyApiClient implements TransparencyApiClient {
+  files: { GDS: Record<string, TransparencyAttachments | undefined> } = {
+    GDS: {} as Record<string, TransparencyAttachments | undefined>,
   };
 
   async getAttachments(
-    transparency: K,
+    transparency: string,
   ): EndpointResponse<TransparencyAttachments> {
     return (
       this.files.GDS[transparency] ?? {
@@ -25,7 +21,7 @@ export class FakeTransparencyApiClient<
     );
   }
 
-  setGdsFiles(transparency: K, files: TransparencyAttachments) {
+  setGdsFiles(transparency: string, files: TransparencyAttachments) {
     this.files.GDS[transparency] = files;
   }
 }

@@ -5,7 +5,6 @@ import {
   NominationFile,
   Transparency,
 } from "shared-models";
-import { UnionToTuple } from "type-fest";
 import { AuthenticatedUserSM } from "../authentication/core-logic/gateways/Authentication.gateway";
 import { RulesLabelsMap } from "../reports/adapters/primary/labels/rules-labels";
 import { SummarySection } from "../reports/adapters/primary/labels/summary-labels";
@@ -67,17 +66,14 @@ export type ReportListItem = Pick<
 
 type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 
-export interface AppState<
-  IsTest extends boolean = false,
-  AppStateTransparencies extends string[] = UnionToTuple<Transparency>,
-> {
+export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {
     currentDate: Date;
   };
   transparencies: {
     GDS: Record<
-      AppStateTransparencies[number],
-      { files: Record<Magistrat.Formation, FileVM[]> }
+      string,
+      Partial<Record<Magistrat.Formation, { files: FileVM[] }>>
     >;
   };
   reportOverview: {

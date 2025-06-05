@@ -1,5 +1,5 @@
-import { FileVM, Magistrat, Transparency } from "shared-models";
-import { createAppSelectorFactory } from "../../../../store/createAppSelector";
+import { FileVM, Magistrat } from "shared-models";
+import { createAppSelector } from "../../../../store/createAppSelector";
 
 export type TransparencyAttachmentVM = {
   name: string;
@@ -8,22 +8,20 @@ export type TransparencyAttachmentVM = {
 
 export type TransparencyAttachmentsVM = TransparencyAttachmentVM[];
 
-export const selectGdsTransparencyAttachmentsFactory = <
-  T extends string = Transparency,
->() =>
-  createAppSelectorFactory<T>()(
-    [
-      (state) => state.transparencies.GDS,
-      (_, args: { transparency: T; formation: Magistrat.Formation }) => args,
-    ],
-    (transparenciesGDS, args): TransparencyAttachmentsVM => {
-      const { transparency, formation } = args;
+export const selectGdsTransparencyAttachments = createAppSelector(
+  [
+    (state) => state.transparencies.GDS,
+    (_, args: { transparency: string; formation: Magistrat.Formation }) => args,
+  ],
+  (transparenciesGDS, args): TransparencyAttachmentsVM | null => {
+    const { transparency, formation } = args;
 
-      return transparenciesGDS[transparency].files[formation].map(
-        mapToViewModel,
-      );
-    },
-  );
+    return (
+      transparenciesGDS[transparency]?.[formation]?.files.map(mapToViewModel) ??
+      null
+    );
+  },
+);
 
 function mapToViewModel(file: FileVM): TransparencyAttachmentVM {
   return {

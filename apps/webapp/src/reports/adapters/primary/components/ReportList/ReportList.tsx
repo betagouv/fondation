@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Magistrat, Transparency } from "shared-models";
+import { Magistrat } from "shared-models";
 import {
   BreadcrumCurrentPage,
   selectBreadcrumb,
@@ -7,14 +7,14 @@ import {
 import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
 import { useAppSelector } from "../../hooks/react-redux";
 import { useReportsList } from "../../hooks/use-reports-list";
+import { useSelectReportsList } from "../../hooks/use-select-reports-list";
 import { useTransparencyAttachments } from "../../hooks/use-transparency-attachments";
 import { NewReportsCount } from "./NewReportsCount";
 import { ReportsTable } from "./ReportsTable";
 import { TransparencyFilesList } from "./TransparencyFilesList";
-import { useSelectReportsList } from "../../hooks/use-select-reports-list";
 
 export interface ReportListProps {
-  transparency: Transparency;
+  transparency: string;
   formation: Magistrat.Formation;
 }
 
@@ -68,7 +68,7 @@ export const ReportList: FC<ReportListProps> = ({
         <div>Aucun rapport.</div>
       )}
 
-      {attachments.length > 0 && (
+      {attachments && attachments.length > 0 && (
         <div>
           <h2>Pièces jointes</h2>
           <TransparencyFilesList files={attachments} />
