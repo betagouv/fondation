@@ -4,11 +4,10 @@ import {
   NominationFile,
   ReportRetrievalVM,
   Transparency,
-  TypeDeSaisine,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
-import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../gateways/services/session.service';
 import { NominationFileReportSnapshot } from './nomination-file-report';
 
@@ -93,7 +92,7 @@ export class ReportRetrievalBuilder<
       },
       attachedFiles: null,
       files: [],
-      dureeDuPoste: '3 ans et 6 mois',
+      dureeDuPoste: null,
     };
   }
 
@@ -159,8 +158,8 @@ export class ReportRetrievalBuilder<
       .with('comment', report.comment);
   }
 
-  static fromDossierDeNominationTransparence(
-    dossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>,
+  static fromPropositionDeNominationTransparenceV1(
+    dossierDeNomination: PropositionDeNominationTransparenceV1Dto,
     session: SessionDto,
   ): ReportRetrievalBuilder {
     return new ReportRetrievalBuilder()
@@ -176,7 +175,6 @@ export class ReportRetrievalBuilder<
       .with('biography', dossierDeNomination.content.biography)
       .with('observers', dossierDeNomination.content.observers)
       .with('rank', dossierDeNomination.content.rank)
-      .with('dureeDuPoste', '3 ans et 6 mois')
       .with('transparency', session.name as Transparency);
   }
 }

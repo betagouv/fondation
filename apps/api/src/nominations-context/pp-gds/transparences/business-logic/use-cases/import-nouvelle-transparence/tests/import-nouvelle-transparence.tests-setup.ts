@@ -16,7 +16,6 @@ export const aDossierDeNominationImportedId =
   'dossier-de-nomination-imported-id';
 export const anEventId = 'dossier-de-nomination-event-id';
 export const aAffectationId = 'affectation-id';
-export const aPréAnalyseId = 'préanalyse-id';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
 export const lucLoïcUser = {
@@ -66,7 +65,6 @@ export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
     aSessionId,
     aDossierDeNominationId,
     anEventId,
-    aPréAnalyseId,
     aAffectationId,
   ];
 };

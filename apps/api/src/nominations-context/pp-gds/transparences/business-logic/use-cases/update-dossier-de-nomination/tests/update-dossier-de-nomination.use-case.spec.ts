@@ -2,7 +2,6 @@ import {
   commandWithDatePassageAuGrade,
   commandWithDatePriseDeFonctionPosteActuel,
   commandWithInformationCarriere,
-  commandWithModifiedRules,
   commandWithNewFolderNumber,
   commandWithNewObservers,
   getDependencies,
@@ -24,12 +23,6 @@ describe('Update dossier de nomination', () => {
   it('updates an existing dossier de nomination with new folder number', async () => {
     await deps.updateDossierDeNomination(commandWithNewFolderNumber);
     deps.expectDossierWithNewFolderNumber();
-  });
-
-  it('updates an existing dossier de nomination with modified rules', async () => {
-    deps.setupExistingPréAnalyse();
-    await deps.updateDossierDeNomination(commandWithModifiedRules);
-    deps.expectPréAnalyseWithModifiedRules();
   });
 
   it('updates an existing dossier de nomination with date passage au grade', async () => {

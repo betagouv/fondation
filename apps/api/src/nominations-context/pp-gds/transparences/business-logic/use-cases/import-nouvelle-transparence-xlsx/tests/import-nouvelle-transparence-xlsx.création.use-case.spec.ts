@@ -5,12 +5,12 @@ import {
   aTransparenceImportId,
   aTransparencyName,
   givenSomeUuids,
-  importNouvelleTransparenceUseCase,
+  importNouvelleTransparenceXlsxUseCase,
 } from './import-nouvelle-transparence.tests-setup';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 
-describe('Nouvelle transparence GDS', () => {
+describe('Nouvelle transparence', () => {
   let dependencies: ReturnType<typeof getDependencies>;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('Nouvelle transparence GDS', () => {
   });
 
   const créerTransparence = () =>
-    importNouvelleTransparenceUseCase(dependencies);
+    importNouvelleTransparenceXlsxUseCase(dependencies);
 
   const expectTransparence = () => {
     expect(Object.values(dependencies.sessionRepository.fakeSessions)).toEqual<

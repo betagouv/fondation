@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { DateOnlyJson, Magistrat } from 'shared-models';
 import {
   GdsNewTransparenceImportedEvent,
   GdsNewTransparenceImportedEventPayload,
@@ -54,6 +54,7 @@ describe('Import Transparence XLSX Use Case', () => {
       uneTransparenceXlsx,
       uneTransparence.formation,
       uneTransparence.name,
+      uneTransparence.dateEchéance,
     );
 
     expect(transparenceRepository.getTransparences()).toEqual([
@@ -72,6 +73,7 @@ describe('Import Transparence XLSX Use Case', () => {
         xlsx,
         transparence.formation,
         transparence.name,
+        transparence.dateEchéance,
       );
 
       expect(transparenceRepository.getTransparences()).toEqual([transparence]);
@@ -83,6 +85,7 @@ describe('Import Transparence XLSX Use Case', () => {
       uneTransparenceXlsx,
       uneTransparence.formation,
       uneTransparence.name,
+      uneTransparence.dateEchéance,
     );
 
     const event = domainEventRepository.events[0]!;
@@ -93,6 +96,7 @@ describe('Import Transparence XLSX Use Case', () => {
       transparenceId: uneTransparence.id,
       transparenceName: uneTransparence.name,
       formation: uneTransparence.formation,
+      dateEchéance: uneTransparence.dateEchéance,
       nominationFiles: [
         {
           nominationFileId: unDossierSiège.id,
@@ -123,6 +127,7 @@ describe('Import Transparence XLSX Use Case', () => {
     xlsxFile: File,
     formation: Magistrat.Formation,
     name: string,
+    dateEchéance: DateOnlyJson,
   ) =>
     new ImportTransparenceXlsxUseCase(
       new NullTransactionPerformer(),
@@ -131,5 +136,5 @@ describe('Import Transparence XLSX Use Case', () => {
         transparenceRepository,
         userService,
       ),
-    ).execute(xlsxFile, formation, name);
+    ).execute(xlsxFile, formation, name, dateEchéance);
 });

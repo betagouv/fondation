@@ -8,7 +8,7 @@ import { DossierDeNomination } from 'src/reports-context/business-logic/models/d
 
 export class DossierDeNominationTranslator {
   constructor(
-    private readonly dossierDeNominationService: DossierDeNominationService,
+    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine>,
     private readonly sessionService: SessionService,
   ) {}
 
@@ -24,23 +24,37 @@ export class DossierDeNominationTranslator {
     return DossierDeNomination.créer({
       dossierDeNominationId: dossierDeNomination.id,
       nomSession: session.name,
-      nomAspirant: this.nomAspirant(dossierDeNomination),
+      nomAspirant: this.nomAspirant(dossierDeNomination, session.typeDeSaisine),
     });
   }
 
   private nomAspirant(
     dossierDeNomination: DossierDeNominationDto<TypeDeSaisine>,
+    typeDeSaisine: TypeDeSaisine,
   ) {
-    if (
-      'grade' in dossierDeNomination.content &&
-      'rank' in dossierDeNomination.content
-    ) {
-      return dossierDeNomination.content.name;
-    }
+    switch (typeDeSaisine) {
+      case TypeDeSaisine.TRANSPARENCE_GDS: {
+        const version = dossierDeNomination.content.version;
 
-    throw new Error(
-      'Nom aspirant non trouvé. Type de saisine non pris en charge ?',
-    );
+        switch (version) {
+          case undefined:
+          case 1:
+            return dossierDeNomination.content.name;
+          case 2:
+            return dossierDeNomination.content.nomMagistrat;
+          default:
+            const _exhaustiveCheck: never = version;
+            throw new Error(
+              `Version de proposition de nomination inconnue: ${_exhaustiveCheck}`,
+            );
+        }
+      }
+      default:
+        const _exhaustiveCheck: never = typeDeSaisine;
+        throw new Error(
+          `Type de saisine inconnu: ${_exhaustiveCheck}. Nom aspirant non trouvé.`,
+        );
+    }
   }
 
   private async session(dossierDeNomination: DossierDeNominationDto) {

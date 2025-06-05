@@ -1,12 +1,9 @@
 import { TypeDeSaisine } from 'shared-models';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
-import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
-import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import {
   TransactionableAsync,
   TransactionPerformer,
 } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { GdsDossierTransparenceModifiéEventRulesTransformer } from '../../models/gds-dossier-transparence-modifié-event-rules-transformer';
 import { PropositionDeNominationTransparence } from '../../models/proposition-de-nomination';
 import { UpdateDossierDeNominationCommand } from './update-dossier-de-nomination.command';
 
@@ -14,7 +11,6 @@ export class UpdateDossierDeNominationUseCase {
   constructor(
     private readonly transactionPerformer: TransactionPerformer,
     private readonly dossierDeNominationRepository: DossierDeNominationRepository<TypeDeSaisine.TRANSPARENCE_GDS>,
-    private readonly préAnalyseRepository: PréAnalyseRepository,
   ) {}
 
   async execute(command: UpdateDossierDeNominationCommand): Promise<void> {
@@ -38,8 +34,6 @@ export class UpdateDossierDeNominationUseCase {
         await this.dossierDeNominationRepository.save(propositionDeNomination)(
           trx,
         );
-
-        await this.mettreàJourPréAnalyse(content, propositionDeNomination)(trx);
       }
     });
   }
@@ -62,36 +56,15 @@ export class UpdateDossierDeNominationUseCase {
     };
   }
 
-  private mettreàJourPréAnalyse(
-    content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
-    dossier: DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS>,
-  ): TransactionableAsync {
-    return async (trx) => {
-      if (content.rules != null) {
-        const préAnalyse = await this.préAnalyseRepository.findByDossierId(
-          dossier.id,
-        )(trx);
-        if (!préAnalyse)
-          throw new Error(
-            `Pré-analyse non trouvée pour le dossier: ${dossier.id}`,
-          );
-
-        préAnalyse.mettreàJourRègles(
-          GdsDossierTransparenceModifiéEventRulesTransformer.transform(
-            content.rules,
-          ),
-        );
-        await this.préAnalyseRepository.save(préAnalyse)(trx);
-      }
-    };
-  }
-
   private mettreàJourObservants(
     content: UpdateDossierDeNominationCommand['nominationFiles'][number]['content'],
     proposition: PropositionDeNominationTransparence,
   ) {
     if (content.observers != null)
-      proposition.updateObservers(content.observers);
+      proposition.updateObservers({
+        version: 1,
+        observers: content.observers,
+      });
   }
 
   private mettreàJourNuméroDossier(
@@ -99,7 +72,10 @@ export class UpdateDossierDeNominationUseCase {
     proposition: PropositionDeNominationTransparence,
   ) {
     if (content.folderNumber != null)
-      proposition.updateFolderNumber(content.folderNumber);
+      proposition.updateFolderNumber({
+        version: 1,
+        folderNumber: content.folderNumber,
+      });
   }
 
   private mettreàJourDatePassageAuGrade(

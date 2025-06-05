@@ -7,7 +7,10 @@ import { NominationFileRead } from 'src/data-administration-context/transparence
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
 import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { ContenuPropositionDeNominationTransparenceV2 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+import {
+  ContenuPropositionDeNominationTransparenceV1,
+  ContenuPropositionDeNominationTransparenceV2,
+} from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import {
   dossierDeNominationPm,
   sessionPm,
@@ -126,9 +129,9 @@ describe('Import Nominations from local file', () => {
     await setTimeout(1500);
 
     await expectDossiersDeNominations(
-      expectedDossierDeNominationFromContent(firstRow),
-      expectedDossierDeNominationFromContent(secondRow),
-      expectedDossierDeNominationFromContent(thirdRow),
+      expectedDossierDeNominationV2FromContent(firstRow),
+      expectedDossierDeNominationV2FromContent(secondRow),
+      expectedDossierDeNominationV2FromContent(thirdRow),
     );
   });
 
@@ -192,9 +195,9 @@ describe('Import Nominations from local file', () => {
         },
       );
       await expectDossiersDeNominations(
-        expectedDossierDeNominationFromContent(firstRow),
-        expectedDossierDeNominationFromContent(secondRow),
-        expectedDossierDeNominationFromContent(thirdRow),
+        expectedDossierDeNominationV1FromContent(firstRow),
+        expectedDossierDeNominationV1FromContent(secondRow),
+        expectedDossierDeNominationV2FromContent(thirdRow),
       );
     });
 
@@ -264,11 +267,22 @@ describe('Import Nominations from local file', () => {
       .execute();
 
     expect(existingDossiers.length).toBe(expectedDossiers.length);
+
     expect(
       existingDossiers.sort(
         (a, b) =>
-          Number((a.content as any).folderNumber) -
-          Number((b.content as any).folderNumber),
+          Number(
+            (a.content as ContenuPropositionDeNominationTransparenceV2)
+              .numeroDeDossier ??
+              (a.content as ContenuPropositionDeNominationTransparenceV1)
+                .folderNumber,
+          ) -
+          Number(
+            (b.content as ContenuPropositionDeNominationTransparenceV2)
+              .numeroDeDossier ??
+              (b.content as ContenuPropositionDeNominationTransparenceV1)
+                .folderNumber,
+          ),
       ),
     ).toEqual(expectedDossiers);
   };
@@ -293,7 +307,43 @@ const expectTransparenceNominationFile = (
   content,
 });
 
-const expectedDossierDeNominationFromContent = (
+const expectedDossierDeNominationV1FromContent = (
+  content: NominationFileRead['content'],
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { transparency, reporters, rules, avancement, ...dossierContent } =
+    content;
+  const expectedContent: DossierDeNominationSnapshot<
+    TypeDeSaisine.TRANSPARENCE_GDS,
+    ContenuPropositionDeNominationTransparenceV1
+  >['content'] = {
+    folderNumber: dossierContent.folderNumber,
+    observers: dossierContent.observers,
+    biography: dossierContent.biography,
+    birthDate: dossierContent.birthDate,
+    currentPosition: dossierContent.currentPosition,
+    targettedPosition: dossierContent.targettedPosition,
+    dueDate: dossierContent.dueDate!,
+    formation: dossierContent.formation,
+    grade: dossierContent.grade,
+    name: dossierContent.name,
+    rank: dossierContent.rank,
+    datePassageAuGrade: dossierContent.datePassageAuGrade,
+    datePriseDeFonctionPosteActuel:
+      dossierContent.datePriseDeFonctionPosteActuel,
+    informationCarrière: dossierContent.informationCarrière,
+  };
+
+  return {
+    id: expect.any(String),
+    createdAt: expect.any(Date),
+    sessionId: expect.any(String),
+    dossierDeNominationImportéId: expect.any(String),
+    content: expectedContent,
+  };
+};
+
+const expectedDossierDeNominationV2FromContent = (
   content: NominationFileRead['content'],
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -304,7 +354,20 @@ const expectedDossierDeNominationFromContent = (
     ContenuPropositionDeNominationTransparenceV2
   >['content'] = {
     version: 2,
-    ...dossierContent,
+    dateDeNaissance: dossierContent.birthDate,
+    posteActuel: dossierContent.currentPosition,
+    posteCible: dossierContent.targettedPosition,
+    dateEchéance: dossierContent.dueDate!,
+    numeroDeDossier: dossierContent.folderNumber,
+    grade: dossierContent.grade,
+    nomMagistrat: dossierContent.name,
+    observants: dossierContent.observers,
+    rang: dossierContent.rank,
+    datePassageAuGrade: dossierContent.datePassageAuGrade,
+    datePriseDeFonctionPosteActuel:
+      dossierContent.datePriseDeFonctionPosteActuel,
+    informationCarrière: dossierContent.informationCarrière,
+    historique: dossierContent.biography,
   };
 
   return {
@@ -327,11 +390,8 @@ const dbInsertDossierDeNominationFromContent = (
     content;
   const contentToInsert: DossierDeNominationSnapshot<
     TypeDeSaisine.TRANSPARENCE_GDS,
-    ContenuPropositionDeNominationTransparenceV2
-  >['content'] = {
-    version: 2,
-    ...dossierContent,
-  };
+    ContenuPropositionDeNominationTransparenceV1
+  >['content'] = dossierContent;
 
   return {
     id,

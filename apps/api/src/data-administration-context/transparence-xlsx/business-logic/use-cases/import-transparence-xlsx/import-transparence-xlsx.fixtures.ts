@@ -159,6 +159,11 @@ const genUneTransparence = (
   createdAt: currentDate,
   formation: Magistrat.Formation.SIEGE,
   name: 'Une Transparence',
+  dateEchéance: {
+    day: 1,
+    month: 1,
+    year: 2025,
+  },
   nominationFiles: [dossier],
 });
 

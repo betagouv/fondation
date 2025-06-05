@@ -1,21 +1,18 @@
-import { Magistrat } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
+import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadTsv } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
-import { TypeDeSaisine } from 'shared-models';
+import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
-import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { AffectationRapporteursCréeEvent } from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-crée.event';
 import { AffectationRapporteursModifiéeEvent } from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-modifiée.event';
 import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
-import { PréAnalyse } from 'src/nominations-context/sessions/business-logic/models/pré-analyse';
-import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { ContenuPropositionDeNominationTransparenceV2 } from './proposition-de-nomination';
+import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
 
 export type DossierAvecPayload<T extends boolean = boolean> = {
   dossier: DossierDeNomination;
   nouveauDossierEvent: NouveauDossierDeNominationEvent;
-  formation: Magistrat.Formation;
-  préAnalyse: PréAnalyse;
   rapporteurIds: T extends true ? string[] : string[] | null;
 };
 
@@ -25,25 +22,62 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
     private readonly _dossiers: DossierAvecPayload<T>[] = [],
   ) {}
 
-  transformer(
+  transformerXlsx(
+    nominationFiles: GdsNewTransparenceImportedEventPayloadXlsx['nominationFiles'],
+    dateEchéance: DateOnlyJson,
+  ): GdsTransparenceEventTransformer {
+    const dossiers = nominationFiles.map(({ nominationFileId, content }) => {
+      const contenu: ContenuPropositionDeNominationTransparenceV2 = {
+        version: 2,
+        dateEchéance,
+        historique: content.historique,
+        dateDeNaissance: content.dateDeNaissance,
+        posteActuel: content.posteActuel,
+        posteCible: content.posteCible,
+        numeroDeDossier: content.numeroDeDossier,
+        grade: content.grade,
+        nomMagistrat: content.magistrat,
+        observants: content.observers,
+        rang: content.rank,
+        datePassageAuGrade: content.datePassageAuGrade,
+        datePriseDeFonctionPosteActuel: content.datePriseDeFonctionPosteActuel,
+        informationCarrière: content.informationCarriere,
+      };
+
+      const [dossier, nouveauDossierEvent] = this._session.nouveauDossier(
+        nominationFileId,
+        contenu,
+      );
+
+      const dossierAvecPayload = {
+        dossier,
+        nouveauDossierEvent,
+        rapporteurIds: content.reporterIds,
+      };
+      return dossierAvecPayload;
+    });
+
+    return new GdsTransparenceEventTransformer(this._session, dossiers);
+  }
+
+  transformerTsv(
     nominationFiles:
-      | GdsNewTransparenceImportedEventPayload['nominationFiles']
+      | GdsNewTransparenceImportedEventPayloadTsv['nominationFiles']
       | GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'],
   ): GdsTransparenceEventTransformer {
     const dossiers = nominationFiles.map(({ nominationFileId, content }) => {
       const contenu: ContenuPropositionDeNominationTransparenceV2 = {
         version: 2,
-        biography: content.biography,
-        birthDate: content.birthDate,
-        currentPosition: content.currentPosition,
-        targettedPosition: content.targettedPosition,
-        dueDate: content.dueDate,
-        folderNumber: content.folderNumber,
-        formation: content.formation,
+        historique: content.biography,
+        dateDeNaissance: content.birthDate,
+        posteActuel: content.currentPosition,
+        posteCible: content.targettedPosition,
+        dateEchéance: content.dueDate!,
+        numeroDeDossier: content.folderNumber,
         grade: content.grade,
-        name: content.name,
-        observers: content.observers,
-        rank: content.rank,
+        nomMagistrat: content.name,
+        observants: content.observers,
+        rang: content.rank,
         datePassageAuGrade: content.datePassageAuGrade,
         datePriseDeFonctionPosteActuel: content.datePriseDeFonctionPosteActuel,
         informationCarrière: content.informationCarrière,
@@ -53,16 +87,10 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
         nominationFileId,
         contenu,
       );
-      const préAnalyse = PréAnalyse.fromTransparenceRulesV1(
-        dossier.id,
-        content.rules,
-      );
 
       const dossierAvecPayload = {
         dossier,
         nouveauDossierEvent,
-        formation: content.formation,
-        préAnalyse,
         rapporteurIds: content.reporterIds,
       };
       return dossierAvecPayload;
@@ -75,8 +103,7 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
     formation: Magistrat.Formation,
     typeDeSaisine: TypeDeSaisine,
   ): readonly [Affectation, AffectationRapporteursCréeEvent] | [null, null] {
-    const dossiersFiltrés =
-      this.filtrerAvecRapporteurs().filtrerFormation(formation);
+    const dossiersFiltrés = this.filtrerAvecRapporteurs();
 
     if (dossiersFiltrés.contientDossiers()) {
       const affectation = this._session.affecterRapporteurs(
@@ -98,9 +125,7 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
   mettreàJourAffectationRapporteurs(
     affectation: Affectation,
   ): AffectationRapporteursModifiéeEvent | null {
-    const dossiersFiltrés = this.filtrerAvecRapporteurs().filtrerFormation(
-      affectation.formation,
-    );
+    const dossiersFiltrés = this.filtrerAvecRapporteurs();
 
     if (!dossiersFiltrés.contientDossiers()) return null;
 
@@ -128,15 +153,6 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
       this._dossiers.filter(
         (dossierAvecPayload) => dossierAvecPayload.rapporteurIds !== null,
       ) as DossierAvecPayload<true>[],
-    );
-  }
-
-  filtrerFormation(formation: Magistrat.Formation) {
-    return new GdsTransparenceEventTransformer<T>(
-      this._session,
-      this._dossiers.filter(
-        (dossierAvecPayload) => dossierAvecPayload.formation === formation,
-      ),
     );
   }
 

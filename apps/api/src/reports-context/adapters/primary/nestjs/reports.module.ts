@@ -85,6 +85,7 @@ import {
       REPORT_RETRIEVAL_QUERY,
       SESSION_SERVICE,
       DOSSIER_DE_NOMINATION_SERVICE,
+      DATE_TIME_PROVIDER,
     ]),
     generateProvider(ListReportsUseCase, [
       REPORT_LISTING_QUERY,

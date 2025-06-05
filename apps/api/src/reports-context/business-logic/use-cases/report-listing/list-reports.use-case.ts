@@ -1,6 +1,9 @@
 import { ReportListingVM } from 'shared-models';
 import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
-import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
+import {
+  DossierDeNominationService,
+  PropositionDeNominationTransparenceDto,
+} from '../../gateways/services/dossier-de-nomination.service';
 import { TypeDeSaisine } from 'shared-models';
 import { SessionService } from '../../gateways/services/session.service';
 
@@ -41,15 +44,46 @@ export class ListReportsUseCase {
         transparency: session.name,
         state: reportQueried.state,
         formation: reportQueried.formation,
-        folderNumber: dossier.content.folderNumber,
-        dueDate: dossier.content.dueDate,
-        name: dossier.content.name,
-        grade: dossier.content.grade,
-        targettedPosition: dossier.content.targettedPosition,
-        observersCount: dossier.content.observers?.length ?? 0,
+        ...this.rapportFromPropositionDeNomination(dossier),
       })),
     };
 
     return rapportsVM;
+  }
+
+  private rapportFromPropositionDeNomination(
+    proposition: PropositionDeNominationTransparenceDto,
+  ): Pick<
+    ReportListingVM['data'][number],
+    | 'folderNumber'
+    | 'dueDate'
+    | 'name'
+    | 'grade'
+    | 'targettedPosition'
+    | 'observersCount'
+  > {
+    const version = proposition.content.version;
+
+    switch (version) {
+      case undefined:
+      case 1:
+        return {
+          folderNumber: proposition.content.folderNumber,
+          dueDate: proposition.content.dueDate,
+          name: proposition.content.name,
+          grade: proposition.content.grade,
+          targettedPosition: proposition.content.targettedPosition,
+          observersCount: proposition.content.observers?.length ?? 0,
+        };
+      case 2:
+        return {
+          folderNumber: proposition.content.numeroDeDossier,
+          dueDate: proposition.content.dateEchéance,
+          name: proposition.content.nomMagistrat,
+          grade: proposition.content.grade,
+          targettedPosition: proposition.content.posteCible,
+          observersCount: proposition.content.observants?.length ?? 0,
+        };
+    }
   }
 }

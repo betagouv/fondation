@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Magistrat } from 'shared-models';
+import { DateOnlyJson, Magistrat } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { TransparenceRepository } from '../../../transparences/business-logic/gateways/repositories/transparence.repository';
@@ -24,6 +24,7 @@ export class TransparenceService {
   nouvelleTransparence(
     nomTransparence: string,
     formation: Magistrat.Formation,
+    dateEchéance: DateOnlyJson,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
     return async (trx) => {
@@ -31,6 +32,7 @@ export class TransparenceService {
       const transparence = Transparence.nouvelle(
         nomTransparence,
         formation,
+        dateEchéance,
         nominationFiles,
       );
 
@@ -40,6 +42,7 @@ export class TransparenceService {
         transparenceId: transparence.id,
         transparenceName: transparence.name,
         formation,
+        dateEchéance,
         nominationFiles: await this.nominationFilesWithReportersIds(
           readCollection,
           transparence,

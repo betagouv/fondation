@@ -1,4 +1,10 @@
-import { Gender, Magistrat, Role, Transparency } from 'shared-models';
+import {
+  DateOnlyJson,
+  Gender,
+  Magistrat,
+  Role,
+  Transparency,
+} from 'shared-models';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import { NominationFileReadRulesBuilder } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 import { FakeAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-affectation.repository';
@@ -14,6 +20,7 @@ import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
+export const aDateEchéance: DateOnlyJson = { day: 1, month: 6, year: 2023 };
 export const aParquetTransparenceImportId = 'transparence-import-id';
 export const aSiègeTransparenceImportId = 'siège-transparence-import-id';
 export const aDossierDeNominationId = 'dossier-de-nomination-id';
@@ -24,7 +31,6 @@ export const aParquetSessionId = 'a-session-id';
 export const aSiègeSessionId = 'siège-session-id';
 export const aFormation = Magistrat.Formation.PARQUET;
 export const aAffectationId = 'affectation-id';
-export const aPréAnalyseId = 'préanalyse-id';
 export const aSecondSiègeDossierId = 'second-siege-dossier-id';
 
 export const julesReporterId = 'jules-reporter-id';
@@ -94,12 +100,7 @@ export const aSecondSiègeCommand =
   ]);
 
 export const givenSomeUuids = (uuidGenerator: DeterministicUuidGenerator) => {
-  uuidGenerator.nextUuids = [
-    aDossierDeNominationId,
-    anEventId,
-    aPréAnalyseId,
-    aAffectationId,
-  ];
+  uuidGenerator.nextUuids = [aDossierDeNominationId, anEventId, aAffectationId];
 };
 export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
   sessionRepository.fakeSessions = {

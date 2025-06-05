@@ -77,7 +77,6 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
     generateProvider(UpdateDossierDeNominationUseCase, [
       TRANSACTION_PERFORMER,
       DOSSIER_DE_NOMINATION_REPOSITORY,
-      PRE_ANALYSE_REPOSITORY,
     ]),
     generateProvider(ImportNouveauxDossiersTransparenceUseCase, [
       TRANSACTION_PERFORMER,
@@ -87,7 +86,6 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
 
     generateProvider(TransparenceService, [
       DOSSIER_DE_NOMINATION_REPOSITORY,
-      PRE_ANALYSE_REPOSITORY,
       SESSION_REPOSITORY,
       AFFECTATION_REPOSITORY,
       DOMAIN_EVENT_REPOSITORY,

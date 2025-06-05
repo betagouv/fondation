@@ -29,7 +29,6 @@ export const getDependencies = () => {
 
   const transparenceService = new TransparenceService(
     propropositionDeNominationTransparenceRepository,
-    préAnalyseRepository,
     sessionRepository,
     affectationRepository,
     domainEventRepository,
@@ -51,7 +50,6 @@ export const getDependencies = () => {
   const updateDossierDeNominationUseCase = new UpdateDossierDeNominationUseCase(
     nullTransactionPerformer,
     propropositionDeNominationTransparenceRepository,
-    préAnalyseRepository,
   );
 
   const importNouveauxDossiersTransparenceUseCase =

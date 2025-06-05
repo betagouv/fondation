@@ -6,12 +6,13 @@ import {
 } from 'src/nominations-context/tests-dependencies';
 import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 import {
+  aDateEchéance,
   aDossierDeNominationId,
   aDossierDeNominationPayload,
   anEventId,
   aSessionId,
   givenSomeUuids,
-  importNouvelleTransparenceUseCase,
+  importNouvelleTransparenceXlsxUseCase,
 } from './import-nouvelle-transparence.tests-setup';
 
 describe('Nouvelle transparence GDS - Events', () => {
@@ -28,7 +29,7 @@ describe('Nouvelle transparence GDS - Events', () => {
   });
 
   async function créerDossiersDeNomination() {
-    await importNouvelleTransparenceUseCase(dependencies);
+    await importNouvelleTransparenceXlsxUseCase(dependencies);
   }
 
   function expectEventPublié() {
@@ -43,23 +44,22 @@ describe('Nouvelle transparence GDS - Events', () => {
       event.payload.content,
     ).toEqual<ContenuPropositionDeNominationTransparenceV2>({
       version: 2,
-      biography: aDossierDeNominationPayload.content.biography,
-      birthDate: aDossierDeNominationPayload.content.birthDate,
-      currentPosition: aDossierDeNominationPayload.content.currentPosition,
-      targettedPosition: aDossierDeNominationPayload.content.targettedPosition,
-      dueDate: aDossierDeNominationPayload.content.dueDate,
-      folderNumber: aDossierDeNominationPayload.content.folderNumber,
-      formation: aDossierDeNominationPayload.content.formation,
+      historique: aDossierDeNominationPayload.content.historique,
+      dateDeNaissance: aDossierDeNominationPayload.content.dateDeNaissance,
+      posteActuel: aDossierDeNominationPayload.content.posteActuel,
+      posteCible: aDossierDeNominationPayload.content.posteCible,
+      dateEchéance: aDateEchéance,
+      numeroDeDossier: aDossierDeNominationPayload.content.numeroDeDossier,
       grade: aDossierDeNominationPayload.content.grade,
-      name: aDossierDeNominationPayload.content.name,
-      observers: aDossierDeNominationPayload.content.observers,
-      rank: aDossierDeNominationPayload.content.rank,
+      nomMagistrat: aDossierDeNominationPayload.content.magistrat,
+      observants: aDossierDeNominationPayload.content.observers,
+      rang: aDossierDeNominationPayload.content.rank,
       datePassageAuGrade:
         aDossierDeNominationPayload.content.datePassageAuGrade,
       datePriseDeFonctionPosteActuel:
         aDossierDeNominationPayload.content.datePriseDeFonctionPosteActuel,
       informationCarrière:
-        aDossierDeNominationPayload.content.informationCarrière,
+        aDossierDeNominationPayload.content.informationCarriere,
     });
   }
 });

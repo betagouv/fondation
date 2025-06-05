@@ -21,6 +21,8 @@ export const dateOnlyJsonSchema = z.object({
 export class DateOnly {
   private readonly value: Date;
 
+  static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
+
   constructor(year: number, month: Month, day: number) {
     // Month is 0-indexed in JS Date
     this.value = new Date(Date.UTC(year, month - 1, day));

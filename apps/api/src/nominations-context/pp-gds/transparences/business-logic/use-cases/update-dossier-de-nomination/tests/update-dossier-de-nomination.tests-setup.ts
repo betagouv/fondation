@@ -6,10 +6,9 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
-import { ContenuPropositionDeNominationTransparenceV2 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+import { ContenuPropositionDeNominationTransparenceV1 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import { UpdateDossierDeNominationUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
-import { PréAnalyseSnapshot } from 'src/nominations-context/sessions/business-logic/models/pré-analyse';
 import { getDependencies as getContextDependencies } from 'src/nominations-context/tests-dependencies';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 
@@ -17,7 +16,6 @@ export const existingDossierDeNominationId =
   'existing-dossier-de-nomination-id';
 export const dossierDeNominationImportedId =
   'dossier-de-nomination-imported-id';
-export const existingPréAnalyseId = 'existing-préanalyse-id';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aTransparencyId = 'transparency-id';
@@ -123,29 +121,30 @@ export const commandWithInformationCarriere =
     nominationFileModificationWithInformationCarriere,
   ]);
 
-export const aDossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
-  {
-    id: existingDossierDeNominationId,
-    nominationFileImportedId: dossierDeNominationImportedId,
-    sessionId: aTransparencyName,
-    content: {
-      folderNumber: 1,
-      observers: [],
-      biography: 'Nominee biography',
-      birthDate: { day: 1, month: 1, year: 1980 },
-      currentPosition: 'Current position',
-      targettedPosition: 'Target position',
-      dueDate: { day: 1, month: 6, year: 2023 },
-      formation: Magistrat.Formation.PARQUET,
-      grade: Magistrat.Grade.I,
-      name: 'Nominee Name',
-      rank: 'A',
-      version: 2,
-      datePassageAuGrade: null,
-      datePriseDeFonctionPosteActuel: null,
-      informationCarrière: null,
-    },
-  };
+export const aDossierDeNomination: DossierDeNominationSnapshot<
+  TypeDeSaisine.TRANSPARENCE_GDS,
+  ContenuPropositionDeNominationTransparenceV1
+> = {
+  id: existingDossierDeNominationId,
+  nominationFileImportedId: dossierDeNominationImportedId,
+  sessionId: aTransparencyName,
+  content: {
+    folderNumber: 1,
+    observers: [],
+    biography: 'Nominee biography',
+    birthDate: { day: 1, month: 1, year: 1980 },
+    currentPosition: 'Current position',
+    targettedPosition: 'Target position',
+    dueDate: { day: 1, month: 6, year: 2023 },
+    formation: Magistrat.Formation.PARQUET,
+    grade: Magistrat.Grade.I,
+    name: 'Nominee Name',
+    rank: 'A',
+    datePassageAuGrade: null,
+    datePriseDeFonctionPosteActuel: null,
+    informationCarrière: null,
+  },
+};
 
 export const getDependencies = () => {
   const dependencies = getContextDependencies();
@@ -156,21 +155,12 @@ export const getDependencies = () => {
     );
   };
 
-  const setupExistingPréAnalyse = () => {
-    dependencies.préAnalyseRepository.addPréAnalyses({
-      id: existingPréAnalyseId,
-      dossierDeNominationId: existingDossierDeNominationId,
-      règles: initialRules,
-    });
-  };
-
   const updateDossierDeNomination = async (
     command: UpdateDossierDeNominationCommand,
   ) => {
     await new UpdateDossierDeNominationUseCase(
       dependencies.nullTransactionPerformer,
       dependencies.propropositionDeNominationTransparenceRepository,
-      dependencies.préAnalyseRepository,
     ).execute(command);
   };
 
@@ -194,32 +184,9 @@ export const getDependencies = () => {
     });
   }
 
-  function expectPréAnalyseWithModifiedRules() {
-    const préAnalyses = dependencies.préAnalyseRepository.getPréAnalyses();
-    expect(préAnalyses).toHaveLength(1);
-    expect(préAnalyses[0]).toEqual<PréAnalyseSnapshot>({
-      id: existingPréAnalyseId,
-      dossierDeNominationId: existingDossierDeNominationId,
-      règles: [
-        {
-          group: NominationFile.RuleGroup.STATUTORY,
-          name: NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS,
-          value: true,
-        },
-        {
-          group: NominationFile.RuleGroup.STATUTORY,
-          name: NominationFile.StatutoryRule
-            .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS,
-          value: false,
-        },
-      ],
-    });
-  }
-
   function expectDossierWithDatePassageAuGrade() {
-    const content: ContenuPropositionDeNominationTransparenceV2 = {
+    const content: ContenuPropositionDeNominationTransparenceV1 = {
       ...aDossierDeNomination.content,
-      version: 2,
       datePassageAuGrade: { day: 15, month: 5 as Month, year: 2022 },
       datePriseDeFonctionPosteActuel: null,
       informationCarrière: null,
@@ -231,9 +198,8 @@ export const getDependencies = () => {
   }
 
   function expectDossierWithDatePriseDeFonctionPosteActuel() {
-    const content: ContenuPropositionDeNominationTransparenceV2 = {
+    const content: ContenuPropositionDeNominationTransparenceV1 = {
       ...aDossierDeNomination.content,
-      version: 2,
       datePassageAuGrade: null,
       datePriseDeFonctionPosteActuel: {
         day: 10,
@@ -249,9 +215,8 @@ export const getDependencies = () => {
   }
 
   function expectDossierWithInformationCarrière() {
-    const content: ContenuPropositionDeNominationTransparenceV2 = {
+    const content: ContenuPropositionDeNominationTransparenceV1 = {
       ...aDossierDeNomination.content,
-      version: 2,
       datePassageAuGrade: null,
       datePriseDeFonctionPosteActuel: null,
       informationCarrière: "20 ans d'expérience dans la magistrature",
@@ -273,11 +238,9 @@ export const getDependencies = () => {
 
   return {
     setupExistingDossierDeNomination,
-    setupExistingPréAnalyse,
     updateDossierDeNomination,
     expectDossierWithNewObservers,
     expectDossierWithNewFolderNumber,
-    expectPréAnalyseWithModifiedRules,
     expectDossierWithDatePassageAuGrade,
     expectDossierWithDatePriseDeFonctionPosteActuel,
     expectDossierWithInformationCarrière,

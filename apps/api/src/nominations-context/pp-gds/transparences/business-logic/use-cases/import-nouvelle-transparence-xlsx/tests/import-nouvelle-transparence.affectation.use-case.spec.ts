@@ -6,7 +6,7 @@ import {
   aFormation,
   aTransparencyName,
   givenSomeUuids,
-  importNouvelleTransparenceUseCase,
+  importNouvelleTransparenceXlsxUseCase,
   lucLoïcReporterId,
 } from './import-nouvelle-transparence.tests-setup';
 
@@ -24,7 +24,7 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
   });
 
   const créerAffectationRapporteurs = () =>
-    importNouvelleTransparenceUseCase(dependencies);
+    importNouvelleTransparenceXlsxUseCase(dependencies);
 
   const expectAffectationRapporteursCréée = () =>
     expect(dependencies.affectationRepository.getAffectations()).toEqual<

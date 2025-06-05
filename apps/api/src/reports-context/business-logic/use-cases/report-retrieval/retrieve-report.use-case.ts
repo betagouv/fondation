@@ -8,13 +8,17 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';
 import {
   ReportRetrievalQueried,
   ReportRetrievalQuery,
 } from '../../gateways/queries/report-retrieval-vm.query';
-import { DossierDeNominationService } from '../../gateways/services/dossier-de-nomination.service';
+import {
+  DossierDeNominationService,
+  PropositionDeNominationTransparenceDto,
+} from '../../gateways/services/dossier-de-nomination.service';
 import { SessionService } from '../../gateways/services/session.service';
 
 const formatMonthsToYearsAndMonths = (months: number): string => {
@@ -34,9 +38,10 @@ const formatMonthsToYearsAndMonths = (months: number): string => {
 
 export class RetrieveReportUseCase {
   constructor(
-    private reportRetrievalVMQuery: ReportRetrievalQuery,
+    private readonly reportRetrievalVMQuery: ReportRetrievalQuery,
     private readonly sessionService: SessionService,
     private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
+    private readonly dateTimeProvider: DateTimeProvider,
   ) {}
 
   async execute(
@@ -65,21 +70,6 @@ export class RetrieveReportUseCase {
         `Dossier de nomination non trouvé avec l'ID ${rapport.dossierDeNominationId}`,
       );
 
-    const datePriseDeFonctionPosteActuel = this.datePriseDeFonctionPosteActuel(
-      dossierDeNomination.content,
-    );
-    const datePassageAuGrade = this.datePassageAuGrade(
-      dossierDeNomination.content,
-    );
-
-    const dureeDuPosteEnMois =
-      datePriseDeFonctionPosteActuel && datePassageAuGrade
-        ? differenceInMonths(
-            DateOnly.fromJson(datePassageAuGrade).toDate(),
-            DateOnly.fromJson(datePriseDeFonctionPosteActuel).toDate(),
-          )
-        : null;
-
     return {
       id: rapport.id,
       comment: rapport.comment,
@@ -88,34 +78,83 @@ export class RetrieveReportUseCase {
       rules: WithPreValidatedRulesBuilder.fromQueriedRules(
         rapport.rules,
       ).build(),
-      transparency: transparence.name as Transparency,
-      biography: dossierDeNomination.content.biography,
-      dueDate: dossierDeNomination.content.dueDate,
-      name: dossierDeNomination.content.name,
-      birthDate: dossierDeNomination.content.birthDate,
-      grade: dossierDeNomination.content.grade,
-      currentPosition: dossierDeNomination.content.currentPosition,
-      targettedPosition: dossierDeNomination.content.targettedPosition,
-      rank: dossierDeNomination.content.rank,
-      observers: dossierDeNomination.content.observers,
-      folderNumber: dossierDeNomination.content.folderNumber,
-      dureeDuPoste: dureeDuPosteEnMois
-        ? formatMonthsToYearsAndMonths(dureeDuPosteEnMois)
-        : null,
       attachedFiles: rapport.files,
+      transparency: transparence.name as Transparency,
+      ...this.rapportFromDossierDeNomination(dossierDeNomination),
     };
   }
 
-  datePriseDeFonctionPosteActuel(
-    content: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>['content'],
-  ) {
-    return content.version ? content.datePriseDeFonctionPosteActuel : null;
+  private rapportFromDossierDeNomination(
+    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>,
+  ): Pick<
+    ReportRetrievalVM,
+    | 'biography'
+    | 'dueDate'
+    | 'name'
+    | 'birthDate'
+    | 'grade'
+    | 'currentPosition'
+    | 'targettedPosition'
+    | 'rank'
+    | 'observers'
+    | 'folderNumber'
+    | 'dureeDuPoste'
+  > {
+    const datePriseDeFonctionPosteActuel = this.datePriseDeFonctionPosteActuel(
+      dossierDeNomination.content,
+    );
+
+    const dureeDuPosteEnMois = datePriseDeFonctionPosteActuel
+      ? differenceInMonths(
+          this.dateTimeProvider.now(),
+          DateOnly.fromJson(datePriseDeFonctionPosteActuel).toDate(),
+        )
+      : null;
+    const dureeDuPoste = dureeDuPosteEnMois
+      ? formatMonthsToYearsAndMonths(dureeDuPosteEnMois)
+      : null;
+
+    const version = dossierDeNomination.content.version;
+    switch (version) {
+      case undefined:
+      case 1:
+        return {
+          dureeDuPoste,
+          biography: dossierDeNomination.content.biography,
+          dueDate: dossierDeNomination.content.dueDate,
+          name: dossierDeNomination.content.name,
+          birthDate: dossierDeNomination.content.birthDate,
+          grade: dossierDeNomination.content.grade,
+          currentPosition: dossierDeNomination.content.currentPosition,
+          targettedPosition: dossierDeNomination.content.targettedPosition,
+          rank: dossierDeNomination.content.rank,
+          observers: dossierDeNomination.content.observers,
+          folderNumber: dossierDeNomination.content.folderNumber,
+        };
+      case 2:
+        return {
+          dureeDuPoste,
+          biography: dossierDeNomination.content.historique,
+          dueDate: dossierDeNomination.content.dateEchéance,
+          name: dossierDeNomination.content.nomMagistrat,
+          birthDate: dossierDeNomination.content.dateDeNaissance,
+          grade: dossierDeNomination.content.grade,
+          currentPosition: dossierDeNomination.content.posteActuel,
+          targettedPosition: dossierDeNomination.content.posteCible,
+          rank: dossierDeNomination.content.rang,
+          observers: dossierDeNomination.content.observants,
+          folderNumber: dossierDeNomination.content.numeroDeDossier,
+        };
+      default:
+        const _exhaustiveCheck: never = version;
+        throw new Error(`Version de contenu non gérée: ${_exhaustiveCheck}`);
+    }
   }
 
-  datePassageAuGrade(
-    content: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>['content'],
+  private datePriseDeFonctionPosteActuel(
+    content: PropositionDeNominationTransparenceDto['content'],
   ) {
-    return content.version ? content.datePassageAuGrade : null;
+    return content.datePriseDeFonctionPosteActuel;
   }
 }
 

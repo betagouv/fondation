@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { DateOnlyJson, Magistrat } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
@@ -7,12 +7,14 @@ import {
   NominationFileModelSnapshot,
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
+import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 
 export type TransparenceSnapshot = {
   id: string;
   createdAt: Date;
   name: string;
   formation: Magistrat.Formation;
+  dateEchéance: DateOnlyJson;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -25,11 +27,13 @@ export class Transparence {
     private readonly _createdAt: Date,
     private _name: string,
     formation: Magistrat.Formation,
+    private _dateEchéance: DateOnlyJson,
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
     this.formation = formation;
     this.nominationFiles = nominationFiles;
+    this.setDateEchéance(_dateEchéance);
   }
 
   addNewNominationFiles(
@@ -100,6 +104,9 @@ export class Transparence {
   set formation(formation: Magistrat.Formation) {
     this._formation = z.nativeEnum(Magistrat.Formation).parse(formation);
   }
+  setDateEchéance(_dateEchéance: DateOnlyJson) {
+    this._dateEchéance = dateOnlyJsonSchema.parse(_dateEchéance);
+  }
 
   get nominationFiles(): NominationFileModel[] {
     return Object.values(this._nominationFiles);
@@ -128,6 +135,7 @@ export class Transparence {
       name: this._name,
       createdAt: this._createdAt,
       formation: this._formation,
+      dateEchéance: this._dateEchéance,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
@@ -140,6 +148,7 @@ export class Transparence {
       snapshot.createdAt,
       snapshot.name,
       snapshot.formation,
+      snapshot.dateEchéance,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
     );
   }
@@ -147,10 +156,19 @@ export class Transparence {
   static nouvelle(
     name: string,
     formation: Magistrat.Formation,
+    dateEchéance: DateOnlyJson,
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
     const createdAt = DomainRegistry.dateTimeProvider().now();
-    return new Transparence(id, createdAt, name, formation, nominationFiles);
+    return new Transparence(
+      id,
+      createdAt,
+      name,
+      formation,
+
+      dateEchéance,
+      nominationFiles,
+    );
   }
 }

@@ -42,18 +42,16 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
         sessionId: aTransparencyName,
         content: {
           version: 2,
-          biography: aDossierDeNominationPayload.content.biography,
-          birthDate: aDossierDeNominationPayload.content.birthDate,
-          currentPosition: aDossierDeNominationPayload.content.currentPosition,
-          targettedPosition:
-            aDossierDeNominationPayload.content.targettedPosition,
-          dueDate: aDossierDeNominationPayload.content.dueDate,
-          folderNumber: aDossierDeNominationPayload.content.folderNumber,
-          formation: aDossierDeNominationPayload.content.formation,
+          historique: aDossierDeNominationPayload.content.biography,
+          dateDeNaissance: aDossierDeNominationPayload.content.birthDate,
+          posteActuel: aDossierDeNominationPayload.content.currentPosition,
+          posteCible: aDossierDeNominationPayload.content.targettedPosition,
+          dateEchéance: aDossierDeNominationPayload.content.dueDate!,
+          numeroDeDossier: aDossierDeNominationPayload.content.folderNumber,
           grade: aDossierDeNominationPayload.content.grade,
-          name: aDossierDeNominationPayload.content.name,
-          observers: aDossierDeNominationPayload.content.observers,
-          rank: aDossierDeNominationPayload.content.rank,
+          nomMagistrat: aDossierDeNominationPayload.content.name,
+          observants: aDossierDeNominationPayload.content.observers,
+          rang: aDossierDeNominationPayload.content.rank,
           datePassageAuGrade:
             aDossierDeNominationPayload.content.datePassageAuGrade,
           datePriseDeFonctionPosteActuel:

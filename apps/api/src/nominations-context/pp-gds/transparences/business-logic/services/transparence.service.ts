@@ -1,9 +1,9 @@
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
+import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadTsv } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
-import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -13,7 +13,6 @@ import { GdsTransparenceEventTransformer } from '../models/gds-transparence-even
 export class TransparenceService {
   constructor(
     private readonly dossierDeNominationRepository: DossierDeNominationRepository,
-    private readonly préAnalyseRepository: PréAnalyseRepository,
     private readonly sessionRepository: SessionRepository,
     private readonly affectationRepository: AffectationRepository,
     private readonly domainEventRepository: DomainEventRepository,
@@ -36,24 +35,44 @@ export class TransparenceService {
     };
   }
 
+  créerDossiersXlsxImportés(
+    session: Session,
+    nominationFiles: GdsNewTransparenceImportedEventPayloadXlsx['nominationFiles'],
+    dateEchéance: DateOnlyJson,
+  ): TransactionableAsync {
+    return async (trx) => {
+      const dossiersTransformer = new GdsTransparenceEventTransformer(
+        session,
+      ).transformerXlsx(nominationFiles, dateEchéance);
+
+      for (const {
+        dossier,
+        nouveauDossierEvent,
+      } of dossiersTransformer.dossiers) {
+        await this.dossierDeNominationRepository.save(dossier)(trx);
+        await this.domainEventRepository.save(nouveauDossierEvent)(trx);
+      }
+
+      await this.affecterRapporteurs(session, dossiersTransformer)(trx);
+    };
+  }
+
   créerDossiersImportés(
     session: Session,
     nominationFiles:
-      | GdsNewTransparenceImportedEventPayload['nominationFiles']
+      | GdsNewTransparenceImportedEventPayloadTsv['nominationFiles']
       | GdsTransparenceNominationFilesAddedEventPayload['nominationFiles'],
   ): TransactionableAsync {
     return async (trx) => {
       const dossiersTransformer = new GdsTransparenceEventTransformer(
         session,
-      ).transformer(nominationFiles);
+      ).transformerTsv(nominationFiles);
 
       for (const {
         dossier,
         nouveauDossierEvent,
-        préAnalyse,
       } of dossiersTransformer.dossiers) {
         await this.dossierDeNominationRepository.save(dossier)(trx);
-        await this.préAnalyseRepository.save(préAnalyse)(trx);
         await this.domainEventRepository.save(nouveauDossierEvent)(trx);
       }
 

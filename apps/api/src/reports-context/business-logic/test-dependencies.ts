@@ -61,6 +61,7 @@ export const getDependencies = () => {
     fakeReportRetrievalVMQuery,
     stubSessionService,
     stubDossierDeNominationService,
+    dateTimeProvider,
   );
   const uploadReportFilesUseCase = new UploadReportFilesUseCase(
     fakeReportFileService,

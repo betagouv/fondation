@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { DateOnlyJson, Magistrat } from 'shared-models';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { TransparenceCsv } from '../../models/transparence-csv';
 import { XlsxReader } from '../../models/xlsx-reader';
@@ -14,6 +14,7 @@ export class ImportTransparenceXlsxUseCase {
     file: File,
     formation: Magistrat.Formation,
     nomTransparence: string,
+    dateEchéance: DateOnlyJson,
   ): Promise<void> {
     await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
@@ -25,6 +26,7 @@ export class ImportTransparenceXlsxUseCase {
       await this.transparenceService.nouvelleTransparence(
         nomTransparence,
         formation,
+        dateEchéance,
         readCollection,
       )(trx);
     });

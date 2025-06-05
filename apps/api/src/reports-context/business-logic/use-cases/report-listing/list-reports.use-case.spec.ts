@@ -6,7 +6,7 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
 import { ListReportsUseCase } from './list-reports.use-case';
@@ -95,29 +95,31 @@ const unRapportAutreRapporteur: ReportListItemQueried = {
   formation: Magistrat.Formation.PARQUET,
 };
 
-const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
-  {
-    id: unDossierDeNominationId,
-    sessionId: uneSessionId,
-    nominationFileImportedId: 'nomination-file-imported-id',
-    content: {
-      folderNumber: unRapportVM.folderNumber,
-      name: unRapportVM.name,
-      formation: unRapportVM.formation,
-      dueDate: unRapportVM.dueDate,
-      grade: unRapportVM.grade,
-      targettedPosition: unRapportVM.targettedPosition,
-      currentPosition: 'a current position',
-      birthDate: {
-        year: 1980,
-        month: 1,
-        day: 1,
-      },
-      biography: 'a biography',
-      rank: '1 sur 1',
-      observers: ['a list of observers'],
+const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
+  id: unDossierDeNominationId,
+  sessionId: uneSessionId,
+  nominationFileImportedId: 'nomination-file-imported-id',
+  content: {
+    folderNumber: unRapportVM.folderNumber,
+    name: unRapportVM.name,
+    formation: unRapportVM.formation,
+    dueDate: unRapportVM.dueDate,
+    grade: unRapportVM.grade,
+    targettedPosition: unRapportVM.targettedPosition,
+    currentPosition: 'a current position',
+    birthDate: {
+      year: 1980,
+      month: 1,
+      day: 1,
     },
-  };
+    biography: 'a biography',
+    rank: '1 sur 1',
+    observers: ['a list of observers'],
+    datePassageAuGrade: null,
+    datePriseDeFonctionPosteActuel: null,
+    informationCarrière: null,
+  },
+};
 
 const uneSession: SessionDto = {
   id: uneSessionId,
