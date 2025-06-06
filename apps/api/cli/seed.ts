@@ -10,6 +10,7 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { ContenuPropositionDeNominationTransparenceV1 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import {
   dossierDeNominationPm,
   sessionPm,
@@ -68,25 +69,34 @@ async function seed() {
     };
     await db.insert(sessionPm).values(sessionA).execute();
 
-    const dossier1: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> =
-      {
-        id: '4f275b00-e7f6-4a92-a52b-5a2514f0d2b3',
-        sessionId: sessionA.id,
-        nominationFileImportedId: '4fd1aae8-46ca-49f4-9abf-cf31238cad16',
-        content: {
-          biography: 'John Doe',
-          birthDate: { day: 1, month: 1, year: 1980 },
-          currentPosition: 'Current position',
-          targettedPosition: 'Target position',
-          dueDate: { day: 1, month: 6, year: 2023 },
-          folderNumber: 1,
-          formation: Magistrat.Formation.PARQUET,
-          grade: Magistrat.Grade.I,
-          name: 'Nominee Name',
-          observers: [],
-          rank: 'A',
+    const dossier1: DossierDeNominationSnapshot<
+      TypeDeSaisine.TRANSPARENCE_GDS,
+      ContenuPropositionDeNominationTransparenceV1
+    > = {
+      id: '4f275b00-e7f6-4a92-a52b-5a2514f0d2b3',
+      sessionId: sessionA.id,
+      nominationFileImportedId: '4fd1aae8-46ca-49f4-9abf-cf31238cad16',
+      content: {
+        biography: 'John Doe',
+        birthDate: { day: 1, month: 1, year: 1980 },
+        currentPosition: 'Current position',
+        targettedPosition: 'Target position',
+        dueDate: { day: 1, month: 6, year: 2023 },
+        folderNumber: 1,
+        formation: Magistrat.Formation.PARQUET,
+        grade: Magistrat.Grade.I,
+        name: 'Nominee Name',
+        observers: [],
+        rank: 'A',
+        datePassageAuGrade: null,
+        datePriseDeFonctionPosteActuel: {
+          day: 1,
+          month: 1,
+          year: 2021,
         },
-      };
+        informationCarrière: 'Carrière.',
+      },
+    };
 
     await db
       .insert(dossierDeNominationPm)

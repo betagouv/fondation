@@ -84,7 +84,6 @@ describe("Report List Component", () => {
       undefined,
       undefined,
       undefined,
-      [aTransparency, Transparency.AUTOMNE_2024],
     );
 
     expectTransparenciesBreadcrumb =

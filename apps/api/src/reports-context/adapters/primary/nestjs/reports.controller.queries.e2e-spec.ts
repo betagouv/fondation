@@ -156,7 +156,7 @@ describe('Reports Controller', () => {
     });
 
     const aReportRetrievedVM: ReportRetrievalVM =
-      ReportRetrievalBuilder.fromDossierDeNominationTransparence(
+      ReportRetrievalBuilder.fromPropositionDeNominationTransparenceV1(
         stubDossier,
         stubSession,
       ).buildVM();

@@ -1,5 +1,3 @@
-import { Transparency } from "shared-models";
-import { UnionToTuple } from "type-fest";
 import { z } from "zod";
 
 export type EndpointResponse<T> = Promise<T>;
@@ -19,9 +17,8 @@ export type TransparencyAttachments = z.infer<
   typeof transparencyAttachmentsSchema
 >;
 
-export interface TransparencyApiClient<
-  T extends string[] = UnionToTuple<Transparency>,
-  K extends T[number] = T[number],
-> {
-  getAttachments(transparency: K): EndpointResponse<TransparencyAttachments>;
+export interface TransparencyApiClient {
+  getAttachments(
+    transparency: string,
+  ): EndpointResponse<TransparencyAttachments>;
 }

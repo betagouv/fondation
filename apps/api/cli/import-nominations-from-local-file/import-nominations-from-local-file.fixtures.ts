@@ -165,7 +165,11 @@ export const thirdRow: NominationFileRead['content'] = {
     year: 1987,
   },
   currentPosition: 'DETACHEMENT',
-  dueDate: null,
+  dueDate: {
+    day: 1,
+    month: 12,
+    year: 2025,
+  },
   formation: Magistrat.Formation.PARQUET,
   grade: Magistrat.Grade.I,
   avancement: Avancement.EQUIVALENCE,

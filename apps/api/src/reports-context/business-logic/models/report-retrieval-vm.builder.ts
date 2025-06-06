@@ -4,13 +4,12 @@ import {
   NominationFile,
   ReportRetrievalVM,
   Transparency,
-  TypeDeSaisine,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
-import { NominationFileReportSnapshot } from './nomination-file-report';
-import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../gateways/services/session.service';
+import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalBuilder<
   T extends ReportRetrievalVM | ReportRetrievalQueried = ReportRetrievalVM,
@@ -93,6 +92,7 @@ export class ReportRetrievalBuilder<
       },
       attachedFiles: null,
       files: [],
+      dureeDuPoste: null,
     };
   }
 
@@ -124,6 +124,7 @@ export class ReportRetrievalBuilder<
       observers: report.observers,
       rules: report.rules,
       attachedFiles: report.attachedFiles,
+      dureeDuPoste: report.dureeDuPoste,
     };
   }
 
@@ -157,8 +158,8 @@ export class ReportRetrievalBuilder<
       .with('comment', report.comment);
   }
 
-  static fromDossierDeNominationTransparence(
-    dossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS>,
+  static fromPropositionDeNominationTransparenceV1(
+    dossierDeNomination: PropositionDeNominationTransparenceV1Dto,
     session: SessionDto,
   ): ReportRetrievalBuilder {
     return new ReportRetrievalBuilder()

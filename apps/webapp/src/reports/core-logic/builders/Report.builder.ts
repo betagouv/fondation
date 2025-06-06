@@ -49,6 +49,7 @@ export class ReportBuilder {
       observers: ["observer 1", "observer 2"],
       attachedFiles: null,
       contentScreenshots: null,
+      dureeDuPoste: "3 ans et 6 mois",
       rules: new RulesFromMapBuilder(rulesMap).build(),
     };
   }
@@ -97,6 +98,7 @@ export class ReportBuilder {
         ReturnType<ReportGateway["retrieveReport"]>
       >["attachedFiles"],
       contentScreenshots: this._report.contentScreenshots,
+      dureeDuPoste: this._report.dureeDuPoste,
     };
   }
 

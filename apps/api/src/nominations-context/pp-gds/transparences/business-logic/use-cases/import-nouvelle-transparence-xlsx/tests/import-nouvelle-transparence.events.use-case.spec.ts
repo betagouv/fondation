@@ -10,11 +10,10 @@ import {
   aDossierDeNominationId,
   aDossierDeNominationPayload,
   anEventId,
-  aParquetSessionId,
+  aSessionId,
   givenSomeUuids,
-  givenUneSession,
-  importNouveauxDossiersUseCase,
-} from './import-nouveaux-dossiers-transparence.tests-setup';
+  importNouvelleTransparenceXlsxUseCase,
+} from './import-nouvelle-transparence.tests-setup';
 
 describe('Nouvelle transparence GDS - Events', () => {
   let dependencies: ReturnType<typeof getDependencies>;
@@ -22,7 +21,6 @@ describe('Nouvelle transparence GDS - Events', () => {
   beforeEach(() => {
     dependencies = getDependencies();
     givenSomeUuids(dependencies.uuidGenerator);
-    givenUneSession(dependencies.sessionRepository);
   });
 
   it("publie un événement NouveauDossierDeNominationEvent lors de la création d'un dossier", async () => {
@@ -31,7 +29,7 @@ describe('Nouvelle transparence GDS - Events', () => {
   });
 
   async function créerDossiersDeNomination() {
-    await importNouveauxDossiersUseCase(dependencies);
+    await importNouvelleTransparenceXlsxUseCase(dependencies);
   }
 
   function expectEventPublié() {
@@ -41,19 +39,19 @@ describe('Nouvelle transparence GDS - Events', () => {
     expect(event.id).toBe(anEventId);
     expect(event.occurredOn).toBe(currentDate);
     expect(event.payload.dossierDeNominationId).toBe(aDossierDeNominationId);
-    expect(event.payload.sessionId).toBe(aParquetSessionId);
+    expect(event.payload.sessionId).toBe(aSessionId);
     expect(
       event.payload.content,
     ).toEqual<ContenuPropositionDeNominationTransparenceV2>({
       version: 2,
-      historique: aDossierDeNominationPayload.content.biography,
-      dateDeNaissance: aDossierDeNominationPayload.content.birthDate,
-      posteActuel: aDossierDeNominationPayload.content.currentPosition,
-      posteCible: aDossierDeNominationPayload.content.targettedPosition,
+      historique: aDossierDeNominationPayload.content.historique,
+      dateDeNaissance: aDossierDeNominationPayload.content.dateDeNaissance,
+      posteActuel: aDossierDeNominationPayload.content.posteActuel,
+      posteCible: aDossierDeNominationPayload.content.posteCible,
       dateEchéance: aDateEchéance,
-      numeroDeDossier: aDossierDeNominationPayload.content.folderNumber,
+      numeroDeDossier: aDossierDeNominationPayload.content.numeroDeDossier,
       grade: aDossierDeNominationPayload.content.grade,
-      nomMagistrat: aDossierDeNominationPayload.content.name,
+      nomMagistrat: aDossierDeNominationPayload.content.magistrat,
       observants: aDossierDeNominationPayload.content.observers,
       rang: aDossierDeNominationPayload.content.rank,
       datePassageAuGrade:
@@ -61,7 +59,7 @@ describe('Nouvelle transparence GDS - Events', () => {
       datePriseDeFonctionPosteActuel:
         aDossierDeNominationPayload.content.datePriseDeFonctionPosteActuel,
       informationCarrière:
-        aDossierDeNominationPayload.content.informationCarrière,
+        aDossierDeNominationPayload.content.informationCarriere,
     });
   }
 });

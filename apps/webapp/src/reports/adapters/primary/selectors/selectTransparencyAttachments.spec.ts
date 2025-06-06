@@ -1,8 +1,8 @@
 import { FileVM, Magistrat } from "shared-models";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
-import { getTransparencyAttachmentsFactory } from "../../../core-logic/use-cases/transparency-attachments/get-transparency-attachments";
+import { getTransparencyAttachments } from "../../../core-logic/use-cases/transparency-attachments/get-transparency-attachments";
 import {
-  selectGdsTransparencyAttachmentsFactory,
+  selectGdsTransparencyAttachments,
   TransparencyAttachmentsVM,
 } from "./selectTransparencyAttachments";
 
@@ -10,7 +10,7 @@ const aFormation = Magistrat.Formation.PARQUET;
 
 describe("Select Transparency Attachments", () => {
   let store: ReduxStore;
-  let selectedAttachments: TransparencyAttachmentsVM;
+  let selectedAttachments: TransparencyAttachmentsVM | null;
 
   beforeEach(() => {
     store = initReduxStore(
@@ -23,13 +23,12 @@ describe("Select Transparency Attachments", () => {
       undefined,
       undefined,
       undefined,
-      ["transpa-test", "other-transpa-test"],
     );
   });
 
-  it("shows empty files when no attachments exist", () => {
+  it("shows nothing when no attachments exist", () => {
     selectAttachments("transpa-test");
-    expectAttachments([]);
+    expectAttachments(null);
   });
 
   describe("When there are attachments for a specific transparency", () => {
@@ -58,9 +57,9 @@ describe("Select Transparency Attachments", () => {
       expectAttachments(transpaTestFiles);
     });
 
-    it("returns empty array when filtering by transparency with no attachments", () => {
+    it("returns nothing when filtering by transparency with no attachments", () => {
       selectAttachments("other-transpa-test");
-      expectAttachments([]);
+      expectAttachments(null);
     });
   });
 
@@ -69,34 +68,28 @@ describe("Select Transparency Attachments", () => {
     files: FileVM[],
   ) => {
     store.dispatch(
-      getTransparencyAttachmentsFactory<["transpa-test"]>().fulfilled(
-        files,
-        "",
-        {
-          transparency,
-          formation: aFormation,
-        },
-      ),
+      getTransparencyAttachments.fulfilled(files, "", {
+        transparency,
+        formation: aFormation,
+      }),
     );
   };
 
   const selectAttachments = (
     transparency: "transpa-test" | "other-transpa-test",
   ) => {
-    selectedAttachments = selectGdsTransparencyAttachmentsFactory<
-      "transpa-test" | "other-transpa-test"
-    >()(store.getState(), {
+    selectedAttachments = selectGdsTransparencyAttachments(store.getState(), {
       transparency,
       formation: aFormation,
     });
   };
 
-  const expectAttachments = (expectedFiles: FileVM[]) => {
-    expect(selectedAttachments).toEqual<TransparencyAttachmentsVM>(
-      expectedFiles.map((file) => ({
+  const expectAttachments = (expectedFiles: FileVM[] | null) => {
+    expect(selectedAttachments).toEqual<TransparencyAttachmentsVM | null>(
+      expectedFiles?.map((file) => ({
         name: file.name,
         url: file.signedUrl,
-      })),
+      })) ?? null,
     );
   };
 });

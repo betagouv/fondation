@@ -1,4 +1,5 @@
 import { Magistrat } from "shared-models";
+import { z } from "zod";
 
 export class FormationsRoutesMapper {
   static formationToPathSegmentMap: { [key in Magistrat.Formation]: string } = {
@@ -11,14 +12,8 @@ export class FormationsRoutesMapper {
   }
 
   static toFormation(pathSegment: string): Magistrat.Formation {
-    const formationEnum = Object.entries(this.formationToPathSegmentMap).find(
-      ([, value]) => value === pathSegment,
-    );
-
-    if (!formationEnum) {
-      throw new Error(`Unhandled path segment: ${pathSegment}`);
-    }
-
-    return formationEnum[0] as Magistrat.Formation;
+    return z
+      .nativeEnum(Magistrat.Formation)
+      .parse(z.string().parse(pathSegment).toUpperCase());
   }
 }

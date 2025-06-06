@@ -1,17 +1,10 @@
-import { Transparency } from "shared-models";
 import { TransparencyGateway } from "../../../core-logic/gateways/Transparency.gateway";
 import { TransparencyApiClient } from "../../../core-logic/gateways/TransparencyApi.client";
-import { UnionToTuple } from "type-fest";
 
-export class ApiTransparencyGateway<
-  T extends string[] = UnionToTuple<Transparency>,
-> implements TransparencyGateway<T>
-{
-  constructor(
-    private readonly transparencyApiClient: TransparencyApiClient<T>,
-  ) {}
+export class ApiTransparencyGateway implements TransparencyGateway {
+  constructor(private readonly transparencyApiClient: TransparencyApiClient) {}
 
-  async getAttachments(transparency: T[number]) {
+  async getAttachments(transparency: string) {
     const attachments =
       await this.transparencyApiClient.getAttachments(transparency);
 

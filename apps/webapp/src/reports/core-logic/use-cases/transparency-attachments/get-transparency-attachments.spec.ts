@@ -11,26 +11,24 @@ import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiTransparencyGateway } from "../../../adapters/secondary/gateways/ApiTransparency.gateway";
 import { FakeTransparencyApiClient } from "../../../adapters/secondary/gateways/FakeTransparency.client";
 import { TransparencyAttachments } from "../../gateways/TransparencyApi.client";
-import { getTransparencyAttachmentsFactory } from "./get-transparency-attachments";
+import { getTransparencyAttachments } from "./get-transparency-attachments";
 
 const transparency = "transpa-test";
 
 describe("Get Transparency Attachments", () => {
-  let store: ReduxStore<true, ["transpa-test"]>;
-  let initialState: AppState<true, ["transpa-test"]>;
-  let transparencyClient: FakeTransparencyApiClient<["transpa-test"]>;
+  let store: ReduxStore;
+  let initialState: AppState<true>;
+  let transparencyClient: FakeTransparencyApiClient;
   let fileApiClient: FakeFileApiClient;
 
   beforeEach(() => {
     transparencyClient = new FakeTransparencyApiClient();
-    const transparencyGateway = new ApiTransparencyGateway<["transpa-test"]>(
-      transparencyClient,
-    );
+    const transparencyGateway = new ApiTransparencyGateway(transparencyClient);
 
     fileApiClient = new FakeFileApiClient();
     const fileGateway = new ApiFileGateway(fileApiClient);
 
-    store = initReduxStore<true, ["transpa-test"]>(
+    store = initReduxStore<true>(
       {
         transparencyGateway,
         fileGateway,
@@ -43,7 +41,6 @@ describe("Get Transparency Attachments", () => {
       undefined,
       undefined,
       undefined,
-      ["transpa-test"],
     );
   });
 
@@ -123,7 +120,7 @@ describe("Get Transparency Attachments", () => {
 
   const getTransparencyAttchments = (formation: Magistrat.Formation) =>
     store.dispatch(
-      getTransparencyAttachmentsFactory<["transpa-test"]>()({
+      getTransparencyAttachments({
         transparency,
         formation,
       }),
@@ -133,15 +130,13 @@ describe("Get Transparency Attachments", () => {
     formation: Magistrat.Formation,
     ...fileNames: string[]
   ) =>
-    expect(store.getState()).toEqual<AppState<true, ["transpa-test"]>>({
+    expect(store.getState()).toEqual<AppState<true>>({
       ...initialState,
       transparencies: {
         GDS: {
           [transparency]: {
-            files: {
-              [Magistrat.Formation.PARQUET]: [],
-              [Magistrat.Formation.SIEGE]: [],
-              [formation]: fileNames.map((fileName) => ({
+            [formation]: {
+              files: fileNames.map((fileName) => ({
                 name: fileName,
                 signedUrl: `https://example.com/signed-url/${fileName}`,
               })),

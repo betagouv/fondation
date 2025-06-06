@@ -18,7 +18,7 @@ describe("Data Administration Upload", () => {
     );
     fileProvider = new StubNodeFileProvider();
 
-    store = initReduxStore<true, string[]>(
+    store = initReduxStore(
       {
         dataAdministrationGateway,
       },

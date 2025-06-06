@@ -1,4 +1,5 @@
-import { Magistrat } from 'shared-models';
+import { DateOnlyJson, Magistrat } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
@@ -18,6 +19,7 @@ export type GdsNewTransparenceImportedEventPayload = {
   transparenceId: string;
   transparenceName: string;
   formation: Magistrat.Formation;
+  dateEchéance: DateOnlyJson;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
@@ -38,6 +40,7 @@ export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceId: z.string().uuid(),
   transparenceName: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
+  dateEchéance: DateOnly.ZOD_JSON_SCHEMA,
   nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
 

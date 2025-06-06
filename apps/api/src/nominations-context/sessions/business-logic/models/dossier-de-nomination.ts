@@ -41,12 +41,9 @@ export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
     private _content: DossierDeNominationContent<S>,
   ) {}
 
-  protected updateContent(
-    content: Exact<
-      Partial<DossierDeNominationContent<S>>,
-      Partial<DossierDeNominationContent<S>>
-    >,
-  ) {
+  protected updateContent<
+    Content extends Partial<DossierDeNominationContent<S>>,
+  >(content: Exact<Partial<Content>, Partial<Content>>) {
     this.setContent({
       ...this._content,
       ...content,

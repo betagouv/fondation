@@ -40,6 +40,7 @@ export const selectReport = createAppSelector(
         rulesLabelsMap,
       ),
       attachedFiles: report.attachedFiles,
+      dureeDuPoste: report.dureeDuPoste,
     };
   },
 );

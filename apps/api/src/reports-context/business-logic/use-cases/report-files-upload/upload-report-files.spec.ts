@@ -1,8 +1,13 @@
-import { Gender, Magistrat, ReportFileUsage, Role } from 'shared-models';
-import { TypeDeSaisine } from 'shared-models';
+import {
+  Gender,
+  Magistrat,
+  ReportFileUsage,
+  Role,
+  TypeDeSaisine,
+} from 'shared-models';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { OptimisticLockError } from '../../errors/optimistic-lock.error';
-import { DossierDeNominationDto } from '../../gateways/services/dossier-de-nomination.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../../gateways/services/session.service';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
@@ -20,33 +25,35 @@ const aReportSnapshot = new ReportBuilder()
   .with('sessionId', uneSessionId)
   .build();
 
-const unDossierDeNomination: DossierDeNominationDto<TypeDeSaisine.TRANSPARENCE_GDS> =
-  {
-    id: unDossierDeNominationId,
-    sessionId: uneSessionId,
-    nominationFileImportedId: 'nomination-file-imported-id',
-    content: {
-      folderNumber: 10,
-      dueDate: {
-        year: 2023,
-        month: 10,
-        day: 1,
-      },
-      name: 'a name',
-      formation: Magistrat.Formation.PARQUET,
-      grade: Magistrat.Grade.HH,
-      targettedPosition: 'a position',
-      currentPosition: 'a current position',
-      birthDate: {
-        year: 1980,
-        month: 1,
-        day: 1,
-      },
-      biography: 'a biography',
-      rank: '1 sur 1',
-      observers: ['a list of observers'],
+const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
+  id: unDossierDeNominationId,
+  sessionId: uneSessionId,
+  nominationFileImportedId: 'nomination-file-imported-id',
+  content: {
+    folderNumber: 10,
+    dueDate: {
+      year: 2023,
+      month: 10,
+      day: 1,
     },
-  };
+    name: 'a name',
+    formation: Magistrat.Formation.PARQUET,
+    grade: Magistrat.Grade.HH,
+    targettedPosition: 'a position',
+    currentPosition: 'a current position',
+    birthDate: {
+      year: 1980,
+      month: 1,
+      day: 1,
+    },
+    biography: 'a biography',
+    rank: '1 sur 1',
+    observers: ['a list of observers'],
+    datePassageAuGrade: null,
+    datePriseDeFonctionPosteActuel: null,
+    informationCarrière: null,
+  },
+};
 
 const uneSession: SessionDto = {
   id: uneSessionId,

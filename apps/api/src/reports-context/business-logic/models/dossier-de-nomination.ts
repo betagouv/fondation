@@ -1,6 +1,6 @@
 export class DossierDeNomination {
   private constructor(
-    private _dossierDeNominationId: string,
+    private readonly _dossierDeNominationId: string,
     private readonly _sessionName: string,
     private readonly _nomAspirant: string,
   ) {}

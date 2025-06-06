@@ -18,8 +18,9 @@ import { RetrieveReportUseCase } from './use-cases/report-retrieval/retrieve-rep
 import { FakeReportFileService } from '../adapters/secondary/gateways/services/fake-report-file-service';
 import { UploadReportFilesUseCase } from './use-cases/report-files-upload/upload-report-files';
 import { DossierDeNominationTranslator } from '../adapters/secondary/gateways/services/dossier-de-nomination.translator';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
-export const currentDate = new Date(2024, 10, 10);
+export const currentDate = new DateOnly(2024, 10, 10).toDate();
 
 const unUserId = 'un-user-id';
 export const unRapporteur = {
@@ -61,6 +62,7 @@ export const getDependencies = () => {
     fakeReportRetrievalVMQuery,
     stubSessionService,
     stubDossierDeNominationService,
+    dateTimeProvider,
   );
   const uploadReportFilesUseCase = new UploadReportFilesUseCase(
     fakeReportFileService,

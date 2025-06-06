@@ -7,6 +7,7 @@ import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date
 import { z } from 'zod';
 
 export interface ContenuPropositionDeNominationTransparenceV1 {
+  version?: 1;
   folderNumber: number | null;
   name: string;
   formation: Magistrat.Formation;
@@ -18,21 +19,34 @@ export interface ContenuPropositionDeNominationTransparenceV1 {
   birthDate: DateOnlyJson;
   biography: string | null;
   observers: string[] | null;
-}
-
-type ContenuV1 = ContenuPropositionDeNominationTransparenceV1;
-
-export interface ContenuPropositionDeNominationTransparenceV2
-  extends ContenuPropositionDeNominationTransparenceV1 {
-  version: 2;
   datePassageAuGrade: DateOnlyJson | null;
   datePriseDeFonctionPosteActuel: DateOnlyJson | null;
   informationCarrière: string | null;
 }
 
+type ContenuV1 = ContenuPropositionDeNominationTransparenceV1;
+
+export interface ContenuPropositionDeNominationTransparenceV2 {
+  version: 2;
+  numeroDeDossier: number | null;
+  nomMagistrat: string;
+  posteCible: string;
+  dateDeNaissance: DateOnlyJson;
+  posteActuel: string;
+  grade: Magistrat.Grade;
+  observants: string[] | null;
+  historique: string | null;
+  rang: string;
+  datePassageAuGrade: DateOnlyJson | null;
+  datePriseDeFonctionPosteActuel: DateOnlyJson | null;
+  informationCarrière: string | null;
+  dateEchéance: DateOnlyJson;
+}
+
 type ContenuV2 = ContenuPropositionDeNominationTransparenceV2;
 
 export const propositionDeNominationTransparenceContentV1Schema = z.object({
+  version: z.literal(1).optional().optional(),
   folderNumber: z.number().nullable(),
   name: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
@@ -44,31 +58,65 @@ export const propositionDeNominationTransparenceContentV1Schema = z.object({
   birthDate: dateOnlyJsonSchema,
   biography: z.string().nullable(),
   observers: z.array(z.string()).nullable(),
+  datePassageAuGrade: dateOnlyJsonSchema.nullable(),
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
+  informationCarrière: z.string().nullable(),
 }) satisfies z.ZodType<ContenuV1>;
 
-export const propositionDeNominationTransparenceContentV2Schema =
-  propositionDeNominationTransparenceContentV1Schema.extend({
-    version: z.literal(2),
-    datePassageAuGrade: dateOnlyJsonSchema,
-    datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
-    informationCarrière: z.string().nullable(),
-  }) satisfies z.ZodType<ContenuV2>;
+export const propositionDeNominationTransparenceContentV2Schema = z.object({
+  version: z.literal(2),
+  numeroDeDossier: z.number().nullable(),
+  nomMagistrat: z.string(),
+  posteCible: z.string(),
+  dateDeNaissance: dateOnlyJsonSchema,
+  posteActuel: z.string(),
+  observants: z.array(z.string()).nullable(),
+  historique: z.string().nullable(),
+  rang: z.string(),
+  dateEchéance: dateOnlyJsonSchema,
+  grade: z.nativeEnum(Magistrat.Grade),
+  datePassageAuGrade: dateOnlyJsonSchema.nullable(),
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
+  informationCarrière: z.string().nullable(),
+}) satisfies z.ZodType<ContenuV2>;
 
 export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS> {
-  updateFolderNumber(folderNumber: ContenuV2['folderNumber']) {
-    this.updateContent({
-      folderNumber,
-    });
+  updateFolderNumber(
+    content:
+      | Pick<ContenuV1, 'version' | 'folderNumber'>
+      | Pick<ContenuV2, 'version' | 'numeroDeDossier'>,
+  ) {
+    if (content.version === undefined || content.version === 1) {
+      this.updateContent<typeof content>({
+        folderNumber: content.folderNumber,
+      });
+    } else if (content.version === 2) {
+      this.updateContent<typeof content>({
+        numeroDeDossier: content.numeroDeDossier,
+      });
+    }
   }
 
-  updateObservers(observers: ContenuV2['observers']) {
-    this.updateContent({
-      observers,
-    });
+  updateObservers(
+    content:
+      | Pick<ContenuV1, 'version' | 'observers'>
+      | Pick<ContenuV2, 'version' | 'observants'>,
+  ) {
+    if (content.version === undefined || content.version === 1) {
+      this.updateContent<typeof content>({
+        observers: content.observers,
+      });
+    } else if (content.version === 2) {
+      this.updateContent<typeof content>({
+        observants: content.observants,
+      });
+    }
   }
 
   updateDatePassageAuGrade(
-    datePassageAuGrade: ContenuV2['datePassageAuGrade'],
+    datePassageAuGrade:
+      | ContenuV1['datePassageAuGrade']
+      | ContenuV2['datePassageAuGrade'],
   ) {
     this.updateContent({
       datePassageAuGrade,
@@ -76,7 +124,9 @@ export class PropositionDeNominationTransparence extends DossierDeNomination<Typ
   }
 
   updateDatePriseDeFonctionPosteActuel(
-    datePriseDeFonctionPosteActuel: ContenuV2['datePriseDeFonctionPosteActuel'],
+    datePriseDeFonctionPosteActuel:
+      | ContenuV1['datePriseDeFonctionPosteActuel']
+      | ContenuV2['datePriseDeFonctionPosteActuel'],
   ) {
     this.updateContent({
       datePriseDeFonctionPosteActuel,
@@ -84,7 +134,9 @@ export class PropositionDeNominationTransparence extends DossierDeNomination<Typ
   }
 
   updateInformationCarrière(
-    informationCarrière: ContenuV2['informationCarrière'],
+    informationCarrière:
+      | ContenuV1['informationCarrière']
+      | ContenuV2['informationCarrière'],
   ) {
     this.updateContent({
       informationCarrière,

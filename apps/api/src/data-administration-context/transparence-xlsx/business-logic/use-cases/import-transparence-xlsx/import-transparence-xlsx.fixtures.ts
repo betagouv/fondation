@@ -1,17 +1,30 @@
 import xlsx from 'node-xlsx';
 import { Gender, Magistrat, Role } from 'shared-models';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
-import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
+
+export const nouvellTranspaEventId = 'event-id';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
-
 export const lucLoïcUser = {
   userId: lucLoïcReporterId,
   firstName: 'LOIC',
   lastName: 'LUC',
   fullName: 'LUC Loïc',
   role: Role.MEMBRE_COMMUN,
+  gender: Gender.M,
+};
+
+export const jocelinReporterId = 'jocelin-reporter-id';
+export const jocelinUser = {
+  userId: jocelinReporterId,
+  firstName: 'martin-luc',
+  lastName: 'josselin-martel',
+  fullName: 'JOSSELIN-MARTEL Martin-Luc',
+  email: 'martin-luc@example.fr',
+  password: 'some-password',
+  role: Role.MEMBRE_DU_SIEGE,
   gender: Gender.M,
 };
 
@@ -27,17 +40,15 @@ type Colonne =
   | 'Passage au grade'
   | 'Eq./Av.'
   | 'Observants'
+  | 'Rapporteur'
   | 'Information carrière'
-  | 'Historique'
-  | 'Rapporteur 1'
-  | 'Rapporteur 2'
-  | 'Rapporteur 3 (note de synthèse pour le président de formation)';
+  | 'Historique';
 
 type Ligne = Record<Colonne, string | number | null>;
 
 const ligne1 = {
   'N°': '12345',
-  Magistrat: 'Elise PREGENT ep. QUIMPER (1 sur une liste de 7)',
+  Magistrat: 'Elise PREGENT ep. QUIMPER\n(1 sur une liste de 7)',
   'Poste cible': 'Procureur de la République TJ  RENNES – I',
   'Date de naissance': '1/1/1971',
   'Poste actuel': 'Procureur de la République TJ  CAMBRAI',
@@ -45,11 +56,9 @@ const ligne1 = {
   'Passage au grade': '27/3/2012',
   'Eq./Av.': Avancement.EQUIVALENCE,
   Observants: 'un observant',
+  Rapporteur: `${lucLoïcUser.fullName}\n${jocelinUser.fullName}`,
   'Information carrière': '',
   Historique: '- Biographie de E - poste 2',
-  'Rapporteur 1': lucLoïcUser.fullName,
-  'Rapporteur 2': '',
-  'Rapporteur 3 (note de synthèse pour le président de formation)': '',
 } satisfies Ligne;
 
 const genXlsxFile = (ligneOverride?: Partial<Ligne>) => {
@@ -121,9 +130,10 @@ const genDossierSiège = (
     equivalenceOuAvancement: ligne1['Eq./Av.'],
     grade: Magistrat.Grade.I,
     observers: ligne1.Observants ? [ligne1.Observants] : [],
-    reporters: [lucLoïcUser.fullName],
+    reporters: [lucLoïcUser.fullName, jocelinUser.fullName],
     informationCarriere: null,
     historique: ligne1.Historique || null,
+    rank: '(1 sur une liste de 7)',
     ...content,
   },
 });
@@ -149,6 +159,11 @@ const genUneTransparence = (
   createdAt: currentDate,
   formation: Magistrat.Formation.SIEGE,
   name: 'Une Transparence',
+  dateEchéance: {
+    day: 1,
+    month: 1,
+    year: 2025,
+  },
   nominationFiles: [dossier],
 });
 

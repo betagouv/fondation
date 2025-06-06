@@ -1,14 +1,14 @@
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { TransparenceService } from '../../services/transparence.service';
-import { ImportNouvelleTransparenceCommand } from './Import-nouvelle-transparence.command';
+import { ImportNouvelleTransparenceXlsxCommand } from './Import-nouvelle-transparence-xlsx.command';
 
-export class ImportNouvelleTransparenceUseCase {
+export class ImportNouvelleTransparenceXlsxUseCase {
   constructor(
     private readonly transactionPerformer: TransactionPerformer,
     private readonly transparenceService: TransparenceService,
   ) {}
 
-  execute(command: ImportNouvelleTransparenceCommand): Promise<void> {
+  execute(command: ImportNouvelleTransparenceXlsxCommand): Promise<void> {
     return this.transactionPerformer.perform(async (trx) => {
       const transparence = await this.transparenceService.nouvelleTransparence(
         command.transparenceId,
@@ -16,9 +16,10 @@ export class ImportNouvelleTransparenceUseCase {
         command.formation,
       )(trx);
 
-      await this.transparenceService.créerDossiersImportés(
+      await this.transparenceService.créerDossiersXlsxImportés(
         transparence,
         command.nominationFilesPayload,
+        command.dateEchéance,
       )(trx);
     });
   }

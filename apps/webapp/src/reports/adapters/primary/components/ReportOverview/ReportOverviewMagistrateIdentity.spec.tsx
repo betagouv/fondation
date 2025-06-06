@@ -60,17 +60,39 @@ describe("Report Overview Component - Magistrate identity", () => {
     await expectMagistratIdentity();
   });
 
-  const expectMagistratIdentity = async () => {
+  it("shows magistrate identity without dureeDuPoste", async () => {
+    const reportApiModel = reportApiModelBuilder
+      .with("birthDate", {
+        year: 1980,
+        month: 1,
+        day: 1,
+      })
+      .with("dureeDuPoste", null)
+      .build();
+    givenARenderedReport(reportApiModel);
+    await expectMagistratIdentity(false);
+  });
+
+  const expectMagistratIdentity = async (
+    isDureeDuPosteValid: boolean = true,
+  ) => {
     const labels = ReportVM.magistratIdentityLabels;
     const section = within(
       await screen.findByRole("region", { name: "Identité du magistrat" }),
     );
     await section.findByText("John Doe");
-    await section.findByText(`${labels.currentPosition} : PG TJ Paris`);
-    await section.findByText(`${labels.grade} : I`);
-    await section.findByText(`${labels.targettedPosition} : PG TJ Marseille`);
-    await section.findByText(`${labels.rank} : (2 sur une liste de 3)`);
-    await section.findByText(`${labels.birthDate} : 01/01/1980 (40 ans)`);
+    await section.findByText(`${labels.currentPosition} :`);
+    await section.findByText(`PG TJ Paris - I`);
+    if (isDureeDuPosteValid) {
+      await section.findByText(`${labels.dureeDuPoste} :`);
+      await section.findByText(`3 ans et 6 mois`);
+    }
+    await section.findByText(`${labels.rank} :`);
+    await section.findByText(`(2 sur une liste de 3)`);
+    await section.findByText(`${labels.birthDate} :`);
+    await section.findByText(`01/01/1980 (40 ans)`);
+    await section.findByText(`${labels.targettedPosition} :`);
+    await section.findByText(`PG TJ Marseille`);
   };
 
   const givenARenderedReport = (report: ReportApiModel) => {

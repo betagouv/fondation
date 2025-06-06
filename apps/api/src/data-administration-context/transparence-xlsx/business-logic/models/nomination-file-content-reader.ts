@@ -1,5 +1,7 @@
 import { FolderNumberTsvNormalizer } from 'src/data-administration-context/transparence-xlsx/business-logic/models/tsv-normalizers/folder-number-tsv-normalizer';
+import { RankTsvNormalizer } from 'src/data-administration-context/transparence-xlsx/business-logic/models/tsv-normalizers/rank-tsv-normalizer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { AvancementNormalizer } from '../../../lodam/business-logic/models/valeur-csv-normalizers/avancement-normalizer';
 import {
   NominationFileRead,
   nominationFileReadListSchema,
@@ -7,12 +9,12 @@ import {
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
 import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
-import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
-import { AvancementNormalizer } from '../../../lodam/business-logic/models/valeur-csv-normalizers/avancement-normalizer';
 import { PosteCibleTsvNormalizer } from './tsv-normalizers/poste-cible-tsv-normalizer';
+import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
+export const SEPARATOR_LINE_BREAK = '\n';
 
 export class NominationFileContentReader {
   constructor(
@@ -22,7 +24,6 @@ export class NominationFileContentReader {
 
   read(): NominationFilesContentReadCollection {
     const contentRead = this.content.map((_, rowIndex) => {
-      const reporter1Value = this.findValue('Rapporteur 1', rowIndex);
       const observersValue = this.findValue('Observants', rowIndex);
       const datePassageAuGrade = this.findValue('Passage au grade', rowIndex, {
         optional: true,
@@ -76,17 +77,9 @@ export class NominationFileContentReader {
           observers: observersValue
             ? ObserversTsvNormalizer.normalize(observersValue)
             : null,
-          reporters: reporter1Value
-            ? ReportersTsvNormalizer.normalize(
-                reporter1Value,
-                this.findValue('Rapporteur 2', rowIndex, { optional: true })!,
-                this.findValue(
-                  'Rapporteur 3 (note de synthèse pour le président de formation)',
-                  rowIndex,
-                  { optional: true },
-                )!,
-              )
-            : null,
+          reporters: ReportersTsvNormalizer.normalize(
+            this.findValue('Rapporteur', rowIndex)!,
+          ),
           informationCarriere: this.findValue(
             'Information carrière',
             rowIndex,
@@ -95,6 +88,9 @@ export class NominationFileContentReader {
           historique: this.findValue('Historique', rowIndex, {
             optional: true,
           }),
+          rank: RankTsvNormalizer.normalize(
+            this.findValue('Magistrat', rowIndex)!,
+          ),
         },
       };
 

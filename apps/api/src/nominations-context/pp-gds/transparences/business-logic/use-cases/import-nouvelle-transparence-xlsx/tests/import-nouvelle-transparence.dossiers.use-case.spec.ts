@@ -2,12 +2,13 @@ import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/bu
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 import {
+  aDateEchéance,
   aDossierDeNominationId,
   aDossierDeNominationImportedId,
   aDossierDeNominationPayload,
   aTransparencyName,
   givenSomeUuids,
-  importNouvelleTransparenceUseCase,
+  importNouvelleTransparenceXlsxUseCase,
 } from './import-nouvelle-transparence.tests-setup';
 
 describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
@@ -24,7 +25,7 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
   });
 
   async function créerDossiersDeNomination() {
-    await importNouvelleTransparenceUseCase(dependencies);
+    await importNouvelleTransparenceXlsxUseCase(dependencies);
   }
 
   function expectDossierDeNominationCréé() {
@@ -42,14 +43,13 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
         sessionId: aTransparencyName,
         content: {
           version: 2,
-          historique: aDossierDeNominationPayload.content.biography,
-          dateDeNaissance: aDossierDeNominationPayload.content.birthDate,
-          posteActuel: aDossierDeNominationPayload.content.currentPosition,
-          posteCible: aDossierDeNominationPayload.content.targettedPosition,
-          dateEchéance: aDossierDeNominationPayload.content.dueDate!,
-          numeroDeDossier: aDossierDeNominationPayload.content.folderNumber,
+          historique: aDossierDeNominationPayload.content.historique,
+          dateDeNaissance: aDossierDeNominationPayload.content.dateDeNaissance,
+          posteActuel: aDossierDeNominationPayload.content.posteActuel,
+          posteCible: aDossierDeNominationPayload.content.posteCible,
+          numeroDeDossier: aDossierDeNominationPayload.content.numeroDeDossier,
           grade: aDossierDeNominationPayload.content.grade,
-          nomMagistrat: aDossierDeNominationPayload.content.name,
+          nomMagistrat: aDossierDeNominationPayload.content.magistrat,
           observants: aDossierDeNominationPayload.content.observers,
           rang: aDossierDeNominationPayload.content.rank,
           datePassageAuGrade:
@@ -57,7 +57,8 @@ describe('Nouvelle transparence GDS - Dossiers de nominations', () => {
           datePriseDeFonctionPosteActuel:
             aDossierDeNominationPayload.content.datePriseDeFonctionPosteActuel,
           informationCarrière:
-            aDossierDeNominationPayload.content.informationCarrière,
+            aDossierDeNominationPayload.content.informationCarriere,
+          dateEchéance: aDateEchéance,
         },
       },
     ]);

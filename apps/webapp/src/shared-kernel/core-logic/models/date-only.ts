@@ -1,4 +1,5 @@
-import { differenceInYears, format } from "date-fns";
+import { differenceInYears, format, isValid, parse } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyStoreModel = {
@@ -59,5 +60,28 @@ export class DateOnly {
   }
   static now(): DateOnly {
     return DateOnly.fromDate(new Date());
+  }
+
+  static fromDateOnlyString = (dateString: string): DateOnly => {
+    return this.fromString(dateString);
+  };
+
+  private static fromString(
+    dateString: string,
+    format = "dd-MM-yyyy",
+    locale = "fr",
+  ): DateOnly {
+    const date = parse(dateString, format, new Date(), {
+      locale: locale === "fr" ? fr : undefined,
+    });
+    if (!isValid(date)) {
+      throw new Error("Invalid date: " + dateString);
+    }
+
+    return new this(
+      date.getFullYear(),
+      (date.getMonth() + 1) as Month,
+      date.getDate(),
+    );
   }
 }

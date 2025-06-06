@@ -41,7 +41,7 @@ export const selectReportList = createAppSelector(
     (
       _,
       args: {
-        transparencyFilter: Transparency;
+        transparencyFilter: string;
         aTransparencyTitleMap?: typeof transparencyTitleMap;
         formationFilter: Magistrat.Formation;
       },
@@ -111,7 +111,10 @@ export const selectReportList = createAppSelector(
           text: "Rapports sur la ",
         },
         {
-          text: aTransparencyTitleMap[transparencyFilter],
+          text:
+            transparencyFilter in aTransparencyTitleMap
+              ? aTransparencyTitleMap[transparencyFilter]!
+              : `transparence ${transparencyFilter}`,
           color: colors.options.yellowTournesol.sun407moon922.hover,
         },
       ],
@@ -119,7 +122,7 @@ export const selectReportList = createAppSelector(
   },
 );
 
-const transparencyTitleMap: { [key in Transparency]: string } = {
+const transparencyTitleMap: { [key in string]: string } = {
   [Transparency.AUTOMNE_2024]: "transparence du 18/10/2024 (automne)",
   [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
     "transparence du 08/11/2024 (PG/PR)",
