@@ -60,6 +60,11 @@ export class ReportApiModelBuilder {
       attachedFiles: null,
       dureeDuPoste: "3 ans et 6 mois",
       rules: new RulesFromMapBuilder(rulesMap).build(),
+      dateTransparence: {
+        year: 2025,
+        month: 3,
+        day: 21,
+      },
     };
   }
 

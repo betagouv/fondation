@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { RestContract, ZodParamsDto } from "./common";
+import { z, ZodNumberDef, ZodType } from "zod";
+import { RestContract, ZodParamsDto, ZodQueryParamsDto } from "./common";
 import { Magistrat } from "../magistrat.namespace";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
-import { DateOnlyJson } from "models/date";
+import { DateOnlyJson, Month } from "models/date";
 
 type SessionSnapshotResponse = {
   id: string;
@@ -11,6 +11,20 @@ type SessionSnapshotResponse = {
   formation: Magistrat.Formation;
   typeDeSaisine: TypeDeSaisine;
   version: number;
+  content: object;
+};
+
+type TransparenceSnapshotResponse = {
+  id: string;
+  sessionImportéeId: string;
+  name: string;
+  formation: Magistrat.Formation;
+  typeDeSaisine: TypeDeSaisine;
+  version: number;
+  content: {
+    dateTransparence: DateOnlyJson;
+    dateClôtureDélaiObservation: DateOnlyJson | null;
+  };
 };
 
 export interface NominationsContextSessionsRestContract extends RestContract {
@@ -48,11 +62,8 @@ export interface NominationsContextTransparenceRestContract
     transparenceSnapshot: {
       method: "GET";
       path: "snapshot/by-nom-formation-et-date";
-      queryParams: {
-        nom: string;
-        formation: Magistrat.Formation;
-        dateTransparence: DateOnlyJson;
-      };
+      queryParams: TransparenceSnapshotQueryParamsDto;
+      response: TransparenceSnapshotResponse;
     };
   };
 }
@@ -76,4 +87,38 @@ export const sessionSnapshotParamsSchema = z.object({
 }) satisfies ZodParamsDto<
   NominationsContextSessionsRestContract,
   "sessionSnapshot"
+>;
+
+export interface TransparenceSnapshotQueryParamsDto
+  extends Record<string, string | number> {
+  nom: string;
+  formation: Magistrat.Formation;
+  year: DateOnlyJson["year"];
+  month: DateOnlyJson["month"];
+  day: DateOnlyJson["day"];
+}
+export const transparenceSnapshotQueryParamsSchema = z.object({
+  nom: z.string().min(1, "Le nom est requis."),
+  formation: z.nativeEnum(Magistrat.Formation, {
+    errorMap: () => ({
+      message: "La formation est requise.",
+    }),
+  }),
+  year: z
+    .number()
+    .int()
+    .min(2015, "L'année doit être supérieure ou égale à 2015."),
+  month: z
+    .number()
+    .int()
+    .min(1, "Le mois doit être compris entre 1 et 12.")
+    .max(12) as ZodType<Month, ZodNumberDef, Month>,
+  day: z
+    .number()
+    .int()
+    .min(1, "Le jour doit être compris entre 1 et 31.")
+    .max(31),
+}) satisfies ZodQueryParamsDto<
+  NominationsContextTransparenceRestContract,
+  "transparenceSnapshot"
 >;

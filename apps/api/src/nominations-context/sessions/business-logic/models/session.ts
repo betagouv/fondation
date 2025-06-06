@@ -75,7 +75,7 @@ export class Session<S extends TypeDeSaisine | unknown = unknown> {
     return this._formation;
   }
 
-  snapshot(): SessionSnapshot {
+  snapshot(): SessionSnapshot<S> {
     return {
       id: this._id,
       name: this._name,
@@ -96,7 +96,7 @@ export class Session<S extends TypeDeSaisine | unknown = unknown> {
     dateClôtureDélaiObservation: DateOnlyJson | null,
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
-    return new Session(
+    return new Session<TypeDeSaisine.TRANSPARENCE_GDS>(
       id,
       sessionImportéeId,
       name,

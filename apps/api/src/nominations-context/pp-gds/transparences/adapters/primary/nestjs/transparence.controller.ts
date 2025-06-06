@@ -7,18 +7,18 @@ import {
 import { GetTransparenceSnapshotUseCase } from '../../../business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
 import { TransparenceSnapshotQueryParamsNestDto } from './dto/transparence-snapshot-query-params.nest-dto';
 
-type ITransparenceController =
+type ITransparencesController =
   IController<NominationsContextTransparenceRestContract>;
 
 export const baseRoute: NominationsContextTransparenceRestContract['basePath'] =
   'api/nominations/transparence';
 export const endpointsPaths: IControllerPaths<NominationsContextTransparenceRestContract> =
   {
-    transparenceSnapshot: 'snapshot',
+    transparenceSnapshot: 'snapshot/by-nom-formation-et-date',
   };
 
 @Controller(baseRoute)
-export class TransparenceController implements ITransparenceController {
+export class TransparencesController implements ITransparencesController {
   constructor(
     private readonly getTransparenceSnapshotUseCase: GetTransparenceSnapshotUseCase,
   ) {}
@@ -30,7 +30,11 @@ export class TransparenceController implements ITransparenceController {
     const session = await this.getTransparenceSnapshotUseCase.execute(
       params.nom,
       params.formation,
-      params.dateTransparence,
+      {
+        year: params.year,
+        month: params.month,
+        day: params.day,
+      },
     );
     if (!session) {
       throw new NotFoundException(

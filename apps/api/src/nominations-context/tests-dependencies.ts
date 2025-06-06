@@ -14,6 +14,8 @@ import { ImportNouvelleTransparenceUseCase } from './pp-gds/transparences/busine
 import { UpdateDossierDeNominationUseCase } from './pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
 import { ImportNouveauxDossiersTransparenceUseCase } from './pp-gds/transparences/business-logic/use-cases/import-nouveaux-dossiers-transparence/import-nouveaux-dossiers-transparence.use-case';
 import { TypeDeSaisine } from 'shared-models';
+import { FakeTransparenceRepository } from './pp-gds/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { GetTransparenceSnapshotUseCase } from './pp-gds/transparences/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -25,6 +27,8 @@ export const getDependencies = () => {
     new FakeDossierDeNominationRepository<TypeDeSaisine.TRANSPARENCE_GDS>();
   const domainEventRepository = new FakeDomainEventRepository();
   const préAnalyseRepository = new FakePréAnalyseRepository();
+  const fakeTransparenceRepository = new FakeTransparenceRepository();
+
   const nullTransactionPerformer = new NullTransactionPerformer();
 
   const transparenceService = new TransparenceService(
@@ -68,6 +72,10 @@ export const getDependencies = () => {
     sessionRepository,
     nullTransactionPerformer,
   );
+  const getTransparenceSnapshotUseCase = new GetTransparenceSnapshotUseCase(
+    fakeTransparenceRepository,
+    nullTransactionPerformer,
+  );
 
   return {
     nullTransactionPerformer,
@@ -77,6 +85,7 @@ export const getDependencies = () => {
     sessionRepository,
     dossierDeNominationRepository,
     propropositionDeNominationTransparenceRepository,
+    fakeTransparenceRepository,
     transparenceService,
     domainEventRepository,
     préAnalyseRepository,
@@ -85,5 +94,6 @@ export const getDependencies = () => {
     importNouveauxDossiersTransparenceUseCase,
     getDossierDeNominationSnapshotUseCase,
     getSessionSnapshotUseCase,
+    getTransparenceSnapshotUseCase,
   };
 };

@@ -17,6 +17,7 @@ import {
   DOSSIER_DE_NOMINATION_REPOSITORY,
   PRE_ANALYSE_REPOSITORY,
   SESSION_REPOSITORY,
+  TRANSPARENCE_REPOSITORY,
 } from './tokens';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
@@ -43,10 +44,13 @@ import { SqlDossierDeNominationRepository } from 'src/nominations-context/sessio
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { GetTransparenceSnapshotUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
+import { TransparencesController } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/transparence.controller';
+import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [SessionsController],
+  controllers: [SessionsController, TransparencesController],
   providers: [
     GdsNouvellesTransparencesImportéesNestSubscriber,
     GdsTransparenceNouveauxDossiersNestSubscriber,
@@ -62,6 +66,10 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
       ImportNouvelleTransparenceUseCase,
     ]),
 
+    generateProvider(GetTransparenceSnapshotUseCase, [
+      TRANSPARENCE_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
     generateProvider(GetSessionSnapshotUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
@@ -92,6 +100,7 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
     ]),
 
     generateProvider(SqlSessionRepository, [], SESSION_REPOSITORY),
+    generateProvider(SqlTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
     generateProvider(
       SqlDossierDeNominationRepository,
       [],
@@ -121,6 +130,7 @@ export class NominationsContextModule implements OnModuleInit {
       .forRoutes(
         `${baseRoute}/${endpointsPaths.sessionSnapshot}`,
         `${baseRoute}/${endpointsPaths.dossierDeNominationSnapshot}`,
+        TransparencesController,
       );
   }
 }

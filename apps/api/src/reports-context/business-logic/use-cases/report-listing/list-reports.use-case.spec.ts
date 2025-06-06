@@ -1,4 +1,5 @@
 import {
+  DateOnlyJson,
   Magistrat,
   NominationFile,
   ReportListItemQueried,
@@ -7,7 +8,7 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
-import { SessionDto } from '../../gateways/services/session.service';
+import { TransparenceDto } from '../../gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
 import { ListReportsUseCase } from './list-reports.use-case';
 
@@ -18,7 +19,7 @@ describe('List reports', () => {
     dependencies = getDependencies();
     dependencies.stubDossierDeNominationService.stubDossier =
       unDossierDeNomination;
-    dependencies.stubSessionService.stubSession = uneSession;
+    dependencies.stubSessionService.stubSession = uneTransparence;
   });
 
   it("returns an empty list when there's no reports", async () => {
@@ -61,6 +62,11 @@ describe('List reports', () => {
 const reporterId = 'reporter-id';
 const uneSessionId = 'une-session-id';
 const unDossierDeNominationId = 'un-dossier-de-nomination-id';
+const uneDateTransparence: DateOnlyJson = {
+  year: 2025,
+  month: 3,
+  day: 21,
+};
 
 const unRapportVM: ReportListItemVM = {
   id: '1',
@@ -77,6 +83,7 @@ const unRapportVM: ReportListItemVM = {
   grade: Magistrat.Grade.HH,
   targettedPosition: 'a position',
   observersCount: 1,
+  dateTransparence: uneDateTransparence,
 };
 
 const unRapportQueried: ReportListItemQueried = {
@@ -121,11 +128,15 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
   },
 };
 
-const uneSession: SessionDto = {
+const uneTransparence: TransparenceDto = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: unRapportVM.transparency,
   formation: unRapportVM.formation,
   sessionImportéeId: 'session-importée-id',
   version: 1,
+  content: {
+    dateTransparence: uneDateTransparence,
+    dateClôtureDélaiObservation: null,
+  },
 };

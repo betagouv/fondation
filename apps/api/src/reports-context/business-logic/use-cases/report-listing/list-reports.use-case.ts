@@ -1,17 +1,16 @@
-import { ReportListingVM } from 'shared-models';
+import { ReportListingVM, TypeDeSaisine } from 'shared-models';
 import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
 import {
   DossierDeNominationService,
   PropositionDeNominationTransparenceDto,
 } from '../../gateways/services/dossier-de-nomination.service';
-import { TypeDeSaisine } from 'shared-models';
-import { SessionService } from '../../gateways/services/session.service';
+import { TransparenceService } from '../../gateways/services/session.service';
 
 export class ListReportsUseCase {
   constructor(
     private readonly reportListingVMRepository: ReportListingQuery,
     private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
-    private readonly sessionService: SessionService,
+    private readonly transparenceService: TransparenceService,
   ) {}
 
   async execute(reporterId: string): Promise<ReportListingVM> {
@@ -23,7 +22,7 @@ export class ListReportsUseCase {
         reportQueried.dossierDeNominationId,
       );
 
-      const session = await this.sessionService.session(
+      const session = await this.transparenceService.session(
         reportQueried.sessionId,
       );
       if (!session) {
@@ -42,6 +41,7 @@ export class ListReportsUseCase {
       data: dossierDeNomination.map(({ session, dossier, reportQueried }) => ({
         id: reportQueried.id,
         transparency: session.name,
+        dateTransparence: session.content.dateTransparence,
         state: reportQueried.state,
         formation: reportQueried.formation,
         ...this.rapportFromPropositionDeNomination(dossier),

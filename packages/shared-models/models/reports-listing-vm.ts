@@ -22,6 +22,7 @@ export interface ReportListItemVM {
   grade: Magistrat.Grade;
   targettedPosition: string;
   observersCount: number;
+  dateTransparence: DateOnlyJson;
 }
 
 export interface ReportListingVM {
