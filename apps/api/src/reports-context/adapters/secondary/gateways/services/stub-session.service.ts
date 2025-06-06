@@ -12,24 +12,4 @@ export class StubSessionService implements SessionService {
     }
     return this.stubSession;
   }
-
-  async sessionParCriteres(
-    nomTransparence: string,
-    formation: string,
-    dateTransparence: { year: number; month: number; day: number },
-  ): Promise<SessionDto | null> {
-    if (
-      this.stubSession &&
-      this.stubSession.name === nomTransparence &&
-      this.stubSession.formation === formation &&
-      this.stubSession.content.dateTransparence?.year ===
-        dateTransparence.year &&
-      this.stubSession.content.dateTransparence?.month ===
-        dateTransparence.month &&
-      this.stubSession.content.dateTransparence?.day === dateTransparence.day
-    ) {
-      return this.stubSession;
-    }
-    return null;
-  }
 }

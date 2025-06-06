@@ -100,7 +100,10 @@ describe("Breadcrumb", () => {
         segments: [
           ...baseGdsReportSegments,
           {
-            label: transparencyToLabel(aReport.transparency),
+            label: transparencyToLabel(
+              aReport.transparency,
+              aReport.dateTransparence,
+            ),
             href: routerProvider.getTransparencyReportsHref(
               aReport.transparency,
             ),

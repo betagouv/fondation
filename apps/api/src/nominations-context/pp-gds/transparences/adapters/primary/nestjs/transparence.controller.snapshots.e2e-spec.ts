@@ -1,5 +1,10 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import {
+  DateOnlyJson,
+  Magistrat,
+  TransparenceSnapshotQueryParamsDto,
+  TypeDeSaisine,
+} from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
@@ -43,7 +48,7 @@ describe('Transparence Controller - Snapshots', () => {
     });
 
     it('retrieves a transparence snapshot by nom, formation, and date', async () => {
-      const response = await requestTransparenceSnapshot(
+      const response = await requestTransparence(
         uneTransparence.name,
         uneTransparence.formation,
         uneTransparence.content.dateTransparence,
@@ -53,24 +58,34 @@ describe('Transparence Controller - Snapshots', () => {
     });
 
     it('returns 404 when transparence does not exist', async () => {
-      await requestTransparenceSnapshot(
+      await requestTransparence(
         'NonExistingName',
         uneTransparence.formation,
         uneTransparence.content.dateTransparence,
       ).expect(HttpStatus.NOT_FOUND);
     });
 
-    const requestTransparenceSnapshot = (
+    const requestTransparence = (
       nom: string,
       formation: Magistrat.Formation,
       dateTransparence: DateOnlyJson,
     ) => {
       const { year, month, day } = dateTransparence;
+      const query: TransparenceSnapshotQueryParamsDto = {
+        nom,
+        formation,
+        year,
+        month,
+        day,
+      };
+
       return new SecureCrossContextRequestBuilder(app)
         .withTestedEndpoint((agent) =>
-          agent.get(
-            `/api/nominations/transparence/snapshot/by-nom-formation-et-date?nom=${nom}&formation=${formation}&year=${year}&month=${month}&day=${day}`,
-          ),
+          agent
+            .get(
+              `/api/nominations/transparence/snapshot/by-nom-formation-et-date`,
+            )
+            .query(query),
         )
         .request();
     };

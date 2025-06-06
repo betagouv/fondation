@@ -62,6 +62,7 @@ const uneSession: SessionDto = {
   formation: Magistrat.Formation.PARQUET,
   sessionImportéeId: 'session-importée-id',
   version: 1,
+  content: {},
 };
 
 describe('Upload Report Files Use Case', () => {

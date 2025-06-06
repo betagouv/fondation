@@ -8,7 +8,7 @@ import {
 import { Get, Paths } from 'type-fest';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
 import { PropositionDeNominationTransparenceV1Dto } from '../gateways/services/dossier-de-nomination.service';
-import { SessionDto } from '../gateways/services/session.service';
+import { TransparenceDto } from '../gateways/services/session.service';
 import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalBuilder<
@@ -48,6 +48,11 @@ export class ReportRetrievalBuilder<
       state: NominationFile.ReportState.NEW,
       formation: Magistrat.Formation.PARQUET,
       transparency: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
+      dateTransparence: {
+        year: 2025,
+        month: 3,
+        day: 21,
+      },
       grade: Magistrat.Grade.I,
       currentPosition: 'current position',
       targettedPosition: 'targetted position',
@@ -116,6 +121,7 @@ export class ReportRetrievalBuilder<
       state: report.state,
       formation: report.formation,
       transparency: report.transparency,
+      dateTransparence: report.dateTransparence,
       grade: report.grade,
       currentPosition: report.currentPosition,
       targettedPosition: report.targettedPosition,
@@ -160,7 +166,7 @@ export class ReportRetrievalBuilder<
 
   static fromPropositionDeNominationTransparenceV1(
     dossierDeNomination: PropositionDeNominationTransparenceV1Dto,
-    session: SessionDto,
+    session: TransparenceDto,
   ): ReportRetrievalBuilder {
     return new ReportRetrievalBuilder()
       .with('id', dossierDeNomination.id)
@@ -175,6 +181,7 @@ export class ReportRetrievalBuilder<
       .with('biography', dossierDeNomination.content.biography)
       .with('observers', dossierDeNomination.content.observers)
       .with('rank', dossierDeNomination.content.rank)
-      .with('transparency', session.name as Transparency);
+      .with('transparency', session.name as Transparency)
+      .with('dateTransparence', session.content.dateTransparence);
   }
 }

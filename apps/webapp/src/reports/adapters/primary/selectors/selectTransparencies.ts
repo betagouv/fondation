@@ -1,8 +1,7 @@
-import _ from "lodash";
 import { Magistrat } from "shared-models";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { AppState, ReportListItem } from "../../../../store/appState";
 import { createAppSelector } from "../../../../store/createAppSelector";
-import { transparenciesOrder } from "../../../core-logic/transparencies-order";
 import {
   formationToLabel,
   TransparencyLabel,
@@ -98,84 +97,76 @@ function formatGdsTransparencies(
   data: ReportListItem[],
   getTransparencyOnClickAttributes: AppState["router"]["anchorsAttributes"]["perTransparency"],
 ) {
-  const transparencies = data.reduce(
-    (
-      acc: {
-        [Magistrat.Formation.PARQUET]: NonNullable<
-          GdsFormationVM["transparencies"]
-        >;
-        [Magistrat.Formation.SIEGE]: NonNullable<
-          GdsFormationVM["transparencies"]
-        >;
+  const transparencies = [...data]
+    .sort((a, b) =>
+      DateOnly.fromStoreModel(b.dateTransparence).timeDiff(
+        DateOnly.fromStoreModel(a.dateTransparence),
+      ),
+    )
+    .reduce(
+      (
+        acc: {
+          [Magistrat.Formation.PARQUET]: NonNullable<
+            GdsFormationVM["transparencies"]
+          >;
+          [Magistrat.Formation.SIEGE]: NonNullable<
+            GdsFormationVM["transparencies"]
+          >;
+        },
+        report,
+      ) => {
+        const transparencyLabel = transparencyToLabel(
+          report.transparency,
+          report.dateTransparence,
+        );
+
+        switch (report.formation) {
+          case Magistrat.Formation.PARQUET:
+            accumulateTransparency(Magistrat.Formation.PARQUET);
+            break;
+          case Magistrat.Formation.SIEGE:
+            accumulateTransparency(Magistrat.Formation.SIEGE);
+            break;
+          default: {
+            const _exhaustiveCheck: never = report.formation;
+            throw new Error(`Unknown formation: ${_exhaustiveCheck}`);
+          }
+        }
+
+        return acc;
+
+        function accumulateTransparency(formation: Magistrat.Formation) {
+          if (
+            acc[formation].findIndex(
+              ({ label }) => label === transparencyLabel,
+            ) === -1
+          ) {
+            const anchorAttributes = getTransparencyOnClickAttributes(
+              report.transparency,
+              formation,
+            );
+            acc[formation].push({
+              label: transparencyLabel,
+              ...anchorAttributes,
+            });
+          }
+        }
       },
-      report,
-    ) => {
-      const transparencyLabel = transparencyToLabel(report.transparency);
-
-      switch (report.formation) {
-        case Magistrat.Formation.PARQUET:
-          accumulateTransparency(Magistrat.Formation.PARQUET);
-          break;
-        case Magistrat.Formation.SIEGE:
-          accumulateTransparency(Magistrat.Formation.SIEGE);
-          break;
-        default: {
-          const _exhaustiveCheck: never = report.formation;
-          throw new Error(`Unknown formation: ${_exhaustiveCheck}`);
-        }
-      }
-
-      return acc;
-
-      function accumulateTransparency(formation: Magistrat.Formation) {
-        if (
-          acc[formation].findIndex(
-            ({ label }) => label === transparencyLabel,
-          ) === -1
-        ) {
-          const anchorAttributes = getTransparencyOnClickAttributes(
-            report.transparency,
-            formation,
-          );
-          acc[formation].push({
-            label: transparencyLabel,
-            ...anchorAttributes,
-          });
-        }
-      }
-    },
-    {
-      [Magistrat.Formation.PARQUET]: [],
-      [Magistrat.Formation.SIEGE]: [],
-    },
-  );
-
-  const sortedSiegeTransparencies = sortTransparencies(
-    transparencies[Magistrat.Formation.SIEGE],
-  );
-  const sortedParquetTransparencies = sortTransparencies(
-    transparencies[Magistrat.Formation.PARQUET],
-  );
+      {
+        [Magistrat.Formation.PARQUET]: [],
+        [Magistrat.Formation.SIEGE]: [],
+      },
+    );
 
   return {
     [Magistrat.Formation.PARQUET]: toNullableTransparencyGroup(
-      sortedParquetTransparencies,
+      transparencies[Magistrat.Formation.PARQUET],
     ),
     [Magistrat.Formation.SIEGE]: toNullableTransparencyGroup(
-      sortedSiegeTransparencies,
+      transparencies[Magistrat.Formation.SIEGE],
     ),
   };
 }
-
-const sortTransparencies = (transparencies: GdsFormationVM["transparencies"]) =>
-  _.orderBy(transparencies, [
-    (transparency) => {
-      const index = transparenciesOrder
-        .map(transparencyToLabel)
-        .indexOf(transparency.label);
-      return index === -1 ? Number.MAX_SAFE_INTEGER : index;
-    },
-  ]);
 
 const toNullableTransparencyGroup = (
   transparencies: ReportTransparenciesVM["GARDE DES SCEAUX"][Magistrat.Formation]["transparencies"],

@@ -75,6 +75,7 @@ describe("Reports Listing", () => {
             grade: aReport.grade,
             targettedPosition: aReport.targettedPosition,
             observersCount: aReport.observersCount,
+            dateTransparence: aReport.dateTransparence,
           },
         ]);
       });

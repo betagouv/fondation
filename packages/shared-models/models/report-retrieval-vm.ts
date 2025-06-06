@@ -24,6 +24,7 @@ export interface ReportRetrievalVM {
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
   transparency: Transparency;
+  dateTransparence: DateOnlyJson;
   grade: Magistrat.Grade;
   currentPosition: string;
   targettedPosition: string;

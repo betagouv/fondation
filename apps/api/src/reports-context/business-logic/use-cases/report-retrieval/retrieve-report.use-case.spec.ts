@@ -76,11 +76,19 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
   },
 };
 
-const uneSession: SessionDto = {
+const uneSession: SessionDto<TypeDeSaisine.TRANSPARENCE_GDS> = {
   id: uneSessionId,
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   name: aReportVM.transparency,
   formation: aReportVM.formation,
   sessionImportéeId: 'data-administration-import-id',
   version: 1,
+  content: {
+    dateTransparence: {
+      year: 2025,
+      month: 3,
+      day: 21,
+    },
+    dateClôtureDélaiObservation: null,
+  },
 };

@@ -234,6 +234,14 @@ export const expectedSessionSiège: typeof sessionPm.$inferSelect = {
   sessionImportéeId: expect.any(String),
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   version: 1,
+  content: {
+    dateTransparence: {
+      year: 2025,
+      month: 6,
+      day: 13,
+    },
+    dateClôtureDélaiObservation: null,
+  },
 };
 
 export const expectedSessionParquet: typeof sessionPm.$inferSelect = {
@@ -244,6 +252,14 @@ export const expectedSessionParquet: typeof sessionPm.$inferSelect = {
   sessionImportéeId: expect.any(String),
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   version: 1,
+  content: {
+    dateTransparence: {
+      year: 2025,
+      month: 6,
+      day: 13,
+    },
+    dateClôtureDélaiObservation: null,
+  },
 };
 
 export const firstRowRapport: typeof reports.$inferSelect = {

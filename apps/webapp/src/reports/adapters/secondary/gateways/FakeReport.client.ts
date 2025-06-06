@@ -99,6 +99,7 @@ export class FakeReportApiClient implements ReportApiClient {
       formation: report.formation,
       name: report.name,
       transparency: report.transparency,
+      dateTransparence: report.dateTransparence,
       grade: report.grade,
       targettedPosition: report.targettedPosition,
       observersCount: report.observersCount,

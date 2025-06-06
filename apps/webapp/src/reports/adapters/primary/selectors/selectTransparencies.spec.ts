@@ -1,18 +1,15 @@
 import { Magistrat, NominationFile, Transparency } from "shared-models";
+import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
+import { ReportListItem } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ReportBuilder } from "../../../core-logic/builders/Report.builder";
 import { listReport } from "../../../core-logic/use-cases/report-listing/listReport.use-case";
-import {
-  formationToLabel,
-  transparencyToLabel,
-} from "../labels/labels-mappers";
+import { formationToLabel } from "../labels/labels-mappers";
 import {
   GdsFormationVM,
   ReportTransparenciesVM,
   selectTransparencies,
 } from "./selectTransparencies";
-import { ReportListItem } from "../../../../store/appState";
-import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 
 describe("Select Transparencies", () => {
   let store: ReduxStore;
@@ -66,7 +63,7 @@ describe("Select Transparencies", () => {
         expectedTransparencies: {
           PARQUET: [
             {
-              label: transparencyToLabel(aParquetReport.transparency),
+              label: `T 21/03/2025 PARQUET_DU_06_FEVRIER_2025`,
               href: `/transparences/${aParquetReport.transparency}`,
               onClick: expect.any(Function),
             },
@@ -82,14 +79,14 @@ describe("Select Transparencies", () => {
         expectedTransparencies: {
           PARQUET: [
             {
-              label: transparencyToLabel(aParquetReport.transparency),
+              label: `T 21/03/2025 PARQUET_DU_06_FEVRIER_2025`,
               href: `/transparences/${aParquetReport.transparency}`,
               onClick: expect.any(Function),
             },
           ],
           SIEGE: [
             {
-              label: transparencyToLabel(aSiegeReport.transparency),
+              label: `T 21/03/2025 SIEGE_DU_06_FEVRIER_2025`,
               href: `/transparences/${aSiegeReport.transparency}`,
               onClick: expect.any(Function),
             },
@@ -113,11 +110,19 @@ describe("Select Transparencies", () => {
 
     it("selects parquet reports on the expected order", () => {
       const firstReport = activeParquetReportBuilder
-        .with("transparency", Transparency.AUTOMNE_2024)
+        .with("dateTransparence", {
+          year: 2025,
+          month: 1,
+          day: 1,
+        })
         .buildListSM();
       const secondReport = activeParquetReportBuilder
         .with("id", "second-id")
-        .with("transparency", Transparency.PARQUET_DU_06_FEVRIER_2025)
+        .with("dateTransparence", {
+          year: 2025,
+          month: 2,
+          day: 2,
+        })
         .buildListSM();
 
       store.dispatch(
@@ -127,12 +132,12 @@ describe("Select Transparencies", () => {
       expectGdsTransparencies(1, {
         [Magistrat.Formation.PARQUET]: [
           {
-            label: transparencyToLabel(secondReport.transparency),
+            label: `T 02/02/2025 PARQUET_DU_06_FEVRIER_2025`,
             href: `/transparences/${secondReport.transparency}`,
             onClick: expect.any(Function),
           },
           {
-            label: transparencyToLabel(firstReport.transparency),
+            label: `T 01/01/2025 PARQUET_DU_06_FEVRIER_2025`,
             href: `/transparences/${firstReport.transparency}`,
             onClick: expect.any(Function),
           },

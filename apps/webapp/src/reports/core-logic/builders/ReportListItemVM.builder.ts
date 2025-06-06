@@ -2,10 +2,6 @@ import _ from "lodash";
 import { Magistrat } from "shared-models";
 import { Get, Paths } from "type-fest";
 import { ReportListItem } from "../../../store/appState";
-import {
-  formationToLabel,
-  transparencyToLabel,
-} from "../../adapters/primary/labels/labels-mappers";
 import { stateToLabel } from "../../adapters/primary/labels/state-label.mapper";
 import { ReportListItemVM } from "../../adapters/primary/selectors/selectReportList";
 
@@ -21,8 +17,6 @@ export class ReportListItemVMBuilder {
       name: "John Doe",
       dueDate: "30/10/2030",
       state: "Nouveau",
-      formation: "Parquet",
-      transparency: "T 21/01/2025 (cabinet GDS)",
       grade: Magistrat.Grade.I,
       targettedPosition: "PG TJ Marseille",
       observersCount: 0,
@@ -53,8 +47,6 @@ export class ReportListItemVMBuilder {
       .with("folderNumber", report.folderNumber || "Profilé")
       .with("name", report.name)
       .with("state", stateToLabel(report.state))
-      .with("formation", formationToLabel(report.formation))
-      .with("transparency", transparencyToLabel(report.transparency))
       .with("grade", report.grade)
       .with("targettedPosition", report.targettedPosition)
       .with("observersCount", report.observersCount)

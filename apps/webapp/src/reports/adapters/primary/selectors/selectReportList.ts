@@ -3,12 +3,7 @@ import _ from "lodash";
 import { Magistrat, Transparency } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../../store/createAppSelector";
-import {
-  formationToLabel,
-  gradeToLabel,
-  TransparencyLabel,
-  transparencyToLabel,
-} from "../labels/labels-mappers";
+import { gradeToLabel } from "../labels/labels-mappers";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
 
@@ -17,9 +12,7 @@ export type ReportListItemVM = {
   folderNumber: number | "Profilé";
   state: ReturnType<typeof stateToLabel>;
   dueDate: string | null;
-  formation: ReturnType<typeof formationToLabel>;
   name: string;
-  transparency: TransparencyLabel;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
   observersCount: number;
@@ -67,7 +60,6 @@ export const selectReportList = createAppSelector(
           name,
           dueDate,
           state,
-          formation,
           transparency,
           grade,
           targettedPosition,
@@ -88,9 +80,7 @@ export const selectReportList = createAppSelector(
             folderNumber: folderNumber ?? "Profilé",
             state: stateToLabel(state),
             dueDate: dueDateFormatted,
-            formation: formationToLabel(formation),
             name,
-            transparency: transparencyToLabel(transparency),
             grade: gradeToLabel(grade),
             targettedPosition,
             observersCount,

@@ -60,7 +60,10 @@ export const selectBreadcrumb = createAppSelector(
                 transparenciesSegment,
                 gdsTransparenciesSegment,
                 {
-                  label: transparencyToLabel(report.transparency),
+                  label: transparencyToLabel(
+                    report.transparency,
+                    report.dateTransparence,
+                  ),
                   ...getTransparencyReportsAnchorAttributes(
                     report.transparency,
                     report.formation,

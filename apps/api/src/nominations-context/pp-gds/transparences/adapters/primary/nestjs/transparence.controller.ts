@@ -27,7 +27,7 @@ export class TransparencesController implements ITransparencesController {
   async transparenceSnapshot(
     @Query() params: TransparenceSnapshotQueryParamsNestDto,
   ) {
-    const session = await this.getTransparenceSnapshotUseCase.execute(
+    const transparence = await this.getTransparenceSnapshotUseCase.execute(
       params.nom,
       params.formation,
       {
@@ -36,12 +36,12 @@ export class TransparencesController implements ITransparencesController {
         day: params.day,
       },
     );
-    if (!session) {
+    if (!transparence) {
       throw new NotFoundException(
-        `Transparence with name ${params.nom}, formation ${params.formation}, and date ${JSON.stringify(params.dateTransparence)} not found`,
+        `Transparence ${params.nom}, formation ${params.formation}, avec la date ${params.day}/${params.month}/${params.year} non trouvée`,
       );
     }
 
-    return session;
+    return transparence;
   }
 }

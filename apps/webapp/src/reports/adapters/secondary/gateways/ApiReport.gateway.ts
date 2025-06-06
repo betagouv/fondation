@@ -1,9 +1,4 @@
-import {
-  Magistrat,
-  NominationFile,
-  ReportFileUsage,
-  Transparency,
-} from "shared-models";
+import { ReportFileUsage, Transparency } from "shared-models";
 import { ReportListItem, ReportScreenshots } from "../../../../store/appState";
 import {
   ReportGateway,
@@ -57,10 +52,11 @@ export class ApiReportGateway implements ReportGateway {
       biography: report.biography,
       dueDate: report.dueDate,
       birthDate: report.birthDate,
-      state: report.state as NominationFile.ReportState,
-      formation: report.formation as Magistrat.Formation,
-      transparency: report.transparency as Transparency,
-      grade: report.grade as Magistrat.Grade,
+      state: report.state,
+      formation: report.formation,
+      transparency: report.transparency,
+      dateTransparence: report.dateTransparence,
+      grade: report.grade,
       currentPosition: report.currentPosition,
       targettedPosition: report.targettedPosition,
       comment: report.comment,
@@ -95,6 +91,7 @@ export class ApiReportGateway implements ReportGateway {
       grade: item.grade,
       targettedPosition: item.targettedPosition,
       observersCount: item.observersCount,
+      dateTransparence: item.dateTransparence,
     }));
   }
 

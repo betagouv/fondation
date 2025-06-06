@@ -1,4 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Magistrat, TransparenceSnapshotQueryParamsDto } from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -8,7 +9,6 @@ import {
 import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { Magistrat } from 'shared-models';
 
 describe('Transparences Controller - Authn', () => {
   let app: INestApplication;
@@ -33,10 +33,16 @@ describe('Transparences Controller - Authn', () => {
   afterAll(async () => await db.$client.end());
 
   it('rejects if missing system request token', async () => {
+    const query: TransparenceSnapshotQueryParamsDto = {
+      nom: magistratNom,
+      formation,
+      year,
+      month,
+      day,
+    };
     await supertest(app.getHttpServer())
-      .get(
-        `/api/nominations/transparence/snapshot/by-nom-formation-et-date?nom=${magistratNom}&formation=${formation}&year=${year}&month=${month}&day=${day}`,
-      )
+      .get(`/api/nominations/transparence/snapshot/by-nom-formation-et-date`)
+      .query(query)
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
@@ -49,6 +55,6 @@ describe('Transparences Controller - Authn', () => {
 
 const magistratNom = 'Dupont';
 const formation = Magistrat.Formation.PARQUET;
-const year = '2028';
-const month = '07';
-const day = '15';
+const year = 2028;
+const month = 7;
+const day = 15;

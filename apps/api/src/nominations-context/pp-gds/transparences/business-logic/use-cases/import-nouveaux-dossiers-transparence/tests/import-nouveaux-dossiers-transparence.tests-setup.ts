@@ -111,6 +111,7 @@ export const givenUneSession = (sessionRepository: FakeSessionRepository) => {
       version: 0,
       formation: aFormation,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      content: {},
     },
   };
 };
@@ -126,6 +127,7 @@ export const givenUneSessionSiège = (
       version: 0,
       formation: Magistrat.Formation.SIEGE,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      content: {},
     },
   };
 };

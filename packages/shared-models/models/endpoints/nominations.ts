@@ -2,7 +2,7 @@ import { z, ZodNumberDef, ZodType } from "zod";
 import { RestContract, ZodParamsDto, ZodQueryParamsDto } from "./common";
 import { Magistrat } from "../magistrat.namespace";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
-import { DateOnlyJson, Month } from "models/date";
+import { DateOnlyJson, Month } from "../date";
 
 type SessionSnapshotResponse = {
   id: string;
@@ -104,16 +104,17 @@ export const transparenceSnapshotQueryParamsSchema = z.object({
       message: "La formation est requise.",
     }),
   }),
-  year: z
+  year: z.coerce
     .number()
     .int()
-    .min(2015, "L'année doit être supérieure ou égale à 2015."),
-  month: z
+    .min(2025, "L'année doit être supérieure ou égale à 2025.")
+    .transform((value) => Number(value)),
+  month: z.coerce
     .number()
     .int()
     .min(1, "Le mois doit être compris entre 1 et 12.")
     .max(12) as ZodType<Month, ZodNumberDef, Month>,
-  day: z
+  day: z.coerce
     .number()
     .int()
     .min(1, "Le jour doit être compris entre 1 et 31.")

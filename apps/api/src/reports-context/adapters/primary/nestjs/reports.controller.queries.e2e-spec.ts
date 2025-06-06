@@ -68,8 +68,8 @@ describe('Reports Controller', () => {
 
     const aReportListingVM: ReportListItemVM = {
       id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
-      folderNumber: stubDossier.content.folderNumber,
       state: NominationFile.ReportState.NEW,
+      folderNumber: stubDossier.content.folderNumber,
       dueDate: stubDossier.content.dueDate,
       formation: stubDossier.content.formation,
       name: stubDossier.content.name,
@@ -77,6 +77,7 @@ describe('Reports Controller', () => {
       grade: stubDossier.content.grade,
       targettedPosition: stubDossier.content.targettedPosition,
       observersCount: stubDossier.content.observers.length,
+      dateTransparence: stubSession.content.dateTransparence,
     };
     const aReportSnapshot = ReportBuilder.fromListingVM(aReportListingVM)
       .with('dossierDeNominationId', stubDossier.id)

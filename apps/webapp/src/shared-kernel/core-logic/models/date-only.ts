@@ -16,6 +16,10 @@ export class DateOnly {
     this.value = new Date(Date.UTC(year, month - 1, day));
   }
 
+  timeDiff(other: DateOnly): number {
+    return this.value.getTime() - other.value.getTime();
+  }
+
   toDate(): Date {
     return this.value;
   }
