@@ -56,8 +56,8 @@ export class StubRouterProvider implements RouterProvider {
     },
   });
   getReportOverviewAnchorAttributes = (
-    transparency: Transparency,
     id: string,
+    transparency: Transparency,
   ) => ({
     href: `/transparences/${transparency}/dossiers-de-nomination/${id}`,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {

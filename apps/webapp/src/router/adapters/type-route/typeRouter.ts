@@ -1,7 +1,8 @@
-import { Magistrat, Transparency } from "shared-models";
+import { DateOnlyJson, Magistrat, Transparency } from "shared-models";
 import { RouterProvider } from "../../core-logic/providers/router";
 
 import { createRouter, defineRoute, param } from "type-route";
+import { DateTransparenceRoutesMapper } from "../../core-logic/models/date-transparence-routes-mapper";
 import { FormationsRoutesMapper } from "../../core-logic/models/formations-routes-mapper";
 import { GdsTransparenciesRoutesMapper } from "../../core-logic/models/gds-transparencies-routes-mapper";
 import { routeSegments } from "../../core-logic/models/routeSegments";
@@ -20,17 +21,20 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
     {
       transparency: param.path.string,
       formation: param.path.string,
+      dateTransparence: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${p.formation}/${routeSegments.rapports}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.dateTransparence}/${p.transparency}/${p.formation}/${routeSegments.rapports}`,
   ),
   reportOverview: defineRoute(
     {
       transparency: param.path.string,
+      formation: param.path.string,
+      dateTransparence: param.path.string,
       id: param.path.string,
     },
     (p) =>
-      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.transparency}/${routeSegments.rapports}/${p.id}`,
+      `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.dateTransparence}/${p.transparency}/${p.formation}/${routeSegments.rapports}/${p.id}`,
   ),
   secretariatGeneral: secretariatGeneralRoute,
   sgNouvelleTransparence: defineRoute(
@@ -63,15 +67,26 @@ export class TypeRouterProvider implements RouterProvider {
   getTransparencyReportsAnchorAttributes(
     transparency: Transparency,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ) {
     return routes.reportList({
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
       formation: FormationsRoutesMapper.toPathSegment(formation),
+      dateTransparence:
+        DateTransparenceRoutesMapper.toPathSegment(dateTransparence),
     }).link;
   }
-  getReportOverviewAnchorAttributes(transparency: Transparency, id: string) {
+  getReportOverviewAnchorAttributes(
+    id: string,
+    transparency: Transparency,
+    formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
+  ) {
     return routes.reportOverview({
       transparency: GdsTransparenciesRoutesMapper.toPathSegment(transparency),
+      formation: FormationsRoutesMapper.toPathSegment(formation),
+      dateTransparence:
+        DateTransparenceRoutesMapper.toPathSegment(dateTransparence),
       id,
     }).link;
   }

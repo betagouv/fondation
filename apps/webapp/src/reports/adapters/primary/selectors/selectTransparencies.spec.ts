@@ -63,7 +63,7 @@ describe("Select Transparencies", () => {
         expectedTransparencies: {
           PARQUET: [
             {
-              label: `T 21/03/2025 PARQUET_DU_06_FEVRIER_2025`,
+              label: `T 21/03/2025 (PARQUET_DU_06_FEVRIER_2025)`,
               href: `/transparences/${aParquetReport.transparency}`,
               onClick: expect.any(Function),
             },
@@ -79,14 +79,14 @@ describe("Select Transparencies", () => {
         expectedTransparencies: {
           PARQUET: [
             {
-              label: `T 21/03/2025 PARQUET_DU_06_FEVRIER_2025`,
+              label: `T 21/03/2025 (PARQUET_DU_06_FEVRIER_2025)`,
               href: `/transparences/${aParquetReport.transparency}`,
               onClick: expect.any(Function),
             },
           ],
           SIEGE: [
             {
-              label: `T 21/03/2025 SIEGE_DU_06_FEVRIER_2025`,
+              label: `T 21/03/2025 (SIEGE_DU_06_FEVRIER_2025)`,
               href: `/transparences/${aSiegeReport.transparency}`,
               onClick: expect.any(Function),
             },
@@ -132,12 +132,12 @@ describe("Select Transparencies", () => {
       expectGdsTransparencies(1, {
         [Magistrat.Formation.PARQUET]: [
           {
-            label: `T 02/02/2025 PARQUET_DU_06_FEVRIER_2025`,
+            label: `T 02/02/2025 (PARQUET_DU_06_FEVRIER_2025)`,
             href: `/transparences/${secondReport.transparency}`,
             onClick: expect.any(Function),
           },
           {
-            label: `T 01/01/2025 PARQUET_DU_06_FEVRIER_2025`,
+            label: `T 01/01/2025 (PARQUET_DU_06_FEVRIER_2025)`,
             href: `/transparences/${firstReport.transparency}`,
             onClick: expect.any(Function),
           },

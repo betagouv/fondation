@@ -1,4 +1,9 @@
-import { Magistrat, NominationFile, Transparency } from "shared-models";
+import {
+  DateOnlyJson,
+  Magistrat,
+  NominationFile,
+  Transparency,
+} from "shared-models";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 import { ReportListItem } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
@@ -90,6 +95,7 @@ describe("Select Report List", () => {
       selectReports({
         transparencyFilter: aSiegeReport.transparency,
         formationFilter: Magistrat.Formation.SIEGE,
+        dateTransparenceFilter: aSiegeReport.dateTransparence,
       });
       expectStoredReports(viewModelFromStoreModel(aSiegeReport));
     });
@@ -108,6 +114,7 @@ describe("Select Report List", () => {
       selectReports({
         transparencyFilter: aReport.transparency,
         formationFilter: aReport.formation,
+        dateTransparenceFilter: aReport.dateTransparence,
       });
 
       expectStoredReports(viewModelFromStoreModel(aReport));
@@ -142,15 +149,18 @@ describe("Select Report List", () => {
     args: {
       transparencyFilter: Transparency;
       formationFilter: Magistrat.Formation;
+      dateTransparenceFilter: DateOnlyJson;
     } = {
       transparencyFilter: Transparency.GRANDE_TRANSPA_DU_21_MARS_2025,
       formationFilter: Magistrat.Formation.PARQUET,
+      dateTransparenceFilter: {
+        year: 2025,
+        month: 3,
+        day: 21,
+      },
     },
   ) => {
-    selectedReport = selectReportList(store.getState(), {
-      aTransparencyTitleMap: transparencyTitleMap,
-      ...args,
-    });
+    selectedReport = selectReportList(store.getState(), args);
   };
 
   const expectStoredReports = (...reports: ReportListItemVMSerializable[]) => {
@@ -175,27 +185,12 @@ describe("Select Report List", () => {
 
 const allHeaders = Object.values(reportListTableLabels.headers);
 
-const transparencyTitleMap: { [key in Transparency]: string } = {
-  [Transparency.AUTOMNE_2024]: "",
-  [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]: "",
-  [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]: "",
-  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]: "",
-  [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]: "",
-  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "",
-  [Transparency.PARQUET_DU_06_FEVRIER_2025]: "",
-  [Transparency.PARQUET_DU_20_FEVRIER_2025]: "",
-  [Transparency.DU_03_MARS_2025]: "",
-  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]: "grande transpa",
-  [Transparency.DU_30_AVRIL_2025]: "",
-  [Transparency.MARCH_2026]: "",
-};
-
 const expectedGrandeTranspaTransparencyTitle = [
   {
     text: "Rapports sur la ",
   },
   {
-    text: "grande transpa",
+    text: "transparence du 21/03/2025 (GRANDE_TRANSPA_DU_21_MARS_2025)",
     color: expect.any(String),
   },
 ];

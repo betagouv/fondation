@@ -1,4 +1,4 @@
-import { Magistrat, Transparency } from "shared-models";
+import { DateOnlyJson, Magistrat, Transparency } from "shared-models";
 
 export interface RouterProvider {
   goToLogin(): void;
@@ -23,13 +23,16 @@ export interface RouterProvider {
   getTransparencyReportsAnchorAttributes: (
     transparency: Transparency,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ) => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   getReportOverviewAnchorAttributes: (
-    transparency: Transparency,
     id: string,
+    transparency: Transparency,
+    formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ) => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;

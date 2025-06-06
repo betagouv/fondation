@@ -67,6 +67,7 @@ export const selectBreadcrumb = createAppSelector(
                   ...getTransparencyReportsAnchorAttributes(
                     report.transparency,
                     report.formation,
+                    report.dateTransparence,
                   ),
                 },
               ],

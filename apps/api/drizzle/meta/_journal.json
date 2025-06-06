@@ -351,6 +351,13 @@
       "when": 1749031103984,
       "tag": "0049_iac__role-adjoint-secretaire-general",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1749226010724,
+      "tag": "0050_nominations__add_session_content",
+      "breakpoints": true
     }
   ]
 }

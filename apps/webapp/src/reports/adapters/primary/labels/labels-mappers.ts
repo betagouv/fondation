@@ -10,7 +10,7 @@ export const transparencyToLabel = (
   return (
     "T " +
     DateOnly.fromStoreModel(dateTransparence).toFormattedString() +
-    ` ${transparency}`
+    ` (${transparency})`
   );
 };
 export const formationToLabel = (formation: Magistrat.Formation) => {
