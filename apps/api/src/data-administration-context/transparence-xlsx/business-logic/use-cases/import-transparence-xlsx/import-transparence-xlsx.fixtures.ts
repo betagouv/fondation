@@ -5,6 +5,7 @@ import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
 
 export const nouvellTranspaEventId = 'event-id';
+export const unNomTransparenceXlsx = 'une-transparence.xlsx';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
 export const lucLoïcUser = {
@@ -46,9 +47,11 @@ type Colonne =
 
 type Ligne = Record<Colonne, string | number | null>;
 
+export const unNomMagistrat = 'Elise PREGENT ep. QUIMPER';
+
 const ligne1 = {
   'N°': '12345',
-  Magistrat: 'Elise PREGENT ep. QUIMPER\n(1 sur une liste de 7)',
+  Magistrat: `${unNomMagistrat}\n(1 sur une liste de 7)`,
   'Poste cible': 'Procureur de la République TJ  RENNES – I',
   'Date de naissance': '1/1/1971',
   'Poste actuel': 'Procureur de la République TJ  CAMBRAI',
@@ -61,47 +64,45 @@ const ligne1 = {
   Historique: '- Biographie de E - poste 2',
 } satisfies Ligne;
 
-const genXlsxFile = (ligneOverride?: Partial<Ligne>) => {
-  const ligne = {
+export const genTransparenceXlsxBuffer = (ligne: Ligne = ligne1) =>
+  xlsx.build([
+    {
+      name: 'mySheetName',
+      data: [
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
+        Object.keys(ligne),
+        Object.values(ligne),
+      ],
+      options: {},
+    },
+  ]);
+
+export const genXlsxTestFile = (ligneOverride?: Partial<Ligne>) => {
+  const ligne: Ligne = {
     ...ligne1,
     ...ligneOverride,
   };
-  return new File(
-    [
-      xlsx.build([
-        {
-          name: 'mySheetName',
-          data: [
-            ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
-            Object.keys(ligne),
-            Object.values(ligne),
-          ],
-          options: {},
-        },
-      ]),
-    ],
-    'une-transparence.xlsx',
-    {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    },
-  );
+
+  return new File([genTransparenceXlsxBuffer(ligne)], unNomTransparenceXlsx, {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
 };
 
 const posteCibleProfilé =
   'Substitut Vice-procureur du ministère de la justice AC PARIS - I - [P] [SMACJ - DACS]';
 const posteCibleProfiléAvecRetourALaLigne = `Avocat Général CA LYON - HH\n [P][ALEDA]`;
 
-export const uneTransparenceXlsx = genXlsxFile();
-export const unXlsxProfilé = genXlsxFile({
+export const uneTransparenceXlsx = genXlsxTestFile();
+export const unXlsxProfilé = genXlsxTestFile({
   'Poste cible': posteCibleProfilé,
   'Eq./Av.': Avancement.AVANCEMENT,
 });
-export const unXlsxProfiléAvecRetourALaLigne = genXlsxFile({
+export const unXlsxProfiléAvecRetourALaLigne = genXlsxTestFile({
   'Poste cible': posteCibleProfiléAvecRetourALaLigne,
   'Eq./Av.': Avancement.AVANCEMENT,
 });
 
-const genDossierSiège = (
+export const genDossierSiège = (
   content?: Partial<NominationFileModelSnapshot['content']>,
 ): NominationFileModelSnapshot => ({
   id: 'un-dossier-siege-id',
@@ -141,43 +142,55 @@ const genDossierSiège = (
 export const unDossierSiège: NominationFileModelSnapshot = genDossierSiège();
 export const unDossierSiègeProfilé: NominationFileModelSnapshot =
   genDossierSiège({
+    magistrat: unNomMagistrat,
     posteCible: posteCibleProfilé,
     grade: Magistrat.Grade.II,
     equivalenceOuAvancement: Avancement.AVANCEMENT,
   });
 export const unDossierSiègeProfiléAvecRetourALaLigne: NominationFileModelSnapshot =
   genDossierSiège({
+    magistrat: unNomMagistrat,
     posteCible: `Avocat Général CA LYON - HH [P][ALEDA]`,
     grade: Magistrat.Grade.I,
     equivalenceOuAvancement: Avancement.AVANCEMENT,
   });
 
-const genUneTransparence = (
-  dossier: NominationFileModelSnapshot,
-): TransparenceSnapshot => ({
-  id: 'une-transparence-id',
-  createdAt: currentDate,
-  formation: Magistrat.Formation.SIEGE,
-  name: 'Une Transparence',
-  dateEchéance: {
-    day: 1,
-    month: 1,
-    year: 2025,
-  },
-  dateTransparence: {
-    day: 1,
-    month: 1,
-    year: 2024,
-  },
-  dateClôtureDélaiObservation: {
-    day: 1,
-    month: 10,
-    year: 2023,
-  },
-  nominationFiles: [dossier],
-});
+export const genUneTransparence = (dossier: NominationFileModelSnapshot) =>
+  ({
+    id: 'une-transparence-id',
+    createdAt: currentDate,
+    formation: Magistrat.Formation.SIEGE,
+    name: 'Une Transparence',
+    dateEchéance: {
+      day: 1,
+      month: 1,
+      year: 2025,
+    },
+    dateTransparence: {
+      day: 1,
+      month: 1,
+      year: 2024,
+    },
+    datePriseDePosteCible: {
+      day: 1,
+      month: 1,
+      year: 2027,
+    },
+    dateClôtureDélaiObservation: {
+      day: 1,
+      month: 10,
+      year: 2023,
+    },
+    nominationFiles: [dossier],
+  }) satisfies TransparenceSnapshot;
 
-export const uneTransparence = genUneTransparence(unDossierSiège);
+export const uneTransparence = genUneTransparence({
+  ...unDossierSiège,
+  content: {
+    ...unDossierSiège.content,
+    magistrat: unNomMagistrat,
+  },
+});
 
 export const uneTransparenceAvecProfilé = genUneTransparence(
   unDossierSiègeProfilé,

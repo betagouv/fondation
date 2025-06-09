@@ -8,7 +8,7 @@ import { AffectationRapporteursModifiéeEvent } from 'src/nominations-context/se
 import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { ContenuPropositionDeNominationTransparenceV2 } from './proposition-de-nomination';
-import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { TransparenceXlsxImportéeEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 
 export type DossierAvecPayload<T extends boolean = boolean> = {
   dossier: DossierDeNomination;

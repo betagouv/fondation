@@ -12,6 +12,10 @@ export const transparencesPm = dataAdministrationContextSchema.table(
     name: text('name').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     formation: formationEnum('formation').notNull(),
+    dateTransparence: timestamp('date_emission_gds').notNull(),
+    dateEchéance: timestamp('date_echeance'),
+    datePriseDePosteCible: timestamp('date_prise_de_poste'),
+    dateClôtureDélaiObservation: timestamp('date_cloture_delai_observation'),
     nominationFiles: jsonb('nomination_files').array().notNull(),
   },
 );

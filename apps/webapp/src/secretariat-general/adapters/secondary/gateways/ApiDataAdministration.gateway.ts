@@ -1,17 +1,19 @@
+import { ImportNouvelleTransparenceDto } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
 import { DataAdministrationGateway } from "../../../core-logic/gateways/DataAdministration.gateway";
-import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
 export class ApiDataAdministrationGateway implements DataAdministrationGateway {
   constructor(
     private readonly dataAdministrationApiClient: DataAdministrationClient,
   ) {}
 
-  async uploadTransparence(
-    nouvelleTransparenceDto: NouvelleTransparenceDto,
+  async importTransparenceXlsx(
+    nouvelleTransparenceDto: ImportNouvelleTransparenceDto,
+    fichier: File,
   ): Promise<void> {
-    await this.dataAdministrationApiClient.uploadTransparence(
+    await this.dataAdministrationApiClient.importNouvelleTransparenceXlsx(
       nouvelleTransparenceDto,
+      fichier,
     );
   }
 }

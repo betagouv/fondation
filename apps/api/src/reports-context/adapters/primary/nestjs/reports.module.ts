@@ -46,6 +46,7 @@ import { HttpSessionService } from '../../secondary/gateways/services/http-sessi
 import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
 import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers/affectation-rapporteurs-créée.nest-subscriber';
+import { RapportTransparenceCrééNestSubscriber } from './event-subscribers/rapport-transparence-crée.nest-subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
@@ -60,11 +61,16 @@ import {
   USER_SERVICE,
   IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
 } from './tokens';
+import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
+import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
 
 @Module({
   imports: [SharedKernelModule],
   controllers: [ReportsController],
   providers: [
+    RapportTransparenceCrééNestSubscriber,
+    generateProvider(RapportTransparenceCrééSubscriber, [CréerAnalyseUseCase]),
+
     generateProvider(AffectationRapporteursCrééeNestSubscriber, [
       AffectationRapporteursCrééeSubscriber,
     ]),
@@ -187,6 +193,8 @@ import {
     ),
     generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
     generateProvider(SqlReportRuleRepository, [], REPORT_RULE_REPOSITORY),
+
+    generateProvider(CréerAnalyseUseCase, [TRANSACTION_PERFORMER]),
   ],
 })
 export class ReportsModule implements NestModule, OnModuleInit {

@@ -6,7 +6,7 @@ import {
   Transparency,
 } from 'shared-models';
 import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { TransparenceXlsxImportéeEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/import-nouvelle-transparence-xlsx.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -35,7 +35,7 @@ export const lucLoïcUser = {
   gender: Gender.M,
 };
 
-export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
+export const aDossierDeNominationPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'][number] =
   {
     nominationFileId: aDossierDeNominationImportedId,
     content: {

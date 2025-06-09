@@ -19,7 +19,11 @@ export class XlsxReader {
   }
 
   static async read(file: File) {
-    const buffer = xlsx.parse(await file.arrayBuffer());
+    const buffer = xlsx.parse(await file.arrayBuffer(), {
+      raw: false,
+      dateNF: 'dd/mm/yyyy',
+    });
+
     return new XlsxReader(file.name, buffer);
   }
 }

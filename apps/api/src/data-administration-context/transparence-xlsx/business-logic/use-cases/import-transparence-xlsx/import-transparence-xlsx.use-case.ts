@@ -14,8 +14,9 @@ export class ImportTransparenceXlsxUseCase {
     file: File,
     formation: Magistrat.Formation,
     nomTransparence: string,
-    dateEchéance: DateOnlyJson,
     dateTransparence: DateOnlyJson,
+    dateEchéance: DateOnlyJson,
+    datePriseDePosteCible: DateOnlyJson | null,
     dateClôtureDélaiObservation: DateOnlyJson | null,
   ): Promise<void> {
     await this.transactionPerformer.perform(async (trx) => {
@@ -28,8 +29,9 @@ export class ImportTransparenceXlsxUseCase {
       await this.transparenceService.nouvelleTransparence(
         nomTransparence,
         formation,
-        dateEchéance,
         dateTransparence,
+        dateEchéance,
+        datePriseDePosteCible,
         dateClôtureDélaiObservation,
         readCollection,
       )(trx);

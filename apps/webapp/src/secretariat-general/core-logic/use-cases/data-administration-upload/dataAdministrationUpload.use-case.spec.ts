@@ -1,10 +1,12 @@
-import { Magistrat } from "shared-models";
+import { ImportNouvelleTransparenceDto, Magistrat } from "shared-models";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
-import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
 import { ApiDataAdministrationGateway } from "../../../adapters/secondary/gateways/ApiDataAdministration.gateway";
 import { FakeApiDataAdministrationClient } from "../../../adapters/secondary/gateways/FakeApiDataAdministration.client";
-import { dataAdministrationUpload } from "./dataAdministrationUpload.use-case";
+import {
+  dataAdministrationUpload,
+  ImportTransparenceXlsxDto,
+} from "./dataAdministrationUpload.use-case";
 
 describe("Data Administration Upload", () => {
   let store: ReduxStore;
@@ -42,34 +44,36 @@ describe("Data Administration Upload", () => {
     expectClientTransparences();
   });
 
-  const uploadTransparence = async (transparence: NouvelleTransparenceDto) =>
+  const uploadTransparence = async (transparence: ImportTransparenceXlsxDto) =>
     store.dispatch(dataAdministrationUpload(transparence));
 
   const expectClientTransparences = (
-    ...transparences: NouvelleTransparenceDto[]
+    ...transparences: ImportNouvelleTransparenceDto[]
   ) => {
     expect(Object.values(dataAdministrationClient.transparences)).toEqual<
-      NouvelleTransparenceDto[]
+      ImportNouvelleTransparenceDto[]
     >(transparences);
   };
 });
 
-const uneTransparenceImportée: NouvelleTransparenceDto = {
-  transparenceName: "Balai",
+const uneTransparenceImportée = {
+  nomTransparence: "Balai",
   formation: Magistrat.Formation.SIEGE,
-  transparenceDate: "2023-01-01",
+  dateTransparence: "2023-01-01",
   dateEcheance: "2023-01-01",
-  datePriseDePoste: "2024-01-01",
+  datePriseDePosteCible: "2024-01-01",
+  dateClotureDelaiObservation: "2024-01-05",
   fichier: new File([""], "transparence.xlsx"),
-};
+} satisfies ImportTransparenceXlsxDto;
 
-const unFichierPdf: NouvelleTransparenceDto = {
-  transparenceName: "Balai",
+const unFichierPdf = {
+  nomTransparence: "Balai",
   formation: Magistrat.Formation.SIEGE,
-  transparenceDate: "2023-01-01",
+  dateTransparence: "2023-01-01",
   dateEcheance: "2023-01-01",
-  datePriseDePoste: "2024-01-01",
+  datePriseDePosteCible: "2024-01-01",
+  dateClotureDelaiObservation: "2024-01-05",
   fichier: new File([""], "transparence.pdf", {
     type: "application/pdf",
   }),
-};
+} satisfies ImportTransparenceXlsxDto;

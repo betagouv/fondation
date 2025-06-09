@@ -47,6 +47,9 @@ import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/pr
 import { GetTransparenceSnapshotUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
 import { TransparencesController } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/transparence.controller';
 import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
+import { TransparenceXlsxImportéeNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/transparence-xlsx-importée.nest-subscriber';
+import { TransparenceXlsxImportéeSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/transparence-xlsx-importée.subscriber';
+import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/import-nouvelle-transparence-xlsx.use-case';
 
 @Module({
   imports: [SharedKernelModule],
@@ -55,6 +58,7 @@ import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transp
     GdsNouvellesTransparencesImportéesNestSubscriber,
     GdsTransparenceNouveauxDossiersNestSubscriber,
     GdsTransparenceDossiersModifiésNestSubscriber,
+    TransparenceXlsxImportéeNestSubscriber,
 
     generateProvider(GdsTransparenceNouveauxDossiersSubscriber, [
       ImportNouveauxDossiersTransparenceUseCase,
@@ -64,6 +68,9 @@ import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transp
     ]),
     generateProvider(GdsNouvellesTransparencesImportéesSubscriber, [
       ImportNouvelleTransparenceUseCase,
+    ]),
+    generateProvider(TransparenceXlsxImportéeSubscriber, [
+      ImportNouvelleTransparenceXlsxUseCase,
     ]),
 
     generateProvider(GetTransparenceSnapshotUseCase, [
@@ -89,6 +96,10 @@ import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transp
     generateProvider(ImportNouveauxDossiersTransparenceUseCase, [
       TRANSACTION_PERFORMER,
       SESSION_REPOSITORY,
+      TransparenceService,
+    ]),
+    generateProvider(ImportNouvelleTransparenceXlsxUseCase, [
+      TRANSACTION_PERFORMER,
       TransparenceService,
     ]),
 

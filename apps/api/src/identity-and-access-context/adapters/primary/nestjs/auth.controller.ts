@@ -16,6 +16,7 @@ import {
   AuthenticatedUser,
   IdentityAndAccessRestContract,
 } from 'shared-models';
+import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
@@ -25,14 +26,13 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
+import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { CookieSignatureProvider } from '../../secondary/gateways/providers/hmac-signature.provider';
 import { LoginNestDto } from './dto/login.dto';
 import { UserWithFullNameParamsNestDto } from './dto/user-with-full-name-params.dto';
 import { UserWithIdParamsNestDto } from './dto/user-with-id-params.dto';
 import { ValidateSessionNestDto } from './dto/validate-session.dto';
-import { UserDescriptor } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { API_CONFIG } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 
 type IAuthController = IController<IdentityAndAccessRestContract>;
 

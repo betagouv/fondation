@@ -1,5 +1,8 @@
-import { Magistrat, Month } from 'shared-models';
-import { DateOnlyJson } from 'src/shared-kernel/business-logic/models/date-only';
+import { Magistrat } from 'shared-models';
+import {
+  DateOnly,
+  DateOnlyJson,
+} from 'src/shared-kernel/business-logic/models/date-only';
 import { z, ZodType } from 'zod';
 import { Avancement } from '../../../lodam/business-logic/models/avancement';
 
@@ -23,19 +26,14 @@ export type NominationFileRead = {
   };
 };
 
-const dateOnlyJsonSchema = z.object({
-  year: z.number(),
-  month: z.number().min(1).max(12) as ZodType<Month>,
-  day: z.number(),
-});
 export const nominationFileReadContentSchema = z.object({
   numeroDeDossier: z.number().nullable(),
   magistrat: z.string(),
   posteCible: z.string(),
-  dateDeNaissance: dateOnlyJsonSchema,
+  dateDeNaissance: DateOnly.ZOD_JSON_SCHEMA,
   posteActuel: z.string(),
-  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema,
-  datePassageAuGrade: dateOnlyJsonSchema,
+  datePriseDeFonctionPosteActuel: DateOnly.ZOD_JSON_SCHEMA.nullable(),
+  datePassageAuGrade: DateOnly.ZOD_JSON_SCHEMA.nullable(),
   equivalenceOuAvancement: z.nativeEnum(Avancement),
   grade: z.nativeEnum(Magistrat.Grade),
   observers: z.array(z.string()).nullable(),

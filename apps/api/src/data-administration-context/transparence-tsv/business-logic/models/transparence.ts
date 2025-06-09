@@ -1,4 +1,4 @@
-import { Magistrat, Transparency } from 'shared-models';
+import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
@@ -15,6 +15,10 @@ export type TransparenceSnapshot = {
   createdAt: Date;
   name: Transparency;
   formation: Magistrat.Formation;
+  dateTransparence: DateOnlyJson;
+  dateEchéance: DateOnlyJson | null;
+  datePriseDePosteCible: DateOnlyJson | null;
+  dateClôtureDélaiObservation: DateOnlyJson | null;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -28,6 +32,10 @@ export class Transparence {
     private _name: Transparency,
     formation: Magistrat.Formation,
     nominationFiles: NominationFileModel[],
+    private readonly _dateTransparence: DateOnlyJson,
+    private readonly dateEchéance: DateOnlyJson | null,
+    private readonly datePriseDePosteCible: DateOnlyJson | null,
+    private readonly dateClôtureDélaiObservation: DateOnlyJson | null,
   ) {
     this.name = _name;
     this.formation = formation;
@@ -145,6 +153,10 @@ export class Transparence {
       name: this._name,
       createdAt: this._createdAt,
       formation: this._formation,
+      dateTransparence: this._dateTransparence,
+      dateEchéance: this.dateEchéance,
+      datePriseDePosteCible: this.datePriseDePosteCible,
+      dateClôtureDélaiObservation: this.dateClôtureDélaiObservation,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
@@ -158,6 +170,10 @@ export class Transparence {
       snapshot.name,
       snapshot.formation,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
+      snapshot.dateTransparence,
+      snapshot.dateEchéance,
+      snapshot.datePriseDePosteCible,
+      snapshot.dateClôtureDélaiObservation,
     );
   }
 
@@ -168,6 +184,21 @@ export class Transparence {
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
     const createdAt = DomainRegistry.dateTimeProvider().now();
-    return new Transparence(id, createdAt, name, formation, nominationFiles);
+    return new Transparence(
+      id,
+      createdAt,
+      name,
+      formation,
+      nominationFiles,
+      // TODO A supprimer une fois le changement de méthode d'import terminé.
+      {
+        year: 2025,
+        month: 6,
+        day: 13,
+      },
+      null,
+      null,
+      null,
+    );
   }
 }

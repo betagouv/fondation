@@ -24,7 +24,9 @@ export class NominationFileContentReader {
 
   read(): NominationFilesContentReadCollection {
     const contentRead = this.content.map((_, rowIndex) => {
-      const observersValue = this.findValue('Observants', rowIndex);
+      const observersValue = this.findValue('Observants', rowIndex, {
+        optional: true,
+      });
       const datePassageAuGrade = this.findValue('Passage au grade', rowIndex, {
         optional: true,
       });
@@ -43,7 +45,7 @@ export class NominationFileContentReader {
             this.findValue('N°', rowIndex)!,
             rowIndex,
           ),
-          magistrat: this.findValue('Magistrat', rowIndex)!,
+          magistrat: this.findValue('Magistrat', rowIndex)!.split('\n')[0]!,
           posteCible: PosteCibleTsvNormalizer.normalize(
             this.findValue('Poste cible', rowIndex)!,
           ),

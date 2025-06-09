@@ -9,7 +9,7 @@ export type DateOnlyJson = {
   day: number;
 };
 
-const dbDateFormat = 'yyyy-MM-dd';
+export const isoDateFormat = 'yyyy-MM-dd';
 export const gsheetDateFormat = 'dd/MM/yyyy';
 
 export const dateOnlyJsonSchema = z.object({
@@ -45,6 +45,9 @@ export class DateOnly {
   ): string {
     return format(this.value, formatTemplate);
   }
+  toISOString(): string {
+    return format(this.value, isoDateFormat);
+  }
   toJson(): DateOnlyJson {
     return {
       year: this.getYear(),
@@ -54,9 +57,6 @@ export class DateOnly {
   }
   static fromJson(json: DateOnlyJson): DateOnly {
     return new DateOnly(json.year, json.month, json.day);
-  }
-  toDbString(): string {
-    return format(this.value, dbDateFormat);
   }
 
   static fromDate(dueDate: Date): DateOnly {
@@ -68,12 +68,12 @@ export class DateOnly {
   }
 
   static fromDbDateOnlyString = (dateString: string): DateOnly => {
-    return this.fromString(dateString, dbDateFormat);
+    return this.fromString(dateString, isoDateFormat);
   };
 
   static fromString(
     dateString: string,
-    format: 'dd/MM/yyyy' | 'dd/M/yyyy' | typeof dbDateFormat = 'dd/MM/yyyy',
+    format: 'dd/MM/yyyy' | 'dd/M/yyyy' | typeof isoDateFormat = 'dd/MM/yyyy',
     locale: 'fr' = 'fr',
   ): DateOnly {
     const date = parse(dateString, format, new Date(), {

@@ -2,18 +2,18 @@ import { and, eq } from 'drizzle-orm';
 import { Magistrat, Transparency } from 'shared-models';
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 import {
-  Transparence as TransparenceTsv,
   TransparenceSnapshot,
-} from 'src/data-administration-context/transparence-tsv/business-logic/models/transparence';
-import { Transparence as TransparenceXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
+  Transparence as TransparenceXlsx,
+} from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { transparencesPm } from './schema/transparence-pm';
 import { z } from 'zod';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 export class SqlTransparenceRepository implements TransparenceRepository {
   save(
-    transparence: TransparenceTsv | TransparenceXlsx,
+    transparence: TransparenceXlsx | TransparenceXlsx,
   ): DrizzleTransactionableAsync {
     return async (db) => {
       const snapshot = transparence.snapshot();
@@ -25,6 +25,18 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           createdAt: snapshot.createdAt,
           name: snapshot.name,
           formation: snapshot.formation,
+          dateTransparence: DateOnly.fromJson(
+            snapshot.dateTransparence,
+          ).toDate(),
+          dateEchéance: snapshot.dateEchéance
+            ? DateOnly.fromJson(snapshot.dateEchéance).toDate()
+            : null,
+          datePriseDePosteCible: snapshot.datePriseDePosteCible
+            ? DateOnly.fromJson(snapshot.datePriseDePosteCible).toDate()
+            : null,
+          dateClôtureDélaiObservation: snapshot.dateClôtureDélaiObservation
+            ? DateOnly.fromJson(snapshot.dateClôtureDélaiObservation).toDate()
+            : null,
           nominationFiles: snapshot.nominationFiles,
         })
         .onConflictDoUpdate({
@@ -38,7 +50,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
   transparence(
     name: Transparency,
     formation: Magistrat.Formation,
-  ): DrizzleTransactionableAsync<TransparenceTsv | null> {
+  ): DrizzleTransactionableAsync<TransparenceXlsx | null> {
     return async (db) => {
       const transparenceResult = await db
         .select()
@@ -58,11 +70,25 @@ export class SqlTransparenceRepository implements TransparenceRepository {
 
       const transparenceRow = transparenceResult[0]!;
 
-      return TransparenceTsv.fromSnapshot({
+      return TransparenceXlsx.fromSnapshot({
         id: transparenceRow.id,
         createdAt: transparenceRow.createdAt,
         name: z.nativeEnum(Transparency).parse(transparenceRow.name),
         formation: transparenceRow.formation,
+        dateTransparence: DateOnly.fromDate(
+          transparenceRow.dateTransparence,
+        ).toJson(),
+        dateEchéance: transparenceRow.dateEchéance
+          ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
+          : null,
+        datePriseDePosteCible: transparenceRow.datePriseDePosteCible
+          ? DateOnly.fromDate(transparenceRow.datePriseDePosteCible).toJson()
+          : null,
+        dateClôtureDélaiObservation: transparenceRow.dateClôtureDélaiObservation
+          ? DateOnly.fromDate(
+              transparenceRow.dateClôtureDélaiObservation,
+            ).toJson()
+          : null,
         nominationFiles: transparenceRow.nominationFiles.map((f) => ({
           ...(f as any),
           createdAt: new Date((f as any).createdAt),

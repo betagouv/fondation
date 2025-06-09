@@ -1,9 +1,19 @@
+import { Magistrat } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
-import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
+
+export type ImportTransparenceXlsxDto = {
+  nomTransparence: string;
+  formation: Magistrat.Formation;
+  dateTransparence: string;
+  dateEcheance: string;
+  datePriseDePosteCible: string | null;
+  dateClotureDelaiObservation: string | null;
+  fichier: File;
+};
 
 export const dataAdministrationUpload = createAppAsyncThunk<
   void,
-  NouvelleTransparenceDto
+  ImportTransparenceXlsxDto
 >(
   "secretariatGeneral/nouvelleTransparence",
   async (
@@ -24,6 +34,18 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       nouvelleTransparenceDto.fichier,
     );
 
-    await dataAdministrationGateway.uploadTransparence(nouvelleTransparenceDto);
+    await dataAdministrationGateway.importTransparenceXlsx(
+      {
+        nomTransparence: nouvelleTransparenceDto.nomTransparence,
+        formation: nouvelleTransparenceDto.formation,
+        dateTransparence: nouvelleTransparenceDto.dateTransparence,
+        dateEcheance: nouvelleTransparenceDto.dateEcheance,
+        datePriseDePosteCible:
+          nouvelleTransparenceDto.datePriseDePosteCible ?? undefined,
+        dateClotureDelaiObservation:
+          nouvelleTransparenceDto.dateClotureDelaiObservation ?? undefined,
+      },
+      nouvelleTransparenceDto.fichier,
+    );
   },
 );

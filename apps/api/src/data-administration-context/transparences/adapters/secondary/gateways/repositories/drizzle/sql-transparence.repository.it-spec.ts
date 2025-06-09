@@ -1,17 +1,12 @@
-import { Magistrat, RulesBuilder, Transparency } from 'shared-models';
-import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
-import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
-import { NominationFileModelSnapshot } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file';
-import {
-  allRulesMapV1,
-  ManagementRule,
-  QualitativeRule,
-  StatutoryRule,
-} from 'src/data-administration-context/transparence-tsv/business-logic/models/rules';
+import { Magistrat, Transparency } from 'shared-models';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
+import { NominationFileModelSnapshot } from 'src/data-administration-context/transparence-xlsx/business-logic/models/nomination-file';
 import {
   Transparence,
   TransparenceSnapshot,
-} from 'src/data-administration-context/transparence-tsv/business-logic/models/transparence';
+} from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
+import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
+import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -21,10 +16,10 @@ import {
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { transparencesPm } from './schema/transparence-pm';
 import { SqlTransparenceRepository } from './sql-transparence.repository';
-import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 const aTransparenceId = 'ad0b430b-e647-475d-b942-9908901120da';
 const aNominationFileId = 'e022252d-913c-4523-8ae3-ad9b9fcb4757';
@@ -92,6 +87,18 @@ describe('SQL Transparence Repository', () => {
         .insert(transparencesPm)
         .values({
           ...transpa,
+          dateTransparence: DateOnly.fromJson(
+            transpa.dateTransparence,
+          ).toDate(),
+          dateEchéance: transpa.dateEchéance
+            ? DateOnly.fromJson(transpa.dateEchéance).toDate()
+            : null,
+          datePriseDePosteCible: transpa.datePriseDePosteCible
+            ? DateOnly.fromJson(transpa.datePriseDePosteCible).toDate()
+            : null,
+          dateClôtureDélaiObservation: transpa.dateClôtureDélaiObservation
+            ? DateOnly.fromJson(transpa.dateClôtureDélaiObservation).toDate()
+            : null,
           nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
             ...nominationFile,
             createdAt: currentDate.toISOString(),
@@ -122,6 +129,16 @@ describe('SQL Transparence Repository', () => {
       {
         ...transpa,
         formation: transpa.formation,
+        dateTransparence: DateOnly.fromJson(transpa.dateTransparence).toDate(),
+        dateEchéance: transpa.dateEchéance
+          ? DateOnly.fromJson(transpa.dateEchéance).toDate()
+          : null,
+        datePriseDePosteCible: transpa.datePriseDePosteCible
+          ? DateOnly.fromJson(transpa.datePriseDePosteCible).toDate()
+          : null,
+        dateClôtureDélaiObservation: transpa.dateClôtureDélaiObservation
+          ? DateOnly.fromJson(transpa.dateClôtureDélaiObservation).toDate()
+          : null,
         nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
           ...nominationFile,
           createdAt: currentDate.toISOString(),
@@ -131,42 +148,27 @@ describe('SQL Transparence Repository', () => {
   };
 });
 
-class TrueRulesBuilder extends RulesBuilder<
-  boolean,
-  ManagementRule,
-  StatutoryRule,
-  QualitativeRule
-> {
-  constructor() {
-    super(true, allRulesMapV1);
-  }
-}
-
 const aNominationfile: NominationFileModelSnapshot = {
   id: aNominationFileId,
   createdAt: currentDate,
   rowNumber: 1,
   content: {
-    folderNumber: 1,
-    name: 'Test Person',
-    formation: Magistrat.Formation.PARQUET,
-    dueDate: null,
-    transparency: Transparency.AUTOMNE_2024,
+    numeroDeDossier: 1,
+    magistrat: 'Test Person',
     reporters: ['Test Reporter'],
     grade: Magistrat.Grade.HH,
-    currentPosition: 'Current Position',
-    targettedPosition: 'Target Position',
+    posteActuel: 'Current Position',
+    posteCible: 'Target Position',
     rank: '(1 sur 10)',
-    birthDate: {
+    dateDeNaissance: {
       year: 1980,
       month: 1,
       day: 1,
     },
-    biography: 'Test biography',
+    historique: 'Test biography',
     observers: ['Test Observer'],
-    rules: new TrueRulesBuilder().build(),
 
-    avancement: Avancement.AVANCEMENT,
+    equivalenceOuAvancement: Avancement.AVANCEMENT,
     datePassageAuGrade: {
       day: 1,
       month: 1,
@@ -177,7 +179,7 @@ const aNominationfile: NominationFileModelSnapshot = {
       month: 1,
       year: 2002,
     },
-    informationCarrière: 'information de carrière',
+    informationCarriere: 'information de carrière',
   },
 };
 
@@ -186,6 +188,26 @@ const aTransparence: TransparenceSnapshot = {
   createdAt: currentDate,
   name: Transparency.AUTOMNE_2024,
   formation: Magistrat.Formation.PARQUET,
+  dateTransparence: {
+    year: 2025,
+    month: 10,
+    day: 1,
+  },
+  dateEchéance: {
+    year: 2027,
+    month: 10,
+    day: 1,
+  },
+  datePriseDePosteCible: {
+    year: 2024,
+    month: 1,
+    day: 1,
+  },
+  dateClôtureDélaiObservation: {
+    year: 2023,
+    month: 10,
+    day: 1,
+  },
   nominationFiles: [aNominationfile],
 };
 
@@ -196,7 +218,7 @@ const aModifiedTransparence: TransparenceSnapshot = {
       ...aNominationfile,
       content: {
         ...aNominationfile.content,
-        folderNumber: 100,
+        numeroDeDossier: 100,
       },
     },
   ],

@@ -15,7 +15,7 @@ export type NominationFilesContentWithReporterIds = {
   };
 };
 
-export type GdsNewTransparenceImportedEventPayload = {
+export type TransparenceXlsxImportéeEventPayload = {
   transparenceId: string;
   transparenceName: string;
   formation: Magistrat.Formation;
@@ -38,7 +38,7 @@ export const nominationFilesPayloadSchema = z
   )
   .nonempty();
 
-export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
+export const transparenceXlsxImportéePayloadSchema = z.object({
   transparenceId: z.string().uuid(),
   transparenceName: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
@@ -46,22 +46,22 @@ export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   dateTransparence: DateOnly.ZOD_JSON_SCHEMA,
   dateClôtureDélaiObservation: DateOnly.ZOD_JSON_SCHEMA.nullable(),
   nominationFiles: nominationFilesPayloadSchema,
-}) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
+}) satisfies z.ZodType<TransparenceXlsxImportéeEventPayload>;
 
-export class GdsNewTransparenceImportedEvent extends DomainEvent<GdsNewTransparenceImportedEventPayload> {
-  readonly name = 'GDS_NEW_TRANSPARENCE_IMPORTED';
+export class TransparenceXlsxImportéeEvent extends DomainEvent<TransparenceXlsxImportéeEventPayload> {
+  readonly name = 'TRANSPARENCE_XLSX_IMPORTEE';
 
   constructor(
     id: string,
-    payload: GdsNewTransparenceImportedEventPayload,
+    payload: TransparenceXlsxImportéeEventPayload,
     currentDate: Date,
   ) {
-    super(id, GdsNewTransparenceImportedEvent.name, payload, currentDate);
+    super(id, TransparenceXlsxImportéeEvent.name, payload, currentDate);
   }
 
-  static create(payload: GdsNewTransparenceImportedEventPayload) {
+  static create(payload: TransparenceXlsxImportéeEventPayload) {
     const id = DomainRegistry.uuidGenerator().generate();
     const currentDate = DomainRegistry.dateTimeProvider().now();
-    return new GdsNewTransparenceImportedEvent(id, payload, currentDate);
+    return new TransparenceXlsxImportéeEvent(id, payload, currentDate);
   }
 }

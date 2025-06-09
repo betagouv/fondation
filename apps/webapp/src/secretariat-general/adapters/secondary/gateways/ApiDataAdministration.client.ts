@@ -1,9 +1,9 @@
 import {
   interpolateUrlParams,
   DataAdministrationContextRestContract,
+  ImportNouvelleTransparenceDto,
 } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
-import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
 type Endpoints = DataAdministrationContextRestContract["endpoints"];
 type ClientFetchOptions = {
@@ -16,44 +16,71 @@ const basePath: DataAdministrationContextRestContract["basePath"] =
 export class ApiDataAdministrationClient implements DataAdministrationClient {
   constructor(private readonly baseUrl: string) {}
 
-  async uploadTransparence(
-    nouvelleTransparenceDto: NouvelleTransparenceDto,
-  ): Promise<void> {
+  async importNouvelleTransparenceXlsx(
+    nouvelleTransparenceDto: ImportNouvelleTransparenceDto,
+    fichier: File,
+  ) {
     const formData = new FormData();
-    Object.entries(nouvelleTransparenceDto).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append("fichier", value);
-      } else {
-        formData.append(key, value.toString());
-      }
-    });
+    formData.append("fichier", fichier, fichier.name);
 
     const {
       method,
       path,
-    }: Omit<ClientFetchOptions["nouvelleTransparence"], "body"> = {
+      body,
+      queryParams,
+    }: ClientFetchOptions["importNouvelleTransparenceXlsx"] = {
       method: "POST",
-      path: "nouvelle-transparence",
-    };
-    const url = this.resolveUrl(path);
-
-    const response = await this.fetch(url, {
-      method,
-      credentials: "include",
+      path: "import-nouvelle-transparence-xlsx",
       body: formData,
+      queryParams: {
+        nomTransparence: nouvelleTransparenceDto.nomTransparence,
+        dateTransparence: nouvelleTransparenceDto.dateTransparence,
+        formation: nouvelleTransparenceDto.formation,
+        dateEcheance: nouvelleTransparenceDto.dateEcheance,
+        datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible,
+        // TODO Supprimer le ternaire une fois le champ dans le formulaire
+        dateClotureDelaiObservation:
+          "dateClôtureDélaiObservation" in nouvelleTransparenceDto
+            ? (nouvelleTransparenceDto.dateClôtureDélaiObservation as string)
+            : undefined,
+      },
+    };
+    const url = this.resolveUrl(path, undefined, queryParams);
+    await this.fetch(url, {
+      method,
+      body,
     });
-    return response.json();
   }
 
-  private resolveUrl(path: string, params?: Record<string, string>): string {
+  private resolveUrl(
+    path: string,
+    params?: Record<string, string>,
+    queryParams?: Record<string, string | string[]>,
+  ): string {
     const fullPath = `${basePath}/${path}`;
     const url = new URL(fullPath, this.baseUrl);
+    if (queryParams) this.buildQueryParams(url, queryParams);
+
     if (!params) return url.href;
     return interpolateUrlParams(url, params);
   }
 
+  private buildQueryParams(
+    url: URL,
+    searchParams: Record<string, string | string[]>,
+  ) {
+    Object.entries(searchParams).forEach(([key, values]) => {
+      if (values === undefined) return;
+      if (typeof values === "string") url.searchParams.append(key, values);
+      else values.forEach((value) => url.searchParams.append(key, value));
+    });
+  }
+
   private async fetch(url: string, requestInit: RequestInit) {
-    const response = await fetch(url, requestInit);
+    const response = await fetch(url, {
+      ...requestInit,
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
