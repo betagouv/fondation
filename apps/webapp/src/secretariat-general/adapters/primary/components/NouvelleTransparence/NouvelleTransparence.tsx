@@ -19,6 +19,9 @@ import {
   BreadcrumCurrentPage,
   selectBreadcrumb,
 } from "../../selectors/selectBreadcrumb";
+import { selectUploadExcelFailed } from "../../selectors/selectUploadExcelFailed";
+import { UploadExcelFailedAlert } from "./UploadExcelFailedAlert";
+import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 
 const optionalDate = z.string().date("La date est requise").optional();
 
@@ -35,9 +38,9 @@ const nouvelleTransparenceDtoSchema = z.object({
   formation: z.nativeEnum(Magistrat.Formation, {
     message: "La formation est requise.",
   }),
-  dateEcheance: z.string().date(),
+  dateEcheance: optionalDate,
   datePriseDePosteCible: optionalDate,
-  dateClôtureDélaiObservation: optionalDate,
+  dateClôtureDélaiObservation: z.string().date("La date est requise"),
   fichier: z
     .instanceof(File, { message: "Un fichier est requis." })
     .refine((file) => file.size > 0, {
@@ -64,6 +67,7 @@ const NouvelleTransparence: FC = () => {
   const breadcrumb = useAppSelector((state) =>
     selectBreadcrumb(state, currentPage),
   );
+  const uploadExcelFailed = useAppSelector(selectUploadExcelFailed);
 
   const {
     control,
@@ -78,9 +82,9 @@ const NouvelleTransparence: FC = () => {
     dispatch(
       dataAdministrationUpload({
         ...data,
-        nomTransparence: data.nomTransparence.trim(),
+        dateEcheance: data.dateEcheance || null,
         datePriseDePosteCible: data.datePriseDePosteCible || null,
-        dateClotureDelaiObservation: data.dateClôtureDélaiObservation || null,
+        dateClotureDelaiObservation: data.dateClôtureDélaiObservation,
       }),
     );
   };
@@ -92,7 +96,14 @@ const NouvelleTransparence: FC = () => {
         ariaLabel="Fil d'Ariane du secrétariat général"
         breadcrumb={breadcrumb}
       />
+
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
+        {uploadExcelFailed && (
+          <div className={cx("fr-mb-8v")}>
+            <UploadExcelFailedAlert />
+          </div>
+        )}
+
         <Controller<FormSchema, "nomTransparence">
           name="nomTransparence"
           control={control}
@@ -158,7 +169,7 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Clôture du délai d'observation"
+              label="Clôture du délai d'observation*"
               id="date-cloture-delai-observation"
               nativeInputProps={{
                 type: "date",
@@ -176,7 +187,7 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Date d'échéance*"
+              label="Date d'échéance"
               id="date-echeance"
               nativeInputProps={{
                 type: "date",

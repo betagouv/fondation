@@ -31,7 +31,7 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
       const isMembreDuConseil = getIsMembreDuConseil(state, action);
 
       const gotToDefaultAuthPage = isAdjointSecrétaireGénéral
-        ? routerProvider.goToSecretariatGeneral
+        ? routerProvider.onGoToSecretariatGeneralClick
         : routerProvider.goToTransparencies;
 
       if (action.type === authenticationStateInitFromStore.type) {
@@ -39,7 +39,7 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
 
         if (authenticated) {
           if (isAdjointSecrétaireGénéral && isPageMembre(currentHref)) {
-            routerProvider.goToSecretariatGeneral();
+            routerProvider.onGoToSecretariatGeneralClick();
           } else if (
             isMembreDuConseil &&
             isPageSecrétariatGénéral(currentHref)
@@ -65,7 +65,7 @@ export const redirectOnRouteChange: Listener = (startAppListening) => {
           isAdjointSecrétaireGénéral &&
           isPageMembre((action as ReturnType<typeof routeChanged>).payload)
         ) {
-          routerProvider.goToSecretariatGeneral();
+          routerProvider.onGoToSecretariatGeneralClick();
         } else if (
           isMembreDuConseil &&
           isPageSecrétariatGénéral(

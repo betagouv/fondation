@@ -25,9 +25,9 @@ export class TransparenceService {
     nomTransparence: string,
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
     datePriseDePosteCible: DateOnlyJson | null,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
     return async (trx) => {

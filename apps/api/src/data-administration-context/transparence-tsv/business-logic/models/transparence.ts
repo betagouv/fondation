@@ -18,7 +18,7 @@ export type TransparenceSnapshot = {
   dateTransparence: DateOnlyJson;
   dateEchéance: DateOnlyJson | null;
   datePriseDePosteCible: DateOnlyJson | null;
-  dateClôtureDélaiObservation: DateOnlyJson | null;
+  dateClôtureDélaiObservation: DateOnlyJson;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -35,7 +35,7 @@ export class Transparence {
     private readonly _dateTransparence: DateOnlyJson,
     private readonly dateEchéance: DateOnlyJson | null,
     private readonly datePriseDePosteCible: DateOnlyJson | null,
-    private readonly dateClôtureDélaiObservation: DateOnlyJson | null,
+    private readonly dateClôtureDélaiObservation: DateOnlyJson,
   ) {
     this.name = _name;
     this.formation = formation;
@@ -198,7 +198,11 @@ export class Transparence {
       },
       null,
       null,
-      null,
+      {
+        year: 2025,
+        month: 6,
+        day: 11,
+      },
     );
   }
 }

@@ -19,9 +19,9 @@ export const importNouvelleTransparenceDtoSchema = z.object({
   nomTransparence: z.string().min(1),
   formation: z.nativeEnum(Magistrat.Formation),
   dateTransparence: z.string().date(),
-  dateEcheance: z.string().date(),
+  dateEcheance: z.string().date().optional(),
   datePriseDePosteCible: z.string().date().optional(),
-  dateClotureDelaiObservation: z.string().date().optional(),
+  dateClotureDelaiObservation: z.string().date(),
 });
 
 export type ImportNouvelleTransparenceDto = z.infer<

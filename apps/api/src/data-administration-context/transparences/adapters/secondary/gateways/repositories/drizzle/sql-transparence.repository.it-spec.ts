@@ -96,9 +96,9 @@ describe('SQL Transparence Repository', () => {
           datePriseDePosteCible: transpa.datePriseDePosteCible
             ? DateOnly.fromJson(transpa.datePriseDePosteCible).toDate()
             : null,
-          dateClôtureDélaiObservation: transpa.dateClôtureDélaiObservation
-            ? DateOnly.fromJson(transpa.dateClôtureDélaiObservation).toDate()
-            : null,
+          dateClôtureDélaiObservation: DateOnly.fromJson(
+            transpa.dateClôtureDélaiObservation,
+          ).toDate(),
           nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
             ...nominationFile,
             createdAt: currentDate.toISOString(),
@@ -130,15 +130,13 @@ describe('SQL Transparence Repository', () => {
         ...transpa,
         formation: transpa.formation,
         dateTransparence: DateOnly.fromJson(transpa.dateTransparence).toDate(),
-        dateEchéance: transpa.dateEchéance
-          ? DateOnly.fromJson(transpa.dateEchéance).toDate()
-          : null,
-        datePriseDePosteCible: transpa.datePriseDePosteCible
-          ? DateOnly.fromJson(transpa.datePriseDePosteCible).toDate()
-          : null,
-        dateClôtureDélaiObservation: transpa.dateClôtureDélaiObservation
-          ? DateOnly.fromJson(transpa.dateClôtureDélaiObservation).toDate()
-          : null,
+        dateEchéance: DateOnly.fromJson(transpa.dateEchéance!).toDate(),
+        datePriseDePosteCible: DateOnly.fromJson(
+          transpa.datePriseDePosteCible!,
+        ).toDate(),
+        dateClôtureDélaiObservation: DateOnly.fromJson(
+          transpa.dateClôtureDélaiObservation,
+        ).toDate(),
         nominationFiles: transpa.nominationFiles.map((nominationFile) => ({
           ...nominationFile,
           createdAt: currentDate.toISOString(),

@@ -5,9 +5,9 @@ export type ImportTransparenceXlsxDto = {
   nomTransparence: string;
   formation: Magistrat.Formation;
   dateTransparence: string;
-  dateEcheance: string;
+  dateEcheance: string | null;
   datePriseDePosteCible: string | null;
-  dateClotureDelaiObservation: string | null;
+  dateClotureDelaiObservation: string;
   fichier: File;
 };
 
@@ -22,7 +22,7 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       getState,
       extra: {
         gateways: { dataAdministrationGateway },
-        providers: { fileProvider },
+        providers: { fileProvider, routerProvider },
       },
     },
   ) => {
@@ -39,13 +39,15 @@ export const dataAdministrationUpload = createAppAsyncThunk<
         nomTransparence: nouvelleTransparenceDto.nomTransparence,
         formation: nouvelleTransparenceDto.formation,
         dateTransparence: nouvelleTransparenceDto.dateTransparence,
-        dateEcheance: nouvelleTransparenceDto.dateEcheance,
+        dateEcheance: nouvelleTransparenceDto.dateEcheance ?? undefined,
         datePriseDePosteCible:
           nouvelleTransparenceDto.datePriseDePosteCible ?? undefined,
         dateClotureDelaiObservation:
-          nouvelleTransparenceDto.dateClotureDelaiObservation ?? undefined,
+          nouvelleTransparenceDto.dateClotureDelaiObservation,
       },
       nouvelleTransparenceDto.fichier,
     );
+
+    routerProvider.onGoToSecretariatGeneralClick();
   },
 );

@@ -19,4 +19,17 @@ describe("Data Administration Upload", () => {
     await deps.uploadTransparence(deps.unFichierPdfAImporter());
     deps.expectClientTransparences();
   });
+
+  it("redirige vers la page secrétariat général après l'import", async () => {
+    deps.routerProvider.onGoToSecretariatGeneralClick = vi.fn();
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectPageSecretariatGeneral();
+  });
+
+  it("affiche un message d'erreur si l'import échoue", async () => {
+    deps.dataAdministrationClient.importNouvelleTransparenceXlsxError =
+      new Error();
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectFailedUpload();
+  });
 });

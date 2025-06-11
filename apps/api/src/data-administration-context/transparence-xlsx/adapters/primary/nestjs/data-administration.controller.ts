@@ -47,16 +47,16 @@ export class DataAdministrationController
       dto.formation,
       dto.nomTransparence,
       DateOnly.fromString(dto.dateTransparence, 'yyyy-MM-dd').toJson(),
-      DateOnly.fromString(dto.dateEcheance, 'yyyy-MM-dd').toJson(),
+      dto.dateEcheance
+        ? DateOnly.fromString(dto.dateEcheance, 'yyyy-MM-dd').toJson()
+        : null,
       dto.datePriseDePosteCible
         ? DateOnly.fromString(dto.datePriseDePosteCible, 'yyyy-MM-dd').toJson()
         : null,
-      dto.dateClotureDelaiObservation
-        ? DateOnly.fromString(
-            dto.dateClotureDelaiObservation,
-            'yyyy-MM-dd',
-          ).toJson()
-        : null,
+      DateOnly.fromString(
+        dto.dateClotureDelaiObservation,
+        'yyyy-MM-dd',
+      ).toJson(),
     );
   }
 }

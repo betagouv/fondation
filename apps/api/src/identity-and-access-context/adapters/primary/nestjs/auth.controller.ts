@@ -132,6 +132,7 @@ export class AuthController implements IAuthController {
     const userDescriptor = await this.userWithFullNameUseCase.execute(
       params.fullName,
     );
+
     return this.responseWithUserDescriptor(userDescriptor);
   }
 

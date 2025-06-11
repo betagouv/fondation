@@ -34,9 +34,9 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           datePriseDePosteCible: snapshot.datePriseDePosteCible
             ? DateOnly.fromJson(snapshot.datePriseDePosteCible).toDate()
             : null,
-          dateClôtureDélaiObservation: snapshot.dateClôtureDélaiObservation
-            ? DateOnly.fromJson(snapshot.dateClôtureDélaiObservation).toDate()
-            : null,
+          dateClôtureDélaiObservation: DateOnly.fromJson(
+            snapshot.dateClôtureDélaiObservation,
+          ).toDate(),
           nominationFiles: snapshot.nominationFiles,
         })
         .onConflictDoUpdate({
@@ -84,11 +84,9 @@ export class SqlTransparenceRepository implements TransparenceRepository {
         datePriseDePosteCible: transparenceRow.datePriseDePosteCible
           ? DateOnly.fromDate(transparenceRow.datePriseDePosteCible).toJson()
           : null,
-        dateClôtureDélaiObservation: transparenceRow.dateClôtureDélaiObservation
-          ? DateOnly.fromDate(
-              transparenceRow.dateClôtureDélaiObservation,
-            ).toJson()
-          : null,
+        dateClôtureDélaiObservation: DateOnly.fromDate(
+          transparenceRow.dateClôtureDélaiObservation,
+        ).toJson(),
         nominationFiles: transparenceRow.nominationFiles.map((f) => ({
           ...(f as any),
           createdAt: new Date((f as any).createdAt),

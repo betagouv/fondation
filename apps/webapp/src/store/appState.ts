@@ -130,6 +130,7 @@ export interface AppState<IsTest extends boolean = false> {
       acceptedMimeTypes: {
         sourceDeDonnées: string[];
       };
+      uploadQueryStatus: QueryStatus;
     };
   };
 }

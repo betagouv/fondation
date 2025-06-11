@@ -5,7 +5,7 @@ export interface RouterProvider {
   getLoginHref(): string;
 
   goToTransparencies(): void;
-  goToSecretariatGeneral(): void;
+  onGoToSecretariatGeneralClick(): void;
   goToSgNouvelleTransparence(): void;
   getSecretariatGeneralAnchorAttributes: () => {
     href: string;

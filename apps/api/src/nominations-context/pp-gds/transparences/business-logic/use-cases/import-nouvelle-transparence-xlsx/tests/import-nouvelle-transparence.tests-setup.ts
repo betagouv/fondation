@@ -16,7 +16,11 @@ export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aTransparenceImportId = 'transparence-import-id';
 export const aDateEchéance: DateOnlyJson = { day: 1, month: 1, year: 2026 };
 export const aDateTransparence: DateOnlyJson = { day: 1, month: 1, year: 2024 };
-export const aDateClôtureDélaiObservation: DateOnlyJson | null = null;
+export const aDateClôtureDélaiObservation: DateOnlyJson = {
+  day: 1,
+  month: 1,
+  year: 2025,
+};
 export const aSessionId = aTransparencyName;
 export const aFormation = Magistrat.Formation.PARQUET;
 export const aDossierDeNominationId = 'dossier-de-nomination-id';

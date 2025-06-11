@@ -42,7 +42,7 @@ export class TransparenceService {
   créerDossiersXlsxImportés(
     session: Session,
     nominationFiles: GdsNewTransparenceImportedEventPayloadXlsx['nominationFiles'],
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
   ): TransactionableAsync {
     return async (trx) => {
       const dossiersTransformer = new GdsTransparenceEventTransformer(

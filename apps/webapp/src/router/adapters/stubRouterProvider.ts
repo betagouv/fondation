@@ -8,7 +8,7 @@ export class StubRouterProvider implements RouterProvider {
 
   onGoToLoginClick = () => null;
   onGoToTransparenciesClick = () => null;
-  goToSecretariatGeneral = () => null;
+  onGoToSecretariatGeneralClick = () => null;
   goToSgNouvelleTransparence = () => null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onTransparencyClickAttribute = (_: Transparency) => null;
@@ -20,7 +20,7 @@ export class StubRouterProvider implements RouterProvider {
     href: this.secretariatGeneralHref,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
-      this.goToSecretariatGeneral();
+      this.onGoToSecretariatGeneralClick();
     },
   });
   getSgNouvelleTransparenceAnchorAttributes = () => ({

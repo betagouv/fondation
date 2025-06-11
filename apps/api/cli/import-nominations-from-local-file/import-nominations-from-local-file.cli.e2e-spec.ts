@@ -107,7 +107,7 @@ describe('Import Nominations from local file', () => {
         dateTransparence: new DateOnly(2025, 6, 13).toDate(),
         dateEchéance: null,
         datePriseDePosteCible: null,
-        dateClôtureDélaiObservation: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
         nominationFiles: [
           expectTransparenceNominationFile(1, firstRow),
           expectTransparenceNominationFile(2, secondRow),
@@ -121,7 +121,7 @@ describe('Import Nominations from local file', () => {
         dateTransparence: new DateOnly(2025, 6, 13).toDate(),
         dateEchéance: null,
         datePriseDePosteCible: null,
-        dateClôtureDélaiObservation: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
         nominationFiles: [expectTransparenceNominationFile(3, thirdRow)],
       },
     );
@@ -193,7 +193,7 @@ describe('Import Nominations from local file', () => {
           dateTransparence: new DateOnly(2025, 6, 13).toDate(),
           dateEchéance: null,
           datePriseDePosteCible: null,
-          dateClôtureDélaiObservation: null,
+          dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
           nominationFiles: [
             expectTransparenceNominationFile(1, firstRow),
             expectTransparenceNominationFile(2, secondRow),
@@ -207,7 +207,7 @@ describe('Import Nominations from local file', () => {
           dateTransparence: new DateOnly(2025, 6, 13).toDate(),
           dateEchéance: null,
           datePriseDePosteCible: null,
-          dateClôtureDélaiObservation: null,
+          dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
           nominationFiles: [expectTransparenceNominationFile(3, thirdRow)],
         },
       );
@@ -234,7 +234,7 @@ describe('Import Nominations from local file', () => {
         dateTransparence: new DateOnly(2025, 6, 13).toDate(),
         dateEchéance: null,
         datePriseDePosteCible: null,
-        dateClôtureDélaiObservation: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
         createdAt: new Date(),
         nominationFiles: contents.map((content, index) => ({
           id: index === 0 ? transpaDossier1Id : transpaDossier2Id,

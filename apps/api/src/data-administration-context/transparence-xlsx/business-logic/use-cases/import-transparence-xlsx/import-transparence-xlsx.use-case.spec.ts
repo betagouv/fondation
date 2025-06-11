@@ -157,10 +157,10 @@ describe('Import Transparence XLSX Use Case', () => {
     xlsxFile: File,
     formation: Magistrat.Formation,
     name: string,
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
     dateTransparence: DateOnlyJson,
     datePriseDePosteCible: DateOnlyJson | null,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ) =>
     new ImportTransparenceXlsxUseCase(
       new NullTransactionPerformer(),

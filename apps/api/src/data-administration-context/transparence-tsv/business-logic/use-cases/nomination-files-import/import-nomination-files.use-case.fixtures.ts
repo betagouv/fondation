@@ -29,12 +29,12 @@ export const gdsDateTransparence: DateOnlyJson = {
   month: 6,
   day: 13,
 };
-export const gdsDateClotureDelaieObservation = null;
-export const gdsDatePriseDePosteCible: DateOnlyJson = {
+export const gdsDateClotureDelaieObservation: DateOnlyJson = {
   year: 2025,
   month: 6,
-  day: 19,
+  day: 11,
 };
+export const gdsDatePriseDePosteCible = null;
 export const currentDate = new Date(2024, 10, 10);
 
 export const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN} (1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;

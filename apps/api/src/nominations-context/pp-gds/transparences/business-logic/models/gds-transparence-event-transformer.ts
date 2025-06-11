@@ -24,7 +24,7 @@ export class GdsTransparenceEventTransformer<T extends boolean = false> {
 
   transformerXlsx(
     nominationFiles: GdsNewTransparenceImportedEventPayloadXlsx['nominationFiles'],
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
   ): GdsTransparenceEventTransformer {
     const dossiers = nominationFiles.map(({ nominationFileId, content }) => {
       const contenu: ContenuPropositionDeNominationTransparenceV2 = {

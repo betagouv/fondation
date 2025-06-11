@@ -91,7 +91,7 @@ export class TypeRouterProvider implements RouterProvider {
     }).link;
   }
 
-  goToSecretariatGeneral() {
+  onGoToSecretariatGeneralClick() {
     routes.secretariatGeneral().push();
   }
 

@@ -45,7 +45,8 @@ describe("NouvelleTransparence", () => {
     screen.getByLabelText("Formation*");
     screen.getByText(formationToLabel(Magistrat.Formation.SIEGE));
     screen.getByText(formationToLabel(Magistrat.Formation.PARQUET));
-    screen.getByLabelText("Date d'échéance*");
+    screen.getByLabelText("Clôture du délai d'observation*");
+    screen.getByLabelText("Date d'échéance");
     screen.getByLabelText("Date de prise de poste");
     screen.getByText("Format supporté : xlsx.");
     screen.getByText("Fichier*");
@@ -85,8 +86,12 @@ describe("NouvelleTransparence", () => {
     const nameInput = await screen.findByLabelText("Nom de la transparence*");
     const dateInput = screen.getByLabelText("Date de la transparence*");
     const formationSelect = screen.getByLabelText("Formation*");
-    const dueDateInput = screen.getByLabelText("Date d'échéance*");
+    const dueDateInput = screen.getByLabelText("Date d'échéance");
     const jobDateInput = screen.getByLabelText("Date de prise de poste");
+    const dateClôtureDélaiObservationInput = screen.getByLabelText(
+      "Clôture du délai d'observation*",
+    );
+
     const fileInput = screen.getByLabelText(/fichier/i) as HTMLInputElement;
 
     await userEvent.type(nameInput, "Test Transparence");
@@ -94,6 +99,7 @@ describe("NouvelleTransparence", () => {
     await userEvent.selectOptions(formationSelect, "SIEGE");
     await userEvent.type(dueDateInput, "2024-04-20");
     await userEvent.type(jobDateInput, "2024-05-20");
+    await userEvent.type(dateClôtureDélaiObservationInput, "2024-06-20");
 
     const file = new File(["test content"], "test.pdf", {
       type: "application/pdf",
@@ -106,6 +112,7 @@ describe("NouvelleTransparence", () => {
     expect(formationSelect).toHaveValue("SIEGE");
     expect(dueDateInput).toHaveValue("2024-04-20");
     expect(jobDateInput).toHaveValue("2024-05-20");
+    expect(dateClôtureDélaiObservationInput).toHaveValue("2024-06-20");
 
     // Cliquer sur le bouton Annuler
     const cancelButton = screen.getByRole("button", { name: /annuler/i });
@@ -117,6 +124,7 @@ describe("NouvelleTransparence", () => {
     expect(formationSelect).toHaveValue("");
     expect(dueDateInput).toHaveValue("");
     expect(jobDateInput).toHaveValue("");
+    expect(dateClôtureDélaiObservationInput).toHaveValue("");
     expect(fileInput.files?.length).toBe(1);
   });
 });

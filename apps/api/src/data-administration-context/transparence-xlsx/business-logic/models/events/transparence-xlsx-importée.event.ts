@@ -19,9 +19,9 @@ export type TransparenceXlsxImportéeEventPayload = {
   transparenceId: string;
   transparenceName: string;
   formation: Magistrat.Formation;
-  dateEchéance: DateOnlyJson;
   dateTransparence: DateOnlyJson;
-  dateClôtureDélaiObservation: DateOnlyJson | null;
+  dateEchéance: DateOnlyJson | null;
+  dateClôtureDélaiObservation: DateOnlyJson;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
@@ -42,9 +42,9 @@ export const transparenceXlsxImportéePayloadSchema = z.object({
   transparenceId: z.string().uuid(),
   transparenceName: z.string(),
   formation: z.nativeEnum(Magistrat.Formation),
-  dateEchéance: DateOnly.ZOD_JSON_SCHEMA,
   dateTransparence: DateOnly.ZOD_JSON_SCHEMA,
-  dateClôtureDélaiObservation: DateOnly.ZOD_JSON_SCHEMA.nullable(),
+  dateEchéance: DateOnly.ZOD_JSON_SCHEMA.nullable(),
+  dateClôtureDélaiObservation: DateOnly.ZOD_JSON_SCHEMA,
   nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<TransparenceXlsxImportéeEventPayload>;
 

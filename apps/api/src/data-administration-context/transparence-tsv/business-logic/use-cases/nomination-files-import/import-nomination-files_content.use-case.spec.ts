@@ -32,6 +32,7 @@ import {
   emilienRenaudJulesUser,
   gdsDateClotureDelaieObservation,
   gdsDateEcheance,
+  gdsDatePriseDePosteCible,
   gdsDateTransparence,
   gdsTransparenceId,
   gdsTransparenceName,
@@ -268,7 +269,7 @@ describe('Import Nomination Files Use Case', () => {
       dateTransparence: gdsDateTransparence,
       dateEchéance: gdsDateEcheance,
       dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-      datePriseDePosteCible: gdsDateClotureDelaieObservation,
+      datePriseDePosteCible: null,
       nominationFiles: [lucienPierreModel],
     });
   });
@@ -299,7 +300,7 @@ describe('Import Nomination Files Use Case', () => {
         dateTransparence: gdsDateTransparence,
         dateEchéance: gdsDateEcheance,
         dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-        datePriseDePosteCible: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [firstRowMissingColumns as any],
       });
 
@@ -337,7 +338,7 @@ describe('Import Nomination Files Use Case', () => {
         dateTransparence: gdsDateTransparence,
         dateEchéance: gdsDateEcheance,
         dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-        datePriseDePosteCible: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [getFirstRow()],
       });
       transparenceRepository.addTransparence('gds-transparence-parquet-id', {
@@ -348,7 +349,7 @@ describe('Import Nomination Files Use Case', () => {
         dateTransparence: gdsDateTransparence,
         dateEchéance: gdsDateEcheance,
         dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-        datePriseDePosteCible: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [getLucienPierreModelSnapshot('another-id', 2)],
       });
 
@@ -500,9 +501,7 @@ describe('Import Nomination Files Use Case', () => {
     ).execute(fileToImport);
 
   const expectTransparences = (...transparences: TransparenceSnapshot[]) => {
-    expect(transparenceRepository.getTransparences()).toEqual<
-      TransparenceSnapshot[]
-    >(transparences);
+    expect(transparenceRepository.getTransparences()).toEqual(transparences);
   };
 });
 
@@ -516,7 +515,7 @@ const uneTranspaSiègeAvecDossiers = (
   dateTransparence: gdsDateTransparence,
   dateEchéance: gdsDateEcheance,
   dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-  datePriseDePosteCible: gdsDateClotureDelaieObservation,
+  datePriseDePosteCible: gdsDatePriseDePosteCible,
   nominationFiles: nominationFileSnapshots,
 });
 
@@ -530,6 +529,6 @@ const uneTranspaParquetAvecDossiers = (
   dateTransparence: gdsDateTransparence,
   dateEchéance: gdsDateEcheance,
   dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
-  datePriseDePosteCible: gdsDateClotureDelaieObservation,
+  datePriseDePosteCible: gdsDatePriseDePosteCible,
   nominationFiles: nominationFileSnapshots,
 });

@@ -7,6 +7,7 @@ import {
   dataAdministrationUpload,
   ImportTransparenceXlsxDto,
 } from "./dataAdministrationUpload.use-case";
+import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
 
 export type TestDependencies = ReturnType<typeof getTestDependencies>;
 
@@ -16,6 +17,7 @@ export const getTestDependencies = () => {
     dataAdministrationClient,
   );
   const fileProvider = new StubNodeFileProvider();
+  const routerProvider = new StubRouterProvider();
 
   const store: ReduxStore = initReduxStore(
     {
@@ -23,9 +25,11 @@ export const getTestDependencies = () => {
     },
     {
       fileProvider,
+      routerProvider,
     },
     {},
   );
+  const initialState = store.getState();
 
   const uneTransparenceImportée = () => {
     return {
@@ -78,16 +82,37 @@ export const getTestDependencies = () => {
     );
   };
 
+  const expectFailedUpload = () => {
+    expect(store.getState()).toEqual({
+      ...initialState,
+      secretariatGeneral: {
+        ...initialState.secretariatGeneral,
+        nouvelleTransparence: {
+          ...initialState.secretariatGeneral.nouvelleTransparence,
+          uploadQueryStatus: "rejected",
+        },
+      },
+    });
+  };
+
+  const expectPageSecretariatGeneral = () => {
+    expect(routerProvider.onGoToSecretariatGeneralClick).toHaveBeenCalled();
+  };
+
   return {
     dataAdministrationClient,
     dataAdministrationGateway,
     fileProvider,
+    routerProvider,
     store,
-    uploadTransparence,
-    expectClientTransparences,
-
     uneTransparenceAImporter,
     uneTransparenceImportée,
     unFichierPdfAImporter,
+
+    uploadTransparence,
+    expectClientTransparences,
+    expectFailedUpload,
+
+    expectPageSecretariatGeneral,
   };
 };

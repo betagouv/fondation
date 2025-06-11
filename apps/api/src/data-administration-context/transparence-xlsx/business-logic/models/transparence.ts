@@ -17,7 +17,7 @@ export type TransparenceSnapshot = {
   dateTransparence: DateOnlyJson;
   dateEchéance: DateOnlyJson | null;
   datePriseDePosteCible: DateOnlyJson | null;
-  dateClôtureDélaiObservation: DateOnlyJson | null;
+  dateClôtureDélaiObservation: DateOnlyJson;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -33,7 +33,7 @@ export class Transparence {
     private _dateTransparence: DateOnlyJson,
     private _dateEchéance: DateOnlyJson | null,
     private _datePriseDePosteCible: DateOnlyJson | null,
-    private _dateClôtureDélaiObservation: DateOnlyJson | null,
+    private _dateClôtureDélaiObservation: DateOnlyJson,
 
     nominationFiles: NominationFileModel[],
   ) {
@@ -126,12 +126,10 @@ export class Transparence {
       .nullable()
       .parse(_datePriseDePosteCible);
   }
-  setDateClôtureDélaiObservation(
-    _dateClôtureDélaiObservation: DateOnlyJson | null,
-  ) {
-    this._dateClôtureDélaiObservation = dateOnlyJsonSchema
-      .nullable()
-      .parse(_dateClôtureDélaiObservation);
+  setDateClôtureDélaiObservation(_dateClôtureDélaiObservation: DateOnlyJson) {
+    this._dateClôtureDélaiObservation = dateOnlyJsonSchema.parse(
+      _dateClôtureDélaiObservation,
+    );
   }
 
   get nominationFiles(): NominationFileModel[] {
@@ -189,9 +187,9 @@ export class Transparence {
     name: string,
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
     datePriseDePosteCible: DateOnlyJson | null,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();

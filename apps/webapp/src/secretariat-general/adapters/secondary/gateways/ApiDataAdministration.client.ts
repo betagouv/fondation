@@ -38,11 +38,8 @@ export class ApiDataAdministrationClient implements DataAdministrationClient {
         formation: nouvelleTransparenceDto.formation,
         dateEcheance: nouvelleTransparenceDto.dateEcheance,
         datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible,
-        // TODO Supprimer le ternaire une fois le champ dans le formulaire
         dateClotureDelaiObservation:
-          "dateClôtureDélaiObservation" in nouvelleTransparenceDto
-            ? (nouvelleTransparenceDto.dateClôtureDélaiObservation as string)
-            : undefined,
+          nouvelleTransparenceDto.dateClotureDelaiObservation,
       },
     };
     const url = this.resolveUrl(path, undefined, queryParams);

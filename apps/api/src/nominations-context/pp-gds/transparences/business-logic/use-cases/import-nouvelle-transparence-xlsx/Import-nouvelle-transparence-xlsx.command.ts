@@ -6,9 +6,9 @@ export class ImportNouvelleTransparenceXlsxCommand {
     private readonly _transparenceId: string,
     private readonly _transparenceName: string,
     private readonly _formation: Magistrat.Formation,
-    private readonly _dateEchéance: DateOnlyJson,
+    private readonly _dateEchéance: DateOnlyJson | null,
     private readonly _dateTransparence: DateOnlyJson,
-    private readonly _dateClôtureDélaiObservation: DateOnlyJson | null,
+    private readonly _dateClôtureDélaiObservation: DateOnlyJson,
     private readonly _nominationFilesPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'],
   ) {}
 
@@ -21,7 +21,7 @@ export class ImportNouvelleTransparenceXlsxCommand {
   get formation(): Magistrat.Formation {
     return this._formation;
   }
-  get dateEchéance(): DateOnlyJson {
+  get dateEchéance(): DateOnlyJson | null {
     return this._dateEchéance;
   }
   get dateTransparence(): DateOnlyJson {
@@ -38,9 +38,9 @@ export class ImportNouvelleTransparenceXlsxCommand {
     transparenceId: string;
     transparenceName: string;
     formation: Magistrat.Formation;
-    dateEchéance: DateOnlyJson;
+    dateEchéance: DateOnlyJson | null;
     dateTransparence: DateOnlyJson;
-    dateClôtureDélaiObservation: DateOnlyJson | null;
+    dateClôtureDélaiObservation: DateOnlyJson;
     nominationFilesPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'];
   }): ImportNouvelleTransparenceXlsxCommand {
     return new ImportNouvelleTransparenceXlsxCommand(
