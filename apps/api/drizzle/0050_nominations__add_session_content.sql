@@ -1,1 +1,1 @@
-ALTER TABLE "nominations_context"."session" ADD COLUMN "content" jsonb NOT NULL;
+ALTER TABLE "nominations_context"."session" ADD COLUMN "content" jsonb NOT NULL DEFAULT '{"dateTransparence": null, "dateClôtureDélaiObservation": null}'::jsonb;
