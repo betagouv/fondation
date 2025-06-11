@@ -14,7 +14,10 @@ export type TransparenceSnapshot = {
   createdAt: Date;
   name: string;
   formation: Magistrat.Formation;
-  dateEchéance: DateOnlyJson;
+  dateTransparence: DateOnlyJson;
+  dateEchéance: DateOnlyJson | null;
+  datePriseDePosteCible: DateOnlyJson | null;
+  dateClôtureDélaiObservation: DateOnlyJson;
   nominationFiles: NominationFileModelSnapshot[];
 };
 
@@ -27,13 +30,20 @@ export class Transparence {
     private readonly _createdAt: Date,
     private _name: string,
     formation: Magistrat.Formation,
-    private _dateEchéance: DateOnlyJson,
+    private _dateTransparence: DateOnlyJson,
+    private _dateEchéance: DateOnlyJson | null,
+    private _datePriseDePosteCible: DateOnlyJson | null,
+    private _dateClôtureDélaiObservation: DateOnlyJson,
+
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
     this.formation = formation;
     this.nominationFiles = nominationFiles;
+    this.setDateTransparence(_dateTransparence);
     this.setDateEchéance(_dateEchéance);
+    this.setDatePriseDePosteCible(_datePriseDePosteCible);
+    this.setDateClôtureDélaiObservation(_dateClôtureDélaiObservation);
   }
 
   addNewNominationFiles(
@@ -73,8 +83,9 @@ export class Transparence {
             reporterIds:
               nominationFile.reporterNames()?.map((reporter) => {
                 const userReporter = reporters[reporter];
-                if (!userReporter)
+                if (!userReporter) {
                   throw new Error(`User for reporter ${reporter} not found`);
+                }
 
                 return userReporter.userId;
               }) || null,
@@ -104,8 +115,21 @@ export class Transparence {
   set formation(formation: Magistrat.Formation) {
     this._formation = z.nativeEnum(Magistrat.Formation).parse(formation);
   }
-  setDateEchéance(_dateEchéance: DateOnlyJson) {
-    this._dateEchéance = dateOnlyJsonSchema.parse(_dateEchéance);
+  setDateEchéance(_dateEchéance: DateOnlyJson | null) {
+    this._dateEchéance = dateOnlyJsonSchema.nullable().parse(_dateEchéance);
+  }
+  setDateTransparence(_dateTransparence: DateOnlyJson) {
+    this._dateTransparence = dateOnlyJsonSchema.parse(_dateTransparence);
+  }
+  setDatePriseDePosteCible(_datePriseDePosteCible: DateOnlyJson | null) {
+    this._datePriseDePosteCible = dateOnlyJsonSchema
+      .nullable()
+      .parse(_datePriseDePosteCible);
+  }
+  setDateClôtureDélaiObservation(_dateClôtureDélaiObservation: DateOnlyJson) {
+    this._dateClôtureDélaiObservation = dateOnlyJsonSchema.parse(
+      _dateClôtureDélaiObservation,
+    );
   }
 
   get nominationFiles(): NominationFileModel[] {
@@ -136,6 +160,9 @@ export class Transparence {
       createdAt: this._createdAt,
       formation: this._formation,
       dateEchéance: this._dateEchéance,
+      dateTransparence: this._dateTransparence,
+      datePriseDePosteCible: this._datePriseDePosteCible,
+      dateClôtureDélaiObservation: this._dateClôtureDélaiObservation,
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
@@ -148,7 +175,10 @@ export class Transparence {
       snapshot.createdAt,
       snapshot.name,
       snapshot.formation,
+      snapshot.dateTransparence,
       snapshot.dateEchéance,
+      snapshot.datePriseDePosteCible,
+      snapshot.dateClôtureDélaiObservation,
       snapshot.nominationFiles.map(NominationFileModel.fromSnapshot),
     );
   }
@@ -156,7 +186,10 @@ export class Transparence {
   static nouvelle(
     name: string,
     formation: Magistrat.Formation,
-    dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
+    datePriseDePosteCible: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
     nominationFiles: NominationFileModel[],
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
@@ -166,8 +199,10 @@ export class Transparence {
       createdAt,
       name,
       formation,
-
+      dateTransparence,
       dateEchéance,
+      datePriseDePosteCible,
+      dateClôtureDélaiObservation,
       nominationFiles,
     );
   }

@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Magistrat } from "shared-models";
+import { DateOnlyJson, Magistrat } from "shared-models";
 import {
   BreadcrumCurrentPage,
   selectBreadcrumb,
@@ -16,11 +16,13 @@ import { TransparencyFilesList } from "./TransparencyFilesList";
 export interface ReportListProps {
   transparency: string;
   formation: Magistrat.Formation;
+  dateTransparence: DateOnlyJson;
 }
 
 export const ReportList: FC<ReportListProps> = ({
   transparency,
   formation,
+  dateTransparence,
 }) => {
   const currentPage = {
     name: BreadcrumCurrentPage.perGdsTransparencyReports,
@@ -32,6 +34,7 @@ export const ReportList: FC<ReportListProps> = ({
   const { title, headers, reports, newReportsCount } = useSelectReportsList(
     transparency,
     formation,
+    dateTransparence,
   );
   const attachments = useTransparencyAttachments(transparency, formation);
 

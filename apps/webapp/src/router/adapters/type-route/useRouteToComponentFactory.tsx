@@ -10,6 +10,7 @@ import {
 } from "../routeToReactComponentMap";
 import { useRoute } from "./typeRouter";
 import { Role } from "shared-models";
+import { DateTransparenceRoutesMapper } from "../../core-logic/models/date-transparence-routes-mapper";
 
 export const useRouteToComponentFactory: RouteToComponentFactory =
   (routeToComponentMap: RouteToComponentMap = routeToReactComponentMap) =>
@@ -61,6 +62,9 @@ export const useRouteToComponentFactory: RouteToComponentFactory =
                 )}
                 formation={FormationsRoutesMapper.toFormation(
                   route.params.formation,
+                )}
+                dateTransparence={DateTransparenceRoutesMapper.toDateTransparence(
+                  route.params.dateTransparence,
                 )}
               />,
             ),

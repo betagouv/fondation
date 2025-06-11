@@ -31,6 +31,7 @@ describe("Api Report Gateway", () => {
         grade: aReportListSM.grade,
         targettedPosition: aReportListSM.targettedPosition,
         observersCount: aReportListSM.observersCount,
+        dateTransparence: aReportListSM.dateTransparence,
       },
     ]);
   });
@@ -50,6 +51,7 @@ describe("Api Report Gateway", () => {
       state: aReportRetrievedSM.state,
       formation: aReportRetrievedSM.formation,
       transparency: aReportRetrievedSM.transparency,
+      dateTransparence: aReportRetrievedSM.dateTransparence,
       grade: aReportRetrievedSM.grade,
       currentPosition: aReportRetrievedSM.currentPosition,
       targettedPosition: aReportRetrievedSM.targettedPosition,

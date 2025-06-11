@@ -1,4 +1,4 @@
-import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
 import { Affectation } from './affectation';
 import { DomainRegistry } from './domain-registry';
 import {
@@ -6,16 +6,25 @@ import {
   DossierDeNominationContent,
 } from './dossier-de-nomination';
 
-export type SessionSnapshot = {
+export type SessionContent<S extends TypeDeSaisine | unknown = unknown> =
+  S extends TypeDeSaisine.TRANSPARENCE_GDS
+    ? {
+        dateTransparence: DateOnlyJson;
+        dateClôtureDélaiObservation: DateOnlyJson | null;
+      }
+    : object;
+
+export type SessionSnapshot<S extends TypeDeSaisine | unknown = unknown> = {
   id: string;
   sessionImportéeId: string;
   name: string;
   formation: Magistrat.Formation;
   typeDeSaisine: TypeDeSaisine;
   version: number;
+  content: SessionContent<S>;
 };
 
-export class Session {
+export class Session<S extends TypeDeSaisine | unknown = unknown> {
   private constructor(
     private readonly _id: string,
     private readonly _sessionImportéeId: string,
@@ -23,6 +32,7 @@ export class Session {
     private readonly _formation: Magistrat.Formation,
     private readonly _typeDeSaisine: TypeDeSaisine,
     private readonly _version: number,
+    private readonly _content: SessionContent<S>,
   ) {}
 
   nouveauDossier(
@@ -65,7 +75,7 @@ export class Session {
     return this._formation;
   }
 
-  snapshot(): SessionSnapshot {
+  snapshot(): SessionSnapshot<S> {
     return {
       id: this._id,
       name: this._name,
@@ -73,23 +83,30 @@ export class Session {
       typeDeSaisine: this._typeDeSaisine,
       version: this._version,
       sessionImportéeId: this._sessionImportéeId,
+      content: this._content,
     };
   }
 
-  static nouvelle(
+  static nouvelleTransparence(
     sessionImportéeId: string,
     name: string,
     typeDeSaisine: TypeDeSaisine,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
-    return new Session(
+    return new Session<TypeDeSaisine.TRANSPARENCE_GDS>(
       id,
       sessionImportéeId,
       name,
       formation,
       typeDeSaisine,
       0,
+      {
+        dateTransparence,
+        dateClôtureDélaiObservation,
+      },
     );
   }
 
@@ -101,6 +118,7 @@ export class Session {
       snapshot.formation,
       snapshot.typeDeSaisine,
       snapshot.version,
+      snapshot.content,
     );
   }
 }

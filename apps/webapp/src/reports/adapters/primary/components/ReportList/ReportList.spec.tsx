@@ -4,6 +4,7 @@ import _ from "lodash";
 import { Provider } from "react-redux";
 import {
   AuthenticatedUser,
+  DateOnlyJson,
   Gender,
   Magistrat,
   NominationFile,
@@ -78,12 +79,6 @@ describe("Report List Component", () => {
       },
       { routerProvider },
       {},
-      {},
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
     );
 
     expectTransparenciesBreadcrumb =
@@ -115,6 +110,8 @@ describe("Report List Component", () => {
               .with("id", `report-id-${count}`)
               .with("state", NominationFile.ReportState.NEW)
               .with("transparency", aTransparency)
+              .with("formation", aFormation)
+              .with("dateTransparence", uneDateTransparence)
               .build(),
           ),
         );
@@ -193,13 +190,21 @@ describe("Report List Component", () => {
       });
 
       it("hides the transparency column for a single transparency", async () => {
-        renderReportList(anotherReport.transparency, anotherReport.formation);
+        renderReportList(
+          anotherReport.transparency,
+          anotherReport.formation,
+          anotherReport.dateTransparence,
+        );
         await screen.findByText(anotherReport.name);
         expect(screen.queryByText("Transparence")).toBeNull();
       });
 
       it("shows reports for a single transparency", async () => {
-        renderReportList(anotherReport.transparency, anotherReport.formation);
+        renderReportList(
+          anotherReport.transparency,
+          anotherReport.formation,
+          anotherReport.dateTransparence,
+        );
         await screen.findByText(anotherReport.name);
         expect(screen.queryByText(aReport.name)).toBeNull();
       });
@@ -278,10 +283,15 @@ describe("Report List Component", () => {
   const renderReportList = (
     transparency: Transparency = aTransparency,
     formation: Magistrat.Formation = aFormation,
+    dateTransparence: DateOnlyJson = uneDateTransparence,
   ) => {
     render(
       <Provider store={store}>
-        <ReportList transparency={transparency} formation={formation} />
+        <ReportList
+          transparency={transparency}
+          formation={formation}
+          dateTransparence={dateTransparence}
+        />
       </Provider>,
     );
   };
@@ -299,15 +309,21 @@ const userCredentials: AuthenticateParams = {
   password: "password",
 };
 
+const aTransparency = Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
+const aFormation = Magistrat.Formation.PARQUET;
+const uneDateTransparence: DateOnlyJson = {
+  year: 2028,
+  month: 11,
+  day: 8,
+};
+
 const aReportFolderNumber = 1;
 const aReportObserversCount = 2;
 const aReport = new ReportApiModelBuilder()
   .with("state", NominationFile.ReportState.NEW)
   .with("folderNumber", aReportFolderNumber)
   .with("observersCount", aReportObserversCount)
-  .with("transparency", Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024)
-  .with("formation", Magistrat.Formation.PARQUET)
+  .with("transparency", aTransparency)
+  .with("formation", aFormation)
+  .with("dateTransparence", uneDateTransparence)
   .build();
-
-const aTransparency = Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024;
-const aFormation = Magistrat.Formation.PARQUET;

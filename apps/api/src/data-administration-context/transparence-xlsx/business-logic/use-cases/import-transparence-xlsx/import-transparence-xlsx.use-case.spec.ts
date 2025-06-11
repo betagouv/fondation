@@ -1,8 +1,8 @@
 import { DateOnlyJson, Magistrat } from 'shared-models';
 import {
-  GdsNewTransparenceImportedEvent,
-  GdsNewTransparenceImportedEventPayload,
-} from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+  TransparenceXlsxImportéeEvent,
+  TransparenceXlsxImportéeEventPayload,
+} from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
@@ -20,7 +20,10 @@ import {
   uneTransparence,
   uneTransparenceAvecProfilé,
   uneTransparenceAvecProfiléAvecRetourALaLigne,
-  uneTransparenceXlsx,
+  uneTransparenceParquet,
+  uneTransparenceXlsxParquet,
+  uneTransparenceXlsxSiège,
+  unNomMagistrat,
   unXlsxProfilé,
   unXlsxProfiléAvecRetourALaLigne,
 } from './import-transparence-xlsx.fixtures';
@@ -49,16 +52,35 @@ describe('Import Transparence XLSX Use Case', () => {
     userService.addUsers(lucLoïcUser, jocelinUser);
   });
 
-  it('enregistre un fichier XLSX', async () => {
+  it('enregistre un fichier XLSX Siège', async () => {
     await importerTransparenceXlsx(
-      uneTransparenceXlsx,
+      uneTransparenceXlsxSiège,
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,
+      uneTransparence.dateTransparence,
+      uneTransparence.datePriseDePosteCible,
+      uneTransparence.dateClôtureDélaiObservation,
     );
 
     expect(transparenceRepository.getTransparences()).toEqual([
       uneTransparence,
+    ]);
+  });
+
+  it('enregistre un fichier XLSX Parquet', async () => {
+    await importerTransparenceXlsx(
+      uneTransparenceXlsxParquet,
+      uneTransparenceParquet.formation,
+      uneTransparenceParquet.name,
+      uneTransparenceParquet.dateEchéance,
+      uneTransparenceParquet.dateTransparence,
+      uneTransparenceParquet.datePriseDePosteCible,
+      uneTransparenceParquet.dateClôtureDélaiObservation,
+    );
+
+    expect(transparenceRepository.getTransparences()).toEqual([
+      uneTransparenceParquet,
     ]);
   });
 
@@ -74,6 +96,9 @@ describe('Import Transparence XLSX Use Case', () => {
         transparence.formation,
         transparence.name,
         transparence.dateEchéance,
+        transparence.dateTransparence,
+        uneTransparence.datePriseDePosteCible,
+        transparence.dateClôtureDélaiObservation,
       );
 
       expect(transparenceRepository.getTransparences()).toEqual([transparence]);
@@ -82,27 +107,32 @@ describe('Import Transparence XLSX Use Case', () => {
 
   it("publie l'évènement Nouvelle transparence", async () => {
     await importerTransparenceXlsx(
-      uneTransparenceXlsx,
+      uneTransparenceXlsxSiège,
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,
+      uneTransparence.dateTransparence,
+      uneTransparence.datePriseDePosteCible,
+      uneTransparence.dateClôtureDélaiObservation,
     );
 
     const event = domainEventRepository.events[0]!;
     expect(event.id).toEqual(nouvelleTranspaEventId);
-    expect(event.type).toEqual(GdsNewTransparenceImportedEvent.name);
+    expect(event.type).toEqual(TransparenceXlsxImportéeEvent.name);
     expect(event.occurredOn).toEqual(currentDate);
-    expect(event.payload).toEqual<GdsNewTransparenceImportedEventPayload>({
+    expect(event.payload).toEqual<TransparenceXlsxImportéeEventPayload>({
       transparenceId: uneTransparence.id,
       transparenceName: uneTransparence.name,
       formation: uneTransparence.formation,
       dateEchéance: uneTransparence.dateEchéance,
+      dateTransparence: uneTransparence.dateTransparence,
+      dateClôtureDélaiObservation: uneTransparence.dateClôtureDélaiObservation,
       nominationFiles: [
         {
           nominationFileId: unDossierSiège.id,
           content: {
             numeroDeDossier: unDossierSiège.content.numeroDeDossier,
-            magistrat: unDossierSiège.content.magistrat,
+            magistrat: unNomMagistrat,
             posteCible: unDossierSiège.content.posteCible,
             posteActuel: unDossierSiège.content.posteActuel,
             dateDeNaissance: unDossierSiège.content.dateDeNaissance,
@@ -127,7 +157,10 @@ describe('Import Transparence XLSX Use Case', () => {
     xlsxFile: File,
     formation: Magistrat.Formation,
     name: string,
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
+    dateTransparence: DateOnlyJson,
+    datePriseDePosteCible: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ) =>
     new ImportTransparenceXlsxUseCase(
       new NullTransactionPerformer(),
@@ -136,5 +169,13 @@ describe('Import Transparence XLSX Use Case', () => {
         transparenceRepository,
         userService,
       ),
-    ).execute(xlsxFile, formation, name, dateEchéance);
+    ).execute(
+      xlsxFile,
+      formation,
+      name,
+      dateTransparence,
+      dateEchéance,
+      datePriseDePosteCible,
+      dateClôtureDélaiObservation,
+    );
 });

@@ -6,7 +6,7 @@ import {
   Transparency,
 } from 'shared-models';
 import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { TransparenceXlsxImportéeEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/import-nouvelle-transparence-xlsx.use-case';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -15,6 +15,12 @@ import { ImportNouvelleTransparenceXlsxCommand } from '../Import-nouvelle-transp
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aTransparenceImportId = 'transparence-import-id';
 export const aDateEchéance: DateOnlyJson = { day: 1, month: 1, year: 2026 };
+export const aDateTransparence: DateOnlyJson = { day: 1, month: 1, year: 2024 };
+export const aDateClôtureDélaiObservation: DateOnlyJson = {
+  day: 1,
+  month: 1,
+  year: 2025,
+};
 export const aSessionId = aTransparencyName;
 export const aFormation = Magistrat.Formation.PARQUET;
 export const aDossierDeNominationId = 'dossier-de-nomination-id';
@@ -33,7 +39,7 @@ export const lucLoïcUser = {
   gender: Gender.M,
 };
 
-export const aDossierDeNominationPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'][number] =
+export const aDossierDeNominationPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'][number] =
   {
     nominationFileId: aDossierDeNominationImportedId,
     content: {
@@ -60,6 +66,8 @@ export const aCommand = new ImportNouvelleTransparenceXlsxCommand(
   aTransparencyName,
   aFormation,
   aDateEchéance,
+  aDateTransparence,
+  aDateClôtureDélaiObservation,
   [aDossierDeNominationPayload],
 );
 

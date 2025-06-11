@@ -1,8 +1,9 @@
-import { NouvelleTransparenceDto } from "../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
+import { ImportNouvelleTransparenceDto } from "shared-models";
 import { DataAdministrationClient } from "./DataAdministration.client";
 
 export interface DataAdministrationGateway {
-  uploadTransparence(
-    nouvelleTransparenceDto: NouvelleTransparenceDto,
-  ): ReturnType<DataAdministrationClient["uploadTransparence"]>;
+  importTransparenceXlsx(
+    nouvelleTransparenceDto: ImportNouvelleTransparenceDto,
+    fichier: File,
+  ): ReturnType<DataAdministrationClient["importNouvelleTransparenceXlsx"]>;
 }

@@ -59,13 +59,21 @@ async function seed() {
 
     await db.insert(users).values([lucUser, jeanUser]).execute();
 
-    const sessionA: SessionSnapshot = {
+    const sessionA: SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> = {
       id: 'f474d12d-9a27-44c8-a90b-f233b131235c',
       name: Transparency.AUTOMNE_2024,
       formation: Magistrat.Formation.PARQUET,
       sessionImportéeId: '4ebd0b50-d2e8-484c-a18d-7531879118ca',
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       version: 1,
+      content: {
+        dateTransparence: {
+          year: 2024,
+          month: 10,
+          day: 1,
+        },
+        dateClôtureDélaiObservation: null,
+      },
     };
     await db.insert(sessionPm).values(sessionA).execute();
 

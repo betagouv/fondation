@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { join } from "node:path";
 import { Provider } from "react-redux";
-import { Gender, Magistrat, Role, Transparency } from "shared-models";
+import { Gender, Magistrat, Role } from "shared-models";
 import { ApiAuthenticationGateway } from "../authentication/adapters/secondary/gateways/ApiAuthentication.gateway";
 import { FakeAuthenticationApiClient } from "../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { StubLogoutNotifierProvider } from "../authentication/adapters/secondary/providers/stubLogoutNotifier.provider";
@@ -86,9 +86,7 @@ export const getTestDependencies = () => {
   };
 
   const expectGdsReportsListPage = async () => {
-    await screen.findByText(
-      `a list with transparency: ${Transparency.PARQUET_DU_06_FEVRIER_2025}`,
-    );
+    await screen.findByText(`a list with transparency: ${nomTransparence}`);
     expect(window.location.pathname).toBe(
       join(
         baseTransaparencySegment,
@@ -102,14 +100,21 @@ export const getTestDependencies = () => {
   const expectGdsReportPage = async () => {
     await screen.findByText("an overview");
     expect(window.location.pathname).toBe(
-      join(baseTransaparencySegment, routeSegments.rapports, "some-report-id"),
+      join(
+        baseTransaparencySegment,
+        FormationsRoutesMapper.formationToPathSegmentMap[
+          Magistrat.Formation.PARQUET
+        ],
+        routeSegments.rapports,
+        "some-report-id",
+      ),
     );
   };
 
   const expectDisallowedGdsReportPage = async () =>
     expect(screen.findByText("an overview")).rejects.toThrow();
 
-  const visitTransparencyPerFormationReports = async () =>
+  const visitTransparenceReports = async () =>
     visit(
       join(
         baseTransaparencySegment,
@@ -122,7 +127,14 @@ export const getTestDependencies = () => {
 
   const visitSomeReport = async () =>
     visit(
-      join(baseTransaparencySegment, routeSegments.rapports, "some-report-id"),
+      join(
+        baseTransaparencySegment,
+        FormationsRoutesMapper.formationToPathSegmentMap[
+          Magistrat.Formation.PARQUET
+        ],
+        routeSegments.rapports,
+        "some-report-id",
+      ),
     );
 
   const visit = async (urlPath: string) => {
@@ -183,7 +195,7 @@ export const getTestDependencies = () => {
     expectGdsReportsListPage,
     expectGdsReportPage,
     expectDisallowedGdsReportPage,
-    visitTransparencyPerFormationReports,
+    visitTransparencyPerFormationReports: visitTransparenceReports,
     visitTransparencesPage,
     visitSomeReport,
     visit,
@@ -197,10 +209,13 @@ export const getTestDependencies = () => {
 
 export type TestDependencies = ReturnType<typeof getTestDependencies>;
 
+const nomTransparence = "PARQUET_DU_06_FEVRIER_2025";
+
 const baseTransaparencySegment = join(
   `/${routeSegments.transparences}`,
   routeSegments.propositionduGardeDesSceaux,
-  "PARQUET_DU_06_FEVRIER_2025",
+  "01-01-2025",
+  nomTransparence,
 );
 
 const membreCommun: AuthenticatedUserSM = {

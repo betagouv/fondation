@@ -5,10 +5,10 @@ import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways
 import { TransparenceRepository } from '../../../transparences/business-logic/gateways/repositories/transparence.repository';
 import { UserService } from '../../../transparences/business-logic/gateways/services/user.service';
 import {
-  GdsNewTransparenceImportedEvent,
-  GdsNewTransparenceImportedEventPayload,
+  TransparenceXlsxImportéeEvent,
+  TransparenceXlsxImportéeEventPayload,
   NominationFilesContentWithReporterIds,
-} from '../models/events/gds-transparence-imported.event';
+} from '../models/events/transparence-xlsx-importée.event';
 import { NominationFileContentReader } from '../models/nomination-file-content-reader';
 import { NominationFilesContentReadCollection } from '../models/nomination-files-read-collection';
 import { Transparence } from '../models/transparence';
@@ -24,7 +24,10 @@ export class TransparenceService {
   nouvelleTransparence(
     nomTransparence: string,
     formation: Magistrat.Formation,
-    dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
+    datePriseDePosteCible: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
     readCollection: NominationFilesContentReadCollection,
   ): TransactionableAsync<Transparence> {
     return async (trx) => {
@@ -32,24 +35,28 @@ export class TransparenceService {
       const transparence = Transparence.nouvelle(
         nomTransparence,
         formation,
+        dateTransparence,
         dateEchéance,
+        datePriseDePosteCible,
+        dateClôtureDélaiObservation,
         nominationFiles,
       );
-
       await this.transparenceRepository.save(transparence)(trx);
 
-      const payload: GdsNewTransparenceImportedEventPayload = {
+      const payload: TransparenceXlsxImportéeEventPayload = {
         transparenceId: transparence.id,
         transparenceName: transparence.name,
         formation,
         dateEchéance,
+        dateTransparence,
+        dateClôtureDélaiObservation,
         nominationFiles: await this.nominationFilesWithReportersIds(
           readCollection,
           transparence,
         ),
       };
       const newTransparenceImportedEvent =
-        GdsNewTransparenceImportedEvent.create(payload);
+        TransparenceXlsxImportéeEvent.create(payload);
       await this.domainEventRepository.save(newTransparenceImportedEvent)(trx);
 
       return transparence;

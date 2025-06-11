@@ -14,6 +14,14 @@ export class ImportNouvelleTransparenceUseCase {
         command.transparenceId,
         command.transparenceName,
         command.formation,
+        //! TODO : En dure, à supprimer avec l'ensemble du use case,
+        // une fois le changement de système d'import effectué.
+        {
+          year: 2025,
+          month: 6,
+          day: 13,
+        },
+        null,
       )(trx);
 
       await this.transparenceService.créerDossiersImportés(

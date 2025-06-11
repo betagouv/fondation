@@ -39,6 +39,7 @@ import {
   transparenceParquet,
   transparenceSiège,
 } from './import-nominations-from-local-file.fixtures';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 const fileToImportPath = path.resolve(
   __dirname,
@@ -103,6 +104,10 @@ describe('Import Nominations from local file', () => {
         createdAt: expect.any(Date),
         name: transparenceSiège,
         formation: Magistrat.Formation.SIEGE,
+        dateTransparence: new DateOnly(2025, 6, 13).toDate(),
+        dateEchéance: null,
+        datePriseDePosteCible: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
         nominationFiles: [
           expectTransparenceNominationFile(1, firstRow),
           expectTransparenceNominationFile(2, secondRow),
@@ -113,6 +118,10 @@ describe('Import Nominations from local file', () => {
         createdAt: expect.any(Date),
         name: transparenceParquet,
         formation: Magistrat.Formation.PARQUET,
+        dateTransparence: new DateOnly(2025, 6, 13).toDate(),
+        dateEchéance: null,
+        datePriseDePosteCible: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
         nominationFiles: [expectTransparenceNominationFile(3, thirdRow)],
       },
     );
@@ -181,6 +190,10 @@ describe('Import Nominations from local file', () => {
           createdAt: expect.any(Date),
           name: transparenceSiège,
           formation: Magistrat.Formation.SIEGE,
+          dateTransparence: new DateOnly(2025, 6, 13).toDate(),
+          dateEchéance: null,
+          datePriseDePosteCible: null,
+          dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
           nominationFiles: [
             expectTransparenceNominationFile(1, firstRow),
             expectTransparenceNominationFile(2, secondRow),
@@ -191,6 +204,10 @@ describe('Import Nominations from local file', () => {
           createdAt: expect.any(Date),
           name: transparenceParquet,
           formation: Magistrat.Formation.PARQUET,
+          dateTransparence: new DateOnly(2025, 6, 13).toDate(),
+          dateEchéance: null,
+          datePriseDePosteCible: null,
+          dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
           nominationFiles: [expectTransparenceNominationFile(3, thirdRow)],
         },
       );
@@ -214,6 +231,11 @@ describe('Import Nominations from local file', () => {
         id: sessionId,
         name: transparenceSiège,
         formation: Magistrat.Formation.SIEGE,
+        dateTransparence: new DateOnly(2025, 6, 13).toDate(),
+        dateEchéance: null,
+        datePriseDePosteCible: null,
+        dateClôtureDélaiObservation: new DateOnly(2025, 6, 11).toDate(),
+        createdAt: new Date(),
         nominationFiles: contents.map((content, index) => ({
           id: index === 0 ? transpaDossier1Id : transpaDossier2Id,
           createdAt: new Date(),

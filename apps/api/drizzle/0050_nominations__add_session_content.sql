@@ -1,0 +1,1 @@
+ALTER TABLE "nominations_context"."session" ADD COLUMN "content" jsonb NOT NULL;

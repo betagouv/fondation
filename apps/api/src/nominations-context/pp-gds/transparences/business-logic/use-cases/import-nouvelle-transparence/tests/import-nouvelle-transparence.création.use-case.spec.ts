@@ -28,7 +28,7 @@ describe('Nouvelle transparence GDS', () => {
 
   const expectTransparence = () => {
     expect(Object.values(dependencies.sessionRepository.fakeSessions)).toEqual<
-      SessionSnapshot[]
+      SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>[]
     >([
       {
         id: aSessionId,
@@ -37,6 +37,14 @@ describe('Nouvelle transparence GDS', () => {
         formation: aFormation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         version: 0,
+        content: {
+          dateTransparence: {
+            year: 2025,
+            month: 6,
+            day: 13,
+          },
+          dateClôtureDélaiObservation: null,
+        },
       },
     ]);
   };

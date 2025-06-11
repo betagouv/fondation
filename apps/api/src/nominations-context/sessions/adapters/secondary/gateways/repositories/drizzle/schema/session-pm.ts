@@ -1,8 +1,9 @@
 import { sql } from 'drizzle-orm';
-import { integer, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { integer, jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { SessionContent } from 'src/nominations-context/sessions/business-logic/models/session';
 import { formationEnum } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
-import { nominationsContextSchema } from './nominations-context-schema.drizzle';
 import { typeDeSaisineEnum } from './enums';
+import { nominationsContextSchema } from './nominations-context-schema.drizzle';
 
 export const sessionPm = nominationsContextSchema.table('session', {
   id: uuid('id')
@@ -14,4 +15,5 @@ export const sessionPm = nominationsContextSchema.table('session', {
   formation: formationEnum('formation').notNull(),
   typeDeSaisine: typeDeSaisineEnum('type_de_saisine').notNull(),
   sessionImportéeId: text('session_import_id').unique().notNull(),
+  content: jsonb('content').$type<SessionContent>().notNull(),
 });

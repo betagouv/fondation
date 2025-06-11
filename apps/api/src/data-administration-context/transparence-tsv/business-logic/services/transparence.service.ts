@@ -114,10 +114,10 @@ export class TransparenceService {
     formation: Magistrat.Formation,
   ): TransactionableAsync<Transparence | null> {
     return async (trx) =>
-      await this.transparenceRepository.transparence(
+      (await this.transparenceRepository.transparence(
         transparence,
         formation,
-      )(trx);
+      )(trx)) as unknown as Transparence;
   }
 
   private async nominationFilesWithReportersIds(

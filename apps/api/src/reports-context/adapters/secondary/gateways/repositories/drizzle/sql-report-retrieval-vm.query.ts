@@ -37,7 +37,6 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       .innerJoin(reportRules, eq(reportRules.reportId, reports.id))
       .where(and(eq(reports.id, id), eq(reports.reporterId, reporterId)))
       .execute();
-
     if (!reportWithRules.length) {
       return null;
     }
@@ -46,6 +45,7 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
     if (!reportData) {
       return null;
     }
+
     const rules: NominationFile.Rules<RuleValue> = reportWithRules.reduce(
       (acc: NominationFile.Rules<RuleValue>, row) => {
         const ruleGroup = row.ruleGroup as NominationFile.RuleGroup;

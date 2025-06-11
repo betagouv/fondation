@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import {
+  DateOnlyJson,
   Gender,
   Magistrat,
   NominationFile,
@@ -130,7 +131,10 @@ describe("Transparencies Component", () => {
 
         it("shows the transparency", async () => {
           renderTransparencies();
-          await findTransparencyLabel(aReport.transparency);
+          await findTransparencyLabel(
+            aReport.transparency,
+            aReport.dateTransparence,
+          );
         });
       },
     );
@@ -168,7 +172,10 @@ describe("Transparencies Component", () => {
 
         expect(tab).not.toHaveClass("fr-icon-arrow-right-line");
         expect(parquetTab).toHaveClass("fr-icon-arrow-right-line");
-        await findTransparencyLabel(parquetReport.transparency);
+        await findTransparencyLabel(
+          parquetReport.transparency,
+          parquetReport.dateTransparence,
+        );
       });
 
       const givenASiegeTab = () =>
@@ -198,6 +205,7 @@ describe("Transparencies Component", () => {
 
       const transparencyLabel = await findTransparencyLabel(
         aReport.transparency,
+        aReport.dateTransparence,
       );
       await userEvent.click(transparencyLabel);
 
@@ -216,8 +224,10 @@ describe("Transparencies Component", () => {
   const findFormationTab = (formation: Magistrat.Formation) =>
     screen.findByText(formationToLabel(formation));
 
-  const findTransparencyLabel = (transparency: Transparency) =>
-    screen.findByText(transparencyToLabel(transparency));
+  const findTransparencyLabel = (
+    transparency: Transparency,
+    dateTransparence: DateOnlyJson,
+  ) => screen.findByText(transparencyToLabel(transparency, dateTransparence));
 
   const renderTransparencies = () => {
     render(

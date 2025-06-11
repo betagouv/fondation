@@ -30,6 +30,10 @@ import {
   anObserverString,
   currentDate,
   emilienRenaudJulesUser,
+  gdsDateClotureDelaieObservation,
+  gdsDateEcheance,
+  gdsDatePriseDePosteCible,
+  gdsDateTransparence,
   gdsTransparenceId,
   gdsTransparenceName,
   GetLucienPierreModelSnapshot,
@@ -262,6 +266,10 @@ describe('Import Nomination Files Use Case', () => {
       createdAt: currentDate,
       name: Transparency.AUTOMNE_2024,
       formation: Magistrat.Formation.PARQUET,
+      dateTransparence: gdsDateTransparence,
+      dateEchéance: gdsDateEcheance,
+      dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+      datePriseDePosteCible: null,
       nominationFiles: [lucienPierreModel],
     });
   });
@@ -289,6 +297,10 @@ describe('Import Nomination Files Use Case', () => {
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
         formation: Magistrat.Formation.SIEGE,
+        dateTransparence: gdsDateTransparence,
+        dateEchéance: gdsDateEcheance,
+        dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [firstRowMissingColumns as any],
       });
 
@@ -323,6 +335,10 @@ describe('Import Nomination Files Use Case', () => {
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
         formation: Magistrat.Formation.SIEGE,
+        dateTransparence: gdsDateTransparence,
+        dateEchéance: gdsDateEcheance,
+        dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [getFirstRow()],
       });
       transparenceRepository.addTransparence('gds-transparence-parquet-id', {
@@ -330,6 +346,10 @@ describe('Import Nomination Files Use Case', () => {
         createdAt: currentDate,
         name: Transparency.AUTOMNE_2024,
         formation: Magistrat.Formation.PARQUET,
+        dateTransparence: gdsDateTransparence,
+        dateEchéance: gdsDateEcheance,
+        dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [getLucienPierreModelSnapshot('another-id', 2)],
       });
 
@@ -481,9 +501,7 @@ describe('Import Nomination Files Use Case', () => {
     ).execute(fileToImport);
 
   const expectTransparences = (...transparences: TransparenceSnapshot[]) => {
-    expect(transparenceRepository.getTransparences()).toEqual<
-      TransparenceSnapshot[]
-    >(transparences);
+    expect(transparenceRepository.getTransparences()).toEqual(transparences);
   };
 });
 
@@ -494,6 +512,10 @@ const uneTranspaSiègeAvecDossiers = (
   createdAt: currentDate,
   name: gdsTransparenceName,
   formation: Magistrat.Formation.SIEGE,
+  dateTransparence: gdsDateTransparence,
+  dateEchéance: gdsDateEcheance,
+  dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+  datePriseDePosteCible: gdsDatePriseDePosteCible,
   nominationFiles: nominationFileSnapshots,
 });
 
@@ -504,5 +526,9 @@ const uneTranspaParquetAvecDossiers = (
   createdAt: currentDate,
   name: Transparency.AUTOMNE_2024,
   formation: Magistrat.Formation.PARQUET,
+  dateTransparence: gdsDateTransparence,
+  dateEchéance: gdsDateEcheance,
+  dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+  datePriseDePosteCible: gdsDatePriseDePosteCible,
   nominationFiles: nominationFileSnapshots,
 });

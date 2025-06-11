@@ -40,29 +40,19 @@ describe("NouvelleTransparence", () => {
   it("display a form to create new transparence", async () => {
     renderNouvelleTransparence(store);
 
-    expect(
-      await screen.findByLabelText("Nom de la transparence*"),
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByLabelText("Date de la transparence*"),
-    ).toBeInTheDocument();
-    expect(await screen.findByLabelText("Formation*")).toBeInTheDocument();
-    expect(
-      screen.getByText(formationToLabel(Magistrat.Formation.SIEGE)),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(formationToLabel(Magistrat.Formation.PARQUET)),
-    ).toBeInTheDocument();
-    expect(await screen.findByLabelText("Date d'échéance")).toBeInTheDocument();
-    expect(
-      await screen.findByLabelText("Date de la prise de poste"),
-    ).toBeInTheDocument();
-    expect(await screen.findByText("Annuler")).toBeInTheDocument();
-    expect(await screen.findByText("Enregistrer")).toBeInTheDocument();
-    expect(
-      await screen.findByText("Format supporté : xlsx."),
-    ).toBeInTheDocument();
-    expect(await screen.findByText("Fichier*")).toBeInTheDocument();
+    await screen.findByLabelText("Nom de la transparence*");
+    screen.getByLabelText("Date de la transparence*");
+    screen.getByLabelText("Formation*");
+    screen.getByText(formationToLabel(Magistrat.Formation.SIEGE));
+    screen.getByText(formationToLabel(Magistrat.Formation.PARQUET));
+    screen.getByLabelText("Clôture du délai d'observation*");
+    screen.getByLabelText("Date d'échéance");
+    screen.getByLabelText("Date de prise de poste");
+    screen.getByText("Format supporté : xlsx.");
+    screen.getByText("Fichier*");
+
+    screen.getByText("Annuler");
+    screen.getByText("Enregistrer");
   });
 
   it("should display an error message if the form is invalid", async () => {
@@ -71,17 +61,9 @@ describe("NouvelleTransparence", () => {
     const saveButton = await screen.findByText("Enregistrer");
     await userEvent.click(saveButton);
 
-    expect(
-      await screen.findByText("Le nom de la transparence est requis."),
-    ).toBeInTheDocument();
-
-    expect(
-      await screen.findByText("La date de la transparence est requise."),
-    ).toBeInTheDocument();
-
-    expect(
-      await screen.findByText("Le fichier de la transparence est requis."),
-    ).toBeInTheDocument();
+    await screen.findByText("Le nom de la transparence est requis.");
+    await screen.findByText("La date de la transparence est requise.");
+    await screen.findByText("Un fichier est requis.");
   });
 
   it("should display an error message if the file is not valid", async () => {
@@ -96,9 +78,7 @@ describe("NouvelleTransparence", () => {
     const saveButton = screen.getByRole("button", { name: /enregistrer/i });
     await userEvent.click(saveButton);
 
-    expect(
-      await screen.findByText("Veuillez importer un fichier au bon format."),
-    ).toBeInTheDocument();
+    await screen.findByText("Veuillez importer un fichier au bon format.");
   });
 
   it("should reset all form fields when the user clicks on the cancel button", async () => {
@@ -107,7 +87,11 @@ describe("NouvelleTransparence", () => {
     const dateInput = screen.getByLabelText("Date de la transparence*");
     const formationSelect = screen.getByLabelText("Formation*");
     const dueDateInput = screen.getByLabelText("Date d'échéance");
-    const jobDateInput = screen.getByLabelText("Date de la prise de poste");
+    const jobDateInput = screen.getByLabelText("Date de prise de poste");
+    const dateClôtureDélaiObservationInput = screen.getByLabelText(
+      "Clôture du délai d'observation*",
+    );
+
     const fileInput = screen.getByLabelText(/fichier/i) as HTMLInputElement;
 
     await userEvent.type(nameInput, "Test Transparence");
@@ -115,6 +99,7 @@ describe("NouvelleTransparence", () => {
     await userEvent.selectOptions(formationSelect, "SIEGE");
     await userEvent.type(dueDateInput, "2024-04-20");
     await userEvent.type(jobDateInput, "2024-05-20");
+    await userEvent.type(dateClôtureDélaiObservationInput, "2024-06-20");
 
     const file = new File(["test content"], "test.pdf", {
       type: "application/pdf",
@@ -127,6 +112,7 @@ describe("NouvelleTransparence", () => {
     expect(formationSelect).toHaveValue("SIEGE");
     expect(dueDateInput).toHaveValue("2024-04-20");
     expect(jobDateInput).toHaveValue("2024-05-20");
+    expect(dateClôtureDélaiObservationInput).toHaveValue("2024-06-20");
 
     // Cliquer sur le bouton Annuler
     const cancelButton = screen.getByRole("button", { name: /annuler/i });
@@ -135,9 +121,10 @@ describe("NouvelleTransparence", () => {
     // Vérifier que tous les champs sont vides
     expect(nameInput).toHaveValue("");
     expect(dateInput).toHaveValue("");
-    expect(formationSelect).toHaveValue("SIEGE");
+    expect(formationSelect).toHaveValue("");
     expect(dueDateInput).toHaveValue("");
     expect(jobDateInput).toHaveValue("");
+    expect(dateClôtureDélaiObservationInput).toHaveValue("");
     expect(fileInput.files?.length).toBe(1);
   });
 });

@@ -1,7 +1,7 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadTsv } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
-import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { TransparenceXlsxImportéeEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
@@ -22,13 +22,17 @@ export class TransparenceService {
     transparenceImportéeId: string,
     transparenceName: string,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
+    dateClôtureDélaiObservation: DateOnlyJson | null,
   ): TransactionableAsync<Session> {
     return async (trx) => {
-      const session = Session.nouvelle(
+      const session = Session.nouvelleTransparence(
         transparenceImportéeId,
         transparenceName,
         TypeDeSaisine.TRANSPARENCE_GDS,
         formation,
+        dateTransparence,
+        dateClôtureDélaiObservation,
       );
       await this.sessionRepository.save(session)(trx);
       return session;
@@ -38,7 +42,7 @@ export class TransparenceService {
   créerDossiersXlsxImportés(
     session: Session,
     nominationFiles: GdsNewTransparenceImportedEventPayloadXlsx['nominationFiles'],
-    dateEchéance: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
   ): TransactionableAsync {
     return async (trx) => {
       const dossiersTransformer = new GdsTransparenceEventTransformer(

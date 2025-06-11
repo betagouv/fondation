@@ -40,7 +40,7 @@ export interface ContenuPropositionDeNominationTransparenceV2 {
   datePassageAuGrade: DateOnlyJson | null;
   datePriseDeFonctionPosteActuel: DateOnlyJson | null;
   informationCarrière: string | null;
-  dateEchéance: DateOnlyJson;
+  dateEchéance: DateOnlyJson | null;
 }
 
 type ContenuV2 = ContenuPropositionDeNominationTransparenceV2;
@@ -73,11 +73,11 @@ export const propositionDeNominationTransparenceContentV2Schema = z.object({
   observants: z.array(z.string()).nullable(),
   historique: z.string().nullable(),
   rang: z.string(),
-  dateEchéance: dateOnlyJsonSchema,
   grade: z.nativeEnum(Magistrat.Grade),
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
+  dateEchéance: dateOnlyJsonSchema.nullable(),
 }) satisfies z.ZodType<ContenuV2>;
 
 export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS> {

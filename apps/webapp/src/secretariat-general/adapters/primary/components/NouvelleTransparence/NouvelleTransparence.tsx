@@ -19,24 +19,28 @@ import {
   BreadcrumCurrentPage,
   selectBreadcrumb,
 } from "../../selectors/selectBreadcrumb";
+import { selectUploadExcelFailed } from "../../selectors/selectUploadExcelFailed";
+import { UploadExcelFailedAlert } from "./UploadExcelFailedAlert";
+import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 
-const defaultValues: NouvelleTransparenceDto = {
-  transparenceName: "",
-  transparenceDate: "",
-  dateEcheance: "",
-  datePriseDePoste: "",
-  formation: Magistrat.Formation.SIEGE,
-  fichier: new File([], "", { type: "application/octet-stream" }),
-};
+const optionalDate = z.string().date("La date est requise").optional();
 
 const nouvelleTransparenceDtoSchema = z.object({
-  transparenceName: z.string().min(1, "Le nom de la transparence est requis."),
-  transparenceDate: z
-    .string()
+  nomTransparence: z
+    .string({
+      message: "Le nom de la transparence est requis.",
+    })
+    .trim()
+    .min(1, "Le nom de la transparence est requis."),
+  dateTransparence: z
+    .string({ message: "La date de la transparence est requise." })
     .min(1, "La date de la transparence est requise."),
-  formation: z.nativeEnum(Magistrat.Formation),
-  dateEcheance: z.string(),
-  datePriseDePoste: z.string(),
+  formation: z.nativeEnum(Magistrat.Formation, {
+    message: "La formation est requise.",
+  }),
+  dateEcheance: optionalDate,
+  datePriseDePosteCible: optionalDate,
+  dateClôtureDélaiObservation: z.string().date("La date est requise"),
   fichier: z
     .instanceof(File, { message: "Un fichier est requis." })
     .refine((file) => file.size > 0, {
@@ -53,9 +57,7 @@ const nouvelleTransparenceDtoSchema = z.object({
     ),
 });
 
-export type NouvelleTransparenceDto = z.infer<
-  typeof nouvelleTransparenceDtoSchema
->;
+type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
   const dispatch = useAppDispatch();
@@ -65,19 +67,26 @@ const NouvelleTransparence: FC = () => {
   const breadcrumb = useAppSelector((state) =>
     selectBreadcrumb(state, currentPage),
   );
+  const uploadExcelFailed = useAppSelector(selectUploadExcelFailed);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<NouvelleTransparenceDto>({
+  } = useForm<FormSchema>({
     resolver: zodResolver(nouvelleTransparenceDtoSchema),
-    defaultValues,
   });
 
-  const onSubmit: SubmitHandler<NouvelleTransparenceDto> = (data) => {
-    dispatch(dataAdministrationUpload(data));
+  const onSubmit: SubmitHandler<FormSchema> = (data) => {
+    dispatch(
+      dataAdministrationUpload({
+        ...data,
+        dateEcheance: data.dateEcheance || null,
+        datePriseDePosteCible: data.datePriseDePosteCible || null,
+        dateClotureDelaiObservation: data.dateClôtureDélaiObservation,
+      }),
+    );
   };
 
   return (
@@ -87,27 +96,34 @@ const NouvelleTransparence: FC = () => {
         ariaLabel="Fil d'Ariane du secrétariat général"
         breadcrumb={breadcrumb}
       />
+
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
-        <Controller<NouvelleTransparenceDto, "transparenceName">
-          name="transparenceName"
+        {uploadExcelFailed && (
+          <div className={cx("fr-mb-8v")}>
+            <UploadExcelFailedAlert />
+          </div>
+        )}
+
+        <Controller<FormSchema, "nomTransparence">
+          name="nomTransparence"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label="Nom de la transparence*"
-              id="transparence-name"
+              id="nom-transparence"
               nativeInputProps={{
-                value: value || "",
+                value,
                 onChange,
                 ...field,
                 placeholder: "Nom de la transparence",
               }}
-              state={errors.transparenceName ? "error" : "default"}
-              stateRelatedMessage={errors.transparenceName?.message}
+              state={errors.nomTransparence ? "error" : "default"}
+              stateRelatedMessage={errors.nomTransparence?.message}
             />
           )}
         />
-        <Controller<NouvelleTransparenceDto, "transparenceDate">
-          name="transparenceDate"
+        <Controller<FormSchema, "dateTransparence">
+          name="dateTransparence"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -115,16 +131,16 @@ const NouvelleTransparence: FC = () => {
               id="date-transparence"
               nativeInputProps={{
                 type: "date",
-                value: value || "",
+                value,
                 onChange,
                 ...field,
               }}
-              state={errors.transparenceDate ? "error" : "default"}
-              stateRelatedMessage={errors.transparenceDate?.message}
+              state={errors.dateTransparence ? "error" : "default"}
+              stateRelatedMessage={errors.dateTransparence?.message}
             />
           )}
         />
-        <Controller<NouvelleTransparenceDto, "formation">
+        <Controller<FormSchema, "formation">
           name="formation"
           control={control}
           render={({ field: { value, onChange } }) => (
@@ -133,8 +149,12 @@ const NouvelleTransparence: FC = () => {
               nativeSelectProps={{
                 value,
                 onChange,
+                defaultValue: "",
               }}
+              state={errors.formation ? "error" : "default"}
+              stateRelatedMessage={errors.formation?.message}
             >
+              <option disabled></option>
               <option value={Magistrat.Formation.SIEGE}>
                 {formationToLabel(Magistrat.Formation.SIEGE)}
               </option>
@@ -144,7 +164,25 @@ const NouvelleTransparence: FC = () => {
             </Select>
           )}
         />
-        <Controller<NouvelleTransparenceDto, "dateEcheance">
+        <Controller<FormSchema, "dateClôtureDélaiObservation">
+          name="dateClôtureDélaiObservation"
+          control={control}
+          render={({ field: { value, onChange, ...field } }) => (
+            <Input
+              label="Clôture du délai d'observation*"
+              id="date-cloture-delai-observation"
+              nativeInputProps={{
+                type: "date",
+                value,
+                onChange,
+                ...field,
+              }}
+              state={errors.dateClôtureDélaiObservation ? "error" : "default"}
+              stateRelatedMessage={errors.dateClôtureDélaiObservation?.message}
+            />
+          )}
+        />
+        <Controller<FormSchema, "dateEcheance">
           name="dateEcheance"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
@@ -153,7 +191,7 @@ const NouvelleTransparence: FC = () => {
               id="date-echeance"
               nativeInputProps={{
                 type: "date",
-                value: value || "",
+                value,
                 onChange,
                 ...field,
               }}
@@ -162,25 +200,25 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-        <Controller<NouvelleTransparenceDto, "datePriseDePoste">
-          name="datePriseDePoste"
+        <Controller<FormSchema, "datePriseDePosteCible">
+          name="datePriseDePosteCible"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Date de la prise de poste"
+              label="Date de prise de poste"
               id="date-prise-de-poste"
               nativeInputProps={{
                 type: "date",
-                value: value || "",
+                value,
                 onChange,
                 ...field,
               }}
-              state={errors.datePriseDePoste ? "error" : "default"}
-              stateRelatedMessage={errors.datePriseDePoste?.message}
+              state={errors.datePriseDePosteCible ? "error" : "default"}
+              stateRelatedMessage={errors.datePriseDePosteCible?.message}
             />
           )}
         />
-        <Controller<NouvelleTransparenceDto, "fichier">
+        <Controller<FormSchema, "fichier">
           name="fichier"
           control={control}
           render={({ field: { onChange } }) => (
@@ -193,10 +231,6 @@ const NouvelleTransparence: FC = () => {
                   const file = e.target.files?.[0];
                   if (file) {
                     onChange(file);
-                  } else {
-                    onChange(
-                      new File([], "", { type: "application/octet-stream" }),
-                    );
                   }
                 },
               }}
@@ -215,7 +249,7 @@ const NouvelleTransparence: FC = () => {
               priority: "tertiary",
               type: "reset",
               onClick: () => {
-                reset(defaultValues);
+                reset();
               },
             },
             {

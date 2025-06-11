@@ -19,7 +19,7 @@ import {
   DossierDeNominationService,
   PropositionDeNominationTransparenceDto,
 } from '../../gateways/services/dossier-de-nomination.service';
-import { SessionService } from '../../gateways/services/session.service';
+import { TransparenceService } from '../../gateways/services/session.service';
 
 const formatMonthsToYearsAndMonths = (months: number): string => {
   const years = Math.floor(months / 12);
@@ -39,7 +39,7 @@ const formatMonthsToYearsAndMonths = (months: number): string => {
 export class RetrieveReportUseCase {
   constructor(
     private readonly reportRetrievalVMQuery: ReportRetrievalQuery,
-    private readonly sessionService: SessionService,
+    private readonly transparenceService: TransparenceService,
     private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
     private readonly dateTimeProvider: DateTimeProvider,
   ) {}
@@ -54,7 +54,9 @@ export class RetrieveReportUseCase {
     );
     if (!rapport) return null;
 
-    const transparence = await this.sessionService.session(rapport.sessionId);
+    const transparence = await this.transparenceService.session(
+      rapport.sessionId,
+    );
     if (!transparence)
       throw new Error(
         `Transparence non trouvée avec l'ID de session ${rapport.sessionId}`,
@@ -80,6 +82,7 @@ export class RetrieveReportUseCase {
       ).build(),
       attachedFiles: rapport.files,
       transparency: transparence.name as Transparency,
+      dateTransparence: transparence.content.dateTransparence,
       ...this.rapportFromDossierDeNomination(dossierDeNomination),
     };
   }

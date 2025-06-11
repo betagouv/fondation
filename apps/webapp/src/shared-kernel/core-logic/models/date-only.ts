@@ -1,5 +1,6 @@
 import { differenceInYears, format, isValid, parse } from "date-fns";
 import { fr } from "date-fns/locale";
+import { z, ZodType } from "zod";
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyStoreModel = {
@@ -8,19 +9,41 @@ export type DateOnlyStoreModel = {
   day: number;
 };
 
+export const dateOnlyJsonSchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12) as ZodType<Month>,
+  day: z.number().min(1).max(31),
+});
+
 export class DateOnly {
   private readonly value: Date;
+
+  static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
 
   constructor(year: number, month: Month, day: number) {
     // Month is 0-indexed in JS Date
     this.value = new Date(Date.UTC(year, month - 1, day));
   }
 
+  timeDiff(otherDate: DateOnly): number {
+    return this.value.getTime() - otherDate.value.getTime();
+  }
+
+  equal(otherDate: DateOnly): unknown {
+    return (
+      this.getYear() === otherDate.getYear() &&
+      this.getMonth() === otherDate.getMonth() &&
+      this.getDay() === otherDate.getDay()
+    );
+  }
+
   toDate(): Date {
     return this.value;
   }
-  toFormattedString(): string {
-    return format(this.value, "dd/MM/yyyy");
+  toFormattedString(
+    template: "dd-MM-yyyy" | "dd/MM/yyyy" = "dd/MM/yyyy",
+  ): string {
+    return format(this.value, template);
   }
   toStoreModel(): DateOnlyStoreModel {
     return {

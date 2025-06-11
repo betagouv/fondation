@@ -5,25 +5,25 @@ import { RestContract } from "./common";
 export interface DataAdministrationContextRestContract extends RestContract {
   basePath: "api/data-administration";
   endpoints: {
-    nouvelleTransparence: {
+    importNouvelleTransparenceXlsx: {
       method: "POST";
-      path: "nouvelle-transparence";
-      body: NouvelleTransparenceDto;
+      path: "import-nouvelle-transparence-xlsx";
+      body: FormData;
+      queryParams: ImportNouvelleTransparenceDto;
       response: void;
     };
   };
 }
 
-export const nouvelleTransparenceDtoSchema = z.object({
-  transparenceName: z.string().min(1, "Le nom de la transparence est requis."),
-  transparenceDate: z
-    .string()
-    .min(1, "La date de la transparence est requise."),
+export const importNouvelleTransparenceDtoSchema = z.object({
+  nomTransparence: z.string().min(1),
   formation: z.nativeEnum(Magistrat.Formation),
-  dateEcheance: z.string(),
-  datePriseDePoste: z.string(),
+  dateTransparence: z.string().date(),
+  dateEcheance: z.string().date().optional(),
+  datePriseDePosteCible: z.string().date().optional(),
+  dateClotureDelaiObservation: z.string().date(),
 });
 
-export type NouvelleTransparenceDto = z.infer<
-  typeof nouvelleTransparenceDtoSchema
+export type ImportNouvelleTransparenceDto = z.infer<
+  typeof importNouvelleTransparenceDtoSchema
 >;

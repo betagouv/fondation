@@ -1,14 +1,9 @@
 import { colors } from "@codegouvfr/react-dsfr";
 import _ from "lodash";
-import { Magistrat, Transparency } from "shared-models";
+import { DateOnlyJson, Magistrat } from "shared-models";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 import { createAppSelector } from "../../../../store/createAppSelector";
-import {
-  formationToLabel,
-  gradeToLabel,
-  TransparencyLabel,
-  transparencyToLabel,
-} from "../labels/labels-mappers";
+import { gradeToLabel } from "../labels/labels-mappers";
 import { reportListTableLabels } from "../labels/report-list-table-labels";
 import { stateToLabel } from "../labels/state-label.mapper";
 
@@ -17,9 +12,7 @@ export type ReportListItemVM = {
   folderNumber: number | "Profilé";
   state: ReturnType<typeof stateToLabel>;
   dueDate: string | null;
-  formation: ReturnType<typeof formationToLabel>;
   name: string;
-  transparency: TransparencyLabel;
   grade: ReturnType<typeof gradeToLabel>;
   targettedPosition: string;
   observersCount: number;
@@ -42,15 +35,14 @@ export const selectReportList = createAppSelector(
       _,
       args: {
         transparencyFilter: string;
-        aTransparencyTitleMap?: typeof transparencyTitleMap;
         formationFilter: Magistrat.Formation;
+        dateTransparenceFilter: DateOnlyJson;
       },
     ) => args,
   ],
   (data, getReportAnchorAttributes, args): ReportListVM => {
-    const { transparencyFilter, formationFilter } = args;
-    let { aTransparencyTitleMap } = args;
-    if (!aTransparencyTitleMap) aTransparencyTitleMap = transparencyTitleMap;
+    const { transparencyFilter, formationFilter, dateTransparenceFilter } =
+      args;
 
     const sortedReports = _.orderBy(
       [...(data || [])],
@@ -60,6 +52,11 @@ export const selectReportList = createAppSelector(
     const reports = sortedReports
       .filter(({ transparency }) => transparency === transparencyFilter)
       .filter(({ formation }) => formation === formationFilter)
+      .filter(({ dateTransparence }) =>
+        DateOnly.fromStoreModel(dateTransparence).equal(
+          DateOnly.fromStoreModel(dateTransparenceFilter),
+        ),
+      )
       .map(
         ({
           id,
@@ -67,13 +64,19 @@ export const selectReportList = createAppSelector(
           name,
           dueDate,
           state,
-          formation,
           transparency,
           grade,
           targettedPosition,
           observersCount,
+          dateTransparence,
+          formation,
         }) => {
-          const { href, onClick } = getReportAnchorAttributes(transparency, id);
+          const { href, onClick } = getReportAnchorAttributes(
+            id,
+            transparency,
+            formation,
+            dateTransparence,
+          );
 
           const dueDateFormatted = dueDate
             ? new DateOnly(
@@ -88,9 +91,7 @@ export const selectReportList = createAppSelector(
             folderNumber: folderNumber ?? "Profilé",
             state: stateToLabel(state),
             dueDate: dueDateFormatted,
-            formation: formationToLabel(formation),
             name,
-            transparency: transparencyToLabel(transparency),
             grade: gradeToLabel(grade),
             targettedPosition,
             observersCount,
@@ -111,33 +112,10 @@ export const selectReportList = createAppSelector(
           text: "Rapports sur la ",
         },
         {
-          text:
-            transparencyFilter in aTransparencyTitleMap
-              ? aTransparencyTitleMap[transparencyFilter]!
-              : `transparence ${transparencyFilter}`,
+          text: `transparence du ${DateOnly.fromStoreModel(dateTransparenceFilter).toFormattedString()} (${transparencyFilter})`,
           color: colors.options.yellowTournesol.sun407moon922.hover,
         },
       ],
     };
   },
 );
-
-const transparencyTitleMap: { [key in string]: string } = {
-  [Transparency.AUTOMNE_2024]: "transparence du 18/10/2024 (automne)",
-  [Transparency.PROCUREURS_GENERAUX_8_NOVEMBRE_2024]:
-    "transparence du 08/11/2024 (PG/PR)",
-  [Transparency.PROCUREURS_GENERAUX_25_NOVEMBRE_2024]:
-    "transparence du 25/11/2024",
-  [Transparency.TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024]:
-    "transparence du 25/11/2024 (Mamoudzou)",
-  [Transparency.CABINET_DU_MINISTRE_DU_21_JANVIER_2025]:
-    "transparence du 21/01/2025 (cabinet GDS)",
-  [Transparency.SIEGE_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
-  [Transparency.PARQUET_DU_06_FEVRIER_2025]: "transparence du 06/02/2025",
-  [Transparency.PARQUET_DU_20_FEVRIER_2025]: "transparence du 20/02/2025",
-  [Transparency.DU_03_MARS_2025]: "transparence du 03/03/2025",
-  [Transparency.GRANDE_TRANSPA_DU_21_MARS_2025]:
-    "transparence du 21/03/2025 (annuelle)",
-  [Transparency.DU_30_AVRIL_2025]: "transparence du 30/04/2025",
-  [Transparency.MARCH_2026]: "transparence du 21/03/2026",
-};

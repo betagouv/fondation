@@ -38,4 +38,5 @@ const sessionSnapshot: SessionSnapshot = {
   formation,
   typeDeSaisine,
   version: 1,
+  content: {},
 };

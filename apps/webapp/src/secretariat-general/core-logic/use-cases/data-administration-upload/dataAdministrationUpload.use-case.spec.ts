@@ -1,75 +1,35 @@
-import { Magistrat } from "shared-models";
-import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
-import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
-import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
-import { ApiDataAdministrationGateway } from "../../../adapters/secondary/gateways/ApiDataAdministration.gateway";
-import { FakeApiDataAdministrationClient } from "../../../adapters/secondary/gateways/FakeApiDataAdministration.client";
-import { dataAdministrationUpload } from "./dataAdministrationUpload.use-case";
+import {
+  getTestDependencies,
+  TestDependencies,
+} from "./dataAdministrationUpload.test-setup";
 
 describe("Data Administration Upload", () => {
-  let store: ReduxStore;
-  let dataAdministrationClient: FakeApiDataAdministrationClient;
-  let fileProvider: StubNodeFileProvider;
+  let deps: TestDependencies;
 
   beforeEach(async () => {
-    dataAdministrationClient = new FakeApiDataAdministrationClient();
-    const dataAdministrationGateway = new ApiDataAdministrationGateway(
-      dataAdministrationClient,
-    );
-    fileProvider = new StubNodeFileProvider();
-
-    store = initReduxStore(
-      {
-        dataAdministrationGateway,
-      },
-      {
-        fileProvider,
-      },
-      {},
-    );
+    deps = getTestDependencies();
   });
 
   it("upload une transparence", async () => {
-    fileProvider.mimeType =
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    await uploadTransparence(uneTransparenceImportée);
-    expectClientTransparences(uneTransparenceImportée);
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectClientTransparences(deps.uneTransparenceImportée());
   });
 
   it("refuses les formats non autorisés", async () => {
-    fileProvider.mimeType = "application/pdf";
-    await uploadTransparence(unFichierPdf);
-    expectClientTransparences();
+    await deps.uploadTransparence(deps.unFichierPdfAImporter());
+    deps.expectClientTransparences();
   });
 
-  const uploadTransparence = async (transparence: NouvelleTransparenceDto) =>
-    store.dispatch(dataAdministrationUpload(transparence));
+  it("redirige vers la page secrétariat général après l'import", async () => {
+    deps.routerProvider.onGoToSecretariatGeneralClick = vi.fn();
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectPageSecretariatGeneral();
+  });
 
-  const expectClientTransparences = (
-    ...transparences: NouvelleTransparenceDto[]
-  ) => {
-    expect(Object.values(dataAdministrationClient.transparences)).toEqual<
-      NouvelleTransparenceDto[]
-    >(transparences);
-  };
+  it("affiche un message d'erreur si l'import échoue", async () => {
+    deps.dataAdministrationClient.importNouvelleTransparenceXlsxError =
+      new Error();
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectFailedUpload();
+  });
 });
-
-const uneTransparenceImportée: NouvelleTransparenceDto = {
-  transparenceName: "Balai",
-  formation: Magistrat.Formation.SIEGE,
-  transparenceDate: "2023-01-01",
-  dateEcheance: "2023-01-01",
-  datePriseDePoste: "2024-01-01",
-  fichier: new File([""], "transparence.xlsx"),
-};
-
-const unFichierPdf: NouvelleTransparenceDto = {
-  transparenceName: "Balai",
-  formation: Magistrat.Formation.SIEGE,
-  transparenceDate: "2023-01-01",
-  dateEcheance: "2023-01-01",
-  datePriseDePoste: "2024-01-01",
-  fichier: new File([""], "transparence.pdf", {
-    type: "application/pdf",
-  }),
-};

@@ -1,6 +1,12 @@
-import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  OnModuleInit,
+} from '@nestjs/common';
 import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
-import { TransparenceService } from 'src/data-administration-context/transparence-tsv/business-logic/services/transparence.service';
+import { TransparenceService as TransparenceCsvService } from 'src/data-administration-context/transparence-tsv/business-logic/services/transparence.service';
 import { ImportNominationFilesUseCase } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -25,20 +31,35 @@ import {
   TRANSPARENCE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
+import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
+import { DataAdministrationController } from './data-administration.controller';
+import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
+import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 
 @Module({
   imports: [SharedKernelModule],
+  controllers: [DataAdministrationController],
   providers: [
     generateProvider(ImportNominationFilesUseCase, [
       TRANSACTION_PERFORMER,
-      TransparenceService,
+      TransparenceCsvService,
+    ]),
+    generateProvider(ImportTransparenceXlsxUseCase, [
+      TRANSACTION_PERFORMER,
+      TransparenceXlsxService,
     ]),
 
-    generateProvider(TransparenceService, [
+    generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,
       TRANSPARENCE_REPOSITORY,
       USER_SERVICE,
     ]),
+    generateProvider(TransparenceXlsxService, [
+      DOMAIN_EVENT_REPOSITORY,
+      TRANSPARENCE_REPOSITORY,
+      USER_SERVICE,
+    ]),
+
     {
       provide: USER_SERVICE,
       useFactory: (
@@ -58,7 +79,9 @@ import {
   ],
   exports: [],
 })
-export class DataAdministrationContextModule implements OnModuleInit {
+export class DataAdministrationContextModule
+  implements NestModule, OnModuleInit
+{
   constructor(
     @Inject(UUID_GENERATOR)
     private readonly uuidGenerator: UuidGenerator,
@@ -72,5 +95,11 @@ export class DataAdministrationContextModule implements OnModuleInit {
     DomainRegistry.setUuidGenerator(this.uuidGenerator);
     DomainRegistry.setDateTimeProvider(this.dateTimeProvider);
     DomainRegistry.setDomainEventRepository(this.domainEventRepository);
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SessionValidationMiddleware)
+      .forRoutes(DataAdministrationController);
   }
 }

@@ -75,14 +75,26 @@ export const stubUser = {
 export const fileId1 = 'acd97958-5059-45b7-a3d9-4b46f000d2b4';
 export const fileId2 = 'a25b1785-0ba0-47b0-b784-161c0e1afae0';
 export const stubSessionId = 'a805f436-0f59-4b1d-b0cf-b382405eed68';
-export const stubSession: SessionDto = {
+export const stubSession = {
   id: stubSessionId,
   name: 'Session 1',
   formation: Magistrat.Formation.PARQUET,
   sessionImportéeId: '4ebd0b50-d2e8-484c-a18d-7531879118ca',
   typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
   version: 1,
-};
+  content: {
+    dateTransparence: {
+      year: 2026,
+      month: 10,
+      day: 1,
+    },
+    dateClôtureDélaiObservation: {
+      year: 2027,
+      month: 10,
+      day: 15,
+    },
+  },
+} satisfies SessionDto<TypeDeSaisine.TRANSPARENCE_GDS>;
 
 export const stubDossier = {
   id: 'd619d2b0-6b1b-4793-bdf4-e27156c3df74',

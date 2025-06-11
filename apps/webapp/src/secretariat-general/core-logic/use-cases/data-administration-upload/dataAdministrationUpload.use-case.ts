@@ -1,9 +1,19 @@
+import { Magistrat } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
-import { NouvelleTransparenceDto } from "../../../adapters/primary/components/NouvelleTransparence/NouvelleTransparence";
+
+export type ImportTransparenceXlsxDto = {
+  nomTransparence: string;
+  formation: Magistrat.Formation;
+  dateTransparence: string;
+  dateEcheance: string | null;
+  datePriseDePosteCible: string | null;
+  dateClotureDelaiObservation: string;
+  fichier: File;
+};
 
 export const dataAdministrationUpload = createAppAsyncThunk<
   void,
-  NouvelleTransparenceDto
+  ImportTransparenceXlsxDto
 >(
   "secretariatGeneral/nouvelleTransparence",
   async (
@@ -12,7 +22,7 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       getState,
       extra: {
         gateways: { dataAdministrationGateway },
-        providers: { fileProvider },
+        providers: { fileProvider, routerProvider },
       },
     },
   ) => {
@@ -24,6 +34,20 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       nouvelleTransparenceDto.fichier,
     );
 
-    await dataAdministrationGateway.uploadTransparence(nouvelleTransparenceDto);
+    await dataAdministrationGateway.importTransparenceXlsx(
+      {
+        nomTransparence: nouvelleTransparenceDto.nomTransparence,
+        formation: nouvelleTransparenceDto.formation,
+        dateTransparence: nouvelleTransparenceDto.dateTransparence,
+        dateEcheance: nouvelleTransparenceDto.dateEcheance ?? undefined,
+        datePriseDePosteCible:
+          nouvelleTransparenceDto.datePriseDePosteCible ?? undefined,
+        dateClotureDelaiObservation:
+          nouvelleTransparenceDto.dateClotureDelaiObservation,
+      },
+      nouvelleTransparenceDto.fichier,
+    );
+
+    routerProvider.onGoToSecretariatGeneralClick();
   },
 );

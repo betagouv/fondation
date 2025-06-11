@@ -12,6 +12,7 @@
     "types:check:watch": "tsc --noEmit -p ./tsconfig.app.json --watch",
     "preview": "vite preview",
     "test": "vitest",
+    "test:watch": "vitest",
     "test:all": "vitest run",
     "postinstall": "pnpm dsfr:build",
     "dsfr:build": "react-dsfr update-icons",

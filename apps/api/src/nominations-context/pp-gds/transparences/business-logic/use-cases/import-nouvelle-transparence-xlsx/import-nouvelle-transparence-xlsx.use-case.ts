@@ -14,6 +14,8 @@ export class ImportNouvelleTransparenceXlsxUseCase {
         command.transparenceId,
         command.transparenceName,
         command.formation,
+        command.dateTransparence,
+        command.dateClôtureDélaiObservation,
       )(trx);
 
       await this.transparenceService.créerDossiersXlsxImportés(

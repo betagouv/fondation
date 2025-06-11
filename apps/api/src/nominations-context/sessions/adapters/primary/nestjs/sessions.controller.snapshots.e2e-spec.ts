@@ -54,6 +54,7 @@ describe('Sessions Controller- Snapshots', () => {
           formation: Magistrat.Formation.PARQUET,
           sessionImportéeId: aSessionImportéeId,
           typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          content: {},
         })
         .execute();
     });
@@ -70,6 +71,7 @@ describe('Sessions Controller- Snapshots', () => {
         sessionImportéeId: aSessionImportéeId,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         version: 1,
+        content: {},
       });
     });
 

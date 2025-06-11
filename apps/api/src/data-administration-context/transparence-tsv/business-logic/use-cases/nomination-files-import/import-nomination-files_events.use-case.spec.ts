@@ -23,6 +23,9 @@ import {
   currentDate,
   emilienRenaudJulesReporterId,
   emilienRenaudJulesUser,
+  gdsDateClotureDelaieObservation,
+  gdsDateEcheance,
+  gdsDateTransparence,
   gdsTransparenceEventId,
   gdsTransparenceId,
   gdsTransparenceName,
@@ -156,6 +159,10 @@ describe('Import Nomination Files Use Case', () => {
         createdAt: currentDate,
         name: gdsTransparenceName,
         formation: Magistrat.Formation.SIEGE,
+        dateTransparence: gdsDateTransparence,
+        dateEchéance: gdsDateEcheance,
+        dateClôtureDélaiObservation: gdsDateClotureDelaieObservation,
+        datePriseDePosteCible: gdsDateClotureDelaieObservation,
         nominationFiles: [firstNominationFile],
       });
     });

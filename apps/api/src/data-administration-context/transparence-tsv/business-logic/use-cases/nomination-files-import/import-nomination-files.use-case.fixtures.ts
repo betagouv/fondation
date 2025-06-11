@@ -1,4 +1,5 @@
 import {
+  DateOnlyJson,
   Gender,
   Magistrat,
   NominationFile,
@@ -22,6 +23,18 @@ import { Avancement } from '../../../../lodam/business-logic/models/avancement';
 export const gdsTransparenceEventId = 'gds-transparence-event-id';
 export const gdsTransparenceId = 'gds-transparence-id';
 export const gdsTransparenceName = Transparency.AUTOMNE_2024;
+export const gdsDateEcheance = null;
+export const gdsDateTransparence: DateOnlyJson = {
+  year: 2025,
+  month: 6,
+  day: 13,
+};
+export const gdsDateClotureDelaieObservation: DateOnlyJson = {
+  year: 2025,
+  month: 6,
+  day: 11,
+};
+export const gdsDatePriseDePosteCible = null;
 export const currentDate = new Date(2024, 10, 10);
 
 export const anObserverString = `  FIRST OBSERVER${GSHEET_CELL_LINE_BREAK_TOKEN} (1 sur 2)${GSHEET_CELL_LINE_BREAK_TOKEN}TJ de Rennes`;

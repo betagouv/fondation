@@ -1,13 +1,15 @@
 import { DateOnlyJson, Magistrat } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/gds-transparence-imported.event';
+import { TransparenceXlsxImportéeEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 
 export class ImportNouvelleTransparenceXlsxCommand {
   constructor(
     private readonly _transparenceId: string,
     private readonly _transparenceName: string,
     private readonly _formation: Magistrat.Formation,
-    private readonly _dateEchéance: DateOnlyJson,
-    private readonly _nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'],
+    private readonly _dateEchéance: DateOnlyJson | null,
+    private readonly _dateTransparence: DateOnlyJson,
+    private readonly _dateClôtureDélaiObservation: DateOnlyJson,
+    private readonly _nominationFilesPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'],
   ) {}
 
   get transparenceId(): string {
@@ -19,10 +21,16 @@ export class ImportNouvelleTransparenceXlsxCommand {
   get formation(): Magistrat.Formation {
     return this._formation;
   }
-  get dateEchéance(): DateOnlyJson {
+  get dateEchéance(): DateOnlyJson | null {
     return this._dateEchéance;
   }
-  get nominationFilesPayload(): GdsNewTransparenceImportedEventPayload['nominationFiles'] {
+  get dateTransparence(): DateOnlyJson {
+    return this._dateTransparence;
+  }
+  get dateClôtureDélaiObservation(): DateOnlyJson | null {
+    return this._dateClôtureDélaiObservation;
+  }
+  get nominationFilesPayload(): TransparenceXlsxImportéeEventPayload['nominationFiles'] {
     return this._nominationFilesPayload;
   }
 
@@ -30,14 +38,18 @@ export class ImportNouvelleTransparenceXlsxCommand {
     transparenceId: string;
     transparenceName: string;
     formation: Magistrat.Formation;
-    dateEchéance: DateOnlyJson;
-    nominationFilesPayload: GdsNewTransparenceImportedEventPayload['nominationFiles'];
+    dateEchéance: DateOnlyJson | null;
+    dateTransparence: DateOnlyJson;
+    dateClôtureDélaiObservation: DateOnlyJson;
+    nominationFilesPayload: TransparenceXlsxImportéeEventPayload['nominationFiles'];
   }): ImportNouvelleTransparenceXlsxCommand {
     return new ImportNouvelleTransparenceXlsxCommand(
       arg.transparenceId,
       arg.transparenceName,
       arg.formation,
       arg.dateEchéance,
+      arg.dateTransparence,
+      arg.dateClôtureDélaiObservation,
       arg.nominationFilesPayload,
     );
   }

@@ -1,15 +1,19 @@
+import { ImportNouvelleTransparenceDto } from "shared-models";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
-import { NouvelleTransparenceDto } from "../../primary/components/NouvelleTransparence/NouvelleTransparence";
 
 export class FakeApiDataAdministrationClient
   implements DataAdministrationClient
 {
-  transparences: Record<string, NouvelleTransparenceDto> = {};
+  transparences: Record<string, ImportNouvelleTransparenceDto> = {};
+  importNouvelleTransparenceXlsxError?: Error;
 
-  async uploadTransparence(
-    transparence: NouvelleTransparenceDto,
+  async importNouvelleTransparenceXlsx(
+    transparence: ImportNouvelleTransparenceDto,
   ): Promise<void> {
-    const id = `${transparence.transparenceName}-${transparence.transparenceDate}`;
+    if (this.importNouvelleTransparenceXlsxError)
+      throw this.importNouvelleTransparenceXlsxError;
+
+    const id = `${transparence.nomTransparence}-${transparence.dateTransparence}`;
     this.transparences[id] = transparence;
   }
 }

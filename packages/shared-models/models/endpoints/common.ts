@@ -9,7 +9,7 @@ export type RestContract = {
       method: "GET" | "POST" | "PUT" | "DELETE";
       path: string;
       params?: Record<string, string>;
-      queryParams?: Record<string, string | string[]>;
+      queryParams?: Record<string, number | string | string[]>;
       response: Record<string, any> | string | boolean | null | void;
     }
   >;

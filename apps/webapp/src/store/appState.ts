@@ -34,6 +34,7 @@ export interface ReportSM {
   dueDate: DateOnlyStoreModel | null;
   birthDate: DateOnlyStoreModel;
   transparency: Transparency;
+  dateTransparence: DateOnlyStoreModel;
   grade: Magistrat.Grade;
   currentPosition: string;
   targettedPosition: string;
@@ -62,6 +63,7 @@ export type ReportListItem = Pick<
   | "transparency"
   | "grade"
   | "targettedPosition"
+  | "dateTransparence"
 > & { observersCount: number };
 
 type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
@@ -128,6 +130,7 @@ export interface AppState<IsTest extends boolean = false> {
       acceptedMimeTypes: {
         sourceDeDonnées: string[];
       };
+      uploadQueryStatus: QueryStatus;
     };
   };
 }

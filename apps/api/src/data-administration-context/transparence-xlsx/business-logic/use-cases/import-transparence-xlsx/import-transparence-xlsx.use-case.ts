@@ -14,11 +14,17 @@ export class ImportTransparenceXlsxUseCase {
     file: File,
     formation: Magistrat.Formation,
     nomTransparence: string,
-    dateEchéance: DateOnlyJson,
+    dateTransparence: DateOnlyJson,
+    dateEchéance: DateOnlyJson | null,
+    datePriseDePosteCible: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ): Promise<void> {
     await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
-      const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
+      const transparenceCsv = TransparenceCsv.fromFichierXlsx(
+        xlsxRead,
+        formation,
+      );
 
       const readCollection =
         this.transparenceService.readFromCsv(transparenceCsv);
@@ -26,7 +32,10 @@ export class ImportTransparenceXlsxUseCase {
       await this.transparenceService.nouvelleTransparence(
         nomTransparence,
         formation,
+        dateTransparence,
         dateEchéance,
+        datePriseDePosteCible,
+        dateClôtureDélaiObservation,
         readCollection,
       )(trx);
     });

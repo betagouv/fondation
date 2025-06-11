@@ -1,14 +1,13 @@
 import { Magistrat } from 'shared-models';
-import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
+import {
+  Transparence as TransparenceTsv,
+  TransparenceSnapshot as TransparenceTsvSnapshot,
+} from 'src/data-administration-context/transparence-tsv/business-logic/models/transparence';
 import {
   Transparence as TransparenceXlsx,
   TransparenceSnapshot as TransparenceXlsxSnapshot,
 } from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
-import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import {
-  TransparenceSnapshot as TransparenceTsvSnapshot,
-  Transparence as TransparenceTsv,
-} from 'src/data-administration-context/transparence-tsv/business-logic/models/transparence';
+import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 
 export class FakeTransparenceRepository implements TransparenceRepository {
   private transparences: Record<
@@ -22,16 +21,17 @@ export class FakeTransparenceRepository implements TransparenceRepository {
     };
   }
 
-  transparence(
-    name: string,
-    formation: Magistrat.Formation,
-  ): TransactionableAsync<TransparenceTsv | null> {
+  transparence(name: string, formation: Magistrat.Formation) {
     return async () => {
       const transparence = Object.values(this.transparences).find(
         (transpa) => transpa.name === name && transpa.formation === formation,
       );
+
+      // TODO Reprendre les types après le changement de méthode d'import
       return transparence
-        ? TransparenceTsv.fromSnapshot(transparence as TransparenceTsvSnapshot)
+        ? (TransparenceTsv.fromSnapshot(
+            transparence as TransparenceTsvSnapshot,
+          ) as unknown as TransparenceXlsx)
         : null;
     };
   }
