@@ -53,9 +53,11 @@ describe("NouvelleTransparence", () => {
     expect(
       screen.getByText(formationToLabel(Magistrat.Formation.PARQUET)),
     ).toBeInTheDocument();
-    expect(await screen.findByLabelText("Date d'échéance")).toBeInTheDocument();
     expect(
-      await screen.findByLabelText("Date de la prise de poste"),
+      await screen.findByLabelText("Date d'échéance*"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Date de prise de poste"),
     ).toBeInTheDocument();
     expect(await screen.findByText("Annuler")).toBeInTheDocument();
     expect(await screen.findByText("Enregistrer")).toBeInTheDocument();
@@ -80,7 +82,7 @@ describe("NouvelleTransparence", () => {
     ).toBeInTheDocument();
 
     expect(
-      await screen.findByText("Le fichier de la transparence est requis."),
+      await screen.findByText("Un fichier est requis."),
     ).toBeInTheDocument();
   });
 
@@ -106,8 +108,8 @@ describe("NouvelleTransparence", () => {
     const nameInput = await screen.findByLabelText("Nom de la transparence*");
     const dateInput = screen.getByLabelText("Date de la transparence*");
     const formationSelect = screen.getByLabelText("Formation*");
-    const dueDateInput = screen.getByLabelText("Date d'échéance");
-    const jobDateInput = screen.getByLabelText("Date de la prise de poste");
+    const dueDateInput = screen.getByLabelText("Date d'échéance*");
+    const jobDateInput = screen.getByLabelText("Date de prise de poste");
     const fileInput = screen.getByLabelText(/fichier/i) as HTMLInputElement;
 
     await userEvent.type(nameInput, "Test Transparence");
@@ -135,7 +137,7 @@ describe("NouvelleTransparence", () => {
     // Vérifier que tous les champs sont vides
     expect(nameInput).toHaveValue("");
     expect(dateInput).toHaveValue("");
-    expect(formationSelect).toHaveValue("SIEGE");
+    expect(formationSelect).toHaveValue("");
     expect(dueDateInput).toHaveValue("");
     expect(jobDateInput).toHaveValue("");
     expect(fileInput.files?.length).toBe(1);

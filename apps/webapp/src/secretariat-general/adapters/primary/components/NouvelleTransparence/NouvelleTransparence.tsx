@@ -23,9 +23,14 @@ import {
 const optionalDate = z.string().date("La date est requise").optional();
 
 const nouvelleTransparenceDtoSchema = z.object({
-  nomTransparence: z.string().min(1, "Le nom de la transparence est requis."),
+  nomTransparence: z
+    .string({
+      message: "Le nom de la transparence est requis.",
+    })
+    .trim()
+    .min(1, "Le nom de la transparence est requis."),
   dateTransparence: z
-    .string()
+    .string({ message: "La date de la transparence est requise." })
     .min(1, "La date de la transparence est requise."),
   formation: z.nativeEnum(Magistrat.Formation, {
     message: "La formation est requise.",
@@ -94,7 +99,7 @@ const NouvelleTransparence: FC = () => {
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label="Nom de la transparence*"
-              id="transparence-name"
+              id="nom-transparence"
               nativeInputProps={{
                 value,
                 onChange,
@@ -133,11 +138,12 @@ const NouvelleTransparence: FC = () => {
               nativeSelectProps={{
                 value,
                 onChange,
+                defaultValue: "",
               }}
               state={errors.formation ? "error" : "default"}
               stateRelatedMessage={errors.formation?.message}
             >
-              <option disabled selected value={""}></option>
+              <option disabled></option>
               <option value={Magistrat.Formation.SIEGE}>
                 {formationToLabel(Magistrat.Formation.SIEGE)}
               </option>
