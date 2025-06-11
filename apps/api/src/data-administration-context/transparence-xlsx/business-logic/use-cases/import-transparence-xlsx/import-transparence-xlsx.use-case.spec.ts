@@ -20,7 +20,9 @@ import {
   uneTransparence,
   uneTransparenceAvecProfilé,
   uneTransparenceAvecProfiléAvecRetourALaLigne,
-  uneTransparenceXlsx,
+  uneTransparenceParquet,
+  uneTransparenceXlsxParquet,
+  uneTransparenceXlsxSiège,
   unNomMagistrat,
   unXlsxProfilé,
   unXlsxProfiléAvecRetourALaLigne,
@@ -50,9 +52,9 @@ describe('Import Transparence XLSX Use Case', () => {
     userService.addUsers(lucLoïcUser, jocelinUser);
   });
 
-  it('enregistre un fichier XLSX', async () => {
+  it('enregistre un fichier XLSX Siège', async () => {
     await importerTransparenceXlsx(
-      uneTransparenceXlsx,
+      uneTransparenceXlsxSiège,
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,
@@ -63,6 +65,22 @@ describe('Import Transparence XLSX Use Case', () => {
 
     expect(transparenceRepository.getTransparences()).toEqual([
       uneTransparence,
+    ]);
+  });
+
+  it('enregistre un fichier XLSX Parquet', async () => {
+    await importerTransparenceXlsx(
+      uneTransparenceXlsxParquet,
+      uneTransparenceParquet.formation,
+      uneTransparenceParquet.name,
+      uneTransparenceParquet.dateEchéance,
+      uneTransparenceParquet.dateTransparence,
+      uneTransparenceParquet.datePriseDePosteCible,
+      uneTransparenceParquet.dateClôtureDélaiObservation,
+    );
+
+    expect(transparenceRepository.getTransparences()).toEqual([
+      uneTransparenceParquet,
     ]);
   });
 
@@ -89,7 +107,7 @@ describe('Import Transparence XLSX Use Case', () => {
 
   it("publie l'évènement Nouvelle transparence", async () => {
     await importerTransparenceXlsx(
-      uneTransparenceXlsx,
+      uneTransparenceXlsxSiège,
       uneTransparence.formation,
       uneTransparence.name,
       uneTransparence.dateEchéance,

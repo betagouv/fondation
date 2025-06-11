@@ -64,35 +64,50 @@ const ligne1 = {
   Historique: '- Biographie de E - poste 2',
 } satisfies Ligne;
 
-export const genTransparenceXlsxBuffer = (ligne: Ligne = ligne1) =>
-  xlsx.build([
+export const genTransparenceXlsxBuffer = (
+  ligne: Ligne = ligne1,
+  formation: Magistrat.Formation = Magistrat.Formation.SIEGE,
+) => {
+  const header1 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+  const headers =
+    formation === Magistrat.Formation.SIEGE ? [header1] : [header1, []];
+
+  return xlsx.build([
     {
       name: 'mySheetName',
-      data: [
-        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
-        Object.keys(ligne),
-        Object.values(ligne),
-      ],
+      data: [...headers, Object.keys(ligne), Object.values(ligne)],
       options: {},
     },
   ]);
+};
 
-export const genXlsxTestFile = (ligneOverride?: Partial<Ligne>) => {
+export const genXlsxTestFile = (
+  ligneOverride?: Partial<Ligne>,
+  formation: Magistrat.Formation = Magistrat.Formation.SIEGE,
+) => {
   const ligne: Ligne = {
     ...ligne1,
     ...ligneOverride,
   };
 
-  return new File([genTransparenceXlsxBuffer(ligne)], unNomTransparenceXlsx, {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
+  return new File(
+    [genTransparenceXlsxBuffer(ligne, formation)],
+    unNomTransparenceXlsx,
+    {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    },
+  );
 };
 
 const posteCibleProfilé =
   'Substitut Vice-procureur du ministère de la justice AC PARIS - I - [P] [SMACJ - DACS]';
 const posteCibleProfiléAvecRetourALaLigne = `Avocat Général CA LYON - HH\n [P][ALEDA]`;
 
-export const uneTransparenceXlsx = genXlsxTestFile();
+export const uneTransparenceXlsxSiège = genXlsxTestFile();
+export const uneTransparenceXlsxParquet = genXlsxTestFile(
+  undefined,
+  Magistrat.Formation.PARQUET,
+);
 export const unXlsxProfilé = genXlsxTestFile({
   'Poste cible': posteCibleProfilé,
   'Eq./Av.': Avancement.AVANCEMENT,
@@ -139,27 +154,29 @@ export const genDossierSiège = (
   },
 });
 
-export const unDossierSiège: NominationFileModelSnapshot = genDossierSiège();
-export const unDossierSiègeProfilé: NominationFileModelSnapshot =
-  genDossierSiège({
-    magistrat: unNomMagistrat,
-    posteCible: posteCibleProfilé,
-    grade: Magistrat.Grade.II,
-    equivalenceOuAvancement: Avancement.AVANCEMENT,
-  });
-export const unDossierSiègeProfiléAvecRetourALaLigne: NominationFileModelSnapshot =
-  genDossierSiège({
-    magistrat: unNomMagistrat,
-    posteCible: `Avocat Général CA LYON - HH [P][ALEDA]`,
-    grade: Magistrat.Grade.I,
-    equivalenceOuAvancement: Avancement.AVANCEMENT,
-  });
+export const unDossierParquet = genDossierSiège();
+export const unDossierSiège = genDossierSiège();
+export const unDossierSiègeProfilé = genDossierSiège({
+  magistrat: unNomMagistrat,
+  posteCible: posteCibleProfilé,
+  grade: Magistrat.Grade.II,
+  equivalenceOuAvancement: Avancement.AVANCEMENT,
+});
+export const unDossierSiègeProfiléAvecRetourALaLigne = genDossierSiège({
+  magistrat: unNomMagistrat,
+  posteCible: `Avocat Général CA LYON - HH [P][ALEDA]`,
+  grade: Magistrat.Grade.I,
+  equivalenceOuAvancement: Avancement.AVANCEMENT,
+});
 
-export const genUneTransparence = (dossier: NominationFileModelSnapshot) =>
+export const genUneTransparence = (
+  dossier: NominationFileModelSnapshot,
+  formation: Magistrat.Formation = Magistrat.Formation.SIEGE,
+) =>
   ({
     id: 'une-transparence-id',
     createdAt: currentDate,
-    formation: Magistrat.Formation.SIEGE,
+    formation,
     name: 'Une Transparence',
     dateEchéance: {
       day: 1,
@@ -184,6 +201,16 @@ export const genUneTransparence = (dossier: NominationFileModelSnapshot) =>
     nominationFiles: [dossier],
   }) satisfies TransparenceSnapshot;
 
+export const uneTransparenceParquet = genUneTransparence(
+  {
+    ...unDossierParquet,
+    content: {
+      ...unDossierParquet.content,
+      magistrat: unNomMagistrat,
+    },
+  },
+  Magistrat.Formation.PARQUET,
+);
 export const uneTransparence = genUneTransparence({
   ...unDossierSiège,
   content: {
