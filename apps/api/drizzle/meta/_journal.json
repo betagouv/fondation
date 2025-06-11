@@ -372,6 +372,13 @@
       "when": 1749657443021,
       "tag": "0052_data_admin__unique_name_formation_and_date",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1749661237618,
+      "tag": "0053_data_admin__add_expected_session_content",
+      "breakpoints": true
     }
   ]
 }
