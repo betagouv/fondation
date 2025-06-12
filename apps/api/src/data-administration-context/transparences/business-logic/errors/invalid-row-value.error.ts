@@ -1,7 +1,11 @@
 export class InvalidRowValueError extends Error {
-  constructor(columnName: string, rowValue: string, rowIndex: number) {
+  constructor(
+    columnName: string,
+    rowValue: string | undefined,
+    rowIndex: number,
+  ) {
     super(
-      `Invalid value for ${columnName}: ${rowValue} in row ${rowIndex + 1}`,
+      `Valeur invalide pour la colonne "${columnName}" : ${rowValue || 'valeur manquante'} à la ligne ${rowIndex + 1}`,
     );
     this.name = 'InvalidRowValueError';
   }

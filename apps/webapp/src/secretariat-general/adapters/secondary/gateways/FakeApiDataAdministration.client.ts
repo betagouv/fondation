@@ -4,16 +4,21 @@ import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdmin
 export class FakeApiDataAdministrationClient
   implements DataAdministrationClient
 {
-  transparences: Record<string, ImportNouvelleTransparenceDto> = {};
+  fakeTransparences: Record<string, ImportNouvelleTransparenceDto> = {};
   importNouvelleTransparenceXlsxError?: Error;
+  stubValidationError: {
+    validationError?: string;
+  } = {};
 
   async importNouvelleTransparenceXlsx(
     transparence: ImportNouvelleTransparenceDto,
-  ): Promise<void> {
+  ) {
     if (this.importNouvelleTransparenceXlsxError)
       throw this.importNouvelleTransparenceXlsxError;
 
     const id = `${transparence.nomTransparence}-${transparence.dateTransparence}`;
-    this.transparences[id] = transparence;
+    this.fakeTransparences[id] = transparence;
+
+    return this.stubValidationError;
   }
 }

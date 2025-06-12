@@ -7,11 +7,11 @@ export class ApiDataAdministrationGateway implements DataAdministrationGateway {
     private readonly dataAdministrationApiClient: DataAdministrationClient,
   ) {}
 
-  async importTransparenceXlsx(
+  importTransparenceXlsx(
     nouvelleTransparenceDto: ImportNouvelleTransparenceDto,
     fichier: File,
-  ): Promise<void> {
-    await this.dataAdministrationApiClient.importNouvelleTransparenceXlsx(
+  ) {
+    return this.dataAdministrationApiClient.importNouvelleTransparenceXlsx(
       nouvelleTransparenceDto,
       fichier,
     );

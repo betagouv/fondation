@@ -22,6 +22,7 @@ import {
 import { selectUploadExcelFailed } from "../../selectors/selectUploadExcelFailed";
 import { UploadExcelFailedAlert } from "./UploadExcelFailedAlert";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
+import { selectValidationError } from "../../selectors/selectValidationError";
 
 const mandatoryField = "Champ obligatoire.";
 const invalidDateFormat = "Format de date invalide.";
@@ -72,6 +73,7 @@ const NouvelleTransparence: FC = () => {
     selectBreadcrumb(state, currentPage),
   );
   const uploadExcelFailed = useAppSelector(selectUploadExcelFailed);
+  const validationError = useAppSelector(selectValidationError);
 
   const {
     control,
@@ -242,7 +244,9 @@ const NouvelleTransparence: FC = () => {
 
         {uploadExcelFailed && (
           <div className={cx("fr-mb-8v")}>
-            <UploadExcelFailedAlert />
+            <UploadExcelFailedAlert
+              validationError={validationError || undefined}
+            />
           </div>
         )}
 

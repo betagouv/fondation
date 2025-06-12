@@ -41,8 +41,8 @@ export class DataAdministrationController
     _: unknown,
     @UploadedFile() fichier: Express.Multer.File,
     @Query() dto: ImportNouvelleTransparenceXlsxNestDto,
-  ): Promise<void> {
-    await this.importTransparenceXlsx.execute(
+  ) {
+    const resp = await this.importTransparenceXlsx.execute(
       new File([fichier.buffer], fichier.originalname),
       dto.formation,
       dto.nomTransparence,
@@ -58,5 +58,7 @@ export class DataAdministrationController
         'yyyy-MM-dd',
       ).toJson(),
     );
+
+    return resp;
   }
 }

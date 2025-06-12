@@ -379,6 +379,13 @@
       "when": 1749661237618,
       "tag": "0053_data_admin__add_expected_session_content",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1749732807829,
+      "tag": "0054_nominations_rename_session_name",
+      "breakpoints": true
     }
   ]
 }

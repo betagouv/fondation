@@ -23,7 +23,7 @@ describe("Data Administration Upload", () => {
     deps.expectPageSecretariatGeneral();
   });
 
-  it("affiche un message d'erreur si l'import échoue", async () => {
+  it("stocke un message d'erreur si l'import échoue", async () => {
     deps.dataAdministrationClient.importNouvelleTransparenceXlsxError =
       new Error();
     await deps.uploadTransparence(deps.uneTransparenceAImporter());
@@ -34,5 +34,13 @@ describe("Data Administration Upload", () => {
     deps.givenAFailedUpload();
     deps.routeChangedToNouvelleTransparence();
     deps.expectResetUploadQueryStatus();
+  });
+
+  it("stocke les erreurs de validation", async () => {
+    deps.dataAdministrationClient.stubValidationError = {
+      validationError: "Erreur de validation",
+    };
+    await deps.uploadTransparence(deps.uneTransparenceAImporter());
+    deps.expectValidationError("Erreur de validation");
   });
 });

@@ -6,7 +6,7 @@ import {
 } from "../../../core-logic/use-cases/data-administration-upload/dataAdministrationUpload.use-case";
 import { selectUploadExcelFailed } from "./selectUploadExcelFailed";
 
-describe("Select UploadExcel Failed", () => {
+describe("Select Upload Excel Failed", () => {
   let store: ReduxStore;
   let isFailed: boolean;
 
@@ -14,24 +14,24 @@ describe("Select UploadExcel Failed", () => {
     store = initReduxStore({}, {}, {});
   });
 
-  it("selects the authentication failed state", () => {
+  it("selects a failed upload by default", () => {
     selectIsFailed();
     expectIsFailed(false);
   });
 
-  it("selects a failed authentication", () => {
+  it("selects a failed excel upload", () => {
     dispatchRejectedUploadExcel();
     selectIsFailed();
     expectIsFailed(true);
   });
 
-  it("when authentication is pending, it says the authentication isn't failed", () => {
+  it("when excel upload is pending, it says the upload isn't failed", () => {
     dispatchPendingUploadExcel();
     selectIsFailed();
     expectIsFailed(false);
   });
 
-  it("when authentication is fulfilled, it says the authentication isn't failed", () => {
+  it("when excel upload is fulfilled, it says the upload isn't failed", () => {
     dispatchFulfilledUploadExcel();
     selectIsFailed();
     expectIsFailed(false);

@@ -103,9 +103,9 @@ export class TestDependencies {
   }
 
   expectClientTransparences(...transparences: ImportNouvelleTransparenceDto[]) {
-    expect(Object.values(this.dataAdministrationClient.transparences)).toEqual(
-      transparences,
-    );
+    expect(
+      Object.values(this.dataAdministrationClient.fakeTransparences),
+    ).toEqual(transparences);
   }
 
   expectFailedUpload() {
@@ -123,6 +123,20 @@ export class TestDependencies {
     expect(
       this.routerProvider.onGoToSecretariatGeneralClick,
     ).toHaveBeenCalled();
+  }
+
+  expectValidationError(validationError: string) {
+    expect(this.store.getState()).toEqual<AppState<true>>({
+      ...this.initialState,
+      secretariatGeneral: {
+        ...this.initialState.secretariatGeneral,
+        nouvelleTransparence: {
+          ...this.initialState.secretariatGeneral.nouvelleTransparence,
+          uploadQueryStatus: "rejected",
+          validationError,
+        },
+      },
+    });
   }
 
   private expectUploadQueryStatus(status: QueryStatus, currentHref?: string) {

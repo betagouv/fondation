@@ -11,6 +11,7 @@ import { GradeTsvNormalizer } from './tsv-normalizers/grade-tsv-normalizer';
 import { ObserversTsvNormalizer } from './tsv-normalizers/observers-tsv-normalizer';
 import { PosteCibleTsvNormalizer } from './tsv-normalizers/poste-cible-tsv-normalizer';
 import { ReportersTsvNormalizer } from './tsv-normalizers/reporters-tsv-normalizer';
+import { InvalidRowValueError } from 'src/data-administration-context/transparences/business-logic/errors/invalid-row-value.error';
 
 export const GSHEET_CELL_LINE_BREAK_TOKEN = '<cell_line_break>';
 export const GSHEET_BLOCK_LINE_BREAK_TOKEN = '<block_line_break>';
@@ -117,7 +118,7 @@ export class NominationFileContentReader {
 
     if (options?.optional) return value || null;
     if (value === undefined)
-      throw new Error(`Column ${column} not found in row ${rowIndex}`);
+      throw new InvalidRowValueError(column, value, rowIndex);
     return value;
   }
 }

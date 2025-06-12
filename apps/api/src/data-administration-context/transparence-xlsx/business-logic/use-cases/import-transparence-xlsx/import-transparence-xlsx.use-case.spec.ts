@@ -20,6 +20,7 @@ import {
   uneTransparence,
   uneTransparenceAvecProfilé,
   uneTransparenceAvecProfiléAvecRetourALaLigne,
+  uneTransparenceXlsxInvalide,
   uneTransparenceXlsxSiège,
   unNomMagistrat,
   unXlsxProfilé,
@@ -48,6 +49,32 @@ describe('Import Transparence XLSX Use Case', () => {
 
     userService = new FakeUserService();
     userService.addUsers(lucLoïcUser, jocelinUser);
+  });
+
+  it("retourne les erreurs de validation d'un fichier XLSX", async () => {
+    expect(
+      await importerTransparenceXlsx(
+        uneTransparenceXlsxInvalide,
+        Magistrat.Formation.SIEGE,
+        'nom',
+        null,
+        {
+          year: 2024,
+          month: 10,
+          day: 10,
+        },
+        null,
+        {
+          year: 2024,
+          month: 10,
+          day: 10,
+        },
+      ),
+    ).toEqual({
+      validationError: `Valeur invalide pour la colonne "numéro de dossier" : ABC à la ligne 1`,
+    });
+
+    expect(transparenceRepository.getTransparences()).toEqual([]);
   });
 
   it('enregistre un fichier XLSX Siège', async () => {

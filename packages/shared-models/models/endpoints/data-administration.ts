@@ -10,7 +10,9 @@ export interface DataAdministrationContextRestContract extends RestContract {
       path: "import-nouvelle-transparence-xlsx";
       body: FormData;
       queryParams: ImportNouvelleTransparenceDto;
-      response: void;
+      response: {
+        validationError?: string;
+      };
     };
   };
 }

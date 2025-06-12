@@ -12,7 +12,9 @@ export type ImportTransparenceXlsxDto = {
 };
 
 export const dataAdministrationUpload = createAppAsyncThunk<
-  void,
+  void | {
+    validationError: string;
+  },
   ImportTransparenceXlsxDto
 >(
   "secretariatGeneral/nouvelleTransparence",
@@ -34,20 +36,26 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       nouvelleTransparenceDto.fichier,
     );
 
-    await dataAdministrationGateway.importTransparenceXlsx(
-      {
-        nomTransparence: nouvelleTransparenceDto.nomTransparence,
-        formation: nouvelleTransparenceDto.formation,
-        dateTransparence: nouvelleTransparenceDto.dateTransparence,
-        dateEcheance: nouvelleTransparenceDto.dateEcheance ?? undefined,
-        datePriseDePosteCible:
-          nouvelleTransparenceDto.datePriseDePosteCible ?? undefined,
-        dateClotureDelaiObservation:
-          nouvelleTransparenceDto.dateClotureDelaiObservation,
-      },
-      nouvelleTransparenceDto.fichier,
-    );
+    const { validationError } =
+      await dataAdministrationGateway.importTransparenceXlsx(
+        {
+          nomTransparence: nouvelleTransparenceDto.nomTransparence,
+          formation: nouvelleTransparenceDto.formation,
+          dateTransparence: nouvelleTransparenceDto.dateTransparence,
+          dateEcheance: nouvelleTransparenceDto.dateEcheance ?? undefined,
+          datePriseDePosteCible:
+            nouvelleTransparenceDto.datePriseDePosteCible ?? undefined,
+          dateClotureDelaiObservation:
+            nouvelleTransparenceDto.dateClotureDelaiObservation,
+        },
+        nouvelleTransparenceDto.fichier,
+      );
 
-    routerProvider.onGoToSecretariatGeneralClick();
+    if (!validationError) {
+      routerProvider.onGoToSecretariatGeneralClick();
+      return;
+    } else {
+      return { validationError };
+    }
   },
 );

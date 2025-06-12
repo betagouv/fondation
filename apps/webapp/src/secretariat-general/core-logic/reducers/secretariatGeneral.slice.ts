@@ -13,6 +13,7 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
         ],
       },
       uploadQueryStatus: "idle",
+      validationError: null,
     },
   };
 
@@ -23,12 +24,19 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
     extraReducers: (builder) => {
       builder.addCase(dataAdministrationUpload.rejected, (state) => {
         state.nouvelleTransparence.uploadQueryStatus = "rejected";
+        state.nouvelleTransparence.validationError = null;
       });
       builder.addCase(dataAdministrationUpload.pending, (state) => {
         state.nouvelleTransparence.uploadQueryStatus = "pending";
+        state.nouvelleTransparence.validationError = null;
       });
-      builder.addCase(dataAdministrationUpload.fulfilled, (state) => {
-        state.nouvelleTransparence.uploadQueryStatus = "fulfilled";
+      builder.addCase(dataAdministrationUpload.fulfilled, (state, action) => {
+        state.nouvelleTransparence.uploadQueryStatus = action.payload
+          ?.validationError
+          ? "rejected"
+          : "fulfilled";
+        state.nouvelleTransparence.validationError =
+          action.payload?.validationError || null;
       });
       builder.addCase(routeChanged, (state, action) => {
         if (action.payload.includes(routeSegments.sgNouvelleTransparence)) {

@@ -131,6 +131,7 @@ export interface AppState<IsTest extends boolean = false> {
         sourceDeDonnées: string[];
       };
       uploadQueryStatus: QueryStatus;
+      validationError: string | null;
     };
   };
 }

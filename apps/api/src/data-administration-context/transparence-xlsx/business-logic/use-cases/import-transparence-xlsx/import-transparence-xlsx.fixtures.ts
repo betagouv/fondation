@@ -89,6 +89,9 @@ const posteCibleProfilé =
 const posteCibleProfiléAvecRetourALaLigne = `Avocat Général CA LYON - HH\n [P][ALEDA]`;
 
 export const uneTransparenceXlsxSiège = genXlsxTestFile();
+export const uneTransparenceXlsxInvalide = genXlsxTestFile({
+  'N°': 'ABC',
+});
 
 export const unXlsxProfilé = genXlsxTestFile({
   'Poste cible': posteCibleProfilé,

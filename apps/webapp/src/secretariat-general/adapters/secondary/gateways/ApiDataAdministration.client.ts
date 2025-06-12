@@ -43,10 +43,12 @@ export class ApiDataAdministrationClient implements DataAdministrationClient {
       },
     };
     const url = this.resolveUrl(path, undefined, queryParams);
-    await this.fetch(url, {
+    const resp = await this.fetch(url, {
       method,
       body,
     });
+
+    return await resp.json();
   }
 
   private resolveUrl(
