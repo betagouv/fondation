@@ -386,6 +386,13 @@
       "when": 1749732807829,
       "tag": "0054_nominations_rename_session_name",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1749751373282,
+      "tag": "0055_nominations__rename_session_automne_name",
+      "breakpoints": true
     }
   ]
 }
