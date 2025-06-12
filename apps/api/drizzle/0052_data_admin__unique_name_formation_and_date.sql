@@ -3,7 +3,7 @@ BEGIN;
 ALTER TABLE "data_administration_context"."transparences" RENAME COLUMN "date_emission_gds" TO "date_transparence";
 
 UPDATE "data_administration_context"."transparences" 
-    SET "date_transparence" = '2024-10-01'::timestamp
+    SET "date_transparence" = '2024-10-18'::timestamp
     WHERE "name" = 'AUTOMNE_2024';
 
 UPDATE "data_administration_context"."transparences" 
