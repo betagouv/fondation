@@ -21,10 +21,7 @@ export class ImportTransparenceXlsxUseCase {
   ): Promise<void> {
     await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
-      const transparenceCsv = TransparenceCsv.fromFichierXlsx(
-        xlsxRead,
-        formation,
-      );
+      const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
       const readCollection =
         this.transparenceService.readFromCsv(transparenceCsv);

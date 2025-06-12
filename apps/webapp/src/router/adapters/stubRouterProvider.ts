@@ -5,6 +5,8 @@ export class StubRouterProvider implements RouterProvider {
   readonly loginHref = "/login";
   readonly transparenciesHref = "/transparences";
   readonly secretariatGeneralHref = "/secretariat-general";
+  readonly sgNouvelleTransparenceHref =
+    "/secretariat-general/nouvelle-transparence";
 
   onGoToLoginClick = () => null;
   onGoToTransparenciesClick = () => null;
@@ -24,7 +26,7 @@ export class StubRouterProvider implements RouterProvider {
     },
   });
   getSgNouvelleTransparenceAnchorAttributes = () => ({
-    href: this.loginHref,
+    href: this.sgNouvelleTransparenceHref,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       this.goToSgNouvelleTransparence();

@@ -66,7 +66,7 @@ export type ReportListItem = Pick<
   | "dateTransparence"
 > & { observersCount: number };
 
-type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
+export type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 
 export interface AppState<IsTest extends boolean = false> {
   sharedKernel: {

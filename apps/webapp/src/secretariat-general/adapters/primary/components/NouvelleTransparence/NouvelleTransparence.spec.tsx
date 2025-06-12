@@ -61,9 +61,7 @@ describe("NouvelleTransparence", () => {
     const saveButton = await screen.findByText("Enregistrer");
     await userEvent.click(saveButton);
 
-    await screen.findByText("Le nom de la transparence est requis.");
-    await screen.findByText("La date de la transparence est requise.");
-    await screen.findByText("Un fichier est requis.");
+    expect(await screen.findAllByText("Champ obligatoire.")).toHaveLength(5);
   });
 
   it("should display an error message if the file is not valid", async () => {

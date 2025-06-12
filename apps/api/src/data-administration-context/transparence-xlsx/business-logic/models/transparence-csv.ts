@@ -1,34 +1,30 @@
 import { z } from 'zod';
 import { XlsxReader } from './xlsx-reader';
-import { Magistrat } from 'shared-models';
 
 export type TransparenceCsvSnapshot = {
   nom: string;
   data: string[][];
-  formation: Magistrat.Formation;
 };
 
 export class TransparenceCsv {
+  private static HEADER_LAST_ROW_INDEX = 2;
+
   private constructor(
     private _nom: string,
     private _data: string[][],
-    private _formation: Magistrat.Formation,
   ) {
     this.setNom(_nom);
     this.setData(_data);
-    this.setFormation(_formation);
   }
 
   getLignes(): string[][] {
-    const premièreLigne = this._formation === Magistrat.Formation.SIEGE ? 2 : 3;
-    return this._data.slice(premièreLigne).filter((row) => row.length > 0);
+    return this._data
+      .slice(TransparenceCsv.HEADER_LAST_ROW_INDEX + 1)
+      .filter((row) => row.length > 0);
   }
 
   getHeader(): string[] {
-    const header =
-      this._formation === Magistrat.Formation.SIEGE
-        ? this._data[1]!
-        : this._data[2]!;
+    const header = this._data[TransparenceCsv.HEADER_LAST_ROW_INDEX]!;
     return header;
   }
 
@@ -38,29 +34,22 @@ export class TransparenceCsv {
   private setData(value: string[][]) {
     this._data = value;
   }
-  private setFormation(formation: Magistrat.Formation) {
-    this._formation = z.nativeEnum(Magistrat.Formation).parse(formation);
-  }
 
   snapshot(): TransparenceCsvSnapshot {
     return {
       nom: this._nom,
       data: this._data,
-      formation: this._formation,
     };
   }
 
   static fromSnapshot(snapshot: TransparenceCsvSnapshot): TransparenceCsv {
-    return new TransparenceCsv(snapshot.nom, snapshot.data, snapshot.formation);
+    return new TransparenceCsv(snapshot.nom, snapshot.data);
   }
 
-  static fromFichierXlsx(
-    xlsxReader: XlsxReader,
-    formation: Magistrat.Formation,
-  ) {
+  static fromFichierXlsx(xlsxReader: XlsxReader) {
     const nom = xlsxReader.getFileName();
     const data = xlsxReader.getData();
 
-    return new TransparenceCsv(nom, data, formation);
+    return new TransparenceCsv(nom, data);
   }
 }

@@ -8,30 +8,39 @@ import {
   ImportTransparenceXlsxDto,
 } from "./dataAdministrationUpload.use-case";
 import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
+import { AppState, QueryStatus } from "../../../../store/appState";
+import { routeChanged } from "../../../../router/core-logic/reducers/router.slice";
 
-export type TestDependencies = ReturnType<typeof getTestDependencies>;
+export class TestDependencies {
+  readonly dataAdministrationClient: FakeApiDataAdministrationClient;
+  readonly dataAdministrationGateway: ApiDataAdministrationGateway;
+  readonly fileProvider: StubNodeFileProvider;
+  readonly routerProvider: StubRouterProvider;
+  readonly store: ReduxStore;
+  readonly initialState: AppState<true>;
 
-export const getTestDependencies = () => {
-  const dataAdministrationClient = new FakeApiDataAdministrationClient();
-  const dataAdministrationGateway = new ApiDataAdministrationGateway(
-    dataAdministrationClient,
-  );
-  const fileProvider = new StubNodeFileProvider();
-  const routerProvider = new StubRouterProvider();
+  constructor() {
+    this.dataAdministrationClient = new FakeApiDataAdministrationClient();
+    this.dataAdministrationGateway = new ApiDataAdministrationGateway(
+      this.dataAdministrationClient,
+    );
+    this.fileProvider = new StubNodeFileProvider();
+    this.routerProvider = new StubRouterProvider();
 
-  const store: ReduxStore = initReduxStore(
-    {
-      dataAdministrationGateway,
-    },
-    {
-      fileProvider,
-      routerProvider,
-    },
-    {},
-  );
-  const initialState = store.getState();
+    this.store = initReduxStore(
+      {
+        dataAdministrationGateway: this.dataAdministrationGateway,
+      },
+      {
+        fileProvider: this.fileProvider,
+        routerProvider: this.routerProvider,
+      },
+      {},
+    );
+    this.initialState = this.store.getState();
+  }
 
-  const uneTransparenceImportée = () => {
+  uneTransparenceImportée() {
     return {
       nomTransparence: "Balai",
       formation: Magistrat.Formation.SIEGE,
@@ -40,10 +49,10 @@ export const getTestDependencies = () => {
       datePriseDePosteCible: "2024-01-01",
       dateClotureDelaiObservation: "2024-01-05",
     } satisfies ImportNouvelleTransparenceDto;
-  };
+  }
 
-  const uneTransparenceAImporter = () => {
-    fileProvider.mimeType =
+  uneTransparenceAImporter() {
+    this.fileProvider.mimeType =
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     return {
       nomTransparence: "Balai",
@@ -54,10 +63,10 @@ export const getTestDependencies = () => {
       dateClotureDelaiObservation: "2024-01-05",
       fichier: new File([""], "transparence.xlsx"),
     } satisfies ImportTransparenceXlsxDto;
-  };
+  }
 
-  const unFichierPdfAImporter = () => {
-    fileProvider.mimeType = "application/pdf";
+  unFichierPdfAImporter() {
+    this.fileProvider.mimeType = "application/pdf";
     return {
       nomTransparence: "Balai",
       formation: Magistrat.Formation.SIEGE,
@@ -69,50 +78,70 @@ export const getTestDependencies = () => {
         type: "application/pdf",
       }),
     } satisfies ImportTransparenceXlsxDto;
-  };
+  }
 
-  const uploadTransparence = async (transparence: ImportTransparenceXlsxDto) =>
-    store.dispatch(dataAdministrationUpload(transparence));
+  givenAFailedUpload() {
+    this.store.dispatch(
+      dataAdministrationUpload.rejected(
+        new Error(),
+        "",
+        this.uneTransparenceAImporter(),
+      ),
+    );
+  }
 
-  const expectClientTransparences = (
-    ...transparences: ImportNouvelleTransparenceDto[]
-  ) => {
-    expect(Object.values(dataAdministrationClient.transparences)).toEqual(
+  async uploadTransparence(transparence: ImportTransparenceXlsxDto) {
+    await this.store.dispatch(dataAdministrationUpload(transparence));
+  }
+
+  routeChangedToNouvelleTransparence() {
+    this.store.dispatch(
+      routeChanged(
+        this.routerProvider.getSgNouvelleTransparenceAnchorAttributes().href,
+      ),
+    );
+  }
+
+  expectClientTransparences(...transparences: ImportNouvelleTransparenceDto[]) {
+    expect(Object.values(this.dataAdministrationClient.transparences)).toEqual(
       transparences,
     );
-  };
+  }
 
-  const expectFailedUpload = () => {
-    expect(store.getState()).toEqual({
-      ...initialState,
+  expectFailedUpload() {
+    this.expectUploadQueryStatus("rejected");
+  }
+
+  expectResetUploadQueryStatus() {
+    this.expectUploadQueryStatus(
+      "idle",
+      this.routerProvider.getSgNouvelleTransparenceAnchorAttributes().href,
+    );
+  }
+
+  expectPageSecretariatGeneral() {
+    expect(
+      this.routerProvider.onGoToSecretariatGeneralClick,
+    ).toHaveBeenCalled();
+  }
+
+  private expectUploadQueryStatus(status: QueryStatus, currentHref?: string) {
+    expect(this.store.getState()).toEqual<AppState<true>>({
+      ...this.initialState,
+      router: {
+        ...this.initialState.router,
+        hrefs: {
+          ...this.initialState.router.hrefs,
+          current: currentHref ?? this.initialState.router.hrefs.current,
+        },
+      },
       secretariatGeneral: {
-        ...initialState.secretariatGeneral,
+        ...this.initialState.secretariatGeneral,
         nouvelleTransparence: {
-          ...initialState.secretariatGeneral.nouvelleTransparence,
-          uploadQueryStatus: "rejected",
+          ...this.initialState.secretariatGeneral.nouvelleTransparence,
+          uploadQueryStatus: status,
         },
       },
     });
-  };
-
-  const expectPageSecretariatGeneral = () => {
-    expect(routerProvider.onGoToSecretariatGeneralClick).toHaveBeenCalled();
-  };
-
-  return {
-    dataAdministrationClient,
-    dataAdministrationGateway,
-    fileProvider,
-    routerProvider,
-    store,
-    uneTransparenceAImporter,
-    uneTransparenceImportée,
-    unFichierPdfAImporter,
-
-    uploadTransparence,
-    expectClientTransparences,
-    expectFailedUpload,
-
-    expectPageSecretariatGeneral,
-  };
-};
+  }
+}

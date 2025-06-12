@@ -23,28 +23,32 @@ import { selectUploadExcelFailed } from "../../selectors/selectUploadExcelFailed
 import { UploadExcelFailedAlert } from "./UploadExcelFailedAlert";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 
-const optionalDate = z.string().date("La date est requise").optional();
+const mandatoryField = "Champ obligatoire.";
+const invalidDateFormat = "Format de date invalide.";
+const optionalDate = z.string().date(invalidDateFormat).optional();
 
 const nouvelleTransparenceDtoSchema = z.object({
   nomTransparence: z
     .string({
-      message: "Le nom de la transparence est requis.",
+      message: mandatoryField,
     })
     .trim()
-    .min(1, "Le nom de la transparence est requis."),
+    .min(1, mandatoryField),
   dateTransparence: z
-    .string({ message: "La date de la transparence est requise." })
-    .min(1, "La date de la transparence est requise."),
+    .string({ message: mandatoryField })
+    .date(invalidDateFormat),
   formation: z.nativeEnum(Magistrat.Formation, {
-    message: "La formation est requise.",
+    message: mandatoryField,
   }),
   dateEcheance: optionalDate,
   datePriseDePosteCible: optionalDate,
-  dateClôtureDélaiObservation: z.string().date("La date est requise"),
+  dateClôtureDélaiObservation: z
+    .string({ message: mandatoryField })
+    .date(invalidDateFormat),
   fichier: z
-    .instanceof(File, { message: "Un fichier est requis." })
+    .instanceof(File, { message: mandatoryField })
     .refine((file) => file.size > 0, {
-      message: "Le fichier de la transparence est requis.",
+      message: mandatoryField,
     })
     .refine(
       (file) => {
@@ -98,12 +102,6 @@ const NouvelleTransparence: FC = () => {
       />
 
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
-        {uploadExcelFailed && (
-          <div className={cx("fr-mb-8v")}>
-            <UploadExcelFailedAlert />
-          </div>
-        )}
-
         <Controller<FormSchema, "nomTransparence">
           name="nomTransparence"
           control={control}
@@ -241,6 +239,13 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
+
+        {uploadExcelFailed && (
+          <div className={cx("fr-mb-8v")}>
+            <UploadExcelFailedAlert />
+          </div>
+        )}
+
         <ButtonsGroup
           buttons={[
             {

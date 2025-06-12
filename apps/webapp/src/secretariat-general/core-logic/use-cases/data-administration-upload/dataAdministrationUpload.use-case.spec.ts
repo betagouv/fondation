@@ -1,13 +1,10 @@
-import {
-  getTestDependencies,
-  TestDependencies,
-} from "./dataAdministrationUpload.test-setup";
+import { TestDependencies } from "./dataAdministrationUpload.test-setup";
 
 describe("Data Administration Upload", () => {
   let deps: TestDependencies;
 
   beforeEach(async () => {
-    deps = getTestDependencies();
+    deps = new TestDependencies();
   });
 
   it("upload une transparence", async () => {
@@ -31,5 +28,11 @@ describe("Data Administration Upload", () => {
       new Error();
     await deps.uploadTransparence(deps.uneTransparenceAImporter());
     deps.expectFailedUpload();
+  });
+
+  it("réinitialise l'état d'upload après avoir changé de page", async () => {
+    deps.givenAFailedUpload();
+    deps.routeChangedToNouvelleTransparence();
+    deps.expectResetUploadQueryStatus();
   });
 });

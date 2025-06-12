@@ -20,8 +20,6 @@ import {
   uneTransparence,
   uneTransparenceAvecProfilé,
   uneTransparenceAvecProfiléAvecRetourALaLigne,
-  uneTransparenceParquet,
-  uneTransparenceXlsxParquet,
   uneTransparenceXlsxSiège,
   unNomMagistrat,
   unXlsxProfilé,
@@ -65,22 +63,6 @@ describe('Import Transparence XLSX Use Case', () => {
 
     expect(transparenceRepository.getTransparences()).toEqual([
       uneTransparence,
-    ]);
-  });
-
-  it('enregistre un fichier XLSX Parquet', async () => {
-    await importerTransparenceXlsx(
-      uneTransparenceXlsxParquet,
-      uneTransparenceParquet.formation,
-      uneTransparenceParquet.name,
-      uneTransparenceParquet.dateEchéance,
-      uneTransparenceParquet.dateTransparence,
-      uneTransparenceParquet.datePriseDePosteCible,
-      uneTransparenceParquet.dateClôtureDélaiObservation,
-    );
-
-    expect(transparenceRepository.getTransparences()).toEqual([
-      uneTransparenceParquet,
     ]);
   });
 
