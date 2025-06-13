@@ -68,7 +68,9 @@ describe('Import Xlsx from local file', () => {
   afterEach(async () => await app.close());
   afterAll(async () => await db.$client.end());
 
-  it('importe une transparence siège', async () => {
+  // Test à utiliser pour valider l'import d'une transparence au format
+  // xlsx et cibler rapidement les erreurs qu'elle peut contenir.
+  it.skip('importe une transparence siège', async () => {
     const {
       formation,
       nomTransparence,
@@ -83,16 +85,14 @@ describe('Import Xlsx from local file', () => {
       formation,
       nomTransparence,
       DateOnly.fromString(dateTransparence, 'yyyy-MM-dd').toJson(),
-      DateOnly.fromString(dateEcheance, 'yyyy-MM-dd').toJson(),
+      DateOnly.fromString(dateEcheance as string, 'yyyy-MM-dd').toJson(),
       datePriseDePosteCible
         ? DateOnly.fromString(datePriseDePosteCible, 'yyyy-MM-dd').toJson()
         : null,
-      dateClotureDelaiObservation
-        ? DateOnly.fromString(
-            dateClotureDelaiObservation,
-            'yyyy-MM-dd',
-          ).toJson()
-        : null,
+      DateOnly.fromString(
+        dateClotureDelaiObservation as string,
+        'yyyy-MM-dd',
+      ).toJson(),
     );
   });
 });

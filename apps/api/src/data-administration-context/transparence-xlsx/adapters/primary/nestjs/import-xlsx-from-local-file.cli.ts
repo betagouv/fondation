@@ -16,7 +16,7 @@ export class ImportXlsxFileFromLocalFileCli {
     dateTransparence: DateOnlyJson,
     dateEchéance: DateOnlyJson,
     datePriseDePosteCible: DateOnlyJson | null,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ): Promise<void> {
     const fileContent =
       await this.fileReader.readFromAbsolutePath(absoluteFilePath);
