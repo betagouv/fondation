@@ -12,9 +12,9 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
+import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ImportNouvelleTransparenceXlsxNestDto } from './dto/import-nouvelle-transparence.nest-dto';
-import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 
 type IDataAdministrationController =
   IController<DataAdministrationContextRestContract>;
@@ -54,7 +54,7 @@ export class DataAdministrationController
         ? DateOnly.fromString(dto.datePriseDePosteCible, 'yyyy-MM-dd').toJson()
         : null,
       DateOnly.fromString(
-        dto.dateClotureDelaiObservation,
+        dto.dateClotureDelaiObservation as string,
         'yyyy-MM-dd',
       ).toJson(),
     );
