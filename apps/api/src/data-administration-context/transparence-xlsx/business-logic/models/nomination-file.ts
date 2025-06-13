@@ -25,8 +25,33 @@ export class NominationFileModel {
     this.setNominationFileRead(nominationFileRead);
   }
 
+  updateObservants(
+    rowNumber: number,
+    observants: string[] | null,
+  ): string[] | null {
+    const sameRowNumber = rowNumber === this._nominationFileRead.rowNumber;
+    const sameObservantsCount =
+      observants?.length !== this._nominationFileRead.content.observers?.length;
+
+    const sameObservantCountButDifferentValues = observants?.some(
+      (observant) =>
+        !this._nominationFileRead.content.observers?.includes(observant),
+    );
+
+    if (
+      sameRowNumber &&
+      (sameObservantsCount || sameObservantCountButDifferentValues)
+    )
+      this._nominationFileRead.content.observers = observants;
+    return observants;
+  }
+
   reporterNames() {
     return this._nominationFileRead.content.reporters;
+  }
+
+  content() {
+    return this._nominationFileRead.content;
   }
 
   toSnapshot(): NominationFileModelSnapshot {
@@ -44,6 +69,10 @@ export class NominationFileModel {
 
   get rowNumber(): number {
     return this._nominationFileRead.rowNumber;
+  }
+
+  get observants(): string[] | null {
+    return this._nominationFileRead.content.observers;
   }
 
   private setCreatedAt(_createdAt: Date) {

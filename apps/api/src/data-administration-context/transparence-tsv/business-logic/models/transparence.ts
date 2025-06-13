@@ -112,10 +112,10 @@ export class Transparence {
     return this._createdAt;
   }
 
-  get name(): Transparency {
+  get name(): string {
     return this._name;
   }
-  set name(name: Transparency) {
+  set name(name: string) {
     this._name = z.nativeEnum(Transparency).parse(name);
   }
 

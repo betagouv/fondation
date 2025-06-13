@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { allRulesMapV2 } from "shared-models";
+import { allRulesMapV2, ReportsContextRestContract } from "shared-models";
 import App from "./App.tsx";
 import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
 import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
@@ -36,6 +36,8 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
+import { FetchClient } from "./shared-kernel/adapters/secondary/providers/fetchClient.ts";
+
 startReactDsfr({ defaultColorScheme: "light" });
 
 const BASE_VITE_URL = import.meta.env.VITE_API_URL;
@@ -45,7 +47,9 @@ const authenticationGateway = new ApiAuthenticationGateway(
   authencationApiClient,
 );
 
-const reportApiClient = new FetchReportApiClient(BASE_VITE_URL);
+const reportApiClient = new FetchReportApiClient(
+  new FetchClient<ReportsContextRestContract>("api/reports"),
+);
 const reportGateway = new ApiReportGateway(reportApiClient);
 
 const fileApiClient = new FetchFileApiClient(BASE_VITE_URL);

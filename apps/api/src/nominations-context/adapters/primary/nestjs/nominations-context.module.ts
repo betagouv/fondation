@@ -49,6 +49,9 @@ import { TransparencesController } from 'src/nominations-context/pp-gds/transpar
 import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
 import { TransparenceXlsxImportéeNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/transparence-xlsx-importée.nest-subscriber';
 import { TransparenceXlsxImportéeSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/transparence-xlsx-importée.subscriber';
+import { TransparenceXlsxObservantsImportésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/transparence-xlsx-observants-importés.nest-subscriber';
+import { TransparenceXlsxObservantsImportésSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/transparence-xlsx-observants-importés.subscriber';
+import { UpdateObservantsUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/update-observants/update-observants.use-case';
 import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/import-nouvelle-transparence-xlsx.use-case';
 
 @Module({
@@ -59,6 +62,7 @@ import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/p
     GdsTransparenceNouveauxDossiersNestSubscriber,
     GdsTransparenceDossiersModifiésNestSubscriber,
     TransparenceXlsxImportéeNestSubscriber,
+    TransparenceXlsxObservantsImportésNestSubscriber,
 
     generateProvider(GdsTransparenceNouveauxDossiersSubscriber, [
       ImportNouveauxDossiersTransparenceUseCase,
@@ -71,6 +75,9 @@ import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/p
     ]),
     generateProvider(TransparenceXlsxImportéeSubscriber, [
       ImportNouvelleTransparenceXlsxUseCase,
+    ]),
+    generateProvider(TransparenceXlsxObservantsImportésSubscriber, [
+      UpdateObservantsUseCase,
     ]),
 
     generateProvider(GetTransparenceSnapshotUseCase, [
@@ -101,6 +108,10 @@ import { ImportNouvelleTransparenceXlsxUseCase } from 'src/nominations-context/p
     generateProvider(ImportNouvelleTransparenceXlsxUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceService,
+    ]),
+    generateProvider(UpdateObservantsUseCase, [
+      TRANSACTION_PERFORMER,
+      DOSSIER_DE_NOMINATION_REPOSITORY,
     ]),
 
     generateProvider(TransparenceService, [

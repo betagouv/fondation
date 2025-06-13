@@ -5,6 +5,8 @@ import { NominationFileModelSnapshot } from '../../models/nomination-file';
 import { TransparenceSnapshot } from '../../models/transparence';
 
 export const nouvellTranspaEventId = 'event-id';
+export const transparenceObservantsModifiésEventId =
+  'transparence-observants-modifiés-event-id';
 export const unNomTransparenceXlsx = 'une-transparence.xlsx';
 
 export const lucLoïcReporterId = 'luc-loic-reporter-id';
@@ -89,6 +91,9 @@ const posteCibleProfilé =
 const posteCibleProfiléAvecRetourALaLigne = `Avocat Général CA LYON - HH\n [P][ALEDA]`;
 
 export const uneTransparenceXlsxSiège = genXlsxTestFile();
+export const uneTransparenceXlsxSiègeAvecObservants = genXlsxTestFile({
+  Observants: 'un observant',
+});
 export const uneTransparenceXlsxInvalide = genXlsxTestFile({
   'N°': 'ABC',
 });
@@ -139,8 +144,13 @@ export const genDossierSiège = (
   },
 });
 
-export const unDossierParquet = genDossierSiège();
-export const unDossierSiège = genDossierSiège();
+export const unDossierSiège = genDossierSiège({
+  magistrat: unNomMagistrat,
+});
+export const unDossierSiègeAvecObservants = genDossierSiège({
+  magistrat: unNomMagistrat,
+  observers: ['un observant'],
+});
 export const unDossierSiègeProfilé = genDossierSiège({
   magistrat: unNomMagistrat,
   posteCible: posteCibleProfilé,
@@ -190,6 +200,19 @@ export const uneTransparence = genUneTransparence({
     magistrat: unNomMagistrat,
   },
 });
+
+export const uneTransparenceSansObservants = genUneTransparence({
+  ...unDossierSiège,
+  content: {
+    ...unDossierSiège.content,
+    magistrat: unNomMagistrat,
+    observers: null,
+  },
+});
+
+export const uneTransparenceAvecObservants = genUneTransparence(
+  unDossierSiègeAvecObservants,
+);
 
 export const uneTransparenceAvecProfilé = genUneTransparence(
   unDossierSiègeProfilé,

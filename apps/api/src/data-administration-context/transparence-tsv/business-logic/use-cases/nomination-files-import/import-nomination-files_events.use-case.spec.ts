@@ -1,5 +1,5 @@
 import { Magistrat, NominationFile } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeTransparenceTsvRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence-tsv.repository';
 import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -89,7 +89,7 @@ const aGdsTransparenceNominationFilesAddedEvent =
   );
 
 describe('Import Nomination Files Use Case', () => {
-  let transparenceRepository: FakeTransparenceRepository;
+  let transparenceRepository: FakeTransparenceTsvRepository;
   let domainEventRepository: FakeDomainEventRepository;
   let dateTimeProvider: DeterministicDateProvider;
   let uuidGenerator: DeterministicUuidGenerator;
@@ -100,7 +100,7 @@ describe('Import Nomination Files Use Case', () => {
 
   beforeEach(() => {
     domainEventRepository = new FakeDomainEventRepository();
-    transparenceRepository = new FakeTransparenceRepository();
+    transparenceRepository = new FakeTransparenceTsvRepository();
     transactionPerformer = new NullTransactionPerformer();
     userService = new FakeUserService();
     userService.addUsers(
@@ -154,7 +154,7 @@ describe('Import Nomination Files Use Case', () => {
         },
       );
 
-      transparenceRepository.addTransparence(gdsTransparenceId, {
+      transparenceRepository.addTransparence({
         id: gdsTransparenceId,
         createdAt: currentDate,
         name: gdsTransparenceName,

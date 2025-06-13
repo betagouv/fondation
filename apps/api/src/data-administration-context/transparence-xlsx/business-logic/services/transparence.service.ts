@@ -63,6 +63,21 @@ export class TransparenceService {
     };
   }
 
+  updateTransparence(
+    transparence: Transparence,
+    readCollection: NominationFilesContentReadCollection,
+  ): TransactionableAsync {
+    return async (trx) => {
+      const transparenceXlsxObservantsImportésEvent =
+        transparence.updateObservants(readCollection);
+
+      await this.transparenceRepository.save(transparence)(trx);
+      await this.domainEventRepository.save(
+        transparenceXlsxObservantsImportésEvent,
+      )(trx);
+    };
+  }
+
   readFromCsv(
     transparenceCsv: TransparenceCsv,
   ): NominationFilesContentReadCollection {
@@ -72,6 +87,14 @@ export class TransparenceService {
     ).read();
 
     return nominationFileReadCollection;
+  }
+
+  transparence(
+    nom: string,
+    formation: Magistrat.Formation,
+  ): TransactionableAsync<Transparence | null> {
+    return async (trx) =>
+      await this.transparenceRepository.transparence(nom, formation)(trx);
   }
 
   private async nominationFilesWithReportersIds(

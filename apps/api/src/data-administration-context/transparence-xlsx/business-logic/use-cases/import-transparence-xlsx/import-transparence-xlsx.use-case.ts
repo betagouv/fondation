@@ -22,21 +22,33 @@ export class ImportTransparenceXlsxUseCase {
   ): Promise<{ validationError?: string }> {
     return await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
-      try {
-        const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
+      const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
+      try {
         const readCollection =
           this.transparenceService.readFromCsv(transparenceCsv);
 
-        await this.transparenceService.nouvelleTransparence(
+        const transparence = await this.transparenceService.transparence(
           nomTransparence,
           formation,
-          dateTransparence,
-          dateEchéance,
-          datePriseDePosteCible,
-          dateClôtureDélaiObservation,
-          readCollection,
         )(trx);
+
+        if (transparence) {
+          await this.transparenceService.updateTransparence(
+            transparence,
+            readCollection,
+          )(trx);
+        } else {
+          await this.transparenceService.nouvelleTransparence(
+            nomTransparence,
+            formation,
+            dateTransparence,
+            dateEchéance,
+            datePriseDePosteCible,
+            dateClôtureDélaiObservation,
+            readCollection,
+          )(trx);
+        }
       } catch (error) {
         console.error('Error while importing transparence xlsx:', error);
 
