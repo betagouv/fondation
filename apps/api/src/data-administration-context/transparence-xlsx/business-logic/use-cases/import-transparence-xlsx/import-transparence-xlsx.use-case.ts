@@ -39,10 +39,14 @@ export class ImportTransparenceXlsxUseCase {
         )(trx);
       } catch (error) {
         console.error('Error while importing transparence xlsx:', error);
-        if (error instanceof InvalidRowValueError)
+
+        if (error instanceof InvalidRowValueError) {
           return {
             validationError: error.message,
           };
+        } else {
+          throw error;
+        }
       }
 
       return {};

@@ -20,7 +20,7 @@ export class TransparenceCsv {
   getLignes(): string[][] {
     return this._data
       .slice(TransparenceCsv.HEADER_LAST_ROW_INDEX + 1)
-      .filter((row) => row.length > 0);
+      .filter((row) => row.some((r) => !!r.trim()));
   }
 
   getHeader(): string[] {
