@@ -1,11 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { routeSegments } from "../../../router/core-logic/models/routeSegments";
+import { routeChanged } from "../../../router/core-logic/reducers/router.slice";
 import { AppState } from "../../../store/appState";
 import { dataAdministrationUpload } from "../use-cases/data-administration-upload/dataAdministrationUpload.use-case";
-import { routeChanged } from "../../../router/core-logic/reducers/router.slice";
-import { routeSegments } from "../../../router/core-logic/models/routeSegments";
+import { getTransparence } from "../use-cases/get-transparence/get-transparence.use-case";
 
 export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
   const initialState: AppState<IsTest>["secretariatGeneral"] = {
+    sessions: {
+      transparences: {},
+    },
     nouvelleTransparence: {
       acceptedMimeTypes: {
         sourceDeDonnées: [
@@ -42,6 +46,12 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
         if (action.payload.includes(routeSegments.sgNouvelleTransparence)) {
           state.nouvelleTransparence.uploadQueryStatus = "idle";
         }
+      });
+
+      builder.addCase(getTransparence.fulfilled, (state, action) => {
+        state.sessions.transparences[
+          `${action.payload.nom}-${action.payload.formation}-${action.payload.dateTransparence.year}-${action.payload.dateTransparence.month}-${action.payload.dateTransparence.day}`
+        ] = action.payload;
       });
     },
   });

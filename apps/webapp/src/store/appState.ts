@@ -66,6 +66,14 @@ export type ReportListItem = Pick<
   | "dateTransparence"
 > & { observersCount: number };
 
+export type TransparenceSM = {
+  id: string;
+  nom: string;
+  formation: Magistrat.Formation;
+  dateTransparence: DateOnlyStoreModel;
+  dateClotureDelaiObservation: DateOnlyStoreModel;
+};
+
 export type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 
 export interface AppState<IsTest extends boolean = false> {
@@ -126,6 +134,9 @@ export interface AppState<IsTest extends boolean = false> {
     routeChangedHandler: RouteChangedHandler;
   };
   secretariatGeneral: {
+    sessions: {
+      transparences: Record<string, TransparenceSM>;
+    };
     nouvelleTransparence: {
       acceptedMimeTypes: {
         sourceDeDonnées: string[];
