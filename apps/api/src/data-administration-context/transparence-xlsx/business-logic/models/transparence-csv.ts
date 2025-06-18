@@ -19,13 +19,17 @@ export class TransparenceCsv {
 
   getLignes(): string[][] {
     return this._data
-      .slice(TransparenceCsv.HEADER_LAST_ROW_INDEX + 1)
+      .slice(this.getHeaderIndex() + 1)
       .filter((row) => row.some((r) => !!r.trim()));
   }
 
   getHeader(): string[] {
-    const header = this._data[TransparenceCsv.HEADER_LAST_ROW_INDEX]!;
+    const header = this._data[this.getHeaderIndex()]!;
     return header;
+  }
+
+  private getHeaderIndex() {
+    return this._data[1]?.length ? 1 : TransparenceCsv.HEADER_LAST_ROW_INDEX;
   }
 
   private setNom(value: string) {
