@@ -4,8 +4,8 @@ import {
   uneTransparenceAvecObservants,
   uneTransparenceSansObservants,
   uneTransparenceXlsxSiègeAvecObservants,
-} from './import-transparence-xlsx.fixtures';
-import { TestDependencies } from './import-transparence-xlsx.test-setup';
+} from '../fixtures';
+import { TestDependencies } from '../test-setup';
 
 describe('Import Transparence XLSX Use Case - Observants', () => {
   let deps: TestDependencies;
@@ -18,28 +18,22 @@ describe('Import Transparence XLSX Use Case - Observants', () => {
   });
 
   it('ajoute les observants à une transparence existante', async () => {
-    await deps.importerTransparenceXlsx(
+    await deps.importerObservantsXlsx(
       uneTransparenceXlsxSiègeAvecObservants,
       uneTransparenceSansObservants.formation,
       uneTransparenceSansObservants.name,
       uneTransparenceSansObservants.dateEchéance,
-      uneTransparenceSansObservants.dateTransparence,
-      uneTransparenceSansObservants.datePriseDePosteCible,
-      uneTransparenceSansObservants.dateClôtureDélaiObservation,
     );
 
     deps.expectTransparence(uneTransparenceAvecObservants);
   });
 
   it("publie l'évènement Observants d'une transparence modifiés", async () => {
-    await deps.importerTransparenceXlsx(
+    await deps.importerObservantsXlsx(
       uneTransparenceXlsxSiègeAvecObservants,
       uneTransparenceSansObservants.formation,
       uneTransparenceSansObservants.name,
       uneTransparenceSansObservants.dateEchéance,
-      uneTransparenceSansObservants.dateTransparence,
-      uneTransparenceSansObservants.datePriseDePosteCible,
-      uneTransparenceSansObservants.dateClôtureDélaiObservation,
     );
 
     deps.expectTransparenceXlsxObservantsModifiésEvent(

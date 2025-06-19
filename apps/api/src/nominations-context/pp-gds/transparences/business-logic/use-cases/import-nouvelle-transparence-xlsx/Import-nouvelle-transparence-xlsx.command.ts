@@ -27,7 +27,7 @@ export class ImportNouvelleTransparenceXlsxCommand {
   get dateTransparence(): DateOnlyJson {
     return this._dateTransparence;
   }
-  get dateClôtureDélaiObservation(): DateOnlyJson | null {
+  get dateClôtureDélaiObservation() {
     return this._dateClôtureDélaiObservation;
   }
   get nominationFilesPayload(): TransparenceXlsxImportéeEventPayload['nominationFiles'] {

@@ -128,6 +128,7 @@ export interface AppState<IsTest extends boolean = false> {
       secretariatGeneral: {
         dashboard: RouterProvider["getSecretariatGeneralAnchorAttributes"];
         sgNouvelleTransparence: RouterProvider["getSgNouvelleTransparenceAnchorAttributes"];
+        sgTransparence: RouterProvider["getSgTransparenceAnchorAttributes"];
       };
     };
     routeToComponent: ReturnType<RouteToComponentFactory>;
@@ -138,6 +139,13 @@ export interface AppState<IsTest extends boolean = false> {
       transparences: Record<string, TransparenceSM>;
     };
     nouvelleTransparence: {
+      acceptedMimeTypes: {
+        sourceDeDonnées: string[];
+      };
+      uploadQueryStatus: QueryStatus;
+      validationError: string | null;
+    };
+    importObservants: {
       acceptedMimeTypes: {
         sourceDeDonnées: string[];
       };

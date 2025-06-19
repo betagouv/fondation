@@ -14,6 +14,15 @@ export interface DataAdministrationContextRestContract extends RestContract {
         validationError?: string;
       };
     };
+    importObservantsXlsx: {
+      method: "POST";
+      path: "import-observants-xlsx";
+      body: FormData;
+      queryParams: ImportObservantsXlsxDto;
+      response: {
+        validationError?: string;
+      };
+    };
   };
 }
 
@@ -25,7 +34,15 @@ export const importNouvelleTransparenceDtoSchema = z.object({
   datePriseDePosteCible: z.string().date().optional(),
   dateClotureDelaiObservation: z.string().date(),
 });
-
 export type ImportNouvelleTransparenceDto = z.infer<
   typeof importNouvelleTransparenceDtoSchema
+>;
+
+export const importObservantsXlsxDtoSchema = z.object({
+  nomTransparence: z.string().min(1),
+  formation: z.nativeEnum(Magistrat.Formation),
+  dateTransparence: z.string().date(),
+});
+export type ImportObservantsXlsxDto = z.infer<
+  typeof importObservantsXlsxDtoSchema
 >;

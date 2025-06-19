@@ -10,7 +10,7 @@ export type SessionContent<S extends TypeDeSaisine | unknown = unknown> =
   S extends TypeDeSaisine.TRANSPARENCE_GDS
     ? {
         dateTransparence: DateOnlyJson;
-        dateClôtureDélaiObservation: DateOnlyJson | null;
+        dateClôtureDélaiObservation: DateOnlyJson;
       }
     : object;
 
@@ -93,7 +93,7 @@ export class Session<S extends TypeDeSaisine | unknown = unknown> {
     typeDeSaisine: TypeDeSaisine,
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ) {
     const id = DomainRegistry.uuidGenerator().generate();
     return new Session<TypeDeSaisine.TRANSPARENCE_GDS>(

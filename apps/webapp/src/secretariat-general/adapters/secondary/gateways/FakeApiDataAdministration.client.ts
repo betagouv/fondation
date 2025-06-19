@@ -6,6 +6,7 @@ export class FakeApiDataAdministrationClient
 {
   fakeTransparences: Record<string, ImportNouvelleTransparenceDto> = {};
   importNouvelleTransparenceXlsxError?: Error;
+  importObservantsXlsxError?: Error;
   stubValidationError: {
     validationError?: string;
   } = {};
@@ -18,6 +19,12 @@ export class FakeApiDataAdministrationClient
 
     const id = `${transparence.nomTransparence}-${transparence.dateTransparence}`;
     this.fakeTransparences[id] = transparence;
+
+    return this.stubValidationError;
+  }
+
+  async importObservantsXlsx() {
+    if (this.importObservantsXlsxError) throw this.importObservantsXlsxError;
 
     return this.stubValidationError;
   }

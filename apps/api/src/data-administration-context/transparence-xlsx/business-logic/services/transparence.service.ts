@@ -92,9 +92,14 @@ export class TransparenceService {
   transparence(
     nom: string,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ): TransactionableAsync<Transparence | null> {
     return async (trx) =>
-      await this.transparenceRepository.transparence(nom, formation)(trx);
+      await this.transparenceRepository.transparence(
+        nom,
+        formation,
+        dateTransparence,
+      )(trx);
   }
 
   private async nominationFilesWithReportersIds(

@@ -15,6 +15,7 @@ export class RouterAccessControl {
     reportOverview: true,
     secretariatGeneral: true,
     sgNouvelleTransparence: true,
+    sgTransparence: true,
   };
 
   permissionRoutes: Record<RouteName, readonly Role[]> = {
@@ -24,6 +25,7 @@ export class RouterAccessControl {
     reportOverview: MEMBER_ROLES,
     secretariatGeneral: [Role.ADJOINT_SECRETAIRE_GENERAL],
     sgNouvelleTransparence: [Role.ADJOINT_SECRETAIRE_GENERAL],
+    sgTransparence: [Role.ADJOINT_SECRETAIRE_GENERAL],
   };
 
   safeAccess(

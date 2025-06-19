@@ -4,7 +4,7 @@ import {
   dataAdministrationUpload,
   ImportTransparenceXlsxDto,
 } from "../../../core-logic/use-cases/data-administration-upload/dataAdministrationUpload.use-case";
-import { selectValidationError as selectValidationErrorCall } from "./selectValidationError";
+import { selectNouvelleTransparenceValidationError as selectValidationErrorCall } from "./selectNouvelleTransparenceValidationError";
 
 describe("Select Validation Error", () => {
   let store: ReduxStore;

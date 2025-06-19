@@ -17,10 +17,10 @@ describe("Data Administration Upload", () => {
     deps.expectClientTransparences();
   });
 
-  it("redirige vers la page secrétariat général après l'import", async () => {
-    deps.routerProvider.onGoToSecretariatGeneralClick = vi.fn();
+  it("redirige vers la page de la transparence après l'import", async () => {
+    deps.routerProvider.gotToSgTransparence = vi.fn();
     await deps.uploadTransparence(deps.uneTransparenceAImporter());
-    deps.expectPageSecretariatGeneral();
+    deps.expectPageTransparence();
   });
 
   it("stocke un message d'erreur si l'import échoue", async () => {

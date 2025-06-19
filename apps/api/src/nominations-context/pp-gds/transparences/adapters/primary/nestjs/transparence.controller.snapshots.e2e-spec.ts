@@ -13,9 +13,9 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import supertest from 'supertest';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 
 describe('Transparence Controller - Snapshots', () => {
   let app: INestApplication;
@@ -28,10 +28,12 @@ describe('Transparence Controller - Snapshots', () => {
   beforeEach(async () => {
     await clearDB(db);
 
-    const moduleFixture = await new AppTestingModule().compile();
-    app = new MainAppConfigurator(
-      moduleFixture.createNestApplication(),
-    ).configure();
+    const moduleFixture = await new AppTestingModule()
+      .withStubSessionValidationService(true)
+      .compile();
+    app = new MainAppConfigurator(moduleFixture.createNestApplication())
+      .withCookies()
+      .configure();
 
     await app.init();
   });
@@ -79,15 +81,10 @@ describe('Transparence Controller - Snapshots', () => {
         day,
       };
 
-      return new SecureCrossContextRequestBuilder(app)
-        .withTestedEndpoint((agent) =>
-          agent
-            .get(
-              `/api/nominations/transparence/snapshot/by-nom-formation-et-date`,
-            )
-            .query(query),
-        )
-        .request();
+      return supertest(app.getHttpServer())
+        .get(`/api/nominations/transparence/snapshot/by-nom-formation-et-date`)
+        .set('Cookie', 'sessionId=unused')
+        .query(query);
     };
   });
 
@@ -111,7 +108,11 @@ const uneTransparence: SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> = {
       month: 7,
       day: 15,
     },
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2025,
+      month: 7,
+      day: 22,
+    },
   },
 };
 
@@ -128,6 +129,10 @@ const uneAutreTransparence: SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> = {
       month: 7,
       day: 15,
     },
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2025,
+      month: 7,
+      day: 22,
+    },
   },
 };

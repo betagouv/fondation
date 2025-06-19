@@ -118,6 +118,7 @@ describe('SQL Transparence Repository', () => {
       transparenceRepository.transparence(
         aTransparence.name,
         aTransparence.formation,
+        aTransparence.dateTransparence,
       ),
     );
 

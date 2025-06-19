@@ -1,9 +1,9 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { routeSegments } from "../../../router/core-logic/models/routeSegments";
+import { createAction, createSlice } from "@reduxjs/toolkit";
 import { routeChanged } from "../../../router/core-logic/reducers/router.slice";
 import { AppState } from "../../../store/appState";
 import { dataAdministrationUpload } from "../use-cases/data-administration-upload/dataAdministrationUpload.use-case";
 import { getTransparence } from "../use-cases/get-transparence/get-transparence.use-case";
+import { importObservantsXlsx } from "../use-cases/import-observants-xlsx/importObservantsXlsx.use-case";
 
 export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
   const initialState: AppState<IsTest>["secretariatGeneral"] = {
@@ -11,6 +11,15 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
       transparences: {},
     },
     nouvelleTransparence: {
+      acceptedMimeTypes: {
+        sourceDeDonnées: [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
+      },
+      uploadQueryStatus: "idle",
+      validationError: null,
+    },
+    importObservants: {
       acceptedMimeTypes: {
         sourceDeDonnées: [
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -42,10 +51,27 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
         state.nouvelleTransparence.validationError =
           action.payload?.validationError || null;
       });
-      builder.addCase(routeChanged, (state, action) => {
-        if (action.payload.includes(routeSegments.sgNouvelleTransparence)) {
-          state.nouvelleTransparence.uploadQueryStatus = "idle";
-        }
+
+      builder.addCase(importObservantsXlsx.rejected, (state) => {
+        state.importObservants.uploadQueryStatus = "rejected";
+        state.importObservants.validationError = null;
+      });
+      builder.addCase(importObservantsXlsx.pending, (state) => {
+        state.importObservants.uploadQueryStatus = "pending";
+        state.importObservants.validationError = null;
+      });
+      builder.addCase(importObservantsXlsx.fulfilled, (state, action) => {
+        state.importObservants.uploadQueryStatus = action.payload
+          ?.validationError
+          ? "rejected"
+          : "fulfilled";
+        state.importObservants.validationError =
+          action.payload?.validationError || null;
+      });
+
+      builder.addCase(routeChanged, (state) => {
+        state.nouvelleTransparence.uploadQueryStatus = "idle";
+        state.importObservants.uploadQueryStatus = "idle";
       });
 
       builder.addCase(getTransparence.fulfilled, (state, action) => {
@@ -53,6 +79,15 @@ export const createSecretariatGeneralSlice = <IsTest extends boolean>() => {
           `${action.payload.nom}-${action.payload.formation}-${action.payload.dateTransparence.year}-${action.payload.dateTransparence.month}-${action.payload.dateTransparence.day}`
         ] = action.payload;
       });
+
+      builder.addCase(clearImportObservants, (state) => {
+        state.importObservants.uploadQueryStatus = "idle";
+        state.importObservants.validationError = null;
+      });
     },
   });
 };
+
+export const clearImportObservants = createAction(
+  "secretariatGeneral/clearImportObservants",
+);

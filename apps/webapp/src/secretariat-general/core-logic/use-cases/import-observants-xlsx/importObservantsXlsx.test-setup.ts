@@ -1,15 +1,15 @@
 import { ImportNouvelleTransparenceDto, Magistrat } from "shared-models";
+import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
+import { routeChanged } from "../../../../router/core-logic/reducers/router.slice";
 import { StubNodeFileProvider } from "../../../../shared-kernel/adapters/secondary/providers/stubNodeFileProvider";
+import { AppState, QueryStatus } from "../../../../store/appState";
 import { initReduxStore, ReduxStore } from "../../../../store/reduxStore";
 import { ApiDataAdministrationGateway } from "../../../adapters/secondary/gateways/ApiDataAdministration.gateway";
 import { FakeApiDataAdministrationClient } from "../../../adapters/secondary/gateways/FakeApiDataAdministration.client";
 import {
-  dataAdministrationUpload,
-  ImportTransparenceXlsxDto,
-} from "./dataAdministrationUpload.use-case";
-import { StubRouterProvider } from "../../../../router/adapters/stubRouterProvider";
-import { AppState, QueryStatus } from "../../../../store/appState";
-import { routeChanged } from "../../../../router/core-logic/reducers/router.slice";
+  importObservantsXlsx,
+  ImportObservantsXlsxDto,
+} from "./importObservantsXlsx.use-case";
 
 export class TestDependencies {
   readonly dataAdministrationClient: FakeApiDataAdministrationClient;
@@ -58,11 +58,8 @@ export class TestDependencies {
       nomTransparence: "Balai",
       formation: Magistrat.Formation.SIEGE,
       dateTransparence: "2023-01-01",
-      dateEcheance: "2023-01-01",
-      datePriseDePosteCible: "2024-01-01",
-      dateClotureDelaiObservation: "2024-01-05",
       fichier: new File([""], "transparence.xlsx"),
-    } satisfies ImportTransparenceXlsxDto;
+    } satisfies ImportObservantsXlsxDto;
   }
 
   unFichierPdfAImporter() {
@@ -71,18 +68,15 @@ export class TestDependencies {
       nomTransparence: "Balai",
       formation: Magistrat.Formation.SIEGE,
       dateTransparence: "2023-01-01",
-      dateEcheance: "2023-01-01",
-      datePriseDePosteCible: "2024-01-01",
-      dateClotureDelaiObservation: "2024-01-05",
       fichier: new File([""], "transparence.pdf", {
         type: "application/pdf",
       }),
-    } satisfies ImportTransparenceXlsxDto;
+    } satisfies ImportObservantsXlsxDto;
   }
 
   givenAFailedUpload() {
     this.store.dispatch(
-      dataAdministrationUpload.rejected(
+      importObservantsXlsx.rejected(
         new Error(),
         "",
         this.uneTransparenceAImporter(),
@@ -90,8 +84,8 @@ export class TestDependencies {
     );
   }
 
-  async uploadTransparence(transparence: ImportTransparenceXlsxDto) {
-    await this.store.dispatch(dataAdministrationUpload(transparence));
+  async importObservants(transparence: ImportObservantsXlsxDto) {
+    await this.store.dispatch(importObservantsXlsx(transparence));
   }
 
   routeChangedToNouvelleTransparence() {
@@ -102,10 +96,8 @@ export class TestDependencies {
     );
   }
 
-  expectClientTransparences(...transparences: ImportNouvelleTransparenceDto[]) {
-    expect(
-      Object.values(this.dataAdministrationClient.fakeTransparences),
-    ).toEqual(transparences);
+  expectSuccessfulUpload() {
+    this.expectUploadQueryStatus("fulfilled");
   }
 
   expectFailedUpload() {
@@ -119,8 +111,8 @@ export class TestDependencies {
     );
   }
 
-  expectPageTransparence() {
-    expect(this.routerProvider.gotToSgTransparence).toHaveBeenCalled();
+  expectPageSecretariatGeneral() {
+    expect(this.routerProvider.goToSgDashboard).toHaveBeenCalled();
   }
 
   expectValidationError(validationError: string) {
@@ -128,8 +120,8 @@ export class TestDependencies {
       ...this.initialState,
       secretariatGeneral: {
         ...this.initialState.secretariatGeneral,
-        nouvelleTransparence: {
-          ...this.initialState.secretariatGeneral.nouvelleTransparence,
+        importObservants: {
+          ...this.initialState.secretariatGeneral.importObservants,
           uploadQueryStatus: "rejected",
           validationError,
         },
@@ -149,8 +141,8 @@ export class TestDependencies {
       },
       secretariatGeneral: {
         ...this.initialState.secretariatGeneral,
-        nouvelleTransparence: {
-          ...this.initialState.secretariatGeneral.nouvelleTransparence,
+        importObservants: {
+          ...this.initialState.secretariatGeneral.importObservants,
           uploadQueryStatus: status,
         },
       },

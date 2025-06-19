@@ -1,8 +1,8 @@
 import xlsx from 'node-xlsx';
 import { Gender, Magistrat, Role } from 'shared-models';
 import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
-import { NominationFileModelSnapshot } from '../../models/nomination-file';
-import { TransparenceSnapshot } from '../../models/transparence';
+import { NominationFileModelSnapshot } from '../models/nomination-file';
+import { TransparenceSnapshot } from '../models/transparence';
 
 export const nouvellTranspaEventId = 'event-id';
 export const transparenceObservantsModifiésEventId =

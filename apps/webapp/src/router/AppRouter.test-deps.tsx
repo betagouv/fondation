@@ -38,6 +38,7 @@ const routeToComponentMap: RouteToComponentMap<false> = {
   reportOverview: () => <div>an overview</div>,
   secretariatGeneral: () => <div>Tableau de bord</div>,
   sgNouvelleTransparence: () => <div>Nouvelle transparence</div>,
+  sgTransparence: () => <div>Transparence Secrétariat Général</div>,
 };
 
 export const getTestDependencies = () => {
@@ -86,7 +87,7 @@ export const getTestDependencies = () => {
   };
 
   const expectGdsReportsListPage = async () => {
-    await screen.findByText(`a list with transparency: ${nomTransparence}`);
+    await screen.findByText(`a list with transparency: ${unNomTransparence}`);
     expect(window.location.pathname).toBe(
       join(
         baseTransaparencySegment,
@@ -209,13 +210,15 @@ export const getTestDependencies = () => {
 
 export type TestDependencies = ReturnType<typeof getTestDependencies>;
 
-const nomTransparence = "PARQUET_DU_06_FEVRIER_2025";
+export const unNomTransparence = "PARQUET_DU_06_FEVRIER_2025";
+export const uneDateTransparence = "01-01-2025";
+export const uneFormation = "parquet";
 
 const baseTransaparencySegment = join(
   `/${routeSegments.transparences}`,
   routeSegments.propositionduGardeDesSceaux,
-  "01-01-2025",
-  nomTransparence,
+  uneDateTransparence,
+  unNomTransparence,
 );
 
 const membreCommun: AuthenticatedUserSM = {

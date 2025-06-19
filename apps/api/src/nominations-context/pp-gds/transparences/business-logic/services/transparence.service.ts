@@ -23,7 +23,7 @@ export class TransparenceService {
     transparenceName: string,
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
-    dateClôtureDélaiObservation: DateOnlyJson | null,
+    dateClôtureDélaiObservation: DateOnlyJson,
   ): TransactionableAsync<Session> {
     return async (trx) => {
       const session = Session.nouvelleTransparence(

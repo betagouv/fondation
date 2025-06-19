@@ -22,7 +22,7 @@ import {
 import { selectUploadExcelFailed } from "../../selectors/selectUploadExcelFailed";
 import { UploadExcelFailedAlert } from "./UploadExcelFailedAlert";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { selectValidationError } from "../../selectors/selectValidationError";
+import { selectNouvelleTransparenceValidationError } from "../../selectors/selectNouvelleTransparenceValidationError";
 
 const mandatoryField = "Champ obligatoire.";
 const invalidDateFormat = "Format de date invalide.";
@@ -73,7 +73,9 @@ const NouvelleTransparence: FC = () => {
     selectBreadcrumb(state, currentPage),
   );
   const uploadExcelFailed = useAppSelector(selectUploadExcelFailed);
-  const validationError = useAppSelector(selectValidationError);
+  const validationError = useAppSelector(
+    selectNouvelleTransparenceValidationError,
+  );
 
   const {
     control,

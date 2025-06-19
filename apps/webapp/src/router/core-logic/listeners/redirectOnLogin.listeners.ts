@@ -20,7 +20,7 @@ export const redirectOnLogin: Listener = (startAppListening) =>
       if (!user) throw new Error("User is not defined");
 
       if (user.role === Role.ADJOINT_SECRETAIRE_GENERAL)
-        routerProvider.onGoToSecretariatGeneralClick();
+        routerProvider.goToSgDashboard();
       else routerProvider.goToTransparencies();
     },
   });

@@ -11,8 +11,8 @@ import {
   uneTransparenceXlsxSiège,
   unXlsxProfilé,
   unXlsxProfiléAvecRetourALaLigne,
-} from './import-transparence-xlsx.fixtures';
-import { TestDependencies } from './import-transparence-xlsx.test-setup';
+} from '../fixtures';
+import { TestDependencies } from '../test-setup';
 
 describe('Import Transparence XLSX Use Case', () => {
   let deps: TestDependencies;

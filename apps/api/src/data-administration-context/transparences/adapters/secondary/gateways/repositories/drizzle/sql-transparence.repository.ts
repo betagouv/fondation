@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import { Magistrat, Transparency } from 'shared-models';
+import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 import {
   TransparenceSnapshot,
@@ -50,6 +50,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
   transparence(
     name: Transparency,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ): DrizzleTransactionableAsync<TransparenceXlsx | null> {
     return async (db) => {
       const transparenceResult = await db
@@ -59,6 +60,10 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           and(
             eq(transparencesPm.name, name),
             eq(transparencesPm.formation, formation),
+            eq(
+              transparencesPm.dateTransparence,
+              DateOnly.fromJson(dateTransparence).toDate(),
+            ),
           ),
         )
         .limit(1)
@@ -73,7 +78,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
       return TransparenceXlsx.fromSnapshot({
         id: transparenceRow.id,
         createdAt: transparenceRow.createdAt,
-        name: z.nativeEnum(Transparency).parse(transparenceRow.name),
+        name: z.string().parse(transparenceRow.name),
         formation: transparenceRow.formation,
         dateTransparence: DateOnly.fromDate(
           transparenceRow.dateTransparence,

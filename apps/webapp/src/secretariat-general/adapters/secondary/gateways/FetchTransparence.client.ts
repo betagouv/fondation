@@ -2,7 +2,7 @@ import { NominationsContextTransparenceRestContract } from "shared-models";
 import { FetchClient } from "../../../../shared-kernel/adapters/secondary/providers/fetchClient";
 import { TransparenceClient } from "../../../core-logic/gateways/Transparence.client";
 
-export class FetchReportApiClient implements TransparenceClient {
+export class FetchTransparenceClient implements TransparenceClient {
   constructor(
     private readonly requestClient: FetchClient<NominationsContextTransparenceRestContract>,
   ) {}

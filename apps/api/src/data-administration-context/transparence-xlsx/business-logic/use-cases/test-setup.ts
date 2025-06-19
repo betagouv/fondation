@@ -6,26 +6,27 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
-import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
+import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
 import {
   TransparenceXlsxImportéeEvent,
   TransparenceXlsxImportéeEventPayload,
-} from '../../models/events/transparence-xlsx-importée.event';
-import { NominationFileModelSnapshot } from '../../models/nomination-file';
-import { TransparenceSnapshot } from '../../models/transparence';
+} from '../models/events/transparence-xlsx-importée.event';
+import { NominationFileModelSnapshot } from '../models/nomination-file';
+import { TransparenceSnapshot } from '../models/transparence';
 import {
   currentDate,
   jocelinUser,
   lucLoïcUser,
   uneTransparenceSansObservants,
   unNomMagistrat,
-} from './import-transparence-xlsx.fixtures';
-import { ImportTransparenceXlsxUseCase } from './import-transparence-xlsx.use-case';
+} from './fixtures';
+import { ImportTransparenceXlsxUseCase } from './import-transparence-xlsx/import-transparence-xlsx.use-case';
 import { File } from 'buffer';
 import {
   TransparenceXlsxObservantsImportésEvent,
   TransparenceXlsxObservantsImportésEventPayload,
-} from '../../models/events/transparence-xlsx-observants-importés.event';
+} from '../models/events/transparence-xlsx-observants-importés.event';
+import { ImportObservantsXlsxUseCase } from './import-observants-xlsx/import-observants-xlsx.use-case';
 
 export class TestDependencies {
   readonly transparenceRepository: FakeTransparenceRepository;
@@ -76,6 +77,22 @@ export class TestDependencies {
       datePriseDePosteCible,
       dateClôtureDélaiObservation,
     );
+  }
+
+  async importerObservantsXlsx(
+    xlsxFile: File,
+    formation: Magistrat.Formation,
+    name: string,
+    dateTransparence: DateOnlyJson,
+  ) {
+    return new ImportObservantsXlsxUseCase(
+      new NullTransactionPerformer(),
+      new TransparenceService(
+        this.domainEventRepository,
+        this.transparenceRepository,
+        this.userService,
+      ),
+    ).execute(xlsxFile, formation, name, dateTransparence);
   }
 
   expectTransparence(...transparences: TransparenceSnapshot[]) {

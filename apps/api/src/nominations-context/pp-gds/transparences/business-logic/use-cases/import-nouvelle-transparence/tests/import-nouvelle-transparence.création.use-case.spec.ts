@@ -43,7 +43,11 @@ describe('Nouvelle transparence GDS', () => {
             month: 6,
             day: 13,
           },
-          dateClôtureDélaiObservation: null,
+          dateClôtureDélaiObservation: {
+            year: 2025,
+            month: 6,
+            day: 20,
+          },
         },
       },
     ]);

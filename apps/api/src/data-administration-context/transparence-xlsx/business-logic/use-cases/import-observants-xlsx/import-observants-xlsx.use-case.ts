@@ -5,7 +5,7 @@ import { XlsxReader } from '../../models/xlsx-reader';
 import { TransparenceService } from '../../services/transparence.service';
 import { InvalidRowValueError } from 'src/data-administration-context/transparences/business-logic/errors/invalid-row-value.error';
 
-export class ImportTransparenceXlsxUseCase {
+export class ImportObservantsXlsxUseCase {
   constructor(
     private readonly transactionPerformer: TransactionPerformer,
     private readonly transparenceService: TransparenceService,
@@ -16,36 +16,29 @@ export class ImportTransparenceXlsxUseCase {
     formation: Magistrat.Formation,
     nomTransparence: string,
     dateTransparence: DateOnlyJson,
-    dateEchéance: DateOnlyJson | null,
-    datePriseDePosteCible: DateOnlyJson | null,
-    dateClôtureDélaiObservation: DateOnlyJson,
   ): Promise<{ validationError?: string }> {
     return await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
       const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
-      const transparence = await this.transparenceService.transparence(
-        nomTransparence,
-        formation,
-        dateTransparence,
-      )(trx);
-      if (transparence) {
-        throw new Error(
-          `Transparence already exists: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
-        );
-      }
-
       try {
         const readCollection =
           this.transparenceService.readFromCsv(transparenceCsv);
 
-        await this.transparenceService.nouvelleTransparence(
+        const transparence = await this.transparenceService.transparence(
           nomTransparence,
           formation,
           dateTransparence,
-          dateEchéance,
-          datePriseDePosteCible,
-          dateClôtureDélaiObservation,
+        )(trx);
+
+        if (!transparence) {
+          throw new Error(
+            `Transparence not found: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
+          );
+        }
+
+        await this.transparenceService.updateTransparence(
+          transparence,
           readCollection,
         )(trx);
       } catch (error) {

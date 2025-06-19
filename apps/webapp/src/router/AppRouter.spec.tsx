@@ -1,6 +1,12 @@
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { getTestDependencies, TestDependencies } from "./AppRouter.test-deps";
+import {
+  getTestDependencies,
+  TestDependencies,
+  uneDateTransparence,
+  uneFormation,
+  unNomTransparence,
+} from "./AppRouter.test-deps";
 
 describe("Composant Routeur de l'Application", () => {
   let deps: TestDependencies;
@@ -47,7 +53,7 @@ describe("Composant Routeur de l'Application", () => {
       await deps.expectSecrétariatGénéralDashboardPage();
     });
 
-    it("accède à la page du tableau de bord du secrétariat général", async () => {
+    it("accède à la page du tableau de bord", async () => {
       deps.renderAppRouter();
       await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
 
@@ -56,7 +62,7 @@ describe("Composant Routeur de l'Application", () => {
       await deps.expectSecrétariatGénéralDashboardPage();
     });
 
-    it("accède à la page de nouvelle transparence du secrétariat général", async () => {
+    it("accède à la page de nouvelle transparence", async () => {
       deps.renderAppRouter();
       await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
 
@@ -74,6 +80,17 @@ describe("Composant Routeur de l'Application", () => {
       await deps.visitTransparencesPage();
 
       await deps.expectSecrétariatGénéralDashboardPage();
+    });
+
+    it("accède à la page d'une transparence", async () => {
+      deps.renderAppRouter();
+      await deps.givenAnAuthenticatedAdjointSecrétaireGénéral();
+
+      const route = `/secretariat-general/saisine/transparence/session/${unNomTransparence}-${uneFormation}-${uneDateTransparence}`;
+      await deps.visit(route);
+
+      await screen.findByText("Transparence Secrétariat Général");
+      expect(window.location.pathname).toBe(route);
     });
   });
 

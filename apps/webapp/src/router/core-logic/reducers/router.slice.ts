@@ -43,6 +43,9 @@ export const createRouterSlice = ({
           sgNouvelleTransparence:
             routerProvider?.getSgNouvelleTransparenceAnchorAttributes ??
             getStubAnchorAttributes,
+          sgTransparence:
+            routerProvider?.getSgTransparenceAnchorAttributes ??
+            getStubAnchorAttributes,
         },
       },
       routeToComponent: routeToComponent ?? (() => () => null),

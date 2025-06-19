@@ -7,10 +7,13 @@ export class StubRouterProvider implements RouterProvider {
   readonly secretariatGeneralHref = "/secretariat-general";
   readonly sgNouvelleTransparenceHref =
     "/secretariat-general/nouvelle-transparence";
+  readonly sgTransparenceHref =
+    "/secretariat-general/saisine/transparence/un-id";
 
   onGoToLoginClick = () => null;
   onGoToTransparenciesClick = () => null;
-  onGoToSecretariatGeneralClick = () => null;
+  goToSgDashboard = () => null;
+  onGoToSgTransparenceClick = () => null;
   goToSgNouvelleTransparence = () => null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onTransparencyClickAttribute = (_: Transparency) => null;
@@ -18,11 +21,13 @@ export class StubRouterProvider implements RouterProvider {
 
   goToLogin = () => {};
   goToTransparencies = () => {};
+  gotToSgTransparence() {}
+
   getSecretariatGeneralAnchorAttributes = () => ({
     href: this.secretariatGeneralHref,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
-      this.onGoToSecretariatGeneralClick();
+      this.goToSgDashboard();
     },
   });
   getSgNouvelleTransparenceAnchorAttributes = () => ({
@@ -32,6 +37,14 @@ export class StubRouterProvider implements RouterProvider {
       this.goToSgNouvelleTransparence();
     },
   });
+  getSgTransparenceAnchorAttributes = () => ({
+    href: this.sgTransparenceHref,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      this.onGoToSgTransparenceClick();
+    },
+  });
+
   getLoginHref = () => this.loginHref;
   getTransparencyReportsHref = (transparency: Transparency) =>
     `/transparences/${transparency}`;

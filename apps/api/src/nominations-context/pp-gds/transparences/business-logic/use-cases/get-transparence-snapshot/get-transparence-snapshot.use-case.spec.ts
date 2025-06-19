@@ -49,6 +49,10 @@ const uneTransparence = {
   version: 1,
   content: {
     dateTransparence: uneDateTransparence,
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2023,
+      month: 10,
+      day: 22,
+    },
   },
 } satisfies SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>;
