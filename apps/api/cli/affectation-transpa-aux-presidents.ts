@@ -140,7 +140,6 @@ async function affecterAUnPrésident(
         ? eq(dossierDeNominationPm.sessionId, sessionId)
         : and(
             eq(dossierDeNominationPm.sessionId, sessionId),
-            sql`content @> '{"grade": "HH"}'::jsonb`,
             sql`content->>'numeroDeDossier' >= '1' AND content->>'numeroDeDossier' <= '12'`,
           ),
     )
