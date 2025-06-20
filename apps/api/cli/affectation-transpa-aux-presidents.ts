@@ -212,10 +212,7 @@ async function affecterAUnPrésident(
       ...newValues
     } = existingReport;
 
-    if (reporterId === présidentReporterId)
-      throw new Error(
-        `Report ${existingReport.id} already has the correct reporterId for the formation ${formation}`,
-      );
+    if (reporterId === présidentReporterId) continue;
 
     const newReportRaw = await tx
       .insert(reports)
