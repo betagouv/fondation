@@ -92,7 +92,8 @@ const posteCibleProfiléAvecRetourALaLigne = `Avocat Général CA LYON - HH\n [P
 
 export const uneTransparenceXlsxSiège = genXlsxTestFile();
 export const uneTransparenceXlsxSiègeAvecObservants = genXlsxTestFile({
-  Observants: 'un observant',
+  Observants:
+    'un observant\ndétail\n  \t\nun autre observant \n détail du second  observant ',
 });
 export const uneTransparenceXlsxInvalide = genXlsxTestFile({
   'N°': 'ABC',
@@ -149,7 +150,10 @@ export const unDossierSiège = genDossierSiège({
 });
 export const unDossierSiègeAvecObservants = genDossierSiège({
   magistrat: unNomMagistrat,
-  observers: ['un observant'],
+  observers: [
+    'un observant\ndétail',
+    'un autre observant\ndétail du second  observant',
+  ],
 });
 export const unDossierSiègeProfilé = genDossierSiège({
   magistrat: unNomMagistrat,

@@ -1,15 +1,12 @@
-import {
-  GSHEET_BLOCK_LINE_BREAK_TOKEN,
-  GSHEET_CELL_LINE_BREAK_TOKEN,
-} from '../nomination-file-content-reader';
-
 export class ObserversTsvNormalizer {
-  static normalize(reportersValue: string): string[] {
-    return reportersValue.split(GSHEET_BLOCK_LINE_BREAK_TOKEN).map((value) =>
-      value
-        .split(GSHEET_CELL_LINE_BREAK_TOKEN)
-        .map((value) => value.trim())
+  static normalize(observantsValue: string): string[] {
+    const observants = observantsValue.split(/\n\s*\n/).map((observant) =>
+      observant
+        .split('\n')
+        .map((ligne) => ligne.trim())
         .join('\n'),
     );
+
+    return observants;
   }
 }

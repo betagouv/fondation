@@ -393,6 +393,13 @@
       "when": 1749751373282,
       "tag": "0055_nominations__rename_session_automne_name",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1750428861904,
+      "tag": "0056_data_admin__remove_empty_observants",
+      "breakpoints": true
     }
   ]
 }
