@@ -155,7 +155,7 @@ async function affecterAUnPrésident(
   await tx
     .update(affectationPm)
     .set({
-      affectationsDossiersDeNominations: sql`
+      affectationsDossiersDeNominations: sql.raw(`
         array(
           select
             case 
@@ -170,7 +170,7 @@ async function affecterAUnPrésident(
             end
           from unnest("affectations_dossiers_de_nominations") as elem
         )
-      `,
+      `),
     })
     .where(eq(affectationPm.sessionId, sessionId))
     .execute();
@@ -316,7 +316,7 @@ async function réaffecterDossiersSiège(
   await tx
     .update(affectationPm)
     .set({
-      affectationsDossiersDeNominations: sql`
+      affectationsDossiersDeNominations: sql.raw(`
         array(
           select 
             case 
@@ -329,7 +329,7 @@ async function réaffecterDossiersSiège(
             end
           from unnest("affectations_dossiers_de_nominations") as elem
         )
-      `,
+      `),
     })
     .where(eq(affectationPm.sessionId, sessionId))
     .execute();
