@@ -159,7 +159,7 @@ async function affecterAUnPrésident(
         array(
           select
             case 
-             when elem->>'dossierDeNominationId' = any(ARRAY[${dossierIds.map((d) => d.id).join(',')}]::uuid[])
+             when elem->>'dossierDeNominationId' = any(ARRAY[${dossierIds.map((d) => d.id).join(',')}]::text[])
               then jsonb_build_object(
                 'dossierDeNominationId', elem->>'dossierDeNominationId',
                 'rapporteurIds', (
@@ -320,7 +320,7 @@ async function réaffecterDossiersSiège(
         array(
           select 
             case 
-              when elem->>'dossierDeNominationId' = any(ARRAY[${dossiersMalAffectés.map((d) => d.id).join(',')}]::uuid[])
+              when elem->>'dossierDeNominationId' = any(ARRAY[${dossiersMalAffectés.map((d) => d.id).join(',')}]::text[])
               then jsonb_build_object(
                 'dossierDeNominationId', elem->>'dossierDeNominationId',
                 'rapporteurIds', jsonb_build_array(${nouveauRapporteurId})
