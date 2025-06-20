@@ -163,7 +163,7 @@ async function affecterAUnPrésident(
               then jsonb_build_object(
                 'dossierDeNominationId', elem->>'dossierDeNominationId',
                 'rapporteurIds', (
-                  (elem->'rapporteurIds')::jsonb || ${présidentReporterId}
+                  (elem->'rapporteurIds')::jsonb || jsonb_build_array(${sql`'${présidentReporterId}'`})
                 )
               )
               else elem
