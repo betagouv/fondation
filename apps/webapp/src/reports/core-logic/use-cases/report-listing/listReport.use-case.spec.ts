@@ -3,17 +3,12 @@ import { ApiAuthenticationGateway } from "../../../../authentication/adapters/se
 import { FakeAuthenticationApiClient } from "../../../../authentication/adapters/secondary/gateways/FakeAuthentication.client";
 import { AuthenticatedUserSM } from "../../../../authentication/core-logic/gateways/Authentication.gateway";
 import { AuthenticateParams } from "../../../../authentication/core-logic/use-cases/authentication/authenticate";
-import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 import { ReduxStore, initReduxStore } from "../../../../store/reduxStore";
-import {
-  expectStoredReportsFactory,
-  expectStoredReportsListFactory,
-} from "../../../../test/reports";
+import { expectStoredReportsListFactory } from "../../../../test/reports";
 import { ApiReportGateway } from "../../../adapters/secondary/gateways/ApiReport.gateway";
 import { FakeReportApiClient } from "../../../adapters/secondary/gateways/FakeReport.client";
 import { ReportBuilder } from "../../builders/Report.builder";
 import { ReportApiModelBuilder } from "../../builders/ReportApiModel.builder";
-import { preloadReportsRetrieval } from "../../listeners/preload-reports-retrieval.listeners";
 import { listReport } from "./listReport.use-case";
 
 describe("Reports Listing", () => {
@@ -36,7 +31,6 @@ describe("Reports Listing", () => {
       },
       {},
       {},
-      { preloadReportsRetrieval },
     );
   });
 
@@ -78,17 +72,6 @@ describe("Reports Listing", () => {
             dateTransparence: aReport.dateTransparence,
           },
         ]);
-      });
-
-      it("preloads the reports overviews", async () => {
-        await store.dispatch(listReport());
-        const stateBeforePreload = store.getState();
-        await sleep(50);
-
-        expectStoredReportsFactory(
-          store,
-          stateBeforePreload,
-        )(ReportBuilder.fromApiModel(aReportApiModel).buildRetrieveSM());
       });
     });
   });

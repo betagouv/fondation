@@ -19,7 +19,6 @@ import { ApiTransparencyGateway } from "./reports/adapters/secondary/gateways/Ap
 import { EnvTransparencyApiClient } from "./reports/adapters/secondary/gateways/EnvTransparency.client.ts";
 import { FetchReportApiClient } from "./reports/adapters/secondary/gateways/FetchReport.client.ts";
 import { genFileUrlsOnReportRetrieval } from "./reports/core-logic/listeners/genFileUrlsOnReportRetrieval.listeners.ts";
-import { preloadReportsRetrieval } from "./reports/core-logic/listeners/preload-reports-retrieval.listeners.ts";
 import { reportFilesAttached } from "./reports/core-logic/listeners/report-files-attached.listeners.ts";
 import { routeToReactComponentMap } from "./router/adapters/routeToReactComponentMap.tsx";
 import {
@@ -31,12 +30,12 @@ import { useRouteToComponentFactory } from "./router/adapters/type-route/useRout
 import { redirectOnLogin } from "./router/core-logic/listeners/redirectOnLogin.listeners.ts";
 import { redirectOnLogout } from "./router/core-logic/listeners/redirectOnLogout.listeners.ts";
 import { redirectOnRouteChange } from "./router/core-logic/listeners/redirectOnRouteChange.listeners.ts";
+import { ApiDataAdministrationClient } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.client.ts";
+import { ApiDataAdministrationGateway } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.gateway.ts";
 import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/realDateProvider.ts";
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
-import { ApiDataAdministrationGateway } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.gateway.ts";
-import { ApiDataAdministrationClient } from "./secretariat-general/adapters/secondary/gateways/ApiDataAdministration.client.ts";
 startReactDsfr({ defaultColorScheme: "light" });
 
 const BASE_VITE_URL = import.meta.env.VITE_API_URL;
@@ -97,7 +96,6 @@ const store = initReduxStore<false>(
     redirectOnLogout,
     redirectOnLogin,
     reportFilesAttached,
-    preloadReportsRetrieval,
     genFileUrlsOnReportRetrieval,
   },
   routeToReactComponentMap,
