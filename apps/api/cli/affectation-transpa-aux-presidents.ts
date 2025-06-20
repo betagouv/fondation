@@ -141,6 +141,7 @@ async function affecterAUnPrésident(
         : and(
             eq(dossierDeNominationPm.sessionId, sessionId),
             sql`content @> '{"grade": "HH"}'::jsonb`,
+            sql`content->>'numeroDeDossier' >= '1' AND content->>'numeroDeDossier' <= '12'`,
           ),
     )
     .execute();
@@ -263,11 +264,11 @@ async function affecterAUnPrésident(
 async function réaffecterDossiersSiège(
   tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
   sessionId: string,
-  nouveauRapporteurId: string,
+  ancienRapporteurId: string,
 ) {
   const formation = Magistrat.Formation.SIEGE;
 
-  const rapporteurMalAffectéList = await tx
+  const nouveauRapporteurList = await tx
     .select({ id: users.id })
     .from(users)
     .where(
@@ -278,15 +279,15 @@ async function réaffecterDossiersSiège(
       ),
     )
     .execute();
-  if (!rapporteurMalAffectéList.length)
+  if (!nouveauRapporteurList.length)
     throw new Error(
       'No user found with first name "christian" and last name "vigouroux"',
     );
-  if (rapporteurMalAffectéList.length > 1)
+  if (nouveauRapporteurList.length > 1)
     throw new Error(
       'Multiple users found with first name "christian" and last name "vigouroux"',
     );
-  const rapporteurMalAffecté = rapporteurMalAffectéList[0]!.id;
+  const nouveauRapporteurId = nouveauRapporteurList[0]!.id;
 
   const dossiersMalAffectés = await tx
     .select({ id: dossierDeNominationPm.id })
@@ -342,7 +343,7 @@ async function réaffecterDossiersSiège(
           reports.dossierDeNominationId,
           dossiersMalAffectés.map((d) => d.id),
         ),
-        eq(reports.reporterId, rapporteurMalAffecté),
+        eq(reports.reporterId, ancienRapporteurId),
         eq(reports.formation, formation),
         eq(reports.sessionId, sessionId),
       ),
@@ -367,18 +368,12 @@ async function réaffecterDossiersSiège(
       attachedFiles,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       version,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       reporterId,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       state,
       ...newValues
     } = existingReport;
-
-    if (reporterId === nouveauRapporteurId) {
-      console.log(
-        `Report ${id} already assigned to the new rapporteur - skipping`,
-      );
-      continue;
-    }
 
     const newReportRaw = await tx
       .insert(reports)
@@ -426,6 +421,11 @@ async function réaffecterDossiersSiège(
       `Created new report ${newReport.id} for dossier, reassigned from ${id}`,
     );
 
+    await tx
+      .delete(reportRules)
+      .where(eq(reportRules.reportId, existingReport.id))
+      .execute();
+    console.log(`Deleted old report rules of report ID ${existingReport.id}`);
     await tx.delete(reports).where(eq(reports.id, existingReport.id)).execute();
     console.log(`Deleted old report ${existingReport.id}`);
   }
