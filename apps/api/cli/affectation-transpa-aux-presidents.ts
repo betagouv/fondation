@@ -140,7 +140,7 @@ async function affecterAUnPrésident(
         ? eq(dossierDeNominationPm.sessionId, sessionId)
         : and(
             eq(dossierDeNominationPm.sessionId, sessionId),
-            sql`content->>'numeroDeDossier' >= '1' AND content->>'numeroDeDossier' <= '12'`,
+            sql`(content->>'numeroDeDossier')::int >= 1 AND (content->>'numeroDeDossier')::int <= 12`,
           ),
     )
     .execute();
@@ -291,7 +291,7 @@ async function réaffecterDossiersSiège(
     .where(
       and(
         eq(dossierDeNominationPm.sessionId, sessionId),
-        sql`content->>'numeroDeDossier' >= '83' AND content->>'numeroDeDossier' <= '89'`,
+        sql`(content->>'numeroDeDossier')::int >= 83 AND (content->>'numeroDeDossier')::int <= 89`,
       ),
     )
     .execute();
