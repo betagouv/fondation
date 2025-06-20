@@ -21,7 +21,11 @@ export class ImportNouvelleTransparenceUseCase {
           month: 6,
           day: 13,
         },
-        null,
+        {
+          year: 2025,
+          month: 6,
+          day: 20,
+        },
       )(trx);
 
       await this.transparenceService.créerDossiersImportés(

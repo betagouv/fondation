@@ -36,9 +36,16 @@ const { RouteProvider, useRoute, routes, session } = createRouter({
     (p) =>
       `/${routeSegments.transparences}/${routeSegments.propositionduGardeDesSceaux}/${p.dateTransparence}/${p.transparency}/${p.formation}/${routeSegments.rapports}/${p.id}`,
   ),
+
   secretariatGeneral: secretariatGeneralRoute,
   sgNouvelleTransparence: defineRoute(
     `/${routeSegments.sgNouvelleTransparence}`,
+  ),
+  sgTransparence: defineRoute(
+    {
+      id: param.path.string,
+    },
+    (p) => `/${routeSegments.sgTransparence}/session/${p.id}`,
   ),
 });
 
@@ -52,6 +59,10 @@ export class TypeRouterProvider implements RouterProvider {
   }
   goToTransparencies() {
     routes.transparencies().push();
+  }
+
+  gotToSgTransparence(id: string) {
+    routes.sgTransparence({ id }).push();
   }
 
   getLoginHref(): string {
@@ -91,7 +102,7 @@ export class TypeRouterProvider implements RouterProvider {
     }).link;
   }
 
-  onGoToSecretariatGeneralClick() {
+  goToSgDashboard() {
     routes.secretariatGeneral().push();
   }
 
@@ -105,5 +116,9 @@ export class TypeRouterProvider implements RouterProvider {
 
   getSgNouvelleTransparenceAnchorAttributes() {
     return routes.sgNouvelleTransparence().link;
+  }
+
+  getSgTransparenceAnchorAttributes(id: string) {
+    return routes.sgTransparence({ id }).link;
   }
 }

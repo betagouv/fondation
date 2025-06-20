@@ -5,13 +5,19 @@ export interface RouterProvider {
   getLoginHref(): string;
 
   goToTransparencies(): void;
-  onGoToSecretariatGeneralClick(): void;
+  goToSgDashboard(): void;
   goToSgNouvelleTransparence(): void;
+  gotToSgTransparence(id: string): void;
+
   getSecretariatGeneralAnchorAttributes: () => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   getSgNouvelleTransparenceAnchorAttributes: () => {
+    href: string;
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  };
+  getSgTransparenceAnchorAttributes: (id: string) => {
     href: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };

@@ -22,9 +22,20 @@ export class ImportTransparenceXlsxUseCase {
   ): Promise<{ validationError?: string }> {
     return await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
-      try {
-        const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
+      const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
+      const transparence = await this.transparenceService.transparence(
+        nomTransparence,
+        formation,
+        dateTransparence,
+      )(trx);
+      if (transparence) {
+        throw new Error(
+          `Transparence already exists: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
+        );
+      }
+
+      try {
         const readCollection =
           this.transparenceService.readFromCsv(transparenceCsv);
 

@@ -1,5 +1,7 @@
 import { Magistrat } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
+import { getTransparenceCompositeId } from "../../models/transparence.model";
+import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
 
 export type ImportTransparenceXlsxDto = {
   nomTransparence: string;
@@ -52,7 +54,16 @@ export const dataAdministrationUpload = createAppAsyncThunk<
       );
 
     if (!validationError) {
-      routerProvider.onGoToSecretariatGeneralClick();
+      const transparenceId = getTransparenceCompositeId(
+        nouvelleTransparenceDto.nomTransparence,
+        nouvelleTransparenceDto.formation,
+        DateOnly.fromDateOnlyString(
+          nouvelleTransparenceDto.dateTransparence,
+          "yyyy-MM-dd",
+        ).toStoreModel(),
+      );
+
+      routerProvider.gotToSgTransparence(transparenceId);
       return;
     } else {
       return { validationError };

@@ -1,6 +1,7 @@
 import {
   DataAdministrationContextRestContract,
   ImportNouvelleTransparenceDto,
+  ImportObservantsXlsxDto,
 } from "shared-models";
 
 export type EndpointResponse<
@@ -12,4 +13,9 @@ export interface DataAdministrationClient {
     dto: ImportNouvelleTransparenceDto,
     fichier: File,
   ): EndpointResponse<"importNouvelleTransparenceXlsx">;
+
+  importObservantsXlsx(
+    dto: ImportObservantsXlsxDto,
+    fichier: File,
+  ): EndpointResponse<"importObservantsXlsx">;
 }

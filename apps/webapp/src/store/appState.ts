@@ -66,6 +66,14 @@ export type ReportListItem = Pick<
   | "dateTransparence"
 > & { observersCount: number };
 
+export type TransparenceSM = {
+  id: string;
+  nom: string;
+  formation: Magistrat.Formation;
+  dateTransparence: DateOnlyStoreModel;
+  dateClotureDelaiObservation: DateOnlyStoreModel;
+};
+
 export type QueryStatus = "idle" | "pending" | "fulfilled" | "rejected";
 
 export interface AppState<IsTest extends boolean = false> {
@@ -120,13 +128,24 @@ export interface AppState<IsTest extends boolean = false> {
       secretariatGeneral: {
         dashboard: RouterProvider["getSecretariatGeneralAnchorAttributes"];
         sgNouvelleTransparence: RouterProvider["getSgNouvelleTransparenceAnchorAttributes"];
+        sgTransparence: RouterProvider["getSgTransparenceAnchorAttributes"];
       };
     };
     routeToComponent: ReturnType<RouteToComponentFactory>;
     routeChangedHandler: RouteChangedHandler;
   };
   secretariatGeneral: {
+    sessions: {
+      transparences: Record<string, TransparenceSM>;
+    };
     nouvelleTransparence: {
+      acceptedMimeTypes: {
+        sourceDeDonnées: string[];
+      };
+      uploadQueryStatus: QueryStatus;
+      validationError: string | null;
+    };
+    importObservants: {
       acceptedMimeTypes: {
         sourceDeDonnées: string[];
       };

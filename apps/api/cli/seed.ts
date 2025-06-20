@@ -72,7 +72,11 @@ async function seed() {
           month: 10,
           day: 1,
         },
-        dateClôtureDélaiObservation: null,
+        dateClôtureDélaiObservation: {
+          year: 2024,
+          month: 10,
+          day: 31,
+        },
       },
     };
     await db.insert(sessionPm).values(sessionA).execute();

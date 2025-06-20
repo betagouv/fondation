@@ -137,6 +137,10 @@ const uneTransparence: TransparenceDto = {
   version: 1,
   content: {
     dateTransparence: uneDateTransparence,
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2025,
+      month: 3,
+      day: 28,
+    },
   },
 };

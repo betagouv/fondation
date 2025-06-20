@@ -20,6 +20,11 @@ export class ImportNominationFilesUseCase {
         const transparence = await this.transparenceService.transparence(
           transparency,
           formation,
+          {
+            year: 2025,
+            month: 6,
+            day: 13,
+          },
         )(trx);
 
         if (transparence) {

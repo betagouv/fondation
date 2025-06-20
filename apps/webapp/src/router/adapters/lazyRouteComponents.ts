@@ -30,3 +30,8 @@ const NouvelleTransparencePage = import(
   "../../secretariat-general/adapters/primary/components/NouvelleTransparence/NouvelleTransparence"
 );
 export const LazyNouvelleTransparence = lazy(() => NouvelleTransparencePage);
+
+const LazyTransparencePage = import(
+  "../../secretariat-general/adapters/primary/components/Transparence/Transparence"
+);
+export const LazyTransparence = lazy(() => LazyTransparencePage);

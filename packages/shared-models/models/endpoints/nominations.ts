@@ -14,7 +14,7 @@ type SessionSnapshotResponse = {
   content: object;
 };
 
-type TransparenceSnapshotResponse = {
+export type TransparenceSnapshotResponse = {
   id: string;
   sessionImportéeId: string;
   name: string;
@@ -23,7 +23,7 @@ type TransparenceSnapshotResponse = {
   version: number;
   content: {
     dateTransparence: DateOnlyJson;
-    dateClôtureDélaiObservation: DateOnlyJson | null;
+    dateClôtureDélaiObservation: DateOnlyJson;
   };
 };
 

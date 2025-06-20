@@ -42,7 +42,11 @@ describe('SQL Transparence Repository', () => {
         ...sessionSnapshot,
         content: {
           dateTransparence: uneDateTransparence,
-          dateClôtureDélaiObservation: null,
+          dateClôtureDélaiObservation: {
+            year: 2023,
+            month: 5,
+            day: 22,
+          },
         },
       });
     });
@@ -120,6 +124,10 @@ const sessionSnapshot: SessionSnapshot<TypeDeSaisine.TRANSPARENCE_GDS> = {
   version: 1,
   content: {
     dateTransparence: uneDateTransparence,
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2023,
+      month: 5,
+      day: 22,
+    },
   },
 };

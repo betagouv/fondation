@@ -73,4 +73,14 @@ export class NominationFilesContentReadCollection {
       ),
     ];
   }
+
+  observants(): {
+    rowNumber: number;
+    observants: NominationFileRead['content']['observers'];
+  }[] {
+    return this._nominationFileReadList.map((nominationFile) => ({
+      rowNumber: nominationFile.rowNumber,
+      observants: nominationFile.content.observers,
+    }));
+  }
 }

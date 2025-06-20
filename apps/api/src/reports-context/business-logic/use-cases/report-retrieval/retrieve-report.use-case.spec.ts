@@ -89,6 +89,10 @@ const uneSession: SessionDto<TypeDeSaisine.TRANSPARENCE_GDS> = {
       month: 3,
       day: 21,
     },
-    dateClôtureDélaiObservation: null,
+    dateClôtureDélaiObservation: {
+      year: 2025,
+      month: 3,
+      day: 28,
+    },
   },
 };

@@ -17,6 +17,7 @@ import { UpdateDossierDeNominationUseCase } from './pp-gds/transparences/busines
 import { DomainRegistry } from './sessions/business-logic/models/domain-registry';
 import { GetDossierDeNominationSnapshotUseCase } from './sessions/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GetSessionSnapshotUseCase } from './sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
+import { UpdateObservantsUseCase } from './pp-gds/transparences/business-logic/use-cases/update-observants/update-observants.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 
@@ -83,6 +84,10 @@ export const getDependencies = () => {
     fakeTransparenceRepository,
     nullTransactionPerformer,
   );
+  const updateObservantsUseCase = new UpdateObservantsUseCase(
+    nullTransactionPerformer,
+    dossierDeNominationRepository,
+  );
 
   return {
     nullTransactionPerformer,
@@ -103,5 +108,6 @@ export const getDependencies = () => {
     getDossierDeNominationSnapshotUseCase,
     getSessionSnapshotUseCase,
     getTransparenceSnapshotUseCase,
+    updateObservantsUseCase,
   };
 };

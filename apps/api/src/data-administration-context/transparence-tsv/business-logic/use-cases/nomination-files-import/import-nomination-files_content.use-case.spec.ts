@@ -5,7 +5,7 @@ import {
   Role,
   Transparency,
 } from 'shared-models';
-import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+import { FakeTransparenceTsvRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence-tsv.repository';
 import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -53,7 +53,7 @@ describe('Import Nomination Files Use Case', () => {
   let dateTimeProvider: DeterministicDateProvider;
   let uuidGenerator: DeterministicUuidGenerator;
   let transactionPerformer: TransactionPerformer;
-  let transparenceRepository: FakeTransparenceRepository;
+  let transparenceRepository: FakeTransparenceTsvRepository;
   let userService: FakeUserService;
   let getMarcelDupontModelSnapshot: GetMarcelDupontModelSnapshot;
   let getLucienPierreModelSnapshot: GetLucienPierreModelSnapshot;
@@ -61,7 +61,7 @@ describe('Import Nomination Files Use Case', () => {
   beforeEach(() => {
     domainEventRepository = new FakeDomainEventRepository();
     transactionPerformer = new NullTransactionPerformer();
-    transparenceRepository = new FakeTransparenceRepository();
+    transparenceRepository = new FakeTransparenceTsvRepository();
     userService = new FakeUserService();
     userService.addUsers(
       lucLoïcUser,
@@ -292,7 +292,7 @@ describe('Import Nomination Files Use Case', () => {
       delete firstRowMissingColumns.content.datePriseDeFonctionPosteActuel;
       delete firstRowMissingColumns.content.informationCarrière;
 
-      transparenceRepository.addTransparence(gdsTransparenceId, {
+      transparenceRepository.addTransparence({
         id: gdsTransparenceId,
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
@@ -330,7 +330,7 @@ describe('Import Nomination Files Use Case', () => {
 
   describe('when an updated file is imported a second time', () => {
     beforeEach(() => {
-      transparenceRepository.addTransparence(gdsTransparenceId, {
+      transparenceRepository.addTransparence({
         id: gdsTransparenceId,
         createdAt: dateTimeProvider.currentDate,
         name: gdsTransparenceName,
@@ -341,7 +341,7 @@ describe('Import Nomination Files Use Case', () => {
         datePriseDePosteCible: gdsDatePriseDePosteCible,
         nominationFiles: [getFirstRow()],
       });
-      transparenceRepository.addTransparence('gds-transparence-parquet-id', {
+      transparenceRepository.addTransparence({
         id: 'gds-transparence-parquet-id',
         createdAt: currentDate,
         name: Transparency.AUTOMNE_2024,

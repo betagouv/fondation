@@ -35,6 +35,7 @@ import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/
 import { DataAdministrationController } from './data-administration.controller';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
 import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
+import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 
 @Module({
   imports: [SharedKernelModule],
@@ -45,6 +46,10 @@ import { TransparenceService as TransparenceXlsxService } from 'src/data-adminis
       TransparenceCsvService,
     ]),
     generateProvider(ImportTransparenceXlsxUseCase, [
+      TRANSACTION_PERFORMER,
+      TransparenceXlsxService,
+    ]),
+    generateProvider(ImportObservantsXlsxUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),

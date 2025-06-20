@@ -119,10 +119,8 @@ export class TestDependencies {
     );
   }
 
-  expectPageSecretariatGeneral() {
-    expect(
-      this.routerProvider.onGoToSecretariatGeneralClick,
-    ).toHaveBeenCalled();
+  expectPageTransparence() {
+    expect(this.routerProvider.gotToSgTransparence).toHaveBeenCalled();
   }
 
   expectValidationError(validationError: string) {

@@ -16,7 +16,7 @@ export type NominationFilesContentWithReporterIds = {
 
 export type GdsNewTransparenceImportedEventPayload = {
   transparenceId: string;
-  transparenceName: Transparency;
+  transparenceName: string;
   formation: Magistrat.Formation;
   nominationFiles: NominationFilesContentWithReporterIds[];
 };

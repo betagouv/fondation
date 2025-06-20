@@ -41,7 +41,7 @@ export class DateOnly {
     return this.value;
   }
   toFormattedString(
-    template: "dd-MM-yyyy" | "dd/MM/yyyy" = "dd/MM/yyyy",
+    template: "dd-MM-yyyy" | "dd/MM/yyyy" | "yyy-MM-dd" = "dd/MM/yyyy",
   ): string {
     return format(this.value, template);
   }
@@ -85,13 +85,16 @@ export class DateOnly {
     return DateOnly.fromDate(new Date());
   }
 
-  static fromDateOnlyString = (dateString: string): DateOnly => {
-    return this.fromString(dateString);
+  static fromDateOnlyString = (
+    dateString: string,
+    format: "dd-MM-yyyy" | "yyyy-MM-dd" = "dd-MM-yyyy",
+  ): DateOnly => {
+    return this.fromString(dateString, format);
   };
 
   private static fromString(
     dateString: string,
-    format = "dd-MM-yyyy",
+    format: string,
     locale = "fr",
   ): DateOnly {
     const date = parse(dateString, format, new Date(), {

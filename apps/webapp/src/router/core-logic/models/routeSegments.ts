@@ -5,4 +5,5 @@ export const routeSegments = {
   rapports: "rapports",
   secretariatGeneral: "secretariat-general",
   sgNouvelleTransparence: "secretariat-general/nouvelle-transparence",
+  sgTransparence: "secretariat-general/saisine/transparence",
 };

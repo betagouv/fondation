@@ -1,5 +1,6 @@
 import { DateOnlyJson, Magistrat } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
+import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
 import {
@@ -7,7 +8,7 @@ import {
   NominationFileModelSnapshot,
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
-import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
+import { TransparenceXlsxObservantsImportésEvent } from './events/transparence-xlsx-observants-importés.event';
 
 export type TransparenceSnapshot = {
   id: string;
@@ -59,6 +60,30 @@ export class Transparence {
     ];
 
     return newNominationFiles.hasNominationFiles() ? newNominationFiles : null;
+  }
+
+  updateObservants(readCollection: NominationFilesContentReadCollection) {
+    const observantsDesDossiers = this.nominationFiles
+      .map((nominationFile) =>
+        readCollection
+          .observants()
+          .map(({ rowNumber, observants: rowObservants }) => {
+            const observants = nominationFile.updateObservants(
+              rowNumber,
+              rowObservants,
+            );
+            return {
+              dossierId: nominationFile.id,
+              observants,
+            };
+          }),
+      )
+      .flat();
+
+    return TransparenceXlsxObservantsImportésEvent.create({
+      transparenceId: this.id,
+      dossiersDeNominations: observantsDesDossiers,
+    });
   }
 
   nominationFilesEventPayload(

@@ -3,7 +3,12 @@ import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { allRulesMapV2 } from "shared-models";
+import {
+  allRulesMapV2,
+  DataAdministrationContextRestContract,
+  NominationsContextTransparenceRestContract,
+  ReportsContextRestContract,
+} from "shared-models";
 import App from "./App.tsx";
 import { ApiAuthenticationGateway } from "./authentication/adapters/secondary/gateways/ApiAuthentication.gateway.ts";
 import { FetchAuthenticationApiClient } from "./authentication/adapters/secondary/gateways/FetchAuthentication.client.ts";
@@ -36,6 +41,10 @@ import { RealDateProvider } from "./shared-kernel/adapters/secondary/providers/r
 import { RealFileProvider } from "./shared-kernel/adapters/secondary/providers/realFileProvider.ts";
 import { UuidGenerator } from "./shared-kernel/core-logic/providers/uuidGenerator.ts";
 import { initReduxStore } from "./store/reduxStore.ts";
+import { FetchClient } from "./shared-kernel/adapters/secondary/providers/fetchClient.ts";
+import { ApiNominationsGateway } from "./secretariat-general/adapters/secondary/gateways/ApiNominations.gateway.ts";
+import { FetchTransparenceClient } from "./secretariat-general/adapters/secondary/gateways/FetchTransparence.client.ts";
+
 startReactDsfr({ defaultColorScheme: "light" });
 
 const BASE_VITE_URL = import.meta.env.VITE_API_URL;
@@ -45,7 +54,9 @@ const authenticationGateway = new ApiAuthenticationGateway(
   authencationApiClient,
 );
 
-const reportApiClient = new FetchReportApiClient(BASE_VITE_URL);
+const reportApiClient = new FetchReportApiClient(
+  new FetchClient<ReportsContextRestContract>("api/reports"),
+);
 const reportGateway = new ApiReportGateway(reportApiClient);
 
 const fileApiClient = new FetchFileApiClient(BASE_VITE_URL);
@@ -55,11 +66,20 @@ const transparencyApiClient = new EnvTransparencyApiClient();
 const transparencyGateway = new ApiTransparencyGateway(transparencyApiClient);
 
 const dataAdministrationApiClient = new ApiDataAdministrationClient(
-  BASE_VITE_URL,
+  new FetchClient<DataAdministrationContextRestContract>(
+    "api/data-administration",
+  ),
 );
 const dataAdministrationGateway = new ApiDataAdministrationGateway(
   dataAdministrationApiClient,
 );
+
+const transparenceClient = new FetchTransparenceClient(
+  new FetchClient<NominationsContextTransparenceRestContract>(
+    "api/nominations/transparence",
+  ),
+);
+const nominationsGateway = new ApiNominationsGateway(transparenceClient);
 
 const loginNotifierProvider = new LocalStorageLoginNotifierProvider();
 const logoutNotifierProvider = new LocalStorageLogoutNotifierProvider();
@@ -77,6 +97,7 @@ const store = initReduxStore<false>(
     fileGateway,
     transparencyGateway,
     dataAdministrationGateway,
+    nominationsGateway,
   },
   {
     routerProvider: new TypeRouterProvider(),

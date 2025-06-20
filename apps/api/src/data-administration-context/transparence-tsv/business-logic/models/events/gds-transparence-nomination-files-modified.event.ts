@@ -1,4 +1,3 @@
-import { Transparency } from 'shared-models';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../../transparences/business-logic/models/domain-registry';
@@ -9,7 +8,7 @@ import {
 
 export type GdsTransparenceNominationFilesModifiedEventPayload = {
   transparenceId: string;
-  transparenceName: Transparency;
+  transparenceName: string;
   nominationFiles: Array<{
     nominationFileId: string;
     content: z.infer<typeof nominationFileContentUpdateSchema>;
@@ -32,7 +31,7 @@ const nominationFileContentUpdateSchema = nominationFileReadContentSchema
 export const gdsTransparenceNominationFilesModifiedEventPayloadSchema =
   z.object({
     transparenceId: z.string(),
-    transparenceName: z.nativeEnum(Transparency),
+    transparenceName: z.string(),
     nominationFiles: z
       .array(
         z.object({

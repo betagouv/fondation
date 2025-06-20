@@ -1,88 +1,58 @@
 import {
-  interpolateUrlParams,
   DataAdministrationContextRestContract,
   ImportNouvelleTransparenceDto,
+  Magistrat,
 } from "shared-models";
+import { FetchClient } from "../../../../shared-kernel/adapters/secondary/providers/fetchClient";
 import { DataAdministrationClient } from "../../../core-logic/gateways/DataAdministration.client";
 
-type Endpoints = DataAdministrationContextRestContract["endpoints"];
-type ClientFetchOptions = {
-  [K in keyof Endpoints]: Omit<Endpoints[K], "response">;
-};
-
-const basePath: DataAdministrationContextRestContract["basePath"] =
-  "api/data-administration";
-
 export class ApiDataAdministrationClient implements DataAdministrationClient {
-  constructor(private readonly baseUrl: string) {}
+  constructor(
+    private readonly requestClient: FetchClient<DataAdministrationContextRestContract>,
+  ) {}
 
   async importNouvelleTransparenceXlsx(
-    nouvelleTransparenceDto: ImportNouvelleTransparenceDto,
+    dto: ImportNouvelleTransparenceDto,
     fichier: File,
   ) {
     const formData = new FormData();
     formData.append("fichier", fichier, fichier.name);
 
-    const {
-      method,
-      path,
-      body,
-      queryParams,
-    }: ClientFetchOptions["importNouvelleTransparenceXlsx"] = {
+    return this.requestClient.fetch<"importNouvelleTransparenceXlsx">({
       method: "POST",
-      path: "import-nouvelle-transparence-xlsx",
       body: formData,
+      path: "import-nouvelle-transparence-xlsx",
       queryParams: {
-        nomTransparence: nouvelleTransparenceDto.nomTransparence,
-        dateTransparence: nouvelleTransparenceDto.dateTransparence,
-        formation: nouvelleTransparenceDto.formation,
-        dateEcheance: nouvelleTransparenceDto.dateEcheance,
-        datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible,
-        dateClotureDelaiObservation:
-          nouvelleTransparenceDto.dateClotureDelaiObservation,
+        nomTransparence: dto.nomTransparence,
+        formation: dto.formation,
+        dateTransparence: dto.dateTransparence,
+        dateClotureDelaiObservation: dto.dateClotureDelaiObservation,
+        dateEcheance: dto.dateEcheance,
+        datePriseDePosteCible: dto.datePriseDePosteCible,
       },
-    };
-    const url = this.resolveUrl(path, undefined, queryParams);
-    const resp = await this.fetch(url, {
-      method,
-      body,
     });
-
-    return await resp.json();
   }
 
-  private resolveUrl(
-    path: string,
-    params?: Record<string, string>,
-    queryParams?: Record<string, string | string[]>,
-  ): string {
-    const fullPath = `${basePath}/${path}`;
-    const url = new URL(fullPath, this.baseUrl);
-    if (queryParams) this.buildQueryParams(url, queryParams);
-
-    if (!params) return url.href;
-    return interpolateUrlParams(url, params);
-  }
-
-  private buildQueryParams(
-    url: URL,
-    searchParams: Record<string, string | string[]>,
+  async importObservantsXlsx(
+    dto: {
+      nomTransparence: string;
+      formation: Magistrat.Formation;
+      dateTransparence: string;
+    },
+    fichier: File,
   ) {
-    Object.entries(searchParams).forEach(([key, values]) => {
-      if (values === undefined) return;
-      if (typeof values === "string") url.searchParams.append(key, values);
-      else values.forEach((value) => url.searchParams.append(key, value));
-    });
-  }
+    const formData = new FormData();
+    formData.append("fichier", fichier, fichier.name);
 
-  private async fetch(url: string, requestInit: RequestInit) {
-    const response = await fetch(url, {
-      ...requestInit,
-      credentials: "include",
+    return this.requestClient.fetch<"importObservantsXlsx">({
+      method: "POST",
+      body: formData,
+      path: "import-observants-xlsx",
+      queryParams: {
+        nomTransparence: dto.nomTransparence,
+        formation: dto.formation,
+        dateTransparence: dto.dateTransparence,
+      },
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    return response;
   }
 }

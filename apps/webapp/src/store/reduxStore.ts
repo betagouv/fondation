@@ -40,6 +40,7 @@ import { createSharedKernelSlice } from "../shared-kernel/core-logic/reducers/sh
 import { AppState } from "./appState";
 import { AppListeners } from "./listeners";
 import { createAppListenerMiddleware } from "./middlewares/listener.middleware";
+import { NominationsGateway } from "../secretariat-general/core-logic/gateways/Nominations.gateway";
 
 export interface Gateways {
   reportGateway: ReportGateway;
@@ -47,6 +48,7 @@ export interface Gateways {
   fileGateway: FileApiClient;
   transparencyGateway: TransparencyGateway;
   dataAdministrationGateway: DataAdministrationGateway;
+  nominationsGateway: NominationsGateway;
 }
 
 export interface Providers {

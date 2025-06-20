@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Magistrat, Transparency } from 'shared-models';
+import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { TransparenceRepository } from '../../../transparences/business-logic/gateways/repositories/transparence.repository';
@@ -112,11 +112,13 @@ export class TransparenceService {
   transparence(
     transparence: Transparency,
     formation: Magistrat.Formation,
+    dateTransparence: DateOnlyJson,
   ): TransactionableAsync<Transparence | null> {
     return async (trx) =>
       (await this.transparenceRepository.transparence(
         transparence,
         formation,
+        dateTransparence,
       )(trx)) as unknown as Transparence;
   }
 

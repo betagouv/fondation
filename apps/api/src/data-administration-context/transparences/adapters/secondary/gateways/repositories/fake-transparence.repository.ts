@@ -1,21 +1,14 @@
 import { Magistrat } from 'shared-models';
 import {
-  Transparence as TransparenceTsv,
-  TransparenceSnapshot as TransparenceTsvSnapshot,
-} from 'src/data-administration-context/transparence-tsv/business-logic/models/transparence';
-import {
   Transparence as TransparenceXlsx,
   TransparenceSnapshot as TransparenceXlsxSnapshot,
 } from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 
 export class FakeTransparenceRepository implements TransparenceRepository {
-  private transparences: Record<
-    string,
-    TransparenceTsvSnapshot | TransparenceXlsxSnapshot
-  > = {};
+  private transparences: Record<string, TransparenceXlsxSnapshot> = {};
 
-  save(transparence: TransparenceTsv | TransparenceXlsx) {
+  save(transparence: TransparenceXlsx) {
     return async () => {
       this.transparences[transparence.id] = transparence.snapshot();
     };
@@ -27,20 +20,12 @@ export class FakeTransparenceRepository implements TransparenceRepository {
         (transpa) => transpa.name === name && transpa.formation === formation,
       );
 
-      // TODO Reprendre les types après le changement de méthode d'import
-      return transparence
-        ? (TransparenceTsv.fromSnapshot(
-            transparence as TransparenceTsvSnapshot,
-          ) as unknown as TransparenceXlsx)
-        : null;
+      return transparence ? TransparenceXlsx.fromSnapshot(transparence) : null;
     };
   }
 
-  addTransparence(
-    id: string,
-    transparence: TransparenceTsvSnapshot | TransparenceXlsxSnapshot,
-  ) {
-    this.transparences[id] = transparence;
+  addTransparence(transparence: TransparenceXlsxSnapshot) {
+    this.transparences[transparence.id] = transparence;
   }
 
   getTransparences() {

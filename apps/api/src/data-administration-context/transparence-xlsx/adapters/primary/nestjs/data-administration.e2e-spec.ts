@@ -21,7 +21,7 @@ import {
   unNomTransparenceXlsx,
 } from './data-administration.fixtures';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { unNomMagistrat } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.fixtures';
+import { unNomMagistrat } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/fixtures';
 
 describe('Data Administration Controller', () => {
   let app: INestApplication;
