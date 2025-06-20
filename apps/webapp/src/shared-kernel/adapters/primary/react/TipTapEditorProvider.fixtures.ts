@@ -30,7 +30,7 @@ export const setupTestEditor = () => {
 };
 
 export const anImage = {
-  src: "http://example.fr/image.png",
+  src: "https://fakeimg.pl/10x10/",
   alt: "An example image",
   title: "Example Image",
   [dataFileNameKey]: "image.png",
