@@ -168,7 +168,7 @@ async function affecterAUnPrésident(
               )
               else elem
             end
-          from jsonb_array_elements("affectations_dossiers_de_nominations") as elem
+          from unnest("affectations_dossiers_de_nominations") as elem
         )
       `,
     })
@@ -327,7 +327,7 @@ async function réaffecterDossiersSiège(
               )
               else elem
             end
-          from jsonb_array_elements("affectations_dossiers_de_nominations") as elem
+          from unnest("affectations_dossiers_de_nominations") as elem
         )
       `,
     })
