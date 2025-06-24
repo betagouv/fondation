@@ -1,6 +1,6 @@
-import Button, { ButtonProps } from "@codegouvfr/react-dsfr/Button";
-import { FC } from "react";
-import { HeadingLevel } from "../constant";
+import Button, { type ButtonProps } from "@codegouvfr/react-dsfr/Button";
+import type { FC } from "react";
+import type { HeadingLevel } from "../constant";
 import { useIsBlurred } from "../useIsBlurred";
 import { useMarkPriority } from "../useMarkPriority";
 

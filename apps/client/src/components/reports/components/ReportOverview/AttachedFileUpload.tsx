@@ -1,7 +1,7 @@
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import clsx from "clsx";
-import { FC } from "react";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
+import type { FC } from "react";
+import type { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 import { reportHtmlIds } from "../../dom/html-ids";
 import { summaryLabels } from "../../labels/summary-labels";
 import { AttachedFilesList } from "./AttachedFilesList";

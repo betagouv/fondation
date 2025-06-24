@@ -1,7 +1,7 @@
 import { Transaction } from "@tiptap/pm/state";
-import { Editor, JSONContent } from "@tiptap/react";
+import { Editor, type JSONContent } from "@tiptap/react";
 import { useRef } from "react";
-import { RedoImages } from ".";
+import type { RedoImages } from ".";
 import { dataFileNameKey } from "./extensions";
 
 export type UseOnRedoImage = (redoImages: RedoImages) => {

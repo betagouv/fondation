@@ -1,7 +1,7 @@
 import { useCurrentEditor } from "@tiptap/react";
 import { useEffect } from "react";
+import type { InsertImages } from ".";
 import { useAppDispatch } from "../../../hooks/react-redux";
-import { InsertImages } from ".";
 
 export const useScreenshotPaste = (insertImages: InsertImages) => {
   const { editor } = useCurrentEditor();

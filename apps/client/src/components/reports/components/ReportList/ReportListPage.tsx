@@ -1,6 +1,6 @@
-import { FC } from "react";
-import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
-import ReportList, { ReportListProps } from "./ReportList";
+import type { FC } from "react";
+import { PageContentLayout } from "../../../shared/PageContentLayout";
+import { ReportList, type ReportListProps } from "./ReportList";
 
 export const ReportListPage: FC<ReportListProps> = (props) => (
   <PageContentLayout>

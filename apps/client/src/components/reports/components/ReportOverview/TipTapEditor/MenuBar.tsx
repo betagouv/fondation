@@ -1,6 +1,6 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
-import { FC } from "react";
+import type { FC } from "react";
 import { BoldButton } from "./buttons/BoldButton";
 import { BulletListButton } from "./buttons/BulletListButton";
 import { HeadingButton } from "./buttons/HeadingButton";

@@ -1,5 +1,5 @@
 import { Notice as DsfrNotice } from "@codegouvfr/react-dsfr/Notice";
-import { FC } from "react";
+import type { FC } from "react";
 
 export type NoticeProps = {
   description: string;

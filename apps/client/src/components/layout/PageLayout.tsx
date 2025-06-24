@@ -1,7 +1,8 @@
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { AppFooter } from "./AppFooter";
 import { AppHeader } from "./AppHeader";
-import { Notice } from "../shared-kernel/adapters/primary/react/Notice";
+import { Notice } from "../shared/Notice";
+
 
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   const isStaging =

@@ -1,5 +1,5 @@
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { FC } from "react";
+import type { FC } from "react";
 import { EditorButton } from "./EditorButton";
 
 export const IndentDecreaseButton: FC = () => {

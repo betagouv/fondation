@@ -1,6 +1,6 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import { colorDecisions } from "@codegouvfr/react-dsfr/fr/generatedFromCss/colorDecisions";
-import { FC } from "react";
+import type { FC } from "react";
 
 export type NewReportsCountProps = {
   newReportsCount: number;

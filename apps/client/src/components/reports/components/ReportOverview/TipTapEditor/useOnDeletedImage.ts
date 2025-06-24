@@ -1,6 +1,6 @@
-import { Editor, JSONContent } from "@tiptap/react";
+import { Editor, type JSONContent } from "@tiptap/react";
 import { useRef } from "react";
-import { DeleteImages } from ".";
+import type { DeleteImages } from ".";
 import { dataFileNameKey } from "./extensions";
 
 export type UseOnDeletedImage = (deleteImages: DeleteImages) => {

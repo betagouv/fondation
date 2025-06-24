@@ -1,5 +1,5 @@
-import { SideMenu, SideMenuProps } from "@codegouvfr/react-dsfr/SideMenu";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { SideMenu, type SideMenuProps } from "@codegouvfr/react-dsfr/SideMenu";
+import { type FC, useCallback, useEffect, useMemo, useState } from "react";
 import { scrollToSummarySection } from "../../dom/scroll-to-summary-section";
 import { summaryScrollListenersFactory } from "../../dom/summary-scroll-listeners";
 import { useAppSelector } from "../../hooks/react-redux";

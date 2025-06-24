@@ -1,17 +1,10 @@
-import { FC } from "react";
-import { DateOnlyJson, Magistrat } from "shared-models";
-import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../../router/adapters/selectors/selectBreadcrumb";
-import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
-import { useAppSelector } from "../../hooks/react-redux";
-import { useReportsList } from "../../hooks/use-reports-list";
-import { useSelectReportsList } from "../../hooks/use-select-reports-list";
-import { useTransparencyAttachments } from "../../hooks/use-transparency-attachments";
+import type { FC } from "react";
+import type { DateOnlyJson, Magistrat } from "shared-models";
+
 import { NewReportsCount } from "./NewReportsCount";
 import { ReportsTable } from "./ReportsTable";
 import { TransparencyFilesList } from "./TransparencyFilesList";
+import { Breadcrumb } from "../../../shared/Breadcrumb";
 
 export interface ReportListProps {
   transparency: string;

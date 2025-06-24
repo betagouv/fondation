@@ -1,5 +1,5 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { forwardRef, PropsWithChildren } from "react";
+import { forwardRef, type PropsWithChildren } from "react";
 import clsx from "clsx";
 
 export type CardProps = {

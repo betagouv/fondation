@@ -3,7 +3,7 @@ import { MenuBar } from "./MenuBar";
 import { createExtensions } from "./extensions";
 import { useOnDeletedImage } from "./useOnDeletedImage";
 import { useOnRedoImage } from "./useOnRedoImage";
-import { TipTapEditorProvider } from "../../../../../../shared-kernel/adapters/primary/react/TipTapEditorProvider";
+import { TipTapEditorProvider } from "../../../../shared/TipTapEditorProvider";
 
 export type InsertImages = (editor: Editor, files: File[]) => void;
 export type RedoImages = (editor: Editor, files: File[]) => Promise<void>;

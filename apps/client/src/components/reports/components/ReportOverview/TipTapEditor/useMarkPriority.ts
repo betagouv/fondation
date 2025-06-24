@@ -1,5 +1,5 @@
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { HeadingLevel } from "./constant";
+import type { HeadingLevel } from "./constant";
 import { markPriorityFactory } from "./markPriorityFactory";
 
 export const useMarkPriority = (

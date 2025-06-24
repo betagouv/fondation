@@ -1,5 +1,5 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { FC } from "react";
+import type { FC } from "react";
 import { Card } from "./Card";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 

@@ -1,5 +1,5 @@
 import Select from "@codegouvfr/react-dsfr/Select";
-import { ChangeEvent, FC } from "react";
+import type { ChangeEvent, FC } from "react";
 import { NominationFile } from "shared-models";
 import { ReportStateUpdateParam } from "../../../../core-logic/use-cases/report-update/updateReport.use-case";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";

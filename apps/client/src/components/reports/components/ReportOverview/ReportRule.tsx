@@ -3,7 +3,7 @@ import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";
-import _ from "lodash";
+
 import { NominationFile } from "shared-models";
 import {
   ReportVM,

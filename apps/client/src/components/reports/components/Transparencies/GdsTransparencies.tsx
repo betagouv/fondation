@@ -1,5 +1,5 @@
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { Tabs, TabsProps } from "@codegouvfr/react-dsfr/Tabs";
+import { Tabs, type TabsProps } from "@codegouvfr/react-dsfr/Tabs";
 import { Tag } from "@codegouvfr/react-dsfr/Tag";
 import clsx from "clsx";
 import { Magistrat } from "shared-models";

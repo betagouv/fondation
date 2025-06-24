@@ -1,6 +1,6 @@
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { FC } from "react";
-import { HeadingLevel } from "../constant";
+import type { FC } from "react";
+import type { HeadingLevel } from "../constant";
 import { EditorButton } from "./EditorButton";
 
 type HeadingButtonProps = {

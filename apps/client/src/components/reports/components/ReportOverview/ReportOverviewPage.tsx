@@ -1,6 +1,7 @@
-import { FC } from "react";
-import { PageContentLayout } from "../../../../../shared-kernel/adapters/primary/react/PageContentLayout";
-import ReportOverview, { ReportOverviewProps } from "./ReportOverview";
+import type { FC } from "react";
+
+import ReportOverview, { type ReportOverviewProps } from "./ReportOverview";
+import { PageContentLayout } from "../../../shared/PageContentLayout";
 
 export const ReportOverviewPage: FC<ReportOverviewProps> = (props) => (
   <PageContentLayout fullBackgroundOrange>

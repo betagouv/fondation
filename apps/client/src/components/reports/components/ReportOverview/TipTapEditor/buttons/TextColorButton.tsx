@@ -1,7 +1,8 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { colors } from "@codegouvfr/react-dsfr/fr/colors";
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { ChangeEvent, useRef } from "react";
+import type { ChangeEvent } from "react";
+import { useRef } from "react";
 import { useIsBlurred } from "../useIsBlurred";
 
 export const TextColorButton = () => {

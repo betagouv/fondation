@@ -1,6 +1,6 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import clsx from "clsx";
-import { FC } from "react";
+import type { FC } from "react";
 import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
 
 export type AttachedFilesListProps = {

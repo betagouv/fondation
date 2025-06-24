@@ -1,6 +1,6 @@
-import Tag, { TagProps } from "@codegouvfr/react-dsfr/Tag";
-import { FC } from "react";
-import { ReportListItemVM } from "../../selectors/selectReportList";
+import Tag, { type TagProps } from "@codegouvfr/react-dsfr/Tag";
+import type { FC } from "react";
+
 import { colors } from "@codegouvfr/react-dsfr";
 import { cx } from "@codegouvfr/react-dsfr/fr/cx";
 import clsx from "clsx";

@@ -1,7 +1,8 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useCurrentEditor } from "@tiptap/react";
-import { ChangeEvent, FC, useRef } from "react";
-import { InsertImages } from "..";
+import type { ChangeEvent, FC } from "react";
+import { useRef } from "react";
+import type { InsertImages } from "../types";
 import { useIsBlurred } from "../useIsBlurred";
 
 type ImageUploadButtonProps = {
