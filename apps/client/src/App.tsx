@@ -1,12 +1,12 @@
 import "./App.css";
-// import { PageLayout } from "./components/layout/PageLayout";
 import { Outlet } from "react-router-dom";
+import { PageLayout } from "./components/layout/PageLayout";
 
 export const App = () => {
   return (
-    // <PageLayout>
-    <Outlet />
-    // </PageLayout>
+    <PageLayout>
+      <Outlet />
+    </PageLayout>
   );
 };
 
