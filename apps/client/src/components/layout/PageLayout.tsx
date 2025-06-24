@@ -3,7 +3,6 @@ import { AppFooter } from "./AppFooter";
 import { AppHeader } from "./AppHeader";
 import { Notice } from "../shared/Notice";
 
-
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   const isStaging =
     !import.meta.env.DEV && import.meta.env.VITE_DEPLOY_ENV === "staging";

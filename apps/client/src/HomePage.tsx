@@ -1,8 +1,7 @@
-import "./App.css";
 import { Outlet } from "react-router-dom";
 import { PageLayout } from "./components/layout/PageLayout";
 
-export const App = () => {
+export const HomePage = () => {
   return (
     <PageLayout>
       <Outlet />
@@ -10,4 +9,4 @@ export const App = () => {
   );
 };
 
-export default App;
+export default HomePage;

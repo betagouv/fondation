@@ -1,12 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { App } from "../App";
+import { HomePage } from "../HomePage";
 import { TransparencesPage } from "../pages/TransparencesPage";
 import { SecretariatGeneralPage } from "../pages/SecretariatGeneralPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <HomePage />,
     children: [
       {
         index: true,
