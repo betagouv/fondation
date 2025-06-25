@@ -15,7 +15,7 @@ const router = createBrowserRouter([
         element: <LoginPage />
       },
       {
-        index: true,
+        path: 'transparences',
         element: <TransparencesPage />
       },
       {
