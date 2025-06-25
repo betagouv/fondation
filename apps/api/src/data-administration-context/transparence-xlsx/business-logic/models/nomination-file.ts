@@ -43,7 +43,7 @@ export class NominationFileModel {
       (sameObservantsCount || sameObservantCountButDifferentValues)
     )
       this._nominationFileRead.content.observers = observants;
-    return observants;
+    return this._nominationFileRead.content.observers;
   }
 
   reporterNames() {
