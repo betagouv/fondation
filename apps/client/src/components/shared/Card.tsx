@@ -1,5 +1,5 @@
-import { Card as DsfrCard } from "@codegouvfr/react-dsfr/Card";
-import { RegisteredLinkProps } from "@codegouvfr/react-dsfr/link";
+import { Card as DsfrCard } from '@codegouvfr/react-dsfr/Card';
+import type { RegisteredLinkProps } from '@codegouvfr/react-dsfr/link';
 
 export type CardProps = {
   title: string;
@@ -11,7 +11,7 @@ export const Card = ({
   title,
   description,
   className,
-  linkProps,
+  linkProps
 }: CardProps) => {
   return (
     <div className="container">

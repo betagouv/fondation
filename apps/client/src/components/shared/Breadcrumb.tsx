@@ -1,7 +1,7 @@
-import { FC } from "react";
-import { BreadcrumbVM } from "../../../core-logic/models/breadcrumb-vm";
+import type { FC } from 'react';
 
-import DsfrBreadcrumb from "@codegouvfr/react-dsfr/Breadcrumb";
+import DsfrBreadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
+import type { BreadcrumbVM } from '../../models/breadcrumb-vm.model';
 
 export interface BreadcrumbProps {
   breadcrumb: BreadcrumbVM;
@@ -12,7 +12,7 @@ export interface BreadcrumbProps {
 export const Breadcrumb: FC<BreadcrumbProps> = ({
   breadcrumb: { currentPageLabel, segments },
   id,
-  ariaLabel,
+  ariaLabel
 }) => (
   <DsfrBreadcrumb
     id={id}
@@ -22,8 +22,8 @@ export const Breadcrumb: FC<BreadcrumbProps> = ({
       label,
       linkProps: {
         onClick,
-        href,
-      },
+        href
+      }
     }))}
   />
 );

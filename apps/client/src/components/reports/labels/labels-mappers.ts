@@ -1,14 +1,14 @@
-import { DateOnlyJson, Magistrat, Transparency } from "shared-models";
-import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { type DateOnlyJson, Magistrat, Transparency } from 'shared-models';
+import { DateOnly } from '../../../models/date-only.model';
 
 export type TransparencyLabel = string;
 
 export const transparencyToLabel = (
   transparency: Transparency,
-  dateTransparence: DateOnlyJson,
+  dateTransparence: DateOnlyJson
 ) => {
   return (
-    "T " +
+    'T ' +
     DateOnly.fromStoreModel(dateTransparence).toFormattedString() +
     ` (${transparency})`
   );
@@ -16,9 +16,9 @@ export const transparencyToLabel = (
 export const formationToLabel = (formation: Magistrat.Formation) => {
   switch (formation) {
     case Magistrat.Formation.SIEGE:
-      return "Siège";
+      return 'Siège';
     case Magistrat.Formation.PARQUET:
-      return "Parquet";
+      return 'Parquet';
     default: {
       const _exhaustiveCheck: never = formation;
       console.info(_exhaustiveCheck);
@@ -29,11 +29,11 @@ export const formationToLabel = (formation: Magistrat.Formation) => {
 export const gradeToLabel = (grade: Magistrat.Grade) => {
   switch (grade) {
     case Magistrat.Grade.I:
-      return "I";
+      return 'I';
     case Magistrat.Grade.II:
-      return "II";
+      return 'II';
     case Magistrat.Grade.HH:
-      return "HH";
+      return 'HH';
     default: {
       const _exhaustiveCheck: never = grade;
       console.info(_exhaustiveCheck);

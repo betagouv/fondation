@@ -1,24 +1,17 @@
-import { FC } from "react";
-import { useAppSelector } from "../../../../reports/adapters/primary/hooks/react-redux";
-import { Breadcrumb } from "../../../../shared-kernel/adapters/primary/react/Breadcrumb";
-import { Card } from "../../../../shared-kernel/adapters/primary/react/Card";
-import { PageContentLayout } from "../../../../shared-kernel/adapters/primary/react/PageContentLayout";
-import { selectSecretariatGeneralAnchorAttributes } from "../selectors/selectSecretariatGeneralAnchorAttributes";
-import { BreadcrumCurrentPage } from "../selectors/selectBreadcrumb";
-import { selectBreadcrumb } from "../selectors/selectBreadcrumb";
+import type { FC } from 'react';
+import { PageContentLayout } from '../shared/PageContentLayout';
+import { Breadcrumb } from '../shared/Breadcrumb';
+import { Card } from '../shared/Card';
+import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { getSgBreadCrumb } from '../../utils/sg-breadcrumb.utils';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: FC = () => {
-  const currentPage = {
-    name: BreadcrumCurrentPage.secretariatGeneral,
-  } as const;
-  const breadcrumb = useAppSelector((state) =>
-    selectBreadcrumb(state, currentPage),
+  const navigate = useNavigate();
+  const breadcrumb = getSgBreadCrumb(
+    ROUTE_PATHS.secretariatGeneral.dashboard,
+    navigate
   );
-
-  const { getNouvelleTransparenceAnchorAttributes } = useAppSelector(
-    selectSecretariatGeneralAnchorAttributes,
-  );
-  const anchorAttributes = getNouvelleTransparenceAnchorAttributes();
 
   return (
     <PageContentLayout>
@@ -33,9 +26,7 @@ const Dashboard: FC = () => {
           className="max-w-[314px]"
           title="Créer une nouvelle transparence"
           description="Renseignez les premières informations à votre disposition concernant une nouvelle transparence."
-          linkProps={{
-            ...anchorAttributes,
-          }}
+          linkProps={{}}
         />
       </section>
     </PageContentLayout>
