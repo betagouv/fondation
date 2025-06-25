@@ -57,6 +57,7 @@ export class FetchClient<Contract extends RestContract> {
     searchParams: Record<string, string | string[] | number>,
   ) {
     Object.entries(searchParams).forEach(([key, values]) => {
+      if (values === undefined) return;
       if (typeof values === "number")
         url.searchParams.append(key, String(values));
       else if (typeof values === "string") url.searchParams.append(key, values);

@@ -2,6 +2,7 @@ import { Magistrat } from "shared-models";
 import { createAppAsyncThunk } from "../../../../store/createAppAsyncThunk";
 import { getTransparenceCompositeId } from "../../models/transparence.model";
 import { DateOnly } from "../../../../shared-kernel/core-logic/models/date-only";
+import { sleep } from "../../../../shared-kernel/core-logic/sleep";
 
 export type ImportTransparenceXlsxDto = {
   nomTransparence: string;
@@ -63,6 +64,8 @@ export const dataAdministrationUpload = createAppAsyncThunk<
         ).toStoreModel(),
       );
 
+      // Temps pour que la transparence soit créée dans le backend
+      await sleep(1000);
       routerProvider.gotToSgTransparence(transparenceId);
       return;
     } else {
