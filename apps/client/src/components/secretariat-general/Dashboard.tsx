@@ -8,10 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Dashboard: FC = () => {
   const navigate = useNavigate();
-  const breadcrumb = getSgBreadCrumb(
-    ROUTE_PATHS.secretariatGeneral.dashboard,
-    navigate
-  );
+  const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.DASHBOARD, navigate);
 
   return (
     <PageContentLayout>
