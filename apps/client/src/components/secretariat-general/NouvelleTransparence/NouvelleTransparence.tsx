@@ -60,7 +60,7 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
   const breadcrumb = getSgBreadCrumb(
-    ROUTE_PATHS.secretariatGeneral.nouvelleTransparence,
+    ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
     navigate
   );
 

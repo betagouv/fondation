@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { useNavigate } from 'react-router-dom';
 import type { IdentityAndAccessRestContract } from 'shared-models';
+import { ROUTE_PATHS } from '../../utils/route-path.utils';
 
 const loginUser = async (credentials: { email: string; password: string }) => {
   const {
@@ -34,7 +35,7 @@ export const Login = () => {
   } = useMutation({
     mutationFn: loginUser,
     onSuccess: () => {
-      navigate('/transparences');
+      navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
     }
   });
 

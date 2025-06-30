@@ -7,14 +7,14 @@ export const getSgBreadCrumb = (
   navigate: NavigateFunction
 ): BreadcrumbVM => {
   const SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES = {
-    href: ROUTE_PATHS.secretariatGeneral.dashboard,
+    href: ROUTE_PATHS.SG.DASHBOARD,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
-      navigate(ROUTE_PATHS.secretariatGeneral.dashboard);
+      navigate(ROUTE_PATHS.SG.DASHBOARD);
     }
   };
   switch (path) {
-    case ROUTE_PATHS.secretariatGeneral.nouvelleTransparence: {
+    case ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE: {
       const secretariatGeneralSegments = [
         {
           label: 'Secretariat général',
@@ -30,7 +30,7 @@ export const getSgBreadCrumb = (
         segments: secretariatGeneralSegments
       };
     }
-    case ROUTE_PATHS.secretariatGeneral.dashboard: {
+    case ROUTE_PATHS.SG.DASHBOARD: {
       const secretariatGeneralSegments = [
         {
           label: 'Secretariat général',

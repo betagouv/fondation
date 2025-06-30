@@ -4,6 +4,7 @@ import { apiFetch } from '../../utils/api-fetch.utils';
 import type { IdentityAndAccessRestContract } from 'shared-models';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { ROUTE_PATHS } from '../../utils/route-path.utils';
 
 const logoutUser = async () => {
   const {
@@ -22,15 +23,15 @@ export const AppHeaderAvatar: FC = () => {
   const firstLetters = 'AB';
 
   const navigate = useNavigate();
-  const { mutate } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
-      navigate('/login');
+      navigate(ROUTE_PATHS.LOGIN);
     }
   });
 
   const onClickLogout = async () => {
-    mutate();
+    await mutateAsync();
   };
 
   return (

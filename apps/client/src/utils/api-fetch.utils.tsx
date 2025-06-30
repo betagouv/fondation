@@ -8,5 +8,13 @@ export const apiFetch = async (url: string, options: RequestInit) => {
     );
   }
 
-  return response.json();
+  // Check if response has content
+  const contentType = response.headers.get('content-type');
+  const hasContent = response.headers.get('content-length') !== '0';
+
+  if (contentType && contentType.includes('application/json') && hasContent) {
+    return response.json();
+  }
+
+  return null;
 };
