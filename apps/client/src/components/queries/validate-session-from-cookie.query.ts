@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import type { IdentityAndAccessRestContract } from 'shared-models';
+import { Gender, type IdentityAndAccessRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 interface User {
-  id: string;
-  email: string;
-  name?: string;
+  firstName: string;
+  gender: string;
+  lastName: string;
+  role: string;
+  userId: string;
 }
 
 const validateSessionFromCookie = async (): Promise<User> => {
@@ -35,5 +37,10 @@ export const useValidateSessionFromCookie = () => {
     refetchOnMount: false
   });
 
-  return { data, isPending, isError };
+  const user = {
+    firstLetters: `${data?.lastName.charAt(0).toUpperCase()}${data?.firstName.charAt(0).toUpperCase()}`,
+    civility: `${data?.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data?.lastName.toUpperCase()}`
+  };
+
+  return { user, isPending, isError };
 };

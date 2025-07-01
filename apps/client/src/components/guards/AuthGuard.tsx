@@ -9,7 +9,7 @@ interface AuthGuardProps {
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { data, isPending, isError } = useValidateSessionFromCookie();
+  const { user, isPending, isError } = useValidateSessionFromCookie();
 
   useEffect(() => {
     if (isError) {
@@ -17,7 +17,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
   }, [isError, navigate]);
 
-  if (isPending || isError || !data) {
+  if (isPending || isError || !user) {
     return null;
   }
 

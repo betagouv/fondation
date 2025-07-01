@@ -5,8 +5,10 @@ import { CsmTransparencies } from './CsmTransparencies';
 import { GdsTransparencies } from './GdsTransparencies';
 import { Magistrat } from 'shared-models';
 import { formationToLabel } from '../../labels/labels-mappers';
+import { useValidateSessionFromCookie } from '../../../queries/validate-session-from-cookie.query';
 
 export const Transparencies = () => {
+  const { user } = useValidateSessionFromCookie();
   // const transparencies = [];
   const gdsTransparencies = {
     noGdsTransparencies: true,
@@ -21,7 +23,7 @@ export const Transparencies = () => {
     }
   };
 
-  const civility = 'Alexis Ebrard';
+  const civility = user?.civility;
 
   return (
     <div className={clsx('gap-10', cx('fr-grid-row'))}>

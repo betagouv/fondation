@@ -1,10 +1,11 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import type { FC } from 'react';
 import { apiFetch } from '../../utils/api-fetch.utils';
-import type { IdentityAndAccessRestContract } from 'shared-models';
+import { Gender, type IdentityAndAccessRestContract } from 'shared-models';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { useValidateSessionFromCookie } from '../queries/validate-session-from-cookie.query';
 
 const logoutUser = async () => {
   const {
@@ -20,7 +21,8 @@ const logoutUser = async () => {
 };
 
 export const AppHeaderAvatar: FC = () => {
-  const firstLetters = 'AB';
+  const { user } = useValidateSessionFromCookie();
+  const firstLetters = user?.firstLetters;
 
   const navigate = useNavigate();
   const { mutateAsync } = useMutation({
