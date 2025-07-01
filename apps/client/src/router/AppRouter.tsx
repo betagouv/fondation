@@ -4,6 +4,15 @@ import { TransparencesPage } from '../pages/TransparencesPage';
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
+import { AuthGuard } from '../components/guards/AuthGuard';
+import { Outlet } from 'react-router-dom';
+
+// Layout pour les routes protégées du secretariat général
+const SecretariatGeneralLayout = () => (
+  <AuthGuard>
+    <Outlet />
+  </AuthGuard>
+);
 
 const router = createBrowserRouter([
   {
@@ -16,10 +25,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'transparences',
-        element: <TransparencesPage />
+        element: (
+          <AuthGuard>
+            <TransparencesPage />
+          </AuthGuard>
+        )
       },
       {
         path: 'secretariat-general',
+        element: <SecretariatGeneralLayout />,
         children: [
           {
             index: true,
