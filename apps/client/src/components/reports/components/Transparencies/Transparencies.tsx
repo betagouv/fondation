@@ -3,27 +3,23 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { CsmTransparencies } from './CsmTransparencies';
 import { GdsTransparencies } from './GdsTransparencies';
-import { Magistrat } from 'shared-models';
-import { formationToLabel } from '../../labels/labels-mappers';
 import { useValidateSessionFromCookie } from '../../../queries/validate-session-from-cookie.query';
+import { useListReports } from '../../../../queries/list-reports.query';
+import { formatTransparencies } from '../../../../utils/format-transparencies.utils';
 
 export const Transparencies = () => {
   const { user } = useValidateSessionFromCookie();
-  // const transparencies = [];
-  const gdsTransparencies = {
-    noGdsTransparencies: true,
-    formationsCount: 0,
-    [Magistrat.Formation.PARQUET]: {
-      formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
-      transparencies: null
-    },
-    [Magistrat.Formation.SIEGE]: {
-      formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
-      transparencies: null
-    }
-  };
+  const { data: reportsData, isPending: isReportsLoading } = useListReports();
+
+  const reports = reportsData?.data || [];
+  const transparencies = formatTransparencies(reports);
+  const gdsTransparencies = transparencies['GARDE DES SCEAUX'];
 
   const civility = user?.civility;
+
+  if (isReportsLoading) {
+    return null;
+  }
 
   return (
     <div className={clsx('gap-10', cx('fr-grid-row'))}>
@@ -41,11 +37,9 @@ export const Transparencies = () => {
         </h1>
 
         <p
-          style={
-            {
-              // display: transparencies.noTransparencies ? 'none' : undefined
-            }
-          }
+          style={{
+            display: transparencies.noTransparencies ? 'none' : undefined
+          }}
           className={cx('fr-text--xl')}
         >
           Sur quel type de saisine souhaitez-vous travailler ?
