@@ -1,5 +1,7 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, type DateOnlyJson } from 'shared-models';
 import { formationToLabel } from '../components/reports/labels/labels-mappers';
+import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
+import { getGdsDetailsPath } from './route-path.utils';
 
 interface ReportListItem {
   id: string;
@@ -12,7 +14,7 @@ interface ReportListItem {
   grade: string;
   targettedPosition: string;
   observersCount: number;
-  dateTransparence: string;
+  dateTransparence: DateOnlyJson;
 }
 
 interface TransparencyItem {
@@ -41,20 +43,21 @@ interface TransparenciesVM {
 // Fonction pour formater le label de transparence avec la date
 const transparencyToLabel = (
   transparency: string,
-  dateTransparence: string
+  dateTransparence: DateOnlyJson
 ): string => {
-  const date = new Date(dateTransparence);
-  const formattedDate = date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  const formattedDate = `${dateTransparence.day.toString().padStart(2, '0')}/${dateTransparence.month.toString().padStart(2, '0')}/${dateTransparence.year}`;
+  DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
   return `T ${formattedDate} (${transparency})`;
 };
 
 // Fonction pour calculer la différence de temps entre deux dates
-const timeDiff = (date1: string, date2: string): number => {
-  return new Date(date1).getTime() - new Date(date2).getTime();
+const timeDiff = (
+  date1: { day: number; month: number; year: number },
+  date2: { day: number; month: number; year: number }
+): number => {
+  const date1Obj = new Date(date1.year, date1.month - 1, date1.day);
+  const date2Obj = new Date(date2.year, date2.month - 1, date2.day);
+  return date1Obj.getTime() - date2Obj.getTime();
 };
 
 const formatGdsTransparencies = (
@@ -75,12 +78,18 @@ const formatGdsTransparencies = (
       report.dateTransparence
     );
 
+    const path = getGdsDetailsPath(
+      report.dateTransparence,
+      report.transparency,
+      report.formation as Magistrat.Formation
+    );
+
     const transparencyItem: TransparencyItem = {
       label: transparencyLabel,
-      href: `/reports/${report.id}`,
+      href: path,
       onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
-        window.location.href = `/reports/${report.id}`;
+        window.location.href = path;
       }
     };
 

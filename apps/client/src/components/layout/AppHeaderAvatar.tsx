@@ -21,7 +21,7 @@ const logoutUser = async () => {
 };
 
 export const AppHeaderAvatar: FC = () => {
-  const { user } = useValidateSessionFromCookie();
+  const { user, isError } = useValidateSessionFromCookie();
   const firstLetters = user?.firstLetters;
 
   const navigate = useNavigate();
@@ -35,6 +35,10 @@ export const AppHeaderAvatar: FC = () => {
   const onClickLogout = async () => {
     await mutateAsync();
   };
+
+  if (!user || isError) {
+    return null;
+  }
 
   return (
     <div className="fr-btn flex items-center gap-2">

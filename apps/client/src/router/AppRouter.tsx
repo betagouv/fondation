@@ -1,11 +1,16 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { HomePage } from '../HomePage';
-import { TransparencesPage } from '../pages/TransparencesPage';
+
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
 import { AuthGuard } from '../components/guards/AuthGuard';
 import { Outlet } from 'react-router-dom';
+import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
+import { ROUTE_PATHS } from '../utils/route-path.utils';
+import { TransparencesPage } from '../pages/transparence/TransparencesPage';
+import ReportList from '../components/reports/components/ReportList/ReportList';
+import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 
 // Layout pour les routes protégées du secretariat général
 const SecretariatGeneralLayout = () => (
@@ -20,19 +25,25 @@ const router = createBrowserRouter([
     element: <HomePage />,
     children: [
       {
-        path: 'login',
+        path: ROUTE_PATHS.LOGIN,
         element: <LoginPage />
       },
       {
-        path: 'transparences',
-        element: (
-          <AuthGuard>
-            <TransparencesPage />
-          </AuthGuard>
-        )
+        path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+        element: <TransparencesLayout />,
+        children: [
+          {
+            index: true,
+            element: <TransparencesPage />
+          },
+          {
+            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
+            element: <ReportListPage />
+          }
+        ]
       },
       {
-        path: 'secretariat-general',
+        path: ROUTE_PATHS.SG.DASHBOARD,
         element: <SecretariatGeneralLayout />,
         children: [
           {
@@ -40,7 +51,7 @@ const router = createBrowserRouter([
             element: <SecretariatGeneralPage />
           },
           {
-            path: 'nouvelle-transparence',
+            path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
             element: <NouvelleTransparencePage />
           }
         ]
