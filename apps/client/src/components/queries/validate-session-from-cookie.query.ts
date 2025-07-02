@@ -29,7 +29,7 @@ const validateSessionFromCookie = async (): Promise<User> => {
 };
 
 export const useValidateSessionFromCookie = () => {
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['validateSessionFromCookie'],
     queryFn: validateSessionFromCookie,
     retry: false,
@@ -42,5 +42,5 @@ export const useValidateSessionFromCookie = () => {
     civility: `${data?.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data?.lastName.toUpperCase()}`
   };
 
-  return { user, isPending, isError };
+  return { user, isPending, isError, refetch };
 };
