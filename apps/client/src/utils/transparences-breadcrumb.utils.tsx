@@ -1,12 +1,11 @@
-import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import { ROUTE_PATHS } from './route-path.utils';
 import type { NavigateFunction } from 'react-router-dom';
-import { Magistrat, Transparency } from 'shared-models';
-import type { DateOnlyJson } from 'shared-models';
+import { Magistrat } from 'shared-models';
 import {
   formationToLabel,
   transparencyToLabel
 } from '../components/reports/labels/labels-mappers';
+import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
+import { ROUTE_PATHS } from './route-path.utils';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
@@ -20,13 +19,6 @@ type TransparencesCurrentPageType =
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
-      reportId: string;
-      report?: {
-        name: string;
-        transparency: Transparency;
-        formation: Magistrat.Formation;
-        dateTransparence: DateOnlyJson;
-      };
     };
 
 export const getTransparencesBreadCrumb = (

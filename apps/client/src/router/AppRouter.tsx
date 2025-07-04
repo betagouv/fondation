@@ -1,16 +1,16 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { HomePage } from '../HomePage';
 
-import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
+import { Outlet } from 'react-router-dom';
+import { AuthGuard } from '../components/guards/AuthGuard';
+import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
+import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
-import { AuthGuard } from '../components/guards/AuthGuard';
-import { Outlet } from 'react-router-dom';
+import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
-import { ROUTE_PATHS } from '../utils/route-path.utils';
 import { TransparencesPage } from '../pages/transparence/TransparencesPage';
-import ReportList from '../components/reports/components/ReportList/ReportList';
-import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
+import { ROUTE_PATHS } from '../utils/route-path.utils';
 
 // Layout pour les routes protégées du secretariat général
 const SecretariatGeneralLayout = () => (
@@ -39,6 +39,10 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
             element: <ReportListPage />
+          },
+          {
+            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
+            element: <ReportOverviewPage />
           }
         ]
       },
