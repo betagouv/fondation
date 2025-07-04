@@ -4,7 +4,7 @@ import { gradeToLabel } from '../components/reports/labels/labels-mappers';
 import { reportListTableLabels } from '../components/reports/labels/report-list-table-labels';
 import { stateToLabel } from '../components/reports/labels/state-label.mapper';
 import { DateOnly } from '../models/date-only.model';
-import type { ReportListItem } from '../queries/list-reports.query';
+import type { ReportListItem } from '../queries/list-reports.queries';
 import { getGdsReportPath } from './route-path.utils';
 
 export type ReportListItemVM = {

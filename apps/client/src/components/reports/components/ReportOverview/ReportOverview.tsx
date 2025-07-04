@@ -1,129 +1,169 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import clsx from "clsx";
-import { useEffect } from "react";
-import { NominationFile } from "shared-models";
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import clsx from 'clsx';
+import { useNavigate } from 'react-router-dom';
+
+import { allRulesMapV2, type DateOnlyJson } from 'shared-models';
+import { DateOnly } from '../../../../models/date-only.model';
+import { type ReportSM } from '../../../../queries/list-reports.queries';
 import {
-  BreadcrumCurrentPage,
-  selectBreadcrumb,
-} from "../../../../../router/adapters/selectors/selectBreadcrumb";
-import { Breadcrumb } from "../../../../../shared-kernel/adapters/primary/react/Breadcrumb";
-import { attachReportFiles } from "../../../../core-logic/use-cases/report-attach-files/attach-report-files";
-import { deleteReportFile } from "../../../../core-logic/use-cases/report-attached-file-deletion/delete-report-attached-file";
-import { retrieveReport } from "../../../../core-logic/use-cases/report-retrieval/retrieveReport.use-case";
-import { updateReportRule } from "../../../../core-logic/use-cases/report-rule-update/updateReportRule.use-case";
-import {
-  ReportStateUpdateParam,
-  updateReport,
-  UpdateReportParams,
-} from "../../../../core-logic/use-cases/report-update/updateReport.use-case";
-import { VMReportRuleValue } from "../../../../core-logic/view-models/ReportVM";
-import { useAppDispatch, useAppSelector } from "../../hooks/react-redux";
-import { selectReport } from "../../selectors/selectReport";
-import { selectFetchingReport } from "../../selectors/selectReportQueryStatus";
-import { AttachedFileUpload } from "./AttachedFileUpload";
-import { AutoSaveNotice } from "./AutoSaveNotice";
-import { Biography } from "./Biography";
-import { MagistratIdentity } from "./MagistratIdentity";
-import { Observers } from "./Observers";
-import { ReportEditor } from "./ReportEditor";
-import { ReportOverviewState } from "./ReportOverviewState";
-import { ReportRules } from "./ReportRules";
-import { Summary } from "./Summary";
+  getTransparencesBreadCrumb,
+  TransparencesCurrentPage
+} from '../../../../utils/transparences-breadcrumb.utils';
+import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { AttachedFileUpload } from './AttachedFileUpload';
+import { AutoSaveNotice } from './AutoSaveNotice';
+import { Biography } from './Biography';
+import { MagistratIdentity } from './MagistratIdentity';
+import { Observers } from './Observers';
+import { ReportEditor } from './ReportEditor';
+
+import { ReportRules } from './ReportRules';
+import { useReportById } from '../../../../queries/report-by-id.queries';
+import { allRulesLabelsMap } from '../../labels/rules-labels';
+import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
+// import { Summary } from './Summary';
+
+const formatBiography = (biography: string | null) => {
+  if (!biography) return null;
+  if (biography.indexOf('- ') === -1) return biography;
+
+  const biographyElements = biography
+    .trim()
+    .split('- ')
+    .map((part) => part.trim());
+  // we skipt the real first element because it is empty
+  const [, firstElement, ...otherElements] = biographyElements;
+  return `- ${firstElement}\n- ${otherElements.join('\n- ')}`;
+};
+
+const formatObservers = (observers: ReportSM['observers']) =>
+  observers?.map((observer) => observer.split('\n') as [string, ...string[]]) ||
+  null;
+
+const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
+  const birthDate = DateOnly.fromStoreModel(birthDateJson);
+  const today = DateOnly.fromDate(currentDate);
+  const age = birthDate.getAge(today);
+  return `${birthDate.toFormattedString()} (${age} ans)`;
+};
 
 export type ReportOverviewProps = {
   id: string;
 };
 
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
-  const report = useAppSelector((state) => selectReport(state, id));
-  const currentPage = {
-    name: BreadcrumCurrentPage.gdsReport,
-    reportId: id,
-  } as const;
-  const breadcrumb = useAppSelector((state) =>
-    selectBreadcrumb(state, currentPage),
+  const navigate = useNavigate();
+  const breadcrumb = getTransparencesBreadCrumb(
+    {
+      name: TransparencesCurrentPage.gdsReport
+    },
+    navigate
   );
-  const isFetching = useAppSelector((state) =>
-    selectFetchingReport(state, {
-      reportId: id,
-    }),
+
+  const { report, isLoading, error } = useReportById(id);
+
+  const retrievedReport = report as ReportSM;
+  if (isLoading || error) {
+    return null;
+  }
+
+  const rulesChecked = ReportVMRulesBuilder.buildFromStoreModel(
+    retrievedReport.rules,
+    allRulesMapV2,
+    allRulesLabelsMap
   );
-  const dispatch = useAppDispatch();
 
-  const onUpdateReport = <T extends keyof UpdateReportParams["data"]>(data: {
-    [key in keyof UpdateReportParams["data"]]: T extends key
-      ? UpdateReportParams["data"][key]
-      : undefined;
-  }) => {
-    dispatch(
-      updateReport({
-        reportId: id,
-        data,
-      }),
-    );
-  };
+  const formattedBirthDate = formatBirthDate(
+    retrievedReport.birthDate,
+    new Date()
+  );
 
-  const onUpdateContent = (comment: string) => {
-    return onUpdateReport<"comment">({ comment });
-  };
-  const onUpdateState = (state: ReportStateUpdateParam) => {
-    return onUpdateReport<"state">({ state });
-  };
+  const formattedObservers = formatObservers(retrievedReport.observers);
 
-  const onUpdateReportRule =
-    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
-    () => {
-      if (!report) return;
+  const formattedBiography = formatBiography(retrievedReport.biography);
+  // const report = useAppSelector((state) => selectReport(state, id));
 
-      const rule = {
-        ...report.rulesChecked[ruleGroup].selected,
-        ...report.rulesChecked[ruleGroup].others,
-      } as Record<NominationFile.RuleName, VMReportRuleValue>;
-      dispatch(
-        updateReportRule({
-          reportId: id,
-          ruleId: rule[ruleName].id,
-          validated: rule[ruleName].checked,
-        }),
-      );
-    };
+  // const isFetching = useAppSelector((state) =>
+  //   selectFetchingReport(state, {
+  //     reportId: id
+  //   })
+  // );
+  // const dispatch = useAppDispatch();
 
-  const onFilesAttached = (files: File[]) => {
-    dispatch(
-      attachReportFiles({
-        reportId: id,
-        files,
-      }),
-    );
-  };
+  // const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
+  //   [key in keyof UpdateReportParams['data']]: T extends key
+  //     ? UpdateReportParams['data'][key]
+  //     : undefined;
+  // }) => {
+  //   dispatch(
+  //     updateReport({
+  //       reportId: id,
+  //       data
+  //     })
+  //   );
+  // };
 
-  const onAttachedFileDeleted = (fileName: string) => {
-    dispatch(
-      deleteReportFile({
-        reportId: id,
-        fileName,
-      }),
-    );
-  };
+  // const onUpdateContent = (comment: string) => {
+  //   return onUpdateReport<'comment'>({ comment });
+  // };
+  // const onUpdateState = (state: ReportStateUpdateParam) => {
+  //   return onUpdateReport<'state'>({ state });
+  // };
 
-  useEffect(() => {
-    dispatch(retrieveReport(id));
-  }, [dispatch, id]);
+  // const onUpdateReportRule =
+  //   (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
+  //   () => {
+  //     if (!report) return;
 
-  if (!report)
-    return isFetching ? null : (
-      <div>
-        <Breadcrumb
-          id="report-breadcrumb"
-          ariaLabel="Fil d'Ariane du rapport"
-          breadcrumb={breadcrumb}
-        />
-        Rapport non trouvé.
-      </div>
-    );
+  //     const rule = {
+  //       ...report.rulesChecked[ruleGroup].selected,
+  //       ...report.rulesChecked[ruleGroup].others
+  //     } as Record<NominationFile.RuleName, VMReportRuleValue>;
+  //     dispatch(
+  //       updateReportRule({
+  //         reportId: id,
+  //         ruleId: rule[ruleName].id,
+  //         validated: rule[ruleName].checked
+  //       })
+  //     );
+  //   };
+
+  // const onFilesAttached = (files: File[]) => {
+  //   dispatch(
+  //     attachReportFiles({
+  //       reportId: id,
+  //       files
+  //     })
+  //   );
+  // };
+
+  // const onAttachedFileDeleted = (fileName: string) => {
+  //   dispatch(
+  //     deleteReportFile({
+  //       reportId: id,
+  //       fileName
+  //     })
+  //   );
+  // };
+
+  // useEffect(() => {
+  //   dispatch(retrieveReport(id));
+  // }, [dispatch, id]);
+
+  // if (!report)
+  //   return isFetching ? null : (
+  //     <div>
+  //       <Breadcrumb
+  //         id="report-breadcrumb"
+  //         ariaLabel="Fil d'Ariane du rapport"
+  //         breadcrumb={breadcrumb}
+  //       />
+  //       Rapport non trouvé.
+  //     </div>
+  //   );
 
   return (
-    <div className={clsx("flex-col items-center", cx("fr-grid-row"))}>
+    <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
       <div className="w-full">
         <Breadcrumb
           id="report-breadcrumb"
@@ -134,53 +174,50 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       <AutoSaveNotice />
       <div
         className={clsx(
-          "scroll-smooth",
-          cx("fr-grid-row", "fr-grid-row--center", "fr-py-12v"),
+          'scroll-smooth',
+          cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v')
         )}
       >
         <div
           className={clsx(
-            "hidden md:block",
-            cx("fr-col-md-5", "fr-col-lg-4", "fr-col-xl-3"),
+            'hidden md:block',
+            cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3')
           )}
         >
-          <Summary reportId={id} />
+          {/* <Summary reportId={id} /> */}
         </div>
         <div
           className={clsx(
-            "flex-col gap-2",
-            cx("fr-grid-row", "fr-col-md-7", "fr-col-lg-8", "fr-col-xl-9"),
+            'flex-col gap-2',
+            cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9')
           )}
         >
-          <ReportOverviewState
-            state={report.state}
-            onUpdateState={onUpdateState}
-          />
+          {/* <ReportOverviewState state={report.state} onUpdateState={() => {}} /> */}
           <MagistratIdentity
-            name={report.name}
-            birthDate={report.birthDate}
-            grade={report.grade}
-            currentPosition={report.currentPosition}
-            targettedPosition={report.targettedPosition}
-            rank={report.rank}
-            dureeDuPoste={report.dureeDuPoste}
+            name={retrievedReport.name}
+            birthDate={formattedBirthDate}
+            grade={retrievedReport.grade}
+            currentPosition={retrievedReport.currentPosition}
+            targettedPosition={retrievedReport.targettedPosition}
+            rank={retrievedReport.rank}
+            dureeDuPoste={retrievedReport.dureeDuPoste}
           />
-          <Biography biography={report.biography} />
+          <Biography biography={retrievedReport.biography} />
           <ReportEditor
-            comment={report.comment}
-            onUpdate={onUpdateContent}
+            comment={retrievedReport.comment}
+            onUpdate={() => {}}
             reportId={id}
           />
-          <Observers observers={report.observers} />
+          <Observers observers={retrievedReport.observers} />
           <ReportRules
-            rulesChecked={report.rulesChecked}
-            onUpdateReportRule={onUpdateReportRule}
+            rulesChecked={rulesChecked}
+            onUpdateReportRule={() => {}}
             reportId={id}
           />
           <AttachedFileUpload
-            attachedFiles={report.attachedFiles}
-            onFilesAttached={onFilesAttached}
-            onAttachedFileDeleted={onAttachedFileDeleted}
+            attachedFiles={retrievedReport.attachedFiles}
+            onFilesAttached={() => {}}
+            onAttachedFileDeleted={() => {}}
           />
         </div>
       </div>

@@ -1,18 +1,18 @@
-import Button from "@codegouvfr/react-dsfr/Button";
-import clsx from "clsx";
-import type { FC } from "react";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
+import Button from '@codegouvfr/react-dsfr/Button';
+import clsx from 'clsx';
+import type { FC } from 'react';
+import type { ReportVM } from '../../../../VM/ReportVM';
 
 export type AttachedFilesListProps = {
-  attachedFiles: NonNullable<ReportVM["attachedFiles"]>;
+  attachedFiles: NonNullable<ReportVM['attachedFiles']>;
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
 export const AttachedFilesList: FC<AttachedFilesListProps> = ({
   attachedFiles,
-  onAttachedFileDeleted,
+  onAttachedFileDeleted
 }) => (
-  <ul className={clsx("flex flex-col gap-2")}>
+  <ul className={clsx('flex flex-col gap-2')}>
     {attachedFiles.map((file) => {
       const deleteAttachedFile = () => onAttachedFileDeleted(file.name);
 

@@ -1,10 +1,11 @@
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { Card } from "./Card";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import clsx from "clsx";
-import { reportHtmlIds } from "../../dom/html-ids";
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { Card } from './Card';
 
-export const Observers = ({ observers }: Pick<ReportVM, "observers">) => {
+import clsx from 'clsx';
+import { reportHtmlIds } from '../../dom/html-ids';
+import { ReportVM } from '../../../../VM/ReportVM';
+
+export const Observers = ({ observers }: Pick<ReportVM, 'observers'>) => {
   if (!observers) return null;
 
   return (
@@ -13,12 +14,12 @@ export const Observers = ({ observers }: Pick<ReportVM, "observers">) => {
       <div
         aria-labelledby={reportHtmlIds.overview.observers}
         className={clsx(
-          "flex w-full flex-col gap-4 whitespace-pre-line leading-10",
+          'flex w-full flex-col gap-4 whitespace-pre-line leading-10'
         )}
       >
         {observers.map(([observerName, ...observerInformation]) => (
           <div key={observerName}>
-            <div key={observerName} className={cx("fr-text--bold")}>
+            <div key={observerName} className={cx('fr-text--bold')}>
               {observerName}
             </div>
             <ObserverInformation observerInformation={observerInformation} />
@@ -30,7 +31,7 @@ export const Observers = ({ observers }: Pick<ReportVM, "observers">) => {
 };
 
 const ObserverInformation = ({
-  observerInformation,
+  observerInformation
 }: {
   observerInformation: string[];
 }) => {

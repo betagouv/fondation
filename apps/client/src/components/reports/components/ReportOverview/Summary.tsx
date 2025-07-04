@@ -1,10 +1,8 @@
-import { SideMenu, type SideMenuProps } from "@codegouvfr/react-dsfr/SideMenu";
-import { type FC, useCallback, useEffect, useMemo, useState } from "react";
-import { scrollToSummarySection } from "../../dom/scroll-to-summary-section";
-import { summaryScrollListenersFactory } from "../../dom/summary-scroll-listeners";
-import { useAppSelector } from "../../hooks/react-redux";
-import { selectSummary } from "../../selectors/selectSummary";
-import { useObservedSections } from "./hooks/useObservedSections";
+import { SideMenu, type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
+import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { scrollToSummarySection } from '../../dom/scroll-to-summary-section';
+import { summaryScrollListenersFactory } from '../../dom/summary-scroll-listeners';
+import { useObservedSections } from './hooks/useObservedSections';
 
 export type SummaryProps = {
   reportId: string;
@@ -19,11 +17,11 @@ export const Summary: FC<SummaryProps> = ({ reportId }) => {
 
   const anchorIds = useMemo(
     () => summary.map(({ anchorId }) => anchorId),
-    [summary],
+    [summary]
   );
   const onSectionIdIntersecting = useCallback(
     (sectionId: string) => setCurrentSection(sectionId),
-    [],
+    []
   );
   useObservedSections(anchorIds, onSectionIdIntersecting);
 
@@ -42,11 +40,11 @@ export const Summary: FC<SummaryProps> = ({ reportId }) => {
     ({ anchorId, label }) => ({
       linkProps: {
         href: `#${anchorId}`,
-        onClick: () => onAnchorClick(anchorId),
+        onClick: () => onAnchorClick(anchorId)
       },
       isActive: currentSection === anchorId,
-      text: label,
-    }),
+      text: label
+    })
   );
 
   return (

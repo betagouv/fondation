@@ -1,11 +1,15 @@
-import type { FC } from "react";
+import type { FC } from 'react';
 
-import ReportOverview, { type ReportOverviewProps } from "./ReportOverview";
-import { PageContentLayout } from "../../../shared/PageContentLayout";
+import { useParams } from 'react-router-dom';
+import { PageContentLayout } from '../../../shared/PageContentLayout';
+import ReportOverview from './ReportOverview';
 
-export const ReportOverviewPage: FC<ReportOverviewProps> = (props) => (
-  <PageContentLayout fullBackgroundOrange>
-    <ReportOverview {...props} />
-  </PageContentLayout>
-);
+export const ReportOverviewPage: FC = () => {
+  const { id } = useParams() as { id: string };
+  return (
+    <PageContentLayout fullBackgroundOrange>
+      <ReportOverview id={id} />
+    </PageContentLayout>
+  );
+};
 export default ReportOverviewPage;

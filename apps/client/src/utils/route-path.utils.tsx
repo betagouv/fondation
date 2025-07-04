@@ -31,6 +31,7 @@ interface RoutePath {
   TRANSPARENCES: {
     DASHBOARD: '/transparences';
     DETAILS_GDS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports';
+    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:id';
   };
   SG: {
     DASHBOARD: '/secretariat-general';
@@ -43,7 +44,9 @@ export const ROUTE_PATHS: RoutePath = {
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAILS_GDS:
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports'
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports',
+    DETAILS_REPORTS:
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:id'
   },
   SG: {
     DASHBOARD: '/secretariat-general',

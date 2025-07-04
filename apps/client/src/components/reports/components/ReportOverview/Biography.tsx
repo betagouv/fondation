@@ -1,6 +1,6 @@
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { reportHtmlIds } from "../../dom/html-ids";
-import { Card } from "./Card";
+import { reportHtmlIds } from '../../dom/html-ids';
+import { Card } from './Card';
+import { ReportVM } from '../../../../VM/ReportVM';
 
 export type BiographyProps = {
   biography: string | null;

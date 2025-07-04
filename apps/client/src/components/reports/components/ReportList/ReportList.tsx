@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { DateOnlyJson, Magistrat } from 'shared-models';
-import { useListReports } from '../../../../queries/list-reports.query';
+import { useListReports } from '../../../../queries/list-reports.queries';
 import { formatReportList } from '../../../../utils/format-report-list.utils';
 import {
   getTransparencesBreadCrumb,

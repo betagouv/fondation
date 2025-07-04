@@ -300,6 +300,9 @@ importers:
       tiptap-extension-resize-image:
         specifier: ^1.2.1
         version: 1.2.2(@tiptap/core@2.22.3(@tiptap/pm@2.22.3))(@tiptap/extension-image@2.22.3(@tiptap/core@2.22.3(@tiptap/pm@2.22.3)))(@tiptap/pm@2.22.3)
+      type-fest:
+        specifier: ^4.26.1
+        version: 4.41.0
       zod:
         specifier: ^3.23.8
         version: 3.25.67

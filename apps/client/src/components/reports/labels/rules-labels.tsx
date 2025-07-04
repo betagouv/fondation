@@ -1,18 +1,18 @@
-import { AllRulesMapV2, NominationFile } from "shared-models";
-import { NonEmptyTuple } from "type-fest";
+import { type AllRulesMapV2, NominationFile } from 'shared-models';
+import type { NonEmptyTuple } from 'type-fest';
 
 type GroupLabels<
   RulesMap extends AllRulesMapV2,
-  RuleGroup extends NominationFile.RuleGroup,
+  RuleGroup extends NominationFile.RuleGroup
 > =
   NonEmptyTuple<RulesMap[RuleGroup]> extends readonly [
     RulesMap[RuleGroup],
-    ...RulesMap[RuleGroup][],
+    ...RulesMap[RuleGroup][]
   ]
     ? {
         [key in RulesMap[RuleGroup][number]]: {
           label: string;
-          hint: string | JSX.Element;
+          hint: string | React.ReactElement;
         };
       }
     : undefined;
@@ -35,7 +35,7 @@ export type RulesLabelsMap<RulesMap extends AllRulesMapV2 = AllRulesMapV2> = {
 export const allRulesLabelsMap: RulesLabelsMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: {
     [NominationFile.ManagementRule.TRANSFER_TIME]: {
-      label: "Mutation avant 3 ans",
+      label: 'Mutation avant 3 ans',
       hint: (
         <div>
           <p key="p1">
@@ -56,11 +56,11 @@ export const allRulesLabelsMap: RulesLabelsMap = {
           </ul>
           <p key="p3">Non bloquant car exceptions possibles à justifier.</p>
         </div>
-      ),
+      )
     },
     [NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE]: {
-      label: "Avancement sur place",
-      hint: `Par principe, la mobilité géographique est privilégiée pour réaliser un avancement (1er grade, HH). Les motivations des dérogations sont à vérifier dans la note de présentation DSJ.`,
+      label: 'Avancement sur place',
+      hint: `Par principe, la mobilité géographique est privilégiée pour réaliser un avancement (1er grade, HH). Les motivations des dérogations sont à vérifier dans la note de présentation DSJ.`
     },
     [NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT]: {
       label: "Passage parquet / siège ou inversement au sein d'un même ressort",
@@ -68,8 +68,8 @@ export const allRulesLabelsMap: RulesLabelsMap = {
 
 Comme la CA a une vision macro de tous les dossiers du ressort, les risques de se retrouver en situation de conflit d'intérêt sur ses anciens dossiers sont plus forts.
 
-Passage du siège au parquet (ou inversement) entre 2 TJ du ressort d'une même CA. Avoir une vigilance particulière pour les infra-pôles.`,
-    },
+Passage du siège au parquet (ou inversement) entre 2 TJ du ressort d'une même CA. Avoir une vigilance particulière pour les infra-pôles.`
+    }
   },
   [NominationFile.RuleGroup.STATUTORY]: {
     [NominationFile.StatutoryRule.JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION]: {
@@ -84,37 +84,37 @@ Passage du siège au parquet (ou inversement) entre 2 TJ du ressort d'une même 
           <p key="p2">
             <span key="warning" role="img" aria-label="warning">
               ⚠️
-            </span>{" "}
+            </span>{' '}
             biographie.
           </p>
           <p key="p3">Cf. liste des fonctions dans la magistrature.</p>
         </div>
-      ),
+      )
     },
     [NominationFile.StatutoryRule.GRADE_ON_SITE_AFTER_7_YEARS]: {
-      label: "Avancement sur place après 7 ans",
-      hint: "Prendre son avancement du 2nd au 1er grade dans une même juridiction après 7 ans (Art 2 de l'OS).",
+      label: 'Avancement sur place après 7 ans',
+      hint: "Prendre son avancement du 2nd au 1er grade dans une même juridiction après 7 ans (Art 2 de l'OS)."
     },
     [NominationFile.StatutoryRule.MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS]: {
       label: "Nomination à l'administration centrale avant 3 ans de fonction",
       hint: `Impossibilité d'être nommé à l'administration centrale avant 3 ans d'exercice en juridiction.
 
-Sur la transparence, le poste apparait comme "substitut à l'administration centrale de la justice".`,
+Sur la transparence, le poste apparait comme "substitut à l'administration centrale de la justice".`
     },
     [NominationFile.StatutoryRule.MINISTER_CABINET]: {
-      label: "Nomination en cabinet ministériel avant 4 ans de fonction",
+      label: 'Nomination en cabinet ministériel avant 4 ans de fonction',
       hint: `Impossibilité d'être nommé en cabinet ministériel avant une durée de 4 ans d'exercice.
 
-Si le magistrat proposé n'a pas 4 ans d'exercice et qu'il est pressenti pour un poste en cabinet, l'avis est nécessairement défavorable : cette règle étant statutairement exigée pour une nomination en cabinet.`,
+Si le magistrat proposé n'a pas 4 ans d'exercice et qu'il est pressenti pour un poste en cabinet, l'avis est nécessairement défavorable : cette règle étant statutairement exigée pour une nomination en cabinet.`
     },
     [NominationFile.StatutoryRule.GRADE_REGISTRATION]: {
       label: "Proposition d'avancement sans inscription au tableau",
       hint: `Le magistrat proposé doit être inscrit au tableau pour prendre son grade.
 
-A vérifier dans l'espace LOLFI du magistrat proposé.`,
+A vérifier dans l'espace LOLFI du magistrat proposé.`
     },
     [NominationFile.StatutoryRule.HH_WITHOUT_2_FIRST_GRADE_POSITIONS]: {
-      label: "Proposition de nomination à un poste HH",
+      label: 'Proposition de nomination à un poste HH',
       hint: (
         <div>
           <ul key="ul1">
@@ -146,7 +146,7 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
           </p>
           <p key="p3">Cf. liste des fonctions dans la magistrature.</p>
         </div>
-      ),
+      )
     },
     [NominationFile.StatutoryRule
       .LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO]: {
@@ -158,19 +158,19 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
       
       Il ne peut exercer un mandat de conseiller régional, de conseiller départemental, de conseiller municipal ou de conseiller d'arrondissement, de conseiller de Paris, de conseiller de la métropole de Lyon, de conseiller de l'Assemblée de Corse, de conseiller de l'Assemblée de Guyane ou de conseiller de l'Assemblée de Martinique dans le ressort de la juridiction où il est proposé. 
       
-      Il ne peut être nommé magistrat ni le demeurer dans une juridiction dans le ressort de laquelle il aura exercé depuis moins de cinq ans, une fonction publique élective ou fait acte de candidature à l'un de ces mandats, à l'exception du mandat de représentant au Parlement européen, depuis moins de trois ans (article 9 OS).`,
+      Il ne peut être nommé magistrat ni le demeurer dans une juridiction dans le ressort de laquelle il aura exercé depuis moins de cinq ans, une fonction publique élective ou fait acte de candidature à l'un de ces mandats, à l'exception du mandat de représentant au Parlement européen, depuis moins de trois ans (article 9 OS).`
     },
     [NominationFile.StatutoryRule
       .RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS]: {
       label:
-        "Retour avant une durée de 5 ans sur des fonctions spécialisées occupées pendant la durée maximale de 9 ans",
-      hint: `Article 28-4 de l'OS : nul ne peut être nommé pour exercer une fonction spécialisée (JLD / JE / JI / JAP / JCP) dans une juridiction au sein de laquelle il a exercé les mêmes fonctions durant plus de neuf années avant l'expiration d'un délai de cinq ans à compter de la cessation de ses fonctions au sein de cette juridiction.`,
+        'Retour avant une durée de 5 ans sur des fonctions spécialisées occupées pendant la durée maximale de 9 ans',
+      hint: `Article 28-4 de l'OS : nul ne peut être nommé pour exercer une fonction spécialisée (JLD / JE / JI / JAP / JCP) dans une juridiction au sein de laquelle il a exercé les mêmes fonctions durant plus de neuf années avant l'expiration d'un délai de cinq ans à compter de la cessation de ses fonctions au sein de cette juridiction.`
     },
     [NominationFile.StatutoryRule.NOMINATION_CA_AVANT_4_ANS]: {
       label:
-        "Nomination pour un poste de conseiller CA ou de substitut général CA du second grade avant 4 ans de fonction",
-      hint: `Article 10 du décret du 7/01/1993 pris pour l'application de l'OS : Nul magistrat du second grade ne peut être nommé aux fonctions de conseiller ou de substitut général de cour d'appel s'il n'a accompli quatre années de services effectifs dans le corps judiciaire depuis son entrée dans la magistrature.`,
-    },
+        'Nomination pour un poste de conseiller CA ou de substitut général CA du second grade avant 4 ans de fonction',
+      hint: `Article 10 du décret du 7/01/1993 pris pour l'application de l'OS : Nul magistrat du second grade ne peut être nommé aux fonctions de conseiller ou de substitut général de cour d'appel s'il n'a accompli quatre années de services effectifs dans le corps judiciaire depuis son entrée dans la magistrature.`
+    }
   },
   [NominationFile.RuleGroup.QUALITATIVE]: {
     [NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE]: {
@@ -200,7 +200,7 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
             </li>
           </ul>
         </div>
-      ),
+      )
     },
     [NominationFile.QualitativeRule
       .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION]: {
@@ -221,7 +221,7 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
           <ul
             key="ul2"
             // Indentation de second niveau
-            style={{ listStyleType: "circle", paddingInlineStart: 40 }}
+            style={{ listStyleType: 'circle', paddingInlineStart: 40 }}
           >
             <li key="li1">
               <p>
@@ -249,18 +249,18 @@ A vérifier dans l'espace LOLFI du magistrat proposé.`,
             s'assure de l'absence d'un lien hiérarchique.
           </p>
         </div>
-      ),
+      )
     },
     [NominationFile.QualitativeRule.EVALUATIONS]: {
-      label: "Évaluations",
+      label: 'Évaluations',
       hint: `S'assurer qu'une évaluation de moins de 2 ans apparait dans le
 dossier.
 
-Voir rubrique dossier > E - Evaluations dans LOLFI.`,
+Voir rubrique dossier > E - Evaluations dans LOLFI.`
     },
     [NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS]: {
-      label: "Éléments disciplinaires",
-      hint: `Voir rubrique dossier > C - incidents, discipline dans LOLFI.`,
-    },
-  },
+      label: 'Éléments disciplinaires',
+      hint: `Voir rubrique dossier > C - incidents, discipline dans LOLFI.`
+    }
+  }
 };

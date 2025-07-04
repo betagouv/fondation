@@ -1,6 +1,6 @@
 import { Magistrat, type DateOnlyJson } from 'shared-models';
 import { formationToLabel } from '../components/reports/labels/labels-mappers';
-import type { ReportListItem } from '../queries/list-reports.query';
+import type { ReportListItem } from '../queries/list-reports.queries';
 import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
 import { getGdsDetailsPath } from './route-path.utils';
 

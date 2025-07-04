@@ -1,11 +1,15 @@
-import { Editor } from "@tiptap/react";
-import { FileVM } from "shared-models";
-import {
-  dataFileNameKey,
-  fileKey,
-} from "../../../../reports/adapters/primary/components/ReportOverview/TipTapEditor/extensions";
-import { TextEditorProvider } from "../../../core-logic/providers/textEditor";
+import { Editor } from '@tiptap/react';
+import type { FileVM } from 'shared-models';
 
+interface TextEditorProvider {
+  setImages: (images: { file: File; signedUrl: string }[]) => boolean;
+
+  replaceImageUrls(fileVMs: FileVM[]): void;
+
+  persistImages: () => Promise<void>;
+
+  isEmpty: () => boolean;
+}
 export class TipTapEditorProvider implements TextEditorProvider {
   constructor(private readonly editor: Editor) {}
 
@@ -19,7 +23,7 @@ export class TipTapEditorProvider implements TextEditorProvider {
         [dataFileNameKey as any]: file.name,
         src: signedUrl,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [fileKey as any]: file,
+        [fileKey as any]: file
       });
     }
 
@@ -30,14 +34,14 @@ export class TipTapEditorProvider implements TextEditorProvider {
     // Le remplacement des src via l'API TipTap provoquait des bugs
     // lors de l'undo-redo d'ajouts/suppressions d'images.
     const imgs = document.querySelectorAll(
-      ".ProseMirror img",
+      '.ProseMirror img'
     ) as NodeListOf<HTMLImageElement>;
     imgs.forEach(replaceSrc(fileVMs));
   }
 
   async persistImages() {
     for (const n of this.editor.state.doc.toJSON().content) {
-      if (n.type === "image") {
+      if (n.type === 'image') {
         const fileName = n.attrs[dataFileNameKey];
         const file = this.editor.storage.image.files[fileName];
         if (!file) {
@@ -61,7 +65,7 @@ function replaceSrc(signedUrlsVM: FileVM[]): (value: HTMLImageElement) => void {
     const signedUrlVM = signedUrlsVM.find((file) => file.name === imgFileName);
 
     if (signedUrlVM) {
-      img.setAttribute("src", signedUrlVM.signedUrl);
+      img.setAttribute('src', signedUrlVM.signedUrl);
     }
   };
 }

@@ -1,13 +1,14 @@
-import { NominationFile } from "shared-models";
-import { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { ReportRule } from "./ReportRule";
-import { reportHtmlIds } from "../../dom/html-ids";
+import { NominationFile } from 'shared-models';
+
+import { ReportRule } from './ReportRule';
+import { reportHtmlIds } from '../../dom/html-ids';
+import { ReportVM } from '../../../../VM/ReportVM';
 
 export type ReportRulesProps = {
-  rulesChecked: ReportVM["rulesChecked"];
+  rulesChecked: ReportVM['rulesChecked'];
   onUpdateReportRule: (
     ruleGroup: NominationFile.RuleGroup,
-    ruleName: NominationFile.RuleName,
+    ruleName: NominationFile.RuleName
   ) => () => void;
   reportId: string;
 };
@@ -15,7 +16,7 @@ export type ReportRulesProps = {
 export const ReportRules: React.FC<ReportRulesProps> = ({
   rulesChecked,
   onUpdateReportRule,
-  reportId,
+  reportId
 }) => {
   const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
     onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
