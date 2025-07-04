@@ -1,7 +1,7 @@
-import type { DateOnlyJson, Magistrat } from 'shared-models';
+import type { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
 import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
-import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils';
 import { FormationsRoutesMapper } from './formations-routes.utils';
+import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils';
 
 export const getGdsDetailsPath = (
   dateTransparence: DateOnlyJson,
@@ -9,6 +9,21 @@ export const getGdsDetailsPath = (
   formation: Magistrat.Formation
 ) => {
   return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${DateTransparenceRoutesMapper.toPathSegment(dateTransparence)}/${GdsTransparenciesRoutesMapper.toPathSegment(transparency)}/${FormationsRoutesMapper.toPathSegment(formation)}/rapports`;
+};
+
+export const getGdsReportPath = (
+  id: string,
+  transparency: Transparency,
+  formation: Magistrat.Formation,
+  dateTransparence: DateOnlyJson
+) => {
+  const transparencyPath =
+    GdsTransparenciesRoutesMapper.toPathSegment(transparency);
+  const formationPath = FormationsRoutesMapper.toPathSegment(formation);
+  const dateTransparencePath =
+    DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
+
+  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${dateTransparencePath}/${transparencyPath}/${formationPath}/rapports/${id}`;
 };
 
 interface RoutePath {

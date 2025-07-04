@@ -1,19 +1,20 @@
-import { Table } from "@codegouvfr/react-dsfr/Table";
-import {
+import { Table } from '@codegouvfr/react-dsfr/Table';
+
+import type {
   ReportListItemVM,
-  ReportListVM,
-} from "../../selectors/selectReportList";
-import "./ReportsTable.css";
-import { ReportStateTag } from "./ReportStateTag";
+  ReportListVM
+} from '../../../../utils/format-report-list.utils';
+import './ReportsTable.css';
+import { ReportStateTag } from './ReportStateTag';
 
 export type ReportsTableProps = {
-  headers: ReportListVM["headers"];
+  headers: ReportListVM['headers'];
   reports: ReportListItemVM[];
 };
 
 export const ReportsTable: React.FC<ReportsTableProps> = ({
   headers,
-  reports,
+  reports
 }) => (
   <Table
     id="reports-table"
@@ -28,7 +29,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
       <div>{report.targettedPosition}</div>,
       <ReportStateTag state={report.state} />,
       <div>{report.observersCount}</div>,
-      <div>{report.dueDate}</div>,
+      <div>{report.dueDate}</div>
     ])}
   />
 );

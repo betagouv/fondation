@@ -1,21 +1,8 @@
 import { Magistrat, type DateOnlyJson } from 'shared-models';
 import { formationToLabel } from '../components/reports/labels/labels-mappers';
+import type { ReportListItem } from '../queries/list-reports.query';
 import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
 import { getGdsDetailsPath } from './route-path.utils';
-
-interface ReportListItem {
-  id: string;
-  folderNumber: string;
-  name: string;
-  dueDate: string;
-  state: string;
-  formation: string;
-  transparency: string;
-  grade: string;
-  targettedPosition: string;
-  observersCount: number;
-  dateTransparence: DateOnlyJson;
-}
 
 interface TransparencyItem {
   label: string;

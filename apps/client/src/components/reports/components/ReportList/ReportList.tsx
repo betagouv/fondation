@@ -1,16 +1,17 @@
 import type { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { DateOnlyJson, Magistrat } from 'shared-models';
+import { useListReports } from '../../../../queries/list-reports.query';
+import { formatReportList } from '../../../../utils/format-report-list.utils';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
-import { useNavigate } from 'react-router-dom';
+import { useGetTransparenciesAttachments } from '../../../queries/get-transparencies-attachments.query';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-
-// import { NewReportsCount } from './NewReportsCount';
-// import { ReportsTable } from './ReportsTable';
-// import { TransparencyFilesList } from './TransparencyFilesList';
-// import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { NewReportsCount } from './NewReportsCount';
+import { ReportsTable } from './ReportsTable';
+import { TransparencyFilesList } from './TransparencyFilesList';
 
 export interface ReportListProps {
   transparency: string;
@@ -31,27 +32,26 @@ export const ReportList: FC<ReportListProps> = ({
     },
     navigate
   );
-  // const currentPage = {
-  //   name: BreadcrumCurrentPage.perGdsTransparencyReports,
-  //   formation
-  // } as const;
-  // const breadcrumb = useAppSelector((state) =>
-  //   selectBreadcrumb(state, currentPage)
-  // );
-  // const { title, headers, reports, newReportsCount } = useSelectReportsList(
-  //   transparency,
-  //   formation,
-  //   dateTransparence
-  // );
-  // const attachments = useTransparencyAttachments(transparency, formation);
 
-  // useReportsList();
+  const { data: reportsData, isPending: isReportsLoading } = useListReports();
+  const { newReportsCount, reports, headers, title } = formatReportList(
+    reportsData?.data || [],
+    {
+      transparency,
+      formation,
+      dateTransparence
+    }
+  );
 
-  console.log({
-    transparency,
-    formation,
-    dateTransparence
-  });
+  const {
+    data: attachments,
+    isLoading: isAttachmentsLoading,
+    isError: isAttachmentsError
+  } = useGetTransparenciesAttachments(transparency, formation);
+
+  if (isReportsLoading) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col">
@@ -61,7 +61,7 @@ export const ReportList: FC<ReportListProps> = ({
         breadcrumb={breadcrumb}
       />
 
-      {/* <h1>
+      <h1>
         {title.map(({ text, color }, index) => (
           <span
             key={index}
@@ -84,12 +84,15 @@ export const ReportList: FC<ReportListProps> = ({
         <div>Aucun rapport.</div>
       )}
 
-      {attachments && attachments.length > 0 && (
-        <div>
-          <h2>Pièces jointes</h2>
-          <TransparencyFilesList files={attachments} />
-        </div>
-      )} */}
+      {!isAttachmentsLoading &&
+        !isAttachmentsError &&
+        attachments &&
+        attachments.length > 0 && (
+          <div>
+            <h2>Pièces jointes</h2>
+            <TransparencyFilesList files={attachments} />
+          </div>
+        )}
     </div>
   );
 };
