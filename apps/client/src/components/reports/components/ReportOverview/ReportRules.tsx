@@ -3,6 +3,7 @@ import { NominationFile } from 'shared-models';
 import { ReportRule } from './ReportRule';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportVM } from '../../../../VM/ReportVM';
+import type { ReportSM } from '../../../../queries/list-reports.queries';
 
 export type ReportRulesProps = {
   rulesChecked: ReportVM['rulesChecked'];
@@ -10,13 +11,13 @@ export type ReportRulesProps = {
     ruleGroup: NominationFile.RuleGroup,
     ruleName: NominationFile.RuleName
   ) => () => void;
-  reportId: string;
+  rules: ReportSM['rules'];
 };
 
 export const ReportRules: React.FC<ReportRulesProps> = ({
   rulesChecked,
   onUpdateReportRule,
-  reportId
+  rules
 }) => {
   const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
     onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
@@ -34,7 +35,7 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.STATUTORY]}
         rulesChecked={rulesChecked.statutory}
         onUpdateReportRule={onUpdateStatutoryRule}
-        reportId={reportId}
+        rules={rules}
         ruleGroup={NominationFile.RuleGroup.STATUTORY}
       />
       <ReportRule<NominationFile.ManagementRule>
@@ -42,7 +43,7 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
         rulesChecked={rulesChecked.management}
         onUpdateReportRule={onUpdateManagementRule}
-        reportId={reportId}
+        rules={rules}
         ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
       />
       <ReportRule<NominationFile.QualitativeRule>
@@ -50,7 +51,7 @@ export const ReportRules: React.FC<ReportRulesProps> = ({
         title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.QUALITATIVE]}
         rulesChecked={rulesChecked.qualitative}
         onUpdateReportRule={onUpdateQualitativeRule}
-        reportId={reportId}
+        rules={rules}
         ruleGroup={NominationFile.RuleGroup.QUALITATIVE}
       />
     </>

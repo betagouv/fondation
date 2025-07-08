@@ -2,7 +2,11 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
-import { allRulesMapV2, type DateOnlyJson } from 'shared-models';
+import {
+  allRulesMapV2,
+  NominationFile,
+  type DateOnlyJson
+} from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
 import { type ReportSM } from '../../../../queries/list-reports.queries';
 import {
@@ -23,7 +27,15 @@ import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
 import { Summary } from './Summary';
 import { ReportOverviewState } from './ReportOverviewState';
-// import { Summary } from './Summary';
+import type { VMReportRuleValue } from '../../../../VM/ReportVM';
+
+export type UpdateReportParams = {
+  reportId: string;
+  data: {
+    comment?: string;
+    state?: ReportSM['state'];
+  };
+};
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -59,7 +71,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const { report, isLoading, error } = useReportById(id);
 
   const retrievedReport = report as ReportSM;
-  if (isLoading || error) {
+  if (isLoading || error || !report) {
     return null;
   }
 
@@ -92,61 +104,62 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   // );
   // const dispatch = useAppDispatch();
 
-  // const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
-  //   [key in keyof UpdateReportParams['data']]: T extends key
-  //     ? UpdateReportParams['data'][key]
-  //     : undefined;
-  // }) => {
-  //   dispatch(
-  //     updateReport({
-  //       reportId: id,
-  //       data
-  //     })
-  //   );
-  // };
+  const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
+    [key in keyof UpdateReportParams['data']]: T extends key
+      ? UpdateReportParams['data'][key]
+      : undefined;
+  }) => {
+    console.log(data);
+    // dispatch(
+    //   updateReport({
+    //     reportId: id,
+    //     data
+    //   })
+    // );
+  };
 
-  // const onUpdateContent = (comment: string) => {
-  //   return onUpdateReport<'comment'>({ comment });
-  // };
-  // const onUpdateState = (state: ReportStateUpdateParam) => {
-  //   return onUpdateReport<'state'>({ state });
-  // };
+  const onUpdateContent = (comment: string) => {
+    return onUpdateReport<'comment'>({ comment });
+  };
+  const onUpdateState = (state: ReportSM['state']) => {
+    return onUpdateReport<'state'>({ state });
+  };
 
-  // const onUpdateReportRule =
-  //   (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
-  //   () => {
-  //     if (!report) return;
+  const onUpdateReportRule =
+    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
+    () => {
+      if (!report) return;
 
-  //     const rule = {
-  //       ...report.rulesChecked[ruleGroup].selected,
-  //       ...report.rulesChecked[ruleGroup].others
-  //     } as Record<NominationFile.RuleName, VMReportRuleValue>;
-  //     dispatch(
-  //       updateReportRule({
-  //         reportId: id,
-  //         ruleId: rule[ruleName].id,
-  //         validated: rule[ruleName].checked
-  //       })
-  //     );
-  //   };
+      const rule = {
+        ...rulesChecked[ruleGroup].selected,
+        ...rulesChecked[ruleGroup].others
+      } as Record<NominationFile.RuleName, VMReportRuleValue>;
+      // dispatch(
+      //   updateReportRule({
+      //     reportId: id,
+      //     ruleId: rule[ruleName].id,
+      //     validated: rule[ruleName].checked
+      //   })
+      // );
+    };
 
-  // const onFilesAttached = (files: File[]) => {
-  //   dispatch(
-  //     attachReportFiles({
-  //       reportId: id,
-  //       files
-  //     })
-  //   );
-  // };
+  const onFilesAttached = (files: File[]) => {
+    // dispatch(
+    //   attachReportFiles({
+    //     reportId: id,
+    //     files
+    //   })
+    // );
+  };
 
-  // const onAttachedFileDeleted = (fileName: string) => {
-  //   dispatch(
-  //     deleteReportFile({
-  //       reportId: id,
-  //       fileName
-  //     })
-  //   );
-  // };
+  const onAttachedFileDeleted = (fileName: string) => {
+    // dispatch(
+    //   deleteReportFile({
+    //     reportId: id,
+    //     fileName
+    //   })
+    // );
+  };
 
   // useEffect(() => {
   //   dispatch(retrieveReport(id));
@@ -196,7 +209,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         >
           <ReportOverviewState
             state={retrievedReport.state}
-            onUpdateState={() => {}}
+            onUpdateState={onUpdateState}
           />
           <MagistratIdentity
             name={retrievedReport.name}
@@ -210,19 +223,19 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           <Biography biography={formattedBiography} />
           <ReportEditor
             comment={retrievedReport.comment}
-            onUpdate={() => {}}
+            onUpdate={onUpdateContent}
             reportId={id}
           />
           <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}
-            onUpdateReportRule={() => {}}
-            reportId={id}
+            rules={report?.rules}
+            onUpdateReportRule={onUpdateReportRule}
           />
           <AttachedFileUpload
             attachedFiles={retrievedReport.attachedFiles}
-            onFilesAttached={() => {}}
-            onAttachedFileDeleted={() => {}}
+            onFilesAttached={onFilesAttached}
+            onAttachedFileDeleted={onAttachedFileDeleted}
           />
         </div>
       </div>

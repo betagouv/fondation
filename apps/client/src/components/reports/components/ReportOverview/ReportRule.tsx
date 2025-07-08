@@ -4,10 +4,11 @@ import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
-import { NominationFile } from 'shared-models';
+import { allRulesMapV2, NominationFile } from 'shared-models';
 
 import { Card } from './Card';
 import type { ReportVM, VMReportRuleValue } from '../../../../VM/ReportVM';
+import type { ReportSM } from '../../../../queries/list-reports.queries';
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {
   id: string;
@@ -15,7 +16,7 @@ export type ReportRuleProps<R extends NominationFile.RuleName> = {
   rulesChecked: ReportVM['rulesChecked'][NominationFile.RuleGroup];
   onUpdateReportRule: (ruleName: R) => () => void;
   showNotice?: boolean;
-  reportId: string;
+  rules: ReportSM['rules'];
   ruleGroup: NominationFile.RuleGroup;
 };
 
@@ -24,19 +25,37 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   title,
   rulesChecked,
   onUpdateReportRule,
-  reportId,
+  rules,
   ruleGroup
 }: ReportRuleProps<R>) => {
-  // TODO
-  console.log('reportId', reportId, ruleGroup);
-  const accordionLabel = 'coucou';
-  // const accordionLabel = useAppSelector((state) =>
-  //   selectRuleGroupLabel(state, {
-  //     reportId,
-  //     ruleGroup
-  //   })
-  // );
+  const targetedRules = rules[ruleGroup];
+  const ruleGroupMap = allRulesMapV2[ruleGroup] as NominationFile.RuleName[];
 
+  const atLeastOneUnvalidatedRule = Object.entries(targetedRules)
+    .filter(([ruleName]) =>
+      ruleGroupMap.includes(ruleName as NominationFile.RuleName)
+    )
+    .find(([, rule]) => rule.validated === false)?.[1];
+
+  let accordionLabel = '';
+  switch (ruleGroup) {
+    case NominationFile.RuleGroup.MANAGEMENT:
+      accordionLabel = atLeastOneUnvalidatedRule
+        ? 'Autres lignes directrices à vérifier'
+        : 'Afficher les lignes directrices à vérifier';
+      break;
+    case NominationFile.RuleGroup.STATUTORY:
+      accordionLabel = atLeastOneUnvalidatedRule
+        ? 'Autres règles statutaires à vérifier'
+        : 'Afficher les règles statutaires à vérifier';
+      break;
+    case NominationFile.RuleGroup.QUALITATIVE:
+      accordionLabel = atLeastOneUnvalidatedRule
+        ? 'Autres éléments qualitatifs à vérifier'
+        : 'Afficher les éléments qualitatifs à vérifier';
+  }
+
+  console.log('accordion label', accordionLabel);
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
     const checkboxes = Object.entries(rules).map(
       ([ruleName, { label, hint, checked }]) => (
