@@ -54,12 +54,6 @@ export type ReportOverviewProps = {
 
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const navigate = useNavigate();
-  const breadcrumb = getTransparencesBreadCrumb(
-    {
-      name: TransparencesCurrentPage.gdsReport
-    },
-    navigate
-  );
 
   const { report, isLoading, error } = useReportById(id);
 
@@ -67,6 +61,14 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   if (isLoading || error) {
     return null;
   }
+
+  const breadcrumb = getTransparencesBreadCrumb(
+    {
+      name: TransparencesCurrentPage.gdsReport,
+      report: retrievedReport
+    },
+    navigate
+  );
 
   const rulesChecked = ReportVMRulesBuilder.buildFromStoreModel(
     retrievedReport.rules,

@@ -5,7 +5,8 @@ import {
   transparencyToLabel
 } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import { ROUTE_PATHS } from './route-path.utils';
+import { getGdsDetailsPath, ROUTE_PATHS } from './route-path.utils';
+import type { ReportSM } from '../queries/list-reports.queries';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
@@ -19,6 +20,7 @@ type TransparencesCurrentPageType =
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
+      report: ReportSM;
     };
 
 export const getTransparencesBreadCrumb = (
@@ -52,7 +54,8 @@ export const getTransparencesBreadCrumb = (
     }
 
     case TransparencesCurrentPage.gdsReport: {
-      if (!currentPage.report) {
+      const { report } = currentPage;
+      if (!report) {
         return {
           currentPageLabel: 'Rapport non trouvé',
           segments: [transparenciesSegment, gdsTransparenciesSegment]
@@ -60,23 +63,26 @@ export const getTransparencesBreadCrumb = (
       }
 
       const transparencyLabel = transparencyToLabel(
-        currentPage.report.transparency,
-        currentPage.report.dateTransparence
+        report.transparency,
+        report.dateTransparence
       );
 
+      const path = getGdsDetailsPath(
+        report.dateTransparence,
+        report.transparency,
+        report.formation as Magistrat.Formation
+      );
       const transparencySegment = {
         label: transparencyLabel,
-        href: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
+        href: path,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
-          // Navigation vers la page des rapports de cette transparence
-          // TODO: Implémenter la navigation avec les paramètres
-          navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
+          navigate(path);
         }
       };
 
       return {
-        currentPageLabel: currentPage.report.name,
+        currentPageLabel: report.name,
         segments: [
           transparenciesSegment,
           gdsTransparenciesSegment,
