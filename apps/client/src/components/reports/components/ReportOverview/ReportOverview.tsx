@@ -21,6 +21,7 @@ import { ReportRules } from './ReportRules';
 import { useReportById } from '../../../../queries/report-by-id.queries';
 import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
+import { Summary } from './Summary';
 // import { Summary } from './Summary';
 
 const formatBiography = (biography: string | null) => {
@@ -72,15 +73,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     allRulesMapV2,
     allRulesLabelsMap
   );
-
   const formattedBirthDate = formatBirthDate(
     retrievedReport.birthDate,
     new Date()
   );
-
   const formattedObservers = formatObservers(retrievedReport.observers);
-
   const formattedBiography = formatBiography(retrievedReport.biography);
+
   // const report = useAppSelector((state) => selectReport(state, id));
 
   // const isFetching = useAppSelector((state) =>
@@ -184,7 +183,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3')
           )}
         >
-          {/* <Summary reportId={id} /> */}
+          <Summary observers={retrievedReport.observers} />
         </div>
         <div
           className={clsx(
@@ -202,13 +201,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             rank={retrievedReport.rank}
             dureeDuPoste={retrievedReport.dureeDuPoste}
           />
-          <Biography biography={retrievedReport.biography} />
+          <Biography biography={formattedBiography} />
           <ReportEditor
             comment={retrievedReport.comment}
             onUpdate={() => {}}
             reportId={id}
           />
-          <Observers observers={retrievedReport.observers} />
+          <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}
             onUpdateReportRule={() => {}}
