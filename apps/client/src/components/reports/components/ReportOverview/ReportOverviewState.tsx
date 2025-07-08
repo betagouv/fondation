@@ -1,13 +1,13 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, FC } from 'react';
 import { NominationFile } from 'shared-models';
-import { ReportStateUpdateParam } from '../../../../core-logic/use-cases/report-update/updateReport.use-case';
+
 import { Card } from './Card';
 import { ReportVM } from '../../../../VM/ReportVM';
 
 export type ReportOverviewStateProps = {
   state: NominationFile.ReportState;
-  onUpdateState: (state: ReportStateUpdateParam) => void;
+  onUpdateState: (state: NominationFile.ReportState) => void;
 };
 
 export const ReportOverviewState: FC<ReportOverviewStateProps> = ({
@@ -15,7 +15,7 @@ export const ReportOverviewState: FC<ReportOverviewStateProps> = ({
   onUpdateState
 }) => {
   const onChange = (e: ChangeEvent<HTMLSelectElement>) =>
-    onUpdateState(e.target.value as ReportStateUpdateParam);
+    onUpdateState(e.target.value as NominationFile.ReportState);
 
   return (
     <Card>

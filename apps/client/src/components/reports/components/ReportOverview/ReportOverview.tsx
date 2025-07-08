@@ -22,6 +22,7 @@ import { useReportById } from '../../../../queries/report-by-id.queries';
 import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
 import { Summary } from './Summary';
+import { ReportOverviewState } from './ReportOverviewState';
 // import { Summary } from './Summary';
 
 const formatBiography = (biography: string | null) => {
@@ -193,7 +194,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9')
           )}
         >
-          {/* <ReportOverviewState state={report.state} onUpdateState={() => {}} /> */}
+          <ReportOverviewState
+            state={retrievedReport.state}
+            onUpdateState={() => {}}
+          />
           <MagistratIdentity
             name={retrievedReport.name}
             birthDate={formattedBirthDate}
