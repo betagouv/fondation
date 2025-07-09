@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   allRulesMapV2,
+  changeRuleValidationStateDto,
   NominationFile,
+  ReportFileUsage,
   type DateOnlyJson
 } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
@@ -28,14 +30,13 @@ import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder
 import { Summary } from './Summary';
 import { ReportOverviewState } from './ReportOverviewState';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
-
-export type UpdateReportParams = {
-  reportId: string;
-  data: {
-    comment?: string;
-    state?: ReportSM['state'];
-  };
-};
+import { useUpdateRule } from '../../../mutations/update-rule.mutation';
+import { useAttachReportFiles } from '../../../mutations/attach-report-files.mutation';
+import { useDeleteFileReport } from '../../../mutations/delete-file-report.mutation';
+import {
+  useUpdateReport,
+  type UpdateReportParams
+} from '../../../mutations/update-report.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -68,10 +69,14 @@ export type ReportOverviewProps = {
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const navigate = useNavigate();
 
-  const { report, isLoading, error } = useReportById(id);
+  const { report, isPending, error } = useReportById(id);
+  const { mutate: updateRule } = useUpdateRule();
+  const { mutate: attachReportFiles } = useAttachReportFiles();
+  const { mutate: deleteFileReport } = useDeleteFileReport();
+  const { mutate: updateReport } = useUpdateReport();
 
   const retrievedReport = report as ReportSM;
-  if (isLoading || error || !report) {
+  if (isPending || error) {
     return null;
   }
 
@@ -109,13 +114,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       ? UpdateReportParams['data'][key]
       : undefined;
   }) => {
-    console.log(data);
-    // dispatch(
-    //   updateReport({
-    //     reportId: id,
-    //     data
-    //   })
-    // );
+    updateReport({
+      reportId: id,
+      data
+    });
   };
 
   const onUpdateContent = (comment: string) => {
@@ -134,48 +136,43 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         ...rulesChecked[ruleGroup].selected,
         ...rulesChecked[ruleGroup].others
       } as Record<NominationFile.RuleName, VMReportRuleValue>;
-      // dispatch(
-      //   updateReportRule({
-      //     reportId: id,
-      //     ruleId: rule[ruleName].id,
-      //     validated: rule[ruleName].checked
-      //   })
-      // );
+
+      updateRule({
+        ruleId: rule[ruleName].id,
+        validated: rule[ruleName].checked
+      });
     };
 
   const onFilesAttached = (files: File[]) => {
-    // dispatch(
-    //   attachReportFiles({
-    //     reportId: id,
-    //     files
-    //   })
-    // );
+    attachReportFiles({
+      reportId: id,
+      files,
+      usage: ReportFileUsage.ATTACHMENT
+    });
   };
 
   const onAttachedFileDeleted = (fileName: string) => {
-    // dispatch(
-    //   deleteReportFile({
-    //     reportId: id,
-    //     fileName
-    //   })
-    // );
+    deleteFileReport({
+      reportId: id,
+      fileName
+    });
   };
 
   // useEffect(() => {
   //   dispatch(retrieveReport(id));
   // }, [dispatch, id]);
 
-  // if (!report)
-  //   return isFetching ? null : (
-  //     <div>
-  //       <Breadcrumb
-  //         id="report-breadcrumb"
-  //         ariaLabel="Fil d'Ariane du rapport"
-  //         breadcrumb={breadcrumb}
-  //       />
-  //       Rapport non trouvé.
-  //     </div>
-  //   );
+  if (!report)
+    return isPending ? null : (
+      <div>
+        <Breadcrumb
+          id="report-breadcrumb"
+          ariaLabel="Fil d'Ariane du rapport"
+          breadcrumb={breadcrumb}
+        />
+        Rapport non trouvé.
+      </div>
+    );
 
   return (
     <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
