@@ -58,7 +58,10 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
     const checkboxes = Object.entries(rules).map(
       ([ruleName, { label, hint, checked }]) => (
-        <div key={ruleName} className={clsx('flex-nowrap', cx('fr-grid-row'))}>
+        <div
+          key={ruleName}
+          className={clsx('fr-mb-6v flex-nowrap', cx('fr-grid-row'))}
+        >
           <Checkbox
             id={ruleName}
             options={[
