@@ -11,6 +11,7 @@ export type ReportEditorProps = {
   reportId: string;
 };
 
+// TODO AEB CORRECT THIS REPORT EDITOR
 export const ReportEditor: React.FC<ReportEditorProps> = ({
   comment,
   onUpdate,
@@ -18,7 +19,6 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
 }) => {
   console.log('reportId', reportId);
   const insertImages: InsertImages = (editor, files) => {
-    console.log('insertImages', editor, files);
     // dispatch(
     //   reportEmbedScreenshot({
     //     files,

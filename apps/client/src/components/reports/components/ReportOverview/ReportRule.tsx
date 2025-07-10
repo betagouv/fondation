@@ -55,7 +55,6 @@ export const ReportRule = <R extends NominationFile.RuleName>({
         : 'Afficher les éléments qualitatifs à vérifier';
   }
 
-  console.log('accordion label', accordionLabel);
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
     const checkboxes = Object.entries(rules).map(
       ([ruleName, { label, hint, checked }]) => (

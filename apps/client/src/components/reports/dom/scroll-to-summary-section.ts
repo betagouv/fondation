@@ -3,6 +3,6 @@ export const scrollToSummarySection = () => {
     // Remove '#' from the hash
     const targetId = window.location.hash.substring(1);
     const target = document.getElementById(targetId);
-    if (target) target.scrollIntoView({ behavior: "instant" });
+    if (target) target.scrollIntoView({ behavior: 'instant' });
   }
 };

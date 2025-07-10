@@ -37,6 +37,7 @@ import {
   useUpdateReport,
   type UpdateReportParams
 } from '../../../mutations/update-report.mutation';
+import type { MutationOptions } from '@tanstack/react-query';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -69,11 +70,17 @@ export type ReportOverviewProps = {
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const navigate = useNavigate();
 
-  const { report, isPending, error } = useReportById(id);
+  const { report, isPending, error, refetch } = useReportById(id);
   const { mutate: updateRule } = useUpdateRule();
   const { mutate: attachReportFiles } = useAttachReportFiles();
   const { mutate: deleteFileReport } = useDeleteFileReport();
   const { mutate: updateReport } = useUpdateReport();
+
+  const onSuccess = {
+    onSuccess: () => {
+      refetch();
+    }
+  };
 
   const retrievedReport = report as ReportSM;
   if (isPending || error) {
@@ -100,24 +107,18 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
-  // const report = useAppSelector((state) => selectReport(state, id));
-
-  // const isFetching = useAppSelector((state) =>
-  //   selectFetchingReport(state, {
-  //     reportId: id
-  //   })
-  // );
-  // const dispatch = useAppDispatch();
-
   const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
     [key in keyof UpdateReportParams['data']]: T extends key
       ? UpdateReportParams['data'][key]
       : undefined;
   }) => {
-    updateReport({
-      reportId: id,
-      data
-    });
+    updateReport(
+      {
+        reportId: id,
+        data
+      },
+      onSuccess
+    );
   };
 
   const onUpdateContent = (comment: string) => {
@@ -137,30 +138,35 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         ...rulesChecked[ruleGroup].others
       } as Record<NominationFile.RuleName, VMReportRuleValue>;
 
-      updateRule({
-        ruleId: rule[ruleName].id,
-        validated: rule[ruleName].checked
-      });
+      updateRule(
+        {
+          ruleId: rule[ruleName].id,
+          validated: rule[ruleName].checked
+        },
+        onSuccess
+      );
     };
 
   const onFilesAttached = (files: File[]) => {
-    attachReportFiles({
-      reportId: id,
-      files,
-      usage: ReportFileUsage.ATTACHMENT
-    });
+    attachReportFiles(
+      {
+        reportId: id,
+        files,
+        usage: ReportFileUsage.ATTACHMENT
+      },
+      onSuccess
+    );
   };
 
-  const onAttachedFileDeleted = (fileName: string) => {
-    deleteFileReport({
-      reportId: id,
-      fileName
-    });
+  const onAttachedFileDeleted = async (fileName: string) => {
+    deleteFileReport(
+      {
+        reportId: id,
+        fileName
+      },
+      onSuccess
+    );
   };
-
-  // useEffect(() => {
-  //   dispatch(retrieveReport(id));
-  // }, [dispatch, id]);
 
   if (!report)
     return isPending ? null : (

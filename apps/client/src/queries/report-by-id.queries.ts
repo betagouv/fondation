@@ -21,14 +21,19 @@ const getReportById = async (id: string): Promise<ReportRetrievalVM> => {
 
 export const useReportById = (
   id: string
-): { report: ReportSM | null; isPending: boolean; error: Error | null } => {
-  const { data, isPending, error } = useQuery({
+): {
+  report: ReportSM | null;
+  isPending: boolean;
+  error: Error | null;
+  refetch: () => void;
+} => {
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ['report', id],
     queryFn: () => getReportById(id)
   });
 
   if (!data) {
-    return { report: null, isPending, error };
+    return { report: null, isPending, error, refetch };
   }
 
   const initialContentScreenshots: ReportScreenshots = {
@@ -66,5 +71,5 @@ export const useReportById = (
     attachedFiles
   };
 
-  return { report, isPending: isLoading, error };
+  return { report, isPending, error, refetch };
 };

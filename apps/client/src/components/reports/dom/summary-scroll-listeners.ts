@@ -1,7 +1,7 @@
 export let isScrollingToSummarySection = false;
 let scrollTimeout: NodeJS.Timeout;
 
-const userScrollEventTypes = ["wheel", "keydown", "mousedown", "touchstart"];
+const userScrollEventTypes = ['wheel', 'keydown', 'mousedown', 'touchstart'];
 
 export const summaryScrollListenersFactory = () => ({
   setIsScrolling: () => {
@@ -16,7 +16,7 @@ export const summaryScrollListenersFactory = () => ({
       });
     });
 
-    window.addEventListener("scroll", () => {
+    window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         isScrollingToSummarySection = false;
@@ -30,9 +30,9 @@ export const summaryScrollListenersFactory = () => ({
         clearTimeout(scrollTimeout);
       });
     });
-    window.removeEventListener("scroll", () => {
+    window.removeEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       isScrollingToSummarySection = false;
     });
-  },
+  }
 });
