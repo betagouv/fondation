@@ -106,18 +106,16 @@ export class TypeRouterProvider implements RouterProvider {
     routes.secretariatGeneral().push();
   }
 
-  getSecretariatGeneralAnchorAttributes() {
-    return routes.secretariatGeneral().link;
-  }
-
   goToSgNouvelleTransparence() {
     routes.sgNouvelleTransparence().push();
   }
 
+  getSecretariatGeneralAnchorAttributes() {
+    return routes.secretariatGeneral().link;
+  }
   getSgNouvelleTransparenceAnchorAttributes() {
     return routes.sgNouvelleTransparence().link;
   }
-
   getSgTransparenceAnchorAttributes(id: string) {
     return routes.sgTransparence({ id }).link;
   }

@@ -1,4 +1,8 @@
-import { Editor } from "@tiptap/react";
+const formData = new FormData();
+  filesArg.forEach(({ file }) => {
+    formData.append('files', file, file.name);
+  });
+  const fileIds = filesArg.map(({ fileId }) => fileId);import { Editor } from "@tiptap/react";
 import { TipTapEditorProvider } from "../../../../../../shared-kernel/adapters/primary/react/TipTapEditorProvider";
 import { deleteReportContentScreenshots } from "../../../../../core-logic/use-cases/report-content-screenshots-deletion/delete-report-content-screenshots";
 import { reportEmbedScreenshot } from "../../../../../core-logic/use-cases/report-embed-screenshot/report-embed-screenshot";
