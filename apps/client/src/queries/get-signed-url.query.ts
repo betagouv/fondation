@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { FilesContextRestContract, FileVM } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../utils/api-fetch.utils';
 
 const getSignedUrl = async (fileIds: string[]) => {
   const {

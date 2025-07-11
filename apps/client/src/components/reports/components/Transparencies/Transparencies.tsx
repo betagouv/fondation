@@ -3,7 +3,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { CsmTransparencies } from './CsmTransparencies';
 import { GdsTransparencies } from './GdsTransparencies';
-import { useValidateSessionFromCookie } from '../../../queries/validate-session-from-cookie.query';
+import { useValidateSessionFromCookie } from '../../../../queries/validate-session-from-cookie.query';
 import { useListReports } from '../../../../queries/list-reports.queries';
 import { formatTransparencies } from '../../../../utils/format-transparencies.utils';
 

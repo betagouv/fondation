@@ -32,7 +32,10 @@ import type { VMReportRuleValue } from '../../../../VM/ReportVM';
 import { useUpdateRule } from '../../../../mutations/reports/rules/update-rule.mutation';
 import { useAttachReportFiles } from '../../../../mutations/reports/attach-report-files.mutation';
 import { useDeleteFilesReport } from '../../../../mutations/reports/delete-files-report.mutation';
-import { useUpdateReport } from '../../../../mutations/reports/update-report.mutation';
+import {
+  useUpdateReport,
+  type UpdateReportParams
+} from '../../../../mutations/reports/update-report.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;

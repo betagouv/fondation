@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { useValidateSessionFromCookie } from '../queries/validate-session-from-cookie.query';
+import { useValidateSessionFromCookie } from '../../queries/validate-session-from-cookie.query';
 
 interface AuthGuardProps {
   children: React.ReactNode;

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Magistrat, type FilesContextRestContract } from 'shared-models';
 import { z } from 'zod';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../utils/api-fetch.utils';
 
 export const transparencyAttachmentsSchema = z.object({
   siegeEtParquet: z.string().array(),

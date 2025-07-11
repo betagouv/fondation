@@ -1,26 +1,18 @@
-import Button from "@codegouvfr/react-dsfr/Button";
-import { cx } from "@codegouvfr/react-dsfr/fr/cx";
-import { createModal } from "@codegouvfr/react-dsfr/Modal";
-import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
-import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import clsx from "clsx";
-import { FC, useEffect, useState } from "react";
-import { Magistrat } from "shared-models";
-import {
-  useAppDispatch,
-  useAppSelector,
-} from "../../../../../reports/adapters/primary/hooks/react-redux";
-import { DateOnly } from "../../../../../shared-kernel/core-logic/models/date-only";
-import { clearImportObservants } from "../../../../core-logic/reducers/secretariatGeneral.slice";
-import { importObservantsXlsx } from "../../../../core-logic/use-cases/import-observants-xlsx/importObservantsXlsx.use-case";
-import { selectImportObservantsFailed } from "../../selectors/selectImportObservantsFailed";
-import { selectImportObservantsSuccessfull } from "../../selectors/selectImportObservantsSuccessfull";
-import { selectImportObservantsValidationError } from "../../selectors/selectImportObservantsValidationError";
-import { ImportObservantsExcelValidationAlert } from "./ImportObservantsExcelValidationAlert";
+import Button from '@codegouvfr/react-dsfr/Button';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import clsx from 'clsx';
+import { type FC, useEffect, useState } from 'react';
+import { Magistrat } from 'shared-models';
+import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
+import type { DateOnly } from '../../../models/date-only.model';
+import { useImportObservants } from '../../../mutations/sg/import-observants.mutation';
 
 const modal = createModal({
-  id: "modal-import-observations-transparence",
-  isOpenedByDefault: false,
+  id: 'modal-import-observations-transparence',
+  isOpenedByDefault: false
 });
 
 export interface ImportObservantsModalProps {
@@ -32,37 +24,33 @@ export interface ImportObservantsModalProps {
 export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
   nomTransparence,
   formation,
-  dateTransparence,
+  dateTransparence
 }) => {
-  const importObservantsExcelSuccessfull = useAppSelector(
-    selectImportObservantsSuccessfull,
-  );
-  const importObservantsFailed = useAppSelector(selectImportObservantsFailed);
-  const validationError = useAppSelector(selectImportObservantsValidationError);
-  const dispatch = useAppDispatch();
   const [observantsFile, setObservantsFile] = useState<File | null>(null);
+
+  const {
+    mutate: importObservants,
+    isError: importObservantsFailed,
+    isSuccess: importObservantsExcelSuccessfull
+  } = useImportObservants();
 
   useIsModalOpen(modal, {
     onConceal: () => {
-      dispatch(clearImportObservants());
       setObservantsFile(null);
-    },
+    }
   });
 
   const onImportObservations = () => {
     const fichier = observantsFile;
     if (!fichier) {
-      throw new Error("No file selected for import.");
+      throw new Error('No file selected for import.');
     }
-
-    dispatch(
-      importObservantsXlsx({
-        nomTransparence,
-        formation,
-        dateTransparence: dateTransparence.toFormattedString("yyy-MM-dd"),
-        fichier,
-      }),
-    );
+    importObservants({
+      nomTransparence,
+      formation,
+      dateTransparence: dateTransparence.toFormattedString('yyy-MM-dd'),
+      fichier
+    });
   };
 
   useEffect(() => {
@@ -79,16 +67,16 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
         buttons={[
           {
             doClosesModal: false,
-            children: "Importer",
+            children: 'Importer',
             nativeButtonProps: {
               onClick: () => {
                 onImportObservations();
-              },
-            },
-          },
+              }
+            }
+          }
         ]}
       >
-        <div className={clsx("gap-8", cx("fr-grid-row"))}>
+        <div className={clsx('gap-8', cx('fr-grid-row'))}>
           <Upload
             id="import-observations-transparence"
             nativeInputProps={{
@@ -97,7 +85,7 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
                 if (e.target.files && e.target.files.length === 1) {
                   setObservantsFile(e.target.files[0]!);
                 }
-              },
+              }
             }}
             hint={
               <div>
@@ -108,11 +96,7 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
             multiple={false}
           />
 
-          {importObservantsFailed && (
-            <ImportObservantsExcelValidationAlert
-              validationError={validationError || undefined}
-            />
-          )}
+          {importObservantsFailed && <ImportObservantsExcelValidationAlert />}
         </div>
       </modal.Component>
 

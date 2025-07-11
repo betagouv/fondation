@@ -1,14 +1,14 @@
-import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import clsx from "clsx";
-import type { FC } from "react";
-import type { ReportVM } from "../../../../core-logic/view-models/ReportVM";
-import { reportHtmlIds } from "../../dom/html-ids";
-import { summaryLabels } from "../../labels/summary-labels";
-import { AttachedFilesList } from "./AttachedFilesList";
-import { Card } from "./Card";
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import clsx from 'clsx';
+import type { FC } from 'react';
+import { reportHtmlIds } from '../../dom/html-ids';
+import { summaryLabels } from '../../labels/summary-labels';
+import { AttachedFilesList } from './AttachedFilesList';
+import { Card } from './Card';
+import type { ReportVM } from '../../../../VM/ReportVM';
 
 export type AttachedFileUploadProps = {
-  attachedFiles: ReportVM["attachedFiles"];
+  attachedFiles: ReportVM['attachedFiles'];
   onFilesAttached: (files: File[]) => void;
   onAttachedFileDeleted: (fileName: string) => void;
 };
@@ -16,7 +16,7 @@ export type AttachedFileUploadProps = {
 export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   attachedFiles,
   onFilesAttached,
-  onAttachedFileDeleted,
+  onAttachedFileDeleted
 }) => {
   return (
     <Card
@@ -24,7 +24,7 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
       label="Pièces jointes"
     >
       <h2>{summaryLabels.attachedFiles}</h2>
-      <div className={clsx("flex flex-col gap-6")}>
+      <div className={clsx('flex flex-col gap-6')}>
         <Upload
           id="report-attached-file-upload"
           nativeInputProps={{
@@ -33,7 +33,7 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
               if (e.target.files && e.target.files.length > 0) {
                 onFilesAttached([...e.target.files]);
               }
-            },
+            }
           }}
           hint={
             <div>

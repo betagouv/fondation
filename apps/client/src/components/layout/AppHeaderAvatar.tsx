@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { type IdentityAndAccessRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { useValidateSessionFromCookie } from '../queries/validate-session-from-cookie.query';
+import { useValidateSessionFromCookie } from '../../queries/validate-session-from-cookie.query';
 
 const logoutUser = async () => {
   const {

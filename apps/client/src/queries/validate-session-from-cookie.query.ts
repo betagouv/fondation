@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Gender, type IdentityAndAccessRestContract } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../utils/api-fetch.utils';
 
 interface User {
   firstName: string;

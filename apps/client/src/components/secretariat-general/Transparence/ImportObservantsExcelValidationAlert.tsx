@@ -1,15 +1,12 @@
-import Alert from "@codegouvfr/react-dsfr/Alert";
-import { FC } from "react";
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import { type FC } from 'react';
 
-export const ImportObservantsExcelValidationAlert: FC<{
-  validationError?: string;
-}> = ({ validationError }) => (
+export const ImportObservantsExcelValidationAlert: FC = () => (
   <Alert
     severity="error"
     title="Échec de l'import"
     description={
-      validationError ||
-      "Veuillez vérifier le formattage des cellules excel ou contacter un administrateur."
+      'Veuillez vérifier le formattage des cellules excel ou contacter un administrateur.'
     }
   />
 );

@@ -8,8 +8,6 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
-import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../utils/sg-breadcrumb.utils';
 import { PageContentLayout } from '../../shared/PageContentLayout';

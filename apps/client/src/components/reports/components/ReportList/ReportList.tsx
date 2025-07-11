@@ -7,7 +7,7 @@ import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
-import { useGetTransparenciesAttachments } from '../../../queries/get-transparencies-attachments.query';
+import { useGetTransparenciesAttachments } from '../../../../queries/get-transparencies-attachments.query';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { NewReportsCount } from './NewReportsCount';
 import { ReportsTable } from './ReportsTable';
