@@ -16,6 +16,9 @@ import { PageContentLayout } from '../../shared/PageContentLayout';
 import { Breadcrumb } from '../../shared/Breadcrumb';
 import { formationToLabel } from '../../reports/labels/labels-mappers';
 import { useNavigate } from 'react-router-dom';
+import { useAddTransparency } from '../../../mutations/sg/add-transparency.mutation';
+import { getTransparenceCompositeId } from '../../../models/transparence.model';
+import { DateOnly } from '../../../models/date-only.model';
 
 const mandatoryField = 'Champ obligatoire.';
 const invalidDateFormat = 'Format de date invalide.';
@@ -59,6 +62,7 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
+  const { mutateAsync: addTransparencyAsync } = useAddTransparency();
   const breadcrumb = getSgBreadCrumb(
     ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
     navigate
@@ -73,8 +77,31 @@ const NouvelleTransparence: FC = () => {
     resolver: zodResolver(nouvelleTransparenceDtoSchema)
   });
 
-  const onSubmit: SubmitHandler<FormSchema> = () => {
-    alert('Recupérér le back');
+  const onSubmit: SubmitHandler<FormSchema> = async (
+    nouvelleTransparenceDto
+  ) => {
+    try {
+      await addTransparencyAsync({
+        ...nouvelleTransparenceDto,
+        dateEcheance: nouvelleTransparenceDto.dateEcheance || null,
+        datePriseDePosteCible:
+          nouvelleTransparenceDto.datePriseDePosteCible || null,
+        dateClotureDelaiObservation:
+          nouvelleTransparenceDto.dateClôtureDélaiObservation
+      });
+    } catch (error) {
+      console.error(error);
+    }
+    navigate(
+      getTransparenceCompositeId(
+        nouvelleTransparenceDto.nomTransparence,
+        nouvelleTransparenceDto.formation,
+        DateOnly.fromDateOnlyString(
+          nouvelleTransparenceDto.dateTransparence,
+          'yyyy-MM-dd'
+        ).toStoreModel()
+      )
+    );
   };
 
   return (
