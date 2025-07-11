@@ -91,7 +91,9 @@ export const useGetTransparenciesAttachments = (
   const { data, isLoading, isError } = useQuery({
     queryKey: ['transparencies-attachments', transparency, formation],
     queryFn: () => attachmentsApiFetch(transparency, formation),
-    retry: false
+    retry: false,
+    staleTime: 0,
+    gcTime: 0
   });
 
   return {

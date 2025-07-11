@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   allRulesMapV2,
-  changeRuleValidationStateDto,
   NominationFile,
   ReportFileUsage,
   type DateOnlyJson
@@ -30,14 +29,10 @@ import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder
 import { Summary } from './Summary';
 import { ReportOverviewState } from './ReportOverviewState';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
-import { useUpdateRule } from '../../../mutations/update-rule.mutation';
-import { useAttachReportFiles } from '../../../mutations/attach-report-files.mutation';
-import { useDeleteFileReport } from '../../../mutations/delete-file-report.mutation';
-import {
-  useUpdateReport,
-  type UpdateReportParams
-} from '../../../mutations/update-report.mutation';
-import type { MutationOptions } from '@tanstack/react-query';
+import { useUpdateRule } from '../../../../mutations/reports/rules/update-rule.mutation';
+import { useAttachReportFiles } from '../../../../mutations/reports/attach-report-files.mutation';
+import { useDeleteFilesReport } from '../../../../mutations/reports/delete-files-report.mutation';
+import { useUpdateReport } from '../../../../mutations/reports/update-report.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -73,7 +68,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const { report, isPending, error, refetch } = useReportById(id);
   const { mutate: updateRule } = useUpdateRule();
   const { mutate: attachReportFiles } = useAttachReportFiles();
-  const { mutate: deleteFileReport } = useDeleteFileReport();
+  const { mutate: deleteFileReport } = useDeleteFilesReport();
   const { mutate: updateReport } = useUpdateReport();
 
   const onSuccess = {

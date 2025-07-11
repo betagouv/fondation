@@ -3,7 +3,7 @@ import {
   changeRuleValidationStateDto,
   type ReportsContextRestContract
 } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 const updateRule = (ruleId: string, validated: boolean) => {
   changeRuleValidationStateDto.parse({ validated });

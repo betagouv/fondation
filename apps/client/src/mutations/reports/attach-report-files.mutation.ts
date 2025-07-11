@@ -3,17 +3,11 @@ import type {
   ReportFileUsage,
   ReportsContextRestContract
 } from 'shared-models';
+import { ACCEPTED_MIME_TYPES } from '../../constants/mimetypes.constants';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { DeterministicUuidGenerator } from '../../utils/deterministicUuidGenerator';
 import { RealFileProvider } from '../../utils/realFileProvider';
 
-const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
-// const embeddedScreenshots = [
-//   'image/jpeg',
-//   'image/png',
-//   'image/gif',
-//   'image/webp'
-// ];
 const attachReportFiles = (
   reportId: string,
   files: File[],

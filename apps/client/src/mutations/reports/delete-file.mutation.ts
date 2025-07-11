@@ -9,7 +9,7 @@ const deleteFileReport = (reportId: string, fileName: string) => {
     method: 'DELETE'
   };
 
-  return apiFetch(`/reports/${reportId}/files/byName/${fileName}`, {
+  return apiFetch(`/reports/${reportId}/files/byName?${fileName}`, {
     method,
     headers: {
       'Content-Type': 'application/json'
