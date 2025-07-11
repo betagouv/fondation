@@ -31,11 +31,12 @@ import { ReportOverviewState } from './ReportOverviewState';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
 import { useUpdateRule } from '../../../../mutations/reports/rules/update-rule.mutation';
 import { useAttachReportFiles } from '../../../../mutations/reports/attach-report-files.mutation';
-import { useDeleteFilesReport } from '../../../../mutations/reports/delete-files-report.mutation';
+
 import {
   useUpdateReport,
   type UpdateReportParams
 } from '../../../../mutations/reports/update-report.mutation';
+import { useDeleteFileReport } from '../../../../mutations/reports/delete-file.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -71,7 +72,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const { report, isPending, error, refetch } = useReportById(id);
   const { mutate: updateRule } = useUpdateRule();
   const { mutate: attachReportFiles } = useAttachReportFiles();
-  const { mutate: deleteFileReport } = useDeleteFilesReport();
+  const { mutate: deleteFileReport } = useDeleteFileReport();
   const { mutate: updateReport } = useUpdateReport();
 
   const onSuccess = {

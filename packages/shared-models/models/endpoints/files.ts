@@ -1,6 +1,6 @@
 import type FormData from "form-data";
 import { z } from "zod";
-import { RestContract, ZodQueryParamsDto } from "./common";
+import { type RestContract, type ZodQueryParamsDto } from "./common";
 
 export type FileVM = { name: string; signedUrl: string };
 

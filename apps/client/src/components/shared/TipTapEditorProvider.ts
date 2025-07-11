@@ -1,5 +1,9 @@
 import { Editor } from '@tiptap/react';
 import type { FileVM } from 'shared-models';
+import {
+  dataFileNameKey,
+  fileKey
+} from '../reports/components/ReportOverview/TipTapEditor/extensions';
 
 interface TextEditorProvider {
   setImages: (images: { file: File; signedUrl: string }[]) => boolean;

@@ -1,4 +1,4 @@
-import { NominationFile } from './nomination-file.namespace';
+import { NominationFile } from 'shared-models';
 
 export const allRulesTuple = [
   ...Object.values(NominationFile.ManagementRule).map(

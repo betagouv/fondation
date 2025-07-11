@@ -1,7 +1,6 @@
-import { allRulesMapV2 } from "./nomination-file";
-import { NominationFile } from "./nomination-file.namespace";
-import { Get, Paths } from "type-fest";
 import _ from "lodash";
+import { type Get, type Paths } from "type-fest";
+import { NominationFile } from "./nomination-file.namespace";
 
 type RuleFunction<
   T,

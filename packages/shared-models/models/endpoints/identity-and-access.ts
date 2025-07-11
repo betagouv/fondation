@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Gender } from "../gender";
 import { Role } from "../role";
-import { RestContract, ZodDto, ZodParamsDto } from "./common";
+import { type RestContract, type ZodDto, type ZodParamsDto } from "./common";
 
 export interface IdentityAndAccessRestContract extends RestContract {
   basePath: "api/auth";

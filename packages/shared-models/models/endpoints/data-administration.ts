@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Magistrat } from "../magistrat.namespace";
-import { RestContract } from "./common";
+import { type RestContract } from "./common";
 
 export interface DataAdministrationContextRestContract extends RestContract {
   basePath: "api/data-administration";
