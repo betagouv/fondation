@@ -1,17 +1,17 @@
-import { NominationFile } from "shared-models";
+import { NominationFile } from 'shared-models';
 
 export const stateToLabel = <State extends NominationFile.ReportState>(
-  state: State,
+  state: State
 ) => {
   switch (state) {
     case NominationFile.ReportState.NEW:
-      return "Nouveau";
+      return 'Nouveau';
     case NominationFile.ReportState.IN_PROGRESS:
-      return "En cours";
+      return 'En cours';
     case NominationFile.ReportState.READY_TO_SUPPORT:
-      return "Prêt à soutenir";
+      return 'Prêt à soutenir';
     case NominationFile.ReportState.SUPPORTED:
-      return "Soutenu";
+      return 'Soutenu';
     default: {
       const _exhaustiveCheck: never = state;
       console.info(_exhaustiveCheck);

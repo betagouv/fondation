@@ -33,21 +33,53 @@ const insertImages = async (
     method: 'POST'
   };
 
-  const queryParams = new URLSearchParams({
-    usage: ReportFileUsage.EMBEDDED_SCREENSHOT,
-    fileIds: Array.isArray(fileIds) ? fileIds.join(',') : fileIds
+  const queryParams = new URLSearchParams();
+  queryParams.append('usage', ReportFileUsage.EMBEDDED_SCREENSHOT);
+  fileIds.forEach((fileId) => {
+    queryParams.append('fileIds', fileId);
   });
 
   return apiFetch(`/reports/${reportId}/files/upload-many?${queryParams}`, {
     method,
-    body: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+    body: formData
   });
 };
 
-export const useInsertImages = () => {
+const insertImagesWithSignedUrls = async (
+  reportId: string,
+  files: { file: File; fileId: string }[]
+) => {
+  await insertImages(reportId, files);
+
+  const fileIds = files.map(({ fileId }) => fileId);
+  const queryParams = new URLSearchParams({
+    ids: fileIds.join(',')
+  });
+
+  const signedUrls = await apiFetch(`/files/signed-urls?${queryParams}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  return signedUrls.map((f: any) => {
+    const file = files.find((file) => file.file.name === f.name);
+    if (!file) {
+      throw new Error(
+        `File with name ${f.name} not found in the uploaded files`
+      );
+    }
+
+    return {
+      file: file.file,
+      signedUrl: f.signedUrl,
+      fileId: file.fileId
+    };
+  });
+};
+
+export const useInsertImagesWithSignedUrls = () => {
   return useMutation({
     mutationFn: ({
       reportId,
@@ -55,6 +87,6 @@ export const useInsertImages = () => {
     }: {
       reportId: string;
       files: { file: File; fileId: string }[];
-    }) => insertImages(reportId, files)
+    }) => insertImagesWithSignedUrls(reportId, files)
   });
 };

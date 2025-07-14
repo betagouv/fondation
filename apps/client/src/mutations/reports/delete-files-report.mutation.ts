@@ -13,7 +13,7 @@ const deleteFilesReport = (reportId: string, fileNames: string[]) => {
     fileNames: fileNames.join(',')
   });
 
-  return apiFetch(`/reports/${reportId}/files/byName?${queryParams}`, {
+  return apiFetch(`/reports/${reportId}/files/byNames?${queryParams}`, {
     method,
     headers: {
       'Content-Type': 'application/json'

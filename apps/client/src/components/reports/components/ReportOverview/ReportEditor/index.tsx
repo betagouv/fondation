@@ -7,15 +7,13 @@ import { ReportVM } from '../../../../../VM/ReportVM';
 import { useDeleteFilesReport } from '../../../../../mutations/reports/delete-files-report.mutation';
 import {
   addTimestampToFiles,
-  useInsertImages
+  useInsertImagesWithSignedUrls
 } from '../../../../../mutations/reports/screenshots/insert-images.mutation';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
 import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
-import { useGetSignedUrl } from '../../../../../queries/get-signed-url.query';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
 import { useDeleteFileReport } from '../../../../../mutations/reports/delete-file.mutation';
-import { useState } from 'react';
 
 export type ReportEditorProps = {
   comment: string | null;
@@ -23,17 +21,13 @@ export type ReportEditorProps = {
   reportId: string;
 };
 
-// TODO AEB CORRECT THIS REPORT EDITOR
 export const ReportEditor: React.FC<ReportEditorProps> = ({
   comment,
   onUpdate,
   reportId
 }) => {
-  console.log('reportId', reportId);
-
-  const [fileIds, setFileIds] = useState<string[]>([]);
-  const { refetch: refetchSignedUrls } = useGetSignedUrl(fileIds);
-  const { mutateAsync: insertImagesAsync } = useInsertImages();
+  const { mutateAsync: insertImagesWithSignedUrlsAsync } =
+    useInsertImagesWithSignedUrls();
   const { mutateAsync: deleteFilesAsync } = useDeleteFilesReport();
   const { mutateAsync: deleteFileAsync } = useDeleteFileReport();
 
@@ -52,35 +46,17 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       fileId: new DeterministicUuidGenerator().genUuid()
     }));
 
-    await insertImagesAsync({
+    const images = await insertImagesWithSignedUrlsAsync({
       reportId,
       files: filesArg
     });
 
-    const newFileIds = filesArg.map((f) => f.fileId);
-    setFileIds(newFileIds);
-
-    const { data: newSignedUrls } = await refetchSignedUrls();
-    const images = newSignedUrls?.map((f) => {
-      const file = filesArg.find((file) => file.file.name === f.name);
-      if (!file) {
-        throw new Error(
-          `File with name ${f.name} not found in the uploaded files`
-        );
-      }
-
-      return {
-        file: file.file,
-        signedUrl: f.signedUrl,
-        fileId: file.fileId
-      };
-    });
-    const success = new TipTapEditorProvider(editor).setImages(images ?? []);
+    const success = new TipTapEditorProvider(editor).setImages(images);
 
     if (!success) {
       await Promise.all(
-        (images || []).map(
-          async (image) =>
+        images.map(
+          async (image: { file: File; signedUrl: string; fileId: string }) =>
             await deleteFileAsync({
               reportId,
               fileName: image.file.name
@@ -109,7 +85,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
   };
 
   const redoImages: RedoImages = async (editor: Editor, files: File[]) => {
-    console.log('redoImages in progress', files);
+    console.log('redoImages in progress', files, editor);
   };
 
   return (

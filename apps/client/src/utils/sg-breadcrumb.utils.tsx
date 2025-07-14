@@ -44,7 +44,7 @@ export const getSgBreadCrumb = (
     }
 
     default: {
-      const _exhaustiveCheck: never = path;
+      const _exhaustiveCheck = path;
       console.info(_exhaustiveCheck);
       throw new Error(`Unhandled page: ${path}`);
     }

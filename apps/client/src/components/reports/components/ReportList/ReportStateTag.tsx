@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import type { ReportListItemVM } from 'shared-models';
+import type { ReportListItemVM } from '../../../../utils/format-report-list.utils';
 
 export type ReportStateTagProps = {
   state: ReportListItemVM['state'];
