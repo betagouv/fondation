@@ -11,6 +11,8 @@ import { SecretariatGeneralPage } from '../pages/secretariat-general/Secretariat
 import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { TransparencesPage } from '../pages/transparence/TransparencesPage';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
+import Transparence from '../components/secretariat-general/Transparence/Transparence';
+import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
 
 // Layout pour les routes protégées du secretariat général
 const SecretariatGeneralLayout = () => (
@@ -57,6 +59,10 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
             element: <NouvelleTransparencePage />
+          },
+          {
+            path: ROUTE_PATHS.SG.TRANSPARENCE_ID,
+            element: <TransparencePage />
           }
         ]
       }

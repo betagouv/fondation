@@ -57,7 +57,7 @@ const addTransparency = async (dto: ImportTransparenceXlsxDto) => {
   }
 
   return apiFetch(
-    `api/data-administration/import-nouvelle-transparence-xlsx?${queryParams}`,
+    `/data-administration/import-nouvelle-transparence-xlsx?${queryParams}`,
     {
       method,
       body: formData

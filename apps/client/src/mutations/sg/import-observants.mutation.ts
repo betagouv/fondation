@@ -39,7 +39,7 @@ const importObservants = async (
   });
 
   return await apiFetch(
-    `/api/nominations/transparence/import-observants?${queries}`,
+    `/nominations/transparence/import-observants?${queries}`,
     {
       method,
       body: importObservantsDto.fichier

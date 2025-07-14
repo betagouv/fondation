@@ -16,7 +16,7 @@ const getTransparence = (args: GetTransparenceArgs) => {
     formation
   });
   return apiFetch(
-    `api/nominations/transparence/snapshot/by-nom-formation-et-date?${new URLSearchParams(queries)}`,
+    `/nominations/transparence/snapshot/by-nom-formation-et-date?${new URLSearchParams(queries)}`,
     {
       method: 'GET'
     }
