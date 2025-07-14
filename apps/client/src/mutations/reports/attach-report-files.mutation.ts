@@ -31,17 +31,16 @@ const attachReportFiles = (
     method: 'POST'
   };
 
-  const queryParams = new URLSearchParams({
-    usage,
-    fileIds: Array.isArray(fileIds) ? fileIds.join(',') : fileIds
+  // Construire l'URL avec les query params comme dans la version qui fonctionne
+  const queryParams = new URLSearchParams();
+  queryParams.append('usage', usage);
+  fileIds.forEach((fileId) => {
+    queryParams.append('fileIds', fileId);
   });
 
   return apiFetch(`/reports/${reportId}/files/upload-many?${queryParams}`, {
     method,
-    body: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+    body: formData
   });
 };
 

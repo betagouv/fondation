@@ -62,7 +62,7 @@ export class DataAdministrationController
       DateOnly.fromString(
         dto.dateClotureDelaiObservation,
         'yyyy-MM-dd',
-      ).toJson(),
+      ).toJson(), 
     );
 
     return resp;
