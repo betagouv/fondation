@@ -1,8 +1,9 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider
+} from 'react-router-dom';
 import { HomePage } from '../HomePage';
-
-import { Outlet } from 'react-router-dom';
-import { AuthGuard } from '../components/guards/AuthGuard';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
 import { LoginPage } from '../pages/LoginPage';
@@ -12,19 +13,18 @@ import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { TransparencesPage } from '../pages/transparence/TransparencesPage';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
 import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
-
-// Layout pour les routes protégées du secretariat général
-const SecretariatGeneralLayout = () => (
-  <AuthGuard>
-    <Outlet />
-  </AuthGuard>
-);
+import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
     children: [
+      {
+        path: '/',
+        element: <Navigate to={ROUTE_PATHS.LOGIN} replace />,
+        index: true
+      },
       {
         path: ROUTE_PATHS.LOGIN,
         element: <LoginPage />

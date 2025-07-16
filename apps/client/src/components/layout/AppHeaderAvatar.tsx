@@ -21,20 +21,21 @@ const logoutUser = async () => {
 };
 
 export const AppHeaderAvatar: FC = () => {
-  const { user, isError, refetch } = useValidateSessionFromCookie();
+  const { user, isError, invalidateSession } = useValidateSessionFromCookie();
   const firstLetters = user?.firstLetters;
 
   const navigate = useNavigate();
   const { mutateAsync } = useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
+      // D'abord invalider le cache, puis rediriger
+      invalidateSession();
       navigate(ROUTE_PATHS.LOGIN);
     }
   });
 
   const onClickLogout = async () => {
     await mutateAsync();
-    await refetch();
   };
 
   if (!user || isError) {
