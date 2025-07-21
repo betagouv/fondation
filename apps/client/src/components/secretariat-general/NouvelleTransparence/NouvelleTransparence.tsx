@@ -89,17 +89,21 @@ const NouvelleTransparence: FC = () => {
       });
     } catch (error) {
       console.error(error);
+    } finally {
+      navigate(
+        ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(
+          ':id',
+          getTransparenceCompositeId(
+            nouvelleTransparenceDto.nomTransparence,
+            nouvelleTransparenceDto.formation,
+            DateOnly.fromDateOnlyString(
+              nouvelleTransparenceDto.dateTransparence,
+              'yyyy-MM-dd'
+            ).toStoreModel()
+          )
+        )
+      );
     }
-    navigate(
-      getTransparenceCompositeId(
-        nouvelleTransparenceDto.nomTransparence,
-        nouvelleTransparenceDto.formation,
-        DateOnly.fromDateOnlyString(
-          nouvelleTransparenceDto.dateTransparence,
-          'yyyy-MM-dd'
-        ).toStoreModel()
-      )
-    );
   };
 
   return (

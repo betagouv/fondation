@@ -49,7 +49,7 @@ export const Transparence: FC = () => {
           <div>TABLEAU DE BORD</div>
 
           <ImportObservantsModal
-            nomTransparence={transparence.nom}
+            nomTransparence={transparence.name}
             formation={args.formation}
             dateTransparence={
               new DateOnly(args.date.year, args.date.month, args.date.day)
@@ -74,16 +74,28 @@ export const Transparence: FC = () => {
             <div>Transparence</div>
 
             <Label nom="Nom de la session" />
-            <div>{transparence.nom}</div>
+            <div>{transparence.name}</div>
 
             <Label nom="Formation" />
             <div>{transparence.formation}</div>
 
             <Label nom="Date de la session" />
-            <div>{transparence.dateTransparence}</div>
+            <div>
+              {new DateOnly(
+                transparence['content'].dateTransparence.year,
+                transparence['content'].dateTransparence.month,
+                transparence['content'].dateTransparence.day
+              ).toFormattedString('dd/MM/yyyy')}
+            </div>
 
             <Label nom="Clôture du délai d'observation" />
-            <div>{transparence.dateClôtureDélaiObservation}</div>
+            <div>
+              {new DateOnly(
+                transparence['content'].dateClôtureDélaiObservation.year,
+                transparence['content'].dateClôtureDélaiObservation.month,
+                transparence['content'].dateClôtureDélaiObservation.day
+              ).toFormattedString('dd/MM/yyyy')}
+            </div>
           </div>
         </div>
       </div>
