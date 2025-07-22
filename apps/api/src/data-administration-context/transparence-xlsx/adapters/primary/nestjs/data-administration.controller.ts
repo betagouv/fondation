@@ -9,15 +9,15 @@ import {
 } from '@nestjs/common';
 import { DataAdministrationContextRestContract } from 'shared-models';
 
+import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
 import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
+import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ImportNouvelleTransparenceXlsxNestDto } from './dto/import-nouvelle-transparence.nest-dto';
-import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
-import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportObservantsXlsxNestDto } from './dto/import-observants-xlsx.nest-dto';
 
 type IDataAdministrationController =
@@ -62,7 +62,7 @@ export class DataAdministrationController
       DateOnly.fromString(
         dto.dateClotureDelaiObservation,
         'yyyy-MM-dd',
-      ).toJson(), 
+      ).toJson(),
     );
 
     return resp;

@@ -38,11 +38,14 @@ const importObservants = async (
     dateTransparence
   });
 
+  const formData = new FormData();
+  formData.append('fichier', importObservantsDto.fichier);
+
   return await apiFetch(
-    `/nominations/transparence/import-observants?${queries}`,
+    `/data-administration/import-observants-xlsx?${queries}`,
     {
       method,
-      body: importObservantsDto.fichier
+      body: formData
     }
   );
 };

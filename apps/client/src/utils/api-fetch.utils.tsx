@@ -1,5 +1,8 @@
 export const apiFetch = async (url: string, options: RequestInit) => {
-  const response = await fetch(`/api${url}`, options);
+  const baseUrl = import.meta.env.PROD ? import.meta.env.VITE_API_URL : '';
+
+  const fullUrl = `${baseUrl}/api${url}`;
+  const response = await fetch(fullUrl, options);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
