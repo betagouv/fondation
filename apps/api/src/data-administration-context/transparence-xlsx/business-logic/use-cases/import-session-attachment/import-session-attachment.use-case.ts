@@ -12,6 +12,6 @@ export class ImportSessionAttachmentUseCase {
   // Mettre à jour la table des droits en fonction du/des types de formation
 
   async execute(dto: ImportSessionAttachmentDto, file: Express.Multer.File) {
-    await this.uploadFileService.uploadFile(dto.sessionType, 'file-id', file);
+    await this.uploadFileService.uploadFile('bucket', 'file-id', file);
   }
 }

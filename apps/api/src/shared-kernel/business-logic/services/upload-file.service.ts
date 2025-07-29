@@ -1,4 +1,4 @@
-import { SessionType } from 'shared-models';
+import { TransparenceFile } from 'src/data-administration-context/transparences/business-logic/models/transparence-file';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import { FileDocument } from 'src/files-context/business-logic/models/file-document';
@@ -26,22 +26,8 @@ export class UploadFileService {
    * @param path
    * @returns
    */
-  uploadFile(
-    sessionType: SessionType,
-    fileId: string,
-    file: Express.Multer.File,
-  ) {
-    let bucket: string;
-    switch (sessionType) {
-      case SessionType.TRANSPARENCE:
-        bucket = this.apiConfig.s3.nominationsContext.transparencesBucketName;
-        break;
-      default:
-        throw new Error('Invalid session type');
-    }
-
-    const path: string[] = [];
-
+  // TODO Mettre une couche d'abstraction pour les prochains typesessions et import de PJ
+  uploadFile({ fileId, file, bucket, path }: TransparenceFile) {
     return this.transactionPerformer.perform(async (trx) => {
       const fileDocument = new FileDocument(
         fileId,
