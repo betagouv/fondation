@@ -3,10 +3,8 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useState } from 'react';
-import {
-  ACCEPT_XLSX_FILE,
-  HintImportXlsxFile
-} from '../../shared/HintImportXlsxFile';
+import { HintImportXlsxFile } from '../../shared/HintImportXlsxFile';
+import { useImportAttachment } from '../../../mutations/sg/import-attachment.mutation';
 
 type ImportAttachmentModalProps = {
   transparenceId: string;
@@ -23,6 +21,8 @@ export const ImportAttachmentModal = ({
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const { mutate: importAttachment } = useImportAttachment();
+
   const handleOpenModal = () => {
     modalAttachment.open();
   };
@@ -34,8 +34,11 @@ export const ImportAttachmentModal = ({
     }
   };
 
-  const importAttachment = () => {
-    console.log(attachmentFile, transparenceId);
+  const handleImportAttachment = () => {
+    if (!attachmentFile) {
+      return;
+    }
+    importAttachment({ sessionId: transparenceId, file: attachmentFile });
   };
 
   return (
@@ -47,9 +50,7 @@ export const ImportAttachmentModal = ({
             doClosesModal: false,
             children: 'Importer',
             nativeButtonProps: {
-              onClick: () => {
-                importAttachment();
-              },
+              onClick: handleImportAttachment,
               disabled: !attachmentFile
             }
           }
@@ -59,10 +60,9 @@ export const ImportAttachmentModal = ({
           <Upload
             id="import-observations-transparence"
             nativeInputProps={{
-              onChange: onChangeAttachmentFile,
-              accept: ACCEPT_XLSX_FILE
+              onChange: onChangeAttachmentFile
             }}
-            hint={<HintImportXlsxFile />}
+            hint={null}
             label={null}
             multiple={false}
           />

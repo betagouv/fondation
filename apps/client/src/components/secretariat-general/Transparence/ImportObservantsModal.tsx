@@ -9,6 +9,10 @@ import { Magistrat } from 'shared-models';
 import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
 import type { DateOnly } from '../../../models/date-only.model';
 import { useImportObservants } from '../../../mutations/sg/import-observants.mutation';
+import {
+  ACCEPT_XLSX_FILE,
+  HintImportXlsxFile
+} from '../../shared/HintImportXlsxFile';
 
 const modal = createModal({
   id: 'modal-import-observations-transparence',
@@ -85,13 +89,10 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
                 if (e.target.files && e.target.files.length === 1) {
                   setObservantsFile(e.target.files[0]!);
                 }
-              }
+              },
+              accept: ACCEPT_XLSX_FILE
             }}
-            hint={
-              <div>
-                Format supporté : <strong>XLSX</strong>.
-              </div>
-            }
+            hint={<HintImportXlsxFile />}
             label={null}
             multiple={false}
           />

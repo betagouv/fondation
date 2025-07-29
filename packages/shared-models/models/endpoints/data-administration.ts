@@ -23,7 +23,20 @@ export interface DataAdministrationContextRestContract extends RestContract {
         validationError?: string;
       };
     };
+    importSessionAttachment: {
+      method: "POST";
+      path: "import-session-attachment";
+      body: FormData;
+      queryParams: ImportSessionAttachmentDto;
+      response: {
+        validationError?: string;
+      };
+    };
   };
+}
+
+export enum SessionType {
+  TRANSPARENCE = 'TRANSPARENCE',
 }
 
 export const importNouvelleTransparenceDtoSchema = z.object({
@@ -46,3 +59,12 @@ export const importObservantsXlsxDtoSchema = z.object({
 export type ImportObservantsXlsxDto = z.infer<
   typeof importObservantsXlsxDtoSchema
 >;
+
+
+export const importSessionAttachmentDtoSchema = z.object({
+  sessionId: z.string().min(1),
+  sessionType: z.nativeEnum(SessionType),
+});
+export type ImportSessionAttachmentDto = z.infer<
+  typeof importSessionAttachmentDtoSchema
+  >;

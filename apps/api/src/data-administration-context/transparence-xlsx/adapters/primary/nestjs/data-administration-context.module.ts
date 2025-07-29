@@ -5,10 +5,15 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
-import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
 import { TransparenceService as TransparenceCsvService } from 'src/data-administration-context/transparence-tsv/business-logic/services/transparence.service';
 import { ImportNominationFilesUseCase } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case';
+import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
+import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
+import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
+import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
+import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
+import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
@@ -25,17 +30,13 @@ import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways
 import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { SqlTransparenceRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
 import { HttpUserService } from '../../../../transparences/adapters/secondary/gateways/services/http-user.service';
+import { DataAdministrationController } from './data-administration.controller';
 import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
 import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
   TRANSPARENCE_REPOSITORY,
   USER_SERVICE,
 } from './tokens';
-import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
-import { DataAdministrationController } from './data-administration.controller';
-import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
-import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
-import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 
 @Module({
   imports: [SharedKernelModule],
@@ -53,6 +54,7 @@ import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/tra
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),
+    generateProvider(ImportSessionAttachmentUseCase, [TRANSACTION_PERFORMER]),
 
     generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,

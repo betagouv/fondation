@@ -7,9 +7,13 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { DataAdministrationContextRestContract } from 'shared-models';
+import {
+  DataAdministrationContextRestContract,
+  ImportSessionAttachmentDto,
+} from 'shared-models';
 
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
+import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
 import {
   IController,
@@ -30,6 +34,7 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
   {
     importNouvelleTransparenceXlsx: 'import-nouvelle-transparence-xlsx',
     importObservantsXlsx: 'import-observants-xlsx',
+    importSessionAttachment: 'import-session-attachment',
   };
 
 @Controller(baseRoute)
@@ -39,6 +44,7 @@ export class DataAdministrationController
   constructor(
     private readonly importTransparenceXlsx: ImportTransparenceXlsxUseCase,
     private readonly importObservantsXlsxUseCase: ImportObservantsXlsxUseCase,
+    private readonly importTransparenceAttachmentUseCase: ImportSessionAttachmentUseCase,
   ) {}
 
   @Post(endpointsPaths.importNouvelleTransparenceXlsx)
@@ -84,5 +90,19 @@ export class DataAdministrationController
     );
 
     return resp;
+  }
+
+  @Post(endpointsPaths.importSessionAttachment)
+  @UseInterceptors(FileInterceptor('fichier'))
+  async importSessionAttachment(
+    _: unknown,
+    @UploadedFile() fichier: Express.Multer.File,
+    @Query() dto: ImportSessionAttachmentDto,
+  ) {
+    this.importTransparenceAttachmentUseCase.execute(
+      dto,
+      new File([fichier.buffer], fichier.originalname),
+    );
+    return { validationError: undefined };
   }
 }
