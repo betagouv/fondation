@@ -7,6 +7,7 @@ import { parseTransparenceCompositeId } from '../../../models/transparence.model
 import { useGetTransparence } from '../../../queries/sg/get-transparence.query';
 import { DateOnly } from '../../../models/date-only.model';
 import { useParams } from 'react-router-dom';
+import { ImportAttachmentModal } from './ImportAttachmentModal';
 
 export const Transparence: FC = () => {
   const { id } = useParams();
@@ -55,6 +56,7 @@ export const Transparence: FC = () => {
               new DateOnly(args.date.year, args.date.month, args.date.day)
             }
           />
+          <ImportAttachmentModal transparenceId={transparence.id} />
         </div>
 
         <div
