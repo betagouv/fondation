@@ -41,7 +41,7 @@ export class DateOnly {
     return this.value;
   }
   toFormattedString(
-    template: 'dd-MM-yyyy' | 'dd/MM/yyyy' | 'yyy-MM-dd' = 'dd/MM/yyyy'
+    template: 'dd-MM-yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'
   ): string {
     return format(this.value, template);
   }

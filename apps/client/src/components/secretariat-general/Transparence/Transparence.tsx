@@ -56,7 +56,12 @@ export const Transparence: FC = () => {
               new DateOnly(args.date.year, args.date.month, args.date.day)
             }
           />
-          <ImportAttachmentModal transparenceId={transparence.id} />
+          <ImportAttachmentModal
+            transparenceId={transparence.id}
+            transparenceName={transparence.name}
+            transparenceFormation={transparence.formation}
+            transparenceDate={new DateOnly(year, month, day)}
+          />
         </div>
 
         <div

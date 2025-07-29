@@ -3,11 +3,15 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useState } from 'react';
-import { HintImportXlsxFile } from '../../shared/HintImportXlsxFile';
 import { useImportAttachment } from '../../../mutations/sg/import-attachment.mutation';
+import type { Magistrat } from 'shared-models';
+import type { DateOnly } from '../../../models/date-only.model';
 
 type ImportAttachmentModalProps = {
   transparenceId: string;
+  transparenceName: string;
+  transparenceFormation: Magistrat.Formation;
+  transparenceDate: DateOnly;
 };
 
 const modalAttachment = createModal({
@@ -16,7 +20,10 @@ const modalAttachment = createModal({
 });
 
 export const ImportAttachmentModal = ({
-  transparenceId
+  transparenceId,
+  transparenceName,
+  transparenceFormation,
+  transparenceDate
 }: ImportAttachmentModalProps) => {
   const title = 'Importer une pièce jointe';
 
@@ -38,7 +45,13 @@ export const ImportAttachmentModal = ({
     if (!attachmentFile) {
       return;
     }
-    importAttachment({ sessionId: transparenceId, file: attachmentFile });
+    importAttachment({
+      sessionId: transparenceId,
+      dateSession: transparenceDate,
+      formation: transparenceFormation,
+      name: transparenceName,
+      file: attachmentFile
+    });
   };
 
   return (

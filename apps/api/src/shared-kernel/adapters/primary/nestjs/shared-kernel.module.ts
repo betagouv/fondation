@@ -154,14 +154,12 @@ const isProduction = process.env.NODE_ENV === 'production';
         fileRepository: FileRepository,
         dateTimeProvider: DateTimeProvider,
         s3StorageProvider: S3StorageProvider,
-        apiConfig: ApiConfig,
       ) => {
         return new UploadFileService(
           transactionPerformer,
           fileRepository,
           dateTimeProvider,
           s3StorageProvider,
-          apiConfig,
         );
       },
       inject: [API_CONFIG],

@@ -28,6 +28,7 @@ import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/prov
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
+import { UploadFileService } from 'src/shared-kernel/business-logic/services/upload-file.service';
 import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { SqlTransparenceRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
 import { HttpUserService } from '../../../../transparences/adapters/secondary/gateways/services/http-user.service';
@@ -55,8 +56,14 @@ import {
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),
-    generateProvider(ImportSessionAttachmentUseCase, [UPLOAD_FILE_SERVICE]),
-
+    {
+      provide: ImportSessionAttachmentUseCase,
+      useFactory: (
+        uploadFileService: UploadFileService,
+        apiConfig: ApiConfig,
+      ) => new ImportSessionAttachmentUseCase(uploadFileService, apiConfig),
+      inject: [UPLOAD_FILE_SERVICE, API_CONFIG],
+    },
     generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,
       TRANSPARENCE_REPOSITORY,

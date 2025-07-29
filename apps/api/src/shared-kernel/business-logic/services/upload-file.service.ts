@@ -3,7 +3,6 @@ import { S3StorageProvider } from 'src/files-context/business-logic/gateways/pro
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import { FileDocument } from 'src/files-context/business-logic/models/file-document';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
-import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
@@ -13,7 +12,6 @@ export class UploadFileService {
     private readonly fileRepository: FileRepository,
     private readonly dateTimeProvider: DateTimeProvider,
     private readonly s3StorageProvider: S3StorageProvider,
-    private readonly apiConfig: ApiConfig,
   ) {}
 
   /**
@@ -26,11 +24,10 @@ export class UploadFileService {
    * @param path
    * @returns
    */
-  // TODO Mettre une couche d'abstraction pour les prochains typesessions et import de PJ
-  uploadFile({ fileId, file, bucket, path }: TransparenceFile) {
+  uploadFile({ file, bucket, path }: TransparenceFile) {
     return this.transactionPerformer.perform(async (trx) => {
       const fileDocument = new FileDocument(
-        fileId,
+        'todo-id-delete',
         this.dateTimeProvider.now(),
         file.originalname,
         bucket,

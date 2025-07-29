@@ -1,12 +1,20 @@
 import { useMutation } from '@tanstack/react-query';
 import {
+  Magistrat,
   SessionType,
   type DataAdministrationContextRestContract,
   type ImportSessionAttachmentDto
 } from 'shared-models';
+import type { DateOnly } from '../../models/date-only.model';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
-const addAttachment = (sessionId: string, file: File) => {
+const addAttachment = (
+  sessionId: string,
+  dateSession: DateOnly,
+  formation: Magistrat.Formation,
+  name: string,
+  file: File
+) => {
   const formData = new FormData();
   formData.append('fichier', file, file.name);
 
@@ -20,7 +28,10 @@ const addAttachment = (sessionId: string, file: File) => {
 
   const importSessionQueryParams: ImportSessionAttachmentDto = {
     sessionId,
-    sessionType: SessionType.TRANSPARENCE
+    sessionType: SessionType.TRANSPARENCE,
+    dateSession: dateSession.toFormattedString('yyyy-MM-dd'),
+    formation,
+    name
   };
   const queryParams = new URLSearchParams(importSessionQueryParams);
 
@@ -35,7 +46,18 @@ const addAttachment = (sessionId: string, file: File) => {
 
 export const useImportAttachment = () => {
   return useMutation({
-    mutationFn: ({ sessionId, file }: { sessionId: string; file: File }) =>
-      addAttachment(sessionId, file)
+    mutationFn: ({
+      sessionId,
+      dateSession,
+      formation,
+      name,
+      file
+    }: {
+      sessionId: string;
+      dateSession: DateOnly;
+      formation: Magistrat.Formation;
+      name: string;
+      file: File;
+    }) => addAttachment(sessionId, dateSession, formation, name, file)
   });
 };
