@@ -20,6 +20,7 @@ import {
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
+  UPLOAD_FILE_SERVICE,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
@@ -54,7 +55,7 @@ import {
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),
-    generateProvider(ImportSessionAttachmentUseCase, [TRANSACTION_PERFORMER]),
+    generateProvider(ImportSessionAttachmentUseCase, [UPLOAD_FILE_SERVICE]),
 
     generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,
