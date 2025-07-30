@@ -25,7 +25,7 @@ export class UploadFileService {
    */
   uploadFile({ file, bucket, path }: TransparenceFile) {
     return this.transactionPerformer.perform(async (trx) => {
-      await this.fileRepository.create({
+      const createdFile = await this.fileRepository.create({
         createdAt: this.dateTimeProvider.now(),
         name: file.originalname,
         bucket,
@@ -39,6 +39,7 @@ export class UploadFileService {
         bucket,
         path,
       );
+      return createdFile;
     });
   }
 }

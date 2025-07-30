@@ -8,18 +8,29 @@ import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondar
 import { filesPm } from './schema/files-pm';
 
 export class SqlFileRepository implements FileRepository {
-  create(file: FileDocumentWithoutId): DrizzleTransactionableAsync {
+  create(
+    file: FileDocumentWithoutId,
+  ): DrizzleTransactionableAsync<FileDocument> {
     return async (db) => {
       const { name, bucket, path, storageProvider, createdAt } = file;
-      await db.insert(filesPm).values({
-        // mandatory to autogenerate id
-        id: undefined,
-        name,
-        bucket,
-        path,
-        storageProvider,
-        createdAt,
-      });
+      const [row] = await db
+        .insert(filesPm)
+        .values({
+          // mandatory to autogenerate id
+          id: undefined,
+          name,
+          bucket,
+          path,
+          storageProvider,
+          createdAt,
+        })
+        .returning();
+
+      if (!row) {
+        throw new Error('Failed to create file');
+      }
+
+      return SqlFileRepository.mapToDomain(row);
     };
   }
 

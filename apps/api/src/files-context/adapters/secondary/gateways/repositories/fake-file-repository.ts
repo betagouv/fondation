@@ -19,7 +19,7 @@ export class FakeFileRepository implements FileRepository {
   deleteFilesErrorCount = 0;
   deleteFilesErrorCountLimit = Infinity;
 
-  create(file: FileDocumentWithoutId): TransactionableAsync {
+  create(file: FileDocumentWithoutId): TransactionableAsync<FileDocument> {
     return async () => {
       const fileDocument = new FileDocument(
         'undefined',
@@ -30,6 +30,7 @@ export class FakeFileRepository implements FileRepository {
         file.storageProvider,
       );
       this.files[fileDocument.id] = fileDocument.toSnapshot();
+      return fileDocument;
     };
   }
 

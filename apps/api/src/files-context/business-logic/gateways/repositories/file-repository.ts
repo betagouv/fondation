@@ -5,7 +5,7 @@ import {
 } from '../../models/file-document';
 
 export interface FileRepository {
-  create(file: FileDocumentWithoutId): TransactionableAsync;
+  create(file: FileDocumentWithoutId): TransactionableAsync<FileDocument>;
   save(file: FileDocument): TransactionableAsync;
   getByIds(ids: string[]): TransactionableAsync<FileDocument[]>;
   deleteFile(file: FileDocument): TransactionableAsync;
