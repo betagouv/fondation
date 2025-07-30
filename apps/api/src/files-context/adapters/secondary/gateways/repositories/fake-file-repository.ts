@@ -21,8 +21,15 @@ export class FakeFileRepository implements FileRepository {
 
   create(file: FileDocumentWithoutId): TransactionableAsync {
     return async () => {
-      const fileSnapshot = file.toSnapshot();
-      this.files[fileSnapshot.id] = fileSnapshot;
+      const fileDocument = new FileDocument(
+        'undefined',
+        file.createdAt,
+        file.name,
+        file.bucket,
+        file.path,
+        file.storageProvider,
+      );
+      this.files[fileDocument.id] = fileDocument.toSnapshot();
     };
   }
 

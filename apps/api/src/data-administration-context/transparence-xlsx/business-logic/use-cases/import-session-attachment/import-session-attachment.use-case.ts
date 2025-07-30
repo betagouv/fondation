@@ -10,8 +10,6 @@ export class ImportSessionAttachmentUseCase {
     private readonly apiConfig: ApiConfig,
   ) {}
 
-  // Ajouter le type de formation et remonter au weekly pour avoir plus d'infos.
-  // virer l'identifiant généré à la main du FileDocument pour laisser la BDD s'en charger
   // Mettre à jour la table de transparences avec l'id du fichier (jsonb)
   // Mettre à jour la table des droits en fonction du/des types de formation
 

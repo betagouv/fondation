@@ -10,15 +10,15 @@ import { filesPm } from './schema/files-pm';
 export class SqlFileRepository implements FileRepository {
   create(file: FileDocumentWithoutId): DrizzleTransactionableAsync {
     return async (db) => {
-      const snapshot = file.toSnapshot();
+      const { name, bucket, path, storageProvider, createdAt } = file;
       await db.insert(filesPm).values({
         // mandatory to autogenerate id
         id: undefined,
-        name: snapshot.name,
-        bucket: snapshot.bucket,
-        path: snapshot.path,
-        storageProvider: snapshot.storageProvider,
-        createdAt: snapshot.createdAt,
+        name,
+        bucket,
+        path,
+        storageProvider,
+        createdAt,
       });
     };
   }

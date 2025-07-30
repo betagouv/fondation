@@ -52,7 +52,7 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
     importObservants({
       nomTransparence,
       formation,
-      dateTransparence: dateTransparence.toFormattedString('yyy-MM-dd'),
+      dateTransparence: dateTransparence.toFormattedString('yyyy-MM-dd'),
       fichier
     });
   };
