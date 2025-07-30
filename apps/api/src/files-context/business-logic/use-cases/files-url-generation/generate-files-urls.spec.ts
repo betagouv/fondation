@@ -1,11 +1,12 @@
 import { FakeS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/fake-s3-storage.provider';
+
 import { FakeFileRepository } from 'src/files-context/adapters/secondary/gateways/repositories/fake-file-repository';
 import { StubPermissionsService } from 'src/files-context/adapters/secondary/services/stub-permissions.service';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { FileDocumentBuilder } from '../../builders/file-document.builder';
-import { GenerateFilesUrlsUseCase } from './generate-files-urls';
 import { PermissionDeniedError } from '../../errors/permission-denied.error';
+import { GenerateFilesUrlsUseCase } from './generate-files-urls';
 
 describe('Generate Files Urls Use Case', () => {
   let transactionPerformer: TransactionPerformer;

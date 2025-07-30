@@ -2,6 +2,7 @@ import { FileRepository } from 'src/files-context/business-logic/gateways/reposi
 import {
   FileDocument,
   FileDocumentSnapshot,
+  FileDocumentWithoutId,
 } from 'src/files-context/business-logic/models/file-document';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
@@ -17,6 +18,13 @@ export class FakeFileRepository implements FileRepository {
   deleteFilesErrorIndex = 0;
   deleteFilesErrorCount = 0;
   deleteFilesErrorCountLimit = Infinity;
+
+  create(file: FileDocumentWithoutId): TransactionableAsync {
+    return async () => {
+      const fileSnapshot = file.toSnapshot();
+      this.files[fileSnapshot.id] = fileSnapshot;
+    };
+  }
 
   save(file: FileDocument): TransactionableAsync {
     return async () => {

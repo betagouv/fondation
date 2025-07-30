@@ -1,6 +1,8 @@
 import { FileVM } from 'shared-models';
 import { FilesStorageProvider } from './files-provider.enum';
 
+export type FileDocumentWithoutId = Omit<FileDocument, 'id'>;
+
 export type FileDocumentSnapshot = {
   id: string;
   createdAt: Date;

@@ -2,8 +2,8 @@ import { FakeS3StorageProvider } from 'src/files-context/adapters/secondary/gate
 import { FakeFileRepository } from 'src/files-context/adapters/secondary/gateways/repositories/fake-file-repository';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FileDocumentBuilder } from '../../builders/file-document.builder';
-import { DeleteFileUseCase } from './delete-file';
 import { FileDocumentSnapshot } from '../../models/file-document';
+import { DeleteFileUseCase } from './delete-file';
 
 describe('Delete File Use Case', () => {
   let fileRepository: FakeFileRepository;
