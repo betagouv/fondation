@@ -9,6 +9,11 @@ export type FileDocumentWithoutId = {
   storageProvider: FilesStorageProvider;
 };
 
+export type PartialFileDocumentSnapshot = Pick<
+  FileDocumentSnapshot,
+  'id' | 'createdAt' | 'name'
+>;
+
 export type FileDocumentSnapshot = {
   id: string;
   createdAt: Date;

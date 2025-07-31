@@ -10,6 +10,7 @@ import { ImportNominationFilesUseCase } from 'src/data-administration-context/tr
 import { IACFileRepository } from 'src/data-administration-context/transparence-xlsx/business-logic/gateways/repositories/iac-file-repository';
 import { TransparenceFileRepository } from 'src/data-administration-context/transparence-xlsx/business-logic/gateways/repositories/transparence-file-repository';
 import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
+import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-attachements/get-transparence-attachments.use-case';
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
@@ -93,6 +94,10 @@ import {
         IAC_FILE_REPOSITORY,
       ],
     },
+    generateProvider(GetTransparenceAttachmentsUseCase, [
+      TRANSACTION_PERFORMER,
+      TRANSPARENCE_FILE_REPOSITORY,
+    ]),
     generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,
       TRANSPARENCE_REPOSITORY,

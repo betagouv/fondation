@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -9,9 +10,11 @@ import {
 } from '@nestjs/common';
 import {
   DataAdministrationContextRestContract,
+  GetTransparencesAttachmentDto,
   ImportSessionAttachmentDto,
 } from 'shared-models';
 
+import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-attachements/get-transparence-attachments.use-case';
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
@@ -35,6 +38,7 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
     importNouvelleTransparenceXlsx: 'import-nouvelle-transparence-xlsx',
     importObservantsXlsx: 'import-observants-xlsx',
     importSessionAttachment: 'import-session-attachment',
+    getTransparenceAttachments: 'transparence-attachments',
   };
 
 @Controller(baseRoute)
@@ -45,7 +49,17 @@ export class DataAdministrationController
     private readonly importTransparenceXlsx: ImportTransparenceXlsxUseCase,
     private readonly importObservantsXlsxUseCase: ImportObservantsXlsxUseCase,
     private readonly importTransparenceAttachmentUseCase: ImportSessionAttachmentUseCase,
+    private readonly getTransparenceAttachmentsUseCase: GetTransparenceAttachmentsUseCase,
   ) {}
+
+  @Get(endpointsPaths.getTransparenceAttachments)
+  async getTransparenceAttachments(
+    _params: unknown,
+    _body: unknown,
+    @Query() dto: GetTransparencesAttachmentDto,
+  ) {
+    return this.getTransparenceAttachmentsUseCase.execute(dto);
+  }
 
   @Post(endpointsPaths.importNouvelleTransparenceXlsx)
   @UseInterceptors(FileInterceptor('fichier'))

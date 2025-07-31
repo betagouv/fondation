@@ -5,6 +5,7 @@ import { ImportObservantsModal } from '../ImportObservantsModal';
 import { ImportAttachmentModal } from '../ImportAttachmentModal';
 import { DateOnly } from '../../../../models/date-only.model';
 import { Magistrat } from 'shared-models';
+import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
 
 type TableauDeBordActionsProps = {
   transparenceName: string;
@@ -19,6 +20,13 @@ export const TableauDeBordActions = ({
   transparenceDate,
   transparenceSessionImportId
 }: TableauDeBordActionsProps) => {
+  const { data: attachments } = useGetTransparencyAttachmentsQuery(
+    transparenceSessionImportId
+  );
+
+  // Pouvoir les supprimer, livrer en PREPROD avec le job
+  console.log('TODO afficher les pièces jointes', attachments);
+
   return (
     <div
       className={clsx(
