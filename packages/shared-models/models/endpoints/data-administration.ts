@@ -62,7 +62,7 @@ export type ImportObservantsXlsxDto = z.infer<
 
 
 export const importSessionAttachmentDtoSchema = z.object({
-  sessionId: z.string().min(1),
+  sessionImportId: z.string().min(1),
   sessionType: z.nativeEnum(SessionType),
   dateSession: z.string().date(),
   formation: z.nativeEnum(Magistrat.Formation),

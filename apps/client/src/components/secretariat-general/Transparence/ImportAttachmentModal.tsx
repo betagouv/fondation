@@ -8,7 +8,7 @@ import type { Magistrat } from 'shared-models';
 import type { DateOnly } from '../../../models/date-only.model';
 
 type ImportAttachmentModalProps = {
-  transparenceId: string;
+  sessionImportId: string;
   transparenceName: string;
   transparenceFormation: Magistrat.Formation;
   transparenceDate: DateOnly;
@@ -20,7 +20,7 @@ const modalAttachment = createModal({
 });
 
 export const ImportAttachmentModal = ({
-  transparenceId,
+  sessionImportId,
   transparenceName,
   transparenceFormation,
   transparenceDate
@@ -46,7 +46,7 @@ export const ImportAttachmentModal = ({
       return;
     }
     importAttachment({
-      sessionId: transparenceId,
+      sessionImportId,
       dateSession: transparenceDate,
       formation: transparenceFormation,
       name: transparenceName,

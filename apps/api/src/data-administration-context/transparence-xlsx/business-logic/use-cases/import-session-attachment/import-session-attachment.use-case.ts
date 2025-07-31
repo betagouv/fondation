@@ -17,24 +17,28 @@ export class ImportSessionAttachmentUseCase {
   ) {}
 
   async execute(dto: ImportSessionAttachmentDto, file: Express.Multer.File) {
-    const transparenceFile = TransparenceFile.from(
-      dto.dateSession,
-      dto.formation,
-      dto.name,
-      file,
-      this.apiConfig.s3.nominationsContext.transparencesBucketName,
-    );
-    const { id: fileId } =
-      await this.uploadFileService.uploadFile(transparenceFile);
-
     await this.transactionPerformer.perform(async (trx) => {
-      await this.transparenceFileRepository.create(dto.sessionId, fileId)(trx);
+      const transparenceFile = TransparenceFile.from(
+        dto.dateSession,
+        dto.formation,
+        dto.name,
+        file,
+        this.apiConfig.s3.nominationsContext.transparencesBucketName,
+      );
+      const { id: fileId } =
+        await this.uploadFileService.uploadFile(transparenceFile);
+
+      await this.transparenceFileRepository.create(
+        dto.sessionImportId,
+        fileId,
+      )(trx);
 
       const fileType =
         dto.formation === Magistrat.Formation.PARQUET
           ? FileType.PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET
           : FileType.PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE;
 
+      // TODO FAIRE VALIDER CE COMPORTEMENT POUR LES MEMBRES COMMUNS
       await this.IACFileRepository.create(fileId, fileType)(trx);
     });
   }

@@ -57,7 +57,7 @@ export const Transparence: FC = () => {
             }
           />
           <ImportAttachmentModal
-            transparenceId={transparence.id}
+            sessionImportId={transparence.sessionImportéeId}
             transparenceName={transparence.name}
             transparenceFormation={transparence.formation}
             transparenceDate={new DateOnly(year, month, day)}

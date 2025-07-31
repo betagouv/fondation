@@ -9,7 +9,7 @@ import type { DateOnly } from '../../models/date-only.model';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 const addAttachment = (
-  sessionId: string,
+  sessionImportId: string,
   dateSession: DateOnly,
   formation: Magistrat.Formation,
   name: string,
@@ -27,7 +27,7 @@ const addAttachment = (
   };
 
   const importSessionQueryParams: ImportSessionAttachmentDto = {
-    sessionId,
+    sessionImportId,
     sessionType: SessionType.TRANSPARENCE,
     dateSession: dateSession.toFormattedString('yyyy-MM-dd'),
     formation,
@@ -47,17 +47,17 @@ const addAttachment = (
 export const useImportAttachment = () => {
   return useMutation({
     mutationFn: ({
-      sessionId,
+      sessionImportId,
       dateSession,
       formation,
       name,
       file
     }: {
-      sessionId: string;
+      sessionImportId: string;
       dateSession: DateOnly;
       formation: Magistrat.Formation;
       name: string;
       file: File;
-    }) => addAttachment(sessionId, dateSession, formation, name, file)
+    }) => addAttachment(sessionImportId, dateSession, formation, name, file)
   });
 };
