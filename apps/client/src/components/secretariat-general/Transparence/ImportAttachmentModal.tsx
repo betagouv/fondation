@@ -28,7 +28,8 @@ export const ImportAttachmentModal = ({
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const { mutate: importAttachment } = useImportAttachment();
+
+  const { mutate: importAttachment, isPending } = useImportAttachment();
 
   const handleOpenModal = () => {
     modalAttachment.open();
@@ -45,13 +46,24 @@ export const ImportAttachmentModal = ({
     if (!attachmentFile) {
       return;
     }
-    importAttachment({
-      sessionImportId,
-      dateSession: transparenceDate,
-      formation: transparenceFormation,
-      name: transparenceName,
-      file: attachmentFile
-    });
+    importAttachment(
+      {
+        sessionImportId,
+        dateSession: transparenceDate,
+        formation: transparenceFormation,
+        name: transparenceName,
+        file: attachmentFile
+      },
+      {
+        onSuccess: () => {
+          setAttachmentFile(null);
+          modalAttachment.close();
+        },
+        onError: (error: Error) => {
+          console.error("Erreur lors de l'import de la pièce jointe:", error);
+        }
+      }
+    );
   };
 
   return (
@@ -61,10 +73,10 @@ export const ImportAttachmentModal = ({
         buttons={[
           {
             doClosesModal: false,
-            children: 'Importer',
+            children: isPending ? 'Import en cours...' : 'Importer',
             nativeButtonProps: {
               onClick: handleImportAttachment,
-              disabled: !attachmentFile
+              disabled: !attachmentFile || isPending
             }
           }
         ]}
@@ -73,7 +85,8 @@ export const ImportAttachmentModal = ({
           <Upload
             id="import-observations-transparence"
             nativeInputProps={{
-              onChange: onChangeAttachmentFile
+              onChange: onChangeAttachmentFile,
+              disabled: isPending
             }}
             hint={null}
             label={null}

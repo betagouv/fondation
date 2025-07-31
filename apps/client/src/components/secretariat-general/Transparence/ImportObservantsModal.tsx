@@ -32,11 +32,8 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
 }) => {
   const [observantsFile, setObservantsFile] = useState<File | null>(null);
 
-  const {
-    mutate: importObservants,
-    isError: importObservantsFailed,
-    isSuccess: importObservantsExcelSuccessfull
-  } = useImportObservants();
+  const { mutate: importObservants, isError: importObservantsFailed } =
+    useImportObservants();
 
   useIsModalOpen(modal, {
     onConceal: () => {
@@ -49,20 +46,21 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
     if (!fichier) {
       throw new Error('No file selected for import.');
     }
-    importObservants({
-      nomTransparence,
-      formation,
-      dateTransparence: dateTransparence.toFormattedString('yyyy-MM-dd'),
-      fichier
-    });
+    importObservants(
+      {
+        nomTransparence,
+        formation,
+        dateTransparence: dateTransparence.toFormattedString('yyyy-MM-dd'),
+        fichier
+      },
+      {
+        onSuccess: () => {
+          modal.close();
+          setObservantsFile(null);
+        }
+      }
+    );
   };
-
-  useEffect(() => {
-    if (importObservantsExcelSuccessfull) {
-      modal.close();
-      setObservantsFile(null);
-    }
-  }, [importObservantsExcelSuccessfull]);
 
   return (
     <div>
