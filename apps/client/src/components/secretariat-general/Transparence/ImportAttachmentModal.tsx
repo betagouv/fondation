@@ -98,6 +98,7 @@ export const ImportAttachmentModal = ({
         id="import-attachment-transparence"
         priority="secondary"
         onClick={handleOpenModal}
+        className={'w-full'}
       >
         {title}
       </Button>
