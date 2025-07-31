@@ -10,5 +10,4 @@ export interface TransparenceRepository {
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
   ): TransactionableAsync<TransparenceXlsx | null>;
-  setFile(transparenceId: string, fileId: string): TransactionableAsync;
 }

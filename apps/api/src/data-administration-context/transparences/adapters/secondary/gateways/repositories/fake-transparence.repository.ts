@@ -31,11 +31,4 @@ export class FakeTransparenceRepository implements TransparenceRepository {
   getTransparences() {
     return Object.values(this.transparences);
   }
-
-  setFile(transparenceId: string, fileId: string) {
-    return async () => {
-      // TODO: implement this
-      console.log(transparenceId, fileId);
-    };
-  }
 }
