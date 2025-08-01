@@ -124,12 +124,13 @@ export class FilesContextModule implements OnModuleInit {
 
   configure(consumer: MiddlewareConsumer) {
     const signedUrlsRoute = `${baseRoute}/${endpointsPaths.getSignedUrls}`;
+    const deleteFileRoute = `${baseRoute}/${endpointsPaths.deleteFile}`;
 
     consumer
       .apply(SystemRequestValidationMiddleware)
-      .exclude(signedUrlsRoute)
+      .exclude(signedUrlsRoute, deleteFileRoute)
       .forRoutes(FilesController)
       .apply(SystemRequestOrSessionValidationMiddleware)
-      .forRoutes(signedUrlsRoute);
+      .forRoutes(signedUrlsRoute, deleteFileRoute);
   }
 }

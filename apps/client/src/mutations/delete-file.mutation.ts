@@ -2,8 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiFetch } from '../utils/api-fetch.utils';
 
 const deleteFile = (id: string) => {
-  const query = new URLSearchParams({ id });
-  return apiFetch(`/files?${query}`, { method: 'DELETE' });
+  return apiFetch(`/files/byId/${id}`, { method: 'DELETE' });
 };
 
 export const useDeleteFile = () => {
