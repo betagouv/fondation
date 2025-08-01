@@ -36,7 +36,7 @@ import {
   useUpdateReport,
   type UpdateReportParams
 } from '../../../../mutations/reports/update-report.mutation';
-import { useDeleteFileReport } from '../../../../mutations/reports/delete-file.mutation';
+import { useDeleteFileReport } from '../../../../mutations/reports/delete-file-report.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;

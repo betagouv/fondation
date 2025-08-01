@@ -20,6 +20,7 @@ export interface S3StorageProvider {
     }>,
   ): Promise<PromiseSettledResult<void>[]>;
   getSignedUrls(files: FileDocument[]): Promise<FileVM[]>;
+  getSignedUrl(file: FileDocument): Promise<string>;
   deleteFile(
     bucket: string,
     bucketPath: string[] | null,

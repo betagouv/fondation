@@ -5,7 +5,7 @@ import {
   FILE_REPOSITORY,
   S3_STORAGE_PROVIDER,
 } from 'src/files-context/adapters/primary/nestjs/tokens';
-import { FakeS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/fake-s3-storage.provider';
+
 import { MinioS3Commands } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-commands';
 import { minioS3StorageClient } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
 import { RealS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/real-s3-storage.provider';
@@ -160,7 +160,6 @@ const isScalewayS3 = isProduction;
       },
     },
     generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
-    generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER),
     {
       provide: S3_STORAGE_PROVIDER,
       useFactory: (

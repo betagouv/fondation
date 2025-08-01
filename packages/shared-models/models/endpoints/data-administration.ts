@@ -83,8 +83,8 @@ export interface GetTransparencesAttachmentDto
 
 export const fileDocumentSnapshotSchema = z.object({
   id: z.string().min(1),
-  createdAt: z.date(),
   name: z.string().min(1),
+  signedUrl: z.string().min(1),
 });
 export interface FileDocumentSnapshot
   extends z.infer<typeof fileDocumentSnapshotSchema> {}

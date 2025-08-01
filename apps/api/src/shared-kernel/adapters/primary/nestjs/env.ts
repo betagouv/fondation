@@ -84,7 +84,8 @@ export const defaultApiConfig = {
     },
     nominationsContext: {
       transparencesBucketName:
-        process.env.S3_TRANSPARENCES_BUCKET ?? 'transparences',
+        process.env.S3_TRANSPARENCES_BUCKET ??
+        'sandbox-csm-fondation-transparences-context',
     },
 
     minio: {

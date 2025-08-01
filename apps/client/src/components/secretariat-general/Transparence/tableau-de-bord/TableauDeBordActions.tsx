@@ -6,6 +6,8 @@ import { ImportAttachmentModal } from '../ImportAttachmentModal';
 import { DateOnly } from '../../../../models/date-only.model';
 import { Magistrat } from 'shared-models';
 import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
+import { AttachedFilesList } from '../../../reports/components/ReportOverview/AttachedFilesList';
+import { useDeleteFile } from '../../../../mutations/delete-file.mutation';
 
 type TableauDeBordActionsProps = {
   transparenceName: string;
@@ -24,8 +26,11 @@ export const TableauDeBordActions = ({
     transparenceSessionImportId
   );
 
-  // Pouvoir les supprimer, livrer en PREPROD avec le job
-  console.log('TODO afficher les pièces jointes', attachments);
+  const { mutate: deleteFile } = useDeleteFile();
+
+  const handleDeleteFile = (id: string) => {
+    deleteFile(id);
+  };
 
   return (
     <div
@@ -37,7 +42,14 @@ export const TableauDeBordActions = ({
       <div>TABLEAU DE BORD</div>
       <div>
         <Accordion label="Pièces jointes" titleAs="h2">
-          <div>Aucunes pièces jointes.</div>
+          {!attachments || attachments.length === 0 ? (
+            <div>Aucunes pièces jointes.</div>
+          ) : (
+            <AttachedFilesList
+              attachedFiles={attachments}
+              onAttachedFileDeleted={handleDeleteFile}
+            />
+          )}
         </Accordion>
         <Accordion label="Tableau initial" titleAs="h2">
           Tableau initial à venir.

@@ -11,8 +11,10 @@ export type FileDocumentWithoutId = {
 
 export type PartialFileDocumentSnapshot = Pick<
   FileDocumentSnapshot,
-  'id' | 'createdAt' | 'name'
->;
+  'id' | 'name'
+> & {
+  signedUrl: string;
+};
 
 export type FileDocumentSnapshot = {
   id: string;

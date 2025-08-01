@@ -4,7 +4,6 @@ import type { InsertImages } from '.';
 
 export const useScreenshotPaste = (insertImages: InsertImages) => {
   const { editor } = useCurrentEditor();
-  // const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!editor) return;
@@ -28,6 +27,5 @@ export const useScreenshotPaste = (insertImages: InsertImages) => {
     return () => {
       editor.view.dom.removeEventListener('paste', handlePaste);
     };
-    // TODO dispatch
   }, [editor, insertImages]);
 };

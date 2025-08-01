@@ -97,6 +97,7 @@ import {
     generateProvider(GetTransparenceAttachmentsUseCase, [
       TRANSACTION_PERFORMER,
       TRANSPARENCE_FILE_REPOSITORY,
+      UPLOAD_FILE_SERVICE,
     ]),
     generateProvider(TransparenceCsvService, [
       DOMAIN_EVENT_REPOSITORY,

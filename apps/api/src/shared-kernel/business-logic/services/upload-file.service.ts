@@ -1,6 +1,7 @@
 import { TransparenceFile } from 'src/data-administration-context/transparences/business-logic/models/transparence-file';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
+import { FileDocument } from 'src/files-context/business-logic/models/file-document';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -12,6 +13,10 @@ export class UploadFileService {
     private readonly dateTimeProvider: DateTimeProvider,
     private readonly s3StorageProvider: S3StorageProvider,
   ) {}
+
+  getSignedUrl(file: FileDocument): Promise<string> {
+    return this.s3StorageProvider.getSignedUrl(file);
+  }
 
   /**
    * The path is formatted as follows:

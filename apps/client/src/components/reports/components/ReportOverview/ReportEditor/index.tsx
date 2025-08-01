@@ -13,7 +13,7 @@ import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
 import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
-import { useDeleteFileReport } from '../../../../../mutations/reports/delete-file.mutation';
+import { useDeleteFileReport } from '../../../../../mutations/reports/delete-file-report.mutation';
 
 export type ReportEditorProps = {
   comment: string | null;
