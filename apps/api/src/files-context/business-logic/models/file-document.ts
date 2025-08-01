@@ -44,6 +44,7 @@ export class FileDocument {
   getFileVM(): FileVM {
     if (!this.signedUrl) throw new Error('Signed URL is not set');
     return {
+      id: this.id,
       name: this.name,
       signedUrl: this.signedUrl,
     };

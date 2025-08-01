@@ -5,6 +5,7 @@ import {
   fileUploadQueryDtoSchema,
   FileVM,
 } from 'shared-models';
+import { FileDocumentSnapshot } from 'src/files-context/business-logic/models/file-document';
 import { FilesStorageProvider } from 'src/files-context/business-logic/models/files-provider.enum';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
@@ -21,7 +22,6 @@ import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-requ
 import { z } from 'zod';
 import { filesPm } from '../../secondary/gateways/repositories/drizzle/schema/files-pm';
 import { PERMISSIONS_SERVICE } from './tokens';
-import { FileDocumentSnapshot } from 'src/files-context/business-logic/models/file-document';
 
 // Which bucket is used doesn't matter, we just pick one.
 const bucket = defaultApiConfig.s3.reportsContext.attachedFilesBucketName;
@@ -178,6 +178,7 @@ describe('Files Controller', () => {
 
       expect(response.body).toEqual<FileVM[]>([
         {
+          id: fileId,
           name: fileName,
           signedUrl: expect.stringMatching(/^http/),
         },
@@ -332,6 +333,7 @@ describe('Files Controller', () => {
           .expect(HttpStatus.OK);
         expect(response.body).toEqual<FileVM[]>([
           {
+            id: fileId,
             name: fileName,
             signedUrl: expect.stringMatching(/^http/),
           },

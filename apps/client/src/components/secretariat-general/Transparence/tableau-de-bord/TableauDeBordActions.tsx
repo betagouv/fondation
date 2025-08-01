@@ -6,8 +6,9 @@ import { ImportAttachmentModal } from '../ImportAttachmentModal';
 import { DateOnly } from '../../../../models/date-only.model';
 import { Magistrat } from 'shared-models';
 import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
-import { AttachedFilesList } from '../../../reports/components/ReportOverview/AttachedFilesList';
+
 import { useDeleteFile } from '../../../../mutations/delete-file.mutation';
+import { AttachedFilesList } from '../../../shared/AttachedFilesList';
 
 type TableauDeBordActionsProps = {
   transparenceName: string;

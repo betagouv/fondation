@@ -4,7 +4,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
-import { type FC, useEffect, useState } from 'react';
+import { type FC, useState } from 'react';
 import { Magistrat } from 'shared-models';
 import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
 import type { DateOnly } from '../../../models/date-only.model';

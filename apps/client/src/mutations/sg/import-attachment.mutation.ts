@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import {
   Magistrat,
-  SessionType,
   type DataAdministrationContextRestContract,
   type ImportSessionAttachmentDto
 } from 'shared-models';
@@ -28,7 +27,7 @@ const addAttachment = (
 
   const importSessionQueryParams: ImportSessionAttachmentDto = {
     sessionImportId,
-    sessionType: SessionType.TRANSPARENCE,
+    sessionType: 'TRANSPARENCE',
     dateSession: dateSession.toFormattedString('yyyy-MM-dd'),
     formation,
     name
