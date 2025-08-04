@@ -14,7 +14,6 @@
     "types:check:watch": "tsc --noEmit -p ./tsconfig.app.json --watch",
     "test": "vitest",
     "test:watch": "vitest",
-    "test:all": "vitest run",
     "postinstall": "pnpm dsfr:build",
     "dsfr:build": "react-dsfr update-icons",
     "test:ct": "playwright test -c playwright-ct.config.ts",
