@@ -14,6 +14,14 @@ export default defineConfig({
       include: [/shared-models/, /node_modules/],
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
+  },
   // Vite doesn't allow to watch node_modules changes,
   // so we can't listen on shared-models changes.
   // We have to re-install packages and restart the dev server.

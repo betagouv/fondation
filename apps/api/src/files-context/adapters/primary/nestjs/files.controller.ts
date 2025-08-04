@@ -12,7 +12,9 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FilesContextRestContract } from 'shared-models';
+import { PermissionDeniedError } from 'src/files-context/business-logic/errors/permission-denied.error';
 import { DeleteFileUseCase } from 'src/files-context/business-logic/use-cases/file-deletion/delete-file';
 import { UploadFileUseCase } from 'src/files-context/business-logic/use-cases/file-upload/upload-file';
 import { DeleteFilesUseCase } from 'src/files-context/business-logic/use-cases/files-deletion/delete-files';
@@ -29,8 +31,6 @@ import { FileUploadQueryDto } from '../dto/file-upload-query.dto';
 import { FilesDeletionQueryDto } from '../dto/files-deletion-query.dto';
 import { FilesUrlsQueryDto } from '../dto/files-urls-query.dto';
 import { FilesUploadQueryDto } from './dto/files-upload-query.dto';
-import { Request } from 'express';
-import { PermissionDeniedError } from 'src/files-context/business-logic/errors/permission-denied.error';
 
 type IReportController = IController<FilesContextRestContract>;
 

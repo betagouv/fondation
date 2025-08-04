@@ -16,9 +16,9 @@ jobs:
     uses: ./.github/workflows/build-and-upload-api-artifact.yml
     with:
       tag: "v${{ github.run_number }}"
-  build-and-upload-webapp-artifact:
+  build-and-upload-client-artifact:
     needs: [integration-checks]
-    uses: ./.github/workflows/build-and-upload-webapp-artifact.yml
+    uses: ./.github/workflows/build-and-upload-client-artifact.yml
     with:
       environment: staging
       tag: "v${{ github.run_number }}"
@@ -26,7 +26,7 @@ jobs:
 
   deploy-staging:
     name: Deploy staging
-    needs: [build-and-upload-api-artifact, build-and-upload-webapp-artifact]
+    needs: [build-and-upload-api-artifact, build-and-upload-client-artifact]
     uses: ./.github/workflows/deploy-to-scalingo.yml
     with:
       environment: staging

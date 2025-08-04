@@ -1,8 +1,8 @@
-import { z, ZodNumberDef, ZodType } from "zod";
-import { RestContract, ZodParamsDto, ZodQueryParamsDto } from "./common";
+import { z, type ZodNumberDef, type ZodType } from "zod";
+import { type DateOnlyJson, type Month } from "../date";
 import { Magistrat } from "../magistrat.namespace";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
-import { DateOnlyJson, Month } from "../date";
+import { type RestContract, type ZodParamsDto, type ZodQueryParamsDto } from "./common";
 
 type SessionSnapshotResponse = {
   id: string;
