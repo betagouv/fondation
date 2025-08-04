@@ -1,8 +1,8 @@
-import { Transaction } from "@tiptap/pm/state";
-import { Editor, type JSONContent } from "@tiptap/react";
-import { useRef } from "react";
-import type { RedoImages } from ".";
-import { dataFileNameKey } from "./extensions";
+import { Transaction } from '@tiptap/pm/state';
+import { Editor, type JSONContent } from '@tiptap/react';
+import { useRef } from 'react';
+import type { RedoImages } from '.';
+import { dataFileNameKey } from './extensions';
 
 export type UseOnRedoImage = (redoImages: RedoImages) => {
   onCreate: (editor: Editor) => void;
@@ -27,11 +27,9 @@ export const useOnRedoImage: UseOnRedoImage = (redoImages) => {
       const currentImageNames = imagesFileNamesFromContent(content);
 
       const addedImageNames = currentImageNames.filter(
-        (name) =>
-          !previousImageNames.current.find((prevName) => prevName === name),
+        (name) => !previousImageNames.current.find((prevName) => prevName === name)
       );
-      const isRevertDeletion =
-        !transaction.getMeta("setImage") && addedImageNames.length > 0;
+      const isRevertDeletion = !transaction.getMeta('setImage') && addedImageNames.length > 0;
 
       previousImageNames.current = currentImageNames;
 
@@ -40,12 +38,9 @@ export const useOnRedoImage: UseOnRedoImage = (redoImages) => {
           editor,
           addedImageNames.map((name) => {
             const file = editor.storage.image.files[name];
-            if (!file)
-              throw new Error(
-                `File with name ${name} not found in editor storage.`,
-              );
+            if (!file) throw new Error(`File with name ${name} not found in editor storage.`);
             return file;
-          }),
+          })
         );
       }
     }
@@ -53,11 +48,9 @@ export const useOnRedoImage: UseOnRedoImage = (redoImages) => {
 
   return {
     onCreate,
-    onUpdate,
+    onUpdate
   };
 };
 
 const imagesFileNamesFromContent = (content: JSONContent[]): string[] =>
-  content
-    ?.filter((item) => item.type === "image" && item.attrs)
-    .map((item) => item.attrs![dataFileNameKey]);
+  content?.filter((item) => item.type === 'image' && item.attrs).map((item) => item.attrs![dataFileNameKey]);

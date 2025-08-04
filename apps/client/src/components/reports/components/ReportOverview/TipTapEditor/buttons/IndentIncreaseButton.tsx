@@ -1,6 +1,6 @@
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import type { FC } from "react";
-import { EditorButton } from "./EditorButton";
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import type { FC } from 'react';
+import { EditorButton } from './EditorButton';
 
 export const IndentIncreaseButton: FC = () => {
   const { editor } = useCurrentEditor();
@@ -13,16 +13,13 @@ export const IndentIncreaseButton: FC = () => {
         !ctx.editor.can().chain().focus().toggleBulletList().run() &&
         !ctx.editor.can().chain().focus().toggleOrderedList().run();
 
-      return (
-        cannotToggleList ||
-        !ctx.editor.can().chain().focus().sinkListItem("listItem").run()
-      );
-    },
+      return cannotToggleList || !ctx.editor.can().chain().focus().sinkListItem('listItem').run();
+    }
   });
 
   const increaseIndent = () => {
     if (!editor) return;
-    editor.chain().focus().sinkListItem("listItem").run();
+    editor.chain().focus().sinkListItem('listItem').run();
   };
 
   return (

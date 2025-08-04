@@ -21,13 +21,8 @@ export type ReportEditorProps = {
   reportId: string;
 };
 
-export const ReportEditor: React.FC<ReportEditorProps> = ({
-  comment,
-  onUpdate,
-  reportId
-}) => {
-  const { mutateAsync: insertImagesWithSignedUrlsAsync } =
-    useInsertImagesWithSignedUrls();
+export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate, reportId }) => {
+  const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
   const { mutateAsync: deleteFilesAsync } = useDeleteFilesReport();
   const { mutateAsync: deleteFileAsync } = useDeleteFileReport();
 
@@ -35,9 +30,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
     const filesToUpload = await addTimestampToFiles(files, Date.now());
     await Promise.all(
       filesToUpload.map(
-        new RealFileProvider().assertMimeTypeFactory(
-          EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES
-        )
+        new RealFileProvider().assertMimeTypeFactory(EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES)
       )
     );
 
@@ -63,18 +56,13 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
             })
         )
       );
-      throw new Error(
-        `Failed to embed the screenshot for report id ${reportId}`
-      );
+      throw new Error(`Failed to embed the screenshot for report id ${reportId}`);
     }
 
     return images;
   };
 
-  const deleteImages = async (
-    editor: Editor,
-    deletedImagesFileNames: string[]
-  ) => {
+  const deleteImages = async (editor: Editor, deletedImagesFileNames: string[]) => {
     deleteFilesAsync({
       reportId,
       fileNames: deletedImagesFileNames

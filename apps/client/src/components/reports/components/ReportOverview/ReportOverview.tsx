@@ -2,12 +2,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  allRulesMapV2,
-  NominationFile,
-  ReportFileUsage,
-  type DateOnlyJson
-} from 'shared-models';
+import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
 import { type ReportSM } from '../../../../queries/list-reports.queries';
 import {
@@ -52,8 +47,7 @@ const formatBiography = (biography: string | null) => {
 };
 
 const formatObservers = (observers: ReportSM['observers']) =>
-  observers?.map((observer) => observer.split('\n') as [string, ...string[]]) ||
-  null;
+  observers?.map((observer) => observer.split('\n') as [string, ...string[]]) || null;
 
 const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
   const birthDate = DateOnly.fromStoreModel(birthDateJson);
@@ -99,17 +93,12 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     allRulesMapV2,
     allRulesLabelsMap
   );
-  const formattedBirthDate = formatBirthDate(
-    retrievedReport.birthDate,
-    new Date()
-  );
+  const formattedBirthDate = formatBirthDate(retrievedReport.birthDate, new Date());
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
   const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
-    [key in keyof UpdateReportParams['data']]: T extends key
-      ? UpdateReportParams['data'][key]
-      : undefined;
+    [key in keyof UpdateReportParams['data']]: T extends key ? UpdateReportParams['data'][key] : undefined;
   }) => {
     updateReport(
       {
@@ -128,8 +117,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   };
 
   const onUpdateReportRule =
-    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) =>
-    () => {
+    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => {
       if (!report) return;
 
       const rule = {
@@ -170,11 +158,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   if (!report)
     return isPending ? null : (
       <div>
-        <Breadcrumb
-          id="report-breadcrumb"
-          ariaLabel="Fil d'Ariane du rapport"
-          breadcrumb={breadcrumb}
-        />
+        <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
         Rapport non trouvé.
       </div>
     );
@@ -182,37 +166,17 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   return (
     <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
       <div className="w-full">
-        <Breadcrumb
-          id="report-breadcrumb"
-          ariaLabel="Fil d'Ariane du rapport"
-          breadcrumb={breadcrumb}
-        />
+        <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
       </div>
       <AutoSaveNotice />
-      <div
-        className={clsx(
-          'scroll-smooth',
-          cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v')
-        )}
-      >
-        <div
-          className={clsx(
-            'hidden md:block',
-            cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3')
-          )}
-        >
+      <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
+        <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
           <Summary observers={retrievedReport.observers} />
         </div>
         <div
-          className={clsx(
-            'flex-col gap-2',
-            cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9')
-          )}
+          className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
         >
-          <ReportOverviewState
-            state={retrievedReport.state}
-            onUpdateState={onUpdateState}
-          />
+          <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
           <MagistratIdentity
             name={retrievedReport.name}
             birthDate={formattedBirthDate}
@@ -223,11 +187,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             dureeDuPoste={retrievedReport.dureeDuPoste}
           />
           <Biography biography={formattedBiography} />
-          <ReportEditor
-            comment={retrievedReport.comment}
-            onUpdate={onUpdateContent}
-            reportId={id}
-          />
+          <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
           <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}

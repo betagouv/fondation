@@ -7,12 +7,7 @@ export type CardProps = {
   linkProps: RegisteredLinkProps;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export const Card = ({
-  title,
-  description,
-  className,
-  linkProps
-}: CardProps) => {
+export const Card = ({ title, description, className, linkProps }: CardProps) => {
   return (
     <div className="container">
       <DsfrCard

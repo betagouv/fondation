@@ -1,8 +1,4 @@
-import {
-  NominationFile,
-  RulesBuilder,
-  type AllRulesMapV2
-} from 'shared-models';
+import { NominationFile, RulesBuilder, type AllRulesMapV2 } from 'shared-models';
 
 import type { RulesLabelsMap } from '../components/reports/labels/rules-labels';
 
@@ -10,9 +6,7 @@ import type { UnionToIntersection } from 'type-fest';
 import type { ReportSM } from '../queries/list-reports.queries';
 import type { ReportVM, VMReportRuleValue } from '../VM/ReportVM';
 
-export class ReportVMRulesBuilder extends RulesBuilder<
-  VMReportRuleValue<boolean>
-> {
+export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean>> {
   static buildFromStoreModel(
     rules: ReportSM['rules'],
     rulesMap: AllRulesMapV2,
@@ -82,10 +76,7 @@ export class ReportVMRulesBuilder extends RulesBuilder<
           ...acc,
           [group]: {
             selected: createRules(isRuleSelected, acc[group]?.selected),
-            others: createRules(
-              (ruleValue) => !isRuleSelected(ruleValue),
-              acc[group]?.others
-            )
+            others: createRules((ruleValue) => !isRuleSelected(ruleValue), acc[group]?.others)
           }
         };
       },

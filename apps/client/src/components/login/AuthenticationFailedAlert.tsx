@@ -1,5 +1,5 @@
-import Alert from "@codegouvfr/react-dsfr/Alert";
-import type { FC } from "react";
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import type { FC } from 'react';
 
 export const AuthenticationFailedAlert: FC = () => (
   <Alert

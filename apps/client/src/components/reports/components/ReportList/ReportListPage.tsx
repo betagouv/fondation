@@ -9,12 +9,8 @@ import { DateTransparenceRoutesMapper } from '../../../../utils/date-transparenc
 export const ReportListPage: FC = () => {
   const { dateTransparence, transparency, formation } = useParams();
   const props = {
-    dateTransparence: DateTransparenceRoutesMapper.toDateTransparence(
-      dateTransparence as string
-    ),
-    transparency: GdsTransparenciesRoutesMapper.toTransparency(
-      transparency as string
-    ),
+    dateTransparence: DateTransparenceRoutesMapper.toDateTransparence(dateTransparence as string),
+    transparency: GdsTransparenciesRoutesMapper.toTransparency(transparency as string),
     formation: FormationsRoutesMapper.toFormation(formation as string)
   } as ReportListProps;
   return (

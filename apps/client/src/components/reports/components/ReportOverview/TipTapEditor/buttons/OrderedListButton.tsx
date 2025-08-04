@@ -1,14 +1,12 @@
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import type { FC } from "react";
-import { EditorButton } from "./EditorButton";
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import type { FC } from 'react';
+import { EditorButton } from './EditorButton';
 
 export const OrderedListButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) =>
-      !ctx.editor ||
-      !ctx.editor.can().chain().focus().toggleOrderedList().run(),
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().chain().focus().toggleOrderedList().run()
   });
 
   const toggleOrderedList = () => {

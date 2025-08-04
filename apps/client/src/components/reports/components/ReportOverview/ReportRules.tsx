@@ -7,18 +7,11 @@ import type { ReportSM } from '../../../../queries/list-reports.queries';
 
 export type ReportRulesProps = {
   rulesChecked: ReportVM['rulesChecked'];
-  onUpdateReportRule: (
-    ruleGroup: NominationFile.RuleGroup,
-    ruleName: NominationFile.RuleName
-  ) => () => void;
+  onUpdateReportRule: (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => void;
   rules: ReportSM['rules'];
 };
 
-export const ReportRules: React.FC<ReportRulesProps> = ({
-  rulesChecked,
-  onUpdateReportRule,
-  rules
-}) => {
+export const ReportRules: React.FC<ReportRulesProps> = ({ rulesChecked, onUpdateReportRule, rules }) => {
   const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
     onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
 

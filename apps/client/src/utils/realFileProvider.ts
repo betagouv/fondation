@@ -17,9 +17,7 @@ export class RealFileProvider implements FileProvider {
     return fileBuffer;
   }
 
-  async mimeTypeFromBuffer(
-    fileBuffer: ArrayBuffer
-  ): Promise<FileTypeResult['mime'] | undefined> {
+  async mimeTypeFromBuffer(fileBuffer: ArrayBuffer): Promise<FileTypeResult['mime'] | undefined> {
     const fileType = await fileTypeFromBuffer(fileBuffer);
     return fileType?.mime;
   }

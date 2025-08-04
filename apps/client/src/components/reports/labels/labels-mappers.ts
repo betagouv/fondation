@@ -3,15 +3,8 @@ import { DateOnly } from '../../../models/date-only.model';
 
 export type TransparencyLabel = string;
 
-export const transparencyToLabel = (
-  transparency: Transparency,
-  dateTransparence: DateOnlyJson
-) => {
-  return (
-    'T ' +
-    DateOnly.fromStoreModel(dateTransparence).toFormattedString() +
-    ` (${transparency})`
-  );
+export const transparencyToLabel = (transparency: Transparency, dateTransparence: DateOnlyJson) => {
+  return 'T ' + DateOnly.fromStoreModel(dateTransparence).toFormattedString() + ` (${transparency})`;
 };
 export const formationToLabel = (formation: Magistrat.Formation) => {
   switch (formation) {

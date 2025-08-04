@@ -9,21 +9,14 @@ export type AttachedFilesListProps = {
 };
 
 const MAX_FILE_NAME_LENGTH = 18;
-export const AttachedFilesList: FC<AttachedFilesListProps> = ({
-  attachedFiles,
-  onAttachedFileDeleted
-}) => (
+export const AttachedFilesList: FC<AttachedFilesListProps> = ({ attachedFiles, onAttachedFileDeleted }) => (
   <ul className={clsx('flex flex-col gap-2')}>
     {attachedFiles.map((file) => {
       const deleteAttachedFile = () => onAttachedFileDeleted(file.id);
 
       return (
         <li key={file.name} className="flex items-center gap-4">
-          <a
-            href={file.signedUrl ?? undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={file.signedUrl ?? undefined} target="_blank" rel="noopener noreferrer">
             {file.name.length > MAX_FILE_NAME_LENGTH
               ? file.name.slice(0, MAX_FILE_NAME_LENGTH) + '...'
               : file.name}

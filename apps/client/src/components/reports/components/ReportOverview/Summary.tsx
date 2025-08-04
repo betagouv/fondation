@@ -10,13 +10,11 @@ export type SummaryProps = {
   observers: string[] | null;
 };
 
-const { setIsScrolling, createListeners, removeListeners } =
-  summaryScrollListenersFactory();
+const { setIsScrolling, createListeners, removeListeners } = summaryScrollListenersFactory();
 
 export const Summary: FC<SummaryProps> = ({ observers }) => {
   const summarySections = SUMMARY_SECTIONS.filter(({ anchorId }) => {
-    const isObserverSection =
-      anchorId === reportHtmlIds.overview.observersSection;
+    const isObserverSection = anchorId === reportHtmlIds.overview.observersSection;
     const isOtherSection = !isObserverSection;
     const hasObservers = !!observers?.length;
 
@@ -25,15 +23,9 @@ export const Summary: FC<SummaryProps> = ({ observers }) => {
 
   const [currentSection, setCurrentSection] = useState<string | null>(null);
 
-  const anchorIds = useMemo(
-    () => summarySections.map(({ anchorId }) => anchorId),
-    [summarySections]
-  );
+  const anchorIds = useMemo(() => summarySections.map(({ anchorId }) => anchorId), [summarySections]);
 
-  const onSectionIdIntersecting = useCallback(
-    (sectionId: string) => setCurrentSection(sectionId),
-    []
-  );
+  const onSectionIdIntersecting = useCallback((sectionId: string) => setCurrentSection(sectionId), []);
   useObservedSections(anchorIds, onSectionIdIntersecting);
 
   const onAnchorClick = useCallback((anchorId: string) => {
@@ -47,16 +39,14 @@ export const Summary: FC<SummaryProps> = ({ observers }) => {
     return removeListeners;
   }, []);
 
-  const sideMenuItems: SideMenuProps.Item[] = SUMMARY_SECTIONS.map(
-    ({ anchorId, label }) => ({
-      linkProps: {
-        href: `#${anchorId}`,
-        onClick: () => onAnchorClick(anchorId)
-      },
-      isActive: currentSection === anchorId,
-      text: label
-    })
-  );
+  const sideMenuItems: SideMenuProps.Item[] = SUMMARY_SECTIONS.map(({ anchorId, label }) => ({
+    linkProps: {
+      href: `#${anchorId}`,
+      onClick: () => onAnchorClick(anchorId)
+    },
+    isActive: currentSection === anchorId,
+    text: label
+  }));
 
   return (
     <SideMenu

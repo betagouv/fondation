@@ -23,19 +23,10 @@ export const TableauDeBordResume = ({
   transparenceClosingDate
 }: TableauDeBordResumeProps) => {
   return (
-    <div
-      className={clsx(
-        'border-2 border-solid',
-        cx('fr-px-12v', 'fr-py-8v', 'fr-col')
-      )}
-    >
+    <div className={clsx('border-2 border-solid', cx('fr-px-12v', 'fr-py-8v', 'fr-col'))}>
       <h1>Gérer une session</h1>
 
-      <div
-        className={clsx(
-          'grid grid-flow-row grid-cols-[max-content_1fr] gap-x-8 gap-y-4'
-        )}
-      >
+      <div className={clsx('grid grid-flow-row grid-cols-[max-content_1fr] gap-x-8 gap-y-4')}>
         <Label nom="Type de session" />
         <div>Transparence</div>
 

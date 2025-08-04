@@ -18,11 +18,7 @@ const addAttachment = (
   const formData = new FormData();
   formData.append('fichier', file, file.name);
 
-  const {
-    method
-  }: Partial<
-    DataAdministrationContextRestContract['endpoints']['importSessionAttachment']
-  > = {
+  const { method }: Partial<DataAdministrationContextRestContract['endpoints']['importSessionAttachment']> = {
     method: 'POST'
   };
 
@@ -35,13 +31,10 @@ const addAttachment = (
   };
   const queryParams = new URLSearchParams(importSessionQueryParams);
 
-  return apiFetch(
-    `/data-administration/import-session-attachment?${queryParams}`,
-    {
-      method,
-      body: formData
-    }
-  );
+  return apiFetch(`/data-administration/import-session-attachment?${queryParams}`, {
+    method,
+    body: formData
+  });
 };
 
 export const useImportAttachment = () => {

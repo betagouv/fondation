@@ -5,8 +5,6 @@ export const ImportObservantsExcelValidationAlert: FC = () => (
   <Alert
     severity="error"
     title="Échec de l'import"
-    description={
-      'Veuillez vérifier le formattage des cellules excel ou contacter un administrateur.'
-    }
+    description={'Veuillez vérifier le formattage des cellules excel ou contacter un administrateur.'}
   />
 );

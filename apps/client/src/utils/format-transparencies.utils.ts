@@ -28,10 +28,7 @@ interface TransparenciesVM {
 }
 
 // Fonction pour formater le label de transparence avec la date
-const transparencyToLabel = (
-  transparency: string,
-  dateTransparence: DateOnlyJson
-): string => {
+const transparencyToLabel = (transparency: string, dateTransparence: DateOnlyJson): string => {
   const formattedDate = `${dateTransparence.day.toString().padStart(2, '0')}/${dateTransparence.month.toString().padStart(2, '0')}/${dateTransparence.year}`;
   DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
   return `T ${formattedDate} (${transparency})`;
@@ -47,12 +44,8 @@ const timeDiff = (
   return date1Obj.getTime() - date2Obj.getTime();
 };
 
-const formatGdsTransparencies = (
-  reports: ReportListItem[]
-): Record<string, TransparencyItem[]> => {
-  const sortedReports = [...reports].sort((a, b) =>
-    timeDiff(b.dateTransparence, a.dateTransparence)
-  );
+const formatGdsTransparencies = (reports: ReportListItem[]): Record<string, TransparencyItem[]> => {
+  const sortedReports = [...reports].sort((a, b) => timeDiff(b.dateTransparence, a.dateTransparence));
 
   const gdsTransparencies: Record<string, TransparencyItem[]> = {
     [Magistrat.Formation.PARQUET]: [],
@@ -60,10 +53,7 @@ const formatGdsTransparencies = (
   };
 
   sortedReports.forEach((report) => {
-    const transparencyLabel = transparencyToLabel(
-      report.transparency,
-      report.dateTransparence
-    );
+    const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
 
     const path = getGdsDetailsPath(
       report.dateTransparence,
@@ -112,15 +102,11 @@ const formatGdsTransparencies = (
   return gdsTransparencies;
 };
 
-const toNullableTransparencyGroup = (
-  transparencies: TransparencyItem[]
-): TransparencyItem[] | null => {
+const toNullableTransparencyGroup = (transparencies: TransparencyItem[]): TransparencyItem[] | null => {
   return transparencies?.length ? transparencies : null;
 };
 
-export const formatTransparencies = (
-  data: ReportListItem[] | undefined
-): TransparenciesVM => {
+export const formatTransparencies = (data: ReportListItem[] | undefined): TransparenciesVM => {
   if (!data) {
     return {
       noTransparencies: true,
@@ -148,12 +134,10 @@ export const formatTransparencies = (
     !gdsTransparencies[Magistrat.Formation.SIEGE] ||
     gdsTransparencies[Magistrat.Formation.SIEGE].length === 0;
 
-  const noGdsTransparencies =
-    !gdsTransparencies || (noParquetGdsTransparency && noSiegeGdsTransparency);
+  const noGdsTransparencies = !gdsTransparencies || (noParquetGdsTransparency && noSiegeGdsTransparency);
 
-  const formationsCount = ((gdsTransparencies[Magistrat.Formation.PARQUET]
-    ? 1
-    : 0) + (gdsTransparencies[Magistrat.Formation.SIEGE] ? 1 : 0)) as 0 | 1 | 2;
+  const formationsCount = ((gdsTransparencies[Magistrat.Formation.PARQUET] ? 1 : 0) +
+    (gdsTransparencies[Magistrat.Formation.SIEGE] ? 1 : 0)) as 0 | 1 | 2;
 
   return {
     noTransparencies: noGdsTransparencies,
@@ -162,15 +146,11 @@ export const formatTransparencies = (
       formationsCount,
       [Magistrat.Formation.PARQUET]: {
         formationLabel: formationToLabel(Magistrat.Formation.PARQUET),
-        transparencies: toNullableTransparencyGroup(
-          gdsTransparencies[Magistrat.Formation.PARQUET]
-        )
+        transparencies: toNullableTransparencyGroup(gdsTransparencies[Magistrat.Formation.PARQUET])
       },
       [Magistrat.Formation.SIEGE]: {
         formationLabel: formationToLabel(Magistrat.Formation.SIEGE),
-        transparencies: toNullableTransparencyGroup(
-          gdsTransparencies[Magistrat.Formation.SIEGE]
-        )
+        transparencies: toNullableTransparencyGroup(gdsTransparencies[Magistrat.Formation.SIEGE])
       }
     }
   };

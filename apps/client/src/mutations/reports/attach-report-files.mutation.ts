@@ -1,18 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import type {
-  ReportFileUsage,
-  ReportsContextRestContract
-} from 'shared-models';
+import type { ReportFileUsage, ReportsContextRestContract } from 'shared-models';
 import { ACCEPTED_MIME_TYPES } from '../../constants/mimetypes.constants';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { DeterministicUuidGenerator } from '../../utils/deterministicUuidGenerator';
 import { RealFileProvider } from '../../utils/realFileProvider';
 
-const attachReportFiles = (
-  reportId: string,
-  files: File[],
-  usage: ReportFileUsage
-) => {
+const attachReportFiles = (reportId: string, files: File[], usage: ReportFileUsage) => {
   files.map(new RealFileProvider().assertMimeTypeFactory(ACCEPTED_MIME_TYPES));
   const filesArg = files.map((file) => ({
     file,
@@ -25,9 +18,7 @@ const attachReportFiles = (
   });
   const fileIds = filesArg.map(({ fileId }) => fileId);
 
-  const {
-    method
-  }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
+  const { method }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
     method: 'POST'
   };
 
@@ -46,14 +37,7 @@ const attachReportFiles = (
 
 export const useAttachReportFiles = () => {
   return useMutation({
-    mutationFn: ({
-      reportId,
-      files,
-      usage
-    }: {
-      reportId: string;
-      files: File[];
-      usage: ReportFileUsage;
-    }) => attachReportFiles(reportId, files, usage)
+    mutationFn: ({ reportId, files, usage }: { reportId: string; files: File[]; usage: ReportFileUsage }) =>
+      attachReportFiles(reportId, files, usage)
   });
 };

@@ -3,9 +3,7 @@ import type { ReportsContextRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 const deleteFileReport = (reportId: string, fileName: string) => {
-  const {
-    method
-  }: Partial<ReportsContextRestContract['endpoints']['deleteFile']> = {
+  const { method }: Partial<ReportsContextRestContract['endpoints']['deleteFile']> = {
     method: 'DELETE'
   };
 
@@ -16,12 +14,7 @@ const deleteFileReport = (reportId: string, fileName: string) => {
 
 export const useDeleteFileReport = () => {
   return useMutation({
-    mutationFn: ({
-      reportId,
-      fileName
-    }: {
-      reportId: string;
-      fileName: string;
-    }) => deleteFileReport(reportId, fileName)
+    mutationFn: ({ reportId, fileName }: { reportId: string; fileName: string }) =>
+      deleteFileReport(reportId, fileName)
   });
 };

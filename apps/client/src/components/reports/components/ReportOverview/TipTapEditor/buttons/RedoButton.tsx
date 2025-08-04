@@ -1,12 +1,12 @@
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import type { FC } from "react";
-import { EditorButton } from "./EditorButton";
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import type { FC } from 'react';
+import { EditorButton } from './EditorButton';
 
 export const RedoButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().redo(),
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().redo()
   });
 
   const redoChanges = () => {

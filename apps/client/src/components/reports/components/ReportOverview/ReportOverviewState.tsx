@@ -10,10 +10,7 @@ export type ReportOverviewStateProps = {
   onUpdateState: (state: NominationFile.ReportState) => void;
 };
 
-export const ReportOverviewState: FC<ReportOverviewStateProps> = ({
-  state,
-  onUpdateState
-}) => {
+export const ReportOverviewState: FC<ReportOverviewStateProps> = ({ state, onUpdateState }) => {
   const onChange = (e: ChangeEvent<HTMLSelectElement>) =>
     onUpdateState(e.target.value as NominationFile.ReportState);
 
@@ -27,13 +24,11 @@ export const ReportOverviewState: FC<ReportOverviewStateProps> = ({
             onChange
           }}
         >
-          {Object.entries(ReportVM.stateSelectOptions).map(
-            ([stateKey, stateLabel]) => (
-              <option key={stateKey} value={stateKey}>
-                {stateLabel}
-              </option>
-            )
-          )}
+          {Object.entries(ReportVM.stateSelectOptions).map(([stateKey, stateLabel]) => (
+            <option key={stateKey} value={stateKey}>
+              {stateLabel}
+            </option>
+          ))}
         </Select>
       </div>
     </Card>

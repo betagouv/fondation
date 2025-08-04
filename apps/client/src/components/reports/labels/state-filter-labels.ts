@@ -1,1 +1,1 @@
-export const reportStateFilterTitle = "Statut du rapport";
+export const reportStateFilterTitle = 'Statut du rapport';

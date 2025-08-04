@@ -2,9 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { FileDocumentSnapshot } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
-const getTransparencyAttachmentsQuery = async (
-  sessionImportId: string
-): Promise<FileDocumentSnapshot[]> => {
+const getTransparencyAttachmentsQuery = async (sessionImportId: string): Promise<FileDocumentSnapshot[]> => {
   const query = new URLSearchParams({
     sessionImportId
   });

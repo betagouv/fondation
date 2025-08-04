@@ -8,10 +8,7 @@ import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { useValidateSessionFromCookie } from '../../queries/validate-session-from-cookie.query';
 
 const logoutUser = async () => {
-  const {
-    method,
-    path
-  }: Partial<IdentityAndAccessRestContract['endpoints']['logout']> = {
+  const { method, path }: Partial<IdentityAndAccessRestContract['endpoints']['logout']> = {
     method: 'POST',
     path: 'logout'
   };
@@ -54,11 +51,7 @@ export const AppHeaderAvatar: FC = () => {
       >
         {firstLetters}
       </div>
-      <div
-        id="avatar-logout"
-        onClick={onClickLogout}
-        className="font-semibold hover:cursor-pointer"
-      >
+      <div id="avatar-logout" onClick={onClickLogout} className="font-semibold hover:cursor-pointer">
         Se déconnecter
       </div>
     </div>

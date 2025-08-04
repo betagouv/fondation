@@ -1,9 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Gender,
-  Role,
-  type IdentityAndAccessRestContract
-} from 'shared-models';
+import { Gender, Role, type IdentityAndAccessRestContract } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
 interface User {
@@ -15,10 +11,7 @@ interface User {
 }
 
 const validateSessionFromCookie = async (): Promise<User> => {
-  const {
-    method,
-    path
-  }: IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'] = {
+  const { method, path }: IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'] = {
     method: 'POST',
     path: 'validate-session-from-cookie',
     response: null

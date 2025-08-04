@@ -9,10 +9,7 @@ import { Magistrat } from 'shared-models';
 import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
 import type { DateOnly } from '../../../models/date-only.model';
 import { useImportObservants } from '../../../mutations/sg/import-observants.mutation';
-import {
-  ACCEPT_XLSX_FILE,
-  HintImportXlsxFile
-} from '../../shared/HintImportXlsxFile';
+import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../shared/HintImportXlsxFile';
 
 const modal = createModal({
   id: 'modal-import-observations-transparence',
@@ -32,8 +29,7 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
 }) => {
   const [observantsFile, setObservantsFile] = useState<File | null>(null);
 
-  const { mutate: importObservants, isError: importObservantsFailed } =
-    useImportObservants();
+  const { mutate: importObservants, isError: importObservantsFailed } = useImportObservants();
 
   useIsModalOpen(modal, {
     onConceal: () => {

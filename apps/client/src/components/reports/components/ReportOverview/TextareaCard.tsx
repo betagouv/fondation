@@ -1,11 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { Card } from './Card';
-import {
-  type DeleteImages,
-  type InsertImages,
-  type RedoImages,
-  TipTapEditor
-} from './TipTapEditor';
+import { type DeleteImages, type InsertImages, type RedoImages, TipTapEditor } from './TipTapEditor';
 
 export type TextareaCardProps = {
   cardId: string;
@@ -48,10 +43,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
 }) => {
   const [textareaContent, setTextareaContent] = useState(content);
 
-  const debouncedOnContentChange = useDebounce(
-    onContentChange,
-    TEXT_AREA_DEBOUNCE_TIME
-  );
+  const debouncedOnContentChange = useDebounce(onContentChange, TEXT_AREA_DEBOUNCE_TIME);
 
   const handleChange = useCallback(
     (value: string) => {

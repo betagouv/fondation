@@ -19,11 +19,7 @@ export interface ReportListProps {
   dateTransparence: DateOnlyJson;
 }
 
-export const ReportList: FC<ReportListProps> = ({
-  transparency,
-  formation,
-  dateTransparence
-}) => {
+export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateTransparence }) => {
   const navigate = useNavigate();
   const breadcrumb = getTransparencesBreadCrumb(
     {
@@ -34,14 +30,11 @@ export const ReportList: FC<ReportListProps> = ({
   );
 
   const { data: reportsData, isPending: isReportsLoading } = useListReports();
-  const { newReportsCount, reports, headers, title } = formatReportList(
-    reportsData?.data || [],
-    {
-      transparency,
-      formation,
-      dateTransparence
-    }
-  );
+  const { newReportsCount, reports, headers, title } = formatReportList(reportsData?.data || [], {
+    transparency,
+    formation,
+    dateTransparence
+  });
 
   const {
     data: attachments,
@@ -55,11 +48,7 @@ export const ReportList: FC<ReportListProps> = ({
 
   return (
     <div className="flex flex-col">
-      <Breadcrumb
-        id="reports-breadcrumb"
-        ariaLabel="Fil d'Ariane des rapports"
-        breadcrumb={breadcrumb}
-      />
+      <Breadcrumb id="reports-breadcrumb" ariaLabel="Fil d'Ariane des rapports" breadcrumb={breadcrumb} />
 
       <h1>
         {title.map(({ text, color }, index) => (
@@ -74,25 +63,16 @@ export const ReportList: FC<ReportListProps> = ({
         ))}
       </h1>
 
-      {newReportsCount > 0 && (
-        <NewReportsCount newReportsCount={newReportsCount} />
-      )}
+      {newReportsCount > 0 && <NewReportsCount newReportsCount={newReportsCount} />}
 
-      {reports.length ? (
-        <ReportsTable headers={headers} reports={reports} />
-      ) : (
-        <div>Aucun rapport.</div>
-      )}
+      {reports.length ? <ReportsTable headers={headers} reports={reports} /> : <div>Aucun rapport.</div>}
 
-      {!isAttachmentsLoading &&
-        !isAttachmentsError &&
-        attachments &&
-        attachments.length > 0 && (
-          <div>
-            <h2>Pièces jointes</h2>
-            <TransparencyFilesList files={attachments} />
-          </div>
-        )}
+      {!isAttachmentsLoading && !isAttachmentsError && attachments && attachments.length > 0 && (
+        <div>
+          <h2>Pièces jointes</h2>
+          <TransparencyFilesList files={attachments} />
+        </div>
+      )}
     </div>
   );
 };

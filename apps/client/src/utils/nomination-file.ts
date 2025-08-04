@@ -18,13 +18,10 @@ export const allRulesMapV2 = {
     NominationFile.ManagementRule.GETTING_GRADE_IN_PLACE,
     NominationFile.ManagementRule.JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
   ],
-  [NominationFile.RuleGroup.STATUTORY]: Object.values(
-    NominationFile.StatutoryRule
-  ),
+  [NominationFile.RuleGroup.STATUTORY]: Object.values(NominationFile.StatutoryRule),
   [NominationFile.RuleGroup.QUALITATIVE]: [
     NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_PRE_MAGISTRATURE,
-    NominationFile.QualitativeRule
-      .CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION,
+    NominationFile.QualitativeRule.CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION,
     NominationFile.QualitativeRule.EVALUATIONS,
     NominationFile.QualitativeRule.DISCIPLINARY_ELEMENTS
   ]
