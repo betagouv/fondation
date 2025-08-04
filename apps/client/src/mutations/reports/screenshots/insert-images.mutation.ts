@@ -63,7 +63,7 @@ const insertImagesWithSignedUrls = async (
     }
   });
 
-  return signedUrls.map((f: any) => {
+  return signedUrls.map((f: { name: string; signedUrl: string }) => {
     const file = files.find((file) => file.file.name === f.name);
     if (!file) {
       throw new Error(
