@@ -8,6 +8,7 @@ export type AttachedFilesListProps = {
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
+const MAX_FILE_NAME_LENGTH = 18;
 export const AttachedFilesList: FC<AttachedFilesListProps> = ({
   attachedFiles,
   onAttachedFileDeleted
@@ -23,7 +24,9 @@ export const AttachedFilesList: FC<AttachedFilesListProps> = ({
             target="_blank"
             rel="noopener noreferrer"
           >
-            {file.name}
+            {file.name.length > MAX_FILE_NAME_LENGTH
+              ? file.name.slice(0, MAX_FILE_NAME_LENGTH) + '...'
+              : file.name}
           </a>
           <Button
             priority="tertiary no outline"
