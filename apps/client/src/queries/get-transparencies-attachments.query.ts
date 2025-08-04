@@ -84,12 +84,13 @@ const attachmentsApiFetch = async (
   );
 };
 
+export const TRANSPARENCY_ATTACHMENTS_QUERY_KEY = 'transparencies-attachments';
 export const useGetTransparenciesAttachments = (
   transparency: string,
   formation: Magistrat.Formation
 ) => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['transparencies-attachments', transparency, formation],
+    queryKey: [TRANSPARENCY_ATTACHMENTS_QUERY_KEY, transparency, formation],
     queryFn: () => attachmentsApiFetch(transparency, formation),
     retry: false,
     staleTime: 0,

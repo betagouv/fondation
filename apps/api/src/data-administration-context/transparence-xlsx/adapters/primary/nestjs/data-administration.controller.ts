@@ -113,7 +113,7 @@ export class DataAdministrationController
     @UploadedFile() fichier: Express.Multer.File,
     @Query() dto: ImportSessionAttachmentDto,
   ) {
-    this.importTransparenceAttachmentUseCase.execute(dto, fichier);
+    await this.importTransparenceAttachmentUseCase.execute(dto, fichier);
     return { validationError: undefined };
   }
 }

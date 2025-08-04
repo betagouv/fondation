@@ -28,7 +28,6 @@ export const ImportAttachmentModal = ({
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-
   const { mutate: importAttachment, isPending } = useImportAttachment();
 
   const handleOpenModal = () => {

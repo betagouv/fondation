@@ -14,9 +14,10 @@ const getTransparencyAttachmentsQuery = async (
   });
 };
 
+export const SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY = 'transparency-attachments';
 export const useGetTransparencyAttachmentsQuery = (sessionImportId: string) => {
   return useQuery({
-    queryKey: ['transparency-attachments', sessionImportId],
+    queryKey: [SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY, sessionImportId],
     queryFn: () => getTransparencyAttachmentsQuery(sessionImportId)
   });
 };

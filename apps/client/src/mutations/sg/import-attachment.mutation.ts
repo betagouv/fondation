@@ -1,10 +1,11 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Magistrat,
   type DataAdministrationContextRestContract,
   type ImportSessionAttachmentDto
 } from 'shared-models';
 import type { DateOnly } from '../../models/date-only.model';
+import { SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY } from '../../queries/get-transparency-attachments.query';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 const addAttachment = (
@@ -44,6 +45,7 @@ const addAttachment = (
 };
 
 export const useImportAttachment = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       sessionImportId,
@@ -57,6 +59,11 @@ export const useImportAttachment = () => {
       formation: Magistrat.Formation;
       name: string;
       file: File;
-    }) => addAttachment(sessionImportId, dateSession, formation, name, file)
+    }) => addAttachment(sessionImportId, dateSession, formation, name, file),
+    onSuccess: async (_, { sessionImportId }) => {
+      await queryClient.refetchQueries({
+        queryKey: [SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY, sessionImportId]
+      });
+    }
   });
 };

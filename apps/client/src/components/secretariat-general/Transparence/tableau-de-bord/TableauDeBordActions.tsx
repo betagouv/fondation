@@ -23,14 +23,18 @@ export const TableauDeBordActions = ({
   transparenceDate,
   transparenceSessionImportId
 }: TableauDeBordActionsProps) => {
-  const { data: attachments } = useGetTransparencyAttachmentsQuery(
+  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(
     transparenceSessionImportId
   );
 
   const { mutate: deleteFile } = useDeleteFile();
 
   const handleDeleteFile = (id: string) => {
-    deleteFile(id);
+    deleteFile(id, {
+      onSuccess: () => {
+        refetch();
+      }
+    });
   };
 
   return (
