@@ -3,6 +3,6 @@
     "prettier-plugin-tailwindcss"
   ],
   "singleQuote": true,
-  "maxLength": 110,
+  "printWidth": 110,
   "trailingComma": "none"
 }

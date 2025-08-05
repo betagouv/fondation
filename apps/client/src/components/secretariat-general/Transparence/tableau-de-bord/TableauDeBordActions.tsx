@@ -23,9 +23,7 @@ export const TableauDeBordActions = ({
   transparenceDate,
   transparenceSessionImportId
 }: TableauDeBordActionsProps) => {
-  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(
-    transparenceSessionImportId
-  );
+  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(transparenceSessionImportId);
 
   const { mutate: deleteFile } = useDeleteFile();
 
@@ -38,22 +36,14 @@ export const TableauDeBordActions = ({
   };
 
   return (
-    <div
-      className={clsx(
-        'mt-4 flex flex-col justify-start gap-y-6',
-        cx('fr-col-3', 'fr-text--bold')
-      )}
-    >
+    <div className={clsx('mt-4 flex flex-col justify-start gap-y-6', cx('fr-col-3', 'fr-text--bold'))}>
       <div>TABLEAU DE BORD</div>
       <div>
         <Accordion label="Pièces jointes" titleAs="h2">
           {!attachments || attachments.length === 0 ? (
             <div>Aucunes pièces jointes.</div>
           ) : (
-            <AttachedFilesList
-              attachedFiles={attachments}
-              onAttachedFileDeleted={handleDeleteFile}
-            />
+            <AttachedFilesList attachedFiles={attachments} onAttachedFileDeleted={handleDeleteFile} />
           )}
         </Accordion>
         <Accordion label="Tableau initial" titleAs="h2">

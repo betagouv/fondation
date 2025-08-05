@@ -8,21 +8,14 @@ export type AttachedFilesListProps = {
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
-export const AttachedFilesList: FC<AttachedFilesListProps> = ({
-  attachedFiles,
-  onAttachedFileDeleted
-}) => (
+export const AttachedFilesList: FC<AttachedFilesListProps> = ({ attachedFiles, onAttachedFileDeleted }) => (
   <ul className={clsx('flex flex-col gap-2')}>
     {attachedFiles.map((file) => {
       const deleteAttachedFile = () => onAttachedFileDeleted(file.name);
 
       return (
         <li key={file.name} className="flex items-center gap-4">
-          <a
-            href={file.signedUrl ?? undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={file.signedUrl ?? undefined} target="_blank" rel="noopener noreferrer">
             {file.name}
           </a>
           <Button

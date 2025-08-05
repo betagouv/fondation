@@ -28,9 +28,7 @@ const Dashboard: FC = () => {
             href: SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence,
             onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
               event.preventDefault();
-              navigate(
-                SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence
-              );
+              navigate(SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence);
             }
           }}
         />

@@ -13,9 +13,7 @@ export const Observers = ({ observers }: Pick<ReportVM, 'observers'>) => {
       <h2 id={reportHtmlIds.overview.observers}>{ReportVM.observersLabel}</h2>
       <div
         aria-labelledby={reportHtmlIds.overview.observers}
-        className={clsx(
-          'flex w-full flex-col gap-4 whitespace-pre-line leading-10'
-        )}
+        className={clsx('flex w-full flex-col gap-4 whitespace-pre-line leading-10')}
       >
         {observers.map(([observerName, ...observerInformation]) => (
           <div key={observerName}>
@@ -30,11 +28,7 @@ export const Observers = ({ observers }: Pick<ReportVM, 'observers'>) => {
   );
 };
 
-const ObserverInformation = ({
-  observerInformation
-}: {
-  observerInformation: string[];
-}) => {
+const ObserverInformation = ({ observerInformation }: { observerInformation: string[] }) => {
   return (
     <div aria-labelledby="observers" className="w-full whitespace-pre-line">
       {observerInformation.map((info) => (

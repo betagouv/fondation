@@ -9,10 +9,7 @@ import type { IdentityAndAccessRestContract } from 'shared-models';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 
 const loginUser = async (credentials: { email: string; password: string }) => {
-  const {
-    method,
-    path
-  }: Partial<IdentityAndAccessRestContract['endpoints']['login']> = {
+  const { method, path }: Partial<IdentityAndAccessRestContract['endpoints']['login']> = {
     method: 'POST',
     path: 'login'
   };
@@ -44,8 +41,7 @@ export const Login = () => {
 
     const form = event.currentTarget;
     const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement)
-      .value;
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
     await authenticateAsync({ email, password });
   };
@@ -53,9 +49,7 @@ export const Login = () => {
   return (
     <div id="login-layout" className="flex h-full items-center justify-center">
       <form onSubmit={authenticateUser} className="w-1/2">
-        <div className={cx('fr-mb-6v')}>
-          {isError && !isPending && <AuthenticationFailedAlert />}
-        </div>
+        <div className={cx('fr-mb-6v')}>{isError && !isPending && <AuthenticationFailedAlert />}</div>
         <Input
           label="Email"
           id="email"

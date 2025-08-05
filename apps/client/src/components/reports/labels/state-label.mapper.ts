@@ -1,8 +1,6 @@
 import { NominationFile } from 'shared-models';
 
-export const stateToLabel = <State extends NominationFile.ReportState>(
-  state: State
-) => {
+export const stateToLabel = <State extends NominationFile.ReportState>(state: State) => {
   switch (state) {
     case NominationFile.ReportState.NEW:
       return 'Nouveau';

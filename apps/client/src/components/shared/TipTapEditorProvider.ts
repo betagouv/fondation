@@ -1,9 +1,6 @@
 import { Editor } from '@tiptap/react';
 import type { FileVM } from 'shared-models';
-import {
-  dataFileNameKey,
-  fileKey
-} from '../reports/components/ReportOverview/TipTapEditor/extensions';
+import { dataFileNameKey, fileKey } from '../reports/components/ReportOverview/TipTapEditor/extensions';
 
 interface TextEditorProvider {
   setImages: (images: { file: File; signedUrl: string }[]) => boolean;
@@ -37,9 +34,7 @@ export class TipTapEditorProvider implements TextEditorProvider {
   replaceImageUrls(fileVMs: FileVM[]) {
     // Le remplacement des src via l'API TipTap provoquait des bugs
     // lors de l'undo-redo d'ajouts/suppressions d'images.
-    const imgs = document.querySelectorAll(
-      '.ProseMirror img'
-    ) as NodeListOf<HTMLImageElement>;
+    const imgs = document.querySelectorAll('.ProseMirror img') as NodeListOf<HTMLImageElement>;
     imgs.forEach(replaceSrc(fileVMs));
   }
 

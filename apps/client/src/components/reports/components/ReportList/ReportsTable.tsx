@@ -1,9 +1,6 @@
 import { Table } from '@codegouvfr/react-dsfr/Table';
 
-import type {
-  ReportListItemVM,
-  ReportListVM
-} from '../../../../utils/format-report-list.utils';
+import type { ReportListItemVM, ReportListVM } from '../../../../utils/format-report-list.utils';
 import './ReportsTable.css';
 import { ReportStateTag } from './ReportStateTag';
 
@@ -12,10 +9,7 @@ export type ReportsTableProps = {
   reports: ReportListItemVM[];
 };
 
-export const ReportsTable: React.FC<ReportsTableProps> = ({
-  headers,
-  reports
-}) => (
+export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) => (
   <Table
     id="reports-table"
     headers={headers}

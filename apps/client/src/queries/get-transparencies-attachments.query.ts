@@ -9,19 +9,11 @@ export const transparencyAttachmentsSchema = z.object({
   siege: z.string().array()
 });
 
-const transparenciesAttachmentsSchema = z.record(
-  z.string(),
-  transparencyAttachmentsSchema
-);
+const transparenciesAttachmentsSchema = z.record(z.string(), transparencyAttachmentsSchema);
 
-export type TransparencyAttachments = z.infer<
-  typeof transparencyAttachmentsSchema
->;
+export type TransparencyAttachments = z.infer<typeof transparencyAttachmentsSchema>;
 
-const filterAttachments = (
-  formation: Magistrat.Formation,
-  files: TransparencyAttachments
-) => {
+const filterAttachments = (formation: Magistrat.Formation, files: TransparencyAttachments) => {
   switch (formation) {
     case Magistrat.Formation.PARQUET:
       // TODO VALIDATE THIS PART WITH REMY AND ALICE
@@ -35,19 +27,13 @@ const filterAttachments = (
     default: {
       const _exhaustiveCheck: never = formation;
       console.info(_exhaustiveCheck);
-      throw new Error(
-        `Formation ${formation} not handled in filterAttachments function`
-      );
+      throw new Error(`Formation ${formation} not handled in filterAttachments function`);
     }
   }
 };
 
-const attachmentsApiFetch = async (
-  transparency: string,
-  formation: Magistrat.Formation
-) => {
-  const transparenciesFileIdsSerialized = import.meta.env
-    .VITE_GDS_TRANSPA_FILES_IDS!;
+const attachmentsApiFetch = async (transparency: string, formation: Magistrat.Formation) => {
+  const transparenciesFileIdsSerialized = import.meta.env.VITE_GDS_TRANSPA_FILES_IDS!;
 
   const transparenciesFileIds = transparenciesAttachmentsSchema.parse(
     JSON.parse(transparenciesFileIdsSerialized)
@@ -65,30 +51,21 @@ const attachmentsApiFetch = async (
     attachementsIds
   );
 
-  const {
-    method,
-    path
-  }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
+  const { method, path }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
     method: 'GET',
     path: 'signed-urls'
   };
 
-  return apiFetch(
-    `/files/${path}?${new URLSearchParams({ ids: filteredAttachments.join(',') })}`,
-    {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+  return apiFetch(`/files/${path}?${new URLSearchParams({ ids: filteredAttachments.join(',') })}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
     }
-  );
+  });
 };
 
 export const TRANSPARENCY_ATTACHMENTS_QUERY_KEY = 'transparencies-attachments';
-export const useGetTransparenciesAttachments = (
-  transparency: string,
-  formation: Magistrat.Formation
-) => {
+export const useGetTransparenciesAttachments = (transparency: string, formation: Magistrat.Formation) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: [TRANSPARENCY_ATTACHMENTS_QUERY_KEY, transparency, formation],
     queryFn: () => attachmentsApiFetch(transparency, formation),

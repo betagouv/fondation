@@ -32,9 +32,7 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   const ruleGroupMap = allRulesMapV2[ruleGroup] as NominationFile.RuleName[];
 
   const atLeastOneUnvalidatedRule = Object.entries(targetedRules)
-    .filter(([ruleName]) =>
-      ruleGroupMap.includes(ruleName as NominationFile.RuleName)
-    )
+    .filter(([ruleName]) => ruleGroupMap.includes(ruleName as NominationFile.RuleName))
     .find(([, rule]) => rule.validated === false)?.[1];
 
   let accordionLabel = '';
@@ -56,46 +54,39 @@ export const ReportRule = <R extends NominationFile.RuleName>({
   }
 
   const createCheckboxes = (rules: Record<string, VMReportRuleValue>) => {
-    const checkboxes = Object.entries(rules).map(
-      ([ruleName, { label, hint, checked }]) => (
-        <div
-          key={ruleName}
-          className={clsx('fr-mb-6v flex-nowrap', cx('fr-grid-row'))}
-        >
-          <Checkbox
-            id={ruleName}
-            options={[
-              {
-                label,
-                nativeInputProps: {
-                  name: ruleName,
-                  checked,
-                  onChange: onUpdateReportRule(ruleName as R)
-                }
+    const checkboxes = Object.entries(rules).map(([ruleName, { label, hint, checked }]) => (
+      <div key={ruleName} className={clsx('fr-mb-6v flex-nowrap', cx('fr-grid-row'))}>
+        <Checkbox
+          id={ruleName}
+          options={[
+            {
+              label,
+              nativeInputProps: {
+                name: ruleName,
+                checked,
+                onChange: onUpdateReportRule(ruleName as R)
               }
-            ]}
-            // On ne mets plus en couleur les règles "highlighted" car on teste
-            // l'UX sans la pré-validation, en se laissant la possibilité
-            // de le ré-introduire en fonction des retours utilisateurs.
+            }
+          ]}
+          // On ne mets plus en couleur les règles "highlighted" car on teste
+          // l'UX sans la pré-validation, en se laissant la possibilité
+          // de le ré-introduire en fonction des retours utilisateurs.
+        />
+        <div>
+          <Tooltip
+            kind="hover"
+            id={`${ruleName}-hint`}
+            title={
+              <div className="whitespace-pre-line">{typeof hint === 'string' ? <p>{hint}</p> : hint}</div>
+            }
+            style={{
+              alignSelf: 'flex-end',
+              maxWidth: '40rem'
+            }}
           />
-          <div>
-            <Tooltip
-              kind="hover"
-              id={`${ruleName}-hint`}
-              title={
-                <div className="whitespace-pre-line">
-                  {typeof hint === 'string' ? <p>{hint}</p> : hint}
-                </div>
-              }
-              style={{
-                alignSelf: 'flex-end',
-                maxWidth: '40rem'
-              }}
-            />
-          </div>
         </div>
-      )
-    );
+      </div>
+    ));
     return checkboxes;
   };
 
@@ -108,8 +99,7 @@ export const ReportRule = <R extends NominationFile.RuleName>({
       <Accordion
         label={accordionLabel}
         style={{
-          display:
-            Object.keys(rulesChecked.others).length === 0 ? 'none' : undefined
+          display: Object.keys(rulesChecked.others).length === 0 ? 'none' : undefined
         }}
       >
         {createCheckboxes(rulesChecked.others)}

@@ -1,9 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom';
 import { Magistrat } from 'shared-models';
-import {
-  formationToLabel,
-  transparencyToLabel
-} from '../components/reports/labels/labels-mappers';
+import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
 import { getGdsDetailsPath, ROUTE_PATHS } from './route-path.utils';
 import type { ReportSM } from '../queries/list-reports.queries';
@@ -62,10 +59,7 @@ export const getTransparencesBreadCrumb = (
         };
       }
 
-      const transparencyLabel = transparencyToLabel(
-        report.transparency,
-        report.dateTransparence
-      );
+      const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
 
       const path = getGdsDetailsPath(
         report.dateTransparence,
@@ -83,11 +77,7 @@ export const getTransparencesBreadCrumb = (
 
       return {
         currentPageLabel: report.name,
-        segments: [
-          transparenciesSegment,
-          gdsTransparenciesSegment,
-          transparencySegment
-        ]
+        segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment]
       };
     }
 

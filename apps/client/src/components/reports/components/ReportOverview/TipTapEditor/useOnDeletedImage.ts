@@ -1,7 +1,7 @@
-import { Editor, type JSONContent } from "@tiptap/react";
-import { useRef } from "react";
-import type { DeleteImages } from ".";
-import { dataFileNameKey } from "./extensions";
+import { Editor, type JSONContent } from '@tiptap/react';
+import { useRef } from 'react';
+import type { DeleteImages } from '.';
+import { dataFileNameKey } from './extensions';
 
 export type UseOnDeletedImage = (deleteImages: DeleteImages) => {
   onCreate: (editor: Editor) => void;
@@ -25,9 +25,7 @@ export const useOnDeletedImage: UseOnDeletedImage = (deleteImages) => {
     if (content) {
       const currentImages = imagesFileNamesFromContent(content);
 
-      const deletedImagesFileNames = previousImages.current.filter(
-        (name) => !currentImages.includes(name),
-      );
+      const deletedImagesFileNames = previousImages.current.filter((name) => !currentImages.includes(name));
 
       previousImages.current = currentImages;
 
@@ -39,11 +37,9 @@ export const useOnDeletedImage: UseOnDeletedImage = (deleteImages) => {
 
   return {
     onCreate,
-    onUpdate,
+    onUpdate
   };
 };
 
 const imagesFileNamesFromContent = (content: JSONContent[]): string[] =>
-  content
-    ?.filter((item) => item.type === "image" && item.attrs)
-    .map((item) => item.attrs![dataFileNameKey]);
+  content?.filter((item) => item.type === 'image' && item.attrs).map((item) => item.attrs![dataFileNameKey]);

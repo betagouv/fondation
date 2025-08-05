@@ -9,9 +9,7 @@ type ImageUploadButtonProps = {
   insertImages: InsertImages;
 };
 
-export const ImageUploadButton: FC<ImageUploadButtonProps> = ({
-  insertImages
-}) => {
+export const ImageUploadButton: FC<ImageUploadButtonProps> = ({ insertImages }) => {
   const { editor } = useCurrentEditor();
   const isBlurred = useIsBlurred();
   const fileInputRef = useRef<HTMLInputElement>(null);

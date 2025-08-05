@@ -3,7 +3,5 @@ export interface FileProvider {
 
   mimeTypeFromBuffer(fileBuffer: ArrayBuffer): Promise<string | undefined>;
 
-  assertMimeTypeFactory: (
-    mimeTypesWhitelist: string[],
-  ) => (file: File) => Promise<void>;
+  assertMimeTypeFactory: (mimeTypesWhitelist: string[]) => (file: File) => Promise<void>;
 }

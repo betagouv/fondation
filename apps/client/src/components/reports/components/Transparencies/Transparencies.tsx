@@ -47,12 +47,7 @@ export const Transparencies = () => {
       </div>
 
       <div className="flex w-full justify-center">
-        <div
-          className={clsx(
-            'flex-row gap-10 md:flex-nowrap md:gap-20 lg:gap-40',
-            cx('fr-grid-row')
-          )}
-        >
+        <div className={clsx('flex-row gap-10 md:flex-nowrap md:gap-20 lg:gap-40', cx('fr-grid-row'))}>
           <GdsTransparencies gdsTransparencies={gdsTransparencies} />
           <CsmTransparencies />
         </div>

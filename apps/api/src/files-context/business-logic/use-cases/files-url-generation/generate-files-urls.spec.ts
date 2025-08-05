@@ -55,10 +55,12 @@ describe('Generate Files Urls Use Case', () => {
     permissionsService.canReadFile = true;
     expect(await generateFilesUrlsUseCase(file1.id, file2.id)).toEqual([
       {
+        id: file1.id,
         name: file1.name,
         signedUrl: 'signed-url',
       },
       {
+        id: file2.id,
         name: file2.name,
         signedUrl: 'second-signed-url',
       },

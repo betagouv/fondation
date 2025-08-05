@@ -5,13 +5,7 @@ import { ReportVM } from '../../../../VM/ReportVM';
 
 export type MagistratIdentityProps = Pick<
   ReportVM,
-  | 'name'
-  | 'birthDate'
-  | 'grade'
-  | 'currentPosition'
-  | 'targettedPosition'
-  | 'rank'
-  | 'dureeDuPoste'
+  'name' | 'birthDate' | 'grade' | 'currentPosition' | 'targettedPosition' | 'rank' | 'dureeDuPoste'
 >;
 
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
@@ -34,9 +28,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
       </div>
       {dureeDuPoste && (
         <div>
-          <span
-            className={cx('fr-text--bold')}
-          >{`${ReportVM.magistratIdentityLabels.dureeDuPoste} : `}</span>
+          <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.dureeDuPoste} : `}</span>
           <span>{dureeDuPoste}</span>
         </div>
       )}
@@ -47,15 +39,11 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
         <span>{`${targettedPosition}`}</span>
       </div>
       <div>
-        <span
-          className={cx('fr-text--bold')}
-        >{`${ReportVM.magistratIdentityLabels.rank} : `}</span>
+        <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.rank} : `}</span>
         <span>{`${rank}`}</span>
       </div>
       <div>
-        <span
-          className={cx('fr-text--bold')}
-        >{`${ReportVM.magistratIdentityLabels.birthDate} : `}</span>
+        <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.birthDate} : `}</span>
         <span>{`${birthDate}`}</span>
       </div>
     </Card>

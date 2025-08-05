@@ -1,4 +1,4 @@
-import { TransparencyBlock } from "./TransparencyBlock";
+import { TransparencyBlock } from './TransparencyBlock';
 
 export const CsmTransparencies = () => (
   <TransparencyBlock

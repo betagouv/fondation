@@ -1,8 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import {
-  ReportFileUsage,
-  type ReportsContextRestContract
-} from 'shared-models';
+import { ReportFileUsage, type ReportsContextRestContract } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 
 export const addTimestampToFiles = async (files: File[], timestamp: number) => {
@@ -17,19 +14,14 @@ export const addTimestampToFiles = async (files: File[], timestamp: number) => {
   );
 };
 
-const insertImages = async (
-  reportId: string,
-  files: { file: File; fileId: string }[]
-) => {
+const insertImages = async (reportId: string, files: { file: File; fileId: string }[]) => {
   const formData = new FormData();
   files.forEach(({ file }) => {
     formData.append('files', file, file.name);
   });
   const fileIds = files.map(({ fileId }) => fileId);
 
-  const {
-    method
-  }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
+  const { method }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
     method: 'POST'
   };
 
@@ -45,10 +37,7 @@ const insertImages = async (
   });
 };
 
-const insertImagesWithSignedUrls = async (
-  reportId: string,
-  files: { file: File; fileId: string }[]
-) => {
+const insertImagesWithSignedUrls = async (reportId: string, files: { file: File; fileId: string }[]) => {
   await insertImages(reportId, files);
 
   const fileIds = files.map(({ fileId }) => fileId);
@@ -63,12 +52,10 @@ const insertImagesWithSignedUrls = async (
     }
   });
 
-  return signedUrls.map((f: any) => {
+  return signedUrls.map((f: { name: string; signedUrl: string }) => {
     const file = files.find((file) => file.file.name === f.name);
     if (!file) {
-      throw new Error(
-        `File with name ${f.name} not found in the uploaded files`
-      );
+      throw new Error(`File with name ${f.name} not found in the uploaded files`);
     }
 
     return {
@@ -81,12 +68,7 @@ const insertImagesWithSignedUrls = async (
 
 export const useInsertImagesWithSignedUrls = () => {
   return useMutation({
-    mutationFn: ({
-      reportId,
-      files
-    }: {
-      reportId: string;
-      files: { file: File; fileId: string }[];
-    }) => insertImagesWithSignedUrls(reportId, files)
+    mutationFn: ({ reportId, files }: { reportId: string; files: { file: File; fileId: string }[] }) =>
+      insertImagesWithSignedUrls(reportId, files)
   });
 };

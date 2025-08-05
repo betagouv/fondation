@@ -1,10 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type {
-  Magistrat,
-  NominationFile,
-  ReportsContextRestContract,
-  Transparency
-} from 'shared-models';
+import type { Magistrat, NominationFile, ReportsContextRestContract, Transparency } from 'shared-models';
 import type { DateOnlyStoreModel } from '../models/date-only.model';
 import { apiFetch } from '../utils/api-fetch.utils';
 
@@ -66,10 +61,7 @@ interface ListReportsResponse {
 }
 
 const listReports = async (): Promise<ListReportsResponse> => {
-  const {
-    method,
-    path
-  }: Partial<ReportsContextRestContract['endpoints']['listReports']> = {
+  const { method, path }: Partial<ReportsContextRestContract['endpoints']['listReports']> = {
     method: 'GET',
     path: 'transparences'
   };

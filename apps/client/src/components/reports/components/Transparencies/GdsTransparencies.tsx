@@ -13,30 +13,22 @@ export type IGdsTransparencies = {
   gdsTransparencies: ReportTransparenciesVM['GARDE DES SCEAUX'];
 };
 
-export const GdsTransparencies = ({
-  gdsTransparencies
-}: IGdsTransparencies) => {
+export const GdsTransparencies = ({ gdsTransparencies }: IGdsTransparencies) => {
   const [selectedTabLabel, setSelectedTabLabel] = useState<string>();
   const formationsCount = gdsTransparencies.formationsCount;
 
-  const genTabFor = (
-    formation: Magistrat.Formation
-  ): TabsProps.Uncontrolled['tabs'][number] | [] => {
+  const genTabFor = (formation: Magistrat.Formation): TabsProps.Uncontrolled['tabs'][number] | [] => {
     const { formationLabel, transparencies } = gdsTransparencies[formation];
 
     const isDefaultTab =
       !selectedTabLabel &&
-      (formationsCount === 1 ||
-        formationLabel === formationToLabel(Magistrat.Formation.SIEGE));
+      (formationsCount === 1 || formationLabel === formationToLabel(Magistrat.Formation.SIEGE));
     const isTabSelected = selectedTabLabel === formationLabel;
 
     return transparencies?.length
       ? {
           label: formationLabel,
-          iconId:
-            isDefaultTab || isTabSelected
-              ? 'fr-icon-arrow-right-line'
-              : undefined,
+          iconId: isDefaultTab || isTabSelected ? 'fr-icon-arrow-right-line' : undefined,
           isDefault: isDefaultTab || isTabSelected,
           content: (
             <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
@@ -51,10 +43,7 @@ export const GdsTransparencies = ({
       : [];
   };
 
-  const tabs = [
-    genTabFor(Magistrat.Formation.SIEGE),
-    genTabFor(Magistrat.Formation.PARQUET)
-  ].flat();
+  const tabs = [genTabFor(Magistrat.Formation.SIEGE), genTabFor(Magistrat.Formation.PARQUET)].flat();
 
   const handleTabChange: TabsProps.Uncontrolled['onTabChange'] = (tab) =>
     setSelectedTabLabel(tab.tab.label as string);

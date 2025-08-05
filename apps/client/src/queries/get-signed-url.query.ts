@@ -3,27 +3,19 @@ import type { FilesContextRestContract, FileVM } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
 const getSignedUrl = async (fileIds: string[]) => {
-  const {
-    method,
-    path
-  }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
+  const { method, path }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
     method: 'GET',
     path: 'signed-urls'
   };
-  return apiFetch(
-    `/files/${path}?${new URLSearchParams({ ids: fileIds.join(',') })}`,
-    {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+  return apiFetch(`/files/${path}?${new URLSearchParams({ ids: fileIds.join(',') })}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
     }
-  );
+  });
 };
 
-export const useGetSignedUrl = (
-  fileIds: string[]
-): UseQueryResult<FileVM[], Error> => {
+export const useGetSignedUrl = (fileIds: string[]): UseQueryResult<FileVM[], Error> => {
   return useQuery({
     queryKey: ['signed-url', fileIds],
     queryFn: () => getSignedUrl(fileIds),

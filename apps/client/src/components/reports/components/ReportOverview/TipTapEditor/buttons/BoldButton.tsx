@@ -1,7 +1,7 @@
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import type { FC } from "react";
-import { headingLevels } from "../constant";
-import { EditorButton } from "./EditorButton";
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import type { FC } from 'react';
+import { headingLevels } from '../constant';
+import { EditorButton } from './EditorButton';
 
 export const BoldButton: FC = () => {
   const { editor } = useCurrentEditor();
@@ -11,14 +11,9 @@ export const BoldButton: FC = () => {
       const currentEditor = ctx.editor;
       if (!currentEditor) return true;
 
-      const isHeadingActive = !!headingLevels.find((level) =>
-        currentEditor.isActive("heading", { level }),
-      );
-      return (
-        !currentEditor.can().chain().focus().toggleBold().run() ||
-        isHeadingActive
-      );
-    },
+      const isHeadingActive = !!headingLevels.find((level) => currentEditor.isActive('heading', { level }));
+      return !currentEditor.can().chain().focus().toggleBold().run() || isHeadingActive;
+    }
   });
 
   const toggleBold = () => {
@@ -27,12 +22,6 @@ export const BoldButton: FC = () => {
   };
 
   return (
-    <EditorButton
-      iconId="fr-icon-bold"
-      title="Gras"
-      mark="bold"
-      disabled={!!disabled}
-      onClick={toggleBold}
-    />
+    <EditorButton iconId="fr-icon-bold" title="Gras" mark="bold" disabled={!!disabled} onClick={toggleBold} />
   );
 };

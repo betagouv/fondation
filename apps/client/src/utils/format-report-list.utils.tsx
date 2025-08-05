@@ -55,9 +55,7 @@ export const formatReportList = (
     .filter(({ transparency }) => transparency === transparencyFilter)
     .filter(({ formation }) => formation === formationFilter)
     .filter(({ dateTransparence }) =>
-      DateOnly.fromStoreModel(dateTransparence).equal(
-        DateOnly.fromStoreModel(dateTransparenceFilter)
-      )
+      DateOnly.fromStoreModel(dateTransparence).equal(DateOnly.fromStoreModel(dateTransparenceFilter))
     )
     .map(
       ({
@@ -73,19 +71,10 @@ export const formatReportList = (
         dateTransparence,
         formation
       }) => {
-        const href = getGdsReportPath(
-          id,
-          transparency,
-          formation,
-          dateTransparence
-        );
+        const href = getGdsReportPath(id, transparency, formation, dateTransparence);
 
         const dueDateFormatted = dueDate
-          ? new DateOnly(
-              dueDate.year,
-              dueDate.month,
-              dueDate.day
-            ).toFormattedString()
+          ? new DateOnly(dueDate.year, dueDate.month, dueDate.day).toFormattedString()
           : null;
 
         return {

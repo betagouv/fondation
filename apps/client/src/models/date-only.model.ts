@@ -40,9 +40,7 @@ export class DateOnly {
   toDate(): Date {
     return this.value;
   }
-  toFormattedString(
-    template: 'dd-MM-yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'
-  ): string {
+  toFormattedString(template: 'dd-MM-yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
     return format(this.value, template);
   }
   toStoreModel(): DateOnlyStoreModel {
@@ -72,11 +70,7 @@ export class DateOnly {
   }
 
   static fromDate(date: Date): DateOnly {
-    return new DateOnly(
-      date.getFullYear(),
-      (date.getMonth() + 1) as Month,
-      date.getDate()
-    );
+    return new DateOnly(date.getFullYear(), (date.getMonth() + 1) as Month, date.getDate());
   }
   static fromStoreModel(date: DateOnlyStoreModel): DateOnly {
     return new DateOnly(date.year, date.month, date.day);
@@ -92,11 +86,7 @@ export class DateOnly {
     return this.fromString(dateString, format);
   };
 
-  private static fromString(
-    dateString: string,
-    format: string,
-    locale = 'fr'
-  ): DateOnly {
+  private static fromString(dateString: string, format: string, locale = 'fr'): DateOnly {
     const date = parse(dateString, format, new Date(), {
       locale: locale === 'fr' ? fr : undefined
     });
@@ -104,10 +94,6 @@ export class DateOnly {
       throw new Error('Invalid date: ' + dateString);
     }
 
-    return new this(
-      date.getFullYear(),
-      (date.getMonth() + 1) as Month,
-      date.getDate()
-    );
+    return new this(date.getFullYear(), (date.getMonth() + 1) as Month, date.getDate());
   }
 }

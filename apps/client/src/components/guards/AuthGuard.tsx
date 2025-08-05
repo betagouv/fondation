@@ -9,10 +9,7 @@ interface AuthGuardProps {
   authorizedRoles: Role[];
 }
 
-export const AuthGuard: React.FC<AuthGuardProps> = ({
-  children,
-  authorizedRoles
-}) => {
+export const AuthGuard: React.FC<AuthGuardProps> = ({ children, authorizedRoles }) => {
   const navigate = useNavigate();
   const { user, isPending, isError } = useValidateSessionFromCookie();
 

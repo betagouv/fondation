@@ -1,16 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  ReportFileUsage,
-  type ReportRetrievalVM,
-  type ReportsContextRestContract
-} from 'shared-models';
+import { ReportFileUsage, type ReportRetrievalVM, type ReportsContextRestContract } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 import type { ReportScreenshots, ReportSM } from './list-reports.queries';
 
 const getReportById = async (id: string): Promise<ReportRetrievalVM> => {
-  const {
-    method
-  }: Partial<ReportsContextRestContract['endpoints']['retrieveReport']> = {
+  const { method }: Partial<ReportsContextRestContract['endpoints']['retrieveReport']> = {
     method: 'GET'
   };
 

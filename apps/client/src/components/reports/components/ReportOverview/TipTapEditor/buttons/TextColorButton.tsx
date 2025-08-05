@@ -1,9 +1,9 @@
-import Button from "@codegouvfr/react-dsfr/Button";
-import { colors } from "@codegouvfr/react-dsfr/fr/colors";
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import type { ChangeEvent } from "react";
-import { useRef } from "react";
-import { useIsBlurred } from "../useIsBlurred";
+import Button from '@codegouvfr/react-dsfr/Button';
+import { colors } from '@codegouvfr/react-dsfr/fr/colors';
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import type { ChangeEvent } from 'react';
+import { useRef } from 'react';
+import { useIsBlurred } from '../useIsBlurred';
 
 export const TextColorButton = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -13,9 +13,7 @@ export const TextColorButton = () => {
   const currentTextColor = useEditorState({
     editor,
     selector: (ctx) =>
-      isBlurred
-        ? textColors.disabled.grey.default
-        : ctx.editor?.getAttributes("textStyle").color,
+      isBlurred ? textColors.disabled.grey.default : ctx.editor?.getAttributes('textStyle').color
   });
 
   if (!editor) {
@@ -25,14 +23,13 @@ export const TextColorButton = () => {
   const predefinedColors = [
     textColors.default.grey.default,
     textColors.default.success.default,
-    textColors.default.error.default,
+    textColors.default.error.default
   ];
 
   const setColor = (event: ChangeEvent<HTMLInputElement>) =>
     editor.chain().focus().setColor(event.target.value).run();
 
-  const disabled =
-    isBlurred || !editor.can().chain().focus().setColor("#000000").run();
+  const disabled = isBlurred || !editor.can().chain().focus().setColor('#000000').run();
 
   return (
     <div className="relative">
@@ -44,7 +41,7 @@ export const TextColorButton = () => {
         priority="tertiary"
         title="Couleur du texte"
         style={{
-          color: currentTextColor,
+          color: currentTextColor
         }}
       />
       <input

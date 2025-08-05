@@ -1,9 +1,4 @@
-import {
-  Magistrat,
-  NominationFile,
-  Transparency,
-  type AllRulesMapV2
-} from 'shared-models';
+import { Magistrat, NominationFile, Transparency, type AllRulesMapV2 } from 'shared-models';
 import type { Simplify } from 'type-fest';
 import { stateToLabel } from '../components/reports/labels/state-label.mapper';
 
@@ -24,20 +19,10 @@ export type VMReportRuleValue<Selected extends boolean = boolean> = {
 
 export class ReportVM<
   RulesMap extends AllRulesMapV2 = AllRulesMapV2,
-  RuleName extends
-    NominationFile.RuleName = RulesMap[NominationFile.RuleGroup][number],
-  ManagementRules extends NominationFile.RuleName = Extract<
-    NominationFile.ManagementRule,
-    RuleName
-  >,
-  StatutoryRules extends NominationFile.RuleName = Extract<
-    NominationFile.StatutoryRule,
-    RuleName
-  >,
-  QualitativeRules extends NominationFile.RuleName = Extract<
-    NominationFile.QualitativeRule,
-    RuleName
-  >
+  RuleName extends NominationFile.RuleName = RulesMap[NominationFile.RuleGroup][number],
+  ManagementRules extends NominationFile.RuleName = Extract<NominationFile.ManagementRule, RuleName>,
+  StatutoryRules extends NominationFile.RuleName = Extract<NominationFile.StatutoryRule, RuleName>,
+  QualitativeRules extends NominationFile.RuleName = Extract<NominationFile.QualitativeRule, RuleName>
 > {
   static stateSelectLabel = reportStateFilterTitle;
   static stateSelectOptions = Object.values(NominationFile.ReportState).reduce(
@@ -97,19 +82,13 @@ export class ReportVM<
     public readonly rulesChecked: Simplify<
       GroupRulesChecked<NominationFile.RuleGroup.MANAGEMENT, ManagementRules> &
         GroupRulesChecked<NominationFile.RuleGroup.STATUTORY, StatutoryRules> &
-        GroupRulesChecked<
-          NominationFile.RuleGroup.QUALITATIVE,
-          QualitativeRules
-        >
+        GroupRulesChecked<NominationFile.RuleGroup.QUALITATIVE, QualitativeRules>
     >,
     public readonly dureeDuPoste: string | null
   ) {}
 }
 
-export type GroupRulesChecked<
-  G extends NominationFile.RuleGroup,
-  R extends NominationFile.RuleName
-> = Record<
+export type GroupRulesChecked<G extends NominationFile.RuleGroup, R extends NominationFile.RuleName> = Record<
   G,
   {
     selected: Partial<Record<R, VMReportRuleValue<true>>>;

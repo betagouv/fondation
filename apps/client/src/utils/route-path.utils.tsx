@@ -17,11 +17,9 @@ export const getGdsReportPath = (
   formation: Magistrat.Formation,
   dateTransparence: DateOnlyJson
 ) => {
-  const transparencyPath =
-    GdsTransparenciesRoutesMapper.toPathSegment(transparency);
+  const transparencyPath = GdsTransparenciesRoutesMapper.toPathSegment(transparency);
   const formationPath = FormationsRoutesMapper.toPathSegment(formation);
-  const dateTransparencePath =
-    DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
+  const dateTransparencePath = DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
 
   return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${dateTransparencePath}/${transparencyPath}/${formationPath}/rapports/${id}`;
 };

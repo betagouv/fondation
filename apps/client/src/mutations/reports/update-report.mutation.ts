@@ -1,8 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import {
-  reportUpdateDto,
-  type ReportsContextRestContract
-} from 'shared-models';
+import { reportUpdateDto, type ReportsContextRestContract } from 'shared-models';
 import type { ReportSM } from '../../queries/list-reports.queries';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
@@ -17,9 +14,7 @@ export type UpdateReportParams = {
 const updateReport = (reportId: string, data: UpdateReportParams['data']) => {
   reportUpdateDto.parse(data);
 
-  const {
-    method
-  }: Partial<ReportsContextRestContract['endpoints']['updateReport']> = {
+  const { method }: Partial<ReportsContextRestContract['endpoints']['updateReport']> = {
     method: 'PUT'
   };
 
@@ -34,12 +29,7 @@ const updateReport = (reportId: string, data: UpdateReportParams['data']) => {
 
 export const useUpdateReport = () => {
   return useMutation({
-    mutationFn: ({
-      reportId,
-      data
-    }: {
-      reportId: string;
-      data: UpdateReportParams['data'];
-    }) => updateReport(reportId, data)
+    mutationFn: ({ reportId, data }: { reportId: string; data: UpdateReportParams['data'] }) =>
+      updateReport(reportId, data)
   });
 };
