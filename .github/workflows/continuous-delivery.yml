@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - migration-client
   workflow_dispatch:
 
 jobs:
