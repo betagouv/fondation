@@ -18,13 +18,13 @@ async function affectationTranspaAuxPrésidents() {
 
   try {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
-
+    const sessionName = 'Ete 2025';
     const sessionIdSiègeList = await db
       .select({ id: sessionPm.id })
       .from(sessionPm)
       .where(
         and(
-          eq(sessionPm.name, 'balai'),
+          eq(sessionPm.name, sessionName),
           eq(sessionPm.formation, Magistrat.Formation.SIEGE),
         ),
       )
@@ -32,11 +32,11 @@ async function affectationTranspaAuxPrésidents() {
 
     if (!sessionIdSiègeList.length)
       throw new Error(
-        'No session found with name "balai" and formation "siege"',
+        `No session found with name "${sessionName}" and formation "siege"`,
       );
     if (sessionIdSiègeList.length > 1)
       throw new Error(
-        'Multiple sessions found with name "balai" and formation "siege"',
+        `Multiple sessions found with name "${sessionName}" and formation "siege"`,
       );
     const sessionIdSiège = sessionIdSiègeList[0]!.id;
 
@@ -45,7 +45,7 @@ async function affectationTranspaAuxPrésidents() {
       .from(sessionPm)
       .where(
         and(
-          eq(sessionPm.name, 'balai'),
+          eq(sessionPm.name, sessionName),
           eq(sessionPm.formation, Magistrat.Formation.PARQUET),
         ),
       )
@@ -53,11 +53,11 @@ async function affectationTranspaAuxPrésidents() {
 
     if (!sessionIdParquetList.length)
       throw new Error(
-        'No session found with name "balai" and formation "parquet"',
+        `No session found with name "${sessionName}" and formation "parquet"`,
       );
     if (sessionIdParquetList.length > 1)
       throw new Error(
-        'Multiple sessions found with name "balai" and formation "parquet"',
+        `Multiple sessions found with name "${sessionName}" and formation "parquet"`,
       );
     const sessionIdParquet = sessionIdParquetList[0]!.id;
 
@@ -116,7 +116,8 @@ async function affectationTranspaAuxPrésidents() {
         );
       }
 
-      await réaffecterDossiersSiège(tx, sessionIdSiège, présidentSiègeId);
+      // TODO : CF POUR CE POINT
+      // await réaffecterDossiersSiège(tx, sessionIdSiège, présidentSiègeId);
     });
   } catch (error) {
     console.error(error);
@@ -135,18 +136,20 @@ async function affecterAUnPrésident(
   const dossierIds = await tx
     .select({ id: dossierDeNominationPm.id })
     .from(dossierDeNominationPm)
-    .where(
-      formation === Magistrat.Formation.PARQUET
-        ? eq(dossierDeNominationPm.sessionId, sessionId)
-        : and(
-            eq(dossierDeNominationPm.sessionId, sessionId),
-            sql`(content->>'numeroDeDossier')::int >= 1 AND (content->>'numeroDeDossier')::int <= 12`,
-          ),
-    )
+    .where(eq(dossierDeNominationPm.sessionId, sessionId))
     .execute();
-  if (formation === Magistrat.Formation.SIEGE && dossierIds.length !== 12)
+  if (formation === Magistrat.Formation.SIEGE && dossierIds.length !== 6)
     throw new Error(
-      `Expected 12 dossiers for formation ${formation}, found ${dossierIds.length}. ${JSON.stringify(
+      // 9 Parquet, 6 Sièges Ete 2025
+      `Expected 6 dossiers for formation ${formation}, found ${dossierIds.length}. ${JSON.stringify(
+        dossierIds,
+      )}`,
+    );
+
+  if (formation === Magistrat.Formation.PARQUET && dossierIds.length !== 9)
+    throw new Error(
+      // 9 Parquet, 6 Sièges Ete 2025
+      `Expected 9 dossiers for formation ${formation}, found ${dossierIds.length}. ${JSON.stringify(
         dossierIds,
       )}`,
     );
@@ -257,174 +260,174 @@ async function affecterAUnPrésident(
   }
 }
 
-async function réaffecterDossiersSiège(
-  tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
-  sessionId: string,
-  ancienRapporteurId: string,
-) {
-  const formation = Magistrat.Formation.SIEGE;
+// async function réaffecterDossiersSiège(
+//   tx: Parameters<Parameters<DrizzleDb['transaction']>[0]>[0],
+//   sessionId: string,
+//   ancienRapporteurId: string,
+// ) {
+//   const formation = Magistrat.Formation.SIEGE;
 
-  const nouveauRapporteurList = await tx
-    .select({ id: users.id })
-    .from(users)
-    .where(
-      and(
-        eq(users.firstName, 'christian'),
-        eq(users.lastName, 'vigouroux'),
-        eq(users.role, Role.MEMBRE_COMMUN),
-      ),
-    )
-    .execute();
-  if (!nouveauRapporteurList.length)
-    throw new Error(
-      'No user found with first name "christian" and last name "vigouroux"',
-    );
-  if (nouveauRapporteurList.length > 1)
-    throw new Error(
-      'Multiple users found with first name "christian" and last name "vigouroux"',
-    );
-  const nouveauRapporteurId = nouveauRapporteurList[0]!.id;
+//   const nouveauRapporteurList = await tx
+//     .select({ id: users.id })
+//     .from(users)
+//     .where(
+//       and(
+//         eq(users.firstName, 'christian'),
+//         eq(users.lastName, 'vigouroux'),
+//         eq(users.role, Role.MEMBRE_COMMUN),
+//       ),
+//     )
+//     .execute();
+//   if (!nouveauRapporteurList.length)
+//     throw new Error(
+//       'No user found with first name "christian" and last name "vigouroux"',
+//     );
+//   if (nouveauRapporteurList.length > 1)
+//     throw new Error(
+//       'Multiple users found with first name "christian" and last name "vigouroux"',
+//     );
+//   const nouveauRapporteurId = nouveauRapporteurList[0]!.id;
 
-  const dossiersMalAffectés = await tx
-    .select({ id: dossierDeNominationPm.id })
-    .from(dossierDeNominationPm)
-    .where(
-      and(
-        eq(dossierDeNominationPm.sessionId, sessionId),
-        sql`(content->>'numeroDeDossier')::int >= 83 AND (content->>'numeroDeDossier')::int <= 89`,
-      ),
-    )
-    .execute();
+//   const dossiersMalAffectés = await tx
+//     .select({ id: dossierDeNominationPm.id })
+//     .from(dossierDeNominationPm)
+//     .where(
+//       and(
+//         eq(dossierDeNominationPm.sessionId, sessionId),
+//         sql`(content->>'numeroDeDossier')::int >= 83 AND (content->>'numeroDeDossier')::int <= 89`,
+//       ),
+//     )
+//     .execute();
 
-  if (!dossiersMalAffectés.length) {
-    throw new Error(
-      `No dossiers found with numeroDeDossier between 83 and 89 for formation ${formation}`,
-    );
-  }
-  if (dossiersMalAffectés.length !== 7) {
-    throw new Error(
-      `Expected 7 dossiers with numeroDeDossier between 83 and 89, found ${dossiersMalAffectés.length}`,
-    );
-  }
+//   if (!dossiersMalAffectés.length) {
+//     throw new Error(
+//       `No dossiers found with numeroDeDossier between 83 and 89 for formation ${formation}`,
+//     );
+//   }
+//   if (dossiersMalAffectés.length !== 7) {
+//     throw new Error(
+//       `Expected 7 dossiers with numeroDeDossier between 83 and 89, found ${dossiersMalAffectés.length}`,
+//     );
+//   }
 
-  console.log(`Found ${dossiersMalAffectés.length} dossiers to reassign`);
+//   console.log(`Found ${dossiersMalAffectés.length} dossiers to reassign`);
 
-  await tx
-    .update(affectationPm)
-    .set({
-      affectationsDossiersDeNominations: sql.raw(`
-        array(
-          select 
-            case 
-              when elem->>'dossierDeNominationId' = any(ARRAY[${dossiersMalAffectés.map((d) => `'${d.id}'`).join(',')}]::text[])
-              then jsonb_build_object(
-                'dossierDeNominationId', elem->>'dossierDeNominationId',
-                'rapporteurIds', jsonb_build_array('${nouveauRapporteurId}'::text)
-              )
-              else elem
-            end
-          from unnest("affectations_dossiers_de_nominations") as elem
-        )
-      `),
-    })
-    .where(eq(affectationPm.sessionId, sessionId))
-    .execute();
+//   await tx
+//     .update(affectationPm)
+//     .set({
+//       affectationsDossiersDeNominations: sql.raw(`
+//         array(
+//           select
+//             case
+//               when elem->>'dossierDeNominationId' = any(ARRAY[${dossiersMalAffectés.map((d) => `'${d.id}'`).join(',')}]::text[])
+//               then jsonb_build_object(
+//                 'dossierDeNominationId', elem->>'dossierDeNominationId',
+//                 'rapporteurIds', jsonb_build_array('${nouveauRapporteurId}'::text)
+//               )
+//               else elem
+//             end
+//           from unnest("affectations_dossiers_de_nominations") as elem
+//         )
+//       `),
+//     })
+//     .where(eq(affectationPm.sessionId, sessionId))
+//     .execute();
 
-  const existingReports = await tx
-    .select()
-    .from(reports)
-    .where(
-      and(
-        inArray(
-          reports.dossierDeNominationId,
-          dossiersMalAffectés.map((d) => d.id),
-        ),
-        eq(reports.reporterId, ancienRapporteurId),
-        eq(reports.formation, formation),
-        eq(reports.sessionId, sessionId),
-      ),
-    )
-    .execute();
+//   const existingReports = await tx
+//     .select()
+//     .from(reports)
+//     .where(
+//       and(
+//         inArray(
+//           reports.dossierDeNominationId,
+//           dossiersMalAffectés.map((d) => d.id),
+//         ),
+//         eq(reports.reporterId, ancienRapporteurId),
+//         eq(reports.formation, formation),
+//         eq(reports.sessionId, sessionId),
+//       ),
+//     )
+//     .execute();
 
-  if (!existingReports.length) {
-    throw new Error(
-      `No reports found for the special dossiers in formation ${formation}`,
-    );
-  }
+//   if (!existingReports.length) {
+//     throw new Error(
+//       `No reports found for the special dossiers in formation ${formation}`,
+//     );
+//   }
 
-  // 4. Create new reports for these dossiers with the new rapporteur
-  for (const existingReport of existingReports) {
-    const {
-      id,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      createdAt,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      comment,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      attachedFiles,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      version,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      reporterId,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      state,
-      ...newValues
-    } = existingReport;
+//   // 4. Create new reports for these dossiers with the new rapporteur
+//   for (const existingReport of existingReports) {
+//     const {
+//       id,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       createdAt,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       comment,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       attachedFiles,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       version,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       reporterId,
+//       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//       state,
+//       ...newValues
+//     } = existingReport;
 
-    const newReportRaw = await tx
-      .insert(reports)
-      .values({
-        ...newValues,
-        version: 1,
-        comment: null,
-        attachedFiles: null,
-        reporterId: nouveauRapporteurId,
-        state: NominationFile.ReportState.NEW,
-      })
-      .returning({
-        id: reports.id,
-      })
-      .execute();
+//     const newReportRaw = await tx
+//       .insert(reports)
+//       .values({
+//         ...newValues,
+//         version: 1,
+//         comment: null,
+//         attachedFiles: null,
+//         reporterId: nouveauRapporteurId,
+//         state: NominationFile.ReportState.NEW,
+//       })
+//       .returning({
+//         id: reports.id,
+//       })
+//       .execute();
 
-    if (!newReportRaw.length) {
-      throw new Error(`No new report created for special dossier report ${id}`);
-    }
-    const newReport = newReportRaw[0]!;
+//     if (!newReportRaw.length) {
+//       throw new Error(`No new report created for special dossier report ${id}`);
+//     }
+//     const newReport = newReportRaw[0]!;
 
-    const rules = await tx
-      .select()
-      .from(reportRules)
-      .where(eq(reportRules.reportId, id))
-      .execute();
+//     const rules = await tx
+//       .select()
+//       .from(reportRules)
+//       .where(eq(reportRules.reportId, id))
+//       .execute();
 
-    if (!rules.length) {
-      throw new Error(`No rules found for report ${id}`);
-    }
+//     if (!rules.length) {
+//       throw new Error(`No rules found for report ${id}`);
+//     }
 
-    await tx
-      .insert(reportRules)
-      .values(
-        rules.map((r) => ({
-          reportId: newReport.id,
-          ruleGroup: r.ruleGroup,
-          ruleName: r.ruleName,
-          validated: true,
-        })),
-      )
-      .execute();
+//     await tx
+//       .insert(reportRules)
+//       .values(
+//         rules.map((r) => ({
+//           reportId: newReport.id,
+//           ruleGroup: r.ruleGroup,
+//           ruleName: r.ruleName,
+//           validated: true,
+//         })),
+//       )
+//       .execute();
 
-    console.log(
-      `Created new report ${newReport.id} for dossier, reassigned from ${id}`,
-    );
+//     console.log(
+//       `Created new report ${newReport.id} for dossier, reassigned from ${id}`,
+//     );
 
-    await tx
-      .delete(reportRules)
-      .where(eq(reportRules.reportId, existingReport.id))
-      .execute();
-    console.log(`Deleted old report rules of report ID ${existingReport.id}`);
-    await tx.delete(reports).where(eq(reports.id, existingReport.id)).execute();
-    console.log(`Deleted old report ${existingReport.id}`);
-  }
-}
+//     await tx
+//       .delete(reportRules)
+//       .where(eq(reportRules.reportId, existingReport.id))
+//       .execute();
+//     console.log(`Deleted old report rules of report ID ${existingReport.id}`);
+//     await tx.delete(reports).where(eq(reports.id, existingReport.id)).execute();
+//     console.log(`Deleted old report ${existingReport.id}`);
+//   }
+// }
 
 affectationTranspaAuxPrésidents();
