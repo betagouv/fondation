@@ -3,27 +3,23 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { ImportObservantsModal } from '../ImportObservantsModal';
 import { ImportAttachmentModal } from '../ImportAttachmentModal';
-import { DateOnly } from '../../../../models/date-only.model';
-import { Magistrat } from 'shared-models';
+
+import { type TransparenceSnapshot } from 'shared-models';
 import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
 
 import { useDeleteFile } from '../../../../mutations/delete-file.mutation';
 import { AttachedFilesList } from '../../../shared/AttachedFilesList';
+import { DateOnly } from '../../../../models/date-only.model';
 
-type TableauDeBordActionsProps = {
-  transparenceName: string;
-  transparenceFormation: Magistrat.Formation;
-  transparenceDate: DateOnly;
-  transparenceSessionImportId: string;
-};
+type TableauDeBordActionsProps = TransparenceSnapshot;
 
 export const TableauDeBordActions = ({
-  transparenceName,
-  transparenceFormation,
-  transparenceDate,
-  transparenceSessionImportId
+  name,
+  formation,
+  dateTransparence,
+  id
 }: TableauDeBordActionsProps) => {
-  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(transparenceSessionImportId);
+  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(id);
 
   const { mutate: deleteFile } = useDeleteFile();
 
@@ -34,6 +30,12 @@ export const TableauDeBordActions = ({
       }
     });
   };
+
+  const dateTransparenceDateOnly = new DateOnly(
+    dateTransparence.year,
+    dateTransparence.month,
+    dateTransparence.day
+  );
 
   return (
     <div className={clsx('mt-4 flex flex-col justify-start gap-y-6', cx('fr-col-3', 'fr-text--bold'))}>
@@ -55,15 +57,15 @@ export const TableauDeBordActions = ({
       </div>
 
       <ImportObservantsModal
-        nomTransparence={transparenceName}
-        formation={transparenceFormation}
-        dateTransparence={transparenceDate}
+        nomTransparence={name}
+        formation={formation}
+        dateTransparence={dateTransparenceDateOnly}
       />
       <ImportAttachmentModal
-        sessionImportId={transparenceSessionImportId}
-        transparenceName={transparenceName}
-        transparenceFormation={transparenceFormation}
-        transparenceDate={transparenceDate}
+        sessionImportId={id}
+        transparenceName={name}
+        transparenceFormation={formation}
+        transparenceDate={dateTransparenceDateOnly}
       />
     </div>
   );

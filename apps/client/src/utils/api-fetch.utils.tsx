@@ -1,6 +1,5 @@
-export const apiFetch = async (url: string, options: RequestInit) => {
+export async function apiFetch<T = unknown>(url: string, options: RequestInit): Promise<T | null> {
   const baseUrl = import.meta.env.PROD ? import.meta.env.VITE_API_URL : '';
-
   const fullUrl = `${baseUrl}/api${url}`;
   const response = await fetch(fullUrl, options);
 
@@ -9,13 +8,11 @@ export const apiFetch = async (url: string, options: RequestInit) => {
     throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
   }
 
-  // Check if response has content
   const contentType = response.headers.get('content-type');
   const hasContent = response.headers.get('content-length') !== '0';
 
-  if (contentType && contentType.includes('application/json') && hasContent) {
-    return response.json();
-  }
+  if (contentType && contentType.includes('application/json') && hasContent)
+    return (await response.json()) as T;
 
   return null;
-};
+}

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import type { DataAdministrationContextRestContract } from 'shared-models';
+import type { DataAdministrationContextRestContract, TransparenceSnapshot } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 type GetTransparenceArgs =
   DataAdministrationContextRestContract['endpoints']['getTransparenceSnapshot']['queryParams'];
 
-const getTransparence = (args: GetTransparenceArgs) => {
+const getTransparence = (args: GetTransparenceArgs): Promise<TransparenceSnapshot | null> => {
   const { day, formation, month, nom, year } = args;
 
   const queries = new URLSearchParams({
@@ -15,9 +15,12 @@ const getTransparence = (args: GetTransparenceArgs) => {
     year: year.toString(),
     formation
   });
-  return apiFetch(`/api/data-administration/transparence-snapshot?${new URLSearchParams(queries)}`, {
-    method: 'GET'
-  });
+  return apiFetch<TransparenceSnapshot>(
+    `/data-administration/transparence-snapshot?${new URLSearchParams(queries)}`,
+    {
+      method: 'GET'
+    }
+  );
 };
 
 export const useGetTransparence = (args: GetTransparenceArgs) => {

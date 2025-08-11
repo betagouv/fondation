@@ -1,26 +1,22 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { DateOnly } from '../../../../models/date-only.model';
-import type { Magistrat } from 'shared-models';
+import type { TransparenceSnapshot } from 'shared-models';
 import { colors } from '@codegouvfr/react-dsfr';
+import { DateOnly } from '../../../../models/date-only.model';
 
-export type TableauDeBordResumeProps = {
-  transparenceName: string;
-  transparenceFormation: Magistrat.Formation;
-  transparenceDate: DateOnly;
-  transparenceClosingDate: DateOnly;
-  transparenceSessionImportId: string;
-};
+export type TableauDeBordResumeProps = TransparenceSnapshot;
 
 const Label = ({ nom }: { nom: string }) => (
   <div style={{ color: colors.options.grey._625_425.default }}>{nom}</div>
 );
 
 export const TableauDeBordResume = ({
-  transparenceName,
-  transparenceFormation,
-  transparenceDate,
-  transparenceClosingDate
+  name,
+  formation,
+  dateTransparence,
+  dateClotureDelaiObservation,
+  datePriseDePosteCible,
+  dateEcheance
 }: TableauDeBordResumeProps) => {
   return (
     <div className={clsx('border-2 border-solid', cx('fr-px-12v', 'fr-py-8v', 'fr-col'))}>
@@ -31,22 +27,46 @@ export const TableauDeBordResume = ({
         <div>Transparence</div>
 
         <Label nom="Nom de la session" />
-        <div>{transparenceName}</div>
+        <div>{name}</div>
 
         <Label nom="Formation" />
-        <div>{transparenceFormation}</div>
+        <div>{formation}</div>
 
         <Label nom="Date de la session" />
-        <div>{transparenceDate.toFormattedString('dd/MM/yyyy')}</div>
+        <div>
+          {new DateOnly(
+            dateTransparence.year,
+            dateTransparence.month,
+            dateTransparence.day
+          ).toFormattedString('dd/MM/yyyy')}
+        </div>
 
         <Label nom="Clôture du délai d'observation" />
-        <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
+        <div>
+          {new DateOnly(
+            dateClotureDelaiObservation.year,
+            dateClotureDelaiObservation.month,
+            dateClotureDelaiObservation.day
+          ).toFormattedString('dd/MM/yyyy')}
+        </div>
 
         <Label nom="Date d'écheance" />
-        <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
+        <div>
+          {dateEcheance &&
+            new DateOnly(dateEcheance.year, dateEcheance.month, dateEcheance.day).toFormattedString(
+              'dd/MM/yyyy'
+            )}
+        </div>
 
         <Label nom="Date de prise de poste" />
-        <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
+        <div>
+          {datePriseDePosteCible &&
+            new DateOnly(
+              datePriseDePosteCible.year,
+              datePriseDePosteCible.month,
+              datePriseDePosteCible.day
+            ).toFormattedString('dd/MM/yyyy')}
+        </div>
       </div>
     </div>
   );
