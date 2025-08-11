@@ -1,5 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
-import { ReportFileUsage, type ReportsContextRestContract } from 'shared-models';
+import {
+  ReportFileUsage,
+  type FilesContextRestContract,
+  type ReportsContextRestContract
+} from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 
 export const addTimestampToFiles = async (files: File[], timestamp: number) => {
@@ -37,6 +41,9 @@ const insertImages = async (reportId: string, files: { file: File; fileId: strin
   });
 };
 
+type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
+type GetSignedUrlsResponse = Endpoint['response'];
+
 const insertImagesWithSignedUrls = async (reportId: string, files: { file: File; fileId: string }[]) => {
   await insertImages(reportId, files);
 
@@ -45,14 +52,14 @@ const insertImagesWithSignedUrls = async (reportId: string, files: { file: File;
     ids: fileIds.join(',')
   });
 
-  const signedUrls = await apiFetch(`/files/signed-urls?${queryParams}`, {
+  const signedUrls = await apiFetch<GetSignedUrlsResponse>(`/files/signed-urls?${queryParams}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     }
   });
 
-  return signedUrls.map((f: { name: string; signedUrl: string }) => {
+  return (signedUrls || []).map((f: { name: string; signedUrl: string }) => {
     const file = files.find((file) => file.file.name === f.name);
     if (!file) {
       throw new Error(`File with name ${f.name} not found in the uploaded files`);

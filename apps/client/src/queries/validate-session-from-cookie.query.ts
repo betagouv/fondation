@@ -2,22 +2,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Gender, Role, type IdentityAndAccessRestContract } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
-interface User {
-  firstName: string;
-  gender: string;
-  lastName: string;
-  role: string;
-  userId: string;
-}
+type Endpoint = IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'];
+type ValidateSessionFromCookieResponse = Endpoint['response'];
 
-const validateSessionFromCookie = async (): Promise<User> => {
-  const { method, path }: IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'] = {
+const validateSessionFromCookie = async () => {
+  const { method, path }: Endpoint = {
     method: 'POST',
     path: 'validate-session-from-cookie',
     response: null
   };
 
-  return apiFetch(`/auth/${path}`, {
+  return apiFetch<ValidateSessionFromCookieResponse>(`/auth/${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json'

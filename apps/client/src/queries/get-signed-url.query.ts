@@ -1,21 +1,27 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import type { FilesContextRestContract, FileVM } from 'shared-models';
+import type { FilesContextRestContract } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
+type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
+type GetSignedUrlsResponse = Endpoint['response'];
+
 const getSignedUrl = async (fileIds: string[]) => {
-  const { method, path }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
+  const { method, path }: Partial<Endpoint> = {
     method: 'GET',
     path: 'signed-urls'
   };
-  return apiFetch(`/files/${path}?${new URLSearchParams({ ids: fileIds.join(',') })}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json'
+  return apiFetch<GetSignedUrlsResponse>(
+    `/files/${path}?${new URLSearchParams({ ids: fileIds.join(',') })}`,
+    {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  });
+  );
 };
 
-export const useGetSignedUrl = (fileIds: string[]): UseQueryResult<FileVM[], Error> => {
+export const useGetSignedUrl = (fileIds: string[]): UseQueryResult<GetSignedUrlsResponse | null, Error> => {
   return useQuery({
     queryKey: ['signed-url', fileIds],
     queryFn: () => getSignedUrl(fileIds),

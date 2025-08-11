@@ -60,13 +60,13 @@ interface ListReportsResponse {
   data: ReportListItem[];
 }
 
-const listReports = async (): Promise<ListReportsResponse> => {
+const listReports = async () => {
   const { method, path }: Partial<ReportsContextRestContract['endpoints']['listReports']> = {
     method: 'GET',
     path: 'transparences'
   };
 
-  return apiFetch(`/reports/${path}`, {
+  return apiFetch<ListReportsResponse>(`/reports/${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json'

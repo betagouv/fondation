@@ -3,6 +3,9 @@ import { Magistrat, type FilesContextRestContract } from 'shared-models';
 import { z } from 'zod';
 import { apiFetch } from '../utils/api-fetch.utils';
 
+type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
+type GetSignedUrlsResponse = Endpoint['response'];
+
 export const transparencyAttachmentsSchema = z.object({
   siegeEtParquet: z.string().array(),
   parquet: z.string().array(),
@@ -51,17 +54,20 @@ const attachmentsApiFetch = async (transparency: string, formation: Magistrat.Fo
     attachementsIds
   );
 
-  const { method, path }: Partial<FilesContextRestContract['endpoints']['getSignedUrls']> = {
+  const { method, path }: Partial<Endpoint> = {
     method: 'GET',
     path: 'signed-urls'
   };
 
-  return apiFetch(`/files/${path}?${new URLSearchParams({ ids: filteredAttachments.join(',') })}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json'
+  return apiFetch<GetSignedUrlsResponse>(
+    `/files/${path}?${new URLSearchParams({ ids: filteredAttachments.join(',') })}`,
+    {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  });
+  );
 };
 
 export const TRANSPARENCY_ATTACHMENTS_QUERY_KEY = 'transparencies-attachments';

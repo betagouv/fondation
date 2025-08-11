@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import type { FileDocumentSnapshot } from 'shared-models';
+import type { DataAdministrationContextRestContract } from 'shared-models';
 import { apiFetch } from '../utils/api-fetch.utils';
 
-const getTransparencyAttachmentsQuery = async (sessionImportId: string): Promise<FileDocumentSnapshot[]> => {
+type Endpoint = DataAdministrationContextRestContract['endpoints']['getTransparenceAttachments'];
+type GetTransparenceResponse = Endpoint['response'];
+
+const getTransparencyAttachmentsQuery = async (sessionImportId: string) => {
   const query = new URLSearchParams({
     sessionImportId
   });
 
-  return apiFetch(`/data-administration/transparence-attachments?${query}`, {
+  return apiFetch<GetTransparenceResponse>(`/data-administration/transparence-attachments?${query}`, {
     method: 'GET'
   });
 };
