@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   DataAdministrationContextRestContract,
+  GetTransparenceQueryParamsDto,
   GetTransparencesAttachmentDto,
   ImportSessionAttachmentDto,
 } from 'shared-models';
@@ -18,6 +19,8 @@ import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-conte
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
+
+import { GetTransparenceSnapshotUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
 import {
   IController,
   IControllerPaths,
@@ -39,6 +42,7 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
     importObservantsXlsx: 'import-observants-xlsx',
     importSessionAttachment: 'import-session-attachment',
     getTransparenceAttachments: 'transparence-attachments',
+    getTransparenceSnapshot: 'transparence-snapshot',
   };
 
 @Controller(baseRoute)
@@ -50,6 +54,7 @@ export class DataAdministrationController
     private readonly importObservantsXlsxUseCase: ImportObservantsXlsxUseCase,
     private readonly importTransparenceAttachmentUseCase: ImportSessionAttachmentUseCase,
     private readonly getTransparenceAttachmentsUseCase: GetTransparenceAttachmentsUseCase,
+    private readonly getTransparenceSnapshotUseCase: GetTransparenceSnapshotUseCase,
   ) {}
 
   @Get(endpointsPaths.getTransparenceAttachments)
@@ -115,5 +120,10 @@ export class DataAdministrationController
   ) {
     await this.importTransparenceAttachmentUseCase.execute(dto, fichier);
     return { validationError: undefined };
+  }
+
+  @Get(endpointsPaths.getTransparenceSnapshot)
+  async getTransparenceSnapshot(@Query() dto: GetTransparenceQueryParamsDto) {
+    return this.getTransparenceSnapshotUseCase.execute(dto);
   }
 }

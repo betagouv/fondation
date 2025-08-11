@@ -9,6 +9,10 @@ import {
   GdsNewTransparenceImportedEventPayload,
   NominationFilesContentWithReporterIds,
 } from '../models/events/gds-transparence-imported.event';
+import {
+  GdsTransparenceNominationFilesAddedEvent,
+  GdsTransparenceNominationFilesAddedEventPayload,
+} from '../models/events/gds-transparence-nomination-files-added.event';
 import { NominationFileContentReader } from '../models/nomination-file-content-reader';
 import {
   NominationFilesContentReadCollection,
@@ -16,10 +20,6 @@ import {
 } from '../models/nomination-files-read-collection';
 import { Transparence } from '../models/transparence';
 import { TsvParser } from '../models/tsv-parser';
-import {
-  GdsTransparenceNominationFilesAddedEventPayload,
-  GdsTransparenceNominationFilesAddedEvent,
-} from '../models/events/gds-transparence-nomination-files-added.event';
 
 export class TransparenceService {
   constructor(
@@ -110,7 +110,7 @@ export class TransparenceService {
   }
 
   transparence(
-    transparence: Transparency,
+    transparence: Transparency | string,
     formation: Magistrat.Formation,
     dateTransparence: DateOnlyJson,
   ): TransactionableAsync<Transparence | null> {

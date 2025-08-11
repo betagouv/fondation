@@ -11,6 +11,7 @@ import { IACFileRepository } from 'src/data-administration-context/transparence-
 import { TransparenceFileRepository } from 'src/data-administration-context/transparence-xlsx/business-logic/gateways/repositories/transparence-file-repository';
 import { TransparenceService as TransparenceXlsxService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-attachements/get-transparence-attachments.use-case';
+import { GetTransparenceSnapshotUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
@@ -61,6 +62,10 @@ import {
       TransparenceXlsxService,
     ]),
     generateProvider(ImportObservantsXlsxUseCase, [
+      TRANSACTION_PERFORMER,
+      TransparenceXlsxService,
+    ]),
+    generateProvider(GetTransparenceSnapshotUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),
@@ -120,7 +125,6 @@ import {
     },
 
     generateProvider(SqlTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
-
     generateProvider(
       ImportNominationFileFromLocalFileCli,
       [FileReaderProvider, ImportNominationFilesUseCase],

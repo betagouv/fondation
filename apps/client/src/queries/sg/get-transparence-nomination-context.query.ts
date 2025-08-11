@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import type { DataAdministrationContextRestContract } from 'shared-models';
+import type { NominationsContextTransparenceRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 type GetTransparenceArgs =
-  DataAdministrationContextRestContract['endpoints']['getTransparenceSnapshot']['queryParams'];
+  NominationsContextTransparenceRestContract['endpoints']['transparenceSnapshot']['queryParams'];
 
 const getTransparence = (args: GetTransparenceArgs) => {
   const { day, formation, month, nom, year } = args;
@@ -15,12 +15,15 @@ const getTransparence = (args: GetTransparenceArgs) => {
     year: year.toString(),
     formation
   });
-  return apiFetch(`/api/data-administration/transparence-snapshot?${new URLSearchParams(queries)}`, {
-    method: 'GET'
-  });
+  return apiFetch(
+    `/nominations/transparence/snapshot/by-nom-formation-et-date?${new URLSearchParams(queries)}`,
+    {
+      method: 'GET'
+    }
+  );
 };
 
-export const useGetTransparence = (args: GetTransparenceArgs) => {
+export const useGetTransparenceNominationContext = (args: GetTransparenceArgs) => {
   return useQuery({
     queryKey: ['transparence', args],
     queryFn: () => getTransparence(args)

@@ -1,3 +1,5 @@
+import { type DateOnlyJson } from "../date";
+
 import { z } from 'zod';
 import { Magistrat } from '../magistrat.namespace';
 import { type RestContract } from './common';
@@ -37,6 +39,12 @@ export interface DataAdministrationContextRestContract extends RestContract {
       path: 'transparence-attachments';
       queryParams: GetTransparencesAttachmentDto;
       response: FileDocumentSnapshot[];
+    };
+    getTransparenceSnapshot: {
+      method: 'GET';
+      path: 'transparence-snapshot';
+      queryParams: GetTransparenceQueryParamsDto;
+      response: TransparenceSnapshot | null;
     };
   };
 }
@@ -87,4 +95,24 @@ export const fileDocumentSnapshotSchema = z.object({
   signedUrl: z.string().min(1),
 });
 export interface FileDocumentSnapshot
-  extends z.infer<typeof fileDocumentSnapshotSchema> {}
+  extends z.infer<typeof fileDocumentSnapshotSchema> { }
+  
+
+export type TransparenceSnapshot = {
+  id: string;
+  name: string;
+  formation: Magistrat.Formation;
+  dateTransparence: DateOnlyJson;
+  dateEcheance: DateOnlyJson | null;
+  datePriseDePosteCible: DateOnlyJson | null;
+  dateClotureDelaiObservation: DateOnlyJson;
+};
+
+export interface GetTransparenceQueryParamsDto
+  extends Record<string, string | number> {
+  nom: string;
+  formation: Magistrat.Formation;
+  year: DateOnlyJson["year"];
+  month: DateOnlyJson["month"];
+  day: DateOnlyJson["day"];
+}

@@ -35,7 +35,6 @@ export class Transparence {
     private _dateEchéance: DateOnlyJson | null,
     private _datePriseDePosteCible: DateOnlyJson | null,
     private _dateClôtureDélaiObservation: DateOnlyJson,
-
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;

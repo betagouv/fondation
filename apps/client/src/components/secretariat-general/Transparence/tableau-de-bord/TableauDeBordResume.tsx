@@ -41,6 +41,12 @@ export const TableauDeBordResume = ({
 
         <Label nom="Clôture du délai d'observation" />
         <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
+
+        <Label nom="Date d'écheance" />
+        <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
+
+        <Label nom="Date de prise de poste" />
+        <div>{transparenceClosingDate.toFormattedString('dd/MM/yyyy')}</div>
       </div>
     </div>
   );

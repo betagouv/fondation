@@ -2,11 +2,12 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { type FC } from 'react';
 import { parseTransparenceCompositeId } from '../../../models/transparence.model';
-import { useGetTransparence } from '../../../queries/sg/get-transparence.query';
+import { useGetTransparenceNominationContext } from '../../../queries/sg/get-transparence-nomination-context.query';
 import { DateOnly } from '../../../models/date-only.model';
 import { useParams } from 'react-router-dom';
 import { TableauDeBordActions } from './tableau-de-bord/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/TableauDeBordResume';
+import { useGetTransparence } from '../../../queries/sg/get-transparence.query';
 
 export const Transparence: FC = () => {
   const { id } = useParams();

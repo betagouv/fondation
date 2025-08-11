@@ -49,7 +49,7 @@ export const TableauDeBordActions = ({
         <Accordion label="Tableau initial" titleAs="h2">
           Tableau initial à venir.
         </Accordion>
-        <Accordion label="Vérifier les règles automatisés" titleAs="h2">
+        <Accordion label="Vérifier les règles automatisées" titleAs="h2">
           Vérifier les règles automatisées à venir.
         </Accordion>
       </div>
