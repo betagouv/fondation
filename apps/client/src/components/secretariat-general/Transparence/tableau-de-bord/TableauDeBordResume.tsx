@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import type { TransparenceSnapshot } from 'shared-models';
 import { colors } from '@codegouvfr/react-dsfr';
 import { DateOnly } from '../../../../models/date-only.model';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 export type TableauDeBordResumeProps = TransparenceSnapshot;
 
@@ -20,6 +21,13 @@ export const TableauDeBordResume = ({
 }: TableauDeBordResumeProps) => {
   return (
     <div className={clsx('border-2 border-solid', cx('fr-px-12v', 'fr-py-8v', 'fr-col'))}>
+      <Button
+        priority="tertiary no outline"
+        iconId="fr-icon-edit-fill"
+        title={`edit-session-${name}`}
+        onClick={() => {}}
+      />
+
       <h1>Gérer une session</h1>
 
       <div className={clsx('grid grid-flow-row grid-cols-[max-content_1fr] gap-x-8 gap-y-4')}>
