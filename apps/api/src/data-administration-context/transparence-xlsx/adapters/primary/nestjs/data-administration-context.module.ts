@@ -15,6 +15,7 @@ import { GetTransparenceSnapshotUseCase } from 'src/data-administration-context/
 import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
+import { UpdateTransparenceUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/update-transparence/update-transparence.use-case';
 import { SqlIacFilesRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/sql-iac-files.repository';
 import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
@@ -66,6 +67,10 @@ import {
       TransparenceXlsxService,
     ]),
     generateProvider(GetTransparenceSnapshotUseCase, [
+      TRANSACTION_PERFORMER,
+      TransparenceXlsxService,
+    ]),
+    generateProvider(UpdateTransparenceUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceXlsxService,
     ]),

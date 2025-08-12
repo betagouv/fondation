@@ -48,7 +48,7 @@ export interface DataAdministrationContextRestContract extends RestContract {
     };
     updateTransparence: {
       method: 'PUT';
-      path: 'transparence-snapshot';
+      path: 'transparence-snapshot/:id';
       body: EditTransparencyDto;
       response: void;
     };

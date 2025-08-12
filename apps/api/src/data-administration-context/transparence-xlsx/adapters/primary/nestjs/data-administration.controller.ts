@@ -1,15 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
+  Param,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import {
   DataAdministrationContextRestContract,
+  EditTransparencyDto,
   GetTransparenceQueryParamsDto,
   GetTransparencesAttachmentDto,
   ImportSessionAttachmentDto,
@@ -21,6 +23,7 @@ import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
 
 import { GetTransparenceSnapshotUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
+import { UpdateTransparenceUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/update-transparence/update-transparence.use-case';
 import {
   IController,
   IControllerPaths,
@@ -43,6 +46,7 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
     importSessionAttachment: 'import-session-attachment',
     getTransparenceAttachments: 'transparence-attachments',
     getTransparenceSnapshot: 'transparence-snapshot',
+    updateTransparence: 'transparence-snapshot/:id',
   };
 
 @Controller(baseRoute)
@@ -55,6 +59,7 @@ export class DataAdministrationController
     private readonly importTransparenceAttachmentUseCase: ImportSessionAttachmentUseCase,
     private readonly getTransparenceAttachmentsUseCase: GetTransparenceAttachmentsUseCase,
     private readonly getTransparenceSnapshotUseCase: GetTransparenceSnapshotUseCase,
+    private readonly updateTransparenceUseCase: UpdateTransparenceUseCase,
   ) {}
 
   @Get(endpointsPaths.getTransparenceAttachments)
@@ -64,6 +69,11 @@ export class DataAdministrationController
     @Query() dto: GetTransparencesAttachmentDto,
   ) {
     return this.getTransparenceAttachmentsUseCase.execute(dto);
+  }
+
+  @Get(endpointsPaths.getTransparenceSnapshot)
+  async getTransparenceSnapshot(@Query() dto: GetTransparenceQueryParamsDto) {
+    return this.getTransparenceSnapshotUseCase.execute(dto);
   }
 
   @Post(endpointsPaths.importNouvelleTransparenceXlsx)
@@ -93,7 +103,6 @@ export class DataAdministrationController
     return resp;
   }
 
-  @HttpCode(HttpStatus.OK)
   @Post(endpointsPaths.importObservantsXlsx)
   @UseInterceptors(FileInterceptor('fichier'))
   async importObservantsXlsx(
@@ -122,8 +131,11 @@ export class DataAdministrationController
     return { validationError: undefined };
   }
 
-  @Get(endpointsPaths.getTransparenceSnapshot)
-  async getTransparenceSnapshot(@Query() dto: GetTransparenceQueryParamsDto) {
-    return this.getTransparenceSnapshotUseCase.execute(dto);
+  @Put(endpointsPaths.updateTransparence)
+  async updateTransparence(
+    @Param('id') id: string,
+    @Body() dto: EditTransparencyDto,
+  ) {
+    return this.updateTransparenceUseCase.execute(id, dto);
   }
 }

@@ -1,5 +1,10 @@
 import { and, eq } from 'drizzle-orm';
-import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
+import {
+  DateOnlyJson,
+  EditTransparencyDto,
+  Magistrat,
+  Transparency,
+} from 'shared-models';
 import {
   TransparenceSnapshot,
   Transparence as TransparenceXlsx,
@@ -97,6 +102,32 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           createdAt: new Date((f as any).createdAt),
         })) as TransparenceSnapshot['nominationFiles'],
       });
+    };
+  }
+
+  updateMetadata(
+    sessionId: string,
+    transparence: EditTransparencyDto,
+  ): DrizzleTransactionableAsync {
+    return async (db) => {
+      await db
+        .update(transparencesPm)
+        .set({
+          name: transparence.name,
+          formation: transparence.formation,
+          dateTransparence: new Date(transparence.dateTransparence),
+          dateClôtureDélaiObservation: new Date(
+            transparence.dateClotureDelaiObservation,
+          ),
+          datePriseDePosteCible: transparence.datePriseDePosteCible
+            ? new Date(transparence.datePriseDePosteCible)
+            : null,
+          dateEchéance: transparence.dateEcheance
+            ? new Date(transparence.dateEcheance)
+            : null,
+        })
+        .where(eq(transparencesPm.id, sessionId))
+        .execute();
     };
   }
 }

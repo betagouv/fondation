@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { EditTransparencyDto, Magistrat } from 'shared-models';
 import {
   Transparence as TransparenceTsv,
   TransparenceSnapshot as TransparenceTsvSnapshot,
@@ -43,5 +43,10 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
 
   getTransparences() {
     return Object.values(this.transparences);
+  }
+
+  updateMetadata(sessionId: string, transparence: EditTransparencyDto) {
+    console.log(sessionId, transparence);
+    return async () => {};
   }
 }
