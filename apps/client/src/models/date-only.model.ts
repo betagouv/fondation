@@ -1,5 +1,6 @@
 import { differenceInYears, format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import type { DateOnlyJson } from 'shared-models';
 import { z, ZodType } from 'zod';
 
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
@@ -77,6 +78,10 @@ export class DateOnly {
   }
   static now(): DateOnly {
     return DateOnly.fromDate(new Date());
+  }
+
+  static fromDateOnly(dateOnly: DateOnlyJson, format: 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
+    return new DateOnly(dateOnly.year, dateOnly.month, dateOnly.day).toFormattedString(format);
   }
 
   static fromDateOnlyString = (

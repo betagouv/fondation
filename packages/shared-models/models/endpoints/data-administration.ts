@@ -46,6 +46,12 @@ export interface DataAdministrationContextRestContract extends RestContract {
       queryParams: GetTransparenceQueryParamsDto;
       response: TransparenceSnapshot | null;
     };
+    updateTransparence: {
+      method: 'PUT';
+      path: 'transparence-snapshot';
+      body: EditTransparencyDto;
+      response: void;
+    };
   };
 }
 
@@ -116,3 +122,25 @@ export interface GetTransparenceQueryParamsDto
   month: DateOnlyJson["month"];
   day: DateOnlyJson["day"];
 }
+
+
+
+const mandatoryField = 'Champ obligatoire.';
+const invalidDateFormat = 'Format de date invalide.';
+const optionalDate = z.string().date(invalidDateFormat).optional();
+export const updateTransparenceSchema = z.object({
+  name: z
+    .string({
+      message: mandatoryField
+    })
+    .trim()
+    .min(1, mandatoryField),
+  dateTransparence: z.string({ message: mandatoryField }).date(invalidDateFormat),
+  formation: z.nativeEnum(Magistrat.Formation, {
+    message: mandatoryField
+  }),
+  dateEcheance: optionalDate,
+  datePriseDePosteCible: optionalDate,
+  dateClotureDelaiObservation: z.string({ message: mandatoryField }).date(invalidDateFormat)
+});
+export type EditTransparencyDto = z.infer<typeof updateTransparenceSchema>;

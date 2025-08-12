@@ -234,13 +234,6 @@ const NouvelleTransparence: FC = () => {
             />
           )}
         />
-
-        {/* // TODO */}
-        {/* <div className={cx('fr-mb-8v')}>
-            <UploadExcelFailedAlert
-              validationError={validationError || undefined}
-            />
-          </div> */}
         <ButtonsGroup
           buttons={[
             {

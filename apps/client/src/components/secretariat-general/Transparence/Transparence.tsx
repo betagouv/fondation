@@ -3,9 +3,10 @@ import clsx from 'clsx';
 import { type FC } from 'react';
 import { parseTransparenceCompositeId } from '../../../models/transparence.model';
 import { useParams } from 'react-router-dom';
-import { TableauDeBordActions } from './tableau-de-bord/TableauDeBordActions';
-import { TableauDeBordResume } from './tableau-de-bord/TableauDeBordResume';
+
+import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 import { useGetTransparence } from '../../../queries/sg/get-transparence.query';
+import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 
 export const Transparence: FC = () => {
   const { id } = useParams();

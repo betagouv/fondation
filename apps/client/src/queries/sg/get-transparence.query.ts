@@ -24,9 +24,10 @@ const getTransparence = (args: GetTransparenceArgs): Promise<TransparenceSnapsho
   );
 };
 
+export const USE_GET_TRANSPARENCE_QUERY_KEY = 'transparence';
 export const useGetTransparence = (args: GetTransparenceArgs) => {
   return useQuery({
-    queryKey: ['transparence', args],
+    queryKey: [USE_GET_TRANSPARENCE_QUERY_KEY, args.id],
     queryFn: () => getTransparence(args)
   });
 };
