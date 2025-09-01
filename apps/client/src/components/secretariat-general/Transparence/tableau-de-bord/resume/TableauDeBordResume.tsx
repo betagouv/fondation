@@ -20,7 +20,7 @@ export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
       <Button
         className={'absolute right-3 top-3'}
         priority="tertiary no outline"
-        iconId="fr-icon-edit-fill"
+        iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
         title={`edit-session-${transparence.name}`}
         onClick={handleEdit}
       />
