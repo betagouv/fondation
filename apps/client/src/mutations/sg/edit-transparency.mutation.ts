@@ -10,6 +10,9 @@ type UpdateTransparenceResponse = Endpoint['response'];
 const editTransparency = async (id: string, transparency: UpdateTransparenceArgs) => {
   return apiFetch<UpdateTransparenceResponse>(`/data-administration/transparence-snapshot/${id}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify(transparency)
   });
 };

@@ -11,6 +11,7 @@ import { formationToLabel } from '../../../../reports/labels/labels-mappers';
 import Input from '@codegouvfr/react-dsfr/Input';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { DateOnly } from '../../../../../models/date-only.model';
+import { useEditTransparency } from '../../../../../mutations/sg/edit-transparency.mutation';
 
 type TableauDeBordEditTransparenceProps = TransparenceSnapshot;
 export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTransparenceProps) => {
@@ -23,6 +24,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
     datePriseDePosteCible
   } = transparence;
 
+  const { mutate } = useEditTransparency();
   const {
     control,
     handleSubmit,
@@ -43,7 +45,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
   });
 
   const onSubmit = (data: EditTransparencyDto) => {
-    console.log(data);
+    mutate({ id: transparence.id, transparency: data });
   };
 
   return (
@@ -92,8 +94,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
             label="Formation*"
             nativeSelectProps={{
               value,
-              onChange,
-              defaultValue: ''
+              onChange
             }}
             state={errors.formation ? 'error' : 'default'}
             stateRelatedMessage={errors.formation?.message}
