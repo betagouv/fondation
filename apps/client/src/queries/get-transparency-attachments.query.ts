@@ -19,6 +19,7 @@ export const SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY = 'transparency-attachments';
 export const useGetTransparencyAttachmentsQuery = (sessionImportId: string) => {
   return useQuery({
     queryKey: [SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY, sessionImportId],
-    queryFn: () => getTransparencyAttachmentsQuery(sessionImportId)
+    queryFn: () => getTransparencyAttachmentsQuery(sessionImportId),
+    enabled: !!sessionImportId
   });
 };

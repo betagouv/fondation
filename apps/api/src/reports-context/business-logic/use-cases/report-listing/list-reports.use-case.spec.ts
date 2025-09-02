@@ -70,6 +70,7 @@ const uneDateTransparence: DateOnlyJson = {
 
 const unRapportVM: ReportListItemVM = {
   id: '1',
+  sessionId: uneSessionId,
   folderNumber: 15,
   state: NominationFile.ReportState.NEW,
   dueDate: {

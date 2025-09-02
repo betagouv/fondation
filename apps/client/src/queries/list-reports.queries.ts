@@ -16,6 +16,7 @@ export type ReportScreenshots = {
 
 export interface ReportSM {
   id: string;
+  sessionId: string;
   folderNumber: number | null;
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
@@ -45,6 +46,7 @@ export interface ReportSM {
 export type ReportListItem = Pick<
   ReportSM,
   | 'id'
+  | 'sessionId'
   | 'folderNumber'
   | 'state'
   | 'dueDate'

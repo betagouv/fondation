@@ -16,6 +16,7 @@ export type AttachedFileVM = {
 
 export interface ReportRetrievalVM {
   id: string;
+  sessionId: string;
   folderNumber: number | null;
   biography: string | null;
   dueDate: DateOnlyJson | null;

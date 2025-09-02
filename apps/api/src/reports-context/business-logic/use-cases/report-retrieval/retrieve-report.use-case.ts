@@ -74,6 +74,7 @@ export class RetrieveReportUseCase {
 
     return {
       id: rapport.id,
+      sessionId: rapport.sessionId,
       comment: rapport.comment,
       formation: rapport.formation,
       state: rapport.state,

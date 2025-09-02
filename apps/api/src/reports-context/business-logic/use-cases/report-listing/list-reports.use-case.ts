@@ -40,6 +40,7 @@ export class ListReportsUseCase {
     const rapportsVM: ReportListingVM = {
       data: dossierDeNomination.map(({ session, dossier, reportQueried }) => ({
         id: reportQueried.id,
+        sessionId: session.id,
         transparency: session.name,
         dateTransparence: session.content.dateTransparence,
         state: reportQueried.state,

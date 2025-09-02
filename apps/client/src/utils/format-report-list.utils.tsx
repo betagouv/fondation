@@ -9,6 +9,7 @@ import { getGdsReportPath } from './route-path.utils';
 
 export type ReportListItemVM = {
   id: string;
+  sessionId: string;
   folderNumber: number | 'Profilé';
   state: ReturnType<typeof stateToLabel>;
   dueDate: string | null;
@@ -60,6 +61,7 @@ export const formatReportList = (
     .map(
       ({
         id,
+        sessionId,
         folderNumber,
         name,
         dueDate,
@@ -79,6 +81,7 @@ export const formatReportList = (
 
         return {
           id,
+          sessionId,
           folderNumber: folderNumber ?? 'Profilé',
           state: stateToLabel(state),
           dueDate: dueDateFormatted,

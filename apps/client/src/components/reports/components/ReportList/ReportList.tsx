@@ -7,11 +7,12 @@ import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
-import { useGetTransparenciesAttachments } from '../../../../queries/get-transparencies-attachments.query';
+
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { NewReportsCount } from './NewReportsCount';
 import { ReportsTable } from './ReportsTable';
 import { TransparencyFilesList } from './TransparencyFilesList';
+import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
 
 export interface ReportListProps {
   transparency: string;
@@ -40,7 +41,7 @@ export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateT
     data: attachments,
     isLoading: isAttachmentsLoading,
     isError: isAttachmentsError
-  } = useGetTransparenciesAttachments(transparency, formation);
+  } = useGetTransparencyAttachmentsQuery(reports[0]?.sessionId);
 
   if (isReportsLoading) {
     return null;
