@@ -46,7 +46,7 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
   }
 
   updateMetadata(sessionId: string, transparence: EditTransparencyDto) {
-    console.log(sessionId, transparence);
+    console.log('SessionId', sessionId, 'Transparence', transparence);
     return async () => {};
   }
 }
