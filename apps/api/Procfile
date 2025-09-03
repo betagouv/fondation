@@ -1,2 +1,2 @@
-web: node ./dist/src/main.js
+web: pnpm start:prod
 postdeploy: pnpm drizzle:migrate:prod
