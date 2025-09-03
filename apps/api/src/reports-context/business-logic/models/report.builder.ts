@@ -6,9 +6,9 @@ import {
   ReportRetrievalVM,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
-import { NominationFileReportSnapshot } from './nomination-file-report';
 import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
 import { SessionDto } from '../gateways/services/session.service';
+import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportBuilder {
   private _snapshot: NominationFileReportSnapshot;
@@ -63,12 +63,14 @@ export class ReportBuilder {
   static fromListingVM(reportListingVM: ReportListItemVM): ReportBuilder {
     return new ReportBuilder()
       .with('id', reportListingVM.id)
+      .with('sessionId', reportListingVM.sessionId)
       .with('state', reportListingVM.state)
       .with('formation', reportListingVM.formation);
   }
   static fromRetrievalVM(reportRetrievalVM: ReportRetrievalVM): ReportBuilder {
     return new ReportBuilder()
       .with('id', reportRetrievalVM.id)
+      .with('sessionId', reportRetrievalVM.sessionId)
       .with('state', reportRetrievalVM.state)
       .with('formation', reportRetrievalVM.formation)
       .with('comment', reportRetrievalVM.comment);

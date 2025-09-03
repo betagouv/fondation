@@ -400,6 +400,13 @@
       "when": 1750428861904,
       "tag": "0056_data_admin__remove_empty_observants",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1753951922185,
+      "tag": "0057_data-administration-context_add-transparences-files-table",
+      "breakpoints": true
     }
   ]
 }

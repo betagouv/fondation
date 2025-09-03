@@ -7,7 +7,7 @@
     "format:check": "pnpm run -r format:check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
-    "build": "pnpm run -r build",
+    "build": "pnpm -r build",
     "manual-deps": "pnpm --filter shared-models build",
     "preci:local-check": "pnpm manual-deps",
     "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build"
@@ -16,7 +16,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "husky": "^9.1.6"
+    "husky": "^9.1.6",
+    "type-fest": "^4.41.0"
   },
   "engines": {
     "node": "20.9.0",

@@ -1,15 +1,20 @@
 import { and, eq } from 'drizzle-orm';
-import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
-import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
+import {
+  DateOnlyJson,
+  EditTransparencyDto,
+  Magistrat,
+  Transparency,
+} from 'shared-models';
 import {
   TransparenceSnapshot,
   Transparence as TransparenceXlsx,
 } from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
+import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
-import { transparencesPm } from './schema/transparence-pm';
-import { z } from 'zod';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { z } from 'zod';
+import { transparencesPm } from './schema/transparence-pm';
 
 export class SqlTransparenceRepository implements TransparenceRepository {
   save(
@@ -97,6 +102,32 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           createdAt: new Date((f as any).createdAt),
         })) as TransparenceSnapshot['nominationFiles'],
       });
+    };
+  }
+
+  updateMetadata(
+    sessionId: string,
+    transparence: EditTransparencyDto,
+  ): DrizzleTransactionableAsync {
+    return async (db) => {
+      await db
+        .update(transparencesPm)
+        .set({
+          name: transparence.name,
+          formation: transparence.formation,
+          dateTransparence: new Date(transparence.dateTransparence),
+          dateClôtureDélaiObservation: new Date(
+            transparence.dateClotureDelaiObservation,
+          ),
+          datePriseDePosteCible: transparence.datePriseDePosteCible
+            ? new Date(transparence.datePriseDePosteCible)
+            : null,
+          dateEchéance: transparence.dateEcheance
+            ? new Date(transparence.dateEcheance)
+            : null,
+        })
+        .where(eq(transparencesPm.id, sessionId))
+        .execute();
     };
   }
 }

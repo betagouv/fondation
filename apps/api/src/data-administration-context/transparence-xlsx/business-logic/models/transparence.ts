@@ -3,12 +3,12 @@ import { UserDescriptorSerialized } from 'src/identity-and-access-context/busine
 import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
+import { TransparenceXlsxObservantsImportésEvent } from './events/transparence-xlsx-observants-importés.event';
 import {
   NominationFileModel,
   NominationFileModelSnapshot,
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
-import { TransparenceXlsxObservantsImportésEvent } from './events/transparence-xlsx-observants-importés.event';
 
 export type TransparenceSnapshot = {
   id: string;
@@ -35,7 +35,6 @@ export class Transparence {
     private _dateEchéance: DateOnlyJson | null,
     private _datePriseDePosteCible: DateOnlyJson | null,
     private _dateClôtureDélaiObservation: DateOnlyJson,
-
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
@@ -142,6 +141,10 @@ export class Transparence {
   }
   setDateEchéance(_dateEchéance: DateOnlyJson | null) {
     this._dateEchéance = dateOnlyJsonSchema.nullable().parse(_dateEchéance);
+  }
+
+  get dateTransparence(): DateOnlyJson {
+    return this._dateTransparence;
   }
   setDateTransparence(_dateTransparence: DateOnlyJson) {
     this._dateTransparence = dateOnlyJsonSchema.parse(_dateTransparence);

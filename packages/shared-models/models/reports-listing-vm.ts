@@ -1,7 +1,6 @@
-import { DateOnlyJson } from "./date";
-import { Magistrat } from "./magistrat.namespace";
-import { NominationFile } from "./nomination-file.namespace";
-import { Transparency } from "./transparency.enum";
+import { type DateOnlyJson } from "./date";
+import { type Magistrat } from "./magistrat.namespace";
+import { type NominationFile } from "./nomination-file.namespace";
 
 export interface ReportListItemQueried {
   id: string;
@@ -13,6 +12,7 @@ export interface ReportListItemQueried {
 
 export interface ReportListItemVM {
   id: string;
+  sessionId: string;
   folderNumber: number | null;
   state: NominationFile.ReportState;
   dueDate: DateOnlyJson | null;

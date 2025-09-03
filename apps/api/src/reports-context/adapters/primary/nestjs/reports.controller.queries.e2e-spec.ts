@@ -68,6 +68,7 @@ describe('Reports Controller', () => {
 
     const aReportListingVM: ReportListItemVM = {
       id: 'f6c92518-19a1-488d-b518-5c39d3ac26c7',
+      sessionId: stubSession.id,
       state: NominationFile.ReportState.NEW,
       folderNumber: stubDossier.content.folderNumber,
       dueDate: stubDossier.content.dueDate,

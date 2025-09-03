@@ -56,7 +56,7 @@ const defaultBaseUrl = 'http://localhost:3000';
 
 export const defaultApiConfig = {
   originUrl: 'http://localhost:3000',
-  frontendOriginUrl: 'http://localhost:5173',
+  frontendOriginUrl: 'http://localhost:5174',
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
   cookieMaxAgeInMs: 1000 * 60 * 60 * 24 * 90,
@@ -84,7 +84,8 @@ export const defaultApiConfig = {
     },
     nominationsContext: {
       transparencesBucketName:
-        process.env.S3_TRANSPARENCES_BUCKET ?? 'transparences',
+        process.env.S3_TRANSPARENCES_BUCKET ??
+        'sandbox-csm-fondation-transparences-context',
     },
 
     minio: {
