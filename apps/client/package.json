@@ -19,7 +19,7 @@
     "test": "vitest",
     "test:watch": "vitest",
     "predev": "react-dsfr update-icons",
-    "prebuild": "react-dsfr update-icons",
+    "prebuild": "react-dsfr update-icons && pnpm --filter shared-models build",
     "postinstall": "pnpm dsfr:build",
     "dsfr:build": "react-dsfr update-icons",
     "test:ct": "playwright test -c playwright-ct.config.ts",
