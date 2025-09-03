@@ -10,6 +10,7 @@
     "pnpm": "9.11.0"
   },
   "scripts": {
+    "heroku-postbuild": "pnpm install --prod --shamefully-hoist && tsc",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
