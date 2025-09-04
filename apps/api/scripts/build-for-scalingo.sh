@@ -15,7 +15,6 @@ mkdir -pv .tmp-build/apps/api/dist
 
 # Copy api files needed for production
 cp -v apps/api/package.json .tmp-build/apps/api/
-cp -v apps/api/tsconfig.json .tmp-build/apps/api/
 cp -v apps/api/drizzle.config.ts .tmp-build/apps/api/
 cp -rv apps/api/drizzle .tmp-build/apps/api/
 cp -rv apps/api/dist .tmp-build/apps/api/

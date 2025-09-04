@@ -7,7 +7,7 @@
     "format:check": "pnpm run -r format:check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
-    "build": "pnpm -r build",
+    "build": "pnpm run -r build",
     "manual-deps": "pnpm --filter shared-models build",
     "preci:local-check": "pnpm manual-deps",
     "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build"
