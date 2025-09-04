@@ -1,2 +1,2 @@
-web: sh -c "echo '--- Arborescence complète ---' && find . -maxdepth 4 -type d | sort && echo '--- node_modules/@nestjs ---' && ls -la node_modules/@nestjs || echo 'Pas de dossier @nestjs' && echo '--- Fin du debug ---' && pnpm start:prod"
-postdeploy: pnpm drizzle:migrate:prod
+web: npm run start:prod"
+postdeploy: npm run drizzle:migrate:prod

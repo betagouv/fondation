@@ -10,7 +10,6 @@
     "pnpm": "9.11.0"
   },
   "scripts": {
-    "heroku-postbuild": "pnpm install --prod --shamefully-hoist && tsc",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
@@ -71,7 +70,7 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "node-xlsx": "^0.24.0",
-    "shared-models": "workspace:*",
+    "shared-models": "file:../../packages/shared-models",
     "zod": "^3.23.8"
   },
   "devDependencies": {
