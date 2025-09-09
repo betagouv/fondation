@@ -42,6 +42,7 @@ export const Transparence: FC = () => {
       <div className={clsx('gap-8', cx('fr-grid-row', 'fr-py-8v'))}>
         <TableauDeBordActions {...transparence} />
         <TableauDeBordResume {...transparence} />
+        <span>Création de mon tableau vue max</span>
       </div>
     </div>
   );
