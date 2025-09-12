@@ -1,5 +1,8 @@
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Magistrat,
@@ -7,14 +10,18 @@ import {
   type EditTransparencyDto,
   type TransparenceSnapshot
 } from 'shared-models';
-import { formationToLabel } from '../../../../reports/labels/labels-mappers';
-import Input from '@codegouvfr/react-dsfr/Input';
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { DateOnly } from '../../../../../models/date-only.model';
-import { useEditTransparency } from '../../../../../mutations/sg/edit-transparency.mutation';
+import { formationToLabel } from '../../../../reports/labels/labels-mappers';
 
-type TableauDeBordEditTransparenceProps = TransparenceSnapshot;
-export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTransparenceProps) => {
+export type TableauDeBordEditTransparenceProps = {
+  transparence: TransparenceSnapshot;
+  onSubmit: (data: EditTransparencyDto) => void;
+};
+
+export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProps> = ({
+  transparence,
+  onSubmit
+}) => {
   const {
     name,
     formation,
@@ -24,7 +31,6 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
     datePriseDePosteCible
   } = transparence;
 
-  const { mutate } = useEditTransparency();
   const {
     control,
     handleSubmit,
@@ -44,17 +50,14 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
     }
   });
 
-  const onSubmit = (data: EditTransparencyDto) => {
-    mutate({ id: transparence.id, transparency: data });
-  };
-
   return (
-    <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
+    <form className="m-auto w-full max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
       <Controller<EditTransparencyDto, 'name'>
         name="name"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
+            className="w-full"
             label="Nom de la transparence*"
             id="nom-transparence"
             nativeInputProps={{
@@ -73,6 +76,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
+            className="w-full"
             label="Date de la transparence*"
             id="date-transparence"
             nativeInputProps={{
@@ -91,6 +95,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
         control={control}
         render={({ field: { value, onChange } }) => (
           <Select
+            className="w-full"
             label="Formation*"
             nativeSelectProps={{
               value,
@@ -112,6 +117,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
+            className="w-full"
             label="Clôture du délai d'observation*"
             id="date-cloture-delai-observation"
             nativeInputProps={{
@@ -130,6 +136,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
+            className="w-full"
             label="Date d'échéance"
             id="date-echeance"
             nativeInputProps={{
@@ -148,6 +155,7 @@ export const TableauDeBordEditTransparence = (transparence: TableauDeBordEditTra
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
+            className="w-full"
             label="Date de prise de poste"
             id="date-prise-de-poste"
             nativeInputProps={{

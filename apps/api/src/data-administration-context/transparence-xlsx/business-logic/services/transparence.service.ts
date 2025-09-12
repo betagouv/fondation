@@ -114,6 +114,11 @@ export class TransparenceService {
       )(trx);
   }
 
+  getById(sessionId: string): TransactionableAsync<Transparence | null> {
+    return async (trx) =>
+      await this.transparenceRepository.getById(sessionId)(trx);
+  }
+
   private async nominationFilesWithReportersIds(
     nominationFiles: NominationFilesContentReadCollection,
     transparence: Transparence,

@@ -24,6 +24,13 @@ export class FakeTransparenceRepository implements TransparenceRepository {
     };
   }
 
+  getById(sessionId: string) {
+    return async () => {
+      const transparence = this.transparences[sessionId];
+      return transparence ? TransparenceXlsx.fromSnapshot(transparence) : null;
+    };
+  }
+
   addTransparence(transparence: TransparenceXlsxSnapshot) {
     this.transparences[transparence.id] = transparence;
   }

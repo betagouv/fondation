@@ -14,4 +14,5 @@ export interface TransparenceRepository {
     sessionId: string,
     transparence: EditTransparencyDto,
   ): TransactionableAsync;
+  getById(sessionId: string): TransactionableAsync<TransparenceXlsx | null>;
 }

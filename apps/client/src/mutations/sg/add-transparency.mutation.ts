@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import type { DataAdministrationContextRestContract, Magistrat } from 'shared-models';
+import type { DataAdministrationContextRestContract, Magistrat, TransparenceSnapshot } from 'shared-models';
 import { TRANSPARENCES_ACCEPTED_MIME_TYPES } from '../../constants/mimetypes.constants';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { RealFileProvider } from '../../utils/realFileProvider';
@@ -49,10 +49,13 @@ const addTransparency = async (dto: ImportTransparenceXlsxDto) => {
     queryParams.set('datePriseDePosteCible', datePriseDePosteCible);
   }
 
-  return apiFetch(`/data-administration/import-nouvelle-transparence-xlsx?${queryParams}`, {
-    method,
-    body: formData
-  });
+  return apiFetch<TransparenceSnapshot>(
+    `/data-administration/import-nouvelle-transparence-xlsx?${queryParams}`,
+    {
+      method,
+      body: formData
+    }
+  );
 };
 
 export const useAddTransparency = () => {

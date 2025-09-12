@@ -1,6 +1,6 @@
 import {
+  GetTransparenceQueryParamsDto,
   TransparenceSnapshot,
-  TransparenceSnapshotQueryParamsDto,
 } from 'shared-models';
 import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 
@@ -13,17 +13,11 @@ export class GetTransparenceSnapshotUseCase {
   ) {}
 
   async execute(
-    dto: TransparenceSnapshotQueryParamsDto,
+    dto: GetTransparenceQueryParamsDto,
   ): Promise<TransparenceSnapshot | null> {
     return this.transactionPerformer.perform(async (trx) => {
-      const transparence = await this.transparenceService.transparence(
-        dto.nom,
-        dto.formation,
-        {
-          year: dto.year,
-          month: dto.month,
-          day: dto.day,
-        },
+      const transparence = await this.transparenceService.getById(
+        dto.sessionId,
       )(trx);
 
       if (!transparence) return null;

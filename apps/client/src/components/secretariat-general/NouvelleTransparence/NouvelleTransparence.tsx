@@ -64,9 +64,6 @@ const NouvelleTransparence: FC = () => {
     resolver: zodResolver(nouvelleTransparenceDtoSchema)
   });
 
-  // AFFICHER LA MODALE LORSQUE LE FORMULAIRE A ETE AJOUTEE
-  // UTILISER L'ID DE LA TRANSPARENCE POUR NAVIGUER AFIN DE NE PLUS UTILISER L'URL POUR RECUPERER LES INFORMATIONS
-
   const onSubmit: SubmitHandler<FormSchema> = async (nouvelleTransparenceDto) => {
     try {
       await addTransparencyAsync({
@@ -79,16 +76,9 @@ const NouvelleTransparence: FC = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      // navigate(
-      //   ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(
-      //     ':id',
-      //     getTransparenceCompositeId(
-      //       nouvelleTransparenceDto.nomTransparence,
-      //       nouvelleTransparenceDto.formation,
-      //       DateOnly.fromDateOnlyString(nouvelleTransparenceDto.dateTransparence, 'yyyy-MM-dd').toStoreModel()
-      //     )
-      //   )
-      // );
+      if (lastRecordedTransparence) {
+        navigate(ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', lastRecordedTransparence.id));
+      }
     }
   };
 

@@ -114,14 +114,12 @@ export type TransparenceSnapshot = {
   dateClotureDelaiObservation: DateOnlyJson;
 };
 
+
+export const getTransparenceQueryParamsSchema = z.object({
+  sessionId: z.string().uuid(),
+});
 export interface GetTransparenceQueryParamsDto
-  extends Record<string, string | number> {
-  nom: string;
-  formation: Magistrat.Formation;
-  year: DateOnlyJson["year"];
-  month: DateOnlyJson["month"];
-  day: DateOnlyJson["day"];
-}
+  extends z.infer<typeof getTransparenceQueryParamsSchema> {}
 
 
 

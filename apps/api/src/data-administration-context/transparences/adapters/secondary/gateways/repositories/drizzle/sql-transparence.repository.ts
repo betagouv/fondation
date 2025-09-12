@@ -105,6 +105,48 @@ export class SqlTransparenceRepository implements TransparenceRepository {
     };
   }
 
+  getById(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<TransparenceXlsx | null> {
+    return async (db) => {
+      const transparenceResult = await db
+        .select()
+        .from(transparencesPm)
+        .where(eq(transparencesPm.id, sessionId))
+        .limit(1)
+        .execute();
+
+      if (!transparenceResult.length) {
+        return null;
+      }
+
+      const transparenceRow = transparenceResult[0]!;
+
+      return TransparenceXlsx.fromSnapshot({
+        id: transparenceRow.id,
+        createdAt: transparenceRow.createdAt,
+        name: z.string().parse(transparenceRow.name),
+        formation: transparenceRow.formation,
+        dateTransparence: DateOnly.fromDate(
+          transparenceRow.dateTransparence,
+        ).toJson(),
+        dateEchéance: transparenceRow.dateEchéance
+          ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
+          : null,
+        datePriseDePosteCible: transparenceRow.datePriseDePosteCible
+          ? DateOnly.fromDate(transparenceRow.datePriseDePosteCible).toJson()
+          : null,
+        dateClôtureDélaiObservation: DateOnly.fromDate(
+          transparenceRow.dateClôtureDélaiObservation,
+        ).toJson(),
+        nominationFiles: transparenceRow.nominationFiles.map((f) => ({
+          ...(f as any),
+          createdAt: new Date((f as any).createdAt),
+        })) as TransparenceSnapshot['nominationFiles'],
+      });
+    };
+  }
+
   updateMetadata(
     sessionId: string,
     transparence: EditTransparencyDto,
