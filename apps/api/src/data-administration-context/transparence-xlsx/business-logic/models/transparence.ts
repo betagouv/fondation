@@ -1,4 +1,8 @@
-import { DateOnlyJson, Magistrat } from 'shared-models';
+import {
+  DateOnlyJson,
+  Magistrat,
+  TransparenceSnapshot as SharedModelTransparenceSnapshot,
+} from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
@@ -194,6 +198,18 @@ export class Transparence {
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
+    };
+  }
+
+  sharedModelSnapshot(): SharedModelTransparenceSnapshot {
+    return {
+      id: this._id,
+      name: this._name,
+      formation: this._formation,
+      dateTransparence: this._dateTransparence,
+      dateEcheance: this._dateEchéance,
+      datePriseDePosteCible: this._datePriseDePosteCible,
+      dateClotureDelaiObservation: this._dateClôtureDélaiObservation,
     };
   }
 

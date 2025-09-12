@@ -14,7 +14,7 @@ export interface DataAdministrationContextRestContract extends RestContract {
       queryParams: ImportNouvelleTransparenceDto;
       response: {
         validationError?: string;
-      };
+      } | TransparenceSnapshot;
     };
     importObservantsXlsx: {
       method: 'POST';
