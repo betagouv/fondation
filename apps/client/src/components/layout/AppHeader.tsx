@@ -1,9 +1,9 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 
-import { AppHeaderAvatar } from './AppHeaderAvatar';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import { useLocation } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { AppHeaderAvatar } from './AppHeaderAvatar';
 
 export const AppHeader = () => {
   const { pathname } = useLocation();
@@ -26,7 +26,7 @@ export const AppHeader = () => {
     },
     {
       linkProps: {
-        href: '#',
+        href: ROUTE_PATHS.SG.MANAGE_SESSION,
         target: '_self'
       },
       text: 'Gérer une session'

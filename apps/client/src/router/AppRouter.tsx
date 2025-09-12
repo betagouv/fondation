@@ -3,13 +3,14 @@ import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
 import { LoginPage } from '../pages/LoginPage';
+import { ManageSessionPage } from '../pages/secretariat-general/ManageSessionPage';
 import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
+import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
+import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
 import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { TransparencesPage } from '../pages/transparence/TransparencesPage';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
-import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
-import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 
 const router = createBrowserRouter([
   {
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.SG.TRANSPARENCE_ID,
             element: <TransparencePage />
+          },
+          {
+            path: ROUTE_PATHS.SG.MANAGE_SESSION,
+            element: <ManageSessionPage />
           }
         ]
       }

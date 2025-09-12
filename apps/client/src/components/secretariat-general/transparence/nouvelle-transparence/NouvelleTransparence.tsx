@@ -9,12 +9,12 @@ import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
 import { useNavigate } from 'react-router-dom';
-import { useAddTransparency } from '../../../mutations/sg/add-transparency.mutation';
-import { ROUTE_PATHS } from '../../../utils/route-path.utils';
-import { getSgBreadCrumb } from '../../../utils/sg-breadcrumb.utils';
-import { formationToLabel } from '../../reports/labels/labels-mappers';
-import { Breadcrumb } from '../../shared/Breadcrumb';
-import { PageContentLayout } from '../../shared/PageContentLayout';
+import { useAddTransparency } from '../../../../mutations/sg/add-transparency.mutation';
+import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
+import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
+import { formationToLabel } from '../../../reports/labels/labels-mappers';
+import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { PageContentLayout } from '../../../shared/PageContentLayout';
 
 const mandatoryField = 'Champ obligatoire.';
 const invalidDateFormat = 'Format de date invalide.';

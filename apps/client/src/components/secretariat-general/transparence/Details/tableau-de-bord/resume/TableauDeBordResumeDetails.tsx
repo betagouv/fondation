@@ -1,7 +1,7 @@
+import { colors } from '@codegouvfr/react-dsfr';
 import clsx from 'clsx';
 import type { TransparenceSnapshot } from 'shared-models';
-import { DateOnly } from '../../../../../models/date-only.model';
-import { colors } from '@codegouvfr/react-dsfr';
+import { DateOnly } from '../../../../../../models/date-only.model';
 
 const Label = ({ nom }: { nom: string }) => (
   <div style={{ color: colors.options.grey._625_425.default }}>{nom}</div>

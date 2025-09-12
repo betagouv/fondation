@@ -35,6 +35,7 @@ interface RoutePath {
     DASHBOARD: '/secretariat-general';
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence';
     TRANSPARENCE_ID: '/secretariat-general/saisine/transparence/session/:id';
+    MANAGE_SESSION: '/secretariat-general/sessions';
   };
 }
 
@@ -50,7 +51,8 @@ export const ROUTE_PATHS: RoutePath = {
   SG: {
     DASHBOARD: '/secretariat-general',
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
-    TRANSPARENCE_ID: '/secretariat-general/saisine/transparence/session/:id'
+    TRANSPARENCE_ID: '/secretariat-general/saisine/transparence/session/:id',
+    MANAGE_SESSION: '/secretariat-general/sessions'
   }
 };
 

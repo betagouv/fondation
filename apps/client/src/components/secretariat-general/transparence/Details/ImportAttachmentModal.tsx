@@ -3,9 +3,9 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useState } from 'react';
-import { useImportAttachment } from '../../../mutations/sg/import-attachment.mutation';
 import type { Magistrat } from 'shared-models';
-import type { DateOnly } from '../../../models/date-only.model';
+import type { DateOnly } from '../../../../models/date-only.model';
+import { useImportAttachment } from '../../../../mutations/sg/import-attachment.mutation';
 
 type ImportAttachmentModalProps = {
   sessionImportId: string;

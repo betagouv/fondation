@@ -5,7 +5,7 @@ import type { EditTransparencyDto, TransparenceSnapshot } from 'shared-models';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
-import { useEditTransparency } from '../../../../../mutations/sg/edit-transparency.mutation';
+import { useEditTransparency } from '../../../../../../mutations/sg/edit-transparency.mutation';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 

@@ -6,10 +6,10 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { type FC, useState } from 'react';
 import { Magistrat } from 'shared-models';
+import type { DateOnly } from '../../../../models/date-only.model';
+import { useImportObservants } from '../../../../mutations/sg/import-observants.mutation';
+import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../shared/HintImportXlsxFile';
 import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
-import type { DateOnly } from '../../../models/date-only.model';
-import { useImportObservants } from '../../../mutations/sg/import-observants.mutation';
-import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../shared/HintImportXlsxFile';
 
 const modal = createModal({
   id: 'modal-import-observations-transparence',

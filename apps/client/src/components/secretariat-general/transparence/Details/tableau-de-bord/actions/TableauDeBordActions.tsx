@@ -5,11 +5,11 @@ import { ImportAttachmentModal } from '../../ImportAttachmentModal';
 import { ImportObservantsModal } from '../../ImportObservantsModal';
 
 import { type TransparenceSnapshot } from 'shared-models';
-import { useGetTransparencyAttachmentsQuery } from '../../../../../queries/get-transparency-attachments.query';
+import { useGetTransparencyAttachmentsQuery } from '../../../../../../queries/get-transparency-attachments.query';
 
-import { DateOnly } from '../../../../../models/date-only.model';
-import { useDeleteFile } from '../../../../../mutations/delete-file.mutation';
-import { AttachedFilesList } from '../../../../shared/AttachedFilesList';
+import { DateOnly } from '../../../../../../models/date-only.model';
+import { useDeleteFile } from '../../../../../../mutations/delete-file.mutation';
+import { AttachedFilesList } from '../../../../../shared/AttachedFilesList';
 
 type TableauDeBordActionsProps = TransparenceSnapshot;
 

@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { type FC } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useGetTransparence } from '../../../queries/sg/get-transparence.query';
+import { useGetTransparence } from '../../../../queries/sg/get-transparence.query';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 

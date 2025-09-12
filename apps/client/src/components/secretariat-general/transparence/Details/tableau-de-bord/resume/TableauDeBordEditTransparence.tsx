@@ -10,8 +10,8 @@ import {
   type EditTransparencyDto,
   type TransparenceSnapshot
 } from 'shared-models';
-import { DateOnly } from '../../../../../models/date-only.model';
-import { formationToLabel } from '../../../../reports/labels/labels-mappers';
+import { DateOnly } from '../../../../../../models/date-only.model';
+import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
 
 export type TableauDeBordEditTransparenceProps = {
   transparence: TransparenceSnapshot;
