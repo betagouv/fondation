@@ -1,19 +1,19 @@
 import { Editor } from '@tiptap/react';
 import { reportHtmlIds } from '../../../dom/html-ids';
 
-import { TextareaCard } from '../TextareaCard';
-import { type InsertImages, type RedoImages } from '../TipTapEditor';
 import { ReportVM } from '../../../../../VM/ReportVM';
-import { useDeleteFilesReport } from '../../../../../mutations/reports/delete-files-report.mutation';
+import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
+import { useDeleteFileReport } from '../../../../../react-query/mutations/reports/delete-file-report.mutation';
+import { useDeleteFilesReport } from '../../../../../react-query/mutations/reports/delete-files-report.mutation';
 import {
   addTimestampToFiles,
   useInsertImagesWithSignedUrls
-} from '../../../../../mutations/reports/screenshots/insert-images.mutation';
-import { RealFileProvider } from '../../../../../utils/realFileProvider';
-import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
+} from '../../../../../react-query/mutations/reports/screenshots/insert-images.mutation';
 import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
+import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
-import { useDeleteFileReport } from '../../../../../mutations/reports/delete-file-report.mutation';
+import { TextareaCard } from '../TextareaCard';
+import { type InsertImages, type RedoImages } from '../TipTapEditor';
 
 export type ReportEditorProps = {
   comment: string | null;

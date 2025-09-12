@@ -1,18 +1,18 @@
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { DateOnlyJson, Magistrat } from 'shared-models';
-import { useListReports } from '../../../../queries/list-reports.queries';
+import { useListReports } from '../../../../react-query/queries/list-reports.queries';
 import { formatReportList } from '../../../../utils/format-report-list.utils';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
 
+import { useGetTransparencyAttachmentsQuery } from '../../../../react-query/queries/get-transparency-attachments.query';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { NewReportsCount } from './NewReportsCount';
 import { ReportsTable } from './ReportsTable';
 import { TransparencyFilesList } from './TransparencyFilesList';
-import { useGetTransparencyAttachmentsQuery } from '../../../../queries/get-transparency-attachments.query';
 
 export interface ReportListProps {
   transparency: string;

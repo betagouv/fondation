@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DataAdministrationContextRestContract, EditTransparencyDto } from 'shared-models';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 import { SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY } from '../../queries/get-transparency-attachments.query';
-import { apiFetch } from '../../utils/api-fetch.utils';
 
 type Endpoint = DataAdministrationContextRestContract['endpoints']['updateTransparence'];
 type UpdateTransparenceArgs = Endpoint['body'];

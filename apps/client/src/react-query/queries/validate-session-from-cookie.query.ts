@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Gender, Role, type IdentityAndAccessRestContract } from 'shared-models';
-import { apiFetch } from '../utils/api-fetch.utils';
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 type Endpoint = IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'];
 type ValidateSessionFromCookieResponse = Endpoint['response'];

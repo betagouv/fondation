@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { reportUpdateDto, type ReportsContextRestContract } from 'shared-models';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 import type { ReportSM } from '../../queries/list-reports.queries';
-import { apiFetch } from '../../utils/api-fetch.utils';
 
 export type UpdateReportParams = {
   reportId: string;

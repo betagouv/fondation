@@ -4,7 +4,7 @@ import {
   type FilesContextRestContract,
   type ReportsContextRestContract
 } from 'shared-models';
-import { apiFetch } from '../../../utils/api-fetch.utils';
+import { apiFetch } from '../../../../utils/api-fetch.utils';
 
 export const addTimestampToFiles = async (files: File[], timestamp: number) => {
   return await Promise.all(

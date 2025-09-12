@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { useState } from 'react';
 import type { Magistrat } from 'shared-models';
 import type { DateOnly } from '../../../../models/date-only.model';
-import { useImportAttachment } from '../../../../mutations/sg/import-attachment.mutation';
+import { useImportAttachment } from '../../../../react-query/mutations/sg/import-attachment.mutation';
 
 type ImportAttachmentModalProps = {
   sessionImportId: string;

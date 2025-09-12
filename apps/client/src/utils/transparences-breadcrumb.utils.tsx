@@ -2,8 +2,8 @@ import type { NavigateFunction } from 'react-router-dom';
 import { Magistrat } from 'shared-models';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
+import type { ReportSM } from '../react-query/queries/list-reports.queries';
 import { getGdsDetailsPath, ROUTE_PATHS } from './route-path.utils';
-import type { ReportSM } from '../queries/list-reports.queries';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',

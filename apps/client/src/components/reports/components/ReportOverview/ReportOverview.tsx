@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
-import { type ReportSM } from '../../../../queries/list-reports.queries';
+import { type ReportSM } from '../../../../react-query/queries/list-reports.queries';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
@@ -17,21 +17,21 @@ import { MagistratIdentity } from './MagistratIdentity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
 
-import { ReportRules } from './ReportRules';
-import { useReportById } from '../../../../queries/report-by-id.queries';
-import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
-import { Summary } from './Summary';
-import { ReportOverviewState } from './ReportOverviewState';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
-import { useUpdateRule } from '../../../../mutations/reports/rules/update-rule.mutation';
-import { useAttachReportFiles } from '../../../../mutations/reports/attach-report-files.mutation';
+import { useAttachReportFiles } from '../../../../react-query/mutations/reports/attach-report-files.mutation';
+import { useUpdateRule } from '../../../../react-query/mutations/reports/rules/update-rule.mutation';
+import { useReportById } from '../../../../react-query/queries/report-by-id.queries';
+import { allRulesLabelsMap } from '../../labels/rules-labels';
+import { ReportOverviewState } from './ReportOverviewState';
+import { ReportRules } from './ReportRules';
+import { Summary } from './Summary';
 
+import { useDeleteFileReport } from '../../../../react-query/mutations/reports/delete-file-report.mutation';
 import {
   useUpdateReport,
   type UpdateReportParams
-} from '../../../../mutations/reports/update-report.mutation';
-import { useDeleteFileReport } from '../../../../mutations/reports/delete-file-report.mutation';
+} from '../../../../react-query/mutations/reports/update-report.mutation';
 
 const formatBiography = (biography: string | null) => {
   if (!biography) return null;

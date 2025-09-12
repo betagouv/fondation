@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReportFileUsage, type ReportsContextRestContract } from 'shared-models';
-import { apiFetch } from '../utils/api-fetch.utils';
+import { apiFetch } from '../../utils/api-fetch.utils';
 import type { ReportScreenshots, ReportSM } from './list-reports.queries';
 
 type Endpoint = ReportsContextRestContract['endpoints']['retrieveReport'];

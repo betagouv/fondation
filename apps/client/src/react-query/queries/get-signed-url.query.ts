@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { FilesContextRestContract } from 'shared-models';
-import { apiFetch } from '../utils/api-fetch.utils';
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
 type GetSignedUrlsResponse = Endpoint['response'];

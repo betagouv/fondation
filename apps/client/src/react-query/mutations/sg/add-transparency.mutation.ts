@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import type { DataAdministrationContextRestContract, Magistrat, TransparenceSnapshot } from 'shared-models';
-import { TRANSPARENCES_ACCEPTED_MIME_TYPES } from '../../constants/mimetypes.constants';
-import { apiFetch } from '../../utils/api-fetch.utils';
-import { RealFileProvider } from '../../utils/realFileProvider';
+import { TRANSPARENCES_ACCEPTED_MIME_TYPES } from '../../../constants/mimetypes.constants';
+import { apiFetch } from '../../../utils/api-fetch.utils';
+import { RealFileProvider } from '../../../utils/realFileProvider';
 
 export type ImportTransparenceXlsxDto = {
   nomTransparence: string;

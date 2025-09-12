@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { apiFetch } from '../utils/api-fetch.utils';
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 const deleteFile = (id: string) => {
   return apiFetch(`/files/byId/${id}`, { method: 'DELETE' });

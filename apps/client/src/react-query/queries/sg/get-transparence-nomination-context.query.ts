@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { NominationsContextTransparenceRestContract } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 type GetTransparenceArgs =
   NominationsContextTransparenceRestContract['endpoints']['transparenceSnapshot']['queryParams'];

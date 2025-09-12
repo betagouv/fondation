@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Magistrat, NominationFile, ReportsContextRestContract, Transparency } from 'shared-models';
-import type { DateOnlyStoreModel } from '../models/date-only.model';
-import { apiFetch } from '../utils/api-fetch.utils';
+import type { DateOnlyStoreModel } from '../../models/date-only.model';
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 export type ReportScreenshotSM = {
   // On n'a pas de fileId avant la fin de l'upload

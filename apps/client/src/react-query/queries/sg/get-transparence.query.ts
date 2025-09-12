@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { DataAdministrationContextRestContract, TransparenceSnapshot } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 type Endpoint = DataAdministrationContextRestContract['endpoints']['getTransparenceSnapshot'];
 type GetTransparenceArgs = Endpoint['queryParams'];

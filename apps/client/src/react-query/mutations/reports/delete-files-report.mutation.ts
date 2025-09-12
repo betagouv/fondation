@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import type { ReportsContextRestContract } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 const deleteFilesReport = (reportId: string, fileNames: string[]) => {
   const { method }: Partial<ReportsContextRestContract['endpoints']['deleteFiles']> = {

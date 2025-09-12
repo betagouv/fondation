@@ -1,11 +1,11 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
+import { useListReports } from '../../../../react-query/queries/list-reports.queries';
+import { useValidateSessionFromCookie } from '../../../../react-query/queries/validate-session-from-cookie.query';
+import { formatTransparencies } from '../../../../utils/format-transparencies.utils';
 import { CsmTransparencies } from './CsmTransparencies';
 import { GdsTransparencies } from './GdsTransparencies';
-import { useValidateSessionFromCookie } from '../../../../queries/validate-session-from-cookie.query';
-import { useListReports } from '../../../../queries/list-reports.queries';
-import { formatTransparencies } from '../../../../utils/format-transparencies.utils';
 
 export const Transparencies = () => {
   const { user } = useValidateSessionFromCookie();

@@ -19,7 +19,7 @@ export const AppHeader = () => {
     },
     {
       linkProps: {
-        href: '#',
+        href: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
         target: '_self'
       },
       text: 'Créer une session'

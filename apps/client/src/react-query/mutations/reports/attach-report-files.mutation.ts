@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import type { ReportFileUsage, ReportsContextRestContract } from 'shared-models';
-import { ACCEPTED_MIME_TYPES } from '../../constants/mimetypes.constants';
-import { apiFetch } from '../../utils/api-fetch.utils';
-import { DeterministicUuidGenerator } from '../../utils/deterministicUuidGenerator';
-import { RealFileProvider } from '../../utils/realFileProvider';
+import { ACCEPTED_MIME_TYPES } from '../../../constants/mimetypes.constants';
+import { apiFetch } from '../../../utils/api-fetch.utils';
+import { DeterministicUuidGenerator } from '../../../utils/deterministicUuidGenerator';
+import { RealFileProvider } from '../../../utils/realFileProvider';
 
 const attachReportFiles = (reportId: string, files: File[], usage: ReportFileUsage) => {
   files.map(new RealFileProvider().assertMimeTypeFactory(ACCEPTED_MIME_TYPES));

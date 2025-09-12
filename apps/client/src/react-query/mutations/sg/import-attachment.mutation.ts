@@ -4,9 +4,9 @@ import {
   type DataAdministrationContextRestContract,
   type ImportSessionAttachmentDto
 } from 'shared-models';
-import type { DateOnly } from '../../models/date-only.model';
+import type { DateOnly } from '../../../models/date-only.model';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 import { SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY } from '../../queries/get-transparency-attachments.query';
-import { apiFetch } from '../../utils/api-fetch.utils';
 
 const addAttachment = (
   sessionImportId: string,

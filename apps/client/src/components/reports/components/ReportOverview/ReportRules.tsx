@@ -1,9 +1,9 @@
 import { NominationFile } from 'shared-models';
 
-import { ReportRule } from './ReportRule';
-import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportVM } from '../../../../VM/ReportVM';
-import type { ReportSM } from '../../../../queries/list-reports.queries';
+import type { ReportSM } from '../../../../react-query/queries/list-reports.queries';
+import { reportHtmlIds } from '../../dom/html-ids';
+import { ReportRule } from './ReportRule';
 
 export type ReportRulesProps = {
   rulesChecked: ReportVM['rulesChecked'];
