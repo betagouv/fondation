@@ -10,6 +10,11 @@ export const AppHeader = () => {
   const { pathname } = useLocation();
   const includeSg = pathname.includes(ROUTE_PATHS.SG.DASHBOARD);
 
+  const onClickHandler = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(path);
+  };
+
   const navigation: MainNavigationProps.Item[] = [
     {
       linkProps: {
@@ -21,6 +26,7 @@ export const AppHeader = () => {
     {
       linkProps: {
         href: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
+        onClick: onClickHandler(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE),
         target: '_self'
       },
       text: 'Créer une session'
@@ -28,10 +34,7 @@ export const AppHeader = () => {
     {
       linkProps: {
         href: ROUTE_PATHS.SG.MANAGE_SESSION,
-        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-          event.preventDefault();
-          navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
-        },
+        onClick: onClickHandler(ROUTE_PATHS.SG.MANAGE_SESSION),
         target: '_self'
       },
       text: 'Gérer une session'

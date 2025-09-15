@@ -4,15 +4,24 @@ import { Magistrat } from "../magistrat.namespace";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
 import { type RestContract, type ZodParamsDto, type ZodQueryParamsDto } from "./common";
 
-type SessionSnapshotResponse = {
+export type SessionContent<S extends TypeDeSaisine | unknown = unknown> =
+  S extends TypeDeSaisine.TRANSPARENCE_GDS
+    ? {
+        dateTransparence: DateOnlyJson;
+        dateClôtureDélaiObservation: DateOnlyJson;
+      }
+    : object;
+
+export type SessionSnapshotResponse<S extends TypeDeSaisine | unknown = unknown> = {
   id: string;
   sessionImportéeId: string;
   name: string;
   formation: Magistrat.Formation;
   typeDeSaisine: TypeDeSaisine;
   version: number;
-  content: object;
+  content: SessionContent<S>;
 };
+
 
 export type TransparenceSnapshotResponse = {
   id: string;
