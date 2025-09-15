@@ -30,6 +30,11 @@ export type TransparenceSnapshotResponse = {
 export interface NominationsContextSessionsRestContract extends RestContract {
   basePath: "api/nominations/sessions";
   endpoints: {
+    sessions: {
+      method: "GET";
+      path: "";
+      response: SessionSnapshotResponse[];
+    },
     sessionSnapshot: {
       method: "GET";
       path: "session/snapshot/by-id/:sessionId";

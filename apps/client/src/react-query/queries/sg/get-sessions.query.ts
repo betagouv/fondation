@@ -1,8 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import type { NominationsContextSessionsRestContract } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 
+type Endpoint = NominationsContextSessionsRestContract['endpoints']['sessions'];
+type GetSessionsResponse = Endpoint['response'];
+
 const getSessions = () => {
-  return apiFetch('/sessions', { method: 'GET' });
+  const url = '/nominations/sessions';
+  return apiFetch<GetSessionsResponse>(url, { method: 'GET' });
 };
 
 export const useGetSessions = () => {

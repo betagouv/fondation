@@ -72,7 +72,6 @@ const NouvelleTransparence: FC = () => {
         datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible || null,
         dateClotureDelaiObservation: nouvelleTransparenceDto.dateClôtureDélaiObservation
       });
-      console.log('Voici ma last recorded transparence', lastRecordedTransparence);
     } catch (error) {
       console.error(error);
     } finally {

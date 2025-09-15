@@ -35,6 +35,7 @@ import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
+import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -86,6 +87,10 @@ import {
       TRANSACTION_PERFORMER,
     ]),
     generateProvider(GetSessionSnapshotUseCase, [
+      SESSION_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
+    generateProvider(GetSessionsUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),

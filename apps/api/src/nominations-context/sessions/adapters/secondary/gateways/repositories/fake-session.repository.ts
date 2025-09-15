@@ -8,6 +8,12 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 export class FakeSessionRepository implements SessionRepository {
   fakeSessions: Record<string, SessionSnapshot> = {};
 
+  findAll(): TransactionableAsync<Session[]> {
+    return async () => {
+      return Object.values(this.fakeSessions).map(Session.fromSnapshot);
+    };
+  }
+
   save(transparence: Session) {
     return async () => {
       this.fakeSessions[transparence.id] = transparence.snapshot();

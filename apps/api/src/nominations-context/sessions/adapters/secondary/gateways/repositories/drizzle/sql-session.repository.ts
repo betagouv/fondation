@@ -8,6 +8,13 @@ import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondar
 import { sessionPm } from './schema/session-pm';
 
 export class SqlSessionRepository implements SessionRepository {
+  findAll(): DrizzleTransactionableAsync<Session[]> {
+    return async (db) => {
+      const result = await db.select().from(sessionPm);
+      return result.map(SqlSessionRepository.mapToDomain);
+    };
+  }
+
   save(session: Session): DrizzleTransactionableAsync<void> {
     return async (db) => {
       const sessionSnapshot = session.snapshot();

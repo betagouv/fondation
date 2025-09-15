@@ -1,5 +1,6 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { NominationsContextSessionsRestContract } from 'shared-models';
+import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
 import {
   IController,
   IControllerPaths,
@@ -15,6 +16,7 @@ export const baseRoute: NominationsContextSessionsRestContract['basePath'] =
   'api/nominations/sessions';
 export const endpointsPaths: IControllerPaths<NominationsContextSessionsRestContract> =
   {
+    sessions: '',
     sessionSnapshot: 'session/snapshot/by-id/:sessionId',
     dossierDeNominationSnapshot:
       'dossier-de-nomination/snapshot/by-id/:dossierId',
@@ -25,7 +27,13 @@ export class SessionsController implements ISessionsController {
   constructor(
     private readonly getDossierDeNominationSnapshotUseCase: GetDossierDeNominationSnapshotUseCase,
     private readonly getSessionSnapshotUseCase: GetSessionSnapshotUseCase,
+    private readonly getSessionsUseCase: GetSessionsUseCase,
   ) {}
+
+  @Get(endpointsPaths.sessions)
+  async sessions() {
+    return this.getSessionsUseCase.execute();
+  }
 
   @Get(endpointsPaths.sessionSnapshot)
   async sessionSnapshot(@Param() params: SessionSnapshotParamsNestDto) {

@@ -1,14 +1,18 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { type FC } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetTransparence } from '../../../../react-query/queries/sg/get-transparence.query';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
+import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
+import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
+import { Breadcrumb } from '../../../shared/Breadcrumb';
 
 export const Transparence: FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: transparence,
@@ -26,13 +30,40 @@ export const Transparence: FC = () => {
     return <div>Session de type Transparence non trouvée.</div>;
   }
 
+  const breadcrumb: BreadcrumbVM = {
+    currentPageLabel: transparence.name,
+    segments: [
+      {
+        label: 'Secretariat général',
+        href: ROUTE_PATHS.SG.DASHBOARD,
+        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+          event.preventDefault();
+          navigate(ROUTE_PATHS.SG.DASHBOARD);
+        }
+      },
+      {
+        label: 'Gérer une session',
+        href: ROUTE_PATHS.SG.MANAGE_SESSION,
+        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+          event.preventDefault();
+          navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+        }
+      }
+    ]
+  };
+
   return (
-    <div className={clsx(cx('fr-container'))}>
-      <div className={clsx('gap-8', cx('fr-grid-row', 'fr-py-8v'))}>
+    <>
+      <Breadcrumb
+        id="transparence-details-breadcrumb"
+        ariaLabel="Fil d'Ariane d'une transparence détaillée"
+        breadcrumb={breadcrumb}
+      />
+      <div className={clsx('gap-8', cx('fr-grid-row'))}>
         <TableauDeBordActions {...transparence} />
         <TableauDeBordResume {...transparence} />
       </div>
-    </div>
+    </>
   );
 };
 

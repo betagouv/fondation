@@ -4,7 +4,7 @@ import { PageContentLayout } from '../../components/shared/PageContentLayout';
 export const ManageSessionPage = () => {
   return (
     <PageContentLayout>
-      <ManageSession />;
+      <ManageSession />
     </PageContentLayout>
   );
 };
