@@ -10,6 +10,7 @@ import {
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { ScrollToTop } from '../../../shared/ScrollToTop';
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
@@ -201,6 +202,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           />
         </div>
       </div>
+      <ScrollToTop />
     </div>
   );
 };
