@@ -1,32 +1,12 @@
 import { TypeDeSaisine } from 'shared-models';
 import {
-  ContenuPropositionDeNominationTransparenceV1,
-  ContenuPropositionDeNominationTransparenceV2,
-} from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+  DossierDeNominationContent,
+  DossierDeNominationSnapshot,
+} from 'shared-models/models/session/dossier-de-nomination-content';
 import { Exact } from 'type-fest/source/exact';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { NouveauDossierDeNominationEvent } from './events/nouveau-dossier-de-nomination.event';
-
-export type ContenuInconnu = object;
-
-export type DossierDeNominationContent<
-  S extends TypeDeSaisine | unknown = unknown,
-> = S extends TypeDeSaisine.TRANSPARENCE_GDS
-  ?
-      | ContenuPropositionDeNominationTransparenceV1
-      | ContenuPropositionDeNominationTransparenceV2
-  : ContenuInconnu;
-
-export type DossierDeNominationSnapshot<
-  S extends TypeDeSaisine | unknown = unknown,
-  Content extends DossierDeNominationContent<S> = DossierDeNominationContent<S>,
-> = {
-  id: string;
-  sessionId: string;
-  nominationFileImportedId: string;
-  content: Content;
-};
 
 export const dossierDeNominationContentSchema = z.record(
   z.string(),

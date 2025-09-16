@@ -1,7 +1,7 @@
-import {
-  DossierDeNomination,
-  DossierDeNominationSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
+
+import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
+import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -10,11 +10,11 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { dossierDeNominationPm } from './schema/dossier-de-nomination-pm';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
+import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { SqlDossierDeNominationRepository } from './sql-dossier-de-nomination.repository';
-import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
-import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
-import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 
 describe('SQL Dossier De Nomination Repository', () => {
   let sqlDossierDeNominationRepository: SqlDossierDeNominationRepository;

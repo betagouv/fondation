@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { integer, jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { SessionContent } from 'src/nominations-context/sessions/business-logic/models/session';
+
+import { SessionContent } from 'shared-models/models/session/session-content';
 import { formationEnum } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import { typeDeSaisineEnum } from './enums';
 import { nominationsContextSchema } from './nominations-context-schema.drizzle';

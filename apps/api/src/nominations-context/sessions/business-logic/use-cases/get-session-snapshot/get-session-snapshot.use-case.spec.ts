@@ -1,6 +1,6 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { SessionSnapshot } from '../../models/session';
 
 describe('Get Session Snapshot Use Case', () => {
   let deps: ReturnType<typeof getDependencies>;

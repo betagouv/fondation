@@ -9,10 +9,13 @@ import {
   IdentityAndAccessRestContract,
   NominationsContextSessionsRestContract,
 } from 'shared-models';
+import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
+import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
+import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
@@ -50,8 +53,10 @@ import { RapportTransparenceCrééNestSubscriber } from './event-subscribers/rap
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
-  NOMINATIONS_CONTEXT_HTTP_CLIENT,
+  DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
   DOSSIER_DE_NOMINATION_SERVICE,
+  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
+  NOMINATIONS_CONTEXT_HTTP_CLIENT,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
   REPORT_REPOSITORY,
@@ -59,10 +64,7 @@ import {
   REPORT_RULE_REPOSITORY,
   SESSION_SERVICE,
   USER_SERVICE,
-  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
 } from './tokens';
-import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
-import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
 
 @Module({
   imports: [SharedKernelModule],
@@ -169,6 +171,20 @@ import { RapportTransparenceCrééSubscriber } from 'src/reports-context/busines
       },
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
+    {
+      provide: DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<DossierDeNominationRestContrat>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/nominations/dossier-de-nominations',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
 
     generateProvider(
       HttpSessionService,
@@ -177,7 +193,7 @@ import { RapportTransparenceCrééSubscriber } from 'src/reports-context/busines
     ),
     generateProvider(
       HttpDossierDeNominationService,
-      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
+      [DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT],
       DOSSIER_DE_NOMINATION_SERVICE,
     ),
     generateProvider(DossierDeNominationTranslator, [

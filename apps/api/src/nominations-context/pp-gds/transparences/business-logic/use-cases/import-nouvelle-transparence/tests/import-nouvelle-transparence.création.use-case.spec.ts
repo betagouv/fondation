@@ -1,4 +1,6 @@
 import { TypeDeSaisine } from 'shared-models';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import {
   aFormation,
   aSessionId,
@@ -7,8 +9,6 @@ import {
   givenSomeUuids,
   importNouvelleTransparenceUseCase,
 } from './import-nouvelle-transparence.tests-setup';
-import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 
 describe('Nouvelle transparence GDS', () => {
   let dependencies: ReturnType<typeof getDependencies>;

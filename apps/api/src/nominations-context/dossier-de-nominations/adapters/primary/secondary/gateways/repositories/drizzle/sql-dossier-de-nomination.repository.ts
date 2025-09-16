@@ -1,10 +1,11 @@
 import { eq } from 'drizzle-orm';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
+import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
 import {
   DossierDeNomination,
   dossierDeNominationContentSchema,
-  DossierDeNominationSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+} from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { dossierDeNominationPm } from './schema/dossier-de-nomination-pm';
 
@@ -53,6 +54,19 @@ export class SqlDossierDeNominationRepository
       }
 
       return SqlDossierDeNominationRepository.mapToDomain(result[0]!);
+    };
+  }
+
+  findBySessionId(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<DossierDeNomination[]> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(dossierDeNominationPm)
+        .where(eq(dossierDeNominationPm.sessionId, sessionId));
+
+      return result.map(SqlDossierDeNominationRepository.mapToDomain);
     };
   }
 

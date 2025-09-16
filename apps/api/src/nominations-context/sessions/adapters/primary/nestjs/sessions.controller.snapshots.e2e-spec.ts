@@ -1,8 +1,10 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
+import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,
@@ -12,7 +14,6 @@ import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-request.builder';
 import { sessionPm } from '../../secondary/gateways/repositories/drizzle/schema';
-import { dossierDeNominationPm } from '../../secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 
 const aDossierId = '885e0f4b-0ace-4023-a8bc-b3a678448e51';
 const aDossierDeNominationImportéId = '7d39c745-8186-46b6-8856-3f77cc93e5e8';
@@ -121,7 +122,7 @@ describe('Sessions Controller- Snapshots', () => {
       new SecureCrossContextRequestBuilder(app)
         .withTestedEndpoint((agent) =>
           agent.get(
-            `/api/nominations/sessions/dossier-de-nomination/snapshot/by-id/${id}`,
+            `/api/nominations/dossier-de-nominations/snapshot/by-id/${id}`,
           ),
         )
         .request();

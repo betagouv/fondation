@@ -10,13 +10,12 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
-import { ContenuPropositionDeNominationTransparenceV1 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
-import {
-  dossierDeNominationPm,
-  sessionPm,
-} from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
+import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
+import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
+
+import { ContenuPropositionDeNominationTransparenceV1 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';
 import { SqlReportRuleRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report-rule.repository';

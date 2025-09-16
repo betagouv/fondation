@@ -5,9 +5,8 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import { GetDossierDeNominationSnapshotUseCase } from '../../../business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { GetDossierDeNominationSnapshotUseCase } from '../../../../dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GetSessionSnapshotUseCase } from '../../../business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
-import { DossierDeNominationSnapshotParamsNestDto } from './dto/dossier-de-nomination-snapshot-params.nest-dto';
 import { SessionSnapshotParamsNestDto } from './dto/session-snapshot-params.nest-dto';
 
 type ISessionsController = IController<NominationsContextSessionsRestContract>;
@@ -18,8 +17,6 @@ export const endpointsPaths: IControllerPaths<NominationsContextSessionsRestCont
   {
     sessions: '',
     sessionSnapshot: 'session/snapshot/by-id/:sessionId',
-    dossierDeNominationSnapshot:
-      'dossier-de-nomination/snapshot/by-id/:dossierId',
   };
 
 @Controller(baseRoute)
@@ -47,22 +44,5 @@ export class SessionsController implements ISessionsController {
     }
 
     return session;
-  }
-
-  @Get(endpointsPaths.dossierDeNominationSnapshot)
-  async dossierDeNominationSnapshot(
-    @Param() params: DossierDeNominationSnapshotParamsNestDto,
-  ) {
-    const dossier = await this.getDossierDeNominationSnapshotUseCase.execute(
-      params.dossierId,
-    );
-
-    if (!dossier) {
-      throw new NotFoundException(
-        `Dossier de nomination with ID ${params.dossierId} not found`,
-      );
-    }
-
-    return dossier;
   }
 }

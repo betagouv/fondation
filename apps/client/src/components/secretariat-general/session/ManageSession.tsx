@@ -5,8 +5,9 @@ import { ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { Breadcrumb } from '../../shared/Breadcrumb';
 import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
 import { useNavigate } from 'react-router-dom';
-import { TypeDeSaisine, TypeDeSaisineLabels, type SessionContent } from 'shared-models';
+import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
 import { DateOnly } from '../../../models/date-only.model';
+import type { SessionContent } from 'shared-models/models/session/session-content';
 
 export const ManageSession = () => {
   const navigate = useNavigate();
@@ -17,8 +18,10 @@ export const ManageSession = () => {
   const sessionRows = (sessions || [])?.map((session) => {
     const { name, formation, typeDeSaisine, sessionImportéeId } = session;
     const href = ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', sessionImportéeId);
+
     const content = session.content as SessionContent<TypeDeSaisine.TRANSPARENCE_GDS>;
     const dateTransparence = DateOnly.fromDateOnly(content.dateTransparence);
+
     return [
       TypeDeSaisineLabels[typeDeSaisine],
       formation,

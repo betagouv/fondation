@@ -9,6 +9,7 @@ import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResum
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 
 export const Transparence: FC = () => {
   const { id } = useParams();
@@ -19,8 +20,16 @@ export const Transparence: FC = () => {
     isPending,
     isError
   } = useGetTransparence({
-    sessionId: id as string
+    args: {
+      sessionId: id as string
+    },
+    enabled: !!id
   });
+
+  const { data: dossiersDeNomination, isLoading: isLoadingDossiersDeNomination } =
+    useGetDossierDeNominationParSession({
+      sessionId: id as string
+    });
 
   if (isPending) {
     return null;
@@ -62,6 +71,13 @@ export const Transparence: FC = () => {
       <div className={clsx('gap-8', cx('fr-grid-row'))}>
         <TableauDeBordActions {...transparence} />
         <TableauDeBordResume {...transparence} />
+      </div>
+      <div className={clsx('gap-8', cx('fr-grid-row'))}>
+        {/* {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
+        {!isLoadingDossiersDeNomination &&
+          (dossiersDeNomination || []).map((dossier) => {
+            return <span>Coucou from {dossier.id}</span>;
+          })} */}
       </div>
     </>
   );

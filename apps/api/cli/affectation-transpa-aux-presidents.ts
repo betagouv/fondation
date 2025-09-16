@@ -2,9 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { allRulesTuple, Magistrat, NominationFile, Role } from 'shared-models';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import {
   affectationPm,
-  dossierDeNominationPm,
   sessionPm,
 } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';

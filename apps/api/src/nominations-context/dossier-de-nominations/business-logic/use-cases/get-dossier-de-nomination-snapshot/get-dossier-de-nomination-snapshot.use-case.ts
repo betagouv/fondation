@@ -1,6 +1,6 @@
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DossierDeNominationRepository } from '../../gateways/repositories/dossier-de-nomination.repository';
-import { DossierDeNominationSnapshot } from '../../models/dossier-de-nomination';
 
 export class GetDossierDeNominationSnapshotUseCase {
   constructor(

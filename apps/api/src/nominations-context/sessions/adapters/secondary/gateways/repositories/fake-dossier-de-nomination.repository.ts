@@ -1,9 +1,7 @@
 import { TypeDeSaisine } from 'shared-models';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
-import {
-  DossierDeNomination,
-  DossierDeNominationSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
+import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 
 export class FakeDossierDeNominationRepository<
   S extends TypeDeSaisine | unknown = unknown,
@@ -22,6 +20,15 @@ export class FakeDossierDeNominationRepository<
       const snapshot = this.dossiers[id];
       if (!snapshot) return null;
       return DossierDeNomination.fromSnapshot(snapshot);
+    };
+  }
+
+  findBySessionId(sessionId: string) {
+    return async () => {
+      const snapshots = Object.values(this.dossiers).filter(
+        (dossier) => dossier.sessionId === sessionId,
+      );
+      return snapshots.map(DossierDeNomination.fromSnapshot);
     };
   }
 

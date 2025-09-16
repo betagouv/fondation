@@ -2,11 +2,11 @@ import { TypeDeSaisine } from 'shared-models';
 import {
   ContenuPropositionDeNominationTransparenceV1,
   ContenuPropositionDeNominationTransparenceV2,
-} from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
+} from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import {
   DossierDeNominationContent,
   DossierDeNominationSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+} from 'shared-models/models/session/dossier-de-nomination-content';
 
 export type DossierDeNominationDto<
   S extends TypeDeSaisine | unknown = unknown,

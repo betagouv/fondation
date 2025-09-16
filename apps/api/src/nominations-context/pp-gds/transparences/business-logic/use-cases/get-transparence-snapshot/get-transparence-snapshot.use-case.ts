@@ -1,7 +1,7 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { SessionSnapshot } from '../../../../../sessions/business-logic/models/session';
 
 export class GetTransparenceSnapshotUseCase {
   constructor(

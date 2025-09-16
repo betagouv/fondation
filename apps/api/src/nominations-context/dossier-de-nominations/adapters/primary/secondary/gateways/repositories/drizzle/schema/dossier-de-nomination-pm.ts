@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { jsonb, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { nominationsContextSchema } from './nominations-context-schema.drizzle';
+import { nominationsContextSchema } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema/nominations-context-schema.drizzle';
 
 export const dossierDeNominationPm = nominationsContextSchema.table(
   'dossier_de_nomination',

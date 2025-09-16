@@ -1,5 +1,5 @@
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class GetSessionsUseCase {

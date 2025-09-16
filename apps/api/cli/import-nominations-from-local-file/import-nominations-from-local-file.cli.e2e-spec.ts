@@ -7,15 +7,14 @@ import { NominationFileRead } from 'src/data-administration-context/transparence
 import { IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
 import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { users } from 'src/identity-and-access-context/adapters/secondary/gateways/repositories/drizzle/schema';
+import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
+
 import {
   ContenuPropositionDeNominationTransparenceV1,
   ContenuPropositionDeNominationTransparenceV2,
-} from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
-import {
-  dossierDeNominationPm,
-  sessionPm,
-} from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+} from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
@@ -23,6 +22,7 @@ import {
   DrizzleDb,
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { BaseAppTestingModule } from 'test/base-app-testing-module';
 import { clearDB } from 'test/docker-postgresql-manager';
 import {
@@ -39,7 +39,6 @@ import {
   transparenceParquet,
   transparenceSiège,
 } from './import-nominations-from-local-file.fixtures';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 const fileToImportPath = path.resolve(
   __dirname,

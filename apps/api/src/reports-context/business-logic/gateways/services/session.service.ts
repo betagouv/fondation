@@ -1,5 +1,5 @@
 import { TypeDeSaisine } from 'shared-models';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 
 export type SessionDto<S extends TypeDeSaisine | unknown = unknown> =
   SessionSnapshot<S>;

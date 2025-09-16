@@ -1,5 +1,5 @@
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { DossierDeNominationSnapshot } from '../../models/dossier-de-nomination';
 
 const dossierDeNominationId = 'dossier-id';
 const sessionId = 'session-id';

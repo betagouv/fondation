@@ -1,3 +1,5 @@
+import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
+import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
@@ -5,8 +7,6 @@ import {
   SharedKernelInjectionTokenMap,
   sharedKernelTokens,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
-import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
 
 export const DOSSIER_DE_NOMINATION_REPOSITORY =
   'DOSSIER_DE_NOMINATION_REPOSITORY';

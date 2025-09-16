@@ -7,7 +7,8 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';

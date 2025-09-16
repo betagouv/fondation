@@ -1,9 +1,7 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
-import {
-  Session,
-  SessionSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/session';
+import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';

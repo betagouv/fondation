@@ -1,6 +1,6 @@
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { SessionRepository } from '../../gateways/repositories/session.repository';
-import { SessionSnapshot } from '../../models/session';
 
 export class GetSessionSnapshotUseCase {
   constructor(

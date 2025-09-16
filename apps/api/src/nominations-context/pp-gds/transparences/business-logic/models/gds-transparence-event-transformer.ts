@@ -1,14 +1,15 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
 import { GdsNewTransparenceImportedEventPayload as GdsNewTransparenceImportedEventPayloadTsv } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
+import { TransparenceXlsxImportéeEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
+import { NouveauDossierDeNominationEvent } from 'src/nominations-context/dossier-de-nominations/business-logic/models/events/nouveau-dossier-de-nomination.event';
 import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
-import { DossierDeNomination } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { AffectationRapporteursCréeEvent } from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-crée.event';
 import { AffectationRapporteursModifiéeEvent } from 'src/nominations-context/sessions/business-logic/models/events/affectation-rapporteurs-modifiée.event';
-import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
-import { ContenuPropositionDeNominationTransparenceV2 } from './proposition-de-nomination';
-import { TransparenceXlsxImportéeEventPayload as GdsNewTransparenceImportedEventPayloadXlsx } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-importée.event';
 
 export type DossierAvecPayload<T extends boolean = boolean> = {
   dossier: DossierDeNomination;

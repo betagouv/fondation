@@ -4,20 +4,21 @@ import {
   Magistrat,
   Role,
   Transparency,
+  TypeDeSaisine,
 } from 'shared-models';
+import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 import { GdsTransparenceNominationFilesAddedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-added.event';
 import { NominationFileReadRulesBuilder } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
 import { FakeAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-affectation.repository';
 import { FakeDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 import { FakeSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-session.repository';
 import { AffectationSnapshot } from 'src/nominations-context/sessions/business-logic/models/affectation';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
-import { TypeDeSaisine } from 'shared-models';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
 import { ImportNouveauxDossiersTransparenceUseCase } from '../import-nouveaux-dossiers-transparence.use-case';
-import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { Avancement } from 'src/data-administration-context/lodam/business-logic/models/avancement';
 
 export const aTransparencyName = Transparency.AUTOMNE_2024;
 export const aDateEchéance: DateOnlyJson = { day: 1, month: 6, year: 2023 };

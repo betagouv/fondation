@@ -1,5 +1,5 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 
 describe('Get Transparence Snapshot Use Case', () => {

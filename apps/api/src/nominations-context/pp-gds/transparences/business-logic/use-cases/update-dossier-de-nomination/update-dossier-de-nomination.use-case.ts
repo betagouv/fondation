@@ -1,5 +1,5 @@
 import { TypeDeSaisine } from 'shared-models';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
+import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import {
   TransactionableAsync,
   TransactionPerformer,

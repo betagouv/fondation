@@ -7,6 +7,7 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
+import { GetDossierDeNominationSnapshotUseCase } from './dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { FakeTransparenceRepository } from './pp-gds/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
 import { TransparenceService } from './pp-gds/transparences/business-logic/services/transparence.service';
 import { GetTransparenceSnapshotUseCase } from './pp-gds/transparences/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
@@ -14,10 +15,9 @@ import { ImportNouveauxDossiersTransparenceUseCase } from './pp-gds/transparence
 import { ImportNouvelleTransparenceXlsxUseCase } from './pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence-xlsx/import-nouvelle-transparence-xlsx.use-case';
 import { ImportNouvelleTransparenceUseCase } from './pp-gds/transparences/business-logic/use-cases/import-nouvelle-transparence/import-nouvelle-transparence.use-case';
 import { UpdateDossierDeNominationUseCase } from './pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
-import { DomainRegistry } from './sessions/business-logic/models/domain-registry';
-import { GetDossierDeNominationSnapshotUseCase } from './sessions/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
-import { GetSessionSnapshotUseCase } from './sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { UpdateObservantsUseCase } from './pp-gds/transparences/business-logic/use-cases/update-observants/update-observants.use-case';
+import { DomainRegistry } from './sessions/business-logic/models/domain-registry';
+import { GetSessionSnapshotUseCase } from './sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 
 export const currentDate = new Date(2024, 10, 10);
 

@@ -1,8 +1,8 @@
 import { TypeDeSaisine } from 'shared-models';
+import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination-content';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
-import { DomainRegistry } from '../domain-registry';
-import { DossierDeNominationContent } from '../dossier-de-nomination';
+import { DomainRegistry } from '../../../../sessions/business-logic/models/domain-registry';
 
 export type NouveauDossierDeNominationEventPayload<
   S extends TypeDeSaisine | unknown = unknown,

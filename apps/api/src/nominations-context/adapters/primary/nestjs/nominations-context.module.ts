@@ -4,6 +4,7 @@ import {
   Module,
   OnModuleInit,
 } from '@nestjs/common';
+import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GdsNouvellesTransparencesImportéesNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-nouvelles-transparences-importées.nest-subscriber';
 import { GdsTransparenceDossiersModifiésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-dossiers-modifiés.nest-subscriber';
 import { GdsTransparenceNouveauxDossiersNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-nouveaux-dossiers.nest-subscriber';
@@ -29,11 +30,16 @@ import {
   SessionsController,
 } from 'src/nominations-context/sessions/adapters/primary/nestjs/sessions.controller';
 import { SqlAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-affectation.repository';
-import { SqlDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-dossier-de-nomination.repository';
+
+import {
+  DossierDeNominationController,
+  dossierDeNominationsEndpointsPath,
+} from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dossier-de-nomination.controller';
+import { SqlDossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/sql-dossier-de-nomination.repository';
+import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-by-session-id/get-dossier-de-nomination-snapshot.use-case';
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
-import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
@@ -58,7 +64,11 @@ import {
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [SessionsController, TransparencesController],
+  controllers: [
+    SessionsController,
+    TransparencesController,
+    DossierDeNominationController,
+  ],
   providers: [
     GdsNouvellesTransparencesImportéesNestSubscriber,
     GdsTransparenceNouveauxDossiersNestSubscriber,
@@ -95,6 +105,10 @@ import {
       TRANSACTION_PERFORMER,
     ]),
     generateProvider(GetDossierDeNominationSnapshotUseCase, [
+      DOSSIER_DE_NOMINATION_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
+    generateProvider(GetBySessionIdUseCase, [
       DOSSIER_DE_NOMINATION_REPOSITORY,
       TRANSACTION_PERFORMER,
     ]),
@@ -159,7 +173,7 @@ export class NominationsContextModule implements OnModuleInit {
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(
         `${baseRouteSession}/${endpointsPathsSession.sessionSnapshot}`,
-        `${baseRouteSession}/${endpointsPathsSession.dossierDeNominationSnapshot}`,
+        `${baseRouteSession}/${dossierDeNominationsEndpointsPath.dossierDeNominationSnapshot}`,
       );
   }
 }

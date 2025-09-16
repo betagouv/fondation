@@ -1,8 +1,6 @@
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
-import {
-  Session,
-  SessionSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/session';
+import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class FakeSessionRepository implements SessionRepository {

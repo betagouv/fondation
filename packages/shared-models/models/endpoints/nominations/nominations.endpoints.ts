@@ -1,27 +1,9 @@
 import { z, type ZodNumberDef, type ZodType } from "zod";
-import { type DateOnlyJson, type Month } from "../date";
-import { Magistrat } from "../magistrat.namespace";
-import { TypeDeSaisine } from "../type-de-saisine.enum";
-import { type RestContract, type ZodParamsDto, type ZodQueryParamsDto } from "./common";
-
-export type SessionContent<S extends TypeDeSaisine | unknown = unknown> =
-  S extends TypeDeSaisine.TRANSPARENCE_GDS
-    ? {
-        dateTransparence: DateOnlyJson;
-        dateClôtureDélaiObservation: DateOnlyJson;
-      }
-    : object;
-
-export type SessionSnapshotResponse<S extends TypeDeSaisine | unknown = unknown> = {
-  id: string;
-  sessionImportéeId: string;
-  name: string;
-  formation: Magistrat.Formation;
-  typeDeSaisine: TypeDeSaisine;
-  version: number;
-  content: SessionContent<S>;
-};
-
+import { type DateOnlyJson, type Month } from "../../date";
+import { Magistrat } from "../../magistrat.namespace";
+import { SessionSnapshot } from "../../session/session-content";
+import { TypeDeSaisine } from "../../type-de-saisine.enum";
+import { type RestContract, type ZodParamsDto, type ZodQueryParamsDto } from "../common";
 
 export type TransparenceSnapshotResponse = {
   id: string;
@@ -36,13 +18,14 @@ export type TransparenceSnapshotResponse = {
   };
 };
 
+
 export interface NominationsContextSessionsRestContract extends RestContract {
   basePath: "api/nominations/sessions";
   endpoints: {
     sessions: {
       method: "GET";
       path: "";
-      response: SessionSnapshotResponse[];
+      response: SessionSnapshot[];
     },
     sessionSnapshot: {
       method: "GET";
@@ -50,21 +33,7 @@ export interface NominationsContextSessionsRestContract extends RestContract {
       params: {
         sessionId: string;
       };
-      response: SessionSnapshotResponse;
-    };
-
-    dossierDeNominationSnapshot: {
-      method: "GET";
-      path: "dossier-de-nomination/snapshot/by-id/:dossierId";
-      params: {
-        dossierId: string;
-      };
-      response: {
-        id: string;
-        sessionId: string;
-        nominationFileImportedId: string;
-        content: object;
-      };
+      response: SessionSnapshot;
     };
   };
 }
@@ -81,17 +50,6 @@ export interface NominationsContextTransparenceRestContract
     };
   };
 }
-
-export interface DossierDeNominationSnapshotParamsDto
-  extends Record<string, string> {
-  dossierId: string;
-}
-export const dossierDeNominationSnapshotParamsSchema = z.object({
-  dossierId: z.string().uuid(),
-}) satisfies ZodParamsDto<
-  NominationsContextSessionsRestContract,
-  "dossierDeNominationSnapshot"
->;
 
 export interface SessionSnapshotParamsDto extends Record<string, string> {
   sessionId: string;
