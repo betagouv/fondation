@@ -5,7 +5,6 @@ import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
-import { GetDossierDeNominationSnapshotUseCase } from '../../../../dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { GetSessionSnapshotUseCase } from '../../../business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { SessionSnapshotParamsNestDto } from './dto/session-snapshot-params.nest-dto';
 
@@ -22,7 +21,6 @@ export const endpointsPaths: IControllerPaths<NominationsContextSessionsRestCont
 @Controller(baseRoute)
 export class SessionsController implements ISessionsController {
   constructor(
-    private readonly getDossierDeNominationSnapshotUseCase: GetDossierDeNominationSnapshotUseCase,
     private readonly getSessionSnapshotUseCase: GetSessionSnapshotUseCase,
     private readonly getSessionsUseCase: GetSessionsUseCase,
   ) {}

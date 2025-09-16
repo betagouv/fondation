@@ -9,7 +9,7 @@ import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResum
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
+// import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 
 export const Transparence: FC = () => {
   const { id } = useParams();
@@ -26,10 +26,10 @@ export const Transparence: FC = () => {
     enabled: !!id
   });
 
-  const { data: dossiersDeNomination, isLoading: isLoadingDossiersDeNomination } =
-    useGetDossierDeNominationParSession({
-      sessionId: id as string
-    });
+  // const { data: dossiersDeNomination, isLoading: isLoadingDossiersDeNomination } =
+  //   useGetDossierDeNominationParSession({
+  //     sessionId: id as string
+  //   });
 
   if (isPending) {
     return null;

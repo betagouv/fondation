@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import {
   DateOnlyJson,
   EditTransparencyDto,
@@ -105,7 +105,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
     };
   }
 
-  getById(
+  findById(
     sessionId: string,
   ): DrizzleTransactionableAsync<TransparenceXlsx | null> {
     return async (db) => {
@@ -144,6 +144,43 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           createdAt: new Date((f as any).createdAt),
         })) as TransparenceSnapshot['nominationFiles'],
       });
+    };
+  }
+
+  findBySessionIds(
+    sessionIds: string[],
+  ): DrizzleTransactionableAsync<TransparenceXlsx[]> {
+    return async (db) => {
+      const transparencesResult = await db
+        .select()
+        .from(transparencesPm)
+        .where(inArray(transparencesPm.id, sessionIds))
+        .execute();
+
+      return transparencesResult.map((transparenceRow) =>
+        TransparenceXlsx.fromSnapshot({
+          id: transparenceRow.id,
+          createdAt: transparenceRow.createdAt,
+          name: z.string().parse(transparenceRow.name),
+          formation: transparenceRow.formation,
+          dateTransparence: DateOnly.fromDate(
+            transparenceRow.dateTransparence,
+          ).toJson(),
+          dateEchéance: transparenceRow.dateEchéance
+            ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
+            : null,
+          datePriseDePosteCible: transparenceRow.datePriseDePosteCible
+            ? DateOnly.fromDate(transparenceRow.datePriseDePosteCible).toJson()
+            : null,
+          dateClôtureDélaiObservation: DateOnly.fromDate(
+            transparenceRow.dateClôtureDélaiObservation,
+          ).toJson(),
+          nominationFiles: transparenceRow.nominationFiles.map((f) => ({
+            ...(f as any),
+            createdAt: new Date((f as any).createdAt),
+          })) as TransparenceSnapshot['nominationFiles'],
+        }),
+      );
     };
   }
 

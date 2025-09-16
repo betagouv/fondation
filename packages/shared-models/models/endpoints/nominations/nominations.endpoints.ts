@@ -1,7 +1,8 @@
 import { z, type ZodNumberDef, type ZodType } from "zod";
 import { type DateOnlyJson, type Month } from "../../date";
 import { Magistrat } from "../../magistrat.namespace";
-import { SessionSnapshot } from "../../session/session-content";
+import type { SessionSnapshot } from "../../session/session-content";
+import type { SessionMetadataSnapshot } from "../../session/session-metadata";
 import { TypeDeSaisine } from "../../type-de-saisine.enum";
 import { type RestContract, type ZodParamsDto, type ZodQueryParamsDto } from "../common";
 
@@ -25,7 +26,7 @@ export interface NominationsContextSessionsRestContract extends RestContract {
     sessions: {
       method: "GET";
       path: "";
-      response: SessionSnapshot[];
+      response: SessionMetadataSnapshot[];
     },
     sessionSnapshot: {
       method: "GET";

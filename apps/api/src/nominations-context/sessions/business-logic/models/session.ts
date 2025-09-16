@@ -59,6 +59,14 @@ export class Session<S extends TypeDeSaisine | unknown = unknown> {
     return this._formation;
   }
 
+  get typeDeSaisine(): TypeDeSaisine {
+    return this._typeDeSaisine;
+  }
+
+  get sessionImportId(): string {
+    return this._sessionImportéeId;
+  }
+
   snapshot(): SessionSnapshot<S> {
     return {
       id: this._id,

@@ -35,7 +35,7 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
     };
   }
 
-  getById(sessionId: string) {
+  findById(sessionId: string) {
     return async () => {
       const transparence = this.transparences[sessionId];
       return transparence
@@ -43,6 +43,20 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
             transparence as TransparenceTsvSnapshot,
           ) as unknown as TransparenceXlsx)
         : null;
+    };
+  }
+
+  findBySessionIds(sessionIds: string[]) {
+    return async () => {
+      const transparences = Object.values(this.transparences).filter(
+        (transparence) => sessionIds.includes(transparence.id),
+      );
+      return transparences.map(
+        (transparence) =>
+          TransparenceTsv.fromSnapshot(
+            transparence as TransparenceTsvSnapshot,
+          ) as unknown as TransparenceXlsx,
+      );
     };
   }
 

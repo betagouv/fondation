@@ -1,9 +1,18 @@
-import { and, eq, sql } from 'drizzle-orm';
-import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import {
+  DateOnlyJson,
+  Magistrat,
+  SessionMetadata,
+  TypeDeSaisine,
+} from 'shared-models';
+import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
+
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema/session-pm';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { z } from 'zod';
 
 export class SqlTransparenceRepository implements TransparenceRepository {
   byNomFormationEtDate(
@@ -34,6 +43,33 @@ export class SqlTransparenceRepository implements TransparenceRepository {
 
       const sessionRow = result[0]!;
       return SqlTransparenceRepository.mapToDomain(sessionRow);
+    };
+  }
+
+  findMetaDataBySessionIds(
+    sessionIds: string[],
+  ): DrizzleTransactionableAsync<SessionMetadata[]> {
+    return async (db) => {
+      const transparencesResult = await db
+        .select()
+        .from(transparencesPm)
+        .where(inArray(transparencesPm.id, sessionIds))
+        .execute();
+
+      return transparencesResult.map((transparenceRow) =>
+        SessionMetadata.fromSnapshot({
+          sessionImportId: transparenceRow.id,
+          name: z.string().parse(transparenceRow.name),
+          formation: transparenceRow.formation,
+          dateTransparence: DateOnly.fromDate(
+            transparenceRow.dateTransparence,
+          ).toJson(),
+          dateEcheance: transparenceRow.dateEchéance
+            ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
+            : null,
+          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        }),
+      );
     };
   }
 

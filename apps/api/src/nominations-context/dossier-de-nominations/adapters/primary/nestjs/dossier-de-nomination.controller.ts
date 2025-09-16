@@ -12,7 +12,7 @@ import {
 type IDossierDeNominationController =
   IController<DossierDeNominationRestContrat>;
 
-export const baseRoute: DossierDeNominationRestContrat['basePath'] =
+export const baseRouteDossierDeNomination: DossierDeNominationRestContrat['basePath'] =
   'api/nominations/dossier-de-nominations';
 export const dossierDeNominationsEndpointsPath: IControllerPaths<DossierDeNominationRestContrat> =
   {
@@ -20,7 +20,7 @@ export const dossierDeNominationsEndpointsPath: IControllerPaths<DossierDeNomina
     dossierDeNominationParSession: 'snapshot/by-session',
   };
 
-@Controller(baseRoute)
+@Controller(baseRouteDossierDeNomination)
 export class DossierDeNominationController
   implements IDossierDeNominationController
 {

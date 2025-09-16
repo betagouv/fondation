@@ -3,6 +3,8 @@ import { TransparenceRepository } from 'src/nominations-context/pp-gds/transpare
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { PréAnalyseRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/pré-analyse.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
+import { SessionEnrichmentService } from 'src/nominations-context/sessions/business-logic/services/session-enrichment.service';
+import { SessionEnrichmentStrategyFactory } from 'src/nominations-context/sessions/business-logic/strategy/session-enrichment-strategy-factory';
 import {
   SharedKernelInjectionTokenMap,
   sharedKernelTokens,
@@ -14,6 +16,9 @@ export const SESSION_REPOSITORY = 'SESSION_REPOSITORY';
 export const TRANSPARENCE_REPOSITORY = 'TRANSPARENCE_REPOSITORY';
 export const PRE_ANALYSE_REPOSITORY = 'PRE_ANALYSE_REPOSITORY';
 export const AFFECTATION_REPOSITORY = 'AFFECTATION_REPOSITORY';
+export const SESSION_ENRICHMENT_SERVICE = 'SESSION_ENRICHMENT_SERVICE';
+export const SESSION_ENRICHMENT_STRATEGY_FACTORY =
+  'SESSION_ENRICHMENT_STRATEGY_FACTORY';
 
 export const nominationsTokens = [
   ...sharedKernelTokens,
@@ -22,6 +27,8 @@ export const nominationsTokens = [
   TRANSPARENCE_REPOSITORY,
   PRE_ANALYSE_REPOSITORY,
   AFFECTATION_REPOSITORY,
+  SESSION_ENRICHMENT_SERVICE,
+  SESSION_ENRICHMENT_STRATEGY_FACTORY,
 ] as const;
 
 export interface NominationsInjectionTokenMap
@@ -31,4 +38,6 @@ export interface NominationsInjectionTokenMap
   [TRANSPARENCE_REPOSITORY]: TransparenceRepository;
   [PRE_ANALYSE_REPOSITORY]: PréAnalyseRepository;
   [AFFECTATION_REPOSITORY]: AffectationRepository;
+  [SESSION_ENRICHMENT_SERVICE]: SessionEnrichmentService;
+  [SESSION_ENRICHMENT_STRATEGY_FACTORY]: SessionEnrichmentStrategyFactory;
 }

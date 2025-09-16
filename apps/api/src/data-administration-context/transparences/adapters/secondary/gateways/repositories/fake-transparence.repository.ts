@@ -24,10 +24,21 @@ export class FakeTransparenceRepository implements TransparenceRepository {
     };
   }
 
-  getById(sessionId: string) {
+  findById(sessionId: string) {
     return async () => {
       const transparence = this.transparences[sessionId];
       return transparence ? TransparenceXlsx.fromSnapshot(transparence) : null;
+    };
+  }
+
+  findBySessionIds(sessionIds: string[]) {
+    return async () => {
+      const transparences = Object.values(this.transparences).filter(
+        (transparence) => sessionIds.includes(transparence.id),
+      );
+      return transparences.map((transparence) =>
+        TransparenceXlsx.fromSnapshot(transparence),
+      );
     };
   }
 

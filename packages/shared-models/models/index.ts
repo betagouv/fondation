@@ -8,5 +8,7 @@ export * from "./report-retrieval-vm";
 export * from "./reports-listing-vm";
 export * from "./role";
 export * from "./rule.builder";
+export * from "./session/session-metadata";
 export * from "./transparency.enum";
 export * from "./type-de-saisine.enum";
+

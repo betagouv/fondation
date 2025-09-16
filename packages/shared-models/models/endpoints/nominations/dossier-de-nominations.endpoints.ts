@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { RestContract, ZodParamsDto } from "../../endpoints/common";
-import { DossierDeNominationSnapshot } from "../../session/dossier-de-nomination-content";
+import type { DossierDeNominationSnapshot } from "../../session/dossier-de-nomination-content";
+import type { RestContract, ZodParamsDto } from "../common";
+
 
 export interface DossierDeNominationRestContrat extends RestContract {
   basePath: "api/nominations/dossier-de-nominations";

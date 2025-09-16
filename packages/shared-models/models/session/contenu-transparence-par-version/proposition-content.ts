@@ -1,4 +1,4 @@
-import { DateOnlyJson } from "../../date";
+import type { DateOnlyJson } from "../../date";
 import { Magistrat } from "../../magistrat.namespace";
 
 export type ContenuInconnu = object;

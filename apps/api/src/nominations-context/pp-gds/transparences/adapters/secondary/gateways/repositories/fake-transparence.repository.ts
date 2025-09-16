@@ -2,7 +2,6 @@ import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
 import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
-
 export class FakeTransparenceRepository implements TransparenceRepository {
   fakeTransparences: Record<
     string,
@@ -30,6 +29,13 @@ export class FakeTransparenceRepository implements TransparenceRepository {
       session.content.dateTransparence,
     );
     this.fakeTransparences[key] = session;
+  }
+
+  findMetaDataBySessionIds(sessionIds: string[]) {
+    return async () => {
+      console.log('sessionIds', sessionIds);
+      return [];
+    };
   }
 
   getFakeTransparences() {

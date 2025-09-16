@@ -116,7 +116,7 @@ export class TransparenceService {
 
   getById(sessionId: string): TransactionableAsync<Transparence | null> {
     return async (trx) =>
-      await this.transparenceRepository.getById(sessionId)(trx);
+      await this.transparenceRepository.findById(sessionId)(trx);
   }
 
   private async nominationFilesWithReportersIds(

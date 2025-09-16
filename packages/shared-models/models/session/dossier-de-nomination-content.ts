@@ -1,5 +1,5 @@
-import { ContenuInconnu, ContenuPropositionDeNominationTransparenceV1, ContenuPropositionDeNominationTransparenceV2 } from "../session/contenu-transparence-par-version/proposition-content";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
+import type { ContenuInconnu, ContenuPropositionDeNominationTransparenceV1, ContenuPropositionDeNominationTransparenceV2 } from "./contenu-transparence-par-version/proposition-content";
 
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,

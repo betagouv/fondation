@@ -7,28 +7,38 @@ import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
 import { useNavigate } from 'react-router-dom';
 import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
 import { DateOnly } from '../../../models/date-only.model';
-import type { SessionContent } from 'shared-models/models/session/session-content';
 
 export const ManageSession = () => {
   const navigate = useNavigate();
   const { data: sessions } = useGetSessions();
 
-  const headers: ReactNode[] = ['Type de saisine', 'Formation', 'Nom', 'Date'];
+  const headers: ReactNode[] = [
+    'Type de saisine',
+    'Formation',
+    'Nom de la transparence',
+    'Date de publication',
+    "Date d'écheance"
+  ];
 
-  const sessionRows = (sessions || [])?.map((session) => {
-    const { name, formation, typeDeSaisine, sessionImportéeId } = session;
-    const href = ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', sessionImportéeId);
+  const sessionRows = (sessions || [])
+    .slice()
+    .sort((a, b) => {
+      const dateA = new Date(a.dateTransparence.year, a.dateTransparence.month - 1, a.dateTransparence.day);
+      const dateB = new Date(b.dateTransparence.year, b.dateTransparence.month - 1, b.dateTransparence.day);
+      return dateB.getTime() - dateA.getTime();
+    })
+    .map((session) => {
+      const { name, formation, dateTransparence, dateEcheance, sessionImportId, typeDeSaisine } = session;
+      const href = ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', sessionImportId);
 
-    const content = session.content as SessionContent<TypeDeSaisine.TRANSPARENCE_GDS>;
-    const dateTransparence = DateOnly.fromDateOnly(content.dateTransparence);
-
-    return [
-      TypeDeSaisineLabels[typeDeSaisine],
-      formation,
-      <a href={href}>{name.toUpperCase()}</a>,
-      dateTransparence
-    ];
-  });
+      return [
+        TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],
+        formation,
+        <a href={href}>{name.toUpperCase()}</a>,
+        DateOnly.fromDateOnly(dateTransparence),
+        dateEcheance && DateOnly.fromDateOnly(dateEcheance)
+      ];
+    });
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: 'Gérer une session',

@@ -12,6 +12,7 @@ import { TransparenceXlsxImportéeNestSubscriber } from 'src/nominations-context
 import { TransparenceXlsxObservantsImportésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/transparence-xlsx-observants-importés.nest-subscriber';
 import { TransparencesController } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/transparence.controller';
 import { SqlTransparenceRepository } from 'src/nominations-context/pp-gds/transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
+import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
 import { GdsNouvellesTransparencesImportéesSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-nouvelles-transparences-importées.subscriber';
 import { GdsTransparenceDossiersModifiésSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-dossiers-modifiés.subscriber';
 import { GdsTransparenceNouveauxDossiersSubscriber } from 'src/nominations-context/pp-gds/transparences/business-logic/listeners/gds-transparence-nouveaux-dossiers.subscriber';
@@ -32,6 +33,7 @@ import {
 import { SqlAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-affectation.repository';
 
 import {
+  baseRouteDossierDeNomination,
   DossierDeNominationController,
   dossierDeNominationsEndpointsPath,
 } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dossier-de-nomination.controller';
@@ -40,6 +42,9 @@ import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nomina
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
+import { SessionEnrichmentService } from 'src/nominations-context/sessions/business-logic/services/session-enrichment.service';
+import { SessionEnrichmentStrategyFactory } from 'src/nominations-context/sessions/business-logic/strategy/session-enrichment-strategy-factory';
+import { TransparenceEnrichSessionStrategyImpl } from 'src/nominations-context/sessions/business-logic/strategy/transparence-enrich-session.strategy';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
@@ -58,6 +63,8 @@ import {
   AFFECTATION_REPOSITORY,
   DOSSIER_DE_NOMINATION_REPOSITORY,
   PRE_ANALYSE_REPOSITORY,
+  SESSION_ENRICHMENT_SERVICE,
+  SESSION_ENRICHMENT_STRATEGY_FACTORY,
   SESSION_REPOSITORY,
   TRANSPARENCE_REPOSITORY,
 } from './tokens';
@@ -103,7 +110,23 @@ import {
     generateProvider(GetSessionsUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
+      SESSION_ENRICHMENT_SERVICE,
     ]),
+    {
+      provide: SESSION_ENRICHMENT_STRATEGY_FACTORY,
+      useFactory: (transparenceRepository: TransparenceRepository) => {
+        const strategies = [
+          new TransparenceEnrichSessionStrategyImpl(transparenceRepository),
+        ];
+        return new SessionEnrichmentStrategyFactory(strategies);
+      },
+      inject: [TRANSPARENCE_REPOSITORY],
+    },
+    generateProvider(
+      SessionEnrichmentService,
+      [SESSION_ENRICHMENT_STRATEGY_FACTORY],
+      SESSION_ENRICHMENT_SERVICE,
+    ),
     generateProvider(GetDossierDeNominationSnapshotUseCase, [
       DOSSIER_DE_NOMINATION_REPOSITORY,
       TRANSACTION_PERFORMER,
@@ -173,7 +196,7 @@ export class NominationsContextModule implements OnModuleInit {
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(
         `${baseRouteSession}/${endpointsPathsSession.sessionSnapshot}`,
-        `${baseRouteSession}/${dossierDeNominationsEndpointsPath.dossierDeNominationSnapshot}`,
+        `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.dossierDeNominationSnapshot}`,
       );
   }
 }
