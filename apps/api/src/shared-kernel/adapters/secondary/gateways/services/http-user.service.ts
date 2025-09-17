@@ -1,6 +1,6 @@
 import { IdentityAndAccessRestContract } from 'shared-models';
-import { UserService } from 'src/reports-context/business-logic/gateways/services/user.service';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
+import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 export class HttpUserService implements UserService {
   constructor(
     private readonly httpClient: BoundedContextHttpClient<IdentityAndAccessRestContract>,

@@ -1,10 +1,10 @@
 import { ReportListingVM, TypeDeSaisine } from 'shared-models';
-import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
 import {
   DossierDeNominationService,
   PropositionDeNominationTransparenceDto,
-} from '../../gateways/services/dossier-de-nomination.service';
-import { TransparenceService } from '../../gateways/services/session.service';
+} from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceService } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
+import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.query';
 
 export class ListReportsUseCase {
   constructor(

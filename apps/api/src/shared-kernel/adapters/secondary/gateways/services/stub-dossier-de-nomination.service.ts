@@ -2,7 +2,7 @@ import { TypeDeSaisine } from 'shared-models';
 import {
   DossierDeNominationDto,
   DossierDeNominationService,
-} from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
+} from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
 
 export class StubDossierDeNominationService<S extends TypeDeSaisine>
   implements DossierDeNominationService<S>

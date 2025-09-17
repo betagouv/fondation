@@ -1,6 +1,6 @@
 import { NominationsContextSessionsRestContract } from 'shared-models';
-import { SessionService } from 'src/reports-context/business-logic/gateways/services/session.service';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
+import { SessionService } from 'src/shared-kernel/business-logic/gateways/services/session.service';
 
 export class HttpSessionService implements SessionService {
   constructor(

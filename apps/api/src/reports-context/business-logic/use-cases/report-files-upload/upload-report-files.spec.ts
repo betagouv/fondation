@@ -5,10 +5,10 @@ import {
   Role,
   TypeDeSaisine,
 } from 'shared-models';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
 import { NonExistingReportError } from '../../errors/non-existing-report.error';
 import { OptimisticLockError } from '../../errors/optimistic-lock.error';
-import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
-import { SessionDto } from '../../gateways/services/session.service';
 import { NominationFileReportSnapshot } from '../../models/nomination-file-report';
 import { ReportAttachedFileSnapshot } from '../../models/report-attached-file';
 import { ReportBuilder } from '../../models/report.builder';

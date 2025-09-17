@@ -6,9 +6,9 @@ import {
   Transparency,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceDto } from '../../../shared-kernel/business-logic/gateways/services/session.service';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
-import { PropositionDeNominationTransparenceV1Dto } from '../gateways/services/dossier-de-nomination.service';
-import { TransparenceDto } from '../gateways/services/session.service';
 import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalBuilder<

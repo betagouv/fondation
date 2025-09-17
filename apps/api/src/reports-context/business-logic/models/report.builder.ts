@@ -6,8 +6,8 @@ import {
   ReportRetrievalVM,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
-import { DossierDeNominationDto } from '../gateways/services/dossier-de-nomination.service';
-import { SessionDto } from '../gateways/services/session.service';
+import { DossierDeNominationDto } from '../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../../shared-kernel/business-logic/gateways/services/session.service';
 import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportBuilder {

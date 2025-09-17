@@ -1,7 +1,7 @@
 import {
   SessionDto,
   SessionService,
-} from 'src/reports-context/business-logic/gateways/services/session.service';
+} from 'src/shared-kernel/business-logic/gateways/services/session.service';
 
 export class StubSessionService implements SessionService {
   stubSession: SessionDto | null = null;

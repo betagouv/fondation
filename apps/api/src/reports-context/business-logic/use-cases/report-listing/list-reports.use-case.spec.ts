@@ -7,8 +7,8 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
-import { TransparenceDto } from '../../gateways/services/session.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceDto } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
 import { ListReportsUseCase } from './list-reports.use-case';
 

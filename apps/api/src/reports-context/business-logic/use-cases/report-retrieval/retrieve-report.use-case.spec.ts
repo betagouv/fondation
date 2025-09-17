@@ -1,7 +1,7 @@
 import { ReportRetrievalVM, TypeDeSaisine } from 'shared-models';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionDto } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
 import { ReportRetrievalQueried } from '../../gateways/queries/report-retrieval-vm.query';
-import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
-import { SessionDto } from '../../gateways/services/session.service';
 import { ReportAttachedFileBuilder } from '../../models/report-attached-file.builder';
 import { ReportRetrievalBuilder } from '../../models/report-retrieval-vm.builder';
 import { getDependencies } from '../../test-dependencies';

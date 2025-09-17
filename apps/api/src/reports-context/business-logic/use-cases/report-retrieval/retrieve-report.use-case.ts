@@ -13,14 +13,14 @@ import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/prov
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';
 import {
+  DossierDeNominationService,
+  PropositionDeNominationTransparenceDto,
+} from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceService } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
+import {
   ReportRetrievalQueried,
   ReportRetrievalQuery,
 } from '../../gateways/queries/report-retrieval-vm.query';
-import {
-  DossierDeNominationService,
-  PropositionDeNominationTransparenceDto,
-} from '../../gateways/services/dossier-de-nomination.service';
-import { TransparenceService } from '../../gateways/services/session.service';
 
 const formatMonthsToYearsAndMonths = (months: number): string => {
   const years = Math.floor(months / 12);

@@ -7,15 +7,15 @@ import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/
 import { ReportRetrievalQuery } from 'src/reports-context/business-logic/gateways/queries/report-retrieval-vm.query';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { ReportRepository } from 'src/reports-context/business-logic/gateways/repositories/report.repository';
-import { DossierDeNominationService } from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
 import { ReportFileService } from 'src/reports-context/business-logic/gateways/services/report-file-service';
-import { SessionService } from 'src/reports-context/business-logic/gateways/services/session.service';
-import { UserService } from 'src/reports-context/business-logic/gateways/services/user.service';
 import {
   SharedKernelInjectionTokenMap,
   sharedKernelTokens,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
+import { DossierDeNominationService } from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionService } from 'src/shared-kernel/business-logic/gateways/services/session.service';
+import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 
 export const REPORT_REPOSITORY = 'REPORT_REPOSITORY';
 export const REPORT_RULE_REPOSITORY = 'REPORT_RULE_REPOSITORY';

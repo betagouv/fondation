@@ -1,6 +1,6 @@
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
-import { DossierDeNominationService } from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
+import { DossierDeNominationService } from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
 
 export class HttpDossierDeNominationService
   implements DossierDeNominationService

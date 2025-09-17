@@ -7,18 +7,18 @@ import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { NullTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/null-transaction-performer';
 import { FakeDomainEventRepository } from 'src/shared-kernel/adapters/secondary/gateways/repositories/fake-domain-event-repository';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { StubDossierDeNominationService } from '../../shared-kernel/adapters/secondary/gateways/services/stub-dossier-de-nomination.service';
+import { StubSessionService } from '../../shared-kernel/adapters/secondary/gateways/services/stub-session.service';
+import { StubUserService } from '../../shared-kernel/adapters/secondary/gateways/services/stub-user.service';
+import { DossierDeNominationTranslator } from '../adapters/secondary/gateways/services/dossier-de-nomination.translator';
+import { FakeReportFileService } from '../adapters/secondary/gateways/services/fake-report-file-service';
 import { ReporterTranslatorService } from '../adapters/secondary/gateways/services/reporter-translator.service';
-import { StubDossierDeNominationService } from '../adapters/secondary/gateways/services/stub-dossier-de-nomination.service';
-import { StubSessionService } from '../adapters/secondary/gateways/services/stub-session.service';
-import { StubUserService } from '../adapters/secondary/gateways/services/stub-user.service';
 import { DomainRegistry } from './models/domain-registry';
 import { CréerAnalyseUseCase } from './use-cases/création-analyse/créer-analyse.use-case';
 import { CreateReportUseCase } from './use-cases/report-creation/create-report.use-case';
-import { RetrieveReportUseCase } from './use-cases/report-retrieval/retrieve-report.use-case';
-import { FakeReportFileService } from '../adapters/secondary/gateways/services/fake-report-file-service';
 import { UploadReportFilesUseCase } from './use-cases/report-files-upload/upload-report-files';
-import { DossierDeNominationTranslator } from '../adapters/secondary/gateways/services/dossier-de-nomination.translator';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { RetrieveReportUseCase } from './use-cases/report-retrieval/retrieve-report.use-case';
 
 export const currentDate = new DateOnly(2024, 10, 10).toDate();
 
