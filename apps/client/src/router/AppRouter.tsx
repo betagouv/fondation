@@ -57,7 +57,7 @@ const router = createBrowserRouter([
             element: <NouvelleTransparencePage />
           },
           {
-            path: ROUTE_PATHS.SG.TRANSPARENCE_ID,
+            path: ROUTE_PATHS.SG.SESSION_ID,
             element: <TransparencePage />
           },
           {

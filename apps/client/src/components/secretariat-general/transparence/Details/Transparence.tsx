@@ -4,15 +4,15 @@ import { type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGetTransparence } from '../../../../react-query/queries/sg/get-transparence.query';
-import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
-import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-// import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
+import { AffectationDossierDeNomination } from '../affectation-dossier-de-nomination/AffectationDossierDeNomination';
+import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
+import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 
 export const Transparence: FC = () => {
-  const { id } = useParams();
+  const { sessionImportId, sessionId } = useParams();
   const navigate = useNavigate();
 
   const {
@@ -21,21 +21,16 @@ export const Transparence: FC = () => {
     isError
   } = useGetTransparence({
     args: {
-      sessionId: id as string
+      sessionId: sessionImportId as string
     },
-    enabled: !!id
+    enabled: !!sessionId
   });
-
-  // const { data: dossiersDeNomination, isLoading: isLoadingDossiersDeNomination } =
-  //   useGetDossierDeNominationParSession({
-  //     sessionId: id as string
-  //   });
 
   if (isPending) {
     return null;
   }
 
-  if (!id || !transparence || isError) {
+  if (!sessionImportId || !transparence || isError) {
     return <div>Session de type Transparence non trouvée.</div>;
   }
 
@@ -68,16 +63,12 @@ export const Transparence: FC = () => {
         ariaLabel="Fil d'Ariane d'une transparence détaillée"
         breadcrumb={breadcrumb}
       />
-      <div className={clsx('gap-8', cx('fr-grid-row'))}>
-        <TableauDeBordActions {...transparence} />
-        <TableauDeBordResume {...transparence} />
-      </div>
-      <div className={clsx('gap-8', cx('fr-grid-row'))}>
-        {/* {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
-        {!isLoadingDossiersDeNomination &&
-          (dossiersDeNomination || []).map((dossier) => {
-            return <span>Coucou from {dossier.id}</span>;
-          })} */}
+      <div className={'flex flex-col gap-8'}>
+        <div className={clsx('gap-8', cx('fr-grid-row'))}>
+          <TableauDeBordActions {...transparence} />
+          <TableauDeBordResume {...transparence} />
+        </div>
+        <AffectationDossierDeNomination />
       </div>
     </>
   );

@@ -47,29 +47,37 @@ export class SqlTransparenceRepository implements TransparenceRepository {
   }
 
   findMetaDataBySessionIds(
-    sessionIds: string[],
+    sessions: Session[],
   ): DrizzleTransactionableAsync<SessionMetadata[]> {
     return async (db) => {
+      const sessionIds = sessions.map((session) => session.sessionImportId);
       const transparencesResult = await db
         .select()
         .from(transparencesPm)
         .where(inArray(transparencesPm.id, sessionIds))
         .execute();
 
-      return transparencesResult.map((transparenceRow) =>
-        SessionMetadata.fromSnapshot({
-          sessionImportId: transparenceRow.id,
-          name: z.string().parse(transparenceRow.name),
-          formation: transparenceRow.formation,
-          dateTransparence: DateOnly.fromDate(
-            transparenceRow.dateTransparence,
-          ).toJson(),
-          dateEcheance: transparenceRow.dateEchéance
-            ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
-            : null,
-          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-        }),
-      );
+      return transparencesResult
+        .map((transparenceRow) => {
+          const matchingSession = sessions.find(
+            (session) => session.sessionImportId === transparenceRow.id,
+          );
+          if (!matchingSession) return null;
+          return SessionMetadata.fromSnapshot({
+            sessionId: matchingSession.id,
+            sessionImportId: transparenceRow.id,
+            name: z.string().parse(transparenceRow.name),
+            formation: transparenceRow.formation,
+            dateTransparence: DateOnly.fromDate(
+              transparenceRow.dateTransparence,
+            ).toJson(),
+            dateEcheance: transparenceRow.dateEchéance
+              ? DateOnly.fromDate(transparenceRow.dateEchéance).toJson()
+              : null,
+            typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          });
+        })
+        .filter((metadata): metadata is SessionMetadata => metadata !== null);
     };
   }
 

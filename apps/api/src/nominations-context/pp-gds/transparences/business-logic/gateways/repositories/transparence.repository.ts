@@ -14,6 +14,6 @@ export interface TransparenceRepository {
     dateTransparence: DateOnlyJson,
   ): TransactionableAsync<Session<TypeDeSaisine.TRANSPARENCE_GDS> | null>;
   findMetaDataBySessionIds(
-    sessionIds: string[],
+    sessions: Session[],
   ): TransactionableAsync<SessionMetadata[]>;
 }

@@ -31,9 +31,9 @@ export class FakeTransparenceRepository implements TransparenceRepository {
     this.fakeTransparences[key] = session;
   }
 
-  findMetaDataBySessionIds(sessionIds: string[]) {
+  findMetaDataBySessionIds(sessions: Session[]) {
     return async () => {
-      console.log('sessionIds', sessionIds);
+      console.log('sessions', sessions);
       return [];
     };
   }

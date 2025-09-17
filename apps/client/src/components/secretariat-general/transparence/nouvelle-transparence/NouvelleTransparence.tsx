@@ -76,7 +76,7 @@ const NouvelleTransparence: FC = () => {
       console.error(error);
     } finally {
       if (lastRecordedTransparence) {
-        navigate(ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', lastRecordedTransparence.id));
+        navigate(ROUTE_PATHS.SG.SESSION_ID.replace(':id', lastRecordedTransparence.id));
       }
     }
   };

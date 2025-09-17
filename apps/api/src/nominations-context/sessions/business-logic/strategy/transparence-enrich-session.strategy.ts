@@ -28,11 +28,8 @@ export class TransparenceEnrichSessionStrategyImpl
   ): Promise<SessionMetadataSnapshot[]> {
     if (sessions.length === 0) return [];
 
-    const sessionIds = sessions.map((session) => session.sessionImportId);
     return (
-      await this.transparenceRepository.findMetaDataBySessionIds(sessionIds)(
-        trx,
-      )
+      await this.transparenceRepository.findMetaDataBySessionIds(sessions)(trx)
     ).map((metadata) => metadata.snapshot());
   }
 }

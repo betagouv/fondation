@@ -3,6 +3,7 @@ import type { Magistrat } from "../magistrat.namespace";
 import type { TypeDeSaisine } from "../type-de-saisine.enum";
 
 export interface SessionMetadataSnapshot {
+  sessionId: string;
   sessionImportId: string;
   name: string;
   formation: Magistrat.Formation;
@@ -13,13 +14,19 @@ export interface SessionMetadataSnapshot {
 
 export class SessionMetadata {
   constructor(
+    private readonly _sessionId: string,
     private readonly _sessionImportId: string,
     private readonly _name: string,
     private readonly _formation: Magistrat.Formation,
     private readonly _dateTransparence: DateOnlyJson,
     private readonly _dateEcheance: DateOnlyJson | null,
     private readonly _typeDeSaisine: TypeDeSaisine,
-  ) {}
+  ) {
+  }
+
+  get sessionId(): string {
+    return this._sessionId;
+  }
 
   get sessionImportId(): string {
     return this._sessionImportId;
@@ -43,6 +50,7 @@ export class SessionMetadata {
 
   snapshot(): SessionMetadataSnapshot {
     return {
+      sessionId: this._sessionId,
       sessionImportId: this._sessionImportId,
       name: this._name,
       formation: this._formation,
@@ -54,6 +62,7 @@ export class SessionMetadata {
 
   static fromSnapshot(snapshot: SessionMetadataSnapshot): SessionMetadata {
     return new SessionMetadata(
+      snapshot.sessionId,
       snapshot.sessionImportId,
       snapshot.name,
       snapshot.formation,

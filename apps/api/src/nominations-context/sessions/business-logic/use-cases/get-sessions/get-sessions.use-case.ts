@@ -13,7 +13,21 @@ export class GetSessionsUseCase {
   async execute(): Promise<SessionMetadataSnapshot[]> {
     return this.transactionPerformer.perform(async (trx) => {
       const sessions = await this.sessionRepository.findAll()(trx);
-      return this.sessionEnrichmentService.enrichSessions(sessions, trx);
+      const enrichedSessions =
+        await this.sessionEnrichmentService.enrichSessions(sessions, trx);
+      return enrichedSessions.slice().sort((a, b) => {
+        const dateA = new Date(
+          a.dateTransparence.year,
+          a.dateTransparence.month - 1,
+          a.dateTransparence.day,
+        );
+        const dateB = new Date(
+          b.dateTransparence.year,
+          b.dateTransparence.month - 1,
+          b.dateTransparence.day,
+        );
+        return dateB.getTime() - dateA.getTime();
+      });
     });
   }
 }

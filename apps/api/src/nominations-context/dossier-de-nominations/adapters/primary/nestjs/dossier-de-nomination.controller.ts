@@ -1,4 +1,10 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-snapshot-params.nest-dto';
 import { SessionIdParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/session-id-params.nest-dto';
@@ -30,7 +36,7 @@ export class DossierDeNominationController
   ) {}
 
   @Get(dossierDeNominationsEndpointsPath.dossierDeNominationParSession)
-  async dossierDeNominationParSession(@Param() params: SessionIdParamsNestDto) {
+  async dossierDeNominationParSession(@Query() params: SessionIdParamsNestDto) {
     return this.getBySessionIdUseCase.execute(params.sessionId);
   }
 

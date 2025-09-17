@@ -20,25 +20,22 @@ export const ManageSession = () => {
     "Date d'écheance"
   ];
 
-  const sessionRows = (sessions || [])
-    .slice()
-    .sort((a, b) => {
-      const dateA = new Date(a.dateTransparence.year, a.dateTransparence.month - 1, a.dateTransparence.day);
-      const dateB = new Date(b.dateTransparence.year, b.dateTransparence.month - 1, b.dateTransparence.day);
-      return dateB.getTime() - dateA.getTime();
-    })
-    .map((session) => {
-      const { name, formation, dateTransparence, dateEcheance, sessionImportId, typeDeSaisine } = session;
-      const href = ROUTE_PATHS.SG.TRANSPARENCE_ID.replace(':id', sessionImportId);
+  const sessionRows = (sessions || []).map((session) => {
+    const { name, formation, dateTransparence, dateEcheance, sessionImportId, typeDeSaisine, sessionId } =
+      session;
+    const href = ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId).replace(
+      ':sessionImportId',
+      sessionImportId
+    );
 
-      return [
-        TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],
-        formation,
-        <a href={href}>{name.toUpperCase()}</a>,
-        DateOnly.fromDateOnly(dateTransparence),
-        dateEcheance && DateOnly.fromDateOnly(dateEcheance)
-      ];
-    });
+    return [
+      TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],
+      formation,
+      <a href={href}>{name.toUpperCase()}</a>,
+      DateOnly.fromDateOnly(dateTransparence),
+      dateEcheance && DateOnly.fromDateOnly(dateEcheance)
+    ];
+  });
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: 'Gérer une session',
