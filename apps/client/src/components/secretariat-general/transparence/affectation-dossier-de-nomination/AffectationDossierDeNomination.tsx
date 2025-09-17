@@ -6,17 +6,8 @@ import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState, useMemo } from 'react';
-
-type SortField =
-  | 'numero'
-  | 'magistrat'
-  | 'posteActuel'
-  | 'grade'
-  | 'posteCible'
-  | 'observants'
-  | 'priorite'
-  | 'rapporteurs';
-type SortDirection = 'asc' | 'desc' | null;
+import * as XLSX from 'xlsx';
+import type { SortDirection, SortField } from '../../../../types/table-sort.types';
 
 export const AffectationDossierDeNomination = () => {
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -40,6 +31,49 @@ export const AffectationDossierDeNomination = () => {
       return 'fr-icon-arrow-down-line';
     }
     return sortDirection === 'asc' ? 'fr-icon-arrow-up-line' : 'fr-icon-arrow-down-line';
+  };
+
+  const exportToExcel = () => {
+    if (!sortedData || sortedData.length === 0) return;
+
+    // Préparer les données pour l'export
+    const exportData = sortedData.map((dossier) => {
+      const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+      return {
+        'N°': content.numeroDeDossier,
+        Magistrat: content.nomMagistrat,
+        'Poste actuel': content.posteActuel,
+        'Grade actuel': content.grade,
+        'Poste cible': content.posteCible,
+        Observants: Array.isArray(content.observants) ? content.observants.join(', ') : content.observants,
+        Priorité: 'priorité',
+        'Rapporteur(s)': dossier.rapporteurs.join(', ')
+      };
+    });
+
+    // Créer le workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Ajuster la largeur des colonnes
+    const colWidths = [
+      { wch: 10 }, // N°
+      { wch: 25 }, // Magistrat
+      { wch: 30 }, // Poste actuel
+      { wch: 20 }, // Grade actuel
+      { wch: 30 }, // Poste cible
+      { wch: 25 }, // Observants
+      { wch: 15 }, // Priorité
+      { wch: 30 } // Rapporteur(s)
+    ];
+    ws['!cols'] = colWidths;
+    XLSX.utils.book_append_sheet(wb, ws, 'Dossiers de nomination');
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const fileName = `dossiers-nomination-${dateStr}.xlsx`;
+
+    XLSX.writeFile(wb, fileName);
   };
 
   const TABLE_HEADER: ReactNode[] = [
@@ -214,6 +248,16 @@ export const AffectationDossierDeNomination = () => {
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
+      </div>
+
+      <div className="mb-4 flex justify-end">
+        <Button
+          iconId="fr-icon-download-line"
+          onClick={exportToExcel}
+          disabled={!sortedData || sortedData.length === 0}
+        >
+          Exporter en Excel
+        </Button>
       </div>
 
       {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
