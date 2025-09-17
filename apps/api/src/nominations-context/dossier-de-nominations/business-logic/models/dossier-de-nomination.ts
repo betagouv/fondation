@@ -2,7 +2,7 @@ import { TypeDeSaisine } from 'shared-models';
 import {
   DossierDeNominationContent,
   DossierDeNominationSnapshot,
-} from 'shared-models/models/session/dossier-de-nomination-content';
+} from 'shared-models/models/session/dossier-de-nomination';
 import { Exact } from 'type-fest/source/exact';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';

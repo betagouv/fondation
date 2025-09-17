@@ -27,6 +27,7 @@ export const AffectationDossierDeNomination = () => {
 
   const dataRows = (dossiersDeNomination || []).map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+    const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
     return [
       content.numeroDeDossier,
       content.nomMagistrat,
@@ -35,7 +36,7 @@ export const AffectationDossierDeNomination = () => {
       content.posteCible,
       content.observants,
       'priorité',
-      'rapporteurs'
+      <span className="whitespace-pre-line">{rapporteurs}</span>
     ];
   });
 

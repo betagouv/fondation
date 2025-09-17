@@ -1,5 +1,5 @@
 import { TypeDeSaisine } from 'shared-models';
-import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination';
 import { DomainEvent } from 'src/shared-kernel/business-logic/models/domain-event';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../../sessions/business-logic/models/domain-registry';

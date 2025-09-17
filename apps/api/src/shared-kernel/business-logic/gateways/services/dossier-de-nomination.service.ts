@@ -6,7 +6,7 @@ import {
 import {
   DossierDeNominationContent,
   DossierDeNominationSnapshot,
-} from 'shared-models/models/session/dossier-de-nomination-content';
+} from 'shared-models/models/session/dossier-de-nomination';
 
 export type DossierDeNominationDto<
   S extends TypeDeSaisine | unknown = unknown,

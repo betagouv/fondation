@@ -1,5 +1,5 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
-import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination';
 import {
   SessionContent,
   SessionSnapshot,

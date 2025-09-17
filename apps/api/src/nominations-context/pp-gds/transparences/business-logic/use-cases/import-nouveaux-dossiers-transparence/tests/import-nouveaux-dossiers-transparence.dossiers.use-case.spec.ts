@@ -1,6 +1,6 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import {
   aDossierDeNominationId,

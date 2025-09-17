@@ -1,4 +1,4 @@
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DossierDeNominationRepository } from '../../gateways/repositories/dossier-de-nomination.repository';
 

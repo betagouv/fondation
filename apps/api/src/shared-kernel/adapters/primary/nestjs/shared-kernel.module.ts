@@ -6,6 +6,11 @@ import {
   S3_STORAGE_PROVIDER,
 } from 'src/files-context/adapters/primary/nestjs/tokens';
 
+import {
+  DossierDeNominationRestContrat,
+  IdentityAndAccessRestContract,
+  NominationsContextSessionsRestContract,
+} from 'shared-models';
 import { MinioS3Commands } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-commands';
 import { minioS3StorageClient } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
 import { RealS3StorageProvider } from 'src/files-context/adapters/secondary/gateways/providers/real-s3-storage.provider';
@@ -16,6 +21,10 @@ import { S3StorageProvider } from 'src/files-context/business-logic/gateways/pro
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { validateConfig } from 'src/shared-kernel/adapters/primary/nestjs/env.validation';
+import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
+import { HttpDossierDeNominationService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-dossier-de-nomination.service';
+import { HttpSessionService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-session.service';
+import { HttpUserService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-user.service';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -46,10 +55,16 @@ import {
   DOMAIN_EVENT_PUBLISHER,
   DOMAIN_EVENT_REPOSITORY,
   DOMAIN_EVENTS_POLLER,
+  DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
+  DOSSIER_DE_NOMINATION_SERVICE,
   DRIZZLE_DB,
+  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
+  NOMINATIONS_CONTEXT_HTTP_CLIENT,
   SENTRY_SERVICE,
+  SESSION_SERVICE,
   TRANSACTION_PERFORMER,
   UPLOAD_FILE_SERVICE,
+  USER_SERVICE,
   UUID_GENERATOR,
 } from './tokens';
 
@@ -71,6 +86,9 @@ const isScalewayS3 = isProduction;
     SystemRequestValidationMiddleware,
     SessionValidationMiddleware,
     UPLOAD_FILE_SERVICE,
+    USER_SERVICE,
+    SESSION_SERVICE,
+    DOSSIER_DE_NOMINATION_SERVICE,
   ],
   controllers: [],
   providers: [
@@ -199,6 +217,65 @@ const isScalewayS3 = isProduction;
         S3_STORAGE_PROVIDER,
       ],
     },
+
+    generateProvider(
+      HttpUserService,
+      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT],
+      USER_SERVICE,
+    ),
+    {
+      provide: IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<IdentityAndAccessRestContract>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/auth',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
+    {
+      provide: NOMINATIONS_CONTEXT_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<NominationsContextSessionsRestContract>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/nominations/sessions',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
+    {
+      provide: DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<DossierDeNominationRestContrat>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/nominations/dossier-de-nominations',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
+
+    generateProvider(
+      HttpSessionService,
+      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
+      SESSION_SERVICE,
+    ),
+    generateProvider(
+      HttpDossierDeNominationService,
+      [DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT],
+      DOSSIER_DE_NOMINATION_SERVICE,
+    ),
     SystemRequestValidationMiddleware,
     SessionValidationMiddleware,
   ],

@@ -14,7 +14,7 @@ import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nomina
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 
 import { ContenuPropositionDeNominationTransparenceV1 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
 import { reportRules } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-rule-pm';

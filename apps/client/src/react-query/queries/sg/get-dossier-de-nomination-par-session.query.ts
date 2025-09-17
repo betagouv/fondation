@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { DossierDeNominationRestContrat } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 
-type Endpoint = DossierDeNominationRestContrat['endpoints']['dossierDeNominationParSession'];
+type Endpoint = DossierDeNominationRestContrat['endpoints']['dossierDeNominationEtAffectationParSession'];
 type GetDossiersDeNominationParSessionArgs = Endpoint['params'];
 type GetDossiersDeNominationParSessionResponse = Endpoint['response'];
 

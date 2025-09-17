@@ -1,5 +1,5 @@
 import { TypeDeSaisine } from 'shared-models';
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 

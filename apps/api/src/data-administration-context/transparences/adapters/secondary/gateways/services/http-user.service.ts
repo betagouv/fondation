@@ -21,6 +21,21 @@ export class HttpUserService implements UserService {
     private readonly systemRequestSignatureProvider: SystemRequestSignatureProvider,
   ) {}
 
+  async userWithId(userId: string): Promise<UserDescriptorSerialized> {
+    const { method, path, params }: ClientFetchOptions['userWithId'] = {
+      method: 'GET',
+      path: 'user-with-id/:userId',
+      params: { userId },
+    };
+
+    const response = await this.fetchUser(method, path, params);
+
+    return this.userDescriptorFromResponse<Endpoints['userWithId']['response']>(
+      response,
+      `User with id ${userId} not found`,
+    );
+  }
+
   async userWithFullName(fullName: string): Promise<UserDescriptorSerialized> {
     const { method, path, params }: ClientFetchOptions['userWithFullName'] = {
       method: 'GET',

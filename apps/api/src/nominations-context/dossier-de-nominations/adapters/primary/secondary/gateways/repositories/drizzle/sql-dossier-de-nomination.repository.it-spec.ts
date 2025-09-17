@@ -11,7 +11,7 @@ import {
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { clearDB } from 'test/docker-postgresql-manager';
 
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { SqlDossierDeNominationRepository } from './sql-dossier-de-nomination.repository';

@@ -18,3 +18,7 @@ export type DossierDeNominationSnapshot<
   nominationFileImportedId: string;
   content: Content;
 };
+
+export type DossierDeNominationEtAffectationSnapshot = DossierDeNominationSnapshot & {
+  rapporteurs: string[];
+};

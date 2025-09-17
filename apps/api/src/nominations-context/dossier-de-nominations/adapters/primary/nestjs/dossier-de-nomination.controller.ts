@@ -23,7 +23,7 @@ export const baseRouteDossierDeNomination: DossierDeNominationRestContrat['baseP
 export const dossierDeNominationsEndpointsPath: IControllerPaths<DossierDeNominationRestContrat> =
   {
     dossierDeNominationSnapshot: 'snapshot/by-id/:dossierId',
-    dossierDeNominationParSession: 'snapshot/by-session',
+    dossierDeNominationEtAffectationParSession: 'snapshot/by-session',
   };
 
 @Controller(baseRouteDossierDeNomination)
@@ -35,8 +35,12 @@ export class DossierDeNominationController
     private readonly getBySessionIdUseCase: GetBySessionIdUseCase,
   ) {}
 
-  @Get(dossierDeNominationsEndpointsPath.dossierDeNominationParSession)
-  async dossierDeNominationParSession(@Query() params: SessionIdParamsNestDto) {
+  @Get(
+    dossierDeNominationsEndpointsPath.dossierDeNominationEtAffectationParSession,
+  )
+  async dossierDeNominationEtAffectationParSession(
+    @Query() params: SessionIdParamsNestDto,
+  ) {
     return this.getBySessionIdUseCase.execute(params.sessionId);
   }
 

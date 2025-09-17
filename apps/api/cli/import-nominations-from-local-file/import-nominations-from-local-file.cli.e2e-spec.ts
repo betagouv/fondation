@@ -13,7 +13,7 @@ import {
   ContenuPropositionDeNominationTransparenceV1,
   ContenuPropositionDeNominationTransparenceV2,
 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema';
 import { defaultApiConfig } from 'src/shared-kernel/adapters/primary/nestjs/env';

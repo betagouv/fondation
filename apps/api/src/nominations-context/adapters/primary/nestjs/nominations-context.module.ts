@@ -54,6 +54,7 @@ import {
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
+  USER_SERVICE,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
@@ -134,6 +135,8 @@ import {
     generateProvider(GetBySessionIdUseCase, [
       DOSSIER_DE_NOMINATION_REPOSITORY,
       TRANSACTION_PERFORMER,
+      AFFECTATION_REPOSITORY,
+      USER_SERVICE,
     ]),
     generateProvider(ImportNouvelleTransparenceUseCase, [
       TRANSACTION_PERFORMER,

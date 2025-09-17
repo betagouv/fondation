@@ -1,4 +1,4 @@
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 
 const dossierDeNominationId = 'dossier-id';

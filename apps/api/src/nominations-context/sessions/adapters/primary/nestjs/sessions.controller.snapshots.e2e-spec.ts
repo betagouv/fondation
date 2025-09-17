@@ -2,7 +2,7 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 import { MainAppConfigurator } from 'src/main.configurator';
 
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';

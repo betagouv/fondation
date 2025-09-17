@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
 
-import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import {
   DossierDeNomination,
   dossierDeNominationContentSchema,

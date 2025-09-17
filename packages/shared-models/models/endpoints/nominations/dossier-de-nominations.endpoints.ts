@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DossierDeNominationSnapshot } from "../../session/dossier-de-nomination-content";
+import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodParamsDto } from "../common";
 
 
@@ -14,13 +14,13 @@ export interface DossierDeNominationRestContrat extends RestContract {
       };
       response: DossierDeNominationSnapshot;
     };
-    dossierDeNominationParSession: {
+    dossierDeNominationEtAffectationParSession: {
       method: "GET";
       path: "snapshot/by-session";
       params: {
         sessionId: string;
       };
-      response: DossierDeNominationSnapshot[];
+      response: DossierDeNominationEtAffectationSnapshot[];
     };
   };
 }
@@ -40,5 +40,5 @@ export const sessionIdParamsSchema = z.object({
   sessionId: z.string().uuid(),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
-  "dossierDeNominationParSession"
+  "dossierDeNominationEtAffectationParSession"
 >;

@@ -5,11 +5,6 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
-import {
-  IdentityAndAccessRestContract,
-  NominationsContextSessionsRestContract,
-} from 'shared-models';
-import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
 import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
@@ -30,17 +25,16 @@ import {
   API_CONFIG,
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
+  DOSSIER_DE_NOMINATION_SERVICE,
   DRIZZLE_DB,
+  SESSION_SERVICE,
   TRANSACTION_PERFORMER,
+  USER_SERVICE,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import { HttpDossierDeNominationService } from '../../../../shared-kernel/adapters/secondary/gateways/services/http-dossier-de-nomination.service';
-import { HttpSessionService } from '../../../../shared-kernel/adapters/secondary/gateways/services/http-session.service';
-import { HttpUserService } from '../../../../shared-kernel/adapters/secondary/gateways/services/http-user.service';
 import { SqlReportListingQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
 import { SqlReportRetrievalQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
@@ -53,17 +47,11 @@ import { RapportTransparenceCrééNestSubscriber } from './event-subscribers/rap
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
-  DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
-  DOSSIER_DE_NOMINATION_SERVICE,
-  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
-  NOMINATIONS_CONTEXT_HTTP_CLIENT,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
   REPORT_REPOSITORY,
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
-  SESSION_SERVICE,
-  USER_SERVICE,
 } from './tokens';
 
 @Module({
@@ -137,65 +125,6 @@ import {
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
     generateProvider(ReporterTranslatorService, [USER_SERVICE]),
-    generateProvider(
-      HttpUserService,
-      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT],
-      USER_SERVICE,
-    ),
-
-    {
-      provide: IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => {
-        return new BoundedContextHttpClient<IdentityAndAccessRestContract>(
-          apiConfig,
-          systemRequestSignatureProvider,
-          'api/auth',
-        );
-      },
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
-    {
-      provide: NOMINATIONS_CONTEXT_HTTP_CLIENT,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => {
-        return new BoundedContextHttpClient<NominationsContextSessionsRestContract>(
-          apiConfig,
-          systemRequestSignatureProvider,
-          'api/nominations/sessions',
-        );
-      },
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
-    {
-      provide: DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => {
-        return new BoundedContextHttpClient<DossierDeNominationRestContrat>(
-          apiConfig,
-          systemRequestSignatureProvider,
-          'api/nominations/dossier-de-nominations',
-        );
-      },
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
-
-    generateProvider(
-      HttpSessionService,
-      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
-      SESSION_SERVICE,
-    ),
-    generateProvider(
-      HttpDossierDeNominationService,
-      [DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT],
-      DOSSIER_DE_NOMINATION_SERVICE,
-    ),
     generateProvider(DossierDeNominationTranslator, [
       DOSSIER_DE_NOMINATION_SERVICE,
       SESSION_SERVICE,
@@ -209,7 +138,6 @@ import {
     ),
     generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
     generateProvider(SqlReportRuleRepository, [], REPORT_RULE_REPOSITORY),
-
     generateProvider(CréerAnalyseUseCase, [TRANSACTION_PERFORMER]),
   ],
 })
