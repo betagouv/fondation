@@ -9,6 +9,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useSort } from '../../../../hooks/useSort.hook';
 import { ExcelExport } from './ExcelExport';
 import type { SortField } from '../../../../types/table-sort.types';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { FiltreFormation } from './FiltreFormation';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -70,6 +74,11 @@ export const TableauAffectationDossierDeNomination = () => {
       </div>
 
       <ExcelExport data={sortedData} />
+
+      <div id="filtre-tableau-affectation-dossier-de-nomination">
+        Filtrer par
+        <FiltreFormation />
+      </div>
 
       {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
       {isErrorDossiersDeNomination && (
