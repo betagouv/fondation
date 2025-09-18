@@ -7,7 +7,7 @@ import { useGetTransparence } from '../../../../react-query/queries/sg/get-trans
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-import { AffectationDossierDeNomination } from '../affectation-dossier-de-nomination/AffectationDossierDeNomination';
+import { TableauAffectationDossierDeNomination } from '../tableau-affectation-dossier-de-nomination/TableauAffectationDossierDeNomination';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 
@@ -68,7 +68,7 @@ export const Transparence: FC = () => {
           <TableauDeBordActions {...transparence} />
           <TableauDeBordResume {...transparence} />
         </div>
-        <AffectationDossierDeNomination />
+        <TableauAffectationDossierDeNomination />
       </div>
     </>
   );
