@@ -6,8 +6,8 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { useEditTransparency } from '../../../../../../react-query/mutations/sg/edit-transparency.mutation';
-import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
+import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 
 export type TableauDeBordResumeProps = TransparenceSnapshot;
 export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {

@@ -34,7 +34,9 @@ export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): Reac
 };
 
 export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], filters: FiltersState) => {
-  return data.filter((dossier) => {
+  // TODO: Implement filters
+  console.log(filters);
+  return data.filter(() => {
     // const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
 
     // if (filters.formations.length > 0 && !filters.formations.includes(content.formation)) {
