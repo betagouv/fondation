@@ -1,18 +1,15 @@
 import { useParams } from 'react-router-dom';
 import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { colors } from '@codegouvfr/react-dsfr/fr/colors';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
-
+import { useState } from 'react';
+import { dataRows, HEADER_COLUMNS, applyFilters } from './tableau-affectation-config';
 import { useSort } from '../../../../hooks/useSort.hook';
 import { ExcelExport } from './ExcelExport';
-import type { SortField } from '../../../../types/table-sort.types';
-import Tag from '@codegouvfr/react-dsfr/Tag';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { FiltreFormation } from './FiltreFormation';
+import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
+import type { FiltersState } from '../../../shared/filter-configurations';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -24,20 +21,13 @@ export const TableauAffectationDossierDeNomination = () => {
     sessionId: sessionId as string
   });
 
+  const [filters, setFilters] = useState<FiltersState>({
+    formations: []
+  });
+
   const { handleSort, getSortIcon, sortedData } = useSort(dossiersDeNomination || []);
 
-  const headers: Array<{ field: SortField; label: string }> = [
-    { field: 'numero', label: 'N°' },
-    { field: 'magistrat', label: 'Magistrat' },
-    { field: 'posteActuel', label: 'Poste actuel' },
-    { field: 'grade', label: 'Grade' },
-    { field: 'posteCible', label: 'Poste cible' },
-    { field: 'observants', label: 'Observants' },
-    { field: 'priorite', label: 'Priorité' },
-    { field: 'rapporteurs', label: 'Rapporteur(s)' }
-  ];
-
-  const TABLE_HEADER: ReactNode[] = headers.map((header) => (
+  const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS.map((header) => (
     <span className="flex items-center gap-1">
       {header.label}
       <Button
@@ -50,34 +40,20 @@ export const TableauAffectationDossierDeNomination = () => {
     </span>
   ));
 
-  const dataRows = sortedData.map((dossier) => {
-    const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
-    const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
-    return [
-      content.numeroDeDossier,
-      content.nomMagistrat,
-      content.posteActuel,
-      content.grade,
-      content.posteCible,
-      content.observants,
-      'priorité',
-      <span className="whitespace-pre-line">{rapporteurs}</span>
-    ];
-  });
+  const filteredData = applyFilters(sortedData, filters);
+  const dossierDataRows = dataRows(filteredData);
 
   return (
-    <div id="session-affectation-dossier-de-nomination">
+    <div id="session-affectation-dossier-de-nomination" className="mt-8">
       {/* Préchargement des icônes pour éviter les problèmes de chargement conditionnel */}
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
       </div>
 
-      <ExcelExport data={sortedData} />
-
-      <div id="filtre-tableau-affectation-dossier-de-nomination">
-        Filtrer par
-        <FiltreFormation />
+      <div className="flex items-center justify-between">
+        <FiltresDossiersDeNomination filters={filters} onFiltersChange={setFilters} />
+        <ExcelExport data={filteredData} />
       </div>
 
       {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
@@ -91,7 +67,7 @@ export const TableauAffectationDossierDeNomination = () => {
           id="session-affectation-dossier-de-nomination-table"
           bordered
           headers={TABLE_HEADER}
-          data={dataRows}
+          data={dossierDataRows}
         />
       )}
     </div>
