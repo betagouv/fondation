@@ -13,6 +13,7 @@ export interface ReportListItemQueried {
 export interface ReportListItemVM {
   id: string;
   sessionId: string;
+  sessionImportId: string;
   folderNumber: number | null;
   state: NominationFile.ReportState;
   dueDate: DateOnlyJson | null;

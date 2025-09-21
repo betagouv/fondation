@@ -41,6 +41,7 @@ export class ListReportsUseCase {
       data: dossierDeNomination.map(({ session, dossier, reportQueried }) => ({
         id: reportQueried.id,
         sessionId: session.id,
+        sessionImportId: session.sessionImportéeId,
         transparency: session.name,
         dateTransparence: session.content.dateTransparence,
         state: reportQueried.state,

@@ -71,6 +71,7 @@ const uneDateTransparence: DateOnlyJson = {
 const unRapportVM: ReportListItemVM = {
   id: '1',
   sessionId: uneSessionId,
+  sessionImportId: 'session-importée-id',
   folderNumber: 15,
   state: NominationFile.ReportState.NEW,
   dueDate: {

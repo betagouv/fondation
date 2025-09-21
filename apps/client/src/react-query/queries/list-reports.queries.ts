@@ -56,7 +56,7 @@ export type ReportListItem = Pick<
   | 'grade'
   | 'targettedPosition'
   | 'dateTransparence'
-> & { observersCount: number };
+> & { observersCount: number; sessionImportId: string };
 
 interface ListReportsResponse {
   data: ReportListItem[];

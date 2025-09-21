@@ -41,7 +41,7 @@ export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateT
     data: attachments,
     isLoading: isAttachmentsLoading,
     isError: isAttachmentsError
-  } = useGetTransparencyAttachmentsQuery(reports[0]?.sessionId);
+  } = useGetTransparencyAttachmentsQuery(reports[0]?.sessionImportId);
 
   if (isReportsLoading) {
     return null;
