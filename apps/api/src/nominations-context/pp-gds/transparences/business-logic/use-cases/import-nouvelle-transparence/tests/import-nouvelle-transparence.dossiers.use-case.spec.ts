@@ -1,6 +1,7 @@
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
+
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import {
   aDossierDeNominationId,
   aDossierDeNominationImportedId,

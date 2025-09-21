@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { EditTransparencyDto, Magistrat } from 'shared-models';
 import {
   Transparence as TransparenceTsv,
   TransparenceSnapshot as TransparenceTsvSnapshot,
@@ -35,6 +35,31 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
     };
   }
 
+  findById(sessionId: string) {
+    return async () => {
+      const transparence = this.transparences[sessionId];
+      return transparence
+        ? (TransparenceTsv.fromSnapshot(
+            transparence as TransparenceTsvSnapshot,
+          ) as unknown as TransparenceXlsx)
+        : null;
+    };
+  }
+
+  findBySessionIds(sessionIds: string[]) {
+    return async () => {
+      const transparences = Object.values(this.transparences).filter(
+        (transparence) => sessionIds.includes(transparence.id),
+      );
+      return transparences.map(
+        (transparence) =>
+          TransparenceTsv.fromSnapshot(
+            transparence as TransparenceTsvSnapshot,
+          ) as unknown as TransparenceXlsx,
+      );
+    };
+  }
+
   addTransparence(
     transparence: TransparenceTsvSnapshot | TransparenceXlsxSnapshot,
   ) {
@@ -43,5 +68,10 @@ export class FakeTransparenceTsvRepository implements TransparenceRepository {
 
   getTransparences() {
     return Object.values(this.transparences);
+  }
+
+  updateMetadata(sessionId: string, transparence: EditTransparencyDto) {
+    console.log('SessionId', sessionId, 'Transparence', transparence);
+    return async () => {};
   }
 }

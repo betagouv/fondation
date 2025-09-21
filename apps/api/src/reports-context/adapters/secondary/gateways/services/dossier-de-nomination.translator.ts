@@ -1,10 +1,10 @@
 import { TypeDeSaisine } from 'shared-models';
+import { DossierDeNomination } from 'src/reports-context/business-logic/models/dossier-de-nomination';
 import {
   DossierDeNominationDto,
   DossierDeNominationService,
-} from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
-import { SessionService } from 'src/reports-context/business-logic/gateways/services/session.service';
-import { DossierDeNomination } from 'src/reports-context/business-logic/models/dossier-de-nomination';
+} from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionService } from 'src/shared-kernel/business-logic/gateways/services/session.service';
 
 export class DossierDeNominationTranslator {
   constructor(

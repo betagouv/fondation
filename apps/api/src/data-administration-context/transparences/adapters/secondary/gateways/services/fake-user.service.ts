@@ -5,6 +5,11 @@ type FullName = string;
 
 export class FakeUserService implements UserService {
   private users: Record<FullName, UserDescriptorSerialized> = {};
+  private usersById: Record<string, UserDescriptorSerialized> = {};
+
+  async userWithId(userId: string): Promise<UserDescriptorSerialized> {
+    return this.usersById[userId]!;
+  }
 
   async userWithFullName(name: FullName): Promise<UserDescriptorSerialized> {
     return this.users[name]!;

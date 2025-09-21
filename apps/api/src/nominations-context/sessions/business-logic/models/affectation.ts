@@ -1,6 +1,7 @@
 import { Magistrat } from 'shared-models';
 import { DomainRegistry } from './domain-registry';
-import { DossierDeNomination } from './dossier-de-nomination';
+
+import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { z } from 'zod';
 
 export type AffectationsDossiersDeNominations = {

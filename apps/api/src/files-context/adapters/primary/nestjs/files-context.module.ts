@@ -23,7 +23,7 @@ import {
   TRANSACTION_PERFORMER,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { FakeS3StorageProvider } from '../../secondary/gateways/providers/fake-s3-storage.provider';
+
 import { MinioS3Commands } from '../../secondary/gateways/providers/minio-s3-commands';
 import { RealS3StorageProvider } from '../../secondary/gateways/providers/real-s3-storage.provider';
 import { scalewayS3StorageClient } from '../../secondary/gateways/providers/scaleway-s3-sorage.client';
@@ -77,7 +77,6 @@ const isScalewayS3 = isProduction; //|| isCi;
     ]),
 
     generateProvider(SqlFileRepository, [], FILE_REPOSITORY),
-    generateProvider(FakeS3StorageProvider, [], S3_STORAGE_PROVIDER),
     {
       provide: S3_STORAGE_PROVIDER,
       useFactory: (
@@ -125,12 +124,13 @@ export class FilesContextModule implements OnModuleInit {
 
   configure(consumer: MiddlewareConsumer) {
     const signedUrlsRoute = `${baseRoute}/${endpointsPaths.getSignedUrls}`;
+    const deleteFileRoute = `${baseRoute}/${endpointsPaths.deleteFile}`;
 
     consumer
       .apply(SystemRequestValidationMiddleware)
-      .exclude(signedUrlsRoute)
+      .exclude(signedUrlsRoute, deleteFileRoute)
       .forRoutes(FilesController)
       .apply(SystemRequestOrSessionValidationMiddleware)
-      .forRoutes(signedUrlsRoute);
+      .forRoutes(signedUrlsRoute, deleteFileRoute);
   }
 }

@@ -1,14 +1,18 @@
-import { DateOnlyJson, Magistrat } from 'shared-models';
+import {
+  DateOnlyJson,
+  Magistrat,
+  TransparenceSnapshot as SharedModelTransparenceSnapshot,
+} from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
 import { DomainRegistry } from '../../../transparences/business-logic/models/domain-registry';
+import { TransparenceXlsxObservantsImportésEvent } from './events/transparence-xlsx-observants-importés.event';
 import {
   NominationFileModel,
   NominationFileModelSnapshot,
 } from './nomination-file';
 import { NominationFilesContentReadCollection } from './nomination-files-read-collection';
-import { TransparenceXlsxObservantsImportésEvent } from './events/transparence-xlsx-observants-importés.event';
 
 export type TransparenceSnapshot = {
   id: string;
@@ -35,7 +39,6 @@ export class Transparence {
     private _dateEchéance: DateOnlyJson | null,
     private _datePriseDePosteCible: DateOnlyJson | null,
     private _dateClôtureDélaiObservation: DateOnlyJson,
-
     nominationFiles: NominationFileModel[],
   ) {
     this.name = _name;
@@ -143,6 +146,10 @@ export class Transparence {
   setDateEchéance(_dateEchéance: DateOnlyJson | null) {
     this._dateEchéance = dateOnlyJsonSchema.nullable().parse(_dateEchéance);
   }
+
+  get dateTransparence(): DateOnlyJson {
+    return this._dateTransparence;
+  }
   setDateTransparence(_dateTransparence: DateOnlyJson) {
     this._dateTransparence = dateOnlyJsonSchema.parse(_dateTransparence);
   }
@@ -191,6 +198,18 @@ export class Transparence {
       nominationFiles: Object.values(this._nominationFiles).map((file) =>
         file.toSnapshot(),
       ),
+    };
+  }
+
+  sharedModelSnapshot(): SharedModelTransparenceSnapshot {
+    return {
+      id: this._id,
+      name: this._name,
+      formation: this._formation,
+      dateTransparence: this._dateTransparence,
+      dateEcheance: this._dateEchéance,
+      datePriseDePosteCible: this._datePriseDePosteCible,
+      dateClotureDelaiObservation: this._dateClôtureDélaiObservation,
     };
   }
 

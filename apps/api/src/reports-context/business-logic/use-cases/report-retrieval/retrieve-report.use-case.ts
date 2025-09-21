@@ -7,19 +7,20 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
+
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { UnionToIntersection } from 'type-fest';
 import {
+  DossierDeNominationService,
+  PropositionDeNominationTransparenceDto,
+} from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceService } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
+import {
   ReportRetrievalQueried,
   ReportRetrievalQuery,
 } from '../../gateways/queries/report-retrieval-vm.query';
-import {
-  DossierDeNominationService,
-  PropositionDeNominationTransparenceDto,
-} from '../../gateways/services/dossier-de-nomination.service';
-import { TransparenceService } from '../../gateways/services/session.service';
 
 const formatMonthsToYearsAndMonths = (months: number): string => {
   const years = Math.floor(months / 12);
@@ -74,6 +75,7 @@ export class RetrieveReportUseCase {
 
     return {
       id: rapport.id,
+      sessionId: rapport.sessionId,
       comment: rapport.comment,
       formation: rapport.formation,
       state: rapport.state,

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./node_modules/@codegouvfr/react-dsfr/main.css" />
+  <link rel="preload" href="./node_modules/@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular.woff2" as="font"
+    crossorigin="anonymous" />
+  <link rel="preload" href="./node_modules/@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular_Italic.woff2" as="font"
+    crossorigin="anonymous" />
+  <link rel="preload" href="./node_modules/@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Medium.woff2" as="font"
+    crossorigin="anonymous" />
+  <link rel="preload" href="./node_modules/@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold.woff2" as="font"
+    crossorigin="anonymous" />
+
+  <!-- 
+        Déclaration manuelle en-dehors du post-build du DSFR, car ce-dernier ne peut pas détecter
+        les icônes déclarés dans le rich text editor.
+      -->
+  <link rel="stylesheet"
+    href="./node_modules/@codegouvfr/react-dsfr/dsfr/utility/icons/icons-editor/icons-editor.min.css" />
+  <title>Fondation</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

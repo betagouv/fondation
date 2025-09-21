@@ -5,9 +5,9 @@ import {
   TransparenceSnapshotQueryParamsDto,
   TypeDeSaisine,
 } from 'shared-models';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { MainAppConfigurator } from 'src/main.configurator';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
-import { SessionSnapshot } from 'src/nominations-context/sessions/business-logic/models/session';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,

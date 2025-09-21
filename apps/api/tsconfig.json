@@ -19,10 +19,14 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "lib": ["ESNext"]
+    "lib": ["ESNext"],
+    "paths": {
+      "src/*": ["./src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.d.ts",
     "test/**/*.ts",
     "cli/**/*.ts",
     "drizzle.config.ts"

@@ -1,4 +1,7 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import {
   aDossierDeNominationId,
   aDossierDeNominationImportedId,
@@ -7,9 +10,6 @@ import {
   givenUneSession,
   importNouveauxDossiersUseCase,
 } from './import-nouveaux-dossiers-transparence.tests-setup';
-import { getDependencies } from 'src/nominations-context/tests-dependencies';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
-import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 
 describe('Import nouveaux dossiers dans une transparence - Dossiers de nominations', () => {
   let dependencies: ReturnType<typeof getDependencies>;

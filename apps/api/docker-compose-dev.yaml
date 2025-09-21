@@ -16,7 +16,7 @@ services:
   minio:
     container_name: minio
     image: 'minio/minio:latest'
-    entrypoint: sh -c "mkdir -p /data/sandbox-csm-fondation-reports-context && minio server /data"
+    entrypoint: sh -c "mkdir -p /data/sandbox-csm-fondation-reports-context && mkdir -p /data/sandbox-csm-fondation-transparences-context && minio server /data --console-address :9001"
     ports:
       - '9000:9000' # API
       - '9001:9001' # Web interface

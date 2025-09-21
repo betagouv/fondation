@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RestContract, ZodParamsDto } from "./common";
+import { type RestContract, type ZodParamsDto } from "./common";
 
 export interface IdentityAndAccessAuthzRestContract extends RestContract {
   basePath: "api/authz";

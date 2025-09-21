@@ -1,11 +1,11 @@
 import { TypeDeSaisine } from 'shared-models';
+import { DossierDeNominationRepository } from 'src/nominations-context/dossier-de-nominations/business-logic/gateways/repositories/dossier-de-nomination.repository';
 import {
   TransactionableAsync,
   TransactionPerformer,
 } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { PropositionDeNominationTransparence } from '../../models/proposition-de-nomination';
 import { UpdateObservantsCommand } from './update-observants.command';
-import { DossierDeNominationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/dossier-de-nomination.repository';
 
 export class UpdateObservantsUseCase {
   constructor(

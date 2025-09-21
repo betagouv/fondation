@@ -5,10 +5,10 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
+import { ContenuPropositionDeNominationTransparenceV1 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { GdsTransparenceNominationFilesModifiedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-nomination-files-modified.event';
-import { ContenuPropositionDeNominationTransparenceV1 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
 import { UpdateDossierDeNominationUseCase } from 'src/nominations-context/pp-gds/transparences/business-logic/use-cases/update-dossier-de-nomination/update-dossier-de-nomination.use-case';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { getDependencies as getContextDependencies } from 'src/nominations-context/tests-dependencies';
 import { UpdateDossierDeNominationCommand } from '../update-dossier-de-nomination.command';
 

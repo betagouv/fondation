@@ -24,10 +24,10 @@ jobs:
           uses: actions/download-artifact@v4
           with:
             name: api-scalingo-${{ inputs.tag }}
-        - name: Download webapp artifact
+        - name: Download client artifact
           uses: actions/download-artifact@v4
           with:
-            name: webapp-scalingo-${{ inputs.tag }}
+            name: client-scalingo-${{ inputs.tag }}
         - name: Install scalingo CLI
           run: |
             curl -O https://cli-dl.scalingo.com/install && bash install
@@ -38,7 +38,7 @@ jobs:
           run: |
             echo "Deploying api on app ${{ vars.SCALINGO_API_APP_NAME }}"
             scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} deploy api-scalingo.tar.gz
-        - name: Deploy web
+        - name: Deploy client
           run: |
-            echo "Deploying webapp on app ${{ vars.SCALINGO_APP_NAME }}"
-            scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_APP_NAME }} deploy webapp-scalingo.tar.gz
+            echo "Deploying client on app ${{ vars.SCALINGO_CLIENT_APP_NAME }}"
+            scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_CLIENT_APP_NAME }} deploy client-scalingo.tar.gz

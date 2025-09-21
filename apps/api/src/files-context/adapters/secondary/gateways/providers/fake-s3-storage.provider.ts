@@ -38,6 +38,10 @@ export class FakeS3StorageProvider implements S3StorageProvider {
     // No-op for the fake provider
   }
 
+  async getSignedUrl(file: FileDocument): Promise<string> {
+    return this.genSignedUrl(file.bucket, file.path, file.name);
+  }
+
   async uploadFile(
     file: Buffer,
     fileName: FileName,

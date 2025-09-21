@@ -33,10 +33,10 @@ describe('Sessions Controller - Authn', () => {
   afterEach(async () => await app.close());
   afterAll(async () => await db.$client.end());
 
-  it('rejects if missiing system request token', async () => {
+  it('rejects if missing system request token', async () => {
     await supertest(app.getHttpServer())
       .get(
-        `/api/nominations/sessions/dossier-de-nomination/snapshot/by-id/${aDossierId}`,
+        `/api/nominations/dossier-de-nominations/snapshot/by-id/${aDossierId}`,
       )
       .expect(HttpStatus.UNAUTHORIZED);
   });

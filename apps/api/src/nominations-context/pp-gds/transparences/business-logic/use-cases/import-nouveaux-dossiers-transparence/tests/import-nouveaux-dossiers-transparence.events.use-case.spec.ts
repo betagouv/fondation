@@ -1,10 +1,10 @@
 import { TypeDeSaisine } from 'shared-models';
-import { NouveauDossierDeNominationEvent } from 'src/nominations-context/sessions/business-logic/models/events/nouveau-dossier-de-nomination.event';
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { NouveauDossierDeNominationEvent } from 'src/nominations-context/dossier-de-nominations/business-logic/models/events/nouveau-dossier-de-nomination.event';
 import {
   currentDate,
   getDependencies,
 } from 'src/nominations-context/tests-dependencies';
-import { ContenuPropositionDeNominationTransparenceV2 } from '../../../models/proposition-de-nomination';
 import {
   aDateEchéance,
   aDossierDeNominationId,

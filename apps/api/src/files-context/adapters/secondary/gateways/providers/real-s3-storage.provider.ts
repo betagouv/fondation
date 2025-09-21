@@ -134,6 +134,23 @@ export class RealS3StorageProvider implements S3StorageProvider {
     );
   }
 
+  async getSignedUrl(file: FileDocument): Promise<string> {
+    const fileSnapshot = file.toSnapshot();
+    await this.fileExistsGuard(
+      fileSnapshot.bucket,
+      fileSnapshot.path,
+      fileSnapshot.name,
+    );
+    const command = this.s3Commands.getObject(
+      fileSnapshot.bucket,
+      fileSnapshot.path,
+      fileSnapshot.name,
+    );
+    return getSignedUrl(this.s3Client, command, {
+      expiresIn: this.apiConfig.s3.signedUrlExpiresIn,
+    });
+  }
+
   async getSignedUrls(files: FileDocument[]): Promise<FileVM[]> {
     const signedUrls = await Promise.all(
       files.map(async (file) => {

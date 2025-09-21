@@ -5,14 +5,12 @@ import {
   NestModule,
   OnModuleInit,
 } from '@nestjs/common';
-import {
-  IdentityAndAccessRestContract,
-  NominationsContextSessionsRestContract,
-} from 'shared-models';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { ReportRuleRepository } from 'src/reports-context/business-logic/gateways/repositories/report-rule.repository';
+import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
+import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
@@ -27,12 +25,14 @@ import {
   API_CONFIG,
   DATE_TIME_PROVIDER,
   DOMAIN_EVENT_REPOSITORY,
+  DOSSIER_DE_NOMINATION_SERVICE,
   DRIZZLE_DB,
+  SESSION_SERVICE,
   TRANSACTION_PERFORMER,
+  USER_SERVICE,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
-import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { SqlReportListingQuery } from '../../secondary/gateways/repositories/drizzle/sql-report-listing-vm.query';
@@ -40,29 +40,19 @@ import { SqlReportRetrievalQuery } from '../../secondary/gateways/repositories/d
 import { SqlReportRuleRepository } from '../../secondary/gateways/repositories/drizzle/sql-report-rule.repository';
 import { SqlReportRepository } from '../../secondary/gateways/repositories/drizzle/sql-report.repository';
 import { DossierDeNominationTranslator } from '../../secondary/gateways/services/dossier-de-nomination.translator';
-import { HttpDossierDeNominationService } from '../../secondary/gateways/services/http-dossier-de-nomination.service';
 import { HttpReportFileService } from '../../secondary/gateways/services/http-report-file-service';
-import { HttpSessionService } from '../../secondary/gateways/services/http-session.service';
-import { HttpUserService } from '../../secondary/gateways/services/http-user.service';
 import { ReporterTranslatorService } from '../../secondary/gateways/services/reporter-translator.service';
 import { AffectationRapporteursCrééeNestSubscriber } from './event-subscribers/affectation-rapporteurs-créée.nest-subscriber';
 import { RapportTransparenceCrééNestSubscriber } from './event-subscribers/rapport-transparence-crée.nest-subscriber';
 import { generateReportsProvider as generateProvider } from './provider-generator';
 import { ReportsController } from './reports.controller';
 import {
-  NOMINATIONS_CONTEXT_HTTP_CLIENT,
-  DOSSIER_DE_NOMINATION_SERVICE,
   REPORT_FILE_SERVICE,
   REPORT_LISTING_QUERY,
   REPORT_REPOSITORY,
   REPORT_RETRIEVAL_QUERY,
   REPORT_RULE_REPOSITORY,
-  SESSION_SERVICE,
-  USER_SERVICE,
-  IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
 } from './tokens';
-import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
-import { RapportTransparenceCrééSubscriber } from 'src/reports-context/business-logic/listeners/rapport-transparence-crée.subscriber';
 
 @Module({
   imports: [SharedKernelModule],
@@ -135,51 +125,6 @@ import { RapportTransparenceCrééSubscriber } from 'src/reports-context/busines
       inject: [API_CONFIG, SystemRequestSignatureProvider],
     },
     generateProvider(ReporterTranslatorService, [USER_SERVICE]),
-    generateProvider(
-      HttpUserService,
-      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT],
-      USER_SERVICE,
-    ),
-
-    {
-      provide: IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => {
-        return new BoundedContextHttpClient<IdentityAndAccessRestContract>(
-          apiConfig,
-          systemRequestSignatureProvider,
-          'api/auth',
-        );
-      },
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
-    {
-      provide: NOMINATIONS_CONTEXT_HTTP_CLIENT,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => {
-        return new BoundedContextHttpClient<NominationsContextSessionsRestContract>(
-          apiConfig,
-          systemRequestSignatureProvider,
-          'api/nominations/sessions',
-        );
-      },
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
-
-    generateProvider(
-      HttpSessionService,
-      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
-      SESSION_SERVICE,
-    ),
-    generateProvider(
-      HttpDossierDeNominationService,
-      [NOMINATIONS_CONTEXT_HTTP_CLIENT],
-      DOSSIER_DE_NOMINATION_SERVICE,
-    ),
     generateProvider(DossierDeNominationTranslator, [
       DOSSIER_DE_NOMINATION_SERVICE,
       SESSION_SERVICE,
@@ -193,7 +138,6 @@ import { RapportTransparenceCrééSubscriber } from 'src/reports-context/busines
     ),
     generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
     generateProvider(SqlReportRuleRepository, [], REPORT_RULE_REPOSITORY),
-
     generateProvider(CréerAnalyseUseCase, [TRANSACTION_PERFORMER]),
   ],
 })

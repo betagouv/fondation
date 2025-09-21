@@ -6,9 +6,9 @@ import {
   Transparency,
 } from 'shared-models';
 import { Get, Paths } from 'type-fest';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceDto } from '../../../shared-kernel/business-logic/gateways/services/session.service';
 import { ReportRetrievalQueried } from '../gateways/queries/report-retrieval-vm.query';
-import { PropositionDeNominationTransparenceV1Dto } from '../gateways/services/dossier-de-nomination.service';
-import { TransparenceDto } from '../gateways/services/session.service';
 import { NominationFileReportSnapshot } from './nomination-file-report';
 
 export class ReportRetrievalBuilder<
@@ -30,7 +30,7 @@ export class ReportRetrievalBuilder<
         ? 'dossier-id'
         : '10210165-8579-4f2f-a83a-87beb6658ce8',
       sessionId: isFakeId
-        ? 'session-id'
+        ? 'une-session-id'
         : 'b584b5f5-c31e-4155-b479-3d5f5e07e944',
       folderNumber: 1,
       name: 'Ada Lovelace',
@@ -113,6 +113,7 @@ export class ReportRetrievalBuilder<
     const report = this._report;
     return {
       id: report.id,
+      sessionId: report.sessionId,
       folderNumber: report.folderNumber,
       biography: report.biography,
       dueDate: report.dueDate,
@@ -170,6 +171,7 @@ export class ReportRetrievalBuilder<
   ): ReportRetrievalBuilder {
     return new ReportRetrievalBuilder()
       .with('id', dossierDeNomination.id)
+      .with('sessionId', session.id)
       .with('folderNumber', dossierDeNomination.content.folderNumber)
       .with('name', dossierDeNomination.content.name)
       .with('formation', session.formation)

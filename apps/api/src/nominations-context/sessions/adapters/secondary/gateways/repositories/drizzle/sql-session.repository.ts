@@ -1,13 +1,18 @@
 import { eq } from 'drizzle-orm';
+import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
-import {
-  Session,
-  SessionSnapshot,
-} from 'src/nominations-context/sessions/business-logic/models/session';
+import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { sessionPm } from './schema/session-pm';
 
 export class SqlSessionRepository implements SessionRepository {
+  findAll(): DrizzleTransactionableAsync<Session[]> {
+    return async (db) => {
+      const result = await db.select().from(sessionPm);
+      return result.map(SqlSessionRepository.mapToDomain);
+    };
+  }
+
   save(session: Session): DrizzleTransactionableAsync<void> {
     return async (db) => {
       const sessionSnapshot = session.snapshot();

@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { NominationFile } from "../nomination-file.namespace";
-import { ReportFileUsage, ReportRetrievalVM } from "../report-retrieval-vm";
-import { ReportListingVM } from "../reports-listing-vm";
+import { ReportFileUsage, type ReportRetrievalVM } from "../report-retrieval-vm";
+import { type ReportListingVM } from "../reports-listing-vm";
 import {
-  RestContract,
-  ZodDto,
-  ZodParamsDto,
-  ZodQueryParamsDto,
+  type RestContract,
+  type ZodDto,
+  type ZodParamsDto,
+  type ZodQueryParamsDto,
 } from "./common";
 
 export interface ReportsContextRestContract extends RestContract {

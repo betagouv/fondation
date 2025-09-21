@@ -1,16 +1,16 @@
 import { Gender, Magistrat, Role, TypeDeSaisine } from 'shared-models';
-import { PropositionDeNominationTransparenceV1Dto } from 'src/reports-context/business-logic/gateways/services/dossier-de-nomination.service';
-import { SessionDto } from 'src/reports-context/business-logic/gateways/services/session.service';
-import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
-import { BaseAppTestingModule } from 'test/base-app-testing-module';
-import { StubDossierDeNominationService } from '../../secondary/gateways/services/stub-dossier-de-nomination.service';
-import { StubSessionService } from '../../secondary/gateways/services/stub-session.service';
-import { StubUserService } from '../../secondary/gateways/services/stub-user.service';
 import {
   DOSSIER_DE_NOMINATION_SERVICE,
   SESSION_SERVICE,
   USER_SERVICE,
-} from './tokens';
+} from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { PropositionDeNominationTransparenceV1Dto } from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
+import { SessionDto } from 'src/shared-kernel/business-logic/gateways/services/session.service';
+import { BaseAppTestingModule } from 'test/base-app-testing-module';
+import { StubDossierDeNominationService } from '../../../../shared-kernel/adapters/secondary/gateways/services/stub-dossier-de-nomination.service';
+import { StubSessionService } from '../../../../shared-kernel/adapters/secondary/gateways/services/stub-session.service';
+import { StubUserService } from '../../../../shared-kernel/adapters/secondary/gateways/services/stub-user.service';
 
 export class AppTestingModule extends BaseAppTestingModule {
   withStubSessionValidationService(validated: boolean) {

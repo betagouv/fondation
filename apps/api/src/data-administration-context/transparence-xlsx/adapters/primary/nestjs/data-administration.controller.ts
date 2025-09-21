@@ -1,23 +1,36 @@
 import {
+  Body,
   Controller,
-  HttpCode,
-  HttpStatus,
+  Get,
+  Param,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { DataAdministrationContextRestContract } from 'shared-models';
+import {
+  DataAdministrationContextRestContract,
+  EditTransparencyDto,
+  GetTransparenceQueryParamsDto,
+  GetTransparencesAttachmentDto,
+  ImportSessionAttachmentDto,
+} from 'shared-models';
 
+import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-attachements/get-transparence-attachments.use-case';
+import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
+import { ImportSessionAttachmentUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-session-attachment/import-session-attachment.use-case';
 import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-transparence-xlsx/import-transparence-xlsx.use-case';
+
+import { GetTransparenceSnapshotUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-snapshot/get-transparence-snapshot.use-case';
+import { UpdateTransparenceUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/update-transparence/update-transparence.use-case';
 import {
   IController,
   IControllerPaths,
 } from 'src/shared-kernel/adapters/primary/nestjs/controller';
+import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { ImportNouvelleTransparenceXlsxNestDto } from './dto/import-nouvelle-transparence.nest-dto';
-import { FileInterceptor } from 'src/shared-kernel/adapters/primary/nestjs/interceptors/file.interceptor';
-import { ImportObservantsXlsxUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/import-observants-xlsx/import-observants-xlsx.use-case';
 import { ImportObservantsXlsxNestDto } from './dto/import-observants-xlsx.nest-dto';
 
 type IDataAdministrationController =
@@ -30,6 +43,10 @@ const endpointsPaths: IControllerPaths<DataAdministrationContextRestContract> =
   {
     importNouvelleTransparenceXlsx: 'import-nouvelle-transparence-xlsx',
     importObservantsXlsx: 'import-observants-xlsx',
+    importSessionAttachment: 'import-session-attachment',
+    getTransparenceAttachments: 'transparence-attachments',
+    getTransparenceSnapshot: 'transparence-snapshot',
+    updateTransparence: 'transparence-snapshot/:id',
   };
 
 @Controller(baseRoute)
@@ -39,7 +56,25 @@ export class DataAdministrationController
   constructor(
     private readonly importTransparenceXlsx: ImportTransparenceXlsxUseCase,
     private readonly importObservantsXlsxUseCase: ImportObservantsXlsxUseCase,
+    private readonly importTransparenceAttachmentUseCase: ImportSessionAttachmentUseCase,
+    private readonly getTransparenceAttachmentsUseCase: GetTransparenceAttachmentsUseCase,
+    private readonly getTransparenceSnapshotUseCase: GetTransparenceSnapshotUseCase,
+    private readonly updateTransparenceUseCase: UpdateTransparenceUseCase,
   ) {}
+
+  @Get(endpointsPaths.getTransparenceAttachments)
+  async getTransparenceAttachments(
+    _params: unknown,
+    _body: unknown,
+    @Query() dto: GetTransparencesAttachmentDto,
+  ) {
+    return this.getTransparenceAttachmentsUseCase.execute(dto);
+  }
+
+  @Get(endpointsPaths.getTransparenceSnapshot)
+  async getTransparenceSnapshot(@Query() dto: GetTransparenceQueryParamsDto) {
+    return this.getTransparenceSnapshotUseCase.execute(dto);
+  }
 
   @Post(endpointsPaths.importNouvelleTransparenceXlsx)
   @UseInterceptors(FileInterceptor('fichier'))
@@ -68,7 +103,6 @@ export class DataAdministrationController
     return resp;
   }
 
-  @HttpCode(HttpStatus.OK)
   @Post(endpointsPaths.importObservantsXlsx)
   @UseInterceptors(FileInterceptor('fichier'))
   async importObservantsXlsx(
@@ -84,5 +118,24 @@ export class DataAdministrationController
     );
 
     return resp;
+  }
+
+  @Post(endpointsPaths.importSessionAttachment)
+  @UseInterceptors(FileInterceptor('fichier'))
+  async importSessionAttachment(
+    _: unknown,
+    @UploadedFile() fichier: Express.Multer.File,
+    @Query() dto: ImportSessionAttachmentDto,
+  ) {
+    await this.importTransparenceAttachmentUseCase.execute(dto, fichier);
+    return { validationError: undefined };
+  }
+
+  @Put(endpointsPaths.updateTransparence)
+  async updateTransparence(
+    @Param('id') id: string,
+    @Body() dto: EditTransparencyDto,
+  ) {
+    return this.updateTransparenceUseCase.execute(id, dto);
   }
 }

@@ -7,8 +7,8 @@ import {
   Transparency,
   TypeDeSaisine,
 } from 'shared-models';
-import { PropositionDeNominationTransparenceV1Dto } from '../../gateways/services/dossier-de-nomination.service';
-import { TransparenceDto } from '../../gateways/services/session.service';
+import { PropositionDeNominationTransparenceV1Dto } from '../../../../shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
+import { TransparenceDto } from '../../../../shared-kernel/business-logic/gateways/services/session.service';
 import { getDependencies } from '../../test-dependencies';
 import { ListReportsUseCase } from './list-reports.use-case';
 
@@ -70,6 +70,8 @@ const uneDateTransparence: DateOnlyJson = {
 
 const unRapportVM: ReportListItemVM = {
   id: '1',
+  sessionId: uneSessionId,
+  sessionImportId: 'session-importée-id',
   folderNumber: 15,
   state: NominationFile.ReportState.NEW,
   dueDate: {

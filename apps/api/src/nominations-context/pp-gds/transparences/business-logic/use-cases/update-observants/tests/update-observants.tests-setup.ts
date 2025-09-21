@@ -1,7 +1,7 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { TransparenceXlsxObservantsImportésEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-observants-importés.event';
-import { ContenuPropositionDeNominationTransparenceV2 } from 'src/nominations-context/pp-gds/transparences/business-logic/models/proposition-de-nomination';
-import { DossierDeNominationSnapshot } from 'src/nominations-context/sessions/business-logic/models/dossier-de-nomination';
 import { getDependencies as getContextDependencies } from 'src/nominations-context/tests-dependencies';
 import { UpdateObservantsCommand } from '../update-observants.command';
 import { UpdateObservantsUseCase } from '../update-observants.use-case';

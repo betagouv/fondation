@@ -1,13 +1,13 @@
 import _ from 'lodash';
-import { DateOnlyJson, Magistrat } from 'shared-models';
+import { DateOnlyJson, EditTransparencyDto, Magistrat } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { TransparenceRepository } from '../../../transparences/business-logic/gateways/repositories/transparence.repository';
 import { UserService } from '../../../transparences/business-logic/gateways/services/user.service';
 import {
+  NominationFilesContentWithReporterIds,
   TransparenceXlsxImportéeEvent,
   TransparenceXlsxImportéeEventPayload,
-  NominationFilesContentWithReporterIds,
 } from '../models/events/transparence-xlsx-importée.event';
 import { NominationFileContentReader } from '../models/nomination-file-content-reader';
 import { NominationFilesContentReadCollection } from '../models/nomination-files-read-collection';
@@ -78,6 +78,18 @@ export class TransparenceService {
     };
   }
 
+  updateMetadata(
+    sessionId: string,
+    transparence: EditTransparencyDto,
+  ): TransactionableAsync {
+    return async (trx) => {
+      return this.transparenceRepository.updateMetadata(
+        sessionId,
+        transparence,
+      )(trx);
+    };
+  }
+
   readFromCsv(
     transparenceCsv: TransparenceCsv,
   ): NominationFilesContentReadCollection {
@@ -100,6 +112,11 @@ export class TransparenceService {
         formation,
         dateTransparence,
       )(trx);
+  }
+
+  getById(sessionId: string): TransactionableAsync<Transparence | null> {
+    return async (trx) =>
+      await this.transparenceRepository.findById(sessionId)(trx);
   }
 
   private async nominationFilesWithReportersIds(

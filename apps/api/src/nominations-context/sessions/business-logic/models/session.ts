@@ -1,28 +1,12 @@
 import { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
+import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination';
+import {
+  SessionContent,
+  SessionSnapshot,
+} from 'shared-models/models/session/session-content';
+import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { Affectation } from './affectation';
 import { DomainRegistry } from './domain-registry';
-import {
-  DossierDeNomination,
-  DossierDeNominationContent,
-} from './dossier-de-nomination';
-
-export type SessionContent<S extends TypeDeSaisine | unknown = unknown> =
-  S extends TypeDeSaisine.TRANSPARENCE_GDS
-    ? {
-        dateTransparence: DateOnlyJson;
-        dateClôtureDélaiObservation: DateOnlyJson;
-      }
-    : object;
-
-export type SessionSnapshot<S extends TypeDeSaisine | unknown = unknown> = {
-  id: string;
-  sessionImportéeId: string;
-  name: string;
-  formation: Magistrat.Formation;
-  typeDeSaisine: TypeDeSaisine;
-  version: number;
-  content: SessionContent<S>;
-};
 
 export class Session<S extends TypeDeSaisine | unknown = unknown> {
   private constructor(
@@ -73,6 +57,14 @@ export class Session<S extends TypeDeSaisine | unknown = unknown> {
 
   get formation() {
     return this._formation;
+  }
+
+  get typeDeSaisine(): TypeDeSaisine {
+    return this._typeDeSaisine;
+  }
+
+  get sessionImportId(): string {
+    return this._sessionImportéeId;
   }
 
   snapshot(): SessionSnapshot<S> {
