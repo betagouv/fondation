@@ -34,15 +34,17 @@ export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): Reac
 };
 
 export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], filters: FiltersState) => {
-  // TODO: Implement filters
-  console.log(filters);
-  return data.filter(() => {
-    // const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+  return data.filter((dossier) => {
+    if (
+      (filters.rapporteurs?.length > 0 &&
+        // filtrer seulement si tous les rapporteurs dans le filtre sont présents dans
+        // les dossiers de nomination ou que la liste est vide
+        filters?.rapporteurs?.every((rapporteur) => dossier.rapporteurs.includes(rapporteur))) ||
+      filters.rapporteurs.length === 0
+    ) {
+      return true;
+    }
 
-    // if (filters.formations.length > 0 && !filters.formations.includes(content.formation)) {
-    // return false;
-    // }
-
-    return true;
+    return false;
   });
 };

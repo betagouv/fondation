@@ -22,7 +22,9 @@ export const TableauAffectationDossierDeNomination = () => {
   });
 
   const [filters, setFilters] = useState<FiltersState>({
-    formations: []
+    rapporteurs: [],
+    formations: [],
+    sessionType: []
   });
 
   const { handleSort, getSortIcon, sortedData } = useSort(dossiersDeNomination || []);
@@ -52,7 +54,11 @@ export const TableauAffectationDossierDeNomination = () => {
       </div>
 
       <div className="flex items-center justify-between">
-        <FiltresDossiersDeNomination filters={filters} onFiltersChange={setFilters} />
+        <FiltresDossiersDeNomination
+          filters={filters}
+          onFiltersChange={setFilters}
+          dataSupply={dossiersDeNomination}
+        />
         <ExcelExport data={filteredData} />
       </div>
 
