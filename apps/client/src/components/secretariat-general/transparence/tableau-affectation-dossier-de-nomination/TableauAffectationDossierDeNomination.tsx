@@ -10,6 +10,7 @@ import { useSort } from '../../../../hooks/useSort.hook';
 import { ExcelExport } from './ExcelExport';
 import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -46,7 +47,7 @@ export const TableauAffectationDossierDeNomination = () => {
   const dossierDataRows = dataRows(filteredData);
 
   return (
-    <div id="session-affectation-dossier-de-nomination" className="mt-8">
+    <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
       {/* Préchargement des icônes pour éviter les problèmes de chargement conditionnel */}
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />

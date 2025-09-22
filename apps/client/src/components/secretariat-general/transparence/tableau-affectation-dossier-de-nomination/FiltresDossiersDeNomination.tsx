@@ -27,7 +27,7 @@ export const FiltresDossiersDeNomination = ({
     <div id="filtre-tableau-affectation-dossier-de-nomination" className="flex items-center gap-4">
       <span className="font-bold">Filtrer par :</span>
       <DropdownFilter
-        tagName="Rapporteur"
+        tagName="Rapporteurs"
         options={filterOptions.rapporteurs}
         selectedValues={filters.rapporteurs}
         onSelectionChange={(values) => handleFilterChange('rapporteurs', values)}

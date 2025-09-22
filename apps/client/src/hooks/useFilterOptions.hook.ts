@@ -23,8 +23,6 @@ export const useFilterOptions = (
 
     // Extraire les rapporteurs uniques
     const uniqueRapporteurs = Array.from(new Set(data.flatMap((dossier) => dossier.rapporteurs)));
-    // TODO REMOVE THE FAKE RAPPORTEUR ONCE THE DEMO IS OVER
-    uniqueRapporteurs.push('Fake Rapporteur');
 
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({

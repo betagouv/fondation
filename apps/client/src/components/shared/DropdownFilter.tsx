@@ -66,6 +66,17 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       <Button
         priority="secondary"
         className={clsx('rounded-full transition-colors duration-200')}
+        style={
+          {
+            color: 'var(--text-action-high-blue-france)',
+            backgroundColor: 'var(--background-action-low-blue-france)',
+            outline: 'none',
+            boxShadow: 'none',
+            '--idle': 'transparent',
+            '--hover': 'var(--background-action-low-blue-france-hover)',
+            '--active': 'var(--background-action-low-blue-france-active)'
+          } as React.CSSProperties
+        }
         onClick={toggleDropdown}
         type="button"
       >
