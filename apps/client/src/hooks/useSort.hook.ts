@@ -53,13 +53,17 @@ export const useSort = <T extends DossierDeNominationEtAffectationSnapshot>(data
           valueA = contentA.posteActuel || '';
           valueB = contentB.posteActuel || '';
           break;
-        case 'grade':
+        case 'gradeActuel':
           valueA = contentA.grade || '';
           valueB = contentB.grade || '';
           break;
         case 'posteCible':
           valueA = contentA.posteCible || '';
           valueB = contentB.posteCible || '';
+          break;
+        case 'gradeCible':
+          valueA = contentA.posteCible.substring(contentA.posteCible.lastIndexOf('-') + 1) || '';
+          valueB = contentB.posteCible.substring(contentB.posteCible.lastIndexOf('-') + 1) || '';
           break;
         case 'observants':
           valueA = contentA.observants?.join('\n').toLocaleUpperCase() || '';

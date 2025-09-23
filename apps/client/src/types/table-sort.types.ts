@@ -2,8 +2,9 @@ export type SortField =
   | 'numero'
   | 'magistrat'
   | 'posteActuel'
-  | 'grade'
+  | 'gradeActuel'
   | 'posteCible'
+  | 'gradeCible'
   | 'observants'
   | 'priorite'
   | 'rapporteurs';
