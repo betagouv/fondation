@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
-import type { SortField } from '../../../../types/table-sort.types';
+import type { SortField } from '../../../../types/table.types';
 import type { FiltersState } from '../../../shared/filter-configurations';
 
 export const HEADER_COLUMNS: Array<{ field: SortField; label: string }> = [
