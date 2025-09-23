@@ -17,8 +17,6 @@ export const LoginPage = () => {
 
   if (AUTHORIZED_ROLES.SG.includes(user.role)) {
     return <Navigate to={ROUTE_PATHS.SG.DASHBOARD} />;
-  } else if (AUTHORIZED_ROLES.MEMBER.includes(user.role)) {
-    return <Navigate to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;
   }
 
   return <Navigate to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;
