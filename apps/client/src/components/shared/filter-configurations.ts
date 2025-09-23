@@ -1,5 +1,7 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, TypeDeSaisine } from 'shared-models';
 import type { FilterOption } from './DropdownFilter';
+
+export type FilterType = 'formation' | 'rapporteurs';
 
 export const formationFilterOptions: FilterOption[] = [
   {
@@ -12,15 +14,26 @@ export const formationFilterOptions: FilterOption[] = [
   }
 ];
 
-export type FilterType = 'formation';
+export const sessionTypeFilterOptions: FilterOption[] = [
+  {
+    value: TypeDeSaisine.TRANSPARENCE_GDS,
+    label: 'Transparence GDS'
+  }
+];
 
 export const filterConfigurations = {
   formation: {
     tagName: 'Formation',
     options: formationFilterOptions
+  },
+  sessionType: {
+    tagName: 'Type de session',
+    options: sessionTypeFilterOptions
   }
 } as const;
 
 export interface FiltersState {
   formations: string[];
+  rapporteurs: string[];
+  sessionType: string[];
 }

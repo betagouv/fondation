@@ -52,10 +52,8 @@ export const ExcelExport: FC<ExcelExportProps> = ({ data }) => {
   };
 
   return (
-    <div className="mb-4 flex justify-end">
-      <Button iconId="fr-icon-download-line" onClick={exportToExcel} disabled={!data || data.length === 0}>
-        Exporter en Excel
-      </Button>
-    </div>
+    <Button iconId="fr-icon-download-line" onClick={exportToExcel} disabled={!data || data.length === 0}>
+      Exporter en Excel
+    </Button>
   );
 };
