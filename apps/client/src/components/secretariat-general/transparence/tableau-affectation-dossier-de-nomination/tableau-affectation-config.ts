@@ -46,6 +46,6 @@ export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], f
     }
 
     // Garder seulement les dossiers qui contiennent TOUS les rapporteurs sélectionnés
-    return filters.rapporteurs.every((rapporteur) => dossier.rapporteurs.includes(rapporteur));
+    return filters.rapporteurs.some((rapporteur) => dossier.rapporteurs.includes(rapporteur));
   });
 };

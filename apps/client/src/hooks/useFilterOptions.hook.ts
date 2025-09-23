@@ -27,7 +27,7 @@ export const useFilterOptions = (
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({
         value: rapporteur,
-        label: rapporteur
+        label: rapporteur.toLocaleUpperCase()
       })),
       formations: formationFilterOptions,
       sessionType: sessionTypeFilterOptions
