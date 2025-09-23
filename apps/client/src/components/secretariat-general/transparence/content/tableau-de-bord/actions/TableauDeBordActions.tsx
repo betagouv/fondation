@@ -1,15 +1,15 @@
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { ImportAttachmentModal } from '../../ImportAttachmentModal';
-import { ImportObservantsModal } from '../../ImportObservantsModal';
+import { ImportAttachmentModal } from './ImportAttachmentModal';
+import { ImportObservantsModal } from './ImportObservantsModal';
 
 import { type TransparenceSnapshot } from 'shared-models';
 import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-query/queries/get-transparency-attachments.query';
 
 import { DateOnly } from '../../../../../../models/date-only.model';
 import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
-import { AttachedFilesList } from '../../../../../shared/AttachedFilesList';
+import { AttachedFilesList } from './AttachedFilesList';
 
 type TableauDeBordActionsProps = TransparenceSnapshot;
 

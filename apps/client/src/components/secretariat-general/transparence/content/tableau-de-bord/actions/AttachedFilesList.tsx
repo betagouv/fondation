@@ -1,7 +1,7 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import type { FC } from 'react';
 import type { FileVM } from 'shared-models';
+import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
 export type AttachedFilesListProps = {
   attachedFiles: NonNullable<FileVM[]>;
@@ -21,12 +21,7 @@ export const AttachedFilesList: FC<AttachedFilesListProps> = ({ attachedFiles, o
               ? file.name.slice(0, MAX_FILE_NAME_LENGTH) + '...'
               : file.name}
           </a>
-          <Button
-            priority="tertiary no outline"
-            iconId="fr-icon-delete-bin-fill"
-            title={`delete-attached-file-${file.name}`}
-            onClick={deleteAttachedFile}
-          />
+          <DeleteAttachmentModal fileName={file.name} onDelete={deleteAttachedFile} />
         </li>
       );
     })}
