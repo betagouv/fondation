@@ -1,4 +1,5 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import { Magistrat } from 'shared-models';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
@@ -74,6 +75,20 @@ export class SqlUserRepository implements UserRepository {
 
       const userRow = result[0]!;
       return SqlUserRepository.mapToDomain(userRow);
+    };
+  }
+
+  usersByFormation(
+    formation: Magistrat.Formation,
+  ): DrizzleTransactionableAsync<User[]> {
+    return async (db) => {
+      const roles = User.formationByRole(formation);
+      const result = await db
+        .select()
+        .from(users)
+        .where(inArray(users.role, roles));
+
+      return result.map(SqlUserRepository.mapToDomain);
     };
   }
 
