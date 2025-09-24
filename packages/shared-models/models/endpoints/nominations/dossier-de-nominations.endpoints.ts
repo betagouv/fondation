@@ -6,7 +6,7 @@ import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnaps
 import type { RestContract, ZodParamsDto } from "../common";
 
 
-type UserDescriptorSerialized = {
+export type UserDescriptorSerialized = {
   userId: string;
   firstName: string;
   lastName: string;

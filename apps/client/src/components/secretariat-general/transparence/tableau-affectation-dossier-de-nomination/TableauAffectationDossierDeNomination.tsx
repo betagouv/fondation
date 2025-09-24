@@ -24,13 +24,18 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
 }) => {
   const { sessionId } = useParams();
   const {
-    data: dossiersDeNomination,
+    data,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
     sessionId: sessionId as string,
     formation
   });
+
+  const { dossiers: dossiersDeNomination, availableRapporteurs } = data || {
+    dossiersDeNomination: [],
+    availableRapporteurs: []
+  };
 
   const [filters, setFilters] = useState<FiltersState>({
     rapporteurs: [],
@@ -68,7 +73,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     </span>
   ));
 
-  const dossierDataRows = dataRows(paginatedData);
+  const dossierDataRows = dataRows(paginatedData, availableRapporteurs);
   const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
 
   return (
