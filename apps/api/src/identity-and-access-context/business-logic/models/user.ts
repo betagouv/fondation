@@ -1,4 +1,4 @@
-import { Gender, Role } from 'shared-models';
+import { Gender, Magistrat, Role } from 'shared-models';
 import { z } from 'zod';
 import { DomainRegistry } from './domain-registry';
 import { FullName } from './full-name';
@@ -134,5 +134,16 @@ export class User {
 
   private static async asEncryptedValue(password: string): Promise<string> {
     return await DomainRegistry.encryptionProvider().encryptedValue(password);
+  }
+
+  static formationByRole(formation: Magistrat.Formation): Role[] {
+    switch (formation) {
+      case Magistrat.Formation.PARQUET:
+        return [Role.MEMBRE_DU_PARQUET, Role.MEMBRE_COMMUN];
+      case Magistrat.Formation.SIEGE:
+        return [Role.MEMBRE_DU_SIEGE, Role.MEMBRE_COMMUN];
+      default:
+        throw new Error(`Invalid formation: ${formation}`);
+    }
   }
 }
