@@ -4,15 +4,24 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
+import type { Magistrat } from 'shared-models';
+import type { FC } from 'react';
 
-export const TableauAffectationDossierDeNomination = () => {
+export type TableauAffectationDossierDeNominationProps = {
+  formation: Magistrat.Formation;
+};
+
+export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossierDeNominationProps> = ({
+  formation
+}) => {
   const { sessionId } = useParams();
   const {
     data: dossiersDeNomination,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
-    sessionId: sessionId as string
+    sessionId: sessionId as string,
+    formation
   });
 
   if (isLoadingDossiersDeNomination) {
@@ -26,7 +35,7 @@ export const TableauAffectationDossierDeNomination = () => {
   return (
     <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
       <TableauDossiersDeNomination
-        dossiersDeNomination={dossiersDeNomination || []}
+        dossiersDeNomination={dossiersDeNomination?.dossiers || []}
         showExportButton={true}
         ExportComponent={ExcelExport}
       />

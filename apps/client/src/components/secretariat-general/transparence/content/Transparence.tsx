@@ -68,7 +68,7 @@ export const Transparence: FC = () => {
           <TableauDeBordActions {...transparence} />
           <TableauDeBordResume {...transparence} />
         </div>
-        <TableauAffectationDossierDeNomination />
+        <TableauAffectationDossierDeNomination formation={transparence.formation} />
       </div>
     </>
   );

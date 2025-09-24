@@ -7,12 +7,12 @@ import { type RestContract } from "../common";
 
 
 export interface UserRestContract extends RestContract {
-  basePath: "api/auth/users";
+  basePath: "api/users";
   endpoints: {
     usersByFormation: {
       method: "GET";
       path: "by-formation/:formation";
-      body: undefined;
+      params: FormationQueryParamsDto;
       response: User[];
     };
   };
@@ -24,6 +24,11 @@ export interface User {
   lastName: string;
   role: Role;
   gender: Gender;
+}
+
+
+interface FormationQueryParamsDto extends Record<string, string> {
+  formation: Magistrat.Formation;
 }
 
 export const formationDtoSchema = z.object({
