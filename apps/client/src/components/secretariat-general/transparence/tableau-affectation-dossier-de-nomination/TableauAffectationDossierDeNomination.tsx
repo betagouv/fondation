@@ -16,7 +16,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
 }) => {
   const { sessionId } = useParams();
   const {
-    data: dossiersDeNomination,
+    data,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
@@ -35,7 +35,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
   return (
     <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
       <TableauDossiersDeNomination
-        dossiersDeNomination={dossiersDeNomination?.dossiers || []}
+        dossiersDeNomination={data?.dossiers || []}
         showExportButton={true}
         ExportComponent={ExcelExport}
       />
