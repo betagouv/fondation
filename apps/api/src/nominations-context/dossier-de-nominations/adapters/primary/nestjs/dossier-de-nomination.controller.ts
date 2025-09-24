@@ -6,8 +6,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
-import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-snapshot-params.nest-dto';
-import { SessionIdParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/session-id-params.nest-dto';
+import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
+import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-snapshot-params.dto';
 import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-by-session-id/get-dossier-de-nomination-snapshot.use-case';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import {
@@ -39,9 +39,12 @@ export class DossierDeNominationController
     dossierDeNominationsEndpointsPath.dossierDeNominationEtAffectationParSession,
   )
   async dossierDeNominationEtAffectationParSession(
-    @Query() params: SessionIdParamsNestDto,
+    @Query() params: DossierDeNominationEtAffectationParamsNestDto,
   ) {
-    return this.getBySessionIdUseCase.execute(params.sessionId);
+    return this.getBySessionIdUseCase.execute(
+      params.sessionId,
+      params.formation,
+    );
   }
 
   @Get(dossierDeNominationsEndpointsPath.dossierDeNominationSnapshot)

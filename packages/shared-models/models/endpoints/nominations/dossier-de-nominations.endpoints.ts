@@ -1,7 +1,18 @@
 import { z } from "zod";
+import { Gender } from "../../gender";
+import { Magistrat } from "../../magistrat.namespace";
+import { Role } from "../../role";
 import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodParamsDto } from "../common";
 
+
+type UserDescriptorSerialized = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
+  gender: Gender;
+};
 
 export interface DossierDeNominationRestContrat extends RestContract {
   basePath: "api/nominations/dossier-de-nominations";
@@ -19,8 +30,9 @@ export interface DossierDeNominationRestContrat extends RestContract {
       path: "snapshot/by-session";
       params: {
         sessionId: string;
+        formation: Magistrat.Formation;
       };
-      response: DossierDeNominationEtAffectationSnapshot[];
+      response: {dossiers: DossierDeNominationEtAffectationSnapshot[]; availableRapporteurs: UserDescriptorSerialized[]};
     };
   };
 }
@@ -36,8 +48,9 @@ export const dossierDeNominationSnapshotParamsSchema = z.object({
   "dossierDeNominationSnapshot"
 >;
 
-export const sessionIdParamsSchema = z.object({
+export const dossierDeNominationEtAffectationSchema = z.object({
   sessionId: z.string().uuid(),
+  formation: z.nativeEnum(Magistrat.Formation),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
   "dossierDeNominationEtAffectationParSession"

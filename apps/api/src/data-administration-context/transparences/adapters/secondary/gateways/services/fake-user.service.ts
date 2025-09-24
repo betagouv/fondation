@@ -1,5 +1,6 @@
-import { UserService } from 'src/data-administration-context/transparences/business-logic/gateways/services/user.service';
+import { Magistrat } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
+import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 
 type FullName = string;
 
@@ -13,6 +14,13 @@ export class FakeUserService implements UserService {
 
   async userWithFullName(name: FullName): Promise<UserDescriptorSerialized> {
     return this.users[name]!;
+  }
+
+  async usersByFormation(
+    formation: Magistrat.Formation,
+  ): Promise<UserDescriptorSerialized[]> {
+    console.log(formation);
+    return [...Object.values(this.users)];
   }
 
   addUsers(...someUsers: (UserDescriptorSerialized & { fullName: string })[]) {

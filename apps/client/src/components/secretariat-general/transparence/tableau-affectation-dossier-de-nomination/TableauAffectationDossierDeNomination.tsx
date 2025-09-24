@@ -12,15 +12,24 @@ import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { TableControl } from '../../../shared/TableControl';
+import type { Magistrat } from 'shared-models';
+import type { FC } from 'react';
 
-export const TableauAffectationDossierDeNomination = () => {
+export type TableauAffectationDossierDeNominationProps = {
+  formation: Magistrat.Formation;
+};
+
+export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossierDeNominationProps> = ({
+  formation
+}) => {
   const { sessionId } = useParams();
   const {
     data: dossiersDeNomination,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
-    sessionId: sessionId as string
+    sessionId: sessionId as string,
+    formation
   });
 
   const [filters, setFilters] = useState<FiltersState>({

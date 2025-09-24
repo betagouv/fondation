@@ -10,7 +10,7 @@ import {
 
 type IUserController = IController<UserRestContract>;
 
-export const baseUserRoute: UserRestContract['basePath'] = 'api/auth/users';
+export const baseUserRoute: UserRestContract['basePath'] = 'api/users';
 export const endpointsUserPaths: IControllerPaths<UserRestContract> = {
   usersByFormation: 'by-formation/:formation',
 };
@@ -23,7 +23,6 @@ export class UserController implements IUserController {
 
   @Get(endpointsUserPaths.usersByFormation)
   async usersByFormation(@Param() { formation }: FormationQueryParamsDto) {
-    console.log('Voici ma formation', formation);
     return this.usersByFormationUseCase.execute(formation);
   }
 }

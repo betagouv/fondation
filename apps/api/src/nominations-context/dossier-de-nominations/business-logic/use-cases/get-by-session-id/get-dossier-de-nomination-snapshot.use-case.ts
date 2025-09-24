@@ -1,4 +1,6 @@
+import { Magistrat } from 'shared-models';
 import { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { DossierDeNomination } from 'src/reports-context/business-logic/models/dossier-de-nomination';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -15,7 +17,11 @@ export class GetBySessionIdUseCase {
 
   async execute(
     sessionId: string,
-  ): Promise<DossierDeNominationEtAffectationSnapshot[]> {
+    formation: Magistrat.Formation,
+  ): Promise<{
+    dossiers: DossierDeNominationEtAffectationSnapshot[];
+    availableRapporteurs: UserDescriptorSerialized[];
+  }> {
     return this.transactionPerformer.perform(async (trx) => {
       const dossiers =
         await this.dossierDeNominationRepository.findBySessionId(sessionId)(
@@ -26,12 +32,12 @@ export class GetBySessionIdUseCase {
         await this.affectationRepository.bySessionId(sessionId)(trx)
       )?.snapshot();
 
-      const rapporteurs: Record<
+      const rapporteursParDossier: Record<
         DossierDeNomination['_dossierDeNominationId'],
         string[]
       > = {};
       dossiers.forEach((dossier) => {
-        rapporteurs[dossier.id] = [];
+        rapporteursParDossier[dossier.id] = [];
       });
 
       if (affectation) {
@@ -54,14 +60,20 @@ export class GetBySessionIdUseCase {
         const rapporteurResults = await Promise.all(rapporteurPromises);
 
         rapporteurResults.forEach(({ dossierDeNominationId, nom }) => {
-          rapporteurs[dossierDeNominationId]?.push(nom);
+          rapporteursParDossier[dossierDeNominationId]?.push(nom);
         });
       }
 
-      return (dossiers || []).map((dossier) => ({
-        ...dossier.snapshot(),
-        rapporteurs: rapporteurs[dossier.id] || [],
-      }));
+      const availableRapporteurs =
+        await this.httpUserService.usersByFormation(formation);
+
+      return {
+        dossiers: (dossiers || []).map((dossier) => ({
+          ...dossier.snapshot(),
+          rapporteurs: rapporteursParDossier[dossier.id] || [],
+        })),
+        availableRapporteurs,
+      };
     });
   }
 }
