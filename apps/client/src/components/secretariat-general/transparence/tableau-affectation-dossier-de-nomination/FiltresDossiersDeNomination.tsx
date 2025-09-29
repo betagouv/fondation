@@ -1,4 +1,3 @@
-import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { DropdownFilter } from '../../../shared/DropdownFilter';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { useFilterOptions } from '../../../../hooks/useFilterOptions.hook';
@@ -6,15 +5,15 @@ import { useFilterOptions } from '../../../../hooks/useFilterOptions.hook';
 interface FiltresDossiersDeNominationProps {
   filters: FiltersState;
   onFiltersChange: (filters: FiltersState) => void;
-  dataSupply?: DossierDeNominationEtAffectationSnapshot[] | null;
+  rapporteurs?: string[] | null;
 }
 
 export const FiltresDossiersDeNomination = ({
   filters,
   onFiltersChange,
-  dataSupply
+  rapporteurs
 }: FiltresDossiersDeNominationProps) => {
-  const filterOptions = useFilterOptions(dataSupply);
+  const filterOptions = useFilterOptions(rapporteurs);
 
   const handleFilterChange = (filterType: keyof FiltersState, values: string[]) => {
     onFiltersChange({

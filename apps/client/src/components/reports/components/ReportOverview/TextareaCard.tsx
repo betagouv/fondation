@@ -11,6 +11,7 @@ export type TextareaCardProps = {
   insertImages: InsertImages;
   deleteImages: DeleteImages;
   redoImages: RedoImages;
+  screenshotFileIds?: string[];
 };
 
 const TEXT_AREA_DEBOUNCE_TIME = 400;
@@ -39,7 +40,8 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   onContentChange,
   insertImages,
   deleteImages,
-  redoImages
+  redoImages,
+  screenshotFileIds
 }) => {
   const [textareaContent, setTextareaContent] = useState(content);
 
@@ -63,6 +65,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
         insertImages={insertImages}
         deleteImages={deleteImages}
         redoImages={redoImages}
+        screenshotFileIds={screenshotFileIds}
       />
     </Card>
   );

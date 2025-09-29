@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FilterOption } from '../components/shared/DropdownFilter';
 import { formationFilterOptions, sessionTypeFilterOptions } from '../components/shared/filter-configurations';
 
@@ -9,11 +8,9 @@ interface FilterOptions {
   sessionType: FilterOption[];
 }
 
-export const useFilterOptions = (
-  data: DossierDeNominationEtAffectationSnapshot[] | null | undefined
-): FilterOptions => {
+export const useFilterOptions = (rapporteurs: string[] | null | undefined): FilterOptions => {
   return useMemo(() => {
-    if (!data || data.length === 0) {
+    if (!rapporteurs || rapporteurs.length === 0) {
       return {
         rapporteurs: [],
         formations: formationFilterOptions,
@@ -22,15 +19,15 @@ export const useFilterOptions = (
     }
 
     // Extraire les rapporteurs uniques
-    const uniqueRapporteurs = Array.from(new Set(data.flatMap((dossier) => dossier.rapporteurs)));
+    const uniqueRapporteurs = Array.from(new Set(rapporteurs));
 
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({
         value: rapporteur,
-        label: rapporteur
+        label: rapporteur.toLocaleUpperCase()
       })),
       formations: formationFilterOptions,
       sessionType: sessionTypeFilterOptions
     };
-  }, [data]);
+  }, [rapporteurs]);
 };

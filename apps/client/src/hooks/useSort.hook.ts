@@ -2,7 +2,7 @@ import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import { useMemo, useState } from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
-import type { SortDirection, SortField } from '../types/table-sort.types';
+import type { SortDirection, SortField } from '../types/table.types';
 
 export const useSort = <T extends DossierDeNominationEtAffectationSnapshot>(dataToSort: T[]) => {
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -53,13 +53,17 @@ export const useSort = <T extends DossierDeNominationEtAffectationSnapshot>(data
           valueA = contentA.posteActuel || '';
           valueB = contentB.posteActuel || '';
           break;
-        case 'grade':
+        case 'gradeActuel':
           valueA = contentA.grade || '';
           valueB = contentB.grade || '';
           break;
         case 'posteCible':
           valueA = contentA.posteCible || '';
           valueB = contentB.posteCible || '';
+          break;
+        case 'gradeCible':
+          valueA = contentA.posteCible.substring(contentA.posteCible.lastIndexOf('-') + 1) || '';
+          valueB = contentB.posteCible.substring(contentB.posteCible.lastIndexOf('-') + 1) || '';
           break;
         case 'observants':
           valueA = contentA.observants?.join('\n').toLocaleUpperCase() || '';

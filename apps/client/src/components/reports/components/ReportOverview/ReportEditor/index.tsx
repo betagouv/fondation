@@ -12,6 +12,7 @@ import {
 import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
+import { extractScreenshotFileIds } from '../../../../../utils/refresh-signed-urls.utils';
 import { TextareaCard } from '../TextareaCard';
 import { type InsertImages, type RedoImages } from '../TipTapEditor';
 
@@ -19,12 +20,21 @@ export type ReportEditorProps = {
   comment: string | null;
   onUpdate: (comment: string) => void;
   reportId: string;
+  contentScreenshots?: Array<{ fileId: string | null; name: string }> | null;
 };
 
-export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate, reportId }) => {
+export const ReportEditor: React.FC<ReportEditorProps> = ({
+  comment,
+  onUpdate,
+  reportId,
+  contentScreenshots
+}) => {
   const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
   const { mutateAsync: deleteFilesAsync } = useDeleteFilesReport();
   const { mutateAsync: deleteFileAsync } = useDeleteFileReport();
+
+  // Extraire les fileIds des screenshots pour le refresh des URLs signées
+  const screenshotFileIds = contentScreenshots ? extractScreenshotFileIds(contentScreenshots) : [];
 
   const insertImages: InsertImages = async (editor, files) => {
     const filesToUpload = await addTimestampToFiles(files, Date.now());
@@ -86,6 +96,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate, r
       insertImages={insertImages}
       deleteImages={deleteImages}
       redoImages={redoImages}
+      screenshotFileIds={screenshotFileIds}
     />
   );
 };
