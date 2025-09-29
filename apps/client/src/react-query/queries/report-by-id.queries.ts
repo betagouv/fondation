@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReportFileUsage, type ReportsContextRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
-import type { ReportScreenshots, ReportSM } from './list-reports.queries';
+import { extractScreenshotFileIds, refreshSignedUrlsInComment } from '../../utils/refresh-signed-urls.utils';
+import { useGetSignedUrl } from './get-signed-url.query';
+import type { ReportSM } from './list-reports.queries';
 
 type Endpoint = ReportsContextRestContract['endpoints']['retrieveReport'];
 
@@ -30,13 +32,7 @@ export const useReportById = (
     queryFn: () => getReportById(id)
   });
 
-  if (!data) {
-    return { report: null, isPending, error, refetch };
-  }
-
-  const initialContentScreenshots: ReportScreenshots = {
-    files: []
-  };
+  // Récupérer les URLs signées pour les screenshots si nécessaire
   const contentScreenshots =
     data?.attachedFiles
       ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
@@ -51,8 +47,20 @@ export const useReportById = (
             }
           ]
         }),
-        initialContentScreenshots
+        { files: [] as Array<{ fileId: string | null; name: string; signedUrl: string | null }> }
       ) ?? null;
+
+  const screenshotFileIds = contentScreenshots?.files
+    ? extractScreenshotFileIds(contentScreenshots.files)
+    : [];
+
+  const { data: signedUrlsData } = useGetSignedUrl(screenshotFileIds);
+
+  if (!data) {
+    return { report: null, isPending, error, refetch };
+  }
+
+  const finalContentScreenshots = contentScreenshots ?? null;
 
   const attachedFiles =
     data?.attachedFiles
@@ -63,9 +71,16 @@ export const useReportById = (
         signedUrl: null
       })) ?? null;
 
+  // Rafraîchir les URLs signées dans le commentaire si nécessaire
+  let updatedComment = data.comment;
+  if (data.comment && finalContentScreenshots?.files && signedUrlsData) {
+    updatedComment = refreshSignedUrlsInComment(data.comment, finalContentScreenshots.files, signedUrlsData);
+  }
+
   const report: ReportSM = {
     ...data,
-    contentScreenshots,
+    comment: updatedComment,
+    contentScreenshots: finalContentScreenshots,
     attachedFiles
   };
 

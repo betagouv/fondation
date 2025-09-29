@@ -188,7 +188,12 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             dureeDuPoste={retrievedReport.dureeDuPoste}
           />
           <Biography biography={formattedBiography} />
-          <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
+          <ReportEditor
+            comment={retrievedReport.comment}
+            onUpdate={onUpdateContent}
+            reportId={id}
+            contentScreenshots={retrievedReport.contentScreenshots?.files}
+          />
           <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}
