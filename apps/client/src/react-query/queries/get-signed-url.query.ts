@@ -10,15 +10,15 @@ const getSignedUrl = async (fileIds: string[]) => {
     method: 'GET',
     path: 'signed-urls'
   };
-  return apiFetch<GetSignedUrlsResponse>(
-    `/files/${path}?${new URLSearchParams({ ids: fileIds.join(',') })}`,
-    {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+  const searchParams = new URLSearchParams();
+  fileIds.forEach((id) => searchParams.append('ids', id));
+
+  return apiFetch<GetSignedUrlsResponse>(`/files/${path}?${searchParams.toString()}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
     }
-  );
+  });
 };
 
 export const useGetSignedUrl = (fileIds: string[]): UseQueryResult<GetSignedUrlsResponse | null, Error> => {
