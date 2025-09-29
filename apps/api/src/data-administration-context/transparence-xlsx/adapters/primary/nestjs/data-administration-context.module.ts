@@ -18,7 +18,6 @@ import { ImportTransparenceXlsxUseCase } from 'src/data-administration-context/t
 import { UpdateTransparenceUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/update-transparence/update-transparence.use-case';
 import { SqlIacFilesRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/sql-iac-files.repository';
 import { DomainRegistry } from 'src/data-administration-context/transparences/business-logic/models/domain-registry';
-import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
@@ -27,6 +26,7 @@ import {
   DOMAIN_EVENT_REPOSITORY,
   TRANSACTION_PERFORMER,
   UPLOAD_FILE_SERVICE,
+  USER_SERVICE,
   UUID_GENERATOR,
 } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
@@ -39,7 +39,6 @@ import { UploadFileService } from 'src/shared-kernel/business-logic/services/upl
 import { ImportNominationFileFromLocalFileCli } from '../../../../transparence-tsv/adapters/primary/nestjs/import-nominations-from-local-file.cli';
 import { SqlTransparenceFilesRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence-files.repository';
 import { SqlTransparenceRepository } from '../../../../transparences/adapters/secondary/gateways/repositories/drizzle/sql-transparence.repository';
-import { HttpUserService } from '../../../../transparences/adapters/secondary/gateways/services/http-user.service';
 import { DataAdministrationController } from './data-administration.controller';
 import { generateDataAdministrationProvider as generateProvider } from './provider-generator';
 import {
@@ -47,7 +46,6 @@ import {
   IMPORT_NOMINATION_FILE_FROM_LOCAL_FILE_CLI,
   TRANSPARENCE_FILE_REPOSITORY,
   TRANSPARENCE_REPOSITORY,
-  USER_SERVICE,
 } from './tokens';
 
 @Module({
@@ -119,15 +117,6 @@ import {
       TRANSPARENCE_REPOSITORY,
       USER_SERVICE,
     ]),
-
-    {
-      provide: USER_SERVICE,
-      useFactory: (
-        apiConfig: ApiConfig,
-        systemRequestSignatureProvider: SystemRequestSignatureProvider,
-      ) => new HttpUserService(apiConfig, systemRequestSignatureProvider),
-      inject: [API_CONFIG, SystemRequestSignatureProvider],
-    },
 
     generateProvider(SqlTransparenceRepository, [], TRANSPARENCE_REPOSITORY),
     generateProvider(

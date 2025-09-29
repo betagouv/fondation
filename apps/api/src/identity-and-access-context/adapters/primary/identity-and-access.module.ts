@@ -4,14 +4,12 @@ import {
   Module,
   OnModuleInit,
 } from '@nestjs/common';
-import { UserController } from 'src/identity-and-access-context/adapters/primary/nestjs/users.controller';
 import { CookieSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 import { EncryptionProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/encryption.provider';
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
 import { AuthenticationService } from 'src/identity-and-access-context/business-logic/services/authentication.service';
 import { HasReadFilePermissionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
-import { UsersByFormationUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-by-formation/user-by-formation.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
@@ -28,13 +26,17 @@ import {
 import { ApiConfig } from 'src/shared-kernel/adapters/primary/zod/api-config-schema';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
-import { BcryptEncryptionProvider } from '../../secondary/gateways/providers/bcrypt-encryption.provider';
-import { PersistentSessionProvider } from '../../secondary/gateways/providers/persistent-session.provider';
-import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
-import { SqlSessionRepository } from '../../secondary/gateways/repositories/drizzle/sql-session.repository';
-import { SqlUserRepository } from '../../secondary/gateways/repositories/drizzle/sql-user.repository';
-import { AuthController, baseRoute, endpointsPaths } from './auth.controller';
-import { AuthzController } from './authz.controller';
+import { BcryptEncryptionProvider } from '../secondary/gateways/providers/bcrypt-encryption.provider';
+import { PersistentSessionProvider } from '../secondary/gateways/providers/persistent-session.provider';
+import { SqlFileRepository } from '../secondary/gateways/repositories/drizzle/sql-file.repository';
+import { SqlSessionRepository } from '../secondary/gateways/repositories/drizzle/sql-session.repository';
+import { SqlUserRepository } from '../secondary/gateways/repositories/drizzle/sql-user.repository';
+import {
+  AuthController,
+  baseRoute,
+  endpointsPaths,
+} from './nestjs/auth.controller';
+import { AuthzController } from './nestjs/authz.controller';
 import { generateIdentityAndAccessProvider as generateProvider } from './provider-generator';
 import {
   ENCRYPTION_PROVIDER,
@@ -46,12 +48,8 @@ import {
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [AuthController, AuthzController, UserController],
+  controllers: [AuthController, AuthzController],
   providers: [
-    generateProvider(UsersByFormationUseCase, [
-      USER_REPOSITORY,
-      TRANSACTION_PERFORMER,
-    ]),
     generateProvider(ValidateSessionUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
@@ -127,6 +125,6 @@ export class IdentityAndAccessModule implements OnModuleInit {
         `${baseRoute}/${endpointsPaths.userWithFullName}`,
       )
       .apply(SystemRequestValidationMiddleware)
-      .forRoutes(AuthzController, UserController);
+      .forRoutes(AuthzController);
   }
 }

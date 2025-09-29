@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 import React from 'react';
+import type { UserDescriptorSerialized } from 'shared-models';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { SortField } from '../../../../types/table.types';
 import type { FiltersState } from '../../../shared/filter-configurations';
+import { InputAffectation } from './InputAffectation';
 
 export const HEADER_COLUMNS: Array<{ field: SortField; label: string }> = [
   { field: 'numero', label: 'N°' },
@@ -17,10 +19,12 @@ export const HEADER_COLUMNS: Array<{ field: SortField; label: string }> = [
   { field: 'rapporteurs', label: 'Rapporteur(s)' }
 ];
 
-export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
+export const dataRows = (
+  data: DossierDeNominationEtAffectationSnapshot[],
+  availableRapporteurs: UserDescriptorSerialized[]
+): ReactNode[][] => {
   return data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
-    const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
 
@@ -33,7 +37,10 @@ export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): Reac
       gradeCible,
       content.observants,
       'priorité',
-      React.createElement('span', { className: 'whitespace-pre-line' }, rapporteurs)
+      React.createElement(InputAffectation, {
+        initialRapporteurs: dossier.rapporteurs,
+        availableRapporteurs
+      })
     ];
   });
 };

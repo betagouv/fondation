@@ -1,4 +1,5 @@
 import { deburr } from 'lodash';
+import { Magistrat, Role } from 'shared-models';
 import { UserRepository } from 'src/identity-and-access-context/business-logic/gateways/repositories/user-repository';
 import {
   User,
@@ -8,6 +9,24 @@ import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/
 
 export class FakeUserRepository implements UserRepository {
   users: Record<string, UserSnapshot> = {};
+
+  usersByFormation(
+    formation: Magistrat.Formation,
+  ): TransactionableAsync<User[]> {
+    return async () => {
+      return Object.values(this.users)
+        .filter((user) => {
+          if (user.role === Role.MEMBRE_DU_PARQUET) {
+            return formation === Magistrat.Formation.PARQUET;
+          }
+          if (user.role === Role.MEMBRE_DU_SIEGE) {
+            return formation === Magistrat.Formation.SIEGE;
+          }
+          return user.role === Role.MEMBRE_COMMUN;
+        })
+        .map(User.fromSnapshot);
+    };
+  }
 
   save(user: User): TransactionableAsync {
     return async () => {
