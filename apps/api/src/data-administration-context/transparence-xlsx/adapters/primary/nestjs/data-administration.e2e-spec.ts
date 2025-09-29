@@ -7,7 +7,7 @@ import { unNomMagistrat } from 'src/data-administration-context/transparence-xls
 import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { MainAppConfigurator } from 'src/main.configurator';
 
-import { USER_SERVICE } from 'src/data-administration-context/transparence-xlsx/adapters/primary/nestjs/tokens';
+import { USER_SERVICE } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
   DrizzleDb,

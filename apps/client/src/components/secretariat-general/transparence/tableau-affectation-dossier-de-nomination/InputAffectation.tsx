@@ -1,6 +1,6 @@
-import { Select } from '@codegouvfr/react-dsfr/Select';
 import { useState, type FC } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
+import { DropdownSelect, type DropdownSelectOption } from '../../../shared/DropdownFilter';
 
 export type InputAffectationProps = {
   initialRapporteurs: string[];
@@ -10,27 +10,23 @@ export type InputAffectationProps = {
 export const InputAffectation: FC<InputAffectationProps> = ({ initialRapporteurs, availableRapporteurs }) => {
   const [selectedRapporteurs, setSelectedRapporteurs] = useState<string[]>(initialRapporteurs);
 
-  const handleSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(event.target.selectedOptions, (option) => option.value);
+  const rapporteurOptions: DropdownSelectOption[] = availableRapporteurs.map((rapporteur) => ({
+    value: rapporteur.userId,
+    label: `${rapporteur.lastName} ${rapporteur.firstName}`
+  }));
+
+  const handleSelectionChange = (selectedOptions: string[]) => {
     setSelectedRapporteurs(selectedOptions);
   };
 
   return (
-    <div>
-      <Select
-        label=""
-        nativeSelectProps={{
-          multiple: true,
-          value: selectedRapporteurs,
-          onChange: handleSelectionChange
-        }}
-      >
-        {availableRapporteurs.map((rapporteur) => (
-          <option key={rapporteur.userId} value={rapporteur.userId}>
-            {rapporteur.lastName} {rapporteur.firstName}
-          </option>
-        ))}
-      </Select>
-    </div>
+    <DropdownSelect
+      className="bg-transparent"
+      tagName="Rapporteurs"
+      options={rapporteurOptions}
+      selectedValues={selectedRapporteurs}
+      onSelectionChange={handleSelectionChange}
+      useFixedPositioning={true}
+    />
   );
 };

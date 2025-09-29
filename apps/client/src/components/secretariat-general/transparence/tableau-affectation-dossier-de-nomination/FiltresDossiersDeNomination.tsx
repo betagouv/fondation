@@ -1,6 +1,6 @@
-import { DropdownFilter } from '../../../shared/DropdownFilter';
-import type { FiltersState } from '../../../shared/filter-configurations';
 import { useFilterOptions } from '../../../../hooks/useFilterOptions.hook';
+import { DropdownSelect } from '../../../shared/DropdownFilter';
+import type { FiltersState } from '../../../shared/filter-configurations';
 
 interface FiltresDossiersDeNominationProps {
   filters: FiltersState;
@@ -25,7 +25,7 @@ export const FiltresDossiersDeNomination = ({
   return (
     <div id="filtre-tableau-affectation-dossier-de-nomination" className="flex items-center gap-4">
       <span className="font-bold">Filtrer par :</span>
-      <DropdownFilter
+      <DropdownSelect
         tagName="Rapporteurs"
         options={filterOptions.rapporteurs}
         selectedValues={filters.rapporteurs}

@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import type { FilterOption } from '../components/shared/DropdownFilter';
+
+import type { DropdownSelectOption } from '../components/shared/DropdownFilter';
 import { formationFilterOptions, sessionTypeFilterOptions } from '../components/shared/filter-configurations';
 
 interface FilterOptions {
-  rapporteurs: FilterOption[];
-  formations: FilterOption[];
-  sessionType: FilterOption[];
+  rapporteurs: DropdownSelectOption[];
+  formations: DropdownSelectOption[];
+  sessionType: DropdownSelectOption[];
 }
 
 export const useFilterOptions = (rapporteurs: string[] | null | undefined): FilterOptions => {
