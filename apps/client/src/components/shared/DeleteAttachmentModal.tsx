@@ -15,13 +15,13 @@ export const DeleteAttachmentModal = ({ fileName, onDelete }: DeleteAttachmentMo
   return (
     <>
       <modal.Component
-        title="Suppression de la pièce jointe"
+        title="Confirmer la suppression du fichier"
         buttons={[
           {
             children: 'Annuler'
           },
           {
-            children: 'Supprimer',
+            children: 'Confirmer',
             nativeButtonProps: {
               onClick: () => {
                 onDelete();
@@ -31,7 +31,7 @@ export const DeleteAttachmentModal = ({ fileName, onDelete }: DeleteAttachmentMo
         ]}
       >
         <span>
-          Voulez-vous vraiment supprimer la pièce jointe: <br />
+          Confirmez vous la suppression du fichier: <br />
           <em>{fileName}</em>
         </span>
       </modal.Component>

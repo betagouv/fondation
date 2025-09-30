@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import type { FC } from 'react';
 import type { FileVM } from 'shared-models';
-import { DeleteAttachmentModal } from './DeleteAttachmentModal';
+import { DeleteAttachmentModal } from '../../../../../shared/DeleteAttachmentModal';
 
 export type AttachedFilesListProps = {
   attachedFiles: NonNullable<FileVM[]>;
