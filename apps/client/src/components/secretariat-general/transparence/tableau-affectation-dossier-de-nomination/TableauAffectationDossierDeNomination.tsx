@@ -6,13 +6,13 @@ import type { ReactNode } from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { dataRows, HEADER_COLUMNS, applyFilters } from './tableau-affectation-config';
-import { useTableData } from '../../../../hooks/useTableData.hook';
 import { ExcelExport } from './ExcelExport';
 import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { TableControl } from '../../../shared/TableControl';
 import { SortButton } from '../../../shared/SortButton';
+import { useTable } from '../../../../hooks/useTable.hook';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -41,8 +41,7 @@ export const TableauAffectationDossierDeNomination = () => {
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTableData<NonNullable<typeof dossiersDeNomination>[0], FiltersState>({
-    data: dossiersDeNomination || [],
+  } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {
     filters,
     applyFilters
   });

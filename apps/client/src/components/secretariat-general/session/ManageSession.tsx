@@ -7,7 +7,7 @@ import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
 import { useNavigate } from 'react-router-dom';
 import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
 import { DateOnly } from '../../../models/date-only.model';
-import { useTableData } from '../../../hooks/useTableData.hook';
+import { useTable } from '../../../hooks/useTable.hook';
 import { TableControl } from '../../shared/TableControl';
 import { SortButton } from '../../shared/SortButton';
 
@@ -40,8 +40,7 @@ export const ManageSession = () => {
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTableData<NonNullable<typeof sessions>[0], unknown>({
-    data: sessions || [],
+  } = useTable<NonNullable<typeof sessions>[0], unknown>(sessions || [], {
     itemsPerPage: 10
   });
 
