@@ -28,13 +28,13 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
     itemsPerPage: 50
   });
 
-  const headersWithSort = headers.map((header) => (
+  const headersWithSort = Object.entries(headers).map(([key, label]) => (
     <span className="flex items-center gap-1">
-      {header}
+      {label}
       <SortButton
-        iconId={getSortIcon(header) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(header)}
-        label={header}
+        iconId={getSortIcon(key) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
+        onClick={() => handleSort(key)}
+        label={label}
       />
     </span>
   ));

@@ -1,7 +1,10 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import type { DateOnlyJson, Magistrat } from 'shared-models';
 import { gradeToLabel } from '../components/reports/labels/labels-mappers';
-import { reportListTableLabels } from '../components/reports/labels/report-list-table-labels';
+import {
+  reportListTableLabels,
+  type ReportListTableLabels
+} from '../components/reports/labels/report-list-table-labels';
 import { stateToLabel } from '../components/reports/labels/state-label.mapper';
 import { DateOnly } from '../models/date-only.model';
 import type { ReportListItem } from '../react-query/queries/list-reports.queries';
@@ -25,7 +28,7 @@ export type ReportListItemVM = {
 export type ReportListVM = {
   newReportsCount: number;
   reports: ReportListItemVM[];
-  headers: string[];
+  headers: ReportListTableLabels['headers'];
   title: { text: string; color?: string }[];
 };
 
@@ -106,7 +109,7 @@ export const formatReportList = (
       (count, report) => (report.state === 'Nouveau' ? count + 1 : count),
       0
     ),
-    headers: Object.values(reportListTableLabels.headers),
+    headers: reportListTableLabels.headers,
     reports: filteredReports,
     title: [
       {
