@@ -1,7 +1,7 @@
 import Table from '@codegouvfr/react-dsfr/Table';
 import { useGetSessions } from '../../../react-query/queries/sg/get-sessions.query';
 import type { ReactNode } from 'react';
-import { ROUTE_PATHS } from '../../../utils/route-path.utils';
+import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { Breadcrumb } from '../../shared/Breadcrumb';
 import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
 import { useNavigate } from 'react-router-dom';
@@ -23,10 +23,7 @@ export const ManageSession = () => {
   const sessionRows = (sessions || []).map((session) => {
     const { name, formation, dateTransparence, dateEcheance, sessionImportId, typeDeSaisine, sessionId } =
       session;
-    const href = ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId).replace(
-      ':sessionImportId',
-      sessionImportId
-    );
+    const href = getSgSessionPath(sessionId, sessionImportId);
 
     return [
       TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],

@@ -24,6 +24,10 @@ export const getGdsReportPath = (
   return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${dateTransparencePath}/${transparencyPath}/${formationPath}/rapports/${id}`;
 };
 
+export const getSgSessionPath = (sessionId: string, sessionImportId: string) => {
+  return `/secretariat-general/session/${sessionId}/${sessionImportId}`;
+};
+
 interface RoutePath {
   LOGIN: '/login';
   TRANSPARENCES: {

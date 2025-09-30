@@ -30,7 +30,7 @@ export function useTableData<T, F = Record<string, unknown>>({
   sortDirection: initialSortDirection,
   onSort
 }: TableDataConfig<T, F>): TableDataResult<T> {
-  const [itemsPerPage, setItemsPerPage] = useState<number>(15);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string | undefined>(initialSortField);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection || 'asc');
