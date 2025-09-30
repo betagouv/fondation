@@ -12,6 +12,7 @@ import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { TableControl } from '../../../shared/TableControl';
+import { SortButton } from '../../../shared/SortButton';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -49,12 +50,10 @@ export const TableauAffectationDossierDeNomination = () => {
   const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS.map((header) => (
     <span className="flex items-center gap-1">
       {header.label}
-      <Button
+      <SortButton
         iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
         onClick={() => handleSort(header.field)}
-        className="fr-btn--icon-only p-0 hover:bg-transparent"
-        priority="tertiary no outline"
-        title={`Trier par ${header.label}`}
+        label={header.label}
       />
     </span>
   ));

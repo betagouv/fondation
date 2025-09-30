@@ -2,19 +2,19 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
-import type { SortField } from '../../../../types/table.types';
 import type { FiltersState } from '../../../shared/filter-configurations';
 
-export const HEADER_COLUMNS: Array<{ field: SortField; label: string }> = [
-  { field: 'numero', label: 'N°' },
-  { field: 'magistrat', label: 'Magistrat' },
-  { field: 'posteActuel', label: 'Poste actuel' },
-  { field: 'gradeActuel', label: 'Grade actuel' },
-  { field: 'posteCible', label: 'Poste cible' },
-  { field: 'gradeCible', label: 'Grade cible' },
-  { field: 'observants', label: 'Observants' },
-  { field: 'priorite', label: 'Priorité' },
-  { field: 'rapporteurs', label: 'Rapporteur(s)' }
+export const HEADER_COLUMNS: Array<{ field: string; label: string }> = [
+  { field: 'content.numeroDeDossier', label: 'N°' },
+  { field: 'content.nomMagistrat', label: 'Magistrat' },
+  { field: 'content.posteActuel', label: 'Poste actuel' },
+  { field: 'content.grade', label: 'Grade actuel' },
+  { field: 'content.posteCible', label: 'Poste cible' },
+  // TODO AJOUTER LA FONCTION DE TRI
+  { field: 'content.gradeCible', label: 'Grade cible' },
+  { field: 'content.observants', label: 'Observants' },
+  { field: 'content.priorite', label: 'Priorité' },
+  { field: 'content.rapporteurs', label: 'Rapporteur(s)' }
 ];
 
 export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {

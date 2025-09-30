@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
+import type { Month } from 'shared-models';
+import { DateOnly } from '../models/date-only.model';
 
 export interface TableDataConfig<T, F = Record<string, unknown>> {
   data: T[];
-  filters: F;
-  applyFilters: (data: T[], filters: F) => T[];
+  filters?: F;
+  applyFilters?: (data: T[], filters: F) => T[];
   sortField?: string;
   sortDirection?: 'asc' | 'desc';
   onSort?: (field: string) => void;
+  itemsPerPage?: number;
+  getSortValue?: (item: T, field: string) => unknown;
 }
 
 export interface TableDataResult<T> {
@@ -28,53 +32,68 @@ export function useTableData<T, F = Record<string, unknown>>({
   applyFilters,
   sortField: initialSortField,
   sortDirection: initialSortDirection,
-  onSort
+  onSort,
+  itemsPerPage: initialItemsPerPage,
+  getSortValue: customGetSortValue
 }: TableDataConfig<T, F>): TableDataResult<T> {
-  const [itemsPerPage, setItemsPerPage] = useState<number>(50);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(initialItemsPerPage ?? 50);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string | undefined>(initialSortField);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection || 'asc');
 
-  // Appliquer les filtres
+  // Appliquer les filtres (optionnel)
   const filteredData = useMemo(() => {
-    return applyFilters(data, filters);
+    if (applyFilters && filters) {
+      return applyFilters(data, filters);
+    }
+    return data;
   }, [data, filters, applyFilters]);
 
   // Appliquer le tri
   const sortedData = useMemo(() => {
+    const getSortValue = (item: T, field: string): unknown => {
+      // Si une fonction personnalisée est fournie, l'utiliser
+      if (customGetSortValue) {
+        return customGetSortValue(item, field);
+      }
+
+      // Sinon, utiliser la logique générique pour naviguer dans les objets nested
+      const itemRecord = item as Record<string, unknown>;
+
+      if (field.includes('.')) {
+        return field.split('.').reduce((obj: Record<string, unknown>, key: string) => {
+          return (obj as Record<string, unknown>)?.[key] as Record<string, unknown>;
+        }, itemRecord);
+      }
+
+      if (Array.isArray(itemRecord[field])) {
+        return (itemRecord[field] as string[])?.join(' ') || '';
+      }
+
+      // Vérifier si c'est un objet DateOnly sérialisé (venant de l'API)
+      const fieldValue = itemRecord[field];
+      if (
+        fieldValue &&
+        typeof fieldValue === 'object' &&
+        'year' in fieldValue &&
+        'month' in fieldValue &&
+        'day' in fieldValue
+      ) {
+        const dateOnly = new DateOnly(
+          fieldValue.year as number,
+          fieldValue.month as Month,
+          fieldValue.day as number
+        );
+        return dateOnly.toFormattedString();
+      }
+
+      // Support pour les propriétés directes
+      return itemRecord[field] || '';
+    };
+
     if (!sortField) return filteredData;
 
     return [...filteredData].sort((a, b) => {
-      // Fonction pour extraire la valeur de tri selon le champ
-      const getSortValue = (item: T, field: string) => {
-        const itemRecord = item as Record<string, unknown>;
-
-        // Mapping des champs vers les propriétés réelles
-        switch (field) {
-          case 'numero':
-            return (itemRecord.content as Record<string, unknown>)?.numeroDeDossier || '';
-          case 'magistrat':
-            return (itemRecord.content as Record<string, unknown>)?.nomMagistrat || '';
-          case 'posteActuel':
-            return (itemRecord.content as Record<string, unknown>)?.posteActuel || '';
-          case 'gradeActuel':
-            return (itemRecord.content as Record<string, unknown>)?.grade || '';
-          case 'posteCible':
-            return (itemRecord.content as Record<string, unknown>)?.posteCible || '';
-          case 'gradeCible': {
-            const posteCible = ((itemRecord.content as Record<string, unknown>)?.posteCible as string) || '';
-            const gradeCible = posteCible.substring(posteCible.lastIndexOf('-') + 1);
-            return gradeCible;
-          }
-          case 'observants':
-            return (itemRecord.content as Record<string, unknown>)?.observants || '';
-          case 'rapporteurs':
-            return (itemRecord.rapporteurs as string[])?.join(' ') || '';
-          default:
-            return itemRecord[field] || '';
-        }
-      };
-
       const aValue = getSortValue(a, sortField);
       const bValue = getSortValue(b, sortField);
 
@@ -96,7 +115,7 @@ export function useTableData<T, F = Record<string, unknown>>({
       const comparison = aStr.localeCompare(bStr);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [filteredData, sortField, sortDirection]);
+  }, [filteredData, sortField, sortDirection, customGetSortValue]);
 
   // Calculer le nombre total de pages
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
