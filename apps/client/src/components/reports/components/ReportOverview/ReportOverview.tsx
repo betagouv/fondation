@@ -77,6 +77,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   };
 
   const retrievedReport = report as ReportSM;
+  console.log(retrievedReport);
   if (isPending || error) {
     return null;
   }

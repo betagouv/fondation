@@ -71,14 +71,11 @@ export const formatReportList = (
         name,
         dueDate,
         state,
-        transparency,
         grade,
         targettedPosition,
-        observersCount,
-        dateTransparence,
-        formation
+        observersCount
       }) => {
-        const href = getGdsReportPath(id, transparency, formation, dateTransparence);
+        const href = getGdsReportPath(id);
 
         const dueDateFormatted = dueDate
           ? new DateOnly(dueDate.year, dueDate.month, dueDate.day).toFormattedString()

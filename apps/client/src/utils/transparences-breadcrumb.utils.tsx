@@ -64,7 +64,8 @@ export const getTransparencesBreadCrumb = (
       const path = getGdsDetailsPath(
         report.dateTransparence,
         report.transparency,
-        report.formation as Magistrat.Formation
+        report.formation as Magistrat.Formation,
+        report.sessionId
       );
       const transparencySegment = {
         label: transparencyLabel,
