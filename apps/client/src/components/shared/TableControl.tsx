@@ -22,7 +22,7 @@ export const TableControl: FC<TableControlProps> = ({
   currentPage,
   setCurrentPage
 }) => {
-  const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(15);
+  const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
   const value = externalItemsPerPage ?? internalItemsPerPage;
 
   const handleChange = (newValue: number) => {
