@@ -1,11 +1,14 @@
 import { useParams } from 'react-router-dom';
 import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
-import { colors } from '@codegouvfr/react-dsfr/fr/colors';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
-import { dataRows, HEADER_COLUMNS, applyFilters } from './tableau-affectation-config';
+import {
+  dataRowsAffectationsDn,
+  HEADER_COLUMNS_AFFECTATIONS_DN,
+  applyFilters
+} from './tableau-affectation-config';
 import { ExcelExport } from './ExcelExport';
 import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
@@ -13,6 +16,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { TableControl } from '../../../shared/TableControl';
 import { SortButton } from '../../../shared/SortButton';
 import { useTable } from '../../../../hooks/useTable.hook';
+import { ErrorMessage } from '../../../shared/ErrorMessage';
 
 export const TableauAffectationDossierDeNomination = () => {
   const { sessionId } = useParams();
@@ -46,7 +50,7 @@ export const TableauAffectationDossierDeNomination = () => {
     applyFilters
   });
 
-  const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS.map((header) => (
+  const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS_AFFECTATIONS_DN.map((header) => (
     <span className="flex items-center gap-1">
       {header.label}
       <SortButton
@@ -57,7 +61,7 @@ export const TableauAffectationDossierDeNomination = () => {
     </span>
   ));
 
-  const dossierDataRows = dataRows(paginatedData);
+  const dossierDataRows = dataRowsAffectationsDn(paginatedData);
   const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
 
   return (
@@ -77,9 +81,7 @@ export const TableauAffectationDossierDeNomination = () => {
       </div>
       {isLoadingDossiersDeNomination && <div>Chargement des dossiers de nomination...</div>}
       {isErrorDossiersDeNomination && (
-        <div style={{ color: colors.options.error._425_625.default }}>
-          Erreur lors de la récupération des dossiers de nomination
-        </div>
+        <ErrorMessage message="Erreur lors de la récupération des dossiers de nomination" />
       )}
       {!isLoadingDossiersDeNomination && (
         <>

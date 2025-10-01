@@ -4,7 +4,7 @@ import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
 
-export const HEADER_COLUMNS: Array<{ field: string; label: string }> = [
+export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
   { field: 'content.nomMagistrat', label: 'Magistrat' },
   { field: 'content.posteActuel', label: 'Poste actuel' },
@@ -17,7 +17,7 @@ export const HEADER_COLUMNS: Array<{ field: string; label: string }> = [
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' }
 ];
 
-export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
+export const dataRowsAffectationsDn = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
   return data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
