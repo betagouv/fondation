@@ -2,9 +2,10 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useState, type FC } from 'react';
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import { ITEMS_PAR_PAGE } from '../../types/table.types';
+import type { ItemsPerPage } from '../../hooks/usePagination.hook';
 
 export type TableControlProps = {
-  onChange: (value: number) => void;
+  onChange: (value: ItemsPerPage) => void;
   itemsPerPage: number;
   totalItems: number;
   displayedItems: number;
@@ -25,7 +26,7 @@ export const TableControl: FC<TableControlProps> = ({
   const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
   const value = externalItemsPerPage ?? internalItemsPerPage;
 
-  const handleChange = (newValue: number) => {
+  const handleChange = (newValue: ItemsPerPage) => {
     if (externalItemsPerPage === undefined) {
       setInternalItemsPerPage(newValue);
     }
@@ -43,7 +44,7 @@ export const TableControl: FC<TableControlProps> = ({
           id="items-par-page"
           className={'flex max-w-[400px]'}
           nativeSelectProps={{
-            onChange: (event) => handleChange(Number(event.target.value)),
+            onChange: (event) => handleChange(+event.target.value as ItemsPerPage),
             value
           }}
         >

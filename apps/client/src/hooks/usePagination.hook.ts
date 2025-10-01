@@ -1,22 +1,24 @@
 import { useMemo, useState } from 'react';
 
+export type ItemsPerPage = 5 | 10 | 15 | 25 | 50;
+
 export interface PaginationConfig {
-  itemsPerPage?: number;
+  itemsPerPage?: ItemsPerPage;
 }
 
 export interface PaginationResult<T> {
   paginatedData: T[];
   totalItems: number;
   displayedItems: number;
-  itemsPerPage: number;
-  setItemsPerPage: (value: number) => void;
+  itemsPerPage: ItemsPerPage;
+  setItemsPerPage: (value: ItemsPerPage) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
 }
 
 export function usePagination<T>(data: T[], config: PaginationConfig = {}): PaginationResult<T> {
-  const [itemsPerPage, setItemsPerPage] = useState<number>(config.itemsPerPage ?? 10);
+  const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(config.itemsPerPage ?? 10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Calculer le nombre total de pages

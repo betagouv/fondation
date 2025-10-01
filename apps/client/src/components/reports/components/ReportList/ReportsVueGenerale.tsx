@@ -33,7 +33,9 @@ export const ReportsVueGenerale = () => {
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {});
+  } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {
+    itemsPerPage: 50
+  });
 
   if (isLoadingDossiersDeNomination) {
     return <div>Chargement des dossiers de nomination...</div>;
