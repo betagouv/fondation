@@ -10,7 +10,6 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.posteActuel', label: 'Poste actuel' },
   { field: 'content.grade', label: 'Grade actuel' },
   { field: 'content.posteCible', label: 'Poste cible' },
-  // TODO AJOUTER LA FONCTION DE TRI
   { field: 'content.gradeCible', label: 'Grade cible' },
   { field: 'content.observants', label: 'Observants' },
   { field: 'content.priorite', label: 'Priorité' },
@@ -48,4 +47,16 @@ export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], f
     // Garder seulement les dossiers qui contiennent TOUS les rapporteurs sélectionnés
     return filters.rapporteurs.some((rapporteur) => dossier.rapporteurs.includes(rapporteur));
   });
+};
+
+export const sortValueSpecificDnField = (
+  item: NonNullable<DossierDeNominationEtAffectationSnapshot>,
+  field: string
+) => {
+  if (field === 'content.gradeCible') {
+    const content = item.content as ContenuPropositionDeNominationTransparenceV2;
+    const posteCible = content?.posteCible || '';
+    return posteCible.substring(posteCible.lastIndexOf('-') + 1);
+  }
+  return undefined;
 };

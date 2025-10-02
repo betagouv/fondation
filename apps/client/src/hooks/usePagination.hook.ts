@@ -18,7 +18,7 @@ export interface PaginationResult<T> {
 }
 
 export function usePagination<T>(data: T[], config: PaginationConfig = {}): PaginationResult<T> {
-  const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(config.itemsPerPage ?? 10);
+  const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(config.itemsPerPage ?? 50);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Calculer le nombre total de pages

@@ -3,7 +3,8 @@ import { useGetDossierDeNominationParSession } from '../../../../react-query/que
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import {
   dataRowsAffectationsDn,
-  HEADER_COLUMNS_AFFECTATIONS_DN
+  HEADER_COLUMNS_AFFECTATIONS_DN,
+  sortValueSpecificDnField
 } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
 import type { ReactNode } from 'react';
 import { SortButton } from '../../../shared/SortButton';
@@ -12,7 +13,7 @@ import type { FiltersState } from '../../../shared/filter-configurations';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { TableControl } from '../../../shared/TableControl';
 
-export const ReportsVueGenerale = () => {
+export const ReportsDnVueGenerale = () => {
   const { sessionId } = useParams();
   const {
     data: dossiersDeNomination,
@@ -34,7 +35,7 @@ export const ReportsVueGenerale = () => {
     handleSort,
     getSortIcon
   } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {
-    itemsPerPage: 50
+    getSortValue: sortValueSpecificDnField
   });
 
   if (isLoadingDossiersDeNomination) {

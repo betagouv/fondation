@@ -3,7 +3,7 @@ import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { ReportList } from './ReportList';
 import { ToggleSwitch } from '@codegouvfr/react-dsfr/ToggleSwitch';
 
-import { ReportsVueGenerale } from './ReportsVueGenerale';
+import { ReportsDnVueGenerale } from './ReportsDnVueGenerale';
 import { HeaderReportList } from './HeaderReportList';
 import { useParams } from 'react-router-dom';
 import { DateTransparenceRoutesMapper } from '../../../../utils/date-transparence-routes.utils';
@@ -32,7 +32,7 @@ export const ReportListPage: FC = () => {
         id="vue-generale-membre"
         helperText="Visualiser tous les rapports de la transparence"
       />
-      {isVueGenerale && <ReportsVueGenerale />}
+      {isVueGenerale && <ReportsDnVueGenerale />}
       {!isVueGenerale && <ReportList {...props} />}
     </PageContentLayout>
   );

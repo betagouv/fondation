@@ -25,7 +25,6 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
     handleSort,
     getSortIcon
   } = useTable<NonNullable<typeof reports>[0], unknown>(reports || [], {
-    itemsPerPage: 50
   });
 
   const headersWithSort = Object.entries(headers).map(([key, label]) => (

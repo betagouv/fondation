@@ -7,7 +7,8 @@ import { useState } from 'react';
 import {
   dataRowsAffectationsDn,
   HEADER_COLUMNS_AFFECTATIONS_DN,
-  applyFilters
+  applyFilters,
+  sortValueSpecificDnField
 } from './tableau-affectation-config';
 import { ExcelExport } from './ExcelExport';
 import { FiltresDossiersDeNomination } from './FiltresDossiersDeNomination';
@@ -47,7 +48,8 @@ export const TableauAffectationDossierDeNomination = () => {
     getSortIcon
   } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {
     filters,
-    applyFilters
+    applyFilters,
+    getSortValue: sortValueSpecificDnField
   });
 
   const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS_AFFECTATIONS_DN.map((header) => (
