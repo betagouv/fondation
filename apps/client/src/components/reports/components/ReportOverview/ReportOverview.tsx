@@ -34,7 +34,7 @@ import {
   type UpdateReportParams
 } from '../../../../react-query/mutations/reports/update-report.mutation';
 
-const formatBiography = (biography: string | null) => {
+export const formatBiography = (biography: string | null) => {
   if (!biography) return null;
   if (biography.indexOf('- ') === -1) return biography;
 
@@ -47,10 +47,35 @@ const formatBiography = (biography: string | null) => {
   return `- ${firstElement}\n- ${otherElements.join('\n- ')}`;
 };
 
-const formatObservers = (observers: ReportSM['observers']) =>
-  observers?.map((observer) => observer.split('\n') as [string, ...string[]]) || null;
+export const formatObservers = (observers: ReportSM['observers']) => {
+  if (!observers || observers.length === 0) {
+    return null;
+  }
+  return observers?.map((observer) => observer.split('\n') as [string, ...string[]]);
+};
 
-const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
+export const formatDurationFromDate = (startDate: Date, endDate: Date = new Date()): string => {
+  const startYear = startDate.getFullYear();
+  const startMonth = startDate.getMonth();
+  const endYear = endDate.getFullYear();
+  const endMonth = endDate.getMonth();
+
+  const months = (endYear - startYear) * 12 + (endMonth - startMonth);
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  if (years === 0) {
+    return `${remainingMonths} mois`;
+  }
+
+  if (remainingMonths === 0) {
+    return `${years} an${years > 1 ? 's' : ''}`;
+  }
+
+  return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
+};
+
+export const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
   const birthDate = DateOnly.fromStoreModel(birthDateJson);
   const today = DateOnly.fromDate(currentDate);
   const age = birthDate.getAge(today);

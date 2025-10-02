@@ -3,6 +3,7 @@ import React from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
+import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -22,10 +23,9 @@ export const dataRowsAffectationsDn = (data: DossierDeNominationEtAffectationSna
     const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-
     return [
       content.numeroDeDossier,
-      content.nomMagistrat,
+      React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
       content.posteActuel,
       content.grade,
       posteCible,
