@@ -1,7 +1,8 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import type { FC } from 'react';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+
 import { MagistratDetails } from './MagistratDetails';
+import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 
 export type MagistratDnModaleProps = {
   idDn: string;
@@ -30,7 +31,7 @@ export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn })
         {content.nomMagistrat}
       </a>
       <modalMagistratDnDetails.Component title={content.nomMagistrat}>
-        <MagistratDetails content={content} />
+        <MagistratDetails content={content} idDn={idDn} />
       </modalMagistratDnDetails.Component>
     </>
   );

@@ -41,6 +41,7 @@ export class ReportVM<
   };
 
   static commentLabel = 'Rapport';
+  static reportersLabel = 'Rapporteurs';
   static biographyLabel = 'Biographie';
   static identityLabel = 'Identité';
   static observersLabel = 'Observants';

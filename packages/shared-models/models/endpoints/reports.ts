@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NominationFile } from "../nomination-file.namespace";
 import { ReportFileUsage, type ReportRetrievalVM } from "../report-retrieval-vm";
-import { type ReportListingVM } from "../reports-listing-vm";
+import { ReportListItemQueried, type ReportListingVM } from "../reports-listing-vm";
 import {
   type RestContract,
   type ZodDto,
@@ -17,6 +17,12 @@ export interface ReportsContextRestContract extends RestContract {
       path: ":id";
       params: { id: string };
       response: ReportRetrievalVM;
+    };
+    listReportByDnId: {
+      method: "GET";
+      path: "by-dn-id";
+      params: { dnId: string };
+      response: ReportListItemQueried[];
     };
     updateReport: {
       method: "PUT";

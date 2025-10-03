@@ -9,12 +9,36 @@ import {
 import { TextValue } from '../../../shared/TextValue';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
+import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
+import { ErrorMessage } from '../../../shared/ErrorMessage';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
 export type MagistratDetailsProps = {
   content: ContenuPropositionDeNominationTransparenceV2;
+  idDn: string;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({ content }) => {
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) => {
+  // Créer une référence à la modale pour détecter son état
+  const modalRef = { id: `modal-magistrat-dn-details-${idDn}`, isOpenedByDefault: false };
+  const isModalOpen = useIsModalOpen(modalRef);
+
+  const {
+    data: reports,
+    isLoading,
+    error
+  } = useGetReportsByDnId(idDn, {
+    enabled: isModalOpen
+  });
+
+  if (isLoading) {
+    return <div>Chargement des rapports...</div>;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Erreur lors du chargement des rapports" />;
+  }
+
   const {
     dateDeNaissance,
     observants,
@@ -42,7 +66,15 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content }) => {
 
   return (
     <div className="flex flex-col gap-8">
-      <p>
+      <div>
+        <label className="text-xl font-semibold">{ReportVM.reportersLabel}</label>
+        {(reports || []).map((report) => (
+          <div key={report.id}>
+            <p>{report.state}</p>
+          </div>
+        ))}
+      </div>
+      <div>
         <TextValue
           label={ReportVM.magistratIdentityLabels.currentPosition}
           value={`${posteActuel} - ${grade}`}
@@ -53,26 +85,30 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content }) => {
         <TextValue label={ReportVM.magistratIdentityLabels.targettedPosition} value={posteCible} />
         <TextValue label={ReportVM.magistratIdentityLabels.rank} value={rang} />
         <TextValue label={ReportVM.magistratIdentityLabels.birthDate} value={formattedBirthDate} />
-      </p>
-      <p>
-        <h6 id={reportHtmlIds.overview.biography}>{ReportVM.observersLabel}</h6>
+      </div>
+      <div>
+        <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>
+          {ReportVM.observersLabel}
+        </label>
         <div
           aria-labelledby={reportHtmlIds.overview.biography}
           className="w-full whitespace-pre-line leading-7"
         >
           {formattedObservers ?? 'Non renseigné'}
         </div>
-      </p>
+      </div>
 
-      <p>
-        <h6 id={reportHtmlIds.overview.biography}>{ReportVM.biographyLabel}</h6>
+      <div>
+        <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>
+          {ReportVM.biographyLabel}
+        </label>
         <div
           aria-labelledby={reportHtmlIds.overview.biography}
           className="w-full whitespace-pre-line leading-7"
         >
           {formattedBiography}
         </div>
-      </p>
+      </div>
     </div>
   );
 };

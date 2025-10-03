@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ReportsContextRestContract } from 'shared-models';
+import { ListReportByDnIdUseCase } from 'src/reports-context/business-logic/use-cases/list-report-by-dn-id/list-report-by-dn-id.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
 import {
@@ -41,6 +42,7 @@ type IReportController = IController<ReportsContextRestContract>;
 const baseRoute: ReportsContextRestContract['basePath'] = 'api/reports';
 const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
   retrieveReport: ':id',
+  listReportByDnId: 'by-dn-id',
   listReports: 'transparences',
   updateReport: ':id',
   updateRule: 'rules/:ruleId',
@@ -52,6 +54,7 @@ const endpointsPaths: IControllerPaths<ReportsContextRestContract> = {
 @Controller(baseRoute)
 export class ReportsController implements IReportController {
   constructor(
+    private readonly listReportByDnIdUseCase: ListReportByDnIdUseCase,
     private readonly listReportsUseCase: ListReportsUseCase,
     private readonly retrieveReportUseCase: RetrieveReportUseCase,
     private readonly changeRuleValidationStateUseCase: ChangeRuleValidationStateUseCase,
@@ -65,6 +68,16 @@ export class ReportsController implements IReportController {
   async listReports(@Req() req: Request) {
     const userId = req.userId!;
     return this.listReportsUseCase.execute(userId);
+  }
+
+  @Get(endpointsPaths.listReportByDnId)
+  async listReportByDnId(
+    @Query()
+    {
+      dnId,
+    }: ReportsContextRestContract['endpoints']['listReportByDnId']['params'],
+  ) {
+    return this.listReportByDnIdUseCase.execute(dnId);
   }
 
   @Get(endpointsPaths.retrieveReport)
