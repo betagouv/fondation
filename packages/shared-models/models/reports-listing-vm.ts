@@ -8,6 +8,7 @@ export interface ReportListItemQueried {
   sessionId: string;
   state: NominationFile.ReportState;
   formation: Magistrat.Formation;
+  reporterId: string;
 }
 
 export interface ReportListItemVM {

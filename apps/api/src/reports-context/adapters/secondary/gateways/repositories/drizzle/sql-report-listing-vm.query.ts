@@ -14,6 +14,7 @@ export class SqlReportListingQuery implements ReportListingQuery {
         sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,
+        reporterId: reports.reporterId,
       })
       .from(reports)
       .where(eq(reports.reporterId, reporterId))
@@ -30,6 +31,7 @@ export class SqlReportListingQuery implements ReportListingQuery {
         sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,
+        reporterId: reports.reporterId,
       })
       .from(reports)
       .where(eq(reports.dossierDeNominationId, dnId))

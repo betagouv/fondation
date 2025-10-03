@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NominationFile } from "../nomination-file.namespace";
 import { ReportFileUsage, type ReportRetrievalVM } from "../report-retrieval-vm";
-import { ReportListItemQueried, type ReportListingVM } from "../reports-listing-vm";
+import { type ReportListItemQueried, type ReportListingVM } from "../reports-listing-vm";
 import {
   type RestContract,
   type ZodDto,
