@@ -9,12 +9,25 @@ import {
 import { TextValue } from '../../../shared/TextValue';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
+import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
+import { ErrorMessage } from '../../../shared/ErrorMessage';
 
 export type MagistratDetailsProps = {
   content: ContenuPropositionDeNominationTransparenceV2;
+  dnId: string;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({ content }) => {
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, dnId }) => {
+  const { data: reports, isLoading, error } = useGetReportsByDnId(dnId);
+
+  if (isLoading) {
+    return <div>Chargement des rapports...</div>;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Erreur lors du chargement des rapports" />;
+  }
+
   const {
     dateDeNaissance,
     observants,
@@ -42,6 +55,11 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content }) => {
 
   return (
     <div className="flex flex-col gap-8">
+      {(reports || []).map((report) => (
+        <div key={report.id}>
+          <p>{report.state}</p>
+        </div>
+      ))}
       <p>
         <TextValue
           label={ReportVM.magistratIdentityLabels.currentPosition}
