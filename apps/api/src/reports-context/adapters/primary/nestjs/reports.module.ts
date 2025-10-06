@@ -89,7 +89,10 @@ import {
       DOSSIER_DE_NOMINATION_SERVICE,
       SESSION_SERVICE,
     ]),
-    generateProvider(ListReportByDnIdUseCase, [REPORT_LISTING_QUERY]),
+    generateProvider(ListReportByDnIdUseCase, [
+      REPORT_LISTING_QUERY,
+      USER_SERVICE,
+    ]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,
       TRANSACTION_PERFORMER,

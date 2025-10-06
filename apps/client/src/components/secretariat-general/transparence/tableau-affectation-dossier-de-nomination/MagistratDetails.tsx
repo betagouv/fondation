@@ -12,6 +12,8 @@ import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { ReportStateTag } from '../../../reports/components/ReportList/ReportStateTag';
+import { stateToLabel } from '../../../reports/labels/state-label.mapper';
 
 export type MagistratDetailsProps = {
   content: ContenuPropositionDeNominationTransparenceV2;
@@ -70,7 +72,10 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
         <label className="text-xl font-semibold">{ReportVM.reportersLabel}</label>
         {(reports || []).map((report) => (
           <div key={report.id}>
-            <p>{report.state}</p>
+            <p className="flex items-center justify-between py-2">
+              <span>{report.name}</span>
+              <ReportStateTag state={stateToLabel(report.state)} />
+            </p>
           </div>
         ))}
       </div>

@@ -11,6 +11,10 @@ export interface ReportListItemQueried {
   reporterId: string;
 }
 
+export interface ReportListItemQueriedWithReporter extends ReportListItemQueried {
+  name: string;
+}
+
 export interface ReportListItemVM {
   id: string;
   sessionId: string;
