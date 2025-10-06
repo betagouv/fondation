@@ -18,7 +18,7 @@ const logoutUser = async () => {
   });
 };
 
-export const AppHeaderAvatar: FC = () => {
+export const Avatar: FC = () => {
   const { user, isError, invalidateSession } = useValidateSessionFromCookie();
   const firstLetters = user?.firstLetters;
 

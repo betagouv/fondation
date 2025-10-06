@@ -24,8 +24,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<NonNullable<typeof reports>[0], unknown>(reports || [], {
-  });
+  } = useTable<NonNullable<typeof reports>[0], unknown>(reports || [], {});
 
   const headersWithSort = Object.entries(headers).map(([key, label]) => (
     <span className="flex items-center gap-1">

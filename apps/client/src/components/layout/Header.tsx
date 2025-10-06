@@ -3,7 +3,8 @@ import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { AppHeaderAvatar } from './AppHeaderAvatar';
+import { Avatar } from './Avatar';
+import { LolfiCsm } from './LolfiCsm';
 
 export const AppHeader = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ export const AppHeader = () => {
         href: '/login',
         title: 'Accueil'
       }}
-      quickAccessItems={[<AppHeaderAvatar />]}
+      quickAccessItems={[<LolfiCsm />, <Avatar />]}
       navigation={includeSg ? navigation : []}
     />
   );
