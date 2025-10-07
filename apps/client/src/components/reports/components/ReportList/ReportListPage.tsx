@@ -10,7 +10,8 @@ import { DateTransparenceRoutesMapper } from '../../../../utils/date-transparenc
 import { GdsTransparenciesRoutesMapper } from '../../../../utils/gds-transparencies-routes.utils';
 import { FormationsRoutesMapper } from '../../../../utils/formations-routes.utils';
 
-const VUE_GENERALE_TITLE = 'Vue générale';
+// Non renseigné car souhaité ainsi
+const VUE_GENERALE_TITLE = '';
 
 export const ReportListPage: FC = () => {
   const [isVueGenerale, setIsVueGenerale] = useState<boolean>(false);
@@ -25,13 +26,16 @@ export const ReportListPage: FC = () => {
   return (
     <PageContentLayout>
       <HeaderReportList {...props} />
-      <ToggleSwitch
-        label={VUE_GENERALE_TITLE}
-        checked={isVueGenerale}
-        onChange={(checked) => setIsVueGenerale(checked)}
-        id="vue-generale-membre"
-        helperText="Visualiser tous les rapports de la transparence"
-      />
+      <div className="flex flex-col gap-1">
+        <ToggleSwitch
+          label={VUE_GENERALE_TITLE}
+          checked={isVueGenerale}
+          onChange={(checked) => setIsVueGenerale(checked)}
+          id="vue-generale-membre"
+          showCheckedHint={false}
+        />
+        <label htmlFor="vue-generale-membre">{isVueGenerale ? 'Tous les dossiers' : 'Mes dossiers'}</label>
+      </div>
       {isVueGenerale && <ReportsDnVueGenerale />}
       {!isVueGenerale && <ReportList {...props} />}
     </PageContentLayout>
