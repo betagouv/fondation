@@ -58,7 +58,8 @@ const formatGdsTransparencies = (reports: ReportListItem[]): Record<string, Tran
     const path = getGdsDetailsPath(
       report.dateTransparence,
       report.transparency,
-      report.formation as Magistrat.Formation
+      report.formation as Magistrat.Formation,
+      report.sessionId
     );
 
     const transparencyItem: TransparencyItem = {

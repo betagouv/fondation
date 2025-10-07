@@ -14,11 +14,28 @@ export class SqlReportListingQuery implements ReportListingQuery {
         sessionId: reports.sessionId,
         state: reports.state,
         formation: reports.formation,
+        reporterId: reports.reporterId,
       })
       .from(reports)
       .where(eq(reports.reporterId, reporterId))
       .execute();
 
+    return reportsData;
+  }
+
+  async listReportsByDnId(dnId: string) {
+    const reportsData = await this.db
+      .select({
+        id: reports.id,
+        dossierDeNominationId: reports.dossierDeNominationId,
+        sessionId: reports.sessionId,
+        state: reports.state,
+        formation: reports.formation,
+        reporterId: reports.reporterId,
+      })
+      .from(reports)
+      .where(eq(reports.dossierDeNominationId, dnId))
+      .execute();
     return reportsData;
   }
 }

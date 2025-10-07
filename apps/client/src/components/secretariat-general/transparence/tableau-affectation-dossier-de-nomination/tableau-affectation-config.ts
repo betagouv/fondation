@@ -3,30 +3,29 @@ import React from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
+import { MagistratDnModale } from './MagistratDnModale';
 
-export const HEADER_COLUMNS: Array<{ field: string; label: string }> = [
+export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
   { field: 'content.nomMagistrat', label: 'Magistrat' },
   { field: 'content.posteActuel', label: 'Poste actuel' },
   { field: 'content.grade', label: 'Grade actuel' },
   { field: 'content.posteCible', label: 'Poste cible' },
-  // TODO AJOUTER LA FONCTION DE TRI
   { field: 'content.gradeCible', label: 'Grade cible' },
   { field: 'content.observants', label: 'Observants' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' }
 ];
 
-export const dataRows = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
+export const dataRowsAffectationsDn = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
   return data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-
     return [
       content.numeroDeDossier,
-      content.nomMagistrat,
+      React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
       content.posteActuel,
       content.grade,
       posteCible,
@@ -48,4 +47,16 @@ export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], f
     // Garder seulement les dossiers qui contiennent TOUS les rapporteurs sélectionnés
     return filters.rapporteurs.some((rapporteur) => dossier.rapporteurs.includes(rapporteur));
   });
+};
+
+export const sortValueSpecificDnField = (
+  item: NonNullable<DossierDeNominationEtAffectationSnapshot>,
+  field: string
+) => {
+  if (field === 'content.gradeCible') {
+    const content = item.content as ContenuPropositionDeNominationTransparenceV2;
+    const posteCible = content?.posteCible || '';
+    return posteCible.substring(posteCible.lastIndexOf('-') + 1);
+  }
+  return undefined;
 };

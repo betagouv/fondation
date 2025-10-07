@@ -12,4 +12,13 @@ export class FakeReportListingVMRepository implements ReportListingQuery {
 
     return userReports;
   }
+
+  async listReportsByDnId(dnId: string): Promise<ReportListItemQueried[]> {
+    const dnReports = Object.entries(this.reportsList)
+      .filter(([id]) => id === dnId)
+      .map(([, reports]) => reports)
+      .flat();
+
+    return dnReports;
+  }
 }

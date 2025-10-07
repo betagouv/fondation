@@ -11,6 +11,7 @@ import { RapportTransparenceCrééSubscriber } from 'src/reports-context/busines
 import { DomainRegistry } from 'src/reports-context/business-logic/models/domain-registry';
 import { AffectationRapporteursCrééeSubscriber } from 'src/reports-context/business-logic/subscribers/affectation-rapporteurs-créée.subscriber';
 import { CréerAnalyseUseCase } from 'src/reports-context/business-logic/use-cases/création-analyse/créer-analyse.use-case';
+import { ListReportByDnIdUseCase } from 'src/reports-context/business-logic/use-cases/list-report-by-dn-id/list-report-by-dn-id.use-case';
 import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { DeleteReportAttachedFileUseCase } from 'src/reports-context/business-logic/use-cases/report-file-deletion/delete-report-attached-file';
 import { DeleteReportAttachedFilesUseCase } from 'src/reports-context/business-logic/use-cases/report-files-deletion/delete-report-attached-files';
@@ -87,6 +88,10 @@ import {
       REPORT_LISTING_QUERY,
       DOSSIER_DE_NOMINATION_SERVICE,
       SESSION_SERVICE,
+    ]),
+    generateProvider(ListReportByDnIdUseCase, [
+      REPORT_LISTING_QUERY,
+      USER_SERVICE,
     ]),
     generateProvider(UpdateReportUseCase, [
       REPORT_REPOSITORY,

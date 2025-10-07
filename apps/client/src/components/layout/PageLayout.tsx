@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { AppFooter } from './AppFooter';
-import { AppHeader } from './AppHeader';
+import { AppHeader } from './Header';
 import { Notice } from '../shared/Notice';
 
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {

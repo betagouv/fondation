@@ -7,7 +7,7 @@ export type NewReportsCountProps = {
 };
 
 export const NewReportsCount: FC<NewReportsCountProps> = ({ newReportsCount }) => (
-  <p>
+  <span>
     Vous avez{' '}
     <span
       className={cx('fr-text--bold')}
@@ -18,5 +18,5 @@ export const NewReportsCount: FC<NewReportsCountProps> = ({ newReportsCount }) =
       {newReportsCount === 1 ? '1 nouveau rapport' : `${newReportsCount} nouveaux rapports`}
     </span>{' '}
     sur cette transparence.
-  </p>
+  </span>
 );

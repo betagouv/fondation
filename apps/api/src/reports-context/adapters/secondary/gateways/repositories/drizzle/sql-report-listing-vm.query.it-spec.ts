@@ -67,6 +67,7 @@ describe('SQL Report Listing VM Query', () => {
           sessionId: aReport.sessionId,
           formation: aReport.formation,
           state: aReport.state,
+          reporterId: aReport.reporterId,
         },
       ]);
     });

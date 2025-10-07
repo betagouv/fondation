@@ -94,6 +94,7 @@ const unRapportQueried: ReportListItemQueried = {
   dossierDeNominationId: unDossierDeNominationId,
   state: NominationFile.ReportState.NEW,
   formation: Magistrat.Formation.PARQUET,
+  reporterId: reporterId,
 };
 
 const unRapportAutreRapporteur: ReportListItemQueried = {
@@ -102,6 +103,7 @@ const unRapportAutreRapporteur: ReportListItemQueried = {
   dossierDeNominationId: unDossierDeNominationId,
   state: NominationFile.ReportState.NEW,
   formation: Magistrat.Formation.PARQUET,
+  reporterId: 'another-reporter-id',
 };
 
 const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {

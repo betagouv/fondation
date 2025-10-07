@@ -1,11 +1,13 @@
+import type { ItemsPerPage } from '../hooks/usePagination.hook';
+
 export type SortDirection = 'asc' | 'desc' | null;
 
-export type ItemParPage = {
-  value: number;
+export type Items = {
+  value: ItemsPerPage;
   label: string;
 };
 
-export const ITEMS_PAR_PAGE: ItemParPage[] = [
+export const ITEMS_PAR_PAGE: Items[] = [
   {
     value: 5,
     label: '5 lignes par page'

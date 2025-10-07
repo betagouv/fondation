@@ -6,12 +6,7 @@ import { AUTHORIZED_ROLES } from '../../constants/authorized-roles.constants';
 export const TransparencesLayout = () => {
   const params = useParams();
 
-  const isReportOverview = !!(
-    params.dateTransparence &&
-    params.transparency &&
-    params.formation &&
-    params.id
-  );
+  const isReportOverview = !!params.id;
 
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.MEMBER}>

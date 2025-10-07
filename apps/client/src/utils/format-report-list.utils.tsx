@@ -1,4 +1,3 @@
-import { colors } from '@codegouvfr/react-dsfr';
 import type { DateOnlyJson, Magistrat } from 'shared-models';
 import { gradeToLabel } from '../components/reports/labels/labels-mappers';
 import {
@@ -29,7 +28,6 @@ export type ReportListVM = {
   newReportsCount: number;
   reports: ReportListItemVM[];
   headers: ReportListTableLabels['headers'];
-  title: { text: string; color?: string }[];
 };
 
 export const formatReportList = (
@@ -71,14 +69,11 @@ export const formatReportList = (
         name,
         dueDate,
         state,
-        transparency,
         grade,
         targettedPosition,
-        observersCount,
-        dateTransparence,
-        formation
+        observersCount
       }) => {
-        const href = getGdsReportPath(id, transparency, formation, dateTransparence);
+        const href = getGdsReportPath(id);
 
         const dueDateFormatted = dueDate
           ? new DateOnly(dueDate.year, dueDate.month, dueDate.day).toFormattedString()
@@ -110,15 +105,6 @@ export const formatReportList = (
       0
     ),
     headers: reportListTableLabels.headers,
-    reports: filteredReports,
-    title: [
-      {
-        text: 'Rapports sur la '
-      },
-      {
-        text: `transparence du ${DateOnly.fromStoreModel(dateTransparenceFilter).toFormattedString()} (${transparencyFilter})`,
-        color: colors.options.yellowTournesol.sun407moon922.hover
-      }
-    ]
+    reports: filteredReports
   };
 };

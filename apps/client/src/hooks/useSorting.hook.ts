@@ -23,7 +23,11 @@ export function useSorting<T>(data: T[], config: SortingConfig<T> = {}): Sorting
   const getSortValue = (item: T, field: string): unknown => {
     // Si une fonction personnalisée est fournie, l'utiliser
     if (config.getSortValue) {
-      return config.getSortValue(item, field);
+      const customValue = config.getSortValue(item, field);
+      // Si la fonction personnalisée retourne undefined, utiliser la logique par défaut
+      if (customValue !== undefined) {
+        return customValue;
+      }
     }
 
     // Sinon, utiliser la logique générique pour naviguer dans les objets nested

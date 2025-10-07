@@ -1,4 +1,4 @@
-import type { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
+import type { DateOnlyJson, Magistrat } from 'shared-models';
 import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
 import { FormationsRoutesMapper } from './formations-routes.utils';
 import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils';
@@ -6,22 +6,14 @@ import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils
 export const getGdsDetailsPath = (
   dateTransparence: DateOnlyJson,
   transparency: string,
-  formation: Magistrat.Formation
+  formation: Magistrat.Formation,
+  sessionId: string
 ) => {
-  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${DateTransparenceRoutesMapper.toPathSegment(dateTransparence)}/${GdsTransparenciesRoutesMapper.toPathSegment(transparency)}/${FormationsRoutesMapper.toPathSegment(formation)}/rapports`;
+  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${DateTransparenceRoutesMapper.toPathSegment(dateTransparence)}/${GdsTransparenciesRoutesMapper.toPathSegment(transparency)}/${FormationsRoutesMapper.toPathSegment(formation)}/rapports/${sessionId}`;
 };
 
-export const getGdsReportPath = (
-  id: string,
-  transparency: Transparency,
-  formation: Magistrat.Formation,
-  dateTransparence: DateOnlyJson
-) => {
-  const transparencyPath = GdsTransparenciesRoutesMapper.toPathSegment(transparency);
-  const formationPath = FormationsRoutesMapper.toPathSegment(formation);
-  const dateTransparencePath = DateTransparenceRoutesMapper.toPathSegment(dateTransparence);
-
-  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${dateTransparencePath}/${transparencyPath}/${formationPath}/rapports/${id}`;
+export const getGdsReportPath = (id: string) => {
+  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/${id}`;
 };
 
 export const getSgSessionPath = (sessionId: string, sessionImportId: string) => {
@@ -32,8 +24,8 @@ interface RoutePath {
   LOGIN: '/login';
   TRANSPARENCES: {
     DASHBOARD: '/transparences';
-    DETAILS_GDS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports';
-    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:id';
+    DETAILS_GDS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:sessionId';
+    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id';
   };
   SG: {
     DASHBOARD: '/secretariat-general';
@@ -48,9 +40,8 @@ export const ROUTE_PATHS: RoutePath = {
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAILS_GDS:
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports',
-    DETAILS_REPORTS:
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:id'
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:sessionId',
+    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id'
   },
   SG: {
     DASHBOARD: '/secretariat-general',
