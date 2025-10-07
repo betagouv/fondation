@@ -31,6 +31,12 @@ export const FiltresDossiersDeNomination = ({
         selectedValues={filters.rapporteurs}
         onSelectionChange={(values) => handleFilterChange('rapporteurs', values)}
       />
+      <DropdownFilter
+        tagName="Priorité"
+        options={filterOptions.priorite}
+        selectedValues={filters.priorite}
+        onSelectionChange={(values) => handleFilterChange('priorite', values)}
+      />
     </div>
   );
 };

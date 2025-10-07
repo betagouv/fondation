@@ -32,7 +32,8 @@ export const TableauAffectationDossierDeNomination = () => {
   const [filters, setFilters] = useState<FiltersState>({
     rapporteurs: [],
     formations: [],
-    sessionType: []
+    sessionType: [],
+    priorite: []
   });
 
   const {

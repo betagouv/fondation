@@ -4,6 +4,7 @@ export * from "./gender";
 export * from "./magistrat.namespace";
 export * from "./nomination-file";
 export * from "./nomination-file.namespace";
+export * from "./priorite.enum";
 export * from "./report-retrieval-vm";
 export * from "./reports-listing-vm";
 export * from "./role";
