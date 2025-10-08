@@ -20,7 +20,7 @@ export const FiltresSessions = ({ filters, onFiltersChange }: FiltresSessionsPro
   };
 
   return (
-    <div id="filtre-sessions" className="flex items-center gap-4 mb-4">
+    <div id="filtre-sessions" className="mb-4 flex items-center gap-4">
       <span className="font-bold">Filtrer par :</span>
       <DropdownFilter
         tagName="Formation"

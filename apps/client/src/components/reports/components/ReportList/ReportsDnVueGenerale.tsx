@@ -22,7 +22,7 @@ export const ReportsDnVueGenerale = () => {
   }
 
   return (
-    <div>
+    <div className="my-4 flex flex-col gap-4">
       <TableauDossiersDeNomination dossiersDeNomination={dossiersDeNomination || []} />
     </div>
   );
