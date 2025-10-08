@@ -79,7 +79,5 @@ export const filterConfigurations: FilterConfigurations = {
 
 export interface FiltersState {
   rapporteurs: string[];
-  formations: Array<FormationOptions['value']>;
-  sessionType: Array<SessionTypeOptions['value']>;
   priorite: Array<PrioriteOptions['value']>;
 }
