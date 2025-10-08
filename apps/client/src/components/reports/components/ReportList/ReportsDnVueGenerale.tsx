@@ -4,14 +4,17 @@ import { ErrorMessage } from '../../../shared/ErrorMessage';
 import {
   dataRowsAffectationsDn,
   HEADER_COLUMNS_AFFECTATIONS_DN,
-  sortValueSpecificDnField
+  sortValueSpecificDnField,
+  applyFilters
 } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { SortButton } from '../../../shared/SortButton';
 import { useTable } from '../../../../hooks/useTable.hook';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { TableControl } from '../../../shared/TableControl';
+import { FiltresDossiersDeNomination } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 
 export const ReportsDnVueGenerale = () => {
   const { sessionId } = useParams();
@@ -21,6 +24,13 @@ export const ReportsDnVueGenerale = () => {
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
     sessionId: sessionId as string
+  });
+
+  const [filters, setFilters] = useState<FiltersState>({
+    rapporteurs: [],
+    formations: [],
+    sessionType: [],
+    priorite: []
   });
 
   const {
@@ -35,6 +45,8 @@ export const ReportsDnVueGenerale = () => {
     handleSort,
     getSortIcon
   } = useTable<NonNullable<typeof dossiersDeNomination>[0], FiltersState>(dossiersDeNomination || [], {
+    filters,
+    applyFilters,
     getSortValue: sortValueSpecificDnField
   });
 
@@ -58,9 +70,17 @@ export const ReportsDnVueGenerale = () => {
   ));
 
   const dossierDataRows = dataRowsAffectationsDn(paginatedData);
+  const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
 
   return (
     <div>
+      <div className="mb-4">
+        <FiltresDossiersDeNomination
+          filters={filters}
+          onFiltersChange={setFilters}
+          rapporteurs={rapporteurs}
+        />
+      </div>
       <Table
         id="session-affectation-dossier-de-nomination-table"
         bordered
