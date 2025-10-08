@@ -1,4 +1,5 @@
 import { Table } from '@codegouvfr/react-dsfr/Table';
+import { useState } from 'react';
 
 import type { ReportListItemVM, ReportListVM } from '../../../../utils/format-report-list.utils';
 import './ReportsTable.css';
@@ -6,6 +7,21 @@ import { ReportStateTag } from './ReportStateTag';
 import { SortButton } from '../../../shared/SortButton';
 import { useTable } from '../../../../hooks/useTable.hook';
 import { TableControl } from '../../../shared/TableControl';
+import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
+
+// Fonction de filtrage des rapports
+const applyReportFilters = (reports: ReportListItemVM[], filters: ReportFiltersState) => {
+  return reports.filter((report) => {
+    // Filtre par statut
+    if (filters.statuts.length > 0) {
+      if (!filters.statuts.includes(report.state)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
 
 export type ReportsTableProps = {
   headers: ReportListVM['headers'];
@@ -13,6 +29,10 @@ export type ReportsTableProps = {
 };
 
 export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) => {
+  const [filters, setFilters] = useState<ReportFiltersState>({
+    statuts: []
+  });
+
   const {
     data: paginatedData,
     totalPages,
@@ -24,7 +44,10 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<NonNullable<typeof reports>[0], unknown>(reports || [], {});
+  } = useTable<NonNullable<typeof reports>[0], ReportFiltersState>(reports || [], {
+    filters,
+    applyFilters: applyReportFilters
+  });
 
   const headersWithSort = Object.entries(headers).map(([key, label]) => (
     <span className="flex items-center gap-1">
@@ -38,7 +61,8 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
   ));
 
   return (
-    <>
+    <div>
+      <FiltresRapports filters={filters} onFiltersChange={setFilters} />
       <Table
         id="reports-table"
         headers={headersWithSort}
@@ -64,6 +88,6 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
       />
-    </>
+    </div>
   );
 };
