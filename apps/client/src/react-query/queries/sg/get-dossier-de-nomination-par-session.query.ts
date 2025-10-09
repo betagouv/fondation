@@ -11,9 +11,11 @@ const fetchDossiersDeNominationParSession = ({
   formation
 }: GetDossiersDeNominationParSessionArgs) => {
   const queries = new URLSearchParams({
-    sessionId,
-    formation
+    sessionId
   });
+  if (formation) {
+    queries.set('formation', formation);
+  }
   return apiFetch<GetDossiersDeNominationParSessionResponse>(
     `/nominations/dossier-de-nominations/snapshot/by-session?${queries}`,
     { method: 'GET' }

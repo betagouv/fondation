@@ -41,10 +41,7 @@ export class DossierDeNominationController
   async dossierDeNominationEtAffectationParSession(
     @Query() params: DossierDeNominationEtAffectationParamsNestDto,
   ) {
-    return this.getBySessionIdUseCase.execute(
-      params.sessionId,
-      params.formation,
-    );
+    return this.getBySessionIdUseCase.execute(params);
   }
 
   @Get(dossierDeNominationsEndpointsPath.dossierDeNominationSnapshot)

@@ -4,7 +4,6 @@ import type { UserDescriptorSerialized } from 'shared-models';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
-import { InputAffectation } from './InputAffectation';
 import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
@@ -27,6 +26,16 @@ export const dataRowsAffectationsDn = (
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
+    const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
+
+    // TODO AMELIORER CETTE PARTIE
+    console.log('availableRapporteurs', availableRapporteurs);
+    // Code to use pour affecter un rapporteur
+    //  React.createElement(InputAffectation, {
+    //    initialRapporteurs: dossier.rapporteurs,
+    //    availableRapporteurs
+    //  });
+
     return [
       content.numeroDeDossier,
       React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
@@ -36,10 +45,7 @@ export const dataRowsAffectationsDn = (
       gradeCible,
       content.observants,
       'priorité',
-      React.createElement(InputAffectation, {
-        initialRapporteurs: dossier.rapporteurs,
-        availableRapporteurs
-      })
+      React.createElement('span', { className: 'whitespace-pre-line' }, rapporteurs)
     ];
   });
 };

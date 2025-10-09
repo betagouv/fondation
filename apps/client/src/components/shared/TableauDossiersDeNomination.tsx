@@ -14,15 +14,18 @@ import { FiltresDossiersDeNomination } from '../secretariat-general/transparence
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import type { UserDescriptorSerialized } from 'shared-models';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
+  availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
   ExportComponent?: React.ComponentType<{ data: DossierDeNominationEtAffectationSnapshot[] }>;
 }
 
 export const TableauDossiersDeNomination = ({
   dossiersDeNomination,
+  availableRapporteurs,
   showExportButton = false,
   ExportComponent
 }: TableauDossiersDeNominationProps) => {
@@ -59,7 +62,7 @@ export const TableauDossiersDeNomination = ({
     </span>
   ));
 
-  const dossierDataRows = dataRowsAffectationsDn(paginatedData);
+  const dossierDataRows = dataRowsAffectationsDn(paginatedData, availableRapporteurs || []);
   const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
 
   return (

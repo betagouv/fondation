@@ -30,7 +30,7 @@ export interface DossierDeNominationRestContrat extends RestContract {
       path: "snapshot/by-session";
       params: {
         sessionId: string;
-        formation: Magistrat.Formation;
+        formation?: Magistrat.Formation;
       };
       response: {dossiers: DossierDeNominationEtAffectationSnapshot[]; availableRapporteurs: UserDescriptorSerialized[]};
     };
@@ -50,7 +50,7 @@ export const dossierDeNominationSnapshotParamsSchema = z.object({
 
 export const dossierDeNominationEtAffectationSchema = z.object({
   sessionId: z.string().uuid(),
-  formation: z.nativeEnum(Magistrat.Formation),
+  formation: z.nativeEnum(Magistrat.Formation).optional(),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
   "dossierDeNominationEtAffectationParSession"
