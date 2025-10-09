@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
 import type { FilterOption } from '../components/shared/DropdownFilter';
-import { formationFilterOptions, sessionTypeFilterOptions } from '../components/shared/filter-configurations';
+import {
+  FORMATION_OPTIONS,
+  PRIORITE_OPTIONS,
+  SAISINE_OPTIONS
+} from '../components/shared/filter-configurations';
 
 interface FilterOptions {
   rapporteurs: FilterOption[];
   formations: FilterOption[];
   sessionType: FilterOption[];
+  priorite: FilterOption[];
 }
 
 export const useFilterOptions = (rapporteurs: string[] | null | undefined): FilterOptions => {
@@ -13,8 +18,9 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
     if (!rapporteurs || rapporteurs.length === 0) {
       return {
         rapporteurs: [],
-        formations: formationFilterOptions,
-        sessionType: sessionTypeFilterOptions
+        formations: FORMATION_OPTIONS,
+        sessionType: SAISINE_OPTIONS,
+        priorite: PRIORITE_OPTIONS
       };
     }
 
@@ -26,8 +32,9 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
         value: rapporteur,
         label: rapporteur.toLocaleUpperCase()
       })),
-      formations: formationFilterOptions,
-      sessionType: sessionTypeFilterOptions
+      formations: FORMATION_OPTIONS,
+      sessionType: SAISINE_OPTIONS,
+      priorite: PRIORITE_OPTIONS
     };
   }, [rapporteurs]);
 };

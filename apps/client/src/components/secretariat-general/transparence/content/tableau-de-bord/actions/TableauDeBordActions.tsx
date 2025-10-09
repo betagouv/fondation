@@ -10,6 +10,7 @@ import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-quer
 import { DateOnly } from '../../../../../../models/date-only.model';
 import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
 import { AttachedFilesList } from './AttachedFilesList';
+import Badge from '@codegouvfr/react-dsfr/Badge';
 
 type TableauDeBordActionsProps = TransparenceSnapshot;
 
@@ -41,7 +42,14 @@ export const TableauDeBordActions = ({
     <div className={clsx('mt-4 flex flex-col justify-start gap-y-6', cx('fr-col-3', 'fr-text--bold'))}>
       <div>TABLEAU DE BORD</div>
       <div>
-        <Accordion label="Pièces jointes" titleAs="h2">
+        <Accordion
+          label={
+            <span>
+              Pièces jointes <Badge>{attachments?.length ?? 0}</Badge>
+            </span>
+          }
+          titleAs="h2"
+        >
           {!attachments || attachments.length === 0 ? (
             <div>Aucunes pièces jointes.</div>
           ) : (

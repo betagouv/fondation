@@ -1,6 +1,7 @@
 import Table from '@codegouvfr/react-dsfr/Table';
 import { useGetSessions } from '../../../react-query/queries/sg/get-sessions.query';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { Breadcrumb } from '../../shared/Breadcrumb';
 import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
@@ -10,10 +11,40 @@ import { DateOnly } from '../../../models/date-only.model';
 import { useTable } from '../../../hooks/useTable.hook';
 import { TableControl } from '../../shared/TableControl';
 import { SortButton } from '../../shared/SortButton';
+import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
+
+// Fonction de filtrage des sessions
+const applySessionFilters = (
+  sessions: NonNullable<ReturnType<typeof useGetSessions>['data']>,
+  filters: SessionFiltersState
+) => {
+  return sessions.filter((session) => {
+    // Filtre par formation
+    if (filters.formations.length > 0) {
+      if (!filters.formations.includes(session.formation)) {
+        return false;
+      }
+    }
+
+    // Filtre par type de saisine
+    if (filters.typeDeSaisine.length > 0) {
+      if (!filters.typeDeSaisine.includes(session.typeDeSaisine)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
 
 export const ManageSession = () => {
   const navigate = useNavigate();
   const { data: sessions } = useGetSessions();
+
+  const [filters, setFilters] = useState<SessionFiltersState>({
+    formations: [],
+    typeDeSaisine: []
+  });
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: 'Gérer une session',
@@ -40,7 +71,9 @@ export const ManageSession = () => {
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<NonNullable<typeof sessions>[0], unknown>(sessions || [], {
+  } = useTable<NonNullable<typeof sessions>[0], SessionFiltersState>(sessions || [], {
+    filters,
+    applyFilters: applySessionFilters,
     itemsPerPage: 10
   });
 
@@ -84,6 +117,8 @@ export const ManageSession = () => {
         ariaLabel="Fil d'Ariane de la gestion des sessions"
         breadcrumb={breadcrumb}
       />
+
+      <FiltresSessions filters={filters} onFiltersChange={setFilters} />
 
       <div className="flex justify-center">
         <Table id="all-sessions-table" bordered headers={headers} data={sessionRows} />

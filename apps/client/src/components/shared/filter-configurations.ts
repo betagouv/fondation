@@ -1,9 +1,12 @@
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import type { FilterOption } from './DropdownFilter';
+import { Magistrat, PrioriteEnum, PrioriteLabels, TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
 
 export type FilterType = 'formation' | 'rapporteurs';
 
-export const formationFilterOptions: FilterOption[] = [
+type FormationOptions = {
+  value: Magistrat.Formation;
+  label: string;
+};
+export const FORMATION_OPTIONS: Array<FormationOptions> = [
   {
     value: Magistrat.Formation.PARQUET,
     label: 'Parquet'
@@ -14,26 +17,67 @@ export const formationFilterOptions: FilterOption[] = [
   }
 ];
 
-export const sessionTypeFilterOptions: FilterOption[] = [
+type SessionTypeOptions = {
+  value: TypeDeSaisine;
+  label: (typeof TypeDeSaisineLabels)[TypeDeSaisine];
+};
+export const SAISINE_OPTIONS: Array<SessionTypeOptions> = [
   {
     value: TypeDeSaisine.TRANSPARENCE_GDS,
-    label: 'Transparence GDS'
+    label: TypeDeSaisineLabels.TRANSPARENCE_GDS
   }
 ];
 
-export const filterConfigurations = {
+type PrioriteOptions = {
+  value: PrioriteEnum;
+  label: (typeof PrioriteLabels)[PrioriteEnum];
+};
+export const PRIORITE_OPTIONS: Array<PrioriteOptions> = [
+  {
+    value: PrioriteEnum.ETOILE,
+    label: PrioriteLabels.ETOILE
+  },
+  {
+    value: PrioriteEnum.OUTRE_MER,
+    label: PrioriteLabels.OUTRE_MER
+  },
+  {
+    value: PrioriteEnum.PROFILE,
+    label: PrioriteLabels.PROFILE
+  }
+];
+
+export type FilterConfigurations = {
+  formation: {
+    tagName: 'Formation';
+    options: Array<FormationOptions>;
+  };
+  sessionType: {
+    tagName: 'Type de session';
+    options: Array<SessionTypeOptions>;
+  };
+  priorite: {
+    tagName: 'Priorité';
+    options: Array<PrioriteOptions>;
+  };
+};
+
+export const filterConfigurations: FilterConfigurations = {
   formation: {
     tagName: 'Formation',
-    options: formationFilterOptions
+    options: FORMATION_OPTIONS
   },
   sessionType: {
     tagName: 'Type de session',
-    options: sessionTypeFilterOptions
+    options: SAISINE_OPTIONS
+  },
+  priorite: {
+    tagName: 'Priorité',
+    options: PRIORITE_OPTIONS
   }
 } as const;
 
 export interface FiltersState {
-  formations: string[];
   rapporteurs: string[];
-  sessionType: string[];
+  priorite: Array<PrioriteOptions['value']>;
 }

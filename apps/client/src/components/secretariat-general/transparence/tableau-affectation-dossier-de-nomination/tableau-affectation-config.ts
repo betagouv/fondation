@@ -39,6 +39,11 @@ export const dataRowsAffectationsDn = (data: DossierDeNominationEtAffectationSna
 
 export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], filters: FiltersState) => {
   return data.filter((dossier) => {
+    if (filters.priorite && filters.priorite.length > 0) {
+      // TODO AJOUTER LA LOGIQUE DE FILTRAGE PAR PRIORITE
+      return false;
+    }
+
     // Si aucun filtre de rapporteurs n'est appliqué, garder tous les dossiers
     if (!filters.rapporteurs || filters.rapporteurs.length === 0) {
       return true;
