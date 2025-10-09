@@ -38,6 +38,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
         dossiersDeNomination={data?.dossiers || []}
         showExportButton={true}
         ExportComponent={ExcelExport}
+        canEdit={true}
       />
     </div>
   );

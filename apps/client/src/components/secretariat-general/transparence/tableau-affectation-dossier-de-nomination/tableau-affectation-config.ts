@@ -4,6 +4,7 @@ import type { UserDescriptorSerialized } from 'shared-models';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
+import { InputAffectation } from './InputAffectation';
 import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
@@ -18,24 +19,12 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' }
 ];
 
-export const dataRowsAffectationsDn = (
-  data: DossierDeNominationEtAffectationSnapshot[],
-  availableRapporteurs: UserDescriptorSerialized[]
-): ReactNode[][] => {
+export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
   return data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
     const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
-
-    // TODO AMELIORER CETTE PARTIE
-    console.log('availableRapporteurs', availableRapporteurs);
-    // Code to use pour affecter un rapporteur
-    //  React.createElement(InputAffectation, {
-    //    initialRapporteurs: dossier.rapporteurs,
-    //    availableRapporteurs
-    //  });
-
     return [
       content.numeroDeDossier,
       React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
@@ -46,6 +35,32 @@ export const dataRowsAffectationsDn = (
       content.observants,
       'priorité',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteurs)
+    ];
+  });
+};
+
+export const dataRowsDnEdition = (
+  data: DossierDeNominationEtAffectationSnapshot[],
+  availableRapporteurs: UserDescriptorSerialized[]
+): ReactNode[][] => {
+  return data.map((dossier) => {
+    const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+    const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
+    const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
+
+    return [
+      content.numeroDeDossier,
+      React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
+      content.posteActuel,
+      content.grade,
+      posteCible,
+      gradeCible,
+      content.observants,
+      'priorité',
+      React.createElement(InputAffectation, {
+        initialRapporteurs: dossier.rapporteurs,
+        availableRapporteurs
+      })
     ];
   });
 };

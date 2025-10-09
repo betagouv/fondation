@@ -6,7 +6,8 @@ import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/mod
 import { useTable } from '../../hooks/useTable.hook';
 import {
   applyFilters,
-  dataRowsAffectationsDn,
+  dataRowsDn,
+  dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
   sortValueSpecificDnField
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
@@ -21,14 +22,20 @@ export interface TableauDossiersDeNominationProps {
   availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
   ExportComponent?: React.ComponentType<{ data: DossierDeNominationEtAffectationSnapshot[] }>;
+  canEdit?: boolean;
 }
 
 export const TableauDossiersDeNomination = ({
   dossiersDeNomination,
-  availableRapporteurs,
   showExportButton = false,
-  ExportComponent
+  ExportComponent,
+  canEdit = false
 }: TableauDossiersDeNominationProps) => {
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const handleEdit = () => {
+    setIsEditing((prev) => !prev);
+  };
+
   const [filters, setFilters] = useState<FiltersState>({
     rapporteurs: [],
     priorite: []
@@ -62,7 +69,10 @@ export const TableauDossiersDeNomination = ({
     </span>
   ));
 
-  const dossierDataRows = dataRowsAffectationsDn(paginatedData, availableRapporteurs || []);
+  const dossierDataRows = canEdit
+    ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
+    : dataRowsDn(paginatedData);
+
   const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
 
   return (
@@ -79,7 +89,17 @@ export const TableauDossiersDeNomination = ({
           onFiltersChange={setFilters}
           rapporteurs={rapporteurs}
         />
-        {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+        <div className="flex items-center gap-2">
+          {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+          {canEdit && (
+            <Button
+              priority="secondary"
+              iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
+              title={`edit-dossier-de-nomination`}
+              onClick={handleEdit}
+            />
+          )}
+        </div>
       </div>
 
       <Table
