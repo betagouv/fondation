@@ -21,7 +21,9 @@ export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
   availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
-  ExportComponent?: React.ComponentType<{ data: DossierDeNominationEtAffectationSnapshot[] }>;
+  ExportComponent?: React.ComponentType<{
+    data: DossierDeNominationEtAffectationSnapshot[];
+  }>;
   canEdit?: boolean;
 }
 
@@ -74,11 +76,10 @@ export const TableauDossiersDeNomination = ({
     ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
     : dataRowsDn(paginatedData);
 
-  const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
+  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs.map((r) => r.nom));
 
   return (
     <div>
-      {/* Préchargement des icônes pour éviter les problèmes de chargement conditionnel */}
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
@@ -88,7 +89,7 @@ export const TableauDossiersDeNomination = ({
         <FiltresDossiersDeNomination
           filters={filters}
           onFiltersChange={setFilters}
-          rapporteurs={rapporteurs}
+          rapporteurs={rapporteurNoms}
         />
         <div className="flex items-center gap-2">
           {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}

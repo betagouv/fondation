@@ -24,7 +24,6 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
       };
     }
 
-    // Extraire les rapporteurs uniques
     const uniqueRapporteurs = Array.from(new Set(rapporteurs));
 
     return {

@@ -37,7 +37,7 @@ export class GetBySessionIdUseCase {
     affectation: Awaited<
       ReturnType<ReturnType<AffectationRepository['bySessionId']>>
     > | null,
-  ): Promise<Record<string, string[]>> {
+  ): Promise<Record<string, Array<{ userId: string; nom: string }>>> {
     if (!affectation) return {};
 
     const snapshot = affectation.snapshot();
@@ -49,22 +49,29 @@ export class GetBySessionIdUseCase {
       ),
     ];
 
-    // Batch fetch all rapporteurs in one call (avoid N+1)
     const rapporteurs = await Promise.all(
       uniqueRapporteurIds.map((id) => this.httpUserService.userWithId(id)),
     );
 
     const rapporteursById = new Map(
-      rapporteurs.map((r) => [r.userId, `${r.lastName} ${r.firstName}`]),
+      rapporteurs.map((r) => [
+        r.userId,
+        { userId: r.userId, nom: `${r.lastName} ${r.firstName}` },
+      ]),
     );
 
-    // Build the mapping
-    const rapporteursParDossier: Record<string, string[]> = {};
+    const rapporteursParDossier: Record<
+      string,
+      Array<{ userId: string; nom: string }>
+    > = {};
     snapshot.affectationsDossiersDeNominations.forEach(
       ({ dossierDeNominationId, rapporteurIds }) => {
         rapporteursParDossier[dossierDeNominationId] = rapporteurIds
           .map((id) => rapporteursById.get(id))
-          .filter((nom): nom is string => nom !== undefined);
+          .filter(
+            (rapporteur): rapporteur is { userId: string; nom: string } =>
+              rapporteur !== undefined,
+          );
       },
     );
 

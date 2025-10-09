@@ -14,6 +14,8 @@ export const ExcelExport: FC<ExcelExportProps> = ({ data }) => {
 
     const exportData = data.map((dossier) => {
       const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+      const rapporteursNames = dossier.rapporteurs.map((r) => r.nom).join(', ');
+
       return {
         'N°': content.numeroDeDossier,
         Magistrat: content.nomMagistrat,
@@ -22,7 +24,7 @@ export const ExcelExport: FC<ExcelExportProps> = ({ data }) => {
         'Poste cible': content.posteCible,
         Observants: Array.isArray(content.observants) ? content.observants.join(', ') : content.observants,
         Priorité: 'priorité',
-        'Rapporteur(s)': dossier.rapporteurs.join(', ')
+        'Rapporteur(s)': rapporteursNames
       };
     });
 

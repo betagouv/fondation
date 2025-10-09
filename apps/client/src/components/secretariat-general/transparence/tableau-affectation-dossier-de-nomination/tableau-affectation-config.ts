@@ -4,7 +4,7 @@ import type { UserDescriptorSerialized } from 'shared-models';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import type { FiltersState } from '../../../shared/filter-configurations';
-import { InputAffectation } from './InputAffectation';
+import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
@@ -24,7 +24,11 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-    const rapporteurs = dossier.rapporteurs.join('\n').toLocaleUpperCase();
+    const rapporteursNames = dossier.rapporteurs
+      .map((r) => r.nom)
+      .join('\n')
+      .toLocaleUpperCase();
+
     return [
       content.numeroDeDossier,
       React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
@@ -34,7 +38,7 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
       gradeCible,
       content.observants,
       'priorité',
-      React.createElement('span', { className: 'whitespace-pre-line' }, rapporteurs)
+      React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames)
     ];
   });
 };
@@ -47,6 +51,7 @@ export const dataRowsDnEdition = (
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
+    const initialRapporteurIds = dossier.rapporteurs.map((r) => r.userId);
 
     return [
       content.numeroDeDossier,
@@ -57,8 +62,8 @@ export const dataRowsDnEdition = (
       gradeCible,
       content.observants,
       'priorité',
-      React.createElement(InputAffectation, {
-        initialRapporteurs: dossier.rapporteurs,
+      React.createElement(DropdownRapporteurs, {
+        initialRapporteurs: initialRapporteurIds,
         availableRapporteurs
       })
     ];
@@ -68,17 +73,14 @@ export const dataRowsDnEdition = (
 export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], filters: FiltersState) => {
   return data.filter((dossier) => {
     if (filters.priorite && filters.priorite.length > 0) {
-      // TODO AJOUTER LA LOGIQUE DE FILTRAGE PAR PRIORITE
       return false;
     }
 
-    // Si aucun filtre de rapporteurs n'est appliqué, garder tous les dossiers
     if (!filters.rapporteurs || filters.rapporteurs.length === 0) {
       return true;
     }
 
-    // Garder seulement les dossiers qui contiennent TOUS les rapporteurs sélectionnés
-    return filters.rapporteurs.some((rapporteur) => dossier.rapporteurs.includes(rapporteur));
+    return filters.rapporteurs.some((nom) => dossier.rapporteurs.some((r) => r.nom === nom));
   });
 };
 

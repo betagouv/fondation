@@ -19,6 +19,11 @@ export type DossierDeNominationSnapshot<
   content: Content;
 };
 
+export type RapporteurInfo = {
+  userId: string;
+  nom: string;
+};
+
 export type DossierDeNominationEtAffectationSnapshot = DossierDeNominationSnapshot & {
-  rapporteurs: string[];
+  rapporteurs: RapporteurInfo[];
 };
