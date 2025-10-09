@@ -54,7 +54,17 @@ export const useReportById = (
     ? extractScreenshotFileIds(contentScreenshots.files)
     : [];
 
-  const { data: signedUrlsData } = useGetSignedUrl(screenshotFileIds);
+  // Récupérer les IDs des fichiers attachés
+  const attachmentFileIds =
+    data?.attachedFiles
+      ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
+      .map((file) => file.fileId)
+      .filter((id): id is string => id !== null) ?? [];
+
+  // Combiner tous les IDs de fichiers pour lesquels on a besoin d'URLs signées
+  const allFileIds = [...screenshotFileIds, ...attachmentFileIds];
+
+  const { data: signedUrlsData } = useGetSignedUrl(allFileIds);
 
   if (!data) {
     return { report: null, isPending, error, refetch };
@@ -65,11 +75,14 @@ export const useReportById = (
   const attachedFiles =
     data?.attachedFiles
       ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
-      .map((file) => ({
-        fileId: file.fileId,
-        name: file.name,
-        signedUrl: null
-      })) ?? null;
+      .map((file) => {
+        const signedUrl = signedUrlsData?.find((urlData) => urlData.id === file.fileId)?.signedUrl ?? null;
+        return {
+          fileId: file.fileId,
+          name: file.name,
+          signedUrl
+        };
+      }) ?? null;
 
   // Rafraîchir les URLs signées dans le commentaire si nécessaire
   let updatedComment = data.comment;
