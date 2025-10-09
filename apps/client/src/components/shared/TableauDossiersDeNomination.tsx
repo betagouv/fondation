@@ -76,7 +76,9 @@ export const TableauDossiersDeNomination = ({
     ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
     : dataRowsDn(paginatedData);
 
-  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs.map((r) => r.nom));
+  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
+    dossier.rapporteurs.map((r) => r.nom).filter((nom): nom is string => nom != null)
+  );
 
   return (
     <div>
