@@ -6,29 +6,20 @@ type Endpoint = DossierDeNominationRestContrat['endpoints']['dossierDeNomination
 type GetDossiersDeNominationParSessionArgs = Endpoint['params'];
 type GetDossiersDeNominationParSessionResponse = Endpoint['response'];
 
-const fetchDossiersDeNominationParSession = ({
-  sessionId,
-  formation
-}: GetDossiersDeNominationParSessionArgs) => {
+const fetchDossiersDeNominationParSession = ({ sessionId }: GetDossiersDeNominationParSessionArgs) => {
   const queries = new URLSearchParams({
     sessionId
   });
-  if (formation) {
-    queries.set('formation', formation);
-  }
   return apiFetch<GetDossiersDeNominationParSessionResponse>(
     `/nominations/dossier-de-nominations/snapshot/by-session?${queries}`,
     { method: 'GET' }
   );
 };
 
-export const useGetDossierDeNominationParSession = ({
-  sessionId,
-  formation
-}: GetDossiersDeNominationParSessionArgs) => {
+export const useGetDossierDeNominationParSession = ({ sessionId }: GetDossiersDeNominationParSessionArgs) => {
   return useQuery({
-    queryKey: ['dossiers-de-nomination-par-session', sessionId, formation],
-    queryFn: () => fetchDossiersDeNominationParSession({ sessionId, formation }),
+    queryKey: ['dossiers-de-nomination-par-session', sessionId],
+    queryFn: () => fetchDossiersDeNominationParSession({ sessionId }),
     enabled: !!sessionId,
     retry: false
   });

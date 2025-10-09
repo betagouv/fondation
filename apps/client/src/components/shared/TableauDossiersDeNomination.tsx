@@ -28,6 +28,7 @@ export interface TableauDossiersDeNominationProps {
 export const TableauDossiersDeNomination = ({
   dossiersDeNomination,
   showExportButton = false,
+  availableRapporteurs,
   ExportComponent,
   canEdit = false
 }: TableauDossiersDeNominationProps) => {
@@ -69,7 +70,7 @@ export const TableauDossiersDeNomination = ({
     </span>
   ));
 
-  const dossierDataRows = canEdit
+  const dossierDataRows = isEditing
     ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
     : dataRowsDn(paginatedData);
 

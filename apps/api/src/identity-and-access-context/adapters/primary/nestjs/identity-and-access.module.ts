@@ -18,6 +18,7 @@ import { RegisterUserUseCase } from 'src/identity-and-access-context/business-lo
 import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { SystemRequestOrSessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request-or-session-validation.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
@@ -127,6 +128,8 @@ export class IdentityAndAccessModule implements OnModuleInit {
         `${baseRoute}/${endpointsPaths.userWithFullName}`,
       )
       .apply(SystemRequestValidationMiddleware)
-      .forRoutes(AuthzController, UserController);
+      .forRoutes(AuthzController)
+      .apply(SystemRequestOrSessionValidationMiddleware)
+      .forRoutes(UserController);
   }
 }

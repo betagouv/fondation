@@ -1,5 +1,4 @@
 import { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
-import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -16,11 +15,8 @@ export class GetBySessionIdUseCase {
 
   async execute(
     params: DossierDeNominationEtAffectationParamsNestDto,
-  ): Promise<{
-    dossiers: DossierDeNominationEtAffectationSnapshot[];
-    availableRapporteurs: UserDescriptorSerialized[];
-  }> {
-    const { sessionId, formation } = params;
+  ): Promise<DossierDeNominationEtAffectationSnapshot[]> {
+    const { sessionId } = params;
     return this.transactionPerformer.perform(async (trx) => {
       const [dossiers, affectation] = await Promise.all([
         this.dossierDeNominationRepository.findBySessionId(sessionId)(trx),
@@ -30,19 +26,10 @@ export class GetBySessionIdUseCase {
       const rapporteursParDossier =
         await this.buildRapporteursParDossier(affectation);
 
-      const dossiersWithRapporteurs = (dossiers || []).map((dossier) => ({
+      return (dossiers || []).map((dossier) => ({
         ...dossier.snapshot(),
         rapporteurs: rapporteursParDossier[dossier.id] || [],
       }));
-
-      const availableRapporteurs = formation
-        ? await this.httpUserService.usersByFormation(formation)
-        : [];
-
-      return {
-        dossiers: dossiersWithRapporteurs,
-        availableRapporteurs,
-      };
     });
   }
 
