@@ -6,7 +6,8 @@ import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/mod
 import { useTable } from '../../hooks/useTable.hook';
 import {
   applyFilters,
-  dataRowsAffectationsDn,
+  dataRowsDn,
+  dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
   sortValueSpecificDnField
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
@@ -14,18 +15,30 @@ import { FiltresDossiersDeNomination } from '../secretariat-general/transparence
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import type { UserDescriptorSerialized } from 'shared-models';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
+  availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
-  ExportComponent?: React.ComponentType<{ data: DossierDeNominationEtAffectationSnapshot[] }>;
+  ExportComponent?: React.ComponentType<{
+    data: DossierDeNominationEtAffectationSnapshot[];
+  }>;
+  canEdit?: boolean;
 }
 
 export const TableauDossiersDeNomination = ({
   dossiersDeNomination,
   showExportButton = false,
-  ExportComponent
+  availableRapporteurs,
+  ExportComponent,
+  canEdit = false
 }: TableauDossiersDeNominationProps) => {
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const handleEdit = () => {
+    setIsEditing((prev) => !prev);
+  };
+
   const [filters, setFilters] = useState<FiltersState>({
     rapporteurs: [],
     priorite: []
@@ -59,12 +72,16 @@ export const TableauDossiersDeNomination = ({
     </span>
   ));
 
-  const dossierDataRows = dataRowsAffectationsDn(paginatedData);
-  const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
+  const dossierDataRows = isEditing
+    ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
+    : dataRowsDn(paginatedData);
+
+  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
+    dossier.rapporteurs.map((r) => r.nom).filter((nom): nom is string => nom != null)
+  );
 
   return (
     <div>
-      {/* Préchargement des icônes pour éviter les problèmes de chargement conditionnel */}
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
@@ -74,9 +91,19 @@ export const TableauDossiersDeNomination = ({
         <FiltresDossiersDeNomination
           filters={filters}
           onFiltersChange={setFilters}
-          rapporteurs={rapporteurs}
+          rapporteurs={rapporteurNoms}
         />
-        {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+        <div className="flex items-center gap-2">
+          {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+          {canEdit && (
+            <Button
+              priority="secondary"
+              iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
+              title={`edit-dossier-de-nomination`}
+              onClick={handleEdit}
+            />
+          )}
+        </div>
       </div>
 
       <Table

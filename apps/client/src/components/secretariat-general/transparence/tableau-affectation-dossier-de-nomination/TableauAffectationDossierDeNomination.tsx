@@ -1,34 +1,51 @@
 import { useParams } from 'react-router-dom';
 import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
+import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
+import type { Magistrat } from 'shared-models';
+import type { FC } from 'react';
 
-export const TableauAffectationDossierDeNomination = () => {
+export type TableauAffectationDossierDeNominationProps = {
+  formation: Magistrat.Formation;
+};
+
+export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossierDeNominationProps> = ({
+  formation
+}) => {
   const { sessionId } = useParams();
   const {
-    data: dossiersDeNomination,
+    data: dossiersData,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
     sessionId: sessionId as string
   });
 
-  if (isLoadingDossiersDeNomination) {
+  const {
+    data: rapporteursData,
+    isLoading: isLoadingRapporteurs,
+    isError: isErrorRapporteurs
+  } = useGetUsersByFormation(formation);
+
+  if (isLoadingDossiersDeNomination || isLoadingRapporteurs) {
     return <div>Chargement des dossiers de nomination...</div>;
   }
 
-  if (isErrorDossiersDeNomination) {
-    return <ErrorMessage message="Erreur lors de la récupération des dossiers de nomination" />;
+  if (isErrorDossiersDeNomination || isErrorRapporteurs) {
+    return <ErrorMessage message="Erreur lors de la récupération des données" />;
   }
 
   return (
     <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
       <TableauDossiersDeNomination
-        dossiersDeNomination={dossiersDeNomination || []}
+        dossiersDeNomination={dossiersData || []}
+        availableRapporteurs={rapporteursData || []}
         showExportButton={true}
         ExportComponent={ExcelExport}
+        canEdit={true}
       />
     </div>
   );

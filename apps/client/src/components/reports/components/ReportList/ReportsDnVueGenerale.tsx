@@ -6,7 +6,7 @@ import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNo
 export const ReportsDnVueGenerale = () => {
   const { sessionId } = useParams();
   const {
-    data: dossiersDeNomination,
+    data,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
@@ -23,7 +23,7 @@ export const ReportsDnVueGenerale = () => {
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <TableauDossiersDeNomination dossiersDeNomination={dossiersDeNomination || []} />
+      <TableauDossiersDeNomination dossiersDeNomination={data || []} />
     </div>
   );
 };

@@ -1,7 +1,17 @@
 import { z } from "zod";
+import { Gender } from "../../gender";
+import { Role } from "../../role";
 import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodParamsDto } from "../common";
 
+
+export type UserDescriptorSerialized = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
+  gender: Gender;
+};
 
 export interface DossierDeNominationRestContrat extends RestContract {
   basePath: "api/nominations/dossier-de-nominations";
@@ -36,7 +46,7 @@ export const dossierDeNominationSnapshotParamsSchema = z.object({
   "dossierDeNominationSnapshot"
 >;
 
-export const sessionIdParamsSchema = z.object({
+export const dossierDeNominationEtAffectationSchema = z.object({
   sessionId: z.string().uuid(),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
