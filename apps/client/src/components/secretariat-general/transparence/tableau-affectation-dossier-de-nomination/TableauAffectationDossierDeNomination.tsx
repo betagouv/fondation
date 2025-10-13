@@ -30,6 +30,10 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     isError: isErrorRapporteurs
   } = useGetUsersByFormation(formation);
 
+  const onSaveAffectations = (affectations: { dossierId: string; rapporteurIds: string[] }[]) => {
+    console.log('affectations', affectations);
+  };
+
   if (isLoadingDossiersDeNomination || isLoadingRapporteurs) {
     return <div>Chargement des dossiers de nomination...</div>;
   }
@@ -46,6 +50,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
         showExportButton={true}
         ExportComponent={ExcelExport}
         canEdit={true}
+        onSaveAffectations={onSaveAffectations}
       />
     </div>
   );

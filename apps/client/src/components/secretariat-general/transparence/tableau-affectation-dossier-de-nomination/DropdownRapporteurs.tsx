@@ -4,17 +4,21 @@ import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useState, useRef, useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import type { UserDescriptorSerialized } from 'shared-models';
+import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
 
 export type InputAffectationProps = {
+  dossierId: string;
   initialRapporteurs: string[];
   availableRapporteurs: UserDescriptorSerialized[];
 };
 
 export const DropdownRapporteurs: FC<InputAffectationProps> = ({
+  dossierId,
   initialRapporteurs,
   availableRapporteurs
 }) => {
-  const [selectedRapporteurs, setSelectedRapporteurs] = useState<string[]>(initialRapporteurs);
+  const { affectations, updateAffectation } = useAffectation();
+  const selectedRapporteurs = affectations[dossierId] ?? initialRapporteurs;
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
@@ -71,9 +75,10 @@ export const DropdownRapporteurs: FC<InputAffectationProps> = ({
   }, [isOpen]);
 
   const toggleRapporteur = (userId: string) => {
-    setSelectedRapporteurs((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-    );
+    const newSelection = selectedRapporteurs.includes(userId)
+      ? selectedRapporteurs.filter((id) => id !== userId)
+      : [...selectedRapporteurs, userId];
+    updateAffectation(dossierId, newSelection);
   };
 
   // Filtrer les rapporteurs selon la recherche

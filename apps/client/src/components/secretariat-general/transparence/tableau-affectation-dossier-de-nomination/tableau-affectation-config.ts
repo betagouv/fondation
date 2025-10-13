@@ -63,6 +63,7 @@ export const dataRowsDnEdition = (
       content.observants,
       'priorité',
       React.createElement(DropdownRapporteurs, {
+        dossierId: dossier.id,
         initialRapporteurs: initialRapporteurIds,
         availableRapporteurs
       })
