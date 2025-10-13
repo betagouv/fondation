@@ -1,15 +1,19 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Query,
 } from '@nestjs/common';
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-snapshot-params.dto';
+import { SaveAffectationsRapporteursNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/save-affectations-rapporteurs.nest-dto';
 import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-by-session-id/get-dossier-de-nomination-snapshot.use-case';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { SaveAffectationsRapporteursUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/save-affectations-rapporteurs/save-affectations-rapporteurs.use-case';
 import {
   IController,
   IControllerPaths,
@@ -24,6 +28,7 @@ export const dossierDeNominationsEndpointsPath: IControllerPaths<DossierDeNomina
   {
     dossierDeNominationSnapshot: 'snapshot/by-id/:dossierId',
     dossierDeNominationEtAffectationParSession: 'snapshot/by-session',
+    saveAffectationsRapporteurs: 'affectations-rapporteurs',
   };
 
 @Controller(baseRouteDossierDeNomination)
@@ -33,6 +38,7 @@ export class DossierDeNominationController
   constructor(
     private readonly getDossierDeNominationSnapshotUseCase: GetDossierDeNominationSnapshotUseCase,
     private readonly getBySessionIdUseCase: GetBySessionIdUseCase,
+    private readonly saveAffectationsRapporteursUseCase: SaveAffectationsRapporteursUseCase,
   ) {}
 
   @Get(
@@ -59,5 +65,12 @@ export class DossierDeNominationController
     }
 
     return dossier;
+  }
+
+  @Post(dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs)
+  async saveAffectationsRapporteurs(
+    @Body() body: SaveAffectationsRapporteursNestDto,
+  ) {
+    return this.saveAffectationsRapporteursUseCase.execute(body);
   }
 }

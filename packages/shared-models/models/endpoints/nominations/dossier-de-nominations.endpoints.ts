@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Gender } from "../../gender";
 import { Role } from "../../role";
 import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
-import type { RestContract, ZodParamsDto } from "../common";
+import type { RestContract, ZodDto, ZodParamsDto } from "../common";
 
 
 export type UserDescriptorSerialized = {
@@ -32,6 +32,12 @@ export interface DossierDeNominationRestContrat extends RestContract {
       };
       response: DossierDeNominationEtAffectationSnapshot[];
     };
+    saveAffectationsRapporteurs: {
+      method: "POST";
+      path: "affectations-rapporteurs";
+      body: SaveAffectationsRapporteursDto;
+      response: void;
+    };
   };
 }
 
@@ -51,4 +57,27 @@ export const dossierDeNominationEtAffectationSchema = z.object({
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
   "dossierDeNominationEtAffectationParSession"
+>;
+
+export interface DossierAffectationItem {
+  dossierId: string;
+  rapporteurIds: string[];
+}
+
+export interface SaveAffectationsRapporteursDto {
+  sessionId: string;
+  affectations: DossierAffectationItem[];
+}
+
+export const saveAffectationsRapporteursSchema = z.object({
+  sessionId: z.string().uuid(),
+  affectations: z.array(
+    z.object({
+      dossierId: z.string().uuid(),
+      rapporteurIds: z.array(z.string().uuid()),
+    })
+  ),
+}) satisfies ZodDto<
+  DossierDeNominationRestContrat,
+  "saveAffectationsRapporteurs"
 >;
