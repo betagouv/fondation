@@ -12,8 +12,7 @@ import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { ReportStateTag } from '../../../reports/components/ReportList/ReportStateTag';
-import { stateToLabel } from '../../../reports/labels/state-label.mapper';
+import { AvatarInitials } from '../../../layout/AvatarInitials';
 
 export type MagistratDetailsProps = {
   content: ContenuPropositionDeNominationTransparenceV2;
@@ -46,6 +45,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
     observants,
     historique,
     grade,
+    nomMagistrat,
     posteActuel,
     posteCible,
     rang,
@@ -66,18 +66,24 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
       )
     : null;
 
+  const reportersInitials = reports?.map((report) =>
+    report.name
+      .split(' ')
+      .map((name) => name[0])
+      .join('.')
+  );
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <label className="text-xl font-semibold">{ReportVM.reportersLabel}</label>
-        {(reports || []).map((report) => (
-          <div key={report.id}>
-            <p className="flex items-center justify-between py-2">
-              <span>{report.name}</span>
-              <ReportStateTag state={stateToLabel(report.state)} />
-            </p>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <label className="text-xl font-semibold">{nomMagistrat}</label>
+        {reportersInitials && reportersInitials.length > 0 && (
+          <div className="flex items-center gap-2">
+            {reportersInitials.map((initials, index) => (
+              <AvatarInitials key={index} initials={initials} size="md" />
+            ))}
           </div>
-        ))}
+        )}
       </div>
       <div>
         <TextValue
