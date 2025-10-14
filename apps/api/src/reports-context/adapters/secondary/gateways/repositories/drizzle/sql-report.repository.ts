@@ -70,6 +70,27 @@ export class SqlReportRepository implements ReportRepository {
     };
   }
 
+  bySessionId(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<NominationFileReport[]> {
+    return async (db) => {
+      const results = await db
+        .select()
+        .from(reports)
+        .where(eq(reports.sessionId, sessionId));
+
+      return results.map((reportRow) =>
+        SqlReportRepository.mapToDomain(reportRow),
+      );
+    };
+  }
+
+  delete(reportId: string): DrizzleTransactionableAsync<void> {
+    return async (db) => {
+      await db.delete(reports).where(eq(reports.id, reportId));
+    };
+  }
+
   static mapToDb(report: NominationFileReport): typeof reports.$inferInsert {
     return SqlReportRepository.mapSnapshotToDb(report.toSnapshot());
   }

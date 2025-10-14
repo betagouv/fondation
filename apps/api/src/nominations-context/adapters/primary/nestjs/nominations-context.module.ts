@@ -43,11 +43,14 @@ import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nomina
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
+import { SqlReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report.repository';
+import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { SessionEnrichmentService } from 'src/nominations-context/sessions/business-logic/services/session-enrichment.service';
 import { SessionEnrichmentStrategyFactory } from 'src/nominations-context/sessions/business-logic/strategy/session-enrichment-strategy-factory';
 import { TransparenceEnrichSessionStrategyImpl } from 'src/nominations-context/sessions/business-logic/strategy/transparence-enrich-session.strategy';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
+import { HandleAffectationUpdatedUseCase } from 'src/reports-context/business-logic/use-cases/handle-affectation-modifiée/handle-affectation-updated.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -65,6 +68,7 @@ import {
   AFFECTATION_REPOSITORY,
   DOSSIER_DE_NOMINATION_REPOSITORY,
   PRE_ANALYSE_REPOSITORY,
+  REPORT_REPOSITORY,
   SESSION_ENRICHMENT_SERVICE,
   SESSION_ENRICHMENT_STRATEGY_FACTORY,
   SESSION_REPOSITORY,
@@ -139,8 +143,27 @@ import {
       AFFECTATION_REPOSITORY,
       USER_SERVICE,
     ]),
+    {
+      provide: CreateReportUseCase,
+      useFactory: (reportRepository, domainEventRepository) => {
+        return new CreateReportUseCase(reportRepository, domainEventRepository);
+      },
+      inject: [REPORT_REPOSITORY, DOMAIN_EVENT_REPOSITORY],
+    },
+    {
+      provide: HandleAffectationUpdatedUseCase,
+      useFactory: (reportRepository, createReportUseCase) => {
+        return new HandleAffectationUpdatedUseCase(
+          reportRepository,
+          createReportUseCase,
+        );
+      },
+      inject: [REPORT_REPOSITORY, CreateReportUseCase],
+    },
     generateProvider(SaveAffectationsRapporteursUseCase, [
       AFFECTATION_REPOSITORY,
+      SESSION_REPOSITORY,
+      HandleAffectationUpdatedUseCase,
       TRANSACTION_PERFORMER,
     ]),
     generateProvider(ImportNouvelleTransparenceUseCase, [
@@ -181,6 +204,7 @@ import {
     ),
     generateProvider(SqlPréAnalyseRepository, [], PRE_ANALYSE_REPOSITORY),
     generateProvider(SqlAffectationRepository, [], AFFECTATION_REPOSITORY),
+    generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
   ],
   exports: [],
 })
