@@ -24,7 +24,9 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
       };
     }
 
-    const uniqueRapporteurs = Array.from(new Set(rapporteurs)).filter((r): r is string => r != null);
+    const uniqueRapporteurs = Array.from(new Set(rapporteurs))
+      .filter((r): r is string => r != null)
+      .sort((a, b) => a.localeCompare(b));
 
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({
