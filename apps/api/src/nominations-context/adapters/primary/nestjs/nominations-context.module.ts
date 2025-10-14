@@ -3,6 +3,7 @@ import {
   MiddlewareConsumer,
   Module,
   OnModuleInit,
+  RequestMethod,
 } from '@nestjs/common';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
 import { SaveAffectationsRapporteursUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/save-affectations-rapporteurs/save-affectations-rapporteurs.use-case';
@@ -43,14 +44,14 @@ import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nomina
 import { SqlPréAnalyseRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-pre-analyse.repository';
 import { SqlSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/sql-session.repository';
 import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
-import { SqlReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report.repository';
-import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { SessionEnrichmentService } from 'src/nominations-context/sessions/business-logic/services/session-enrichment.service';
 import { SessionEnrichmentStrategyFactory } from 'src/nominations-context/sessions/business-logic/strategy/session-enrichment-strategy-factory';
 import { TransparenceEnrichSessionStrategyImpl } from 'src/nominations-context/sessions/business-logic/strategy/transparence-enrich-session.strategy';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
+import { SqlReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report.repository';
 import { HandleAffectationUpdatedUseCase } from 'src/reports-context/business-logic/use-cases/handle-affectation-modifiée/handle-affectation-updated.use-case';
+import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -226,7 +227,7 @@ export class NominationsContextModule implements OnModuleInit {
       .apply(SessionValidationMiddleware)
       .forRoutes(TransparencesController, {
         path: `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs}`,
-        method: require('@nestjs/common').RequestMethod.POST,
+        method: RequestMethod.POST,
       })
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(

@@ -17,61 +17,62 @@ export interface SortingResult<T> {
 }
 
 export function useSorting<T>(data: T[], config: SortingConfig<T> = {}): SortingResult<T> {
+  const { getSortValue: customGetSortValue } = config;
   const [sortField, setSortField] = useState<string | undefined>(config.sortField);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(config.sortDirection || 'asc');
 
-  const getSortValue = (item: T, field: string): unknown => {
-    // Si une fonction personnalisée est fournie, l'utiliser
-    if (config.getSortValue) {
-      const customValue = config.getSortValue(item, field);
-      // Si la fonction personnalisée retourne undefined, utiliser la logique par défaut
-      if (customValue !== undefined) {
-        return customValue;
-      }
-    }
-
-    // Sinon, utiliser la logique générique pour naviguer dans les objets nested
-    const itemRecord = item as Record<string, unknown>;
-
-    // Support pour les chemins nested (ex: "content.nomMagistrat")
-    if (field.includes('.')) {
-      return field.split('.').reduce((obj: Record<string, unknown>, key: string) => {
-        return (obj as Record<string, unknown>)?.[key] as Record<string, unknown>;
-      }, itemRecord);
-    }
-
-    // Support pour les tableaux (ex: "rapporteurs" qui est un string[])
-    if (Array.isArray(itemRecord[field])) {
-      return (itemRecord[field] as string[])?.join(' ') || '';
-    }
-
-    // Vérifier si c'est un objet DateOnly sérialisé (venant de l'API)
-    const fieldValue = itemRecord[field];
-    if (
-      fieldValue &&
-      typeof fieldValue === 'object' &&
-      'year' in fieldValue &&
-      'month' in fieldValue &&
-      'day' in fieldValue
-    ) {
-      const dateOnly = new DateOnly(
-        fieldValue.year as number,
-        fieldValue.month as Month,
-        fieldValue.day as number
-      );
-      return dateOnly.toFormattedString();
-    }
-
-    if (itemRecord[field] instanceof DateOnly) {
-      return itemRecord[field].toFormattedString();
-    }
-
-    // Support pour les propriétés directes
-    return itemRecord[field] || '';
-  };
-
   // Appliquer le tri
   const sortedData = useMemo(() => {
+    const getSortValue = (item: T, field: string): unknown => {
+      // Si une fonction personnalisée est fournie, l'utiliser
+      if (customGetSortValue) {
+        const customValue = customGetSortValue(item, field);
+        // Si la fonction personnalisée retourne undefined, utiliser la logique par défaut
+        if (customValue !== undefined) {
+          return customValue;
+        }
+      }
+
+      // Sinon, utiliser la logique générique pour naviguer dans les objets nested
+      const itemRecord = item as Record<string, unknown>;
+
+      // Support pour les chemins nested (ex: "content.nomMagistrat")
+      if (field.includes('.')) {
+        return field.split('.').reduce((obj: Record<string, unknown>, key: string) => {
+          return (obj as Record<string, unknown>)?.[key] as Record<string, unknown>;
+        }, itemRecord);
+      }
+
+      // Support pour les tableaux (ex: "rapporteurs" qui est un string[])
+      if (Array.isArray(itemRecord[field])) {
+        return (itemRecord[field] as string[])?.join(' ') || '';
+      }
+
+      // Vérifier si c'est un objet DateOnly sérialisé (venant de l'API)
+      const fieldValue = itemRecord[field];
+      if (
+        fieldValue &&
+        typeof fieldValue === 'object' &&
+        'year' in fieldValue &&
+        'month' in fieldValue &&
+        'day' in fieldValue
+      ) {
+        const dateOnly = new DateOnly(
+          fieldValue.year as number,
+          fieldValue.month as Month,
+          fieldValue.day as number
+        );
+        return dateOnly.toFormattedString();
+      }
+
+      if (itemRecord[field] instanceof DateOnly) {
+        return itemRecord[field].toFormattedString();
+      }
+
+      // Support pour les propriétés directes
+      return itemRecord[field] || '';
+    };
+
     if (!sortField) return data;
 
     return [...data].sort((a, b) => {
@@ -96,7 +97,7 @@ export function useSorting<T>(data: T[], config: SortingConfig<T> = {}): Sorting
       const comparison = aStr.localeCompare(bStr);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [data, sortField, sortDirection, config.getSortValue]);
+  }, [data, sortField, sortDirection, customGetSortValue]);
 
   // Gestion du tri
   const handleSort = (field: string) => {
