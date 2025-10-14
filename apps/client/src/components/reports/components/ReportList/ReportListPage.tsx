@@ -26,18 +26,22 @@ export const ReportListPage: FC = () => {
   return (
     <PageContentLayout>
       <HeaderReportList {...props} />
-      <div className="flex flex-col gap-1">
-        <ToggleSwitch
-          label={VUE_GENERALE_TITLE}
-          checked={isVueGenerale}
-          onChange={(checked) => setIsVueGenerale(checked)}
-          id="vue-generale-membre"
-          showCheckedHint={false}
-        />
-        <label htmlFor="vue-generale-membre">{isVueGenerale ? 'Tous les dossiers' : 'Mes dossiers'}</label>
+      <div className="relative w-full">
+        <div className="absolute right-4 top-0 flex flex-col gap-1">
+          <ToggleSwitch
+            label={VUE_GENERALE_TITLE}
+            checked={isVueGenerale}
+            onChange={(checked) => setIsVueGenerale(checked)}
+            id="vue-generale-membre"
+            showCheckedHint={false}
+          />
+          <label htmlFor="vue-generale-membre">{isVueGenerale ? 'Tous les dossiers' : 'Mes dossiers'}</label>
+        </div>
       </div>
-      {isVueGenerale && <ReportsDnVueGenerale />}
-      {!isVueGenerale && <ReportList {...props} />}
+      <div>
+        {isVueGenerale && <ReportsDnVueGenerale />}
+        {!isVueGenerale && <ReportList {...props} />}
+      </div>
     </PageContentLayout>
   );
 };
