@@ -82,8 +82,8 @@ export const ManageSession = () => {
     { field: 'name', label: 'Intitulé de la session' },
     { field: 'formation', label: 'Formation' },
     { field: 'dateTransparence', label: 'Date de publication' },
-    { field: 'dateEcheance', label: "Date d'écheance" }
-    // { field: 'status', label: 'Statut' }
+    { field: 'dateEcheance', label: "Date d'écheance" },
+    { field: 'status', label: 'Statut' }
   ];
 
   const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
@@ -107,7 +107,8 @@ export const ManageSession = () => {
       <a href={href}>{name.toUpperCase()}</a>,
       formation,
       DateOnly.fromDateOnly(dateTransparence),
-      dateEcheance && DateOnly.fromDateOnly(dateEcheance)
+      dateEcheance && DateOnly.fromDateOnly(dateEcheance),
+      ''
     ];
   });
 

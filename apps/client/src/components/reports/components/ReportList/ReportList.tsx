@@ -4,10 +4,9 @@ import { formatReportList } from '../../../../utils/format-report-list.utils';
 
 import { useGetTransparencyAttachmentsQuery } from '../../../../react-query/queries/get-transparency-attachments.query';
 
-import { NewReportsCount } from './NewReportsCount';
+import { Magistrat, type DateOnlyJson } from 'shared-models';
 import { ReportsTable } from './ReportsTable';
 import { TransparencyFilesList } from './TransparencyFilesList';
-import { Magistrat, type DateOnlyJson } from 'shared-models';
 
 export interface ReportListProps {
   transparency: string;
@@ -17,7 +16,7 @@ export interface ReportListProps {
 
 export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateTransparence }) => {
   const { data: reportsData, isPending: isReportsLoading } = useListReports();
-  const { newReportsCount, reports, headers } = formatReportList(reportsData?.data || [], {
+  const { reports, headers } = formatReportList(reportsData?.data || [], {
     transparency,
     formation,
     dateTransparence
@@ -35,7 +34,7 @@ export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateT
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      {newReportsCount > 0 && <NewReportsCount newReportsCount={newReportsCount} />}
+      {/* {newReportsCount > 0 && <NewReportsCount newReportsCount={newReportsCount} />} */}
       {reports.length ? <ReportsTable headers={headers} reports={reports} /> : <div>Aucun rapport.</div>}
       {!isAttachmentsLoading && !isAttachmentsError && attachments && attachments.length > 0 && (
         <div>

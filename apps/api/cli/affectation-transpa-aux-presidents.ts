@@ -18,13 +18,15 @@ async function affectationTranspaAuxPrésidents() {
 
   try {
     const db = app.get(DRIZZLE_DB) as DrizzleDb;
-    const sessionName = 'Ete 2025';
+    const sessionNameSiège = 'Transparence HH';
+    const sessionNameParquet = 'Transparence';
+
     const sessionIdSiègeList = await db
       .select({ id: sessionPm.id })
       .from(sessionPm)
       .where(
         and(
-          eq(sessionPm.name, sessionName),
+          eq(sessionPm.name, sessionNameSiège),
           eq(sessionPm.formation, Magistrat.Formation.SIEGE),
         ),
       )
@@ -32,11 +34,11 @@ async function affectationTranspaAuxPrésidents() {
 
     if (!sessionIdSiègeList.length)
       throw new Error(
-        `No session found with name "${sessionName}" and formation "siege"`,
+        `No session found with name "${sessionNameSiège}" and formation "siege"`,
       );
     if (sessionIdSiègeList.length > 1)
       throw new Error(
-        `Multiple sessions found with name "${sessionName}" and formation "siege"`,
+        `Multiple sessions found with name "${sessionNameSiège}" and formation "siege"`,
       );
     const sessionIdSiège = sessionIdSiègeList[0]!.id;
 
@@ -45,7 +47,7 @@ async function affectationTranspaAuxPrésidents() {
       .from(sessionPm)
       .where(
         and(
-          eq(sessionPm.name, sessionName),
+          eq(sessionPm.name, sessionNameParquet),
           eq(sessionPm.formation, Magistrat.Formation.PARQUET),
         ),
       )
@@ -53,11 +55,11 @@ async function affectationTranspaAuxPrésidents() {
 
     if (!sessionIdParquetList.length)
       throw new Error(
-        `No session found with name "${sessionName}" and formation "parquet"`,
+        `No session found with name "${sessionNameParquet}" and formation "parquet"`,
       );
     if (sessionIdParquetList.length > 1)
       throw new Error(
-        `Multiple sessions found with name "${sessionName}" and formation "parquet"`,
+        `Multiple sessions found with name "${sessionNameParquet}" and formation "parquet"`,
       );
     const sessionIdParquet = sessionIdParquetList[0]!.id;
 
@@ -138,10 +140,10 @@ async function affecterAUnPrésident(
     .from(dossierDeNominationPm)
     .where(eq(dossierDeNominationPm.sessionId, sessionId))
     .execute();
-  if (formation === Magistrat.Formation.SIEGE && dossierIds.length !== 6)
+  if (formation === Magistrat.Formation.SIEGE && dossierIds.length !== 10)
     throw new Error(
       // 9 Parquet, 6 Sièges Ete 2025
-      `Expected 6 dossiers for formation ${formation}, found ${dossierIds.length}. ${JSON.stringify(
+      `Expected 10 dossiers for formation ${formation}, found ${dossierIds.length}. ${JSON.stringify(
         dossierIds,
       )}`,
     );

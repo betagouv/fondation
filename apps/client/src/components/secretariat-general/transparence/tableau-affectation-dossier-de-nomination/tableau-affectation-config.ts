@@ -34,7 +34,7 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
     return [
       content.numeroDeDossier,
       React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
-      // content.posteActuel,
+      content.posteActuel,
       content.grade,
       posteCible,
       gradeCible,
