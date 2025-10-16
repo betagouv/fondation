@@ -16,7 +16,7 @@ export interface ReportListProps {
 
 export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateTransparence }) => {
   const { data: reportsData, isPending: isReportsLoading } = useListReports();
-  const { newReportsCount, reports, headers } = formatReportList(reportsData?.data || [], {
+  const { reports, headers } = formatReportList(reportsData?.data || [], {
     transparency,
     formation,
     dateTransparence
