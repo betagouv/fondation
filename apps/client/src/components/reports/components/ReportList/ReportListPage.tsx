@@ -38,8 +38,6 @@ export const ReportListPage: FC = () => {
           <label htmlFor="vue-generale-membre">{isVueGenerale ? 'Tous les dossiers' : 'Mes dossiers'}</label>
         </div>
       </div>
-      {isVueGenerale && <ReportsDnVueGenerale />}
-      {!isVueGenerale && <ReportList {...props} />}
     </PageContentLayout>
   );
 };

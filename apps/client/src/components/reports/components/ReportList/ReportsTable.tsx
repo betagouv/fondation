@@ -74,8 +74,8 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
           </a>,
           <div>{report.grade}</div>,
           <div>{report.targettedPosition}</div>,
-          <ReportStateTag state={report.state} />,
           <div>{report.observersCount}</div>,
+          <ReportStateTag state={report.state} />,
           <div>{report.dueDate}</div>
         ])}
       />

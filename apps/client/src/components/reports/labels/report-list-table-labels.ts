@@ -4,8 +4,8 @@ export const reportListTableLabels = {
     name: 'Magistrat',
     grade: 'Grade actuel',
     targettedPosition: 'Poste proposé',
-    state: 'Statut',
     observersCount: 'Observants',
+    state: 'Statut',
     dueDate: 'Echéance'
   }
 };
