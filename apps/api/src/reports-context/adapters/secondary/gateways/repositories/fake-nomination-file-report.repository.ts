@@ -41,4 +41,17 @@ export class FakeNominationFileReportRepository implements ReportRepository {
           (report) => report.dossierDeNominationId === nominationFileId,
         ) || null;
   }
+
+  bySessionId(sessionId: string): TransactionableAsync<NominationFileReport[]> {
+    return async () =>
+      Object.values(this.reports)
+        .map(NominationFileReport.fromSnapshot)
+        .filter((report) => report.toSnapshot().sessionId === sessionId);
+  }
+
+  delete(reportId: string): TransactionableAsync<void> {
+    return async () => {
+      delete this.reports[reportId];
+    };
+  }
 }

@@ -4,17 +4,21 @@ import {
   Module,
   OnModuleInit,
 } from '@nestjs/common';
+import { UserController } from 'src/identity-and-access-context/adapters/primary/nestjs/users.controller';
 import { CookieSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/hmac-signature.provider';
 import { EncryptionProvider } from 'src/identity-and-access-context/business-logic/gateways/providers/encryption.provider';
 import { DomainRegistry } from 'src/identity-and-access-context/business-logic/models/domain-registry';
 import { AuthenticationService } from 'src/identity-and-access-context/business-logic/services/authentication.service';
+import { HasReadFilePermissionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
 import { ValidateSessionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/session-validation/validate-session.use-case';
+import { UsersByFormationUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-by-formation/user-by-formation.use-case';
 import { LoginUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-login/login-user.use-case';
 import { LogoutUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-logout/logout-user.use-case';
 import { RegisterUserUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-registration/register-user.use-case';
 import { UserWithFullNameUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-full-name/user-with-full-name.use-case';
 import { UserWithIdUseCase } from 'src/identity-and-access-context/business-logic/use-cases/user-with-id/user-with-id.use-case';
-import { HasReadFilePermissionUseCase } from 'src/identity-and-access-context/business-logic/use-cases/file-read-permission/has-read-file-permission.use-case';
+import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
+import { SystemRequestOrSessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request-or-session-validation.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import {
   API_CONFIG,
@@ -27,9 +31,9 @@ import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/prov
 import { UuidGenerator } from 'src/shared-kernel/business-logic/gateways/providers/uuid-generator';
 import { BcryptEncryptionProvider } from '../../secondary/gateways/providers/bcrypt-encryption.provider';
 import { PersistentSessionProvider } from '../../secondary/gateways/providers/persistent-session.provider';
+import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
 import { SqlSessionRepository } from '../../secondary/gateways/repositories/drizzle/sql-session.repository';
 import { SqlUserRepository } from '../../secondary/gateways/repositories/drizzle/sql-user.repository';
-import { SqlFileRepository } from '../../secondary/gateways/repositories/drizzle/sql-file.repository';
 import { AuthController, baseRoute, endpointsPaths } from './auth.controller';
 import { AuthzController } from './authz.controller';
 import { generateIdentityAndAccessProvider as generateProvider } from './provider-generator';
@@ -40,12 +44,15 @@ import {
   SESSION_REPOSITORY,
   USER_REPOSITORY,
 } from './tokens';
-import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 
 @Module({
   imports: [SharedKernelModule],
-  controllers: [AuthController, AuthzController],
+  controllers: [AuthController, AuthzController, UserController],
   providers: [
+    generateProvider(UsersByFormationUseCase, [
+      USER_REPOSITORY,
+      TRANSACTION_PERFORMER,
+    ]),
     generateProvider(ValidateSessionUseCase, [
       SESSION_REPOSITORY,
       TRANSACTION_PERFORMER,
@@ -121,6 +128,8 @@ export class IdentityAndAccessModule implements OnModuleInit {
         `${baseRoute}/${endpointsPaths.userWithFullName}`,
       )
       .apply(SystemRequestValidationMiddleware)
-      .forRoutes(AuthzController);
+      .forRoutes(AuthzController)
+      .apply(SystemRequestOrSessionValidationMiddleware)
+      .forRoutes(UserController);
   }
 }

@@ -7,4 +7,6 @@ export interface ReportRepository {
   byNominationFileId(
     nominationFileId: string,
   ): TransactionableAsync<NominationFileReport[] | null>;
+  bySessionId(sessionId: string): TransactionableAsync<NominationFileReport[]>;
+  delete(reportId: string): TransactionableAsync<void>;
 }

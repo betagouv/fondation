@@ -3,8 +3,10 @@ import {
   MiddlewareConsumer,
   Module,
   OnModuleInit,
+  RequestMethod,
 } from '@nestjs/common';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { SaveAffectationsRapporteursUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/save-affectations-rapporteurs/save-affectations-rapporteurs.use-case';
 import { GdsNouvellesTransparencesImportéesNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-nouvelles-transparences-importées.nest-subscriber';
 import { GdsTransparenceDossiersModifiésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-dossiers-modifiés.nest-subscriber';
 import { GdsTransparenceNouveauxDossiersNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-nouveaux-dossiers.nest-subscriber';
@@ -47,6 +49,9 @@ import { SessionEnrichmentStrategyFactory } from 'src/nominations-context/sessio
 import { TransparenceEnrichSessionStrategyImpl } from 'src/nominations-context/sessions/business-logic/strategy/transparence-enrich-session.strategy';
 import { GetSessionSnapshotUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-session-snapshot/get-session-snapshot.use-case';
 import { GetSessionsUseCase } from 'src/nominations-context/sessions/business-logic/use-cases/get-sessions/get-sessions.use-case';
+import { SqlReportRepository } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/sql-report.repository';
+import { HandleAffectationUpdatedUseCase } from 'src/reports-context/business-logic/use-cases/handle-affectation-modifiée/handle-affectation-updated.use-case';
+import { CreateReportUseCase } from 'src/reports-context/business-logic/use-cases/report-creation/create-report.use-case';
 import { SessionValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from 'src/shared-kernel/adapters/primary/nestjs/middleware/system-request.middleware';
 import { SharedKernelModule } from 'src/shared-kernel/adapters/primary/nestjs/shared-kernel.module';
@@ -64,6 +69,7 @@ import {
   AFFECTATION_REPOSITORY,
   DOSSIER_DE_NOMINATION_REPOSITORY,
   PRE_ANALYSE_REPOSITORY,
+  REPORT_REPOSITORY,
   SESSION_ENRICHMENT_SERVICE,
   SESSION_ENRICHMENT_STRATEGY_FACTORY,
   SESSION_REPOSITORY,
@@ -138,6 +144,29 @@ import {
       AFFECTATION_REPOSITORY,
       USER_SERVICE,
     ]),
+    {
+      provide: CreateReportUseCase,
+      useFactory: (reportRepository, domainEventRepository) => {
+        return new CreateReportUseCase(reportRepository, domainEventRepository);
+      },
+      inject: [REPORT_REPOSITORY, DOMAIN_EVENT_REPOSITORY],
+    },
+    {
+      provide: HandleAffectationUpdatedUseCase,
+      useFactory: (reportRepository, createReportUseCase) => {
+        return new HandleAffectationUpdatedUseCase(
+          reportRepository,
+          createReportUseCase,
+        );
+      },
+      inject: [REPORT_REPOSITORY, CreateReportUseCase],
+    },
+    generateProvider(SaveAffectationsRapporteursUseCase, [
+      AFFECTATION_REPOSITORY,
+      SESSION_REPOSITORY,
+      HandleAffectationUpdatedUseCase,
+      TRANSACTION_PERFORMER,
+    ]),
     generateProvider(ImportNouvelleTransparenceUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceService,
@@ -176,6 +205,7 @@ import {
     ),
     generateProvider(SqlPréAnalyseRepository, [], PRE_ANALYSE_REPOSITORY),
     generateProvider(SqlAffectationRepository, [], AFFECTATION_REPOSITORY),
+    generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
   ],
   exports: [],
 })
@@ -195,7 +225,10 @@ export class NominationsContextModule implements OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(SessionValidationMiddleware)
-      .forRoutes(TransparencesController)
+      .forRoutes(TransparencesController, {
+        path: `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs}`,
+        method: RequestMethod.POST,
+      })
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(
         `${baseRouteSession}/${endpointsPathsSession.sessionSnapshot}`,

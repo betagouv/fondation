@@ -1,3 +1,4 @@
+import { Magistrat } from 'shared-models';
 import { UserDescriptorSerialized } from 'src/identity-and-access-context/business-logic/models/user-descriptor';
 import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 
@@ -11,5 +12,12 @@ export class StubUserService implements UserService {
 
   async userWithFullName(): Promise<UserDescriptorSerialized> {
     return this.user;
+  }
+
+  async usersByFormation(
+    formation: Magistrat.Formation,
+  ): Promise<UserDescriptorSerialized[]> {
+    console.log('formation', formation);
+    return [this.user];
   }
 }

@@ -30,7 +30,7 @@ export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn })
       >
         {content.nomMagistrat}
       </a>
-      <modalMagistratDnDetails.Component title={content.nomMagistrat}>
+      <modalMagistratDnDetails.Component title={null}>
         <MagistratDetails content={content} idDn={idDn} />
       </modalMagistratDnDetails.Component>
     </>

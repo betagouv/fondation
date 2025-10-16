@@ -8,6 +8,7 @@ import {
 import { attachedFilesValidationSchema } from 'src/reports-context/business-logic/models/report-attached-files';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { reports } from './schema/report-pm';
+import { reportRules } from './schema/report-rule-pm';
 
 export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
@@ -67,6 +68,31 @@ export class SqlReportRepository implements ReportRepository {
       return results.map((reportRow) =>
         SqlReportRepository.mapToDomain(reportRow),
       );
+    };
+  }
+
+  bySessionId(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<NominationFileReport[]> {
+    return async (db) => {
+      const results = await db
+        .select()
+        .from(reports)
+        .where(eq(reports.sessionId, sessionId));
+
+      return results.map((reportRow) =>
+        SqlReportRepository.mapToDomain(reportRow),
+      );
+    };
+  }
+
+  delete(reportId: string): DrizzleTransactionableAsync<void> {
+    return async (db) => {
+      // Supprimer d'abord les report_rules (contrainte FK)
+      await db.delete(reportRules).where(eq(reportRules.reportId, reportId));
+
+      // Puis supprimer le rapport
+      await db.delete(reports).where(eq(reports.id, reportId));
     };
   }
 

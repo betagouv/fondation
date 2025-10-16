@@ -1,6 +1,6 @@
 import { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
-import { DossierDeNomination } from 'src/reports-context/business-logic/models/dossier-de-nomination';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 import { DossierDeNominationRepository } from '../../gateways/repositories/dossier-de-nomination.repository';
@@ -14,54 +14,67 @@ export class GetBySessionIdUseCase {
   ) {}
 
   async execute(
-    sessionId: string,
+    params: DossierDeNominationEtAffectationParamsNestDto,
   ): Promise<DossierDeNominationEtAffectationSnapshot[]> {
+    const { sessionId } = params;
     return this.transactionPerformer.perform(async (trx) => {
-      const dossiers =
-        await this.dossierDeNominationRepository.findBySessionId(sessionId)(
-          trx,
-        );
+      const [dossiers, affectation] = await Promise.all([
+        this.dossierDeNominationRepository.findBySessionId(sessionId)(trx),
+        this.affectationRepository.bySessionId(sessionId)(trx),
+      ]);
 
-      const affectation = (
-        await this.affectationRepository.bySessionId(sessionId)(trx)
-      )?.snapshot();
-
-      const rapporteurs: Record<
-        DossierDeNomination['_dossierDeNominationId'],
-        string[]
-      > = {};
-      dossiers.forEach((dossier) => {
-        rapporteurs[dossier.id] = [];
-      });
-
-      if (affectation) {
-        const { affectationsDossiersDeNominations } = affectation;
-
-        const rapporteurPromises = affectationsDossiersDeNominations.flatMap(
-          (affectation) => {
-            const { rapporteurIds, dossierDeNominationId } = affectation;
-            return rapporteurIds.map(async (rapporteurId) => {
-              const rapporteur =
-                await this.httpUserService.userWithId(rapporteurId);
-              return {
-                dossierDeNominationId,
-                nom: `${rapporteur.lastName} ${rapporteur.firstName}`,
-              };
-            });
-          },
-        );
-
-        const rapporteurResults = await Promise.all(rapporteurPromises);
-
-        rapporteurResults.forEach(({ dossierDeNominationId, nom }) => {
-          rapporteurs[dossierDeNominationId]?.push(nom);
-        });
-      }
+      const rapporteursParDossier =
+        await this.buildRapporteursParDossier(affectation);
 
       return (dossiers || []).map((dossier) => ({
         ...dossier.snapshot(),
-        rapporteurs: rapporteurs[dossier.id] || [],
+        rapporteurs: rapporteursParDossier[dossier.id] || [],
       }));
     });
+  }
+
+  private async buildRapporteursParDossier(
+    affectation: Awaited<
+      ReturnType<ReturnType<AffectationRepository['bySessionId']>>
+    > | null,
+  ): Promise<Record<string, Array<{ userId: string; nom: string }>>> {
+    if (!affectation) return {};
+
+    const snapshot = affectation.snapshot();
+    const uniqueRapporteurIds = [
+      ...new Set(
+        snapshot.affectationsDossiersDeNominations.flatMap(
+          (a) => a.rapporteurIds,
+        ),
+      ),
+    ];
+
+    const rapporteurs = await Promise.all(
+      uniqueRapporteurIds.map((id) => this.httpUserService.userWithId(id)),
+    );
+
+    const rapporteursById = new Map(
+      rapporteurs.map((r) => [
+        r.userId,
+        { userId: r.userId, nom: `${r.lastName} ${r.firstName}` },
+      ]),
+    );
+
+    const rapporteursParDossier: Record<
+      string,
+      Array<{ userId: string; nom: string }>
+    > = {};
+    snapshot.affectationsDossiersDeNominations.forEach(
+      ({ dossierDeNominationId, rapporteurIds }) => {
+        rapporteursParDossier[dossierDeNominationId] = rapporteurIds
+          .map((id) => rapporteursById.get(id))
+          .filter(
+            (rapporteur): rapporteur is { userId: string; nom: string } =>
+              rapporteur !== undefined,
+          );
+      },
+    );
+
+    return rapporteursParDossier;
   }
 }

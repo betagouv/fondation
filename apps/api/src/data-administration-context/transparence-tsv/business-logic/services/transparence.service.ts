@@ -3,7 +3,8 @@ import { DateOnlyJson, Magistrat, Transparency } from 'shared-models';
 import { TransactionableAsync } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DomainEventRepository } from 'src/shared-kernel/business-logic/gateways/repositories/domain-event.repository';
 import { TransparenceRepository } from '../../../transparences/business-logic/gateways/repositories/transparence.repository';
-import { UserService } from '../../../transparences/business-logic/gateways/services/user.service';
+
+import { UserService } from 'src/shared-kernel/business-logic/gateways/services/user.service';
 import {
   GdsNewTransparenceImportedEvent,
   GdsNewTransparenceImportedEventPayload,

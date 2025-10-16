@@ -24,8 +24,7 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
       };
     }
 
-    // Extraire les rapporteurs uniques
-    const uniqueRapporteurs = Array.from(new Set(rapporteurs));
+    const uniqueRapporteurs = Array.from(new Set(rapporteurs)).filter((r): r is string => r != null);
 
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({

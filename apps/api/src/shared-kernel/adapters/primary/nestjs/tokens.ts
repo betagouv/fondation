@@ -2,6 +2,7 @@ import {
   DossierDeNominationRestContrat,
   IdentityAndAccessRestContract,
   NominationsContextSessionsRestContract,
+  UserRestContract,
 } from 'shared-models';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
@@ -32,6 +33,7 @@ export const NOMINATIONS_CONTEXT_HTTP_CLIENT =
   'NOMINATIONS_CONTEXT_HTTP_CLIENT';
 export const IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT =
   'IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT';
+export const USER_CONTEXT_HTTP_CLIENT = 'USER_CONTEXT_HTTP_CLIENT';
 export const DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT =
   'DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT';
 export const USER_SERVICE = 'USER_SERVICE';
@@ -50,6 +52,7 @@ export const sharedKernelTokens = [
   SENTRY_SERVICE,
   UPLOAD_FILE_SERVICE,
   NOMINATIONS_CONTEXT_HTTP_CLIENT,
+  USER_CONTEXT_HTTP_CLIENT,
   DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT,
   IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
   USER_SERVICE,
@@ -69,6 +72,7 @@ export interface SharedKernelInjectionTokenMap {
   [SENTRY_SERVICE]: SentryService;
   [UPLOAD_FILE_SERVICE]: UploadFileService;
   [NOMINATIONS_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<NominationsContextSessionsRestContract>;
+  [USER_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<UserRestContract>;
   [DOSSIER_DE_NOMINATION_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<DossierDeNominationRestContrat>;
   [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT]: BoundedContextHttpClient<IdentityAndAccessRestContract>;
   [USER_SERVICE]: UserService;

@@ -10,6 +10,7 @@ import {
   DossierDeNominationRestContrat,
   IdentityAndAccessRestContract,
   NominationsContextSessionsRestContract,
+  UserRestContract,
 } from 'shared-models';
 import { MinioS3Commands } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-commands';
 import { minioS3StorageClient } from 'src/files-context/adapters/secondary/gateways/providers/minio-s3-sorage.client';
@@ -60,6 +61,7 @@ import {
   DRIZZLE_DB,
   IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
   NOMINATIONS_CONTEXT_HTTP_CLIENT,
+  USER_CONTEXT_HTTP_CLIENT,
   SENTRY_SERVICE,
   SESSION_SERVICE,
   TRANSACTION_PERFORMER,
@@ -220,7 +222,7 @@ const isScalewayS3 = isProduction;
 
     generateProvider(
       HttpUserService,
-      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT],
+      [IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT, USER_CONTEXT_HTTP_CLIENT],
       USER_SERVICE,
     ),
     {
@@ -233,6 +235,20 @@ const isScalewayS3 = isProduction;
           apiConfig,
           systemRequestSignatureProvider,
           'api/auth',
+        );
+      },
+      inject: [API_CONFIG, SystemRequestSignatureProvider],
+    },
+    {
+      provide: USER_CONTEXT_HTTP_CLIENT,
+      useFactory: (
+        apiConfig: ApiConfig,
+        systemRequestSignatureProvider: SystemRequestSignatureProvider,
+      ) => {
+        return new BoundedContextHttpClient<UserRestContract>(
+          apiConfig,
+          systemRequestSignatureProvider,
+          'api/users',
         );
       },
       inject: [API_CONFIG, SystemRequestSignatureProvider],

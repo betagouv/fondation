@@ -39,6 +39,10 @@ export class Affectation {
     });
   }
 
+  mettreAJourAffectations(affectations: AffectationsDossiersDeNominations[]) {
+    this._affectationsDossiersDeNominations = affectations;
+  }
+
   get id(): string {
     return this._id;
   }

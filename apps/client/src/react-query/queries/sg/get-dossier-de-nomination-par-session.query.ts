@@ -16,10 +16,10 @@ const fetchDossiersDeNominationParSession = ({ sessionId }: GetDossiersDeNominat
   );
 };
 
-export const useGetDossierDeNominationParSession = (sessionId: GetDossiersDeNominationParSessionArgs) => {
+export const useGetDossierDeNominationParSession = ({ sessionId }: GetDossiersDeNominationParSessionArgs) => {
   return useQuery({
     queryKey: ['dossiers-de-nomination-par-session', sessionId],
-    queryFn: () => fetchDossiersDeNominationParSession(sessionId),
+    queryFn: () => fetchDossiersDeNominationParSession({ sessionId }),
     enabled: !!sessionId,
     retry: false
   });

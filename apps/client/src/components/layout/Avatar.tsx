@@ -1,4 +1,3 @@
-import { colors } from '@codegouvfr/react-dsfr';
 import { useMutation } from '@tanstack/react-query';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import { useValidateSessionFromCookie } from '../../react-query/queries/validate
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
+import { AvatarInitials } from './AvatarInitials';
 
 const logoutUser = async () => {
   const { method, path }: Partial<IdentityAndAccessRestContract['endpoints']['logout']> = {
@@ -20,7 +20,7 @@ const logoutUser = async () => {
 
 export const Avatar: FC = () => {
   const { user, isError, invalidateSession } = useValidateSessionFromCookie();
-  const firstLetters = user?.firstLetters;
+  const firstLetters = user?.firstLetters as string;
 
   const navigate = useNavigate();
   const { mutateAsync } = useMutation({
@@ -44,16 +44,7 @@ export const Avatar: FC = () => {
     <div className="fr-btn flex items-center gap-8">
       <Badge noIcon>{RoleLabels[user.role]}</Badge>
       <div className="flex items-center gap-2">
-        <div
-          id={`avatar-${firstLetters}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white"
-          style={{
-            backgroundColor: colors.decisions.text.title.blueFrance.default
-          }}
-          title={firstLetters}
-        >
-          {firstLetters}
-        </div>
+        <AvatarInitials initials={firstLetters} />
         <div id="avatar-logout" onClick={onClickLogout} className="font-semibold hover:cursor-pointer">
           Se déconnecter
         </div>

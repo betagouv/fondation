@@ -74,15 +74,16 @@ export const ManageSession = () => {
   } = useTable<NonNullable<typeof sessions>[0], SessionFiltersState>(sessions || [], {
     filters,
     applyFilters: applySessionFilters,
-    itemsPerPage: 10
+    itemsPerPage: 50
   });
 
   const HEADERS_COLUMNS = [
-    { field: 'typeDeSaisine', label: 'Type de saisine' },
+    { field: 'typeDeSaisine', label: 'Type de session' },
+    { field: 'name', label: 'Intitulé de la session' },
     { field: 'formation', label: 'Formation' },
-    { field: 'name', label: 'Nom de la transparence' },
     { field: 'dateTransparence', label: 'Date de publication' },
-    { field: 'dateEcheance', label: "Date d'écheance" }
+    { field: 'dateEcheance', label: "Date d'écheance" },
+    { field: 'status', label: 'Statut' }
   ];
 
   const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
@@ -103,10 +104,11 @@ export const ManageSession = () => {
 
     return [
       TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],
-      formation,
       <a href={href}>{name.toUpperCase()}</a>,
+      formation,
       DateOnly.fromDateOnly(dateTransparence),
-      dateEcheance && DateOnly.fromDateOnly(dateEcheance)
+      dateEcheance && DateOnly.fromDateOnly(dateEcheance),
+      ''
     ];
   });
 

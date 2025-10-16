@@ -1,12 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { useTable } from '../../hooks/useTable.hook';
 import {
   applyFilters,
-  dataRowsAffectationsDn,
+  dataRowsDn,
+  dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
   sortValueSpecificDnField
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
@@ -14,18 +15,45 @@ import { FiltresDossiersDeNomination } from '../secretariat-general/transparence
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import type { UserDescriptorSerialized } from 'shared-models';
+import { AffectationProvider, useAffectation } from '../../contexts/AffectationDossiersContext';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
+  availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
-  ExportComponent?: React.ComponentType<{ data: DossierDeNominationEtAffectationSnapshot[] }>;
+  ExportComponent?: React.ComponentType<{
+    data: DossierDeNominationEtAffectationSnapshot[];
+  }>;
+  canEdit?: boolean;
+  onSaveAffectations?: (affectations: { dossierId: string; rapporteurIds: string[] }[]) => void;
 }
 
-export const TableauDossiersDeNomination = ({
+const TableauDossiersDeNominationContent = ({
   dossiersDeNomination,
   showExportButton = false,
-  ExportComponent
+  availableRapporteurs,
+  ExportComponent,
+  canEdit = false,
+  onSaveAffectations
 }: TableauDossiersDeNominationProps) => {
+  const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const handleEdit = () => {
+    if (isEditing) {
+      resetAffectations();
+    }
+    setIsEditing((prev) => !prev);
+  };
+
+  const handleSave = () => {
+    if (onSaveAffectations) {
+      const affectations = getAllAffectations();
+      onSaveAffectations(affectations);
+    }
+  };
+
   const [filters, setFilters] = useState<FiltersState>({
     rapporteurs: [],
     priorite: []
@@ -59,12 +87,16 @@ export const TableauDossiersDeNomination = ({
     </span>
   ));
 
-  const dossierDataRows = dataRowsAffectationsDn(paginatedData);
-  const rapporteurs = dossiersDeNomination?.flatMap((dossier) => dossier.rapporteurs);
+  const dossierDataRows = isEditing
+    ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
+    : dataRowsDn(paginatedData);
+
+  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
+    dossier.rapporteurs.map((r) => r.nom).filter((nom): nom is string => nom != null)
+  );
 
   return (
     <div>
-      {/* Préchargement des icônes pour éviter les problèmes de chargement conditionnel */}
       <div style={{ display: 'none' }}>
         <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
@@ -74,9 +106,34 @@ export const TableauDossiersDeNomination = ({
         <FiltresDossiersDeNomination
           filters={filters}
           onFiltersChange={setFilters}
-          rapporteurs={rapporteurs}
+          rapporteurs={rapporteurNoms}
         />
-        {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+        <div className="flex items-center gap-2">
+          {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
+          {canEdit && (
+            <>
+              {isEditing && (
+                <Button
+                  priority="primary"
+                  iconId="fr-icon-save-line"
+                  title="Sauvegarder les affectations"
+                  onClick={handleSave}
+                  disabled={!hasChanges}
+                >
+                  Sauvegarder
+                </Button>
+              )}
+              <Button
+                priority="secondary"
+                iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
+                title={isEditing ? 'Annuler les modifications' : 'Éditer les dossiers'}
+                onClick={handleEdit}
+              >
+                {isEditing ? 'Annuler' : undefined}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <Table
@@ -96,5 +153,23 @@ export const TableauDossiersDeNomination = ({
         setCurrentPage={setCurrentPage}
       />
     </div>
+  );
+};
+
+export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationProps) => {
+  const initialAffectations = useMemo(() => {
+    return props.dossiersDeNomination.reduce(
+      (acc, dossier) => {
+        acc[dossier.id] = dossier.rapporteurs.map((r) => r.userId);
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+  }, [props.dossiersDeNomination]);
+
+  return (
+    <AffectationProvider initialAffectations={initialAffectations}>
+      <TableauDossiersDeNominationContent {...props} />
+    </AffectationProvider>
   );
 };

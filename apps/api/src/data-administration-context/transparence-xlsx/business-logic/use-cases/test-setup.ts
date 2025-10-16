@@ -1,6 +1,8 @@
 import { DateOnlyJson, Magistrat } from 'shared-models';
 import { TransparenceService } from 'src/data-administration-context/transparence-xlsx/business-logic/services/transparence.service';
 import { FakeTransparenceRepository } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/fake-transparence.repository';
+
+import { File } from 'buffer';
 import { FakeUserService } from 'src/data-administration-context/transparences/adapters/secondary/gateways/services/fake-user.service';
 import { DeterministicDateProvider } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-date-provider';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
@@ -11,6 +13,10 @@ import {
   TransparenceXlsxImportéeEvent,
   TransparenceXlsxImportéeEventPayload,
 } from '../models/events/transparence-xlsx-importée.event';
+import {
+  TransparenceXlsxObservantsImportésEvent,
+  TransparenceXlsxObservantsImportésEventPayload,
+} from '../models/events/transparence-xlsx-observants-importés.event';
 import { NominationFileModelSnapshot } from '../models/nomination-file';
 import { TransparenceSnapshot } from '../models/transparence';
 import {
@@ -20,13 +26,8 @@ import {
   uneTransparenceSansObservants,
   unNomMagistrat,
 } from './fixtures';
-import { ImportTransparenceXlsxUseCase } from './import-transparence-xlsx/import-transparence-xlsx.use-case';
-import { File } from 'buffer';
-import {
-  TransparenceXlsxObservantsImportésEvent,
-  TransparenceXlsxObservantsImportésEventPayload,
-} from '../models/events/transparence-xlsx-observants-importés.event';
 import { ImportObservantsXlsxUseCase } from './import-observants-xlsx/import-observants-xlsx.use-case';
+import { ImportTransparenceXlsxUseCase } from './import-transparence-xlsx/import-transparence-xlsx.use-case';
 
 export class TestDependencies {
   readonly transparenceRepository: FakeTransparenceRepository;
