@@ -97,7 +97,7 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
       </modal.Component>
 
       <Button className={'w-full'} nativeButtonProps={modal.buttonProps}>
-        Importer les observations
+        <div className="w-full text-center">Importer les observations</div>
       </Button>
     </div>
   );
