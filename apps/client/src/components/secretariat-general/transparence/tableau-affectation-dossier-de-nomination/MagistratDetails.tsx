@@ -70,7 +70,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
     report.name
       .split(' ')
       .map((name) => name[0])
-      .join('.')
+      .join('')
   );
 
   return (
