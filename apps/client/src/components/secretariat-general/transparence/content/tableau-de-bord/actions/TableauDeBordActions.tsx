@@ -64,17 +64,19 @@ export const TableauDeBordActions = ({
         </Accordion>
       </div>
 
-      <ImportObservantsModal
-        nomTransparence={name}
-        formation={formation}
-        dateTransparence={dateTransparenceDateOnly}
-      />
-      <ImportAttachmentModal
-        sessionImportId={id}
-        transparenceName={name}
-        transparenceFormation={formation}
-        transparenceDate={dateTransparenceDateOnly}
-      />
+      <div className="flex flex-col gap-2">
+        <ImportObservantsModal
+          nomTransparence={name}
+          formation={formation}
+          dateTransparence={dateTransparenceDateOnly}
+        />
+        <ImportAttachmentModal
+          sessionImportId={id}
+          transparenceName={name}
+          transparenceFormation={formation}
+          transparenceDate={dateTransparenceDateOnly}
+        />
+      </div>
     </div>
   );
 };
