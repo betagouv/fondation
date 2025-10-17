@@ -70,7 +70,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
     report.name
       .split(' ')
       .map((name) => name[0])
-      .join('.')
+      .join('')
   );
 
   return (
@@ -105,7 +105,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
           aria-labelledby={reportHtmlIds.overview.biography}
           className="w-full whitespace-pre-line leading-7"
         >
-          {formattedObservers ?? 'Non renseigné'}
+          {formattedObservers ?? 'Aucun'}
         </div>
       </div>
 
