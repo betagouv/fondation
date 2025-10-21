@@ -13,7 +13,7 @@ import { users } from 'src/identity-and-access-context/adapters/secondary/gatewa
 import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 
-import { ContenuPropositionDeNominationTransparenceV1 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { SessionSnapshot } from 'shared-models/models/session/session-content';
 import { reports } from 'src/reports-context/adapters/secondary/gateways/repositories/drizzle/schema/report-pm';
@@ -82,23 +82,24 @@ async function seed() {
 
     const dossier1: DossierDeNominationSnapshot<
       TypeDeSaisine.TRANSPARENCE_GDS,
-      ContenuPropositionDeNominationTransparenceV1
+      ContenuPropositionDeNominationTransparenceV2
     > = {
       id: '4f275b00-e7f6-4a92-a52b-5a2514f0d2b3',
       sessionId: sessionA.id,
       nominationFileImportedId: '4fd1aae8-46ca-49f4-9abf-cf31238cad16',
       content: {
-        biography: 'John Doe',
-        birthDate: { day: 1, month: 1, year: 1980 },
-        currentPosition: 'Current position',
-        targettedPosition: 'Target position',
-        dueDate: { day: 1, month: 6, year: 2023 },
-        folderNumber: 1,
-        formation: Magistrat.Formation.PARQUET,
+        version: 2,
+        historique: 'John Doe',
+        dateDeNaissance: { day: 1, month: 1, year: 1980 },
+        posteActuel: 'Current position',
+        posteCible: 'Target position',
+        dateEchéance: { day: 1, month: 6, year: 2023 },
+        numeroDeDossier: 1,
+        // formation: Magistrat.Formation.PARQUET,
         grade: Magistrat.Grade.I,
-        name: 'Nominee Name',
-        observers: [],
-        rank: 'A',
+        nomMagistrat: 'Nominee Name',
+        observants: [],
+        rang: 'A',
         datePassageAuGrade: null,
         datePriseDeFonctionPosteActuel: {
           day: 1,
