@@ -3,6 +3,7 @@ import { Gender } from "../../gender";
 import { Role } from "../../role";
 import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodDto, ZodParamsDto } from "../common";
+import { PrioriteEnum } from "../../priorite.enum";
 
 
 export type UserDescriptorSerialized = {
@@ -62,6 +63,7 @@ export const dossierDeNominationEtAffectationSchema = z.object({
 export interface DossierAffectationItem {
   dossierId: string;
   rapporteurIds: string[];
+  priorite?: PrioriteEnum;
 }
 
 export interface SaveAffectationsRapporteursDto {
@@ -75,6 +77,7 @@ export const saveAffectationsRapporteursSchema = z.object({
     z.object({
       dossierId: z.string().uuid(),
       rapporteurIds: z.array(z.string().uuid()),
+      priorite: z.nativeEnum(PrioriteEnum).optional(),
     })
   ),
 }) satisfies ZodDto<

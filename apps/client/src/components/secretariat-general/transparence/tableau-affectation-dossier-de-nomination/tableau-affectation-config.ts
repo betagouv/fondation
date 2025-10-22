@@ -3,9 +3,11 @@ import React from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
+import { DropdownPriorite } from './DropdownPriorite';
 import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
@@ -16,7 +18,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.posteCible', label: 'Poste cible' },
   { field: 'content.gradeCible', label: 'Grade cible' },
   { field: 'content.observants', label: 'Observants' },
-  // { field: 'content.priorite', label: 'Priorité' },
+  { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
 ];
@@ -39,7 +41,7 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
       posteCible,
       gradeCible,
       content.observants,
-      // 'priorité',
+      dossier.priorite ? PrioriteLabels[dossier.priorite] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
       content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
     ];
@@ -64,7 +66,10 @@ export const dataRowsDnEdition = (
       posteCible,
       gradeCible,
       content.observants,
-      // 'priorité',
+      React.createElement(DropdownPriorite, {
+        dossierId: dossier.id,
+        initialPriorite: dossier.priorite
+      }),
       React.createElement(DropdownRapporteurs, {
         dossierId: dossier.id,
         initialRapporteurs: initialRapporteurIds,

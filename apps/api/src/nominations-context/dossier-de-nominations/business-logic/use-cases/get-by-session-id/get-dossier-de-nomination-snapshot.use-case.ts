@@ -1,4 +1,5 @@
 import { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
@@ -25,10 +26,12 @@ export class GetBySessionIdUseCase {
 
       const rapporteursParDossier =
         await this.buildRapporteursParDossier(affectation);
+      const prioritesParDossier = this.buildPrioritesParDossier(affectation);
 
       return (dossiers || []).map((dossier) => ({
         ...dossier.snapshot(),
         rapporteurs: rapporteursParDossier[dossier.id] || [],
+        priorite: prioritesParDossier[dossier.id],
       }));
     });
   }
@@ -76,5 +79,24 @@ export class GetBySessionIdUseCase {
     );
 
     return rapporteursParDossier;
+  }
+
+  private buildPrioritesParDossier(
+    affectation: Awaited<
+      ReturnType<ReturnType<AffectationRepository['bySessionId']>>
+    > | null,
+  ): Record<string, PrioriteEnum | undefined> {
+    if (!affectation) return {};
+
+    const snapshot = affectation.snapshot();
+    const prioritesParDossier: Record<string, PrioriteEnum | undefined> = {};
+
+    snapshot.affectationsDossiersDeNominations.forEach(
+      ({ dossierDeNominationId, priorite }) => {
+        prioritesParDossier[dossierDeNominationId] = priorite;
+      },
+    );
+
+    return prioritesParDossier;
   }
 }

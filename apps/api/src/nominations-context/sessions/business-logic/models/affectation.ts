@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, PrioriteEnum } from 'shared-models';
 import { DomainRegistry } from './domain-registry';
 
 import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 export type AffectationsDossiersDeNominations = {
   dossierDeNominationId: string;
   rapporteurIds: string[];
+  priorite?: PrioriteEnum;
 };
 
 export type AffectationSnapshot = {
@@ -19,6 +20,7 @@ export type AffectationSnapshot = {
 export const affectationsDossiersDeNominationsSchema = z.object({
   dossierDeNominationId: z.string(),
   rapporteurIds: z.array(z.string()),
+  priorite: z.nativeEnum(PrioriteEnum).optional(),
 });
 
 export class Affectation {
