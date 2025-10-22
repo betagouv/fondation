@@ -3,6 +3,7 @@ import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
 import { useState, useMemo } from 'react';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import { useTable } from '../../hooks/useTable.hook';
 import {
   applyFilters,
@@ -179,7 +180,7 @@ export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationPr
         }
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, PrioriteEnum | undefined>
     );
   }, [props.dossiersDeNomination]);
 

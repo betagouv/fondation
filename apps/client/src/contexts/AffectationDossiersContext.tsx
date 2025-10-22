@@ -21,6 +21,7 @@ interface AffectationContextType {
   priorites: PrioritesState;
   updateAffectation: (dossierId: string, rapporteurIds: string[]) => void;
   updatePriorite: (dossierId: string, priorite: PrioriteEnum) => void;
+  clearPriorite: (dossierId: string) => void;
   resetAffectations: () => void;
   getAllAffectations: () => DossierAffectation[];
   hasChanges: boolean;
@@ -56,6 +57,13 @@ export const AffectationProvider = ({
     }));
   }, []);
 
+  const clearPriorite = useCallback((dossierId: string) => {
+    setPriorites((prev) => ({
+      ...prev,
+      [dossierId]: undefined
+    }));
+  }, []);
+
   const resetAffectations = useCallback(() => {
     setAffectations(initialAffectations);
     setPriorites(initialPriorites);
@@ -84,6 +92,7 @@ export const AffectationProvider = ({
         priorites,
         updateAffectation,
         updatePriorite,
+        clearPriorite,
         resetAffectations,
         getAllAffectations,
         hasChanges

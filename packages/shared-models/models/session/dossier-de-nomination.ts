@@ -1,5 +1,6 @@
 import { TypeDeSaisine } from "../type-de-saisine.enum";
 import type { ContenuInconnu, ContenuPropositionDeNominationTransparenceV1, ContenuPropositionDeNominationTransparenceV2 } from "./contenu-transparence-par-version/proposition-content";
+import type { PrioriteEnum } from "../priorite.enum";
 
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,
@@ -26,4 +27,5 @@ export type RapporteurInfo = {
 
 export type DossierDeNominationEtAffectationSnapshot = DossierDeNominationSnapshot & {
   rapporteurs: RapporteurInfo[];
+  priorite?: PrioriteEnum;
 };

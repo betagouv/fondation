@@ -30,9 +30,10 @@ export class SaveAffectationsRapporteursUseCase {
       }
 
       const affectationsDossiersDeNominations = affectations.map(
-        ({ dossierId, rapporteurIds }) => ({
+        ({ dossierId, rapporteurIds, priorite }) => ({
           dossierDeNominationId: dossierId,
           rapporteurIds,
+          priorite,
         }),
       );
 

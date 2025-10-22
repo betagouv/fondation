@@ -27,9 +27,7 @@ export const DropdownSelect = <T extends string = string>({
   className
 }: DropdownSelectProps<T>): ReturnType<FC> => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(
-    null
-  );
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
