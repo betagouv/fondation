@@ -16,7 +16,11 @@ import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
 import type { UserDescriptorSerialized } from 'shared-models';
-import { AffectationProvider, useAffectation } from '../../contexts/AffectationDossiersContext';
+import {
+  AffectationProvider,
+  useAffectation,
+  type DossierAffectation
+} from '../../contexts/AffectationDossiersContext';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
@@ -26,7 +30,7 @@ export interface TableauDossiersDeNominationProps {
     data: DossierDeNominationEtAffectationSnapshot[];
   }>;
   canEdit?: boolean;
-  onSaveAffectations?: (affectations: { dossierId: string; rapporteurIds: string[] }[]) => void;
+  onSaveAffectations?: (affectations: DossierAffectation[]) => void;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -167,8 +171,20 @@ export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationPr
     );
   }, [props.dossiersDeNomination]);
 
+  const initialPriorites = useMemo(() => {
+    return props.dossiersDeNomination.reduce(
+      (acc, dossier) => {
+        if (dossier.priorite) {
+          acc[dossier.id] = dossier.priorite;
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  }, [props.dossiersDeNomination]);
+
   return (
-    <AffectationProvider initialAffectations={initialAffectations}>
+    <AffectationProvider initialAffectations={initialAffectations} initialPriorites={initialPriorites}>
       <TableauDossiersDeNominationContent {...props} />
     </AffectationProvider>
   );

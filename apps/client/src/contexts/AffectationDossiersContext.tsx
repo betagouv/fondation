@@ -1,18 +1,26 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback } from 'react';
+import type { PrioriteEnum } from 'shared-models/models/priorite.enum';
 
 export interface DossierAffectation {
   dossierId: string;
   rapporteurIds: string[];
+  priorite?: PrioriteEnum;
 }
 
 export type AffectationsState = {
   [dossierId: string]: string[];
 };
 
+export type PrioritesState = {
+  [dossierId: string]: PrioriteEnum | undefined;
+};
+
 interface AffectationContextType {
   affectations: AffectationsState;
+  priorites: PrioritesState;
   updateAffectation: (dossierId: string, rapporteurIds: string[]) => void;
+  updatePriorite: (dossierId: string, priorite: PrioriteEnum) => void;
   resetAffectations: () => void;
   getAllAffectations: () => DossierAffectation[];
   hasChanges: boolean;
@@ -23,10 +31,16 @@ const AffectationContext = createContext<AffectationContextType | undefined>(und
 interface AffectationProviderProps {
   children: ReactNode;
   initialAffectations?: AffectationsState;
+  initialPriorites?: PrioritesState;
 }
 
-export const AffectationProvider = ({ children, initialAffectations = {} }: AffectationProviderProps) => {
+export const AffectationProvider = ({
+  children,
+  initialAffectations = {},
+  initialPriorites = {}
+}: AffectationProviderProps) => {
   const [affectations, setAffectations] = useState<AffectationsState>(initialAffectations);
+  const [priorites, setPriorites] = useState<PrioritesState>(initialPriorites);
 
   const updateAffectation = useCallback((dossierId: string, rapporteurIds: string[]) => {
     setAffectations((prev) => ({
@@ -35,26 +49,41 @@ export const AffectationProvider = ({ children, initialAffectations = {} }: Affe
     }));
   }, []);
 
+  const updatePriorite = useCallback((dossierId: string, priorite: PrioriteEnum) => {
+    setPriorites((prev) => ({
+      ...prev,
+      [dossierId]: priorite
+    }));
+  }, []);
+
   const resetAffectations = useCallback(() => {
     setAffectations(initialAffectations);
-  }, [initialAffectations]);
+    setPriorites(initialPriorites);
+  }, [initialAffectations, initialPriorites]);
 
   const getAllAffectations = useCallback((): DossierAffectation[] => {
-    return Object.entries(affectations).map(([dossierId, rapporteurIds]) => ({
+    const dossierIds = new Set([...Object.keys(affectations), ...Object.keys(priorites)]);
+    return Array.from(dossierIds).map((dossierId) => ({
       dossierId,
-      rapporteurIds
+      rapporteurIds: affectations[dossierId] || [],
+      priorite: priorites[dossierId]
     }));
-  }, [affectations]);
+  }, [affectations, priorites]);
 
   const hasChanges = useCallback(() => {
-    return JSON.stringify(affectations) !== JSON.stringify(initialAffectations);
-  }, [affectations, initialAffectations])();
+    return (
+      JSON.stringify(affectations) !== JSON.stringify(initialAffectations) ||
+      JSON.stringify(priorites) !== JSON.stringify(initialPriorites)
+    );
+  }, [affectations, priorites, initialAffectations, initialPriorites])();
 
   return (
     <AffectationContext.Provider
       value={{
         affectations,
+        priorites,
         updateAffectation,
+        updatePriorite,
         resetAffectations,
         getAllAffectations,
         hasChanges
