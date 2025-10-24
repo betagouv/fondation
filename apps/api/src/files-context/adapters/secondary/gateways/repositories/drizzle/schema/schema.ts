@@ -1,3 +1,1 @@
-import { pgSchema } from 'drizzle-orm/pg-core';
-
-export const filesContextSchema = pgSchema('files_context');
+export { filesContextSchema } from 'src/modules/framework/drizzle/schemas';

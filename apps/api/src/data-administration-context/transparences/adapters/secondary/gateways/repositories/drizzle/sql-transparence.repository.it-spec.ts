@@ -18,7 +18,7 @@ import {
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { transparencesPm } from './schema/transparence-pm';
+import { transparencesPm } from './schema';
 import { SqlTransparenceRepository } from './sql-transparence.repository';
 
 const aTransparenceId = 'ad0b430b-e647-475d-b942-9908901120da';

@@ -7,10 +7,12 @@ import {
 } from 'shared-models';
 import { transparencesPm } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema';
 import { TransparenceRepository } from 'src/nominations-context/pp-gds/transparences/business-logic/gateways/repositories/transparence.repository';
+import { toTypeDeSaisine } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema';
 
 import { sessionPm } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/drizzle/schema/session-pm';
 import { Session } from 'src/nominations-context/sessions/business-logic/models/session';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
 
@@ -67,7 +69,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
             sessionId: matchingSession.id,
             sessionImportId: transparenceRow.id,
             name: z.string().parse(transparenceRow.name),
-            formation: transparenceRow.formation,
+            formation: toFormation(transparenceRow.formation),
             dateTransparence: DateOnly.fromDate(
               transparenceRow.dateTransparence,
             ).toJson(),
@@ -82,6 +84,10 @@ export class SqlTransparenceRepository implements TransparenceRepository {
   }
 
   static mapToDomain(row: typeof sessionPm.$inferSelect) {
-    return Session.fromSnapshot(row);
+    return Session.fromSnapshot({
+      ...row,
+      formation: toFormation(row.formation),
+      typeDeSaisine: toTypeDeSaisine(row.typeDeSaisine),
+    });
   }
 }

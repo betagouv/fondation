@@ -1,3 +1,3 @@
-import { pgSchema } from 'drizzle-orm/pg-core';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const sharedKernelContextSchema = pgSchema('shared_kernel_context');
+export const sharedKernelContextSchema = schema.sharedKernelContextSchema;

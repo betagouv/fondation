@@ -1,13 +1,10 @@
-import {
-  apiConfig,
-  defaultApiConfig,
-} from 'src/shared-kernel/adapters/primary/nestjs/env';
+import { apiConfig, defaultApiConfig } from './config.constants';
 import {
   DevApiConfig,
   DevApiConfigSchema,
   ProdApiConfig,
   ProdApiConfigSchema,
-} from '../zod/api-config-schema';
+} from './config.schema';
 
 export const validateConfig = (): DevApiConfig | ProdApiConfig => {
   return process.env.NODE_ENV === 'production'

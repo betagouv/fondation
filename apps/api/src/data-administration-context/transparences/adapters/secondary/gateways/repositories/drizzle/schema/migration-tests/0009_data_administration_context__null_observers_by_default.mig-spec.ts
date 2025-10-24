@@ -3,10 +3,10 @@ import { sql } from 'drizzle-orm';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { jsonb, uuid } from 'drizzle-orm/pg-core';
 import { Pool } from 'pg';
+import { dataAdministrationContextSchema } from 'src/modules/framework/drizzle/schemas/data-administration-context.schema';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import { getDrizzleMigrationSql } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-migrate';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { dataAdministrationContextSchema } from '../nomination-file-schema.drizzle';
 
 const nominationFiles = dataAdministrationContextSchema.table(
   'nomination_files',

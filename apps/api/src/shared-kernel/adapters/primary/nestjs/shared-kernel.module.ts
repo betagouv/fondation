@@ -21,7 +21,12 @@ import { S3Commands } from 'src/files-context/business-logic/gateways/providers/
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
 import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
-import { validateConfig } from 'src/shared-kernel/adapters/primary/nestjs/env.validation';
+import { type ApiConfig } from 'src/modules/framework/config';
+import {
+  API_CONFIG_TOKEN,
+  apiConfig,
+} from 'src/modules/framework/config/config.constants';
+import { Db } from 'src/modules/framework/drizzle';
 import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/gateways/providers/bounded-context-htttp-client';
 import { HttpDossierDeNominationService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-dossier-de-nomination.service';
 import { HttpSessionService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-session.service';
@@ -34,19 +39,9 @@ import { SessionValidationService } from 'src/shared-kernel/business-logic/gatew
 import { UploadFileService } from 'src/shared-kernel/business-logic/services/upload-file.service';
 import { DrizzleTransactionPerformer } from '../../secondary/gateways/providers/drizzle-transaction-performer';
 import { NestDomainEventPublisher } from '../../secondary/gateways/providers/nest-domain-event-publisher';
-import { getDrizzleConfig } from '../../secondary/gateways/repositories/drizzle/config/drizzle-config';
-import {
-  DrizzleDb,
-  getDrizzleInstance,
-} from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
+import { DrizzleDb } from '../../secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { SqlDomainEventRepository } from '../../secondary/gateways/repositories/drizzle/sql-domain-event-repository';
-import {
-  ApiConfig,
-  DevApiConfig,
-  ProdApiConfig,
-} from '../zod/api-config-schema';
 import { DomainEventsPoller } from './domain-event-poller';
-import { apiConfig } from './env';
 import { SessionValidationMiddleware } from './middleware/session-validation.middleware';
 import { SystemRequestValidationMiddleware } from './middleware/system-request.middleware';
 import { generateSharedKernelProvider as generateProvider } from './shared-kernel-provider-generator';
@@ -61,11 +56,11 @@ import {
   DRIZZLE_DB,
   IDENTITY_AND_ACCESS_CONTEXT_HTTP_CLIENT,
   NOMINATIONS_CONTEXT_HTTP_CLIENT,
-  USER_CONTEXT_HTTP_CLIENT,
   SENTRY_SERVICE,
   SESSION_SERVICE,
   TRANSACTION_PERFORMER,
   UPLOAD_FILE_SERVICE,
+  USER_CONTEXT_HTTP_CLIENT,
   USER_SERVICE,
   UUID_GENERATOR,
 } from './tokens';
@@ -96,7 +91,7 @@ const isScalewayS3 = isProduction;
   providers: [
     {
       provide: API_CONFIG,
-      useFactory: (): ApiConfig => validateConfig(),
+      useExisting: API_CONFIG_TOKEN,
     },
     {
       provide: TRANSACTION_PERFORMER,
@@ -107,19 +102,7 @@ const isScalewayS3 = isProduction;
     },
     {
       provide: DRIZZLE_DB,
-      useFactory: (config: ApiConfig) => {
-        const db = getDrizzleInstance(
-          isProduction
-            ? getDrizzleConfig<true>(
-                config.database as ProdApiConfig['database'],
-              )
-            : getDrizzleConfig<false>(
-                config.database as DevApiConfig['database'],
-              ),
-        );
-        return db;
-      },
-      inject: [API_CONFIG],
+      useExisting: Db,
     },
 
     generateProvider(

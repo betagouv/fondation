@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import z from 'zod';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import {
   Affectation,
@@ -6,6 +7,7 @@ import {
   AffectationSnapshot,
 } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import { affectationPm } from './schema/affectation-pm';
 
 export class SqlAffectationRepository implements AffectationRepository {
@@ -66,10 +68,10 @@ export class SqlAffectationRepository implements AffectationRepository {
   static mapToDomain(row: typeof affectationPm.$inferSelect): Affectation {
     return Affectation.fromSnapshot({
       ...row,
-      affectationsDossiersDeNominations:
-        row.affectationsDossiersDeNominations.map((a) =>
-          affectationsDossiersDeNominationsSchema.parse(a),
-        ),
+      formation: toFormation(row.formation),
+      affectationsDossiersDeNominations: z
+        .array(affectationsDossiersDeNominationsSchema)
+        .parse(row.affectationsDossiersDeNominations),
     });
   }
 }
