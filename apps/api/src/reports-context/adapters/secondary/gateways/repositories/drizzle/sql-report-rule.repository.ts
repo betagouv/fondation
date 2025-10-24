@@ -8,6 +8,7 @@ import {
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { reportRules } from './schema/report-rule-pm';
+import { toRuleGroup, toRuleName } from './schema';
 
 export class SqlReportRuleRepository implements ReportRuleRepository {
   byName(
@@ -52,8 +53,8 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
       const reportRuleSnapshot = {
         id: row.id,
         createdAt: row.createdAt,
-        ruleGroup: row.ruleGroup,
-        ruleName: row.ruleName,
+        ruleGroup: toRuleGroup(row.ruleGroup),
+        ruleName: toRuleName(row.ruleName),
         validated: row.validated,
         reportId: row.reportId,
       };
@@ -86,6 +87,10 @@ export class SqlReportRuleRepository implements ReportRuleRepository {
   }
 
   toDomain(reportRule: typeof reportRules.$inferSelect): ReportRule {
-    return ReportRule.fromSnapshot(reportRule);
+    return ReportRule.fromSnapshot({
+      ...reportRule,
+      ruleName: toRuleName(reportRule.ruleName),
+      ruleGroup: toRuleGroup(reportRule.ruleGroup),
+    });
   }
 }

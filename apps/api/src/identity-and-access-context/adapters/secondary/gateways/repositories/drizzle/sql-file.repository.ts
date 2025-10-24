@@ -3,6 +3,7 @@ import { FileRepository } from 'src/identity-and-access-context/business-logic/g
 import { FileModel } from 'src/identity-and-access-context/business-logic/models/file';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { files } from './schema/file-pm';
+import { toFileType } from './schema/enums.drizzle';
 
 export class SqlFileRepository implements FileRepository {
   fileWithId(fileId: string): DrizzleTransactionableAsync<FileModel | null> {
@@ -28,6 +29,6 @@ export class SqlFileRepository implements FileRepository {
   }
 
   static mapToDomain(row: typeof files.$inferSelect): FileModel {
-    return new FileModel(row.fileId, row.type);
+    return new FileModel(row.fileId, toFileType(row.type));
   }
 }

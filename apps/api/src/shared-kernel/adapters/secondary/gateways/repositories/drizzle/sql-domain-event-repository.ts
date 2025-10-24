@@ -5,7 +5,7 @@ import {
   DomainEventStatus,
 } from 'src/shared-kernel/business-logic/models/domain-event';
 import { DrizzleTransactionableAsync } from '../../providers/drizzle-transaction-performer';
-import { domainEvents } from './schema';
+import { domainEvents, toDomainEventStatus } from './schema';
 
 export class SqlDomainEventRepository implements DomainEventRepository {
   save(domainEvent: DomainEvent): DrizzleTransactionableAsync {
@@ -53,7 +53,7 @@ export class SqlDomainEventRepository implements DomainEventRepository {
       domainEventPm.type,
       domainEventPm.payload,
       domainEventPm.occurredOn,
-      domainEventPm.status,
+      toDomainEventStatus(domainEventPm.status),
     );
   }
 }

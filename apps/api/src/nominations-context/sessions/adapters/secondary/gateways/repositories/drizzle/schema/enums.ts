@@ -1,7 +1,18 @@
 import { TypeDeSaisine } from 'shared-models';
-import { nominationsContextSchema } from './nominations-context-schema.drizzle';
+import * as schema from 'src/modules/framework/drizzle/schemas';
+import { assertNever } from 'src/utils/assert-never';
 
-export const typeDeSaisineEnum = nominationsContextSchema.enum(
-  'type_de_saisine',
-  Object.values(TypeDeSaisine) as [TypeDeSaisine, ...TypeDeSaisine[]],
-);
+export const typeDeSaisineEnum = schema.typeDeSaisineEnum;
+
+type DrizzleTypeDeSaisineEnum =
+  (typeof schema.typeDeSaisineEnum)['enumValues'][number];
+export function toTypeDeSaisine(
+  value: DrizzleTypeDeSaisineEnum,
+): TypeDeSaisine {
+  switch (value) {
+    case 'TRANSPARENCE_GDS':
+      return TypeDeSaisine.TRANSPARENCE_GDS;
+    default:
+      return assertNever(value);
+  }
+}

@@ -6,6 +6,7 @@ import {
 } from 'src/files-context/business-logic/models/file-document';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { filesPm } from './schema/files-pm';
+import { toFilesStorageProvider } from './schema';
 
 export class SqlFileRepository implements FileRepository {
   create(
@@ -72,6 +73,9 @@ export class SqlFileRepository implements FileRepository {
   }
 
   static mapToDomain(row: typeof filesPm.$inferSelect): FileDocument {
-    return FileDocument.fromSnapshot(row);
+    return FileDocument.fromSnapshot({
+      ...row,
+      storageProvider: toFilesStorageProvider(row.storageProvider),
+    });
   }
 }

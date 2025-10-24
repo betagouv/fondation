@@ -1,3 +1,3 @@
-import { pgSchema } from 'drizzle-orm/pg-core';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const nominationsContextSchema = pgSchema('nominations_context');
+export const nominationsContextSchema = schema.nominationsContextSchema;
