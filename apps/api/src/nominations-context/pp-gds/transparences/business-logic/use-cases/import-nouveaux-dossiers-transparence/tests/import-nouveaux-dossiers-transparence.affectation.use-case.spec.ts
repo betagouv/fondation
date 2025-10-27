@@ -40,7 +40,11 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
   it("informe que l'affectation a été créée", async () => {
     await créerAffectationRapporteurs(aParquetCommand);
     expectDomainEvent(1, AffectationRapporteursCréeEvent.name, {
-      ...uneAffectationParquet,
+      id: uneAffectationParquet.id,
+      sessionId: uneAffectationParquet.sessionId,
+      formation: uneAffectationParquet.formation,
+      affectationsDossiersDeNominations:
+        uneAffectationParquet.affectationsDossiersDeNominations,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     });
   });
@@ -58,7 +62,9 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
     it("informe que l'affectation a été modifiée", async () => {
       await créerAffectationRapporteurs(aSecondSiègeCommand);
       expectDomainEvent(1, AffectationRapporteursModifiéeEvent.name, {
-        ...uneAffectationSiègeAvecDeuxDossiers,
+        id: uneAffectationSiègeAvecDeuxDossiers.id,
+        sessionId: uneAffectationSiègeAvecDeuxDossiers.sessionId,
+        formation: uneAffectationSiègeAvecDeuxDossiers.formation,
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         affectationsDossiersDeNominations: [
           uneAffectationSiègeAvecDeuxDossiers

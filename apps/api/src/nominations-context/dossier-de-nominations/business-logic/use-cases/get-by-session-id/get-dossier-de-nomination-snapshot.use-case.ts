@@ -1,4 +1,7 @@
-import { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import {
+  DossiersEtAffectationResponse,
+  AffectationMetadata,
+} from 'shared-models/models/session/dossier-de-nomination';
 import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
@@ -16,7 +19,7 @@ export class GetBySessionIdUseCase {
 
   async execute(
     params: DossierDeNominationEtAffectationParamsNestDto,
-  ): Promise<DossierDeNominationEtAffectationSnapshot[]> {
+  ): Promise<DossiersEtAffectationResponse> {
     const { sessionId } = params;
     return this.transactionPerformer.perform(async (trx) => {
       const [dossiers, affectation] = await Promise.all([
@@ -28,11 +31,25 @@ export class GetBySessionIdUseCase {
         await this.buildRapporteursParDossier(affectation);
       const prioritesParDossier = this.buildPrioritesParDossier(affectation);
 
-      return (dossiers || []).map((dossier) => ({
+      const dossiersSnapshots = (dossiers || []).map((dossier) => ({
         ...dossier.snapshot(),
         rapporteurs: rapporteursParDossier[dossier.id] || [],
         priorite: prioritesParDossier[dossier.id],
       }));
+
+      const metadata: AffectationMetadata | null = affectation
+        ? {
+            statut: affectation.statut,
+            version: affectation.version,
+            datePublication: affectation.snapshot().datePublication,
+            auteurPublication: affectation.snapshot().auteurPublication,
+          }
+        : null;
+
+      return {
+        dossiers: dossiersSnapshots,
+        metadata,
+      };
     });
   }
 
