@@ -12,9 +12,10 @@ import {
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
-import { transparencesPm } from './schema/transparence-pm';
+import { transparencesPm } from './schema';
 
 export class SqlTransparenceRepository implements TransparenceRepository {
   save(
@@ -84,7 +85,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
         id: transparenceRow.id,
         createdAt: transparenceRow.createdAt,
         name: z.string().parse(transparenceRow.name),
-        formation: transparenceRow.formation,
+        formation: toFormation(transparenceRow.formation),
         dateTransparence: DateOnly.fromDate(
           transparenceRow.dateTransparence,
         ).toJson(),
@@ -126,7 +127,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
         id: transparenceRow.id,
         createdAt: transparenceRow.createdAt,
         name: z.string().parse(transparenceRow.name),
-        formation: transparenceRow.formation,
+        formation: toFormation(transparenceRow.formation),
         dateTransparence: DateOnly.fromDate(
           transparenceRow.dateTransparence,
         ).toJson(),
@@ -162,7 +163,7 @@ export class SqlTransparenceRepository implements TransparenceRepository {
           id: transparenceRow.id,
           createdAt: transparenceRow.createdAt,
           name: z.string().parse(transparenceRow.name),
-          formation: transparenceRow.formation,
+          formation: toFormation(transparenceRow.formation),
           dateTransparence: DateOnly.fromDate(
             transparenceRow.dateTransparence,
           ).toJson(),

@@ -1,3 +1,3 @@
-import { pgSchema } from 'drizzle-orm/pg-core';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const reportsContextSchema = pgSchema('reports_context');
+export const reportsContextSchema = schema.reportsContextSchema;

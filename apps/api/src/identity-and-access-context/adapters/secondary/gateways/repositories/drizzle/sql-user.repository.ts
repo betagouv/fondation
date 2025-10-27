@@ -4,6 +4,7 @@ import { UserRepository } from 'src/identity-and-access-context/business-logic/g
 import { User } from 'src/identity-and-access-context/business-logic/models/user';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { users } from './schema/user-pm';
+import { toGender, toRole } from './schema';
 
 export class SqlUserRepository implements UserRepository {
   save(user: User): DrizzleTransactionableAsync<void> {
@@ -97,6 +98,10 @@ export class SqlUserRepository implements UserRepository {
   }
 
   static mapToDomain(row: typeof users.$inferSelect): User {
-    return User.fromSnapshot(row);
+    return User.fromSnapshot({
+      ...row,
+      role: toRole(row.role),
+      gender: toGender(row.gender),
+    });
   }
 }

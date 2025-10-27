@@ -1,8 +1,3 @@
-import { uuid } from 'drizzle-orm/pg-core';
-import { fileTypeEnum } from './enums.drizzle';
-import { identityAndAccessContextSchema } from './identity-and-access-context-schema.drizzle';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const files = identityAndAccessContextSchema.table('files', {
-  fileId: uuid('file_id').primaryKey(),
-  type: fileTypeEnum('type').notNull(),
-});
+export const files = schema.files;

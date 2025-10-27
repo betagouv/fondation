@@ -1,5 +1,4 @@
-import { pgSchema } from 'drizzle-orm/pg-core';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const identityAndAccessContextSchema = pgSchema(
-  'identity_and_access_context',
-);
+export const identityAndAccessContextSchema =
+  schema.identityAndAccessContextSchema;

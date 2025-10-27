@@ -1,16 +1,3 @@
-import { sql } from 'drizzle-orm';
-import { timestamp, uuid } from 'drizzle-orm/pg-core';
-import { identityAndAccessContextSchema } from './identity-and-access-context-schema.drizzle';
-import { users } from './user-pm';
+import * as schema from 'src/modules/framework/drizzle/schemas';
 
-export const sessions = identityAndAccessContextSchema.table('sessions', {
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  expiresAt: timestamp('expires_at').notNull(),
-  invalidatedAt: timestamp('invalidated_at'),
-  sessionId: uuid('session_id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
-});
+export const sessions = schema.sessions;
