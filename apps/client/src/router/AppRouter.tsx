@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, redirect, RouterProvider } from 'react-router-dom';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
@@ -8,9 +8,9 @@ import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleT
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
+import { SessionsPage } from '../pages/transparence/SessionsPage';
 import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
-import { TransparencesPage } from '../pages/transparence/TransparencesPage';
-import { ROUTE_PATHS } from '../utils/route-path.utils';
+import { getDetailSessionGdsPath, ROUTE_PATHS } from '../utils/route-path.utils';
 
 const router = createBrowserRouter([
   {
@@ -32,15 +32,20 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <TransparencesPage />
+            element: <SessionsPage />
           },
           {
-            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
+            path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
             element: <ReportListPage />
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
             element: <ReportOverviewPage />
+          },
+          {
+            // Useful in case of bookmarks or history
+            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
+            action: ({ params }) => redirect(getDetailSessionGdsPath({ sessionId: params.sessionId! }))
           }
         ]
       },

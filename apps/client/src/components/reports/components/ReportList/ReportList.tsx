@@ -1,36 +1,19 @@
-import type { FC } from 'react';
-import { useListReports } from '../../../../react-query/queries/list-reports.queries';
 import { formatReportList } from '../../../../utils/format-report-list.utils';
 
 import { useGetTransparencyAttachmentsQuery } from '../../../../react-query/queries/get-transparency-attachments.query';
 
-import { Magistrat, type DateOnlyJson } from 'shared-models';
+import type { DetailedSessionReport } from '../../../../react-query/queries/members/sessions.queries';
 import { ReportsTable } from './ReportsTable';
 import { TransparencyFilesList } from './TransparencyFilesList';
 
-export interface ReportListProps {
-  transparency: string;
-  formation: Magistrat.Formation;
-  dateTransparence: DateOnlyJson;
-}
-
-export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateTransparence }) => {
-  const { data: reportsData, isPending: isReportsLoading } = useListReports();
-  const { reports, headers } = formatReportList(reportsData?.data || [], {
-    transparency,
-    formation,
-    dateTransparence
-  });
+export function ReportList(props: { sessionImportId: string; reports: DetailedSessionReport[] }) {
+  const { reports, headers } = formatReportList(props.reports);
 
   const {
     data: attachments,
     isLoading: isAttachmentsLoading,
     isError: isAttachmentsError
-  } = useGetTransparencyAttachmentsQuery(reports[0]?.sessionImportId);
-
-  if (isReportsLoading) {
-    return null;
-  }
+  } = useGetTransparencyAttachmentsQuery(props.sessionImportId);
 
   return (
     <div className="my-4 flex flex-col gap-4">
@@ -44,5 +27,5 @@ export const ReportList: FC<ReportListProps> = ({ transparency, formation, dateT
       )}
     </div>
   );
-};
+}
 export default ReportList;

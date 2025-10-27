@@ -23,21 +23,11 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
   const navigate = useNavigate();
   const breadcrumb = getTransparencesBreadCrumb(
     {
-      name: TransparencesCurrentPage.perGdsTransparencyReports,
-      formation
+      formation,
+      name: TransparencesCurrentPage.perGdsTransparencyReports
     },
     navigate
   );
-
-  const title = [
-    {
-      text: 'Rapports sur la '
-    },
-    {
-      text: `transparence du ${DateOnly.fromStoreModel(dateTransparence).toFormattedString()} (${transparency})`,
-      color: colors.options.yellowTournesol.sun407moon922.hover
-    }
-  ];
 
   return (
     <div>
@@ -49,16 +39,10 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
       />
 
       <h1>
-        {title.map(({ text, color }, index) => (
-          <span
-            key={index}
-            style={{
-              color
-            }}
-          >
-            {text}
-          </span>
-        ))}
+        <span>Rapports sur la </span>
+        <span style={{ color: colors.options.yellowTournesol.sun407moon922.hover }}>
+          transparence du {DateOnly.fromStoreModel(dateTransparence).toFormattedString()} ({transparency})
+        </span>
       </h1>
     </div>
   );

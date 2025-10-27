@@ -3,7 +3,7 @@ import { Magistrat } from 'shared-models';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
 import type { ReportSM } from '../react-query/queries/list-reports.queries';
-import { getGdsDetailsPath, ROUTE_PATHS } from './route-path.utils';
+import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
@@ -61,12 +61,7 @@ export const getTransparencesBreadCrumb = (
 
       const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
 
-      const path = getGdsDetailsPath(
-        report.dateTransparence,
-        report.transparency,
-        report.formation as Magistrat.Formation,
-        report.sessionId
-      );
+      const path = getDetailSessionGdsPath({ sessionId: report.sessionId });
       const transparencySegment = {
         label: transparencyLabel,
         href: path,
