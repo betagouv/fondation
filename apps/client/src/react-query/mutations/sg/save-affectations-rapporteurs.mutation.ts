@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DossierDeNominationRestContrat, SaveAffectationsRapporteursDto } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 type Endpoint = DossierDeNominationRestContrat['endpoints']['saveAffectationsRapporteurs'];
 type SaveAffectationsRapporteursArgs = Endpoint['body'];

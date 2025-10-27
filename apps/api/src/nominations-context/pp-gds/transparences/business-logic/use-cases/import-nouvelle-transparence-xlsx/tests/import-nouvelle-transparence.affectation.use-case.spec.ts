@@ -1,4 +1,7 @@
-import { AffectationSnapshot } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import {
+  AffectationSnapshot,
+  StatutAffectation,
+} from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import {
   aAffectationId,
@@ -33,6 +36,8 @@ describe('Affectation des rapporteurs de transparence au format tsv', () => {
       {
         id: aAffectationId,
         sessionId: aTransparencyName,
+        version: 1,
+        statut: StatutAffectation.BROUILLON,
         formation: aFormation,
         affectationsDossiersDeNominations: [
           {

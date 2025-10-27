@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  Request,
 } from '@nestjs/common';
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
@@ -13,6 +14,7 @@ import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-contex
 import { SaveAffectationsRapporteursNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/save-affectations-rapporteurs.nest-dto';
 import { GetBySessionIdUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-by-session-id/get-dossier-de-nomination-snapshot.use-case';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
+import { PublierAffectationsUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/publier-affectations/publier-affectations.use-case';
 import { SaveAffectationsRapporteursUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/save-affectations-rapporteurs/save-affectations-rapporteurs.use-case';
 import {
   IController,
@@ -39,6 +41,7 @@ export class DossierDeNominationController
     private readonly getDossierDeNominationSnapshotUseCase: GetDossierDeNominationSnapshotUseCase,
     private readonly getBySessionIdUseCase: GetBySessionIdUseCase,
     private readonly saveAffectationsRapporteursUseCase: SaveAffectationsRapporteursUseCase,
+    private readonly publierAffectationsUseCase: PublierAffectationsUseCase,
   ) {}
 
   @Get(
@@ -72,5 +75,14 @@ export class DossierDeNominationController
     @Body() body: SaveAffectationsRapporteursNestDto,
   ) {
     return this.saveAffectationsRapporteursUseCase.execute(body);
+  }
+
+  @Post('affectations-rapporteurs/:sessionId/publier')
+  async publierAffectations(
+    @Param('sessionId') sessionId: string,
+    @Request() req: any,
+  ) {
+    const auteurId = req.user?.userId || 'unknown';
+    return this.publierAffectationsUseCase.execute(sessionId, auteurId);
   }
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Gender } from "../../gender";
 import { Role } from "../../role";
-import type { DossierDeNominationEtAffectationSnapshot, DossierDeNominationSnapshot } from "../../session/dossier-de-nomination";
+import type { DossierDeNominationSnapshot, DossiersEtAffectationResponse } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodDto, ZodParamsDto } from "../common";
 import { PrioriteEnum } from "../../priorite.enum";
 
@@ -31,7 +31,7 @@ export interface DossierDeNominationRestContrat extends RestContract {
       params: {
         sessionId: string;
       };
-      response: DossierDeNominationEtAffectationSnapshot[];
+      response: DossiersEtAffectationResponse;
     };
     saveAffectationsRapporteurs: {
       method: "POST";

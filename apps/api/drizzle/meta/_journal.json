@@ -414,6 +414,13 @@
       "when": 1762160483355,
       "tag": "0058_adds_jurisdiction_exclusion_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1761570398086,
+      "tag": "0059_add_affectation_versioning",
+      "breakpoints": true
     }
   ]
 }
