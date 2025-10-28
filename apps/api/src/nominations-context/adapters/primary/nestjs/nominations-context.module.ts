@@ -231,10 +231,17 @@ export class NominationsContextModule implements OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(SessionValidationMiddleware)
-      .forRoutes(TransparencesController, {
-        path: `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs}`,
-        method: RequestMethod.POST,
-      })
+      .forRoutes(
+        TransparencesController,
+        {
+          path: `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs}`,
+          method: RequestMethod.POST,
+        },
+        {
+          path: `${baseRouteDossierDeNomination}/affectations-rapporteurs/:sessionId/publier`,
+          method: RequestMethod.POST,
+        },
+      )
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(
         `${baseRouteSession}/${endpointsPathsSession.sessionSnapshot}`,

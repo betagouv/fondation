@@ -2,12 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
   Query,
-  Request,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { DossierDeNominationRestContrat } from 'shared-models/models/endpoints/nominations/dossier-de-nominations.endpoints';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { DossierDeNominationSnapshotParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-snapshot-params.dto';
@@ -80,9 +82,12 @@ export class DossierDeNominationController
   @Post('affectations-rapporteurs/:sessionId/publier')
   async publierAffectations(
     @Param('sessionId') sessionId: string,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    const auteurId = req.user?.userId || 'unknown';
+    const auteurId = req.userId!;
+    if (!auteurId) {
+      throw new InternalServerErrorException('Aucune utilisateur connecté');
+    }
     return this.publierAffectationsUseCase.execute(sessionId, auteurId);
   }
 }

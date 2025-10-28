@@ -26,7 +26,7 @@ export const useSaveAffectationsRapporteurs = () => {
     onSuccess: async (_, { sessionId }) => {
       // Invalider les queries des dossiers de nomination pour cette session
       await queryClient.invalidateQueries({
-        queryKey: ['dossiers-nomination', sessionId]
+        queryKey: ['dossiers-de-nomination-par-session', sessionId]
       });
     }
   });
