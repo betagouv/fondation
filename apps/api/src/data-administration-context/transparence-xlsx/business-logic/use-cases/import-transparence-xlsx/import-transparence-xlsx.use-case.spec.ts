@@ -13,6 +13,7 @@ import {
   unXlsxProfiléAvecRetourALaLigne,
 } from '../fixtures';
 import { TestDependencies } from '../test-setup';
+import { BadRequestException } from '@nestjs/common';
 
 describe('Import Transparence XLSX Use Case', () => {
   let deps: TestDependencies;
@@ -28,27 +29,29 @@ describe('Import Transparence XLSX Use Case', () => {
   });
 
   it("retourne les erreurs de validation d'un fichier XLSX", async () => {
-    const validationErrorResp = await deps.importerTransparenceXlsx(
-      uneTransparenceXlsxInvalide,
-      Magistrat.Formation.SIEGE,
-      'nom',
-      null,
-      {
-        year: 2024,
-        month: 10,
-        day: 10,
-      },
-      null,
-      {
-        year: 2024,
-        month: 10,
-        day: 10,
-      },
+    await expect(() =>
+      deps.importerTransparenceXlsx(
+        uneTransparenceXlsxInvalide,
+        Magistrat.Formation.SIEGE,
+        'nom',
+        null,
+        {
+          year: 2024,
+          month: 10,
+          day: 10,
+        },
+        null,
+        {
+          year: 2024,
+          month: 10,
+          day: 10,
+        },
+      ),
+    ).rejects.toThrow(
+      new BadRequestException({
+        validationError: `Valeur invalide pour la colonne "numéro de dossier" : ABC à la ligne 1`,
+      }),
     );
-
-    expect(validationErrorResp).toEqual({
-      validationError: `Valeur invalide pour la colonne "numéro de dossier" : ABC à la ligne 1`,
-    });
 
     deps.expectTransparence();
   });
