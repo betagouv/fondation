@@ -58,8 +58,11 @@ const addTransparency = async (dto: ImportTransparenceXlsxDto) => {
   );
 };
 
-export const useAddTransparency = () => {
+export const useAddTransparency = (
+  options: { onSuccess?: (data: TransparenceSnapshot | null) => unknown } = {}
+) => {
   return useMutation({
-    mutationFn: addTransparency
+    mutationFn: addTransparency,
+    onSuccess: options.onSuccess
   });
 };

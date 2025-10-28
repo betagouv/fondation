@@ -1,4 +1,3 @@
-import { TransactionRollbackError } from 'drizzle-orm';
 import { NominationFile } from 'shared-models';
 import {
   NominationFileReport,
@@ -20,6 +19,7 @@ import {
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { SqlReportRepository } from './sql-report.repository';
+import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 
 describe('SQL Report Repository', () => {
   let sqlReportRepository: SqlReportRepository;
@@ -89,7 +89,7 @@ describe('SQL Report Repository', () => {
             NominationFileReport.fromSnapshot(aReportUpdated),
           ),
         ),
-      ).rejects.toThrow(TransactionRollbackError);
+      ).rejects.toThrow(OptimisticLockError);
     });
 
     describe('Updates', () => {

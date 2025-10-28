@@ -9,7 +9,10 @@ export async function apiFetch<T = unknown>(url: string, options: RequestInit): 
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+    throw Object.assign(new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`), {
+      status: response.status,
+      ...errorData
+    });
   }
 
   const contentType = response.headers.get('content-type');
