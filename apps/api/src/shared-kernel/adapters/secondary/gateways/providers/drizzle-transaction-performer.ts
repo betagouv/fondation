@@ -2,7 +2,6 @@ import {
   TransactionPerformer,
   TransactionableAsync,
 } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
-import { z } from 'zod';
 import { DrizzleDb } from '../repositories/drizzle/config/drizzle-instance';
 
 export type DrizzleTransactionableAsync<T = void> = TransactionableAsync<
@@ -17,23 +16,22 @@ export class DrizzleTransactionPerformer implements TransactionPerformer {
     useCase: TransactionableAsync<T>,
     opts?: { retries: number },
   ): Promise<T> {
-    try {
-      return await this.db.transaction(async (tx) => {
-        try {
-          return await useCase(tx);
-        } catch (err) {
-          console.error('Error in transaction:', err);
-          tx.rollback();
-          throw err;
-        }
-      });
-    } catch (err) {
-      const retries = z.number().int().optional().parse(opts?.retries);
+    let remainingAttemptsCount = opts?.retries || 1;
 
-      if (retries) {
-        return await this.perform(useCase, { retries: retries - 1 });
+    return this.db.transaction(async (tx) => {
+      const action = () => tx.transaction((txx) => useCase(txx));
+
+      while (remainingAttemptsCount) {
+        try {
+          const result = await action();
+          return result;
+        } catch (err) {
+          remainingAttemptsCount -= 1;
+          if (!remainingAttemptsCount) throw err;
+        }
       }
-      throw err;
-    }
+
+      throw new Error(`not reachable`);
+    });
   }
 }

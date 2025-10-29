@@ -20,10 +20,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (this.sentryService.canCapture) {
       this.sentryService.captureException(exception, request, status);
     }
+
+    const exceptionResponse =
+      exception instanceof HttpException ? exception.getResponse() : {};
+
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
+      ...(typeof exceptionResponse === 'object' ? exceptionResponse : {}),
     });
   }
 }

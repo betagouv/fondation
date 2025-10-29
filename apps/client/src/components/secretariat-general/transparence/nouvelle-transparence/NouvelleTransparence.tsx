@@ -15,6 +15,7 @@ import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { formationToLabel } from '../../../reports/labels/labels-mappers';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { PageContentLayout } from '../../../shared/PageContentLayout';
+import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 const mandatoryField = 'Champ obligatoire.';
 const invalidDateFormat = 'Format de date invalide.';
@@ -52,7 +53,11 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
-  const { mutateAsync: addTransparencyAsync, data: lastRecordedTransparence } = useAddTransparency();
+  const { mutateAsync: addTransparencyAsync, error: transparenceUploadError } = useAddTransparency({
+    onSuccess() {
+      navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+    }
+  });
   const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE, navigate);
 
   const {
@@ -65,20 +70,12 @@ const NouvelleTransparence: FC = () => {
   });
 
   const onSubmit: SubmitHandler<FormSchema> = async (nouvelleTransparenceDto) => {
-    try {
-      await addTransparencyAsync({
-        ...nouvelleTransparenceDto,
-        dateEcheance: nouvelleTransparenceDto.dateEcheance || null,
-        datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible || null,
-        dateClotureDelaiObservation: nouvelleTransparenceDto.dateClôtureDélaiObservation
-      });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      if (lastRecordedTransparence) {
-        navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
-      }
-    }
+    await addTransparencyAsync({
+      ...nouvelleTransparenceDto,
+      dateEcheance: nouvelleTransparenceDto.dateEcheance || null,
+      datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible || null,
+      dateClotureDelaiObservation: nouvelleTransparenceDto.dateClôtureDélaiObservation
+    });
   };
 
   return (
@@ -88,6 +85,11 @@ const NouvelleTransparence: FC = () => {
         ariaLabel="Fil d'Ariane du secrétariat général"
         breadcrumb={breadcrumb}
       />
+
+      {transparenceUploadError ? (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <UploadExcelFailedAlert validationError={(transparenceUploadError as any).validationError} />
+      ) : null}
 
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
         <Controller<FormSchema, 'nomTransparence'>

@@ -4,6 +4,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { TransparenceCsv } from '../../models/transparence-csv';
 import { XlsxReader } from '../../models/xlsx-reader';
 import { TransparenceService } from '../../services/transparence.service';
+import { BadRequestException } from '@nestjs/common';
 
 export class ImportTransparenceXlsxUseCase {
   constructor(
@@ -30,9 +31,9 @@ export class ImportTransparenceXlsxUseCase {
         dateTransparence,
       )(trx);
       if (transparence) {
-        throw new Error(
-          `Transparence already exists: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
-        );
+        throw new BadRequestException({
+          validationError: `Cette transparence existe déjà: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
+        });
       }
 
       try {
@@ -55,12 +56,10 @@ export class ImportTransparenceXlsxUseCase {
         console.error('Error while importing transparence xlsx:', error);
 
         if (error instanceof InvalidRowValueError) {
-          return {
-            validationError: error.message,
-          };
-        } else {
-          throw error;
+          throw new BadRequestException({ validationError: error.message });
         }
+
+        throw error;
       }
     });
   }
