@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DataAdministrationContextRestContract, EditTransparencyDto } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 import { SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY } from '../../queries/get-transparency-attachments.query';
+import { USE_GET_TRANSPARENCE_QUERY_KEY } from '../../queries/sg/get-transparence.query';
 
 type Endpoint = DataAdministrationContextRestContract['endpoints']['updateTransparence'];
 type UpdateTransparenceArgs = Endpoint['body'];
@@ -26,6 +27,7 @@ export const useEditTransparency = () => {
       await queryClient.refetchQueries({
         queryKey: [SG_TRANSPARENCY_ATTACHMENTS_QUERY_KEY, id]
       });
+      await queryClient.invalidateQueries({ queryKey: [USE_GET_TRANSPARENCE_QUERY_KEY, id] });
     }
   });
 };
