@@ -8,8 +8,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema:
-    './src/**/adapters/secondary/gateways/repositories/drizzle/schema/*.ts',
+  schema: './src/modules/framework/drizzle/schemas/index.ts',
   out: './drizzle',
   breakpoints: false,
   strict: true,
