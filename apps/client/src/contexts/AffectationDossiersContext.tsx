@@ -19,11 +19,13 @@ export type PrioritesState = {
 interface AffectationContextType {
   affectations: AffectationsState;
   priorites: PrioritesState;
+  selectedDossierIds: Set<string>;
   updateAffectation: (dossierId: string, rapporteurIds: string[]) => void;
   updatePriorite: (dossierId: string, priorite: PrioriteEnum) => void;
   clearPriorite: (dossierId: string) => void;
   resetAffectations: () => void;
   getAllAffectations: () => DossierAffectation[];
+  toggleDossierSelection: (dossierId: string) => void;
   hasChanges: boolean;
 }
 
@@ -42,6 +44,7 @@ export const AffectationProvider = ({
 }: AffectationProviderProps) => {
   const [affectations, setAffectations] = useState<AffectationsState>(initialAffectations);
   const [priorites, setPriorites] = useState<PrioritesState>(initialPriorites);
+  const [selectedDossierIds, setSelectedDossierIds] = useState<Set<string>>(new Set());
 
   const updateAffectation = useCallback((dossierId: string, rapporteurIds: string[]) => {
     setAffectations((prev) => ({
@@ -67,7 +70,20 @@ export const AffectationProvider = ({
   const resetAffectations = useCallback(() => {
     setAffectations(initialAffectations);
     setPriorites(initialPriorites);
+    setSelectedDossierIds(new Set());
   }, [initialAffectations, initialPriorites]);
+
+  const toggleDossierSelection = useCallback((dossierId: string) => {
+    setSelectedDossierIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(dossierId)) {
+        next.delete(dossierId);
+      } else {
+        next.add(dossierId);
+      }
+      return next;
+    });
+  }, []);
 
   const getAllAffectations = useCallback((): DossierAffectation[] => {
     const dossierIds = new Set([...Object.keys(affectations), ...Object.keys(priorites)]);
@@ -90,11 +106,13 @@ export const AffectationProvider = ({
       value={{
         affectations,
         priorites,
+        selectedDossierIds,
         updateAffectation,
         updatePriorite,
         clearPriorite,
         resetAffectations,
         getAllAffectations,
+        toggleDossierSelection,
         hasChanges
       }}
     >
