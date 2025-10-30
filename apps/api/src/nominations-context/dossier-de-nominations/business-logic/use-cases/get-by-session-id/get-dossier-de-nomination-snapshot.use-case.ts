@@ -1,8 +1,8 @@
-import {
-  DossiersEtAffectationResponse,
-  AffectationMetadata,
-} from 'shared-models/models/session/dossier-de-nomination';
 import { PrioriteEnum } from 'shared-models/models/priorite.enum';
+import {
+  AffectationMetadata,
+  DossiersEtAffectationResponse,
+} from 'shared-models/models/session/dossier-de-nomination';
 import { DossierDeNominationEtAffectationParamsNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/dossier-de-nomination-et-affectation.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';

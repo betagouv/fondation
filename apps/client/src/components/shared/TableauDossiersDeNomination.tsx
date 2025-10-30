@@ -10,9 +10,11 @@ import {
   dataRowsDn,
   dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
+  HEADER_COLUMNS_AFFECTATIONS_DN_EDITION,
   sortValueSpecificDnField
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
+import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
@@ -81,16 +83,25 @@ const TableauDossiersDeNominationContent = ({
     getSortValue: sortValueSpecificDnField
   });
 
-  const TABLE_HEADER: ReactNode[] = HEADER_COLUMNS_AFFECTATIONS_DN.map((header) => (
-    <span key={header.field} className="flex items-center gap-1">
-      {header.label}
-      <SortButton
-        iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(header.field)}
-        label={header.label}
-      />
-    </span>
-  ));
+  const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
+
+  const TABLE_HEADER: ReactNode[] = headerColumns.map((header) => {
+    // Colonne checkbox : pas de tri
+    if (header.field === 'checkbox') {
+      return <span key={header.field}>{header.label}</span>;
+    }
+
+    return (
+      <span key={header.field} className="flex items-center gap-1">
+        {header.label}
+        <SortButton
+          iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
+          onClick={() => handleSort(header.field)}
+          label={header.label}
+        />
+      </span>
+    );
+  });
 
   const dossierDataRows = isEditing
     ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
@@ -117,6 +128,9 @@ const TableauDossiersDeNominationContent = ({
           {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
           {canEdit && (
             <>
+              {isEditing && availableRapporteurs && (
+                <ActionsGroupees availableRapporteurs={availableRapporteurs} />
+              )}
               {isEditing && (
                 <Button
                   priority="primary"
