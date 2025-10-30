@@ -13,14 +13,15 @@ export type TableauDeBordResumeProps = TransparenceSnapshot;
 export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleEdit = () => {
+  const toggleEdit = () => {
     setIsEditing((prev) => !prev);
   };
 
-  const { mutate, isSuccess, isError } = useEditTransparency();
+  const { mutateAsync, isSuccess, isError } = useEditTransparency();
 
-  const onSubmit = (data: EditTransparencyDto) => {
-    mutate({ id: transparence.id, transparency: data });
+  const onSubmit = async (data: EditTransparencyDto) => {
+    await mutateAsync({ id: transparence.id, transparency: data });
+    toggleEdit();
   };
 
   return (
@@ -47,14 +48,20 @@ export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
           priority="tertiary no outline"
           iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
           title={`edit-session-${transparence.name}`}
-          onClick={handleEdit}
+          onClick={toggleEdit}
         />
 
         <h1>Gérer une session</h1>
 
         <div className="flex">
           {!isEditing && <TableauDeBordResumeDetails {...transparence} />}
-          {isEditing && <TableauDeBordEditTransparence {...{ transparence, onSubmit }} />}
+          {isEditing && (
+            <TableauDeBordEditTransparence
+              transparence={transparence}
+              onCancel={toggleEdit}
+              onSubmit={onSubmit}
+            />
+          )}
         </div>
       </div>
     </div>

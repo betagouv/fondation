@@ -10,6 +10,7 @@ import {
   Transparence as TransparenceXlsx,
 } from 'src/data-administration-context/transparence-xlsx/business-logic/models/transparence';
 import { TransparenceRepository } from 'src/data-administration-context/transparences/business-logic/gateways/repositories/transparence.repository';
+import { sessionPm } from 'src/modules/framework/drizzle/schemas';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
 import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
@@ -206,8 +207,23 @@ export class SqlTransparenceRepository implements TransparenceRepository {
             ? new Date(transparence.dateEcheance)
             : null,
         })
-        .where(eq(transparencesPm.id, sessionId))
-        .execute();
+        .where(eq(transparencesPm.id, sessionId));
+
+      await db
+        .update(sessionPm)
+        .set({
+          name: transparence.name,
+          formation: transparence.formation,
+          content: {
+            dateTransparence: DateOnly.fromDbDateOnlyString(
+              transparence.dateTransparence,
+            ).toJson(),
+            dateClôtureDélaiObservation: DateOnly.fromDbDateOnlyString(
+              transparence.dateClotureDelaiObservation,
+            ).toJson(),
+          },
+        })
+        .where(eq(sessionPm.sessionImportéeId, sessionId));
     };
   }
 }

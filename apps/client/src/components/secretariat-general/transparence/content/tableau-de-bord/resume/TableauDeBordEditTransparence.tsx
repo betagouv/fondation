@@ -15,12 +15,14 @@ import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
 
 export type TableauDeBordEditTransparenceProps = {
   transparence: TransparenceSnapshot;
-  onSubmit: (data: EditTransparencyDto) => void;
+  onCancel: () => unknown;
+  onSubmit: (data: EditTransparencyDto) => Promise<void>;
 };
 
 export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProps> = ({
   transparence,
-  onSubmit
+  onSubmit,
+  onCancel
 }) => {
   const {
     name,
@@ -178,6 +180,7 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
             type: 'reset',
             onClick: () => {
               reset();
+              onCancel();
             }
           },
           {
