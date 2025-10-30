@@ -8,6 +8,8 @@ import { attachedFilesValidationSchema } from 'src/reports-context/business-logi
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
+import { toReportState } from './schema';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 type RuleValue = Omit<NominationFile.RuleValue, 'preValidated'>;
 
@@ -75,8 +77,8 @@ export class SqlReportRetrievalQuery implements ReportRetrievalQuery {
       id: reportData.reportId,
       dossierDeNominationId: reportData.dossierDeNominationId,
       sessionId: reportData.sessionId,
-      state: reportData.state,
-      formation: reportData.formation,
+      state: toReportState(reportData.state),
+      formation: toFormation(reportData.formation),
       comment: reportData.comment ? reportData.comment : null,
       rules,
       files: attachedFilesValidationSchema.parse(reportData.files),

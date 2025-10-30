@@ -1,4 +1,4 @@
-import { INestApplicationContext } from '@nestjs/common';
+import { INestApplicationContext, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -13,6 +13,7 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { Writable } from 'stream';
 import { z } from 'zod';
 import { IdentityAndAccessModule } from '../../identity-and-access.module';
+import { FrameworkModule } from 'src/modules/framework/framework.module';
 
 const userSchema = z
   .object({
@@ -108,9 +109,11 @@ if (!isAbsoluteFilePath)
 
 const main = async () => {
   const users = readJsonFile(absoluteFilePath);
-  const app = await NestFactory.createApplicationContext(
-    IdentityAndAccessModule,
-  );
+
+  @Module({ imports: [FrameworkModule, IdentityAndAccessModule] })
+  class CliModule {}
+
+  const app = await NestFactory.createApplicationContext(CliModule);
 
   const transactionPerformer = app.get<TransactionPerformer>(
     TRANSACTION_PERFORMER,

@@ -9,6 +9,8 @@ import { attachedFilesValidationSchema } from 'src/reports-context/business-logi
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
+import { toReportState } from './schema';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 
 export class SqlReportRepository implements ReportRepository {
   save(report: NominationFileReport): DrizzleTransactionableAsync<void> {
@@ -127,6 +129,8 @@ export class SqlReportRepository implements ReportRepository {
 
     return NominationFileReport.fromSnapshot({
       ...reportRow,
+      state: toReportState(reportRow.state),
+      formation: toFormation(reportRow.formation),
       dossierDeNominationId,
       attachedFiles,
     });

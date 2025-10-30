@@ -9,9 +9,11 @@ import { DomainEventsPoller } from './shared-kernel/adapters/primary/nestjs/doma
 import { SharedKernelModule } from './shared-kernel/adapters/primary/nestjs/shared-kernel.module';
 import { DOMAIN_EVENTS_POLLER } from './shared-kernel/adapters/primary/nestjs/tokens';
 import { NominationsContextModule } from './nominations-context/adapters/primary/nestjs/nominations-context.module';
+import { RootModule } from './modules/root.module';
 
 @Module({
   imports: [
+    RootModule,
     SharedKernelModule,
     FilesContextModule,
     IdentityAndAccessModule,

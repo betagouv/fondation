@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm';
 import { ReportListingQuery } from 'src/reports-context/business-logic/gateways/queries/report-listing-vm.query';
 import { DrizzleDb } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { reports } from './schema/report-pm';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+import { toReportState } from './schema';
 
 export class SqlReportListingQuery implements ReportListingQuery {
   constructor(private readonly db: DrizzleDb) {}
@@ -20,7 +22,11 @@ export class SqlReportListingQuery implements ReportListingQuery {
       .where(eq(reports.reporterId, reporterId))
       .execute();
 
-    return reportsData;
+    return reportsData.map((report) => ({
+      ...report,
+      formation: toFormation(report.formation),
+      state: toReportState(report.state),
+    }));
   }
 
   async listReportsByDnId(dnId: string) {
@@ -36,6 +42,11 @@ export class SqlReportListingQuery implements ReportListingQuery {
       .from(reports)
       .where(eq(reports.dossierDeNominationId, dnId))
       .execute();
-    return reportsData;
+
+    return reportsData.map((report) => ({
+      ...report,
+      formation: toFormation(report.formation),
+      state: toReportState(report.state),
+    }));
   }
 }

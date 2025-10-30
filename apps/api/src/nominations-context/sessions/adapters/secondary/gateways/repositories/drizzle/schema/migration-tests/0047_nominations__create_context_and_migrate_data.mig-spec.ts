@@ -14,7 +14,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { Pool } from 'pg';
 import { Magistrat, NominationFile, Transparency } from 'shared-models';
-import { dataAdministrationContextSchema } from 'src/data-administration-context/transparences/adapters/secondary/gateways/repositories/drizzle/schema/nomination-file-schema.drizzle';
 import { NominationFileModelSnapshot } from 'src/data-administration-context/transparence-tsv/business-logic/models/nomination-file';
 import { AffectationsDossiersDeNominations } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { TypeDeSaisine } from 'shared-models';
@@ -32,7 +31,10 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import { clearDB } from 'test/docker-postgresql-manager';
 import { PickDeep } from 'type-fest';
-import { nominationsContextSchema } from '../nominations-context-schema.drizzle';
+import {
+  dataAdministrationContextSchema,
+  nominationsContextSchema,
+} from 'src/modules/framework/drizzle/schemas';
 
 const typeDeSaisineEnum = nominationsContextSchema.enum(
   'type_de_saisine',
