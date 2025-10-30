@@ -1,11 +1,12 @@
 import { useParams } from 'react-router-dom';
 import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
-import { useSaveAffectationsRapporteurs } from '../../../../react-query/mutations/save-affectations-rapporteurs.mutation';
+import { useSaveAffectationsRapporteurs } from '../../../../react-query/mutations/sg/save-affectations-rapporteurs.mutation';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
+import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import type { Magistrat } from 'shared-models';
 import type { FC } from 'react';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
@@ -24,7 +25,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
 }) => {
   const { sessionId } = useParams();
   const {
-    data: dossiersData,
+    data: dossiersResponse,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
   } = useGetDossierDeNominationParSession({
@@ -66,11 +67,23 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     return <ErrorMessage message="Erreur lors de la récupération des données" />;
   }
 
+  const metadata = dossiersResponse?.metadata;
+  const isBrouillon = metadata?.statut === 'BROUILLON';
+
   return (
     <>
       <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
+        {metadata && (
+          <div className={'mb-4 flex flex-col gap-2'}>
+            <Badge severity={isBrouillon ? 'info' : 'success'}>
+              {isBrouillon ? 'Brouillon' : 'Publiée'}
+              {metadata.version > 1 && ` - Version ${metadata.version}`}
+            </Badge>
+          </div>
+        )}
+
         <TableauDossiersDeNomination
-          dossiersDeNomination={dossiersData || []}
+          dossiersDeNomination={dossiersResponse?.dossiers || []}
           availableRapporteurs={rapporteursData || []}
           showExportButton={true}
           ExportComponent={ExcelExport}

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DossierDeNominationRestContrat, SaveAffectationsRapporteursDto } from 'shared-models';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { apiFetch } from '../../../utils/api-fetch.utils';
 
 type Endpoint = DossierDeNominationRestContrat['endpoints']['saveAffectationsRapporteurs'];
 type SaveAffectationsRapporteursArgs = Endpoint['body'];
@@ -26,7 +26,7 @@ export const useSaveAffectationsRapporteurs = () => {
     onSuccess: async (_, { sessionId }) => {
       // Invalider les queries des dossiers de nomination pour cette session
       await queryClient.invalidateQueries({
-        queryKey: ['dossiers-nomination', sessionId]
+        queryKey: ['dossiers-de-nomination-par-session', sessionId]
       });
     }
   });
