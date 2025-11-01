@@ -46,6 +46,7 @@ export const apiConfig: ProdApiConfig = {
     signedUrlExpiresIn: 60 * 60 * 24,
   },
   sharedSecret: process.env.SHARED_SECRET!,
+  maintenanceApiKey: process.env.MAINTENANCE_API_KEY,
 };
 
 const defaultBaseUrl = 'http://localhost:3000';
@@ -109,6 +110,7 @@ export const defaultApiConfig = {
   sharedSecret:
     process.env.SHARED_SECRET ??
     'very-very-very-very-very-very-long-shared-secret',
+  maintenanceApiKey: process.env.MAINTENANCE_API_KEY,
 } satisfies DevApiConfig;
 
 export const API_CONFIG_TOKEN = Symbol();
