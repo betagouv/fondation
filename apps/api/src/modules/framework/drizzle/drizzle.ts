@@ -13,3 +13,7 @@ type DrizzleDbInterface = ReturnType<typeof getDrizzleInstance>;
 
 export interface Db extends DrizzleDbInterface {}
 export abstract class Db implements DrizzleDbInterface {}
+
+export type Tx = Parameters<
+  Parameters<DrizzleDbInterface['transaction']>[0]
+>[0];

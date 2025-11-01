@@ -18,6 +18,7 @@ const commonBaseSchema = z.object({
       baseUrl: z.string(),
     }),
   }),
+  maintenanceApiKey: z.string().optional(),
 });
 
 const commonS3Schema = z.object({
