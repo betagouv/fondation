@@ -144,7 +144,7 @@ describe.each`
           const filesVM = await s3StorageProvider.getSignedUrls([
             FileDocument.fromSnapshot(aFile),
           ]);
-          expect(filesVM.length).toBePositive();
+          expect(filesVM.length).toBeGreaterThan(0);
 
           expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
           const signedUrls = filesVM.map((file) => new URL(file.signedUrl));
@@ -232,7 +232,7 @@ describe.each`
           const filesVM = await s3StorageProvider.getSignedUrls([
             FileDocument.fromSnapshot(aFile),
           ]);
-          expect(filesVM.length).toBePositive();
+          expect(filesVM.length).toBeGreaterThan(0);
 
           expect(filesVM.map((fileVM) => fileVM.name)).toEqual([aFile.name]);
           const signedUrls = filesVM.map((file) => new URL(file.signedUrl));

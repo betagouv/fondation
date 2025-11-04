@@ -36,7 +36,7 @@ describe('GDS nouvelles transparences importées sbscriber', () => {
   const expectNouvelleTransparenceCalledWith = (transparence: Transparency) => {
     expect(
       dependencies.importNouvelleTransparenceUseCase.execute,
-    ).toHaveBeenCalledOnce();
+    ).toHaveBeenCalledTimes(1);
     expect(
       dependencies.importNouvelleTransparenceUseCase.execute,
     ).toHaveBeenCalledWith(

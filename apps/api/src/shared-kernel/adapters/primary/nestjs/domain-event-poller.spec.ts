@@ -24,7 +24,7 @@ describe('Domain Event Poller', () => {
 
   it('marks an event as consumed', async () => {
     await pollEvents();
-    expect(domainEventRepository).toHaveDomainEvents(aConsumedEvent);
+    expect(domainEventRepository.events).toEqual([aConsumedEvent]);
   });
 
   const pollEvents = () =>

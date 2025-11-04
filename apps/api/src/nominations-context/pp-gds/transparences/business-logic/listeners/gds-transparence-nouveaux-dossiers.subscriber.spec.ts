@@ -36,7 +36,10 @@ describe('GDS transparence nouveaux dossiers sbscriber', () => {
   const expectImportNouveauxDossiersUseCaseCalled = () => {
     expect(
       dependencies.importNouveauxDossiersTransparenceUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      dependencies.importNouveauxDossiersTransparenceUseCase.execute,
+    ).toHaveBeenCalledWith(
       ImportNouveauxDossiersTransparenceCommand.create({
         transparenceId: payload.transparenceId,
         nominationFiles: payload.nominationFiles,

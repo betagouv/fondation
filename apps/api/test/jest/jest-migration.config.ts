@@ -17,7 +17,6 @@ const jestConfig: JestConfigWithTsJest = {
   testEnvironment: 'node',
   modulePaths: ['<rootDir>/../'],
   collectCoverageFrom: ['<rootDir>/**/*.ts', '!<rootDir>/**/*.mig-spec.ts'],
-  setupFilesAfterEnv: ['<rootDir>/../test/jest/custom-expects.ts'],
 };
 
 export default jestConfig;

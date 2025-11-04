@@ -26,6 +26,7 @@ import { SecureCrossContextRequestBuilder } from 'test/secure-cross-context-requ
 import { FakeEncryptionProvider } from '../../secondary/gateways/providers/fake-encryption.provider';
 import { sessions } from '../../secondary/gateways/repositories/drizzle/schema/session-pm';
 import { ENCRYPTION_PROVIDER } from './tokens';
+import { randomUUID } from 'node:crypto';
 
 const aPassword = 'password-123';
 const aUserDb = {
@@ -254,7 +255,7 @@ describe('Auth Controller', () => {
     it.each`
       description    | pathname
       ${'full name'} | ${`user-with-full-name/wrong_last_name ${aUserDb.firstName}`}
-      ${'ID'}        | ${`user-with-id/da4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b`}
+      ${'ID'}        | ${`user-with-id/${randomUUID()}`}
     `(
       'says user is not found if no user matches the non-existing $description',
       ({ pathname }) => requestEndpoint(pathname, HttpStatus.NOT_FOUND),

@@ -29,9 +29,10 @@ describe('GDS transparence dossiers modifiés subscriber', () => {
   const expectUpdateDossierDeNominationUseCaseCalled = () => {
     expect(
       dependencies.updateDossierDeNominationUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(
-      UpdateDossierDeNominationCommand.create(payload),
-    );
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      dependencies.updateDossierDeNominationUseCase.execute,
+    ).toHaveBeenCalledWith(UpdateDossierDeNominationCommand.create(payload));
   };
 });
 

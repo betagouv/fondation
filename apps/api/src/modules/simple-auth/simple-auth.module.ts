@@ -21,6 +21,6 @@ export class SimpleAuthModule implements NestModule {
         '/api/reports/*rest',
         '/api/users/*rest',
       )
-      .forRoutes('*');
+      .forRoutes('*all');
   }
 }
