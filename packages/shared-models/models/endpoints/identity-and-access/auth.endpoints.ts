@@ -69,7 +69,7 @@ export interface UserWithIdParamsDto extends Record<string, string> {
 }
 
 export const loginDtoSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 }) satisfies ZodDto<IdentityAndAccessRestContract, "login">;
 
@@ -82,5 +82,5 @@ export const userWithFullNameParamsDtoSchema = z.object({
 }) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithFullName">;
 
 export const userWithIdParamsDtoSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 }) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithId">;

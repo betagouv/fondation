@@ -25,8 +25,8 @@ export type TransparenceXlsxImportéeEventPayload = {
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
-export const nominationFilesPayloadSchema = z
-  .array(
+export const nominationFilesPayloadSchema = z.tuple(
+  [
     z.object({
       nominationFileId: z.string(),
       content: nominationFileReadContentSchema
@@ -35,13 +35,19 @@ export const nominationFilesPayloadSchema = z
           reporterIds: z.array(z.string()).nullable(),
         }),
     }),
-  )
-  .nonempty();
+  ],
+  z.object({
+    nominationFileId: z.string(),
+    content: nominationFileReadContentSchema.omit({ reporters: true }).extend({
+      reporterIds: z.array(z.string()).nullable(),
+    }),
+  }),
+);
 
 export const transparenceXlsxImportéePayloadSchema = z.object({
-  transparenceId: z.string().uuid(),
+  transparenceId: z.uuid(),
   transparenceName: z.string(),
-  formation: z.nativeEnum(Magistrat.Formation),
+  formation: z.enum(Magistrat.Formation),
   dateTransparence: DateOnly.ZOD_JSON_SCHEMA,
   dateEchéance: DateOnly.ZOD_JSON_SCHEMA.nullable(),
   dateClôtureDélaiObservation: DateOnly.ZOD_JSON_SCHEMA,

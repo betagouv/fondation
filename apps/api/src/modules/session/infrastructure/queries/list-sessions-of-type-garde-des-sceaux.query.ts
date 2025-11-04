@@ -112,7 +112,7 @@ export const ListSessionOfTypeGardeDesSceauxResponseSchema = z.object({
     z.object({
       id: z.string(),
       label: z.string(),
-      createdAt: z.string().datetime(),
+      createdAt: z.iso.datetime(),
       isAffected: z.boolean(),
       formation: z.string(), // z.nativeEnum(Magistrat.Formation),
       typeDeSaisine: z.string(), // z.nativeEnum(TypeDeSaisine),

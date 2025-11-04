@@ -57,7 +57,7 @@ export class User {
     return this._email;
   }
   private set email(value: string) {
-    this._email = z.string().email().parse(value);
+    this._email = z.email().parse(value);
   }
 
   public get password(): string {
@@ -71,7 +71,7 @@ export class User {
     return this._role;
   }
   private set role(value: Role) {
-    this._role = z.nativeEnum(Role).parse(value);
+    this._role = z.enum(Role).parse(value);
   }
 
   public get person(): Person {

@@ -17,14 +17,18 @@ export type TransparenceXlsxObservantsImportésEventPayload = {
 export const gdsTransparenceNominationFilesModifiedEventPayloadSchema =
   z.object({
     transparenceId: z.string(),
-    dossiersDeNominations: z
-      .array(
+    dossiersDeNominations: z.tuple(
+      [
         z.object({
           dossierId: z.string(),
           observants: nominationFileReadContentSchema.shape.observers,
         }),
-      )
-      .nonempty(),
+      ],
+      z.object({
+        dossierId: z.string(),
+        observants: nominationFileReadContentSchema.shape.observers,
+      }),
+    ),
   }) satisfies z.ZodType<TransparenceXlsxObservantsImportésEventPayload>;
 
 export class TransparenceXlsxObservantsImportésEvent extends DomainEvent<TransparenceXlsxObservantsImportésEventPayload> {

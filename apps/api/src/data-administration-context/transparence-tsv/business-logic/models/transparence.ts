@@ -116,25 +116,21 @@ export class Transparence {
     return this._name;
   }
   set name(name: string) {
-    this._name = z.nativeEnum(Transparency).parse(name);
+    this._name = z.enum(Transparency).parse(name);
   }
 
   get formation(): Magistrat.Formation {
     return this._formation;
   }
   set formation(formation: Magistrat.Formation) {
-    this._formation = z.nativeEnum(Magistrat.Formation).parse(formation);
+    this._formation = z.enum(Magistrat.Formation).parse(formation);
   }
 
   get nominationFiles(): NominationFileModel[] {
     return Object.values(this._nominationFiles);
   }
   private set nominationFiles(nominationFiles: NominationFileModel[]) {
-    const parsedNominationFiles = z
-      .any()
-      .array()
-      .nonempty()
-      .parse(nominationFiles);
+    const parsedNominationFiles = z.any().array().parse(nominationFiles);
     this._nominationFiles = z
       .record(z.string(), z.any())
       .parse(

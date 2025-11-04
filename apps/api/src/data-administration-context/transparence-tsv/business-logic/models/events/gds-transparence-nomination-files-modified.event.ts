@@ -32,14 +32,18 @@ export const gdsTransparenceNominationFilesModifiedEventPayloadSchema =
   z.object({
     transparenceId: z.string(),
     transparenceName: z.string(),
-    nominationFiles: z
-      .array(
+    nominationFiles: z.tuple(
+      [
         z.object({
           nominationFileId: z.string(),
           content: nominationFileContentUpdateSchema,
         }),
-      )
-      .nonempty(),
+      ],
+      z.object({
+        nominationFileId: z.string(),
+        content: nominationFileContentUpdateSchema,
+      }),
+    ),
   }) satisfies z.ZodType<GdsTransparenceNominationFilesModifiedEventPayload>;
 
 export class GdsTransparenceNominationFilesModifiedEvent extends DomainEvent<GdsTransparenceNominationFilesModifiedEventPayload> {

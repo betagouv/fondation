@@ -62,28 +62,28 @@ export type SessionType = keyof typeof sessionTypeMap;
 
 export const importNouvelleTransparenceDtoSchema = z.object({
   nomTransparence: z.string().min(1),
-  formation: z.nativeEnum(Magistrat.Formation),
-  dateTransparence: z.string().date(),
-  dateEcheance: z.string().date().optional(),
-  datePriseDePosteCible: z.string().date().optional(),
-  dateClotureDelaiObservation: z.string().date(),
+  formation: z.enum(Magistrat.Formation),
+  dateTransparence: z.iso.date(),
+  dateEcheance: z.iso.date().optional(),
+  datePriseDePosteCible: z.iso.date().optional(),
+  dateClotureDelaiObservation: z.iso.date(),
 });
 export interface ImportNouvelleTransparenceDto
   extends z.infer<typeof importNouvelleTransparenceDtoSchema> {}
 
 export const importObservantsXlsxDtoSchema = z.object({
   nomTransparence: z.string().min(1),
-  formation: z.nativeEnum(Magistrat.Formation),
-  dateTransparence: z.string().date(),
+  formation: z.enum(Magistrat.Formation),
+  dateTransparence: z.iso.date(),
 });
 export interface ImportObservantsXlsxDto
   extends z.infer<typeof importObservantsXlsxDtoSchema> {}
 
 export const importSessionAttachmentDtoSchema = z.object({
   sessionImportId: z.string().min(1),
-  sessionType: z.nativeEnum(sessionTypeMap),
-  dateSession: z.string().date(),
-  formation: z.nativeEnum(Magistrat.Formation),
+  sessionType: z.enum(sessionTypeMap),
+  dateSession: z.iso.date(),
+  formation: z.enum(Magistrat.Formation),
   name: z.string().min(1),
 });
 export interface ImportSessionAttachmentDto
@@ -116,7 +116,7 @@ export type TransparenceSnapshot = {
 
 
 export const getTransparenceQueryParamsSchema = z.object({
-  sessionId: z.string().uuid(),
+  sessionId: z.uuid(),
 });
 export interface GetTransparenceQueryParamsDto
   extends z.infer<typeof getTransparenceQueryParamsSchema> {}
@@ -125,7 +125,7 @@ export interface GetTransparenceQueryParamsDto
 
 const mandatoryField = 'Champ obligatoire.';
 const invalidDateFormat = 'Format de date invalide.';
-const optionalDate = z.string().date(invalidDateFormat).optional();
+const optionalDate = z.iso.date(invalidDateFormat).optional();
 export const updateTransparenceSchema = z.object({
   name: z
     .string({
@@ -133,12 +133,12 @@ export const updateTransparenceSchema = z.object({
     })
     .trim()
     .min(1, mandatoryField),
-  dateTransparence: z.string({ message: mandatoryField }).date(invalidDateFormat),
-  formation: z.nativeEnum(Magistrat.Formation, {
+  dateTransparence: z.iso.date(invalidDateFormat),
+  formation: z.enum(Magistrat.Formation, {
     message: mandatoryField
   }),
   dateEcheance: optionalDate,
   datePriseDePosteCible: optionalDate,
-  dateClotureDelaiObservation: z.string({ message: mandatoryField }).date(invalidDateFormat)
+  dateClotureDelaiObservation: z.iso.date(invalidDateFormat)
 });
 export type EditTransparencyDto = z.infer<typeof updateTransparenceSchema>;

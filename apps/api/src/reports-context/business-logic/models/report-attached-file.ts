@@ -66,7 +66,7 @@ export class ReportAttachedFile {
     return this._usage;
   }
   private set usage(value: ReportFileUsage) {
-    this._usage = z.nativeEnum(ReportFileUsage).parse(value);
+    this._usage = z.enum(ReportFileUsage).parse(value);
   }
 
   toSnapshot(): ReportAttachedFileSnapshot {

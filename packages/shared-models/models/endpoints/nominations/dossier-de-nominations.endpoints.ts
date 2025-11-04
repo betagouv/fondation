@@ -47,14 +47,14 @@ export interface DossierDeNominationSnapshotParamsDto
   dossierId: string;
 }
 export const dossierDeNominationSnapshotParamsSchema = z.object({
-  dossierId: z.string().uuid(),
+  dossierId: z.uuid(),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
   "dossierDeNominationSnapshot"
 >;
 
 export const dossierDeNominationEtAffectationSchema = z.object({
-  sessionId: z.string().uuid(),
+  sessionId: z.uuid(),
 }) satisfies ZodParamsDto<
   DossierDeNominationRestContrat,
   "dossierDeNominationEtAffectationParSession"
@@ -72,12 +72,12 @@ export interface SaveAffectationsRapporteursDto {
 }
 
 export const saveAffectationsRapporteursSchema = z.object({
-  sessionId: z.string().uuid(),
+  sessionId: z.uuid(),
   affectations: z.array(
     z.object({
-      dossierId: z.string().uuid(),
-      rapporteurIds: z.array(z.string().uuid()),
-      priorite: z.nativeEnum(PrioriteEnum).optional(),
+      dossierId: z.uuid(),
+      rapporteurIds: z.array(z.uuid()),
+      priorite: z.enum(PrioriteEnum).optional(),
     })
   ),
 }) satisfies ZodDto<

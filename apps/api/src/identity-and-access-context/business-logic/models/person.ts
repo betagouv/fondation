@@ -16,6 +16,6 @@ export class Person {
     return this._gender;
   }
   private set gender(value: Gender) {
-    this._gender = z.nativeEnum(Gender).parse(value);
+    this._gender = z.enum(Gender).parse(value);
   }
 }

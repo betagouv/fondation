@@ -11,7 +11,7 @@ export type NominationFilesUpdatedEventPayload = z.infer<
 >;
 
 export const nominationFilesUpdatedEventPayloadSchema = z
-  .object({
+  .strictObject({
     nominationFileId: z.string(),
     content: nominationFileReadContentSchema
       .pick({
@@ -23,7 +23,6 @@ export const nominationFilesUpdatedEventPayloadSchema = z
       })
       .partial(),
   })
-  .strict()
   .array();
 
 export class NominationFilesUpdatedEvent extends DomainEvent<NominationFilesUpdatedEventPayload> {

@@ -51,7 +51,7 @@ export class UserDescriptor {
     return this._role;
   }
   private set role(value: Role) {
-    this._role = z.nativeEnum(Role).parse(value);
+    this._role = z.enum(Role).parse(value);
   }
 
   serialize(): UserDescriptorSerialized {

@@ -85,7 +85,7 @@ export class ReportAttachedFiles {
 export const attachedFilesValidationSchema = z.union([
   z
     .object({
-      usage: z.nativeEnum(ReportFileUsage),
+      usage: z.enum(ReportFileUsage),
       name: z.string(),
       fileId: z.string(),
     })
