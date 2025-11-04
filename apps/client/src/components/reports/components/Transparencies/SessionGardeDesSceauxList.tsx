@@ -42,7 +42,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
       label: formationToLabel(formation),
       content: (
         <>
-          <h3>Vos dossiers</h3>
+          <h3>Vos sessions</h3>
           {sessionsByFormation[formation].affected.length > 0 ? (
             <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
               {sessionsByFormation[formation].affected.map((session) => (
@@ -58,12 +58,12 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
               ))}
             </ul>
           ) : (
-            <p className="text-sm">Aucun dossier ne vous est affecté pour le moment</p>
+            <p className="text-sm">Aucune session en cours</p>
           )}
 
           {sessionsByFormation[formation].nonAffected.length > 0 ? (
             <>
-              <h3>Tous les dossiers</h3>
+              <h3>Toutes les sessions</h3>
               <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
                 {sessionsByFormation[formation].nonAffected.map((session) => (
                   <li key={session.label}>
@@ -80,7 +80,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
               </ul>
             </>
           ) : (
-            <p>Pas d'autre dossier disponible</p>
+            <p>Pas d'autre session disponible</p>
           )}
         </>
       )
