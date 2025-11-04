@@ -5,7 +5,7 @@ import { Avancement } from '../avancement';
 export class AvancementNormalizer {
   static normalize(avancement: string): Avancement {
     try {
-      return z.nativeEnum(Avancement).parse(avancement);
+      return z.enum(Avancement).parse(avancement);
     } catch {
       throw new InvalidRowValueError('avancement', avancement, 0);
     }

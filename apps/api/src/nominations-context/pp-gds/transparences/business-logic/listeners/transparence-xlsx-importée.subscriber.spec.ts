@@ -22,7 +22,10 @@ describe('Transparence XLSX importée subscriber', () => {
 
     expect(
       dependencies.importNouvelleTransparenceXlsxUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      dependencies.importNouvelleTransparenceXlsxUseCase.execute,
+    ).toHaveBeenCalledWith(
       new ImportNouvelleTransparenceXlsxCommand(
         uneTransparenceId,
         uneTransparence,

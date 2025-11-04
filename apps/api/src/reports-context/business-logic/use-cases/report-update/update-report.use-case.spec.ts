@@ -34,7 +34,9 @@ describe('Report Update Use Case', () => {
     });
     reportRepository.saveErrorCountLimit = MAX_RETRIES_OF_REPORT_UPDATE;
 
-    await expect(updateReport({ comment: 'new comment' })).toResolve();
+    await expect(() =>
+      updateReport({ comment: 'new comment' }),
+    ).resolves.not.toThrow();
   });
 
   const testData: [ReportUpdateData, NominationFileReportSnapshot][] = [

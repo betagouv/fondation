@@ -55,8 +55,8 @@ export class NominationFilesContentReadCollection {
               );
 
             return {
-              transparency: z.nativeEnum(Transparency).parse(transparence),
-              formation: z.nativeEnum(Magistrat.Formation).parse(formation),
+              transparency: z.enum(Transparency).parse(transparence),
+              formation: z.enum(Magistrat.Formation).parse(formation),
               readCollection: nominationFilesContentReadCollection,
             };
           },

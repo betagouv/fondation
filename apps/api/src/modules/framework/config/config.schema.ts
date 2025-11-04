@@ -43,27 +43,27 @@ const S3ConfigSchema = z.object({
   }),
 });
 
-export const ProdApiConfigSchema = commonBaseSchema.merge(
+export const ProdApiConfigSchema = commonBaseSchema.extend(
   z.object({
-    originUrl: z.string().url().startsWith('https://'),
-    frontendOriginUrl: z.string().url().startsWith('https://'),
-    sentryDsn: z.string().url(),
-    deployEnv: z.nativeEnum(DeployEnvMode),
+    originUrl: z.url().startsWith('https://'),
+    frontendOriginUrl: z.url().startsWith('https://'),
+    sentryDsn: z.url(),
+    deployEnv: z.enum(DeployEnvMode),
     database: z.object({
       connectionString: z.string(),
     }),
-    s3: commonS3Schema.merge(
+    s3: commonS3Schema.extend(
       z.object({
         scaleway: S3ConfigSchema,
-      }),
+      }).shape,
     ),
-  }),
+  }).shape,
 );
 
-export const DevApiConfigSchema = commonBaseSchema.merge(
+export const DevApiConfigSchema = commonBaseSchema.extend(
   z.object({
-    originUrl: z.string().url().startsWith('http://'),
-    frontendOriginUrl: z.string().url().startsWith('http://'),
+    originUrl: z.url().startsWith('http://'),
+    frontendOriginUrl: z.url().startsWith('http://'),
     database: z.object({
       host: z.string(),
       port: z.number(),
@@ -71,13 +71,13 @@ export const DevApiConfigSchema = commonBaseSchema.merge(
       password: z.string(),
       name: z.string(),
     }),
-    s3: commonS3Schema.merge(
+    s3: commonS3Schema.extend(
       z.object({
         minio: S3ConfigSchema,
         scaleway: S3ConfigSchema,
-      }),
+      }).shape,
     ),
-  }),
+  }).shape,
 );
 
 export type S3Config = z.infer<typeof S3ConfigSchema>;

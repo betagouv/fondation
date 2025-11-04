@@ -19,7 +19,7 @@ export const rapportTransparenceCrééEventPayloadSchema = z.object({
   dossierDeNominationId: z.string(),
   sessionId: z.string(),
   reporterId: z.string(),
-  formation: z.nativeEnum(Magistrat.Formation),
+  formation: z.enum(Magistrat.Formation),
 }) satisfies z.ZodType<RapportTransparenceCrééEventPayload>;
 
 export class RapportTransparenceCrééEvent extends DomainEvent<RapportTransparenceCrééEventPayload> {

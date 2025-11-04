@@ -20,7 +20,7 @@ export type AffectationSnapshot = {
 export const affectationsDossiersDeNominationsSchema = z.object({
   dossierDeNominationId: z.string(),
   rapporteurIds: z.array(z.string()),
-  priorite: z.nativeEnum(PrioriteEnum).optional(),
+  priorite: z.enum(PrioriteEnum).optional(),
 });
 
 export class Affectation {

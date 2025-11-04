@@ -21,8 +21,8 @@ export type GdsNewTransparenceImportedEventPayload = {
   nominationFiles: NominationFilesContentWithReporterIds[];
 };
 
-export const nominationFilesPayloadSchema = z
-  .array(
+export const nominationFilesPayloadSchema = z.tuple(
+  [
     z.object({
       nominationFileId: z.string(),
       content: nominationFileReadContentSchema
@@ -31,13 +31,19 @@ export const nominationFilesPayloadSchema = z
           reporterIds: z.array(z.string()).nullable(),
         }),
     }),
-  )
-  .nonempty();
+  ],
+  z.object({
+    nominationFileId: z.string(),
+    content: nominationFileReadContentSchema.omit({ reporters: true }).extend({
+      reporterIds: z.array(z.string()).nullable(),
+    }),
+  }),
+);
 
 export const gdsNewTransparenceImportedEventPayloadSchema = z.object({
   transparenceId: z.string(),
-  transparenceName: z.nativeEnum(Transparency),
-  formation: z.nativeEnum(Magistrat.Formation),
+  transparenceName: z.enum(Transparency),
+  formation: z.enum(Magistrat.Formation),
   nominationFiles: nominationFilesPayloadSchema,
 }) satisfies z.ZodType<GdsNewTransparenceImportedEventPayload>;
 

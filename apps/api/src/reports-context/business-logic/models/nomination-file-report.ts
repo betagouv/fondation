@@ -53,14 +53,14 @@ export class NominationFileReport {
     return this._version;
   }
   private set version(value: number) {
-    this._version = z.number().int().min(0).parse(value);
+    this._version = z.int().min(0).parse(value);
   }
 
   get state(): NominationFile.ReportState {
     return this._state;
   }
   private set state(value: NominationFile.ReportState) {
-    this._state = z.nativeEnum(NominationFile.ReportState).parse(value);
+    this._state = z.enum(NominationFile.ReportState).parse(value);
   }
 
   get formation(): Magistrat.Formation {

@@ -77,7 +77,7 @@ export interface ChangeRuleValidationStateDto {
 }
 
 export const reportUpdateDto = z.object({
-  state: z.nativeEnum(NominationFile.ReportState).optional(),
+  state: z.enum(NominationFile.ReportState).optional(),
   comment: z.string().optional(),
 }) satisfies ZodDto<ReportsContextRestContract, "updateReport">;
 
@@ -90,7 +90,7 @@ export const uploadFilesParamsDtoSchema = z.object({
 }) satisfies ZodParamsDto<ReportsContextRestContract, "uploadFiles">;
 
 export const uploadFilesQueryParamsDtoSchema = z.object({
-  usage: z.nativeEnum(ReportFileUsage),
+  usage: z.enum(ReportFileUsage),
   fileIds: z
     .union([z.string(), z.string().array()])
     .transform((v) => (Array.isArray(v) ? v : [v])),

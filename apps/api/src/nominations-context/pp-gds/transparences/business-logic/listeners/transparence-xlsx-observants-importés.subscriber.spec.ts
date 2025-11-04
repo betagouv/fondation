@@ -26,9 +26,12 @@ describe('Transparence XLSX observants importés subscriber', () => {
     ).handle(payload);
 
   const expectUpdateObservantsUseCaseCalled = () => {
-    expect(
-      dependencies.updateObservantsUseCase.execute,
-    ).toHaveBeenCalledExactlyOnceWith(UpdateObservantsCommand.create(payload));
+    expect(dependencies.updateObservantsUseCase.execute).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(dependencies.updateObservantsUseCase.execute).toHaveBeenCalledWith(
+      UpdateObservantsCommand.create(payload),
+    );
   };
 });
 

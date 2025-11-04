@@ -15,15 +15,13 @@ import { z } from 'zod';
 import { IdentityAndAccessModule } from '../../identity-and-access.module';
 import { FrameworkModule } from 'src/modules/framework/framework.module';
 
-const userSchema = z
-  .object({
-    firstName: z.string(),
-    lastName: z.string(),
-    role: z.nativeEnum(Role),
-    email: z.string().email(),
-    gender: z.nativeEnum(Gender),
-  })
-  .strict();
+const userSchema = z.strictObject({
+  firstName: z.string(),
+  lastName: z.string(),
+  role: z.enum(Role),
+  email: z.email(),
+  gender: z.enum(Gender),
+});
 type UserJson = z.infer<typeof userSchema>;
 
 const promptForPassword = async (username: string): Promise<string> => {

@@ -19,15 +19,14 @@ export type AffectationRapporteursCréeEventPayload = {
 export const affectationRapporteursCréeEventPayloadSchema = z.object({
   id: z.string(),
   sessionId: z.string(),
-  typeDeSaisine: z.nativeEnum(TypeDeSaisine),
-  formation: z.nativeEnum(Magistrat.Formation),
+  typeDeSaisine: z.enum(TypeDeSaisine),
+  formation: z.enum(Magistrat.Formation),
   affectationsDossiersDeNominations: z
     .object({
       dossierDeNominationId: z.string(),
-      rapporteurIds: z.string().array().nonempty(),
+      rapporteurIds: z.string().array(),
     })
-    .array()
-    .nonempty(),
+    .array(),
 }) satisfies z.ZodType<AffectationRapporteursCréeEventPayload>;
 
 export class AffectationRapporteursCréeEvent extends DomainEvent<AffectationRapporteursCréeEventPayload> {

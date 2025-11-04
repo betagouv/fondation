@@ -32,7 +32,7 @@ interface FormationQueryParamsDto extends Record<string, string> {
 }
 
 export const formationDtoSchema = z.object({
-  formation: z.nativeEnum(Magistrat.Formation),
+  formation: z.enum(Magistrat.Formation),
 })
 
 
