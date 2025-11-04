@@ -7,7 +7,6 @@ export function isDefined<T>(value: T): value is NonNullable<T> {
 export function assertIsDefined<T>(value: T, message?: string): NonNullable<T> {
   if (!isDefined(value)) {
     throw new AssertionError({
-      actual: value,
       message: message || `expected a non-null value, received: ${value}`,
     });
   }

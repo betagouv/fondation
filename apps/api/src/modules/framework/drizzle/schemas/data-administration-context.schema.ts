@@ -1,8 +1,10 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
+  date,
   integer,
   jsonb,
   pgSchema,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -11,6 +13,7 @@ import {
 
 import { filesPm } from './file-context.schema';
 import { formationEnum } from './shared-kernel.schema';
+import { users } from './identity-and-access-context.schema';
 
 export const dataAdministrationContextSchema = pgSchema(
   'data_administration_context',
@@ -67,5 +70,58 @@ export const transparencesPm = dataAdministrationContextSchema.table(
       t.formation,
       t.dateTransparence,
     ),
+  }),
+);
+
+export const drizzleJurisdiction = dataAdministrationContextSchema.table(
+  'jurisdictions',
+  {
+    codejur: text().notNull().primaryKey(),
+    type_jur: text().notNull(),
+    adr1: text(),
+    adr2: text(),
+    arrondissement: text(),
+    codepos: text(),
+    date_suppression: date({ mode: 'date' }),
+    libelle: text(),
+    ressort: text(),
+    ville_jur: text(),
+    ville: text(),
+  },
+);
+
+export const drizzleExcludedJurisdictions =
+  dataAdministrationContextSchema.table(
+    'excluded_jurisdictions',
+    {
+      userId: uuid()
+        .notNull()
+        .references(() => users.id, {
+          onDelete: 'cascade',
+          onUpdate: 'no action',
+        }),
+      jurisdictionId: text()
+        .notNull()
+        .references(() => drizzleJurisdiction.codejur, {
+          onDelete: 'cascade',
+          onUpdate: 'no action',
+        }),
+    },
+    (t) => ({
+      primaryKey: primaryKey({ columns: [t.userId, t.jurisdictionId] }),
+    }),
+  );
+
+export const drizzleExcludedJurisdictionRelations = relations(
+  drizzleExcludedJurisdictions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [drizzleExcludedJurisdictions.userId],
+      references: [users.id],
+    }),
+    jurisdiction: one(drizzleJurisdiction, {
+      fields: [drizzleExcludedJurisdictions.jurisdictionId],
+      references: [drizzleJurisdiction.codejur],
+    }),
   }),
 );

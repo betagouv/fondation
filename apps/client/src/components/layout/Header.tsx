@@ -1,20 +1,14 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 
 export const AppHeader = () => {
-  const navigate = useNavigate();
   const { pathname } = useLocation();
   const includeSg = pathname.includes(ROUTE_PATHS.SG.DASHBOARD);
-
-  const onClickHandler = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    navigate(path);
-  };
 
   const navigation: MainNavigationProps.Item[] = [
     {
@@ -26,24 +20,19 @@ export const AppHeader = () => {
     },
     {
       linkProps: {
-        href: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
-        onClick: onClickHandler(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE),
-        target: '_self'
+        href: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE
       },
       text: 'Créer une session'
     },
     {
       linkProps: {
-        href: ROUTE_PATHS.SG.MANAGE_SESSION,
-        onClick: onClickHandler(ROUTE_PATHS.SG.MANAGE_SESSION),
-        target: '_self'
+        href: ROUTE_PATHS.SG.MANAGE_SESSION
       },
       text: 'Gérer une session'
     },
     {
       linkProps: {
-        href: '#',
-        target: '_self'
+        href: ROUTE_PATHS.SG.MANAGE_MEMBERS
       },
       text: 'Gérer les membres'
     },

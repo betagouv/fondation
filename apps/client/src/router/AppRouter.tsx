@@ -11,6 +11,8 @@ import { TransparencePage } from '../pages/secretariat-general/TransparencePage'
 import { SessionsPage } from '../pages/transparence/SessionsPage';
 import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '../utils/route-path.utils';
+import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
+import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
 
 const router = createBrowserRouter([
   {
@@ -68,6 +70,14 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.SG.MANAGE_SESSION,
             element: <ManageSessionPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
+            element: <MemberListPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
+            element: <DetailsMemberPage />
           }
         ]
       }

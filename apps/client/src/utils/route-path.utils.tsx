@@ -17,7 +17,9 @@ export const ROUTE_PATHS = {
     DASHBOARD: '/secretariat-general',
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     SESSION_ID: '/secretariat-general/session/:sessionId/:sessionImportId',
-    MANAGE_SESSION: '/secretariat-general/sessions'
+    MANAGE_SESSION: '/secretariat-general/sessions',
+    MANAGE_MEMBERS: '/secretariat-general/membres',
+    MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId'
   }
 } as const;
 

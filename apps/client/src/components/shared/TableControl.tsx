@@ -1,8 +1,9 @@
 import Select from '@codegouvfr/react-dsfr/Select';
-import { useState, type FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import { ITEMS_PAR_PAGE } from '../../types/table.types';
 import type { ItemsPerPage } from '../../hooks/usePagination.hook';
+import { pluralize } from '../../utils/string.utils';
 
 export type TableControlProps = {
   onChange: (value: ItemsPerPage) => void;
@@ -12,6 +13,7 @@ export type TableControlProps = {
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
+  label?: string | { one: string; other: string };
 };
 
 export const TableControl: FC<TableControlProps> = ({
@@ -21,6 +23,7 @@ export const TableControl: FC<TableControlProps> = ({
   displayedItems,
   totalPages,
   currentPage,
+  label = 'dossiers',
   setCurrentPage
 }) => {
   const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
@@ -33,11 +36,16 @@ export const TableControl: FC<TableControlProps> = ({
     onChange(newValue);
   };
 
+  const displayedLabel = useMemo(
+    () => (typeof label === 'string' ? label : pluralize(totalItems, label)),
+    [label, totalItems]
+  );
+
   return (
     <div className="flex items-center justify-between gap-16">
       <div className="flex items-center gap-6">
         <div className="text-sm text-gray-600">
-          Affichage de {displayedItems} sur {totalItems} dossiers
+          Affichage de {displayedItems} sur {totalItems} {displayedLabel}
         </div>
         <Select
           label=""

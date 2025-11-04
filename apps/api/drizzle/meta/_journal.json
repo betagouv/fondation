@@ -407,6 +407,13 @@
       "when": 1753951922185,
       "tag": "0057_data-administration-context_add-transparences-files-table",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1762160483355,
+      "tag": "0058_adds_jurisdiction_exclusion_tables",
+      "breakpoints": true
     }
   ]
 }

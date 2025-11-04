@@ -36,6 +36,7 @@ jobs:
       - name: Test
         run: pnpm test:all
         env:
+          DATABASE_PORT: 5435
           SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
           SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
