@@ -29,3 +29,15 @@ export type DossierDeNominationEtAffectationSnapshot = DossierDeNominationSnapsh
   rapporteurs: RapporteurInfo[];
   priorite?: PrioriteEnum;
 };
+
+export type AffectationMetadata = {
+  statut: 'BROUILLON' | 'PUBLIEE';
+  version: number;
+  datePublication?: Date;
+  auteurPublication?: string;
+};
+
+export type DossiersEtAffectationResponse = {
+  dossiers: DossierDeNominationEtAffectationSnapshot[];
+  metadata: AffectationMetadata | null;
+};

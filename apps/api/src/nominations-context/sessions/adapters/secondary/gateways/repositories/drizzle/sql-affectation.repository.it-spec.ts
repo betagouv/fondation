@@ -3,7 +3,10 @@ import {
   Affectation,
   AffectationsDossiersDeNominations,
   AffectationSnapshot,
+  StatutAffectation,
 } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
+import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { DrizzleTransactionPerformer } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { drizzleConfigForTest } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-config';
 import {
@@ -14,8 +17,6 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { affectationPm } from './schema/affectation-pm';
 import { SqlAffectationRepository } from './sql-affectation.repository';
-import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
-import { DomainRegistry } from 'src/nominations-context/sessions/business-logic/models/domain-registry';
 
 describe('SQL Affectation Repository', () => {
   let sqlAffectationRepository: SqlAffectationRepository;
@@ -54,6 +55,8 @@ describe('SQL Affectation Repository', () => {
     await expectAffectations({
       ...affectationSnapshot,
       createdAt: expect.any(Date),
+      datePublication: null,
+      auteurPublication: null,
     });
   });
 
@@ -108,6 +111,8 @@ const anAffectations: AffectationsDossiersDeNominations[] = [
 const affectationSnapshot: AffectationSnapshot = {
   id: anAffectationId,
   sessionId: aSessionId,
+  version: 1,
+  statut: StatutAffectation.BROUILLON,
   formation: aFormation,
   affectationsDossiersDeNominations: anAffectations,
 };

@@ -9,6 +9,7 @@ import type { FiltersState } from '../../../shared/filter-configurations';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { DropdownPriorite } from './DropdownPriorite';
 import { MagistratDnModale } from './MagistratDnModale';
+import { CheckboxDossier } from './CheckboxDossier';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -21,6 +22,11 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
+];
+
+export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: Array<{ field: string; label: string }> = [
+  { field: 'checkbox', label: '' },
+  ...HEADER_COLUMNS_AFFECTATIONS_DN
 ];
 
 export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
@@ -59,6 +65,7 @@ export const dataRowsDnEdition = (
     const initialRapporteurIds = dossier.rapporteurs.map((r) => r.userId);
 
     return [
+      React.createElement(CheckboxDossier, { dossierId: dossier.id }),
       content.numeroDeDossier,
       React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
       // content.posteActuel,

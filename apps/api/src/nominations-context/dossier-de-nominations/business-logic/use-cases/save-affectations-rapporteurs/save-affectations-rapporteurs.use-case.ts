@@ -1,14 +1,13 @@
 import { SaveAffectationsRapporteursNestDto } from 'src/nominations-context/dossier-de-nominations/adapters/primary/nestjs/dto/save-affectations-rapporteurs.nest-dto';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import { SessionRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/session.repository';
-import { HandleAffectationUpdatedUseCase } from 'src/reports-context/business-logic/use-cases/handle-affectation-modifiée/handle-affectation-updated.use-case';
+import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 
 export class SaveAffectationsRapporteursUseCase {
   constructor(
     private readonly affectationRepository: AffectationRepository,
     private readonly sessionRepository: SessionRepository,
-    private readonly handleAffectationUpdatedUseCase: HandleAffectationUpdatedUseCase,
     private readonly transactionPerformer: TransactionPerformer,
   ) {}
 
@@ -22,11 +21,22 @@ export class SaveAffectationsRapporteursUseCase {
         throw new Error(`Session ${sessionId} not found`);
       }
 
-      const affectationGlobale =
+      let affectationActuelle =
         await this.affectationRepository.bySessionId(sessionId)(trx);
 
-      if (!affectationGlobale) {
+      if (!affectationActuelle) {
         throw new Error(`Affectation for session ${sessionId} not found`);
+      }
+
+      if (affectationActuelle.estPubliee()) {
+        const prochainNumero =
+          await this.affectationRepository.prochainNumeroVersion(sessionId)(
+            trx,
+          );
+        affectationActuelle = Affectation.creerNouvelleVersion(
+          affectationActuelle,
+          prochainNumero,
+        );
       }
 
       const affectationsDossiersDeNominations = affectations.map(
@@ -37,21 +47,11 @@ export class SaveAffectationsRapporteursUseCase {
         }),
       );
 
-      affectationGlobale.mettreAJourAffectations(
+      affectationActuelle.mettreAJourAffectations(
         affectationsDossiersDeNominations,
       );
 
-      await this.affectationRepository.save(affectationGlobale)(trx);
-
-      const affectationSnapshot = affectationGlobale.snapshot();
-      await this.handleAffectationUpdatedUseCase.execute({
-        id: affectationSnapshot.id,
-        sessionId: affectationSnapshot.sessionId,
-        typeDeSaisine: session.typeDeSaisine,
-        formation: affectationSnapshot.formation,
-        affectationsDossiersDeNominations:
-          affectationSnapshot.affectationsDossiersDeNominations,
-      })(trx);
+      await this.affectationRepository.save(affectationActuelle)(trx);
     });
   }
 }

@@ -1,13 +1,14 @@
-import { eq } from 'drizzle-orm';
-import z from 'zod';
+import { and, desc, eq, max, sql } from 'drizzle-orm';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import {
   Affectation,
   affectationsDossiersDeNominationsSchema,
   AffectationSnapshot,
+  StatutAffectation,
 } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+import z from 'zod';
 import { affectationPm } from './schema/affectation-pm';
 
 export class SqlAffectationRepository implements AffectationRepository {
@@ -29,6 +30,10 @@ export class SqlAffectationRepository implements AffectationRepository {
           .update(affectationPm)
           .set({
             formation: affectationSnapshot.formation,
+            version: affectationSnapshot.version,
+            statut: affectationSnapshot.statut,
+            datePublication: affectationSnapshot.datePublication,
+            auteurPublication: affectationSnapshot.auteurPublication,
             affectationsDossiersDeNominations:
               affectationSnapshot.affectationsDossiersDeNominations,
           })
@@ -45,6 +50,10 @@ export class SqlAffectationRepository implements AffectationRepository {
         .select()
         .from(affectationPm)
         .where(eq(affectationPm.sessionId, sessionId))
+        .orderBy(
+          sql`CASE WHEN ${affectationPm.statut} = 'BROUILLON' THEN 0 ELSE 1 END`,
+          desc(affectationPm.version),
+        )
         .limit(1);
 
       if (result.length === 0) {
@@ -52,6 +61,67 @@ export class SqlAffectationRepository implements AffectationRepository {
       }
 
       return SqlAffectationRepository.mapToDomain(result[0]!);
+    };
+  }
+
+  derniereVersionPubliee(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<Affectation | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(affectationPm)
+        .where(
+          and(
+            eq(affectationPm.sessionId, sessionId),
+            eq(affectationPm.statut, StatutAffectation.PUBLIEE),
+          ),
+        )
+        .orderBy(desc(affectationPm.version))
+        .limit(1);
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      return SqlAffectationRepository.mapToDomain(result[0]!);
+    };
+  }
+
+  versionBrouillon(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<Affectation | null> {
+    return async (db) => {
+      const result = await db
+        .select()
+        .from(affectationPm)
+        .where(
+          and(
+            eq(affectationPm.sessionId, sessionId),
+            eq(affectationPm.statut, StatutAffectation.BROUILLON),
+          ),
+        )
+        .limit(1);
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      return SqlAffectationRepository.mapToDomain(result[0]!);
+    };
+  }
+
+  prochainNumeroVersion(
+    sessionId: string,
+  ): DrizzleTransactionableAsync<number> {
+    return async (db) => {
+      const result = await db
+        .select({ maxVersion: max(affectationPm.version) })
+        .from(affectationPm)
+        .where(eq(affectationPm.sessionId, sessionId));
+
+      const dernierNumero = result[0]?.maxVersion ?? 0;
+      return dernierNumero + 1;
     };
   }
 
@@ -72,6 +142,8 @@ export class SqlAffectationRepository implements AffectationRepository {
       affectationsDossiersDeNominations: z
         .array(affectationsDossiersDeNominationsSchema)
         .parse(row.affectationsDossiersDeNominations),
+      datePublication: row.datePublication ?? undefined,
+      auteurPublication: row.auteurPublication ?? undefined,
     });
   }
 }

@@ -14,7 +14,10 @@ import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossie
 import { FakeAffectationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-affectation.repository';
 import { FakeDossierDeNominationRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-dossier-de-nomination.repository';
 import { FakeSessionRepository } from 'src/nominations-context/sessions/adapters/secondary/gateways/repositories/fake-session.repository';
-import { AffectationSnapshot } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import {
+  AffectationSnapshot,
+  StatutAffectation,
+} from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { ImportNouveauxDossiersTransparenceCommand } from '../import-nouveaux-dossiers-transparence.command';
@@ -158,6 +161,10 @@ export const givenUnDossierDuSiège = (
 export const uneAffectationParquet: AffectationSnapshot = {
   id: aAffectationId,
   sessionId: aParquetSessionId,
+  version: 1,
+  statut: StatutAffectation.BROUILLON,
+  datePublication: undefined,
+  auteurPublication: undefined,
   formation: aFormation,
   affectationsDossiersDeNominations: [
     {
@@ -170,6 +177,10 @@ export const uneAffectationParquet: AffectationSnapshot = {
 export const uneAffectionSiège = {
   id: 'affectation-siège-id',
   sessionId: aSiègeSessionId,
+  version: 1,
+  statut: StatutAffectation.BROUILLON,
+  datePublication: undefined,
+  auteurPublication: undefined,
   formation: Magistrat.Formation.SIEGE,
   affectationsDossiersDeNominations: [
     {
@@ -182,6 +193,10 @@ export const uneAffectionSiège = {
 export const uneAffectationSiègeAvecDeuxDossiers = {
   id: 'affectation-siège-id',
   sessionId: aSiègeSessionId,
+  version: 1,
+  statut: StatutAffectation.BROUILLON,
+  datePublication: undefined,
+  auteurPublication: undefined,
   formation: Magistrat.Formation.SIEGE,
   affectationsDossiersDeNominations: [
     {
