@@ -9,11 +9,10 @@ import { ExcelExport } from './ExcelExport';
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import type { Magistrat } from 'shared-models';
 import type { FC } from 'react';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { createSuccessModal } from '../../../shared/SuccessModal';
 
-const successModal = createModal({
-  id: 'affectations-success-modal',
-  isOpenedByDefault: false
+const successModal = createSuccessModal({
+  id: 'affectations-success-modal'
 });
 
 export type TableauAffectationDossierDeNominationProps = {
@@ -92,9 +91,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
         />
       </div>
 
-      <successModal.Component title="Succès">
-        <p>Les affectations des rapporteurs ont été sauvegardées avec succès.</p>
-      </successModal.Component>
+      <successModal.Component />
     </>
   );
 };

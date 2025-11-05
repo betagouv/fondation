@@ -14,15 +14,15 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useGetDossierDeNominationParSession } from '../../../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { usePublierAffectations } from '../../../../../../react-query/mutations/sg/publier-affectations.mutation';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { createSuccessModal } from '../../../../../shared/SuccessModal';
 
 type TableauDeBordActionsProps = TransparenceSnapshot & {
   sessionId: string;
 };
 
-const publishSuccessModal = createModal({
+const publishSuccessModal = createSuccessModal({
   id: 'publish-success-modal-actions',
-  isOpenedByDefault: false
+  message: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
 });
 
 export const TableauDeBordActions = ({
@@ -120,9 +120,7 @@ export const TableauDeBordActions = ({
         </div>
       </div>
 
-      <publishSuccessModal.Component title="Succès">
-        <p>Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.</p>
-      </publishSuccessModal.Component>
+      <publishSuccessModal.Component />
     </>
   );
 };
