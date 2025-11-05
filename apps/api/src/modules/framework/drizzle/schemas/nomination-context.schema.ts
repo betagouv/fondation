@@ -6,7 +6,7 @@ import {
   pgSchema,
   text,
   timestamp,
-  unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
@@ -49,7 +49,7 @@ export const affectationPm = nominationsContextSchema.table(
       .notNull(),
   },
   (table) => ({
-    sessionVersionUnique: unique().on(table.sessionId, table.version),
+    sessionVersionUnique: uniqueIndex().on(table.sessionId, table.version),
     sessionVersionIdx: index('idx_affectation_session_version').on(
       table.sessionId,
       table.version,
