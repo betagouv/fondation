@@ -2,31 +2,25 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useState, type FC } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
-import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
 
-export type DropdownRapporteursBulkProps = {
+export type SelectMultipleRapporteursProps = {
   availableRapporteurs: UserDescriptorSerialized[];
+  selectedRapporteurs: string[];
+  onSelectionChange: (rapporteurIds: string[]) => void;
 };
 
-export const DropdownRapporteursBulk: FC<DropdownRapporteursBulkProps> = ({ availableRapporteurs }) => {
-  const { selectedDossierIds, updateAffectation } = useAffectation();
+export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
+  availableRapporteurs,
+  selectedRapporteurs,
+  onSelectionChange
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [localSelection, setLocalSelection] = useState<Set<string>>(new Set());
 
   const toggleRapporteur = (userId: string) => {
-    const newSelection = new Set(localSelection);
-    if (newSelection.has(userId)) {
-      newSelection.delete(userId);
-    } else {
-      newSelection.add(userId);
-    }
-    setLocalSelection(newSelection);
-
-    // Appliquer immédiatement l'affectation à tous les dossiers sélectionnés
-    const rapporteurIds = Array.from(newSelection);
-    Array.from(selectedDossierIds).forEach((dossierId) => {
-      updateAffectation(dossierId, rapporteurIds);
-    });
+    const newSelection = selectedRapporteurs.includes(userId)
+      ? selectedRapporteurs.filter((id) => id !== userId)
+      : [...selectedRapporteurs, userId];
+    onSelectionChange(newSelection);
   };
 
   // Filtrer les rapporteurs selon la recherche
@@ -35,7 +29,7 @@ export const DropdownRapporteursBulk: FC<DropdownRapporteursBulkProps> = ({ avai
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
   return (
-    <div className="w-[300px]">
+    <div className="flex flex-col">
       <div className="border-b border-gray-200 p-4">
         <Input
           label=""
@@ -48,7 +42,7 @@ export const DropdownRapporteursBulk: FC<DropdownRapporteursBulkProps> = ({ avai
         />
       </div>
 
-      <div className="max-h-64 space-y-2 overflow-y-auto p-4">
+      <div className="max-h-96 space-y-2 overflow-y-auto p-4">
         {filteredRapporteurs.length > 0 ? (
           filteredRapporteurs.map((rapporteur) => (
             <Checkbox
@@ -57,7 +51,7 @@ export const DropdownRapporteursBulk: FC<DropdownRapporteursBulkProps> = ({ avai
                 {
                   label: `${rapporteur.lastName} ${rapporteur.firstName}`,
                   nativeInputProps: {
-                    checked: localSelection.has(rapporteur.userId),
+                    checked: selectedRapporteurs.includes(rapporteur.userId),
                     onChange: () => toggleRapporteur(rapporteur.userId)
                   }
                 }

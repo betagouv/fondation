@@ -1,4 +1,4 @@
-import { useMemo, type FC, type ReactNode } from 'react';
+import { useMemo, type FC } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
 import { RapporteursDropdownBase } from './RapporteursDropdownBase';
