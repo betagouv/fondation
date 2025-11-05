@@ -30,9 +30,9 @@ export const DropdownRapporteursBulk: FC<DropdownRapporteursBulkProps> = ({ avai
   };
 
   // Filtrer les rapporteurs selon la recherche
-  const filteredRapporteurs = availableRapporteurs.filter((r) =>
-    `${r.lastName} ${r.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRapporteurs = availableRapporteurs
+    .filter((r) => `${r.lastName} ${r.firstName}`.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
   return (
     <div className="w-[300px]">

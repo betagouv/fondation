@@ -29,9 +29,9 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
   };
 
   // Filtrer les rapporteurs selon la recherche
-  const filteredRapporteurs = availableRapporteurs.filter((r) =>
-    `${r.lastName} ${r.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRapporteurs = availableRapporteurs
+    .filter((r) => `${r.lastName} ${r.firstName}`.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
   const trigger = (
     <Button
