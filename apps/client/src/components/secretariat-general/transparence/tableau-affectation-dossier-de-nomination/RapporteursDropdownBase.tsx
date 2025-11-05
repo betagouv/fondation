@@ -1,7 +1,7 @@
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { useState, type FC } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import { DropdownMenu } from '../../../shared/DropdownMenu';
 
@@ -9,7 +9,7 @@ export type RapporteursDropdownBaseProps = {
   availableRapporteurs: UserDescriptorSerialized[];
   selectedRapporteurs: string[];
   onSelectionChange: (rapporteurIds: string[]) => void;
-  buttonLabel: string;
+  buttonLabel: ReactNode;
 };
 
 export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
