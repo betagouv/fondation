@@ -57,6 +57,7 @@ describe('SQL Dossier De Nomination Repository', () => {
       dossierDeNominationImportéId: aImportId,
       content: aContent,
       createdAt: expect.any(Date),
+      priority: null,
     });
   });
 

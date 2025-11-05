@@ -361,6 +361,7 @@ const expectedDossierDeNominationV1FromContent = (
     sessionId: expect.any(String),
     dossierDeNominationImportéId: expect.any(String),
     content: expectedContent,
+    priority: null,
   };
 };
 
@@ -397,6 +398,7 @@ const expectedDossierDeNominationV2FromContent = (
     sessionId: expect.any(String),
     dossierDeNominationImportéId: expect.any(String),
     content: expectedContent,
+    priority: null,
   };
 };
 

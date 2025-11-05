@@ -1,16 +1,19 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   index,
   integer,
   jsonb,
   pgSchema,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { users } from './identity-and-access-context.schema';
 import { formationEnum } from './shared-kernel.schema';
+
+import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
 
 export const nominationsContextSchema = pgSchema('nominations_context');
 
@@ -50,10 +53,6 @@ export const affectationPm = nominationsContextSchema.table(
   },
   (table) => ({
     sessionVersionUnique: uniqueIndex().on(table.sessionId, table.version),
-    sessionVersionIdx: index('idx_affectation_session_version').on(
-      table.sessionId,
-      table.version,
-    ),
     oneBrouillonPerSessionIdx: index('idx_one_brouillon_per_session')
       .on(table.sessionId)
       .where(sql`${table.statut} = 'BROUILLON'`),
@@ -82,6 +81,11 @@ export const sessionPm = nominationsContextSchema.table('session', {
   content: jsonb('content').$type<object>().notNull(),
 });
 
+export const drizzlePrioriteEnum = nominationsContextSchema.enum(
+  'priorite_enum',
+  ['ETOILE', 'OUTRE_MER', 'PROFILE'],
+);
+
 export const dossierDeNominationPm = nominationsContextSchema.table(
   'dossier_de_nomination',
   {
@@ -94,5 +98,55 @@ export const dossierDeNominationPm = nominationsContextSchema.table(
       .unique()
       .notNull(),
     content: jsonb('content').notNull(),
+    priority: drizzlePrioriteEnum(),
   },
+);
+
+export const drizzleDossierRapporteur = nominationsContextSchema.table(
+  'dossier_rapporteur',
+  {
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    dossierId: uuid()
+      .notNull()
+      .references(() => dossierDeNominationPm.id, {
+        onDelete: 'cascade',
+      }),
+    versionId: uuid()
+      .notNull()
+      .references(() => affectationPm.id, { onDelete: 'cascade' }),
+  },
+  (t) => ({
+    userIdx: index().on(t.userId),
+    primaryKey: primaryKey({ columns: [t.dossierId, t.userId, t.versionId] }),
+  }),
+);
+
+export const drizzleDossierRapporteurRelations = relations(
+  drizzleDossierRapporteur,
+  ({ one }) => ({
+    dossierDeNomination: one(dossierDeNominationPm, {
+      fields: [drizzleDossierRapporteur.dossierId],
+      references: [dossierDeNominationPm.id],
+    }),
+    user: one(users, {
+      fields: [drizzleDossierRapporteur.userId],
+      references: [users.id],
+    }),
+    version: one(affectationPm, {
+      fields: [drizzleDossierRapporteur.versionId],
+      references: [affectationPm.id],
+    }),
+  }),
+);
+
+export const drizzleDossierDeNominationRelations = relations(
+  dossierDeNominationPm,
+  ({ many }) => ({ rapporteurs: many(drizzleDossierRapporteur) }),
+);
+
+export const drizzleAffectationRelations = relations(
+  affectationPm,
+  ({ many }) => ({ rapporteurs: many(drizzleDossierRapporteur) }),
 );

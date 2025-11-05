@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import { pgSchema, text, timestamp, varchar, uuid } from 'drizzle-orm/pg-core';
 import { drizzleExcludedJurisdictions } from './data-administration-context.schema';
+import { drizzleDossierRapporteur } from './nomination-context.schema';
 
 export const identityAndAccessContextSchema = pgSchema(
   'identity_and_access_context',
@@ -57,4 +58,5 @@ export const users = identityAndAccessContextSchema.table('users', {
 export const drizzleUsersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   excludedJurisdictionIds: many(drizzleExcludedJurisdictions),
+  rapporteurSur: many(drizzleDossierRapporteur),
 }));

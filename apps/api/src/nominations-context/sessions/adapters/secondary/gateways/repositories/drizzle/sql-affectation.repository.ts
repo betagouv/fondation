@@ -1,34 +1,47 @@
-import { and, desc, eq, max, sql } from 'drizzle-orm';
+import { and, desc, eq, max, sql, inArray } from 'drizzle-orm';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import {
   Affectation,
   affectationsDossiersDeNominationsSchema,
-  AffectationSnapshot,
   StatutAffectation,
 } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import z from 'zod';
 import { affectationPm } from './schema/affectation-pm';
+import {
+  dossierDeNominationPm,
+  drizzleDossierRapporteur,
+} from 'src/modules/framework/drizzle/schemas';
+import { PrioriteEnum } from 'shared-models';
+import { isDefined } from 'src/utils/is-defined';
 
 export class SqlAffectationRepository implements AffectationRepository {
   save(affectation: Affectation): DrizzleTransactionableAsync<void> {
     return async (db) => {
       const affectationSnapshot = affectation.snapshot();
 
-      const existingAffectation = await db
-        .select({ id: affectationPm.id })
-        .from(affectationPm)
-        .where(eq(affectationPm.id, affectationSnapshot.id))
-        .limit(1);
+      await db
+        .delete(drizzleDossierRapporteur)
+        .where(
+          inArray(
+            drizzleDossierRapporteur.dossierId,
+            Array.from(
+              new Set(
+                affectationSnapshot.affectationsDossiersDeNominations.map(
+                  ({ dossierDeNominationId }) => dossierDeNominationId,
+                ),
+              ),
+            ),
+          ),
+        );
 
-      if (existingAffectation.length === 0) {
-        const affectationDb = SqlAffectationRepository.mapToDb(affectation);
-        await db.insert(affectationPm).values(affectationDb);
-      } else {
-        await db
-          .update(affectationPm)
-          .set({
+      await db
+        .insert(affectationPm)
+        .values(affectationSnapshot)
+        .onConflictDoUpdate({
+          target: affectationPm.id,
+          set: {
             formation: affectationSnapshot.formation,
             version: affectationSnapshot.version,
             statut: affectationSnapshot.statut,
@@ -36,8 +49,37 @@ export class SqlAffectationRepository implements AffectationRepository {
             auteurPublication: affectationSnapshot.auteurPublication,
             affectationsDossiersDeNominations:
               affectationSnapshot.affectationsDossiersDeNominations,
-          })
-          .where(eq(affectationPm.id, affectationSnapshot.id));
+          },
+        });
+
+      await db.insert(drizzleDossierRapporteur).values(
+        affectationSnapshot.affectationsDossiersDeNominations.flatMap((d) =>
+          d.rapporteurIds.map((userId) => ({
+            userId,
+            versionId: affectationSnapshot.id,
+            dossierId: d.dossierDeNominationId,
+          })),
+        ),
+      );
+
+      const affectationByPriority =
+        affectationSnapshot.affectationsDossiersDeNominations
+          .filter((a): a is typeof a & { priorite: PrioriteEnum } =>
+            isDefined(a.priorite),
+          )
+          .reduce((byPriority, { priorite, dossierDeNominationId }) => {
+            const list = byPriority.get(priorite) ?? [];
+            list.push(dossierDeNominationId);
+            byPriority.set(priorite, list);
+
+            return byPriority;
+          }, new Map<PrioriteEnum, string[]>());
+
+      for (const [priority, dossierIds] of affectationByPriority.entries()) {
+        await db
+          .update(dossierDeNominationPm)
+          .set({ priority })
+          .where(inArray(dossierDeNominationPm.id, dossierIds));
       }
     };
   }
@@ -123,16 +165,6 @@ export class SqlAffectationRepository implements AffectationRepository {
       const dernierNumero = result[0]?.maxVersion ?? 0;
       return dernierNumero + 1;
     };
-  }
-
-  static mapToDb(affectation: Affectation): typeof affectationPm.$inferInsert {
-    return SqlAffectationRepository.mapSnapshotToDb(affectation.snapshot());
-  }
-
-  static mapSnapshotToDb(
-    snapshot: AffectationSnapshot,
-  ): typeof affectationPm.$inferInsert {
-    return snapshot;
   }
 
   static mapToDomain(row: typeof affectationPm.$inferSelect): Affectation {

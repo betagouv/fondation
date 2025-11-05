@@ -17,6 +17,12 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { affectationPm } from './schema/affectation-pm';
 import { SqlAffectationRepository } from './sql-affectation.repository';
+import {
+  dossierDeNominationPm,
+  users,
+} from 'src/modules/framework/drizzle/schemas';
+import { faker } from '@faker-js/faker';
+import { randomBytes, randomUUID } from 'crypto';
 
 describe('SQL Affectation Repository', () => {
   let sqlAffectationRepository: SqlAffectationRepository;
@@ -24,12 +30,50 @@ describe('SQL Affectation Repository', () => {
   let uuidGenerator: DeterministicUuidGenerator;
   let db: DrizzleDb;
 
+  let anAffectations: AffectationsDossiersDeNominations[];
+  let affectationSnapshot: AffectationSnapshot;
+
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
     await clearDB(db);
+    const rapporteurId = randomUUID();
+    await db.insert(users).values({
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      password: randomBytes(32).toString('hex'),
+      email: faker.internet.email(),
+      gender: 'MALE',
+      role: 'MEMBRE_COMMUN',
+      id: rapporteurId,
+    });
+
+    const dossierId = randomUUID();
+    await db.insert(dossierDeNominationPm).values({
+      content: {},
+      dossierDeNominationImportéId: randomUUID(),
+      sessionId: aSessionId,
+      id: dossierId,
+    });
+
+    anAffectations = [
+      {
+        dossierDeNominationId: dossierId,
+        rapporteurIds: [rapporteurId],
+      },
+    ];
+
+    affectationSnapshot = {
+      id: anAffectationId,
+      sessionId: aSessionId,
+      formation: aFormation,
+      affectationsDossiersDeNominations: anAffectations,
+      version: 1,
+      statut: StatutAffectation.BROUILLON,
+    };
+
     sqlAffectationRepository = new SqlAffectationRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
     uuidGenerator = new DeterministicUuidGenerator();
@@ -101,18 +145,3 @@ describe('SQL Affectation Repository', () => {
 const anAffectationId = '490558fb-67b8-4522-9dab-7dc82961e39a';
 const aSessionId = '550da006-4f50-4c9e-b2b9-9342d3406ee9';
 const aFormation = Magistrat.Formation.PARQUET;
-const anAffectations: AffectationsDossiersDeNominations[] = [
-  {
-    dossierDeNominationId: '3024f09a-1663-4c9c-a730-b9221f1b0067',
-    rapporteurIds: ['943e9546-3735-454f-92a9-e2e9ad4f7ea6'],
-  },
-];
-
-const affectationSnapshot: AffectationSnapshot = {
-  id: anAffectationId,
-  sessionId: aSessionId,
-  version: 1,
-  statut: StatutAffectation.BROUILLON,
-  formation: aFormation,
-  affectationsDossiersDeNominations: anAffectations,
-};

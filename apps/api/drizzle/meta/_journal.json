@@ -428,6 +428,13 @@
       "when": 1762354966776,
       "tag": "0060_unique-index-affectation-version",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1762533811368,
+      "tag": "0061_adds_dossier_rapporteur",
+      "breakpoints": true
     }
   ]
 }
