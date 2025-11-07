@@ -435,6 +435,13 @@
       "when": 1762533811368,
       "tag": "0061_adds_dossier_rapporteur",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1762535893186,
+      "tag": "0062_update_missing_affectations",
+      "breakpoints": true
     }
   ]
 }

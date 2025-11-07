@@ -12,6 +12,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { users } from './identity-and-access-context.schema';
 import { formationEnum } from './shared-kernel.schema';
+import { PrioriteEnum } from 'shared-models';
+import { assertNever } from 'src/utils/assert-never';
 
 import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
 
@@ -45,6 +47,8 @@ export const affectationPm = nominationsContextSchema.table(
     datePublication: timestamp('date_publication'),
     auteurPublication: uuid('auteur_publication'),
     formation: formationEnum('formation').notNull(),
+
+    /** @deprecated */
     affectationsDossiersDeNominations: jsonb(
       'affectations_dossiers_de_nominations',
     )
@@ -86,6 +90,21 @@ export const drizzlePrioriteEnum = nominationsContextSchema.enum(
   ['ETOILE', 'OUTRE_MER', 'PROFILE'],
 );
 
+export function toPriorite(
+  value: (typeof drizzlePrioriteEnum)['enumValues'][number],
+): PrioriteEnum {
+  switch (value) {
+    case 'ETOILE':
+      return PrioriteEnum.ETOILE;
+    case 'OUTRE_MER':
+      return PrioriteEnum.OUTRE_MER;
+    case 'PROFILE':
+      return PrioriteEnum.PROFILE;
+    default:
+      return assertNever(value);
+  }
+}
+
 export const dossierDeNominationPm = nominationsContextSchema.table(
   'dossier_de_nomination',
   {
@@ -123,6 +142,10 @@ export const drizzleDossierRapporteur = nominationsContextSchema.table(
   }),
 );
 
+export const drizzleSessionRelations = relations(sessionPm, ({ many }) => ({
+  dossiers: many(dossierDeNominationPm),
+}));
+
 export const drizzleDossierRapporteurRelations = relations(
   drizzleDossierRapporteur,
   ({ one }) => ({
@@ -143,10 +166,16 @@ export const drizzleDossierRapporteurRelations = relations(
 
 export const drizzleDossierDeNominationRelations = relations(
   dossierDeNominationPm,
-  ({ many }) => ({ rapporteurs: many(drizzleDossierRapporteur) }),
+  ({ many, one }) => ({
+    rapporteurs: many(drizzleDossierRapporteur),
+    session: one(sessionPm, {
+      fields: [dossierDeNominationPm.sessionId],
+      references: [sessionPm.id],
+    }),
+  }),
 );
 
 export const drizzleAffectationRelations = relations(
   affectationPm,
-  ({ many }) => ({ rapporteurs: many(drizzleDossierRapporteur) }),
+  ({ many }) => ({ dossierVersRapporteur: many(drizzleDossierRapporteur) }),
 );

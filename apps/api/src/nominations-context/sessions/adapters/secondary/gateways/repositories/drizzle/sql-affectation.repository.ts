@@ -1,20 +1,20 @@
-import { and, desc, eq, max, sql, inArray } from 'drizzle-orm';
+import { eq, inArray, max } from 'drizzle-orm';
+import { PrioriteEnum } from 'shared-models';
+import {
+  dossierDeNominationPm,
+  drizzleDossierRapporteur,
+  drizzlePrioriteEnum,
+  toPriorite,
+} from 'src/modules/framework/drizzle/schemas';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import {
   Affectation,
-  affectationsDossiersDeNominationsSchema,
   StatutAffectation,
 } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
 import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
-import z from 'zod';
-import { affectationPm } from './schema/affectation-pm';
-import {
-  dossierDeNominationPm,
-  drizzleDossierRapporteur,
-} from 'src/modules/framework/drizzle/schemas';
-import { PrioriteEnum } from 'shared-models';
 import { isDefined } from 'src/utils/is-defined';
+import { affectationPm } from './schema/affectation-pm';
 
 export class SqlAffectationRepository implements AffectationRepository {
   save(affectation: Affectation): DrizzleTransactionableAsync<void> {
@@ -88,21 +88,24 @@ export class SqlAffectationRepository implements AffectationRepository {
     sessionId: string,
   ): DrizzleTransactionableAsync<Affectation | null> {
     return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(eq(affectationPm.sessionId, sessionId))
-        .orderBy(
-          sql`CASE WHEN ${affectationPm.statut} = 'BROUILLON' THEN 0 ELSE 1 END`,
-          desc(affectationPm.version),
-        )
-        .limit(1);
+      const affectation = await db.query.affectationPm.findFirst({
+        with: {
+          dossierVersRapporteur: {
+            columns: { userId: true },
+            with: {
+              dossierDeNomination: { columns: { id: true, priority: true } },
+            },
+          },
+        },
+        where: (a, { eq }) => eq(a.sessionId, sessionId),
+        orderBy: (a, { sql, desc }) => [
+          sql`CASE WHEN ${a.statut} = ${StatutAffectation.BROUILLON} THEN 0 ELSE 1 END`,
+          desc(a.version),
+        ],
+      });
 
-      if (result.length === 0) {
-        return null;
-      }
-
-      return SqlAffectationRepository.mapToDomain(result[0]!);
+      if (!affectation) return null;
+      return SqlAffectationRepository.mapToDomain(affectation);
     };
   }
 
@@ -110,23 +113,28 @@ export class SqlAffectationRepository implements AffectationRepository {
     sessionId: string,
   ): DrizzleTransactionableAsync<Affectation | null> {
     return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(
+      const affectation = await db.query.affectationPm.findFirst({
+        with: {
+          dossierVersRapporteur: {
+            columns: { userId: true },
+            with: {
+              dossierDeNomination: { columns: { id: true, priority: true } },
+            },
+          },
+        },
+        orderBy: (a, { desc }) => [desc(a.version)],
+        where: (a, { and, eq }) =>
           and(
-            eq(affectationPm.sessionId, sessionId),
-            eq(affectationPm.statut, StatutAffectation.PUBLIEE),
+            eq(a.sessionId, sessionId),
+            eq(a.statut, StatutAffectation.PUBLIEE),
           ),
-        )
-        .orderBy(desc(affectationPm.version))
-        .limit(1);
+      });
 
-      if (result.length === 0) {
+      if (!affectation) {
         return null;
       }
 
-      return SqlAffectationRepository.mapToDomain(result[0]!);
+      return SqlAffectationRepository.mapToDomain(affectation);
     };
   }
 
@@ -134,22 +142,27 @@ export class SqlAffectationRepository implements AffectationRepository {
     sessionId: string,
   ): DrizzleTransactionableAsync<Affectation | null> {
     return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(
+      const affectation = await db.query.affectationPm.findFirst({
+        with: {
+          dossierVersRapporteur: {
+            columns: { userId: true },
+            with: {
+              dossierDeNomination: { columns: { id: true, priority: true } },
+            },
+          },
+        },
+        where: (a, { and, eq }) =>
           and(
-            eq(affectationPm.sessionId, sessionId),
-            eq(affectationPm.statut, StatutAffectation.BROUILLON),
+            eq(a.sessionId, sessionId),
+            eq(a.statut, StatutAffectation.BROUILLON),
           ),
-        )
-        .limit(1);
+      });
 
-      if (result.length === 0) {
+      if (!affectation) {
         return null;
       }
 
-      return SqlAffectationRepository.mapToDomain(result[0]!);
+      return SqlAffectationRepository.mapToDomain(affectation);
     };
   }
 
@@ -167,15 +180,49 @@ export class SqlAffectationRepository implements AffectationRepository {
     };
   }
 
-  static mapToDomain(row: typeof affectationPm.$inferSelect): Affectation {
+  static mapToDomain(
+    row: typeof affectationPm.$inferSelect & {
+      dossierVersRapporteur: {
+        userId: string;
+        dossierDeNomination: {
+          id: string;
+          priority: (typeof drizzlePrioriteEnum)['enumValues'][number] | null;
+        };
+      }[];
+    },
+  ): Affectation {
+    const affectationByDossierId = row.dossierVersRapporteur.reduce(
+      (byDossierId, x) => {
+        const dossierDeNominationId = x.dossierDeNomination.id;
+        const affectations = byDossierId.get(dossierDeNominationId) ?? {
+          rapporteurIds: [],
+          dossierDeNominationId,
+          priorite: x.dossierDeNomination.priority
+            ? toPriorite(x.dossierDeNomination.priority)
+            : undefined,
+        };
+        affectations.rapporteurIds.push(x.userId);
+
+        return byDossierId.set(dossierDeNominationId, affectations);
+      },
+      new Map<
+        string,
+        {
+          dossierDeNominationId: string;
+          priorite: PrioriteEnum | undefined;
+          rapporteurIds: string[];
+        }
+      >(),
+    );
+
     return Affectation.fromSnapshot({
       ...row,
       formation: toFormation(row.formation),
-      affectationsDossiersDeNominations: z
-        .array(affectationsDossiersDeNominationsSchema)
-        .parse(row.affectationsDossiersDeNominations),
       datePublication: row.datePublication ?? undefined,
       auteurPublication: row.auteurPublication ?? undefined,
+      affectationsDossiersDeNominations: Array.from(
+        affectationByDossierId.values(),
+      ),
     });
   }
 }
