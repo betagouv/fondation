@@ -71,7 +71,7 @@ describe('Report', () => {
     });
 
     const reporterId = randomUUID();
-    report.detachFiles({ reporterId, fileNames: [randomUUID()] });
+    report.detachFiles({ reporterId, fileNames: ['file to detach.pdf'] });
 
     const [filesDetached] = report.messages;
 
@@ -79,7 +79,7 @@ describe('Report', () => {
     expect(filesDetached).toMatchObject({
       id: reportId,
       reporterId,
-      fileIds: [expect.any(String)],
+      fileNames: [`file to detach.pdf`],
     });
   });
 

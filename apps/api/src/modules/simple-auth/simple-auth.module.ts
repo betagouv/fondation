@@ -32,6 +32,7 @@ export class SimpleAuthModule implements NestModule {
         '/api/reports/rules/:ruleId',
         '/api/reports/transparences',
         '/api/reports/:id/files/upload-many',
+        '/api/reports/:id/files/byName/*rest',
         '/api/reports/:id/files/byNames',
 
         '/api/authz/*rest',
