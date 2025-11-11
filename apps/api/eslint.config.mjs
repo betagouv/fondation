@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  { ignores: ['.eslintrc.js', 'jest*.config.js', 'dist'] },
+  { ignores: ['.eslintrc.js', 'jest*.config.js', 'dist', 'src/generated'] },
   {
     extends: [tseslint.configs.recommended, prettierRecommended],
     files: ['{src,cli,test}/**/*.ts'],

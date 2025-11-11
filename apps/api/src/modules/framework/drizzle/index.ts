@@ -1,2 +1,1 @@
-export { Db, Tx } from './drizzle';
-export { DrizzleModule } from './drizzle.module';
+export { DrizzleService as Db, Tx } from './drizzle';

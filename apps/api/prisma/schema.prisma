@@ -1,0 +1,12 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["relationJoins", "typedSql"]
+  engineType      = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["nominations_context", "data_administration_context", "identity_and_access_context", "files_context", "reports_context", "shared_kernel_context", "public"]
+}

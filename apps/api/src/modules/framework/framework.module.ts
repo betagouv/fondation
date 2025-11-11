@@ -1,11 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 
 import { ConfigModule } from './config';
-import { DrizzleModule } from './drizzle';
+import { DatabaseModule } from './database';
 
 @Global()
 @Module({
-  imports: [ConfigModule, DrizzleModule],
-  exports: [ConfigModule, DrizzleModule],
+  imports: [ConfigModule, DatabaseModule],
+  exports: [ConfigModule, DatabaseModule],
 })
 export class FrameworkModule {}
