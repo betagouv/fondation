@@ -27,13 +27,19 @@ export class SimpleAuthModule implements NestModule {
         '/api/auth/user-*rest',
         '/api/auth/validate-*rest',
 
+        '/api/reports/:id',
+        '/api/reports/by-dn-id',
+        '/api/reports/rules/:ruleId',
+        '/api/reports/transparences',
+        '/api/reports/:id/files/upload-many',
+        '/api/reports/:id/files/byNames',
+
         '/api/authz/*rest',
         '/api/data-administration/*rest',
         '/api/files/*rest',
         '/api/nominations/dossier-de-nominations/*rest',
         '/api/nominations/sessions{/*rest}',
         '/api/nominations/transparence/*rest',
-        '/api/reports/*rest',
         '/api/users/*rest',
       )
       .forRoutes('*all');

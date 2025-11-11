@@ -20,12 +20,38 @@ model Report {
   createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
   nominationFileId String                @map("nomination_file_id") @db.Uuid
   reporterId       String                @map("reporter_id") @db.Uuid
-  attachedFiles    Json?                 @map("attached_files")
   version          Int                   @default(1)
   sessionId        String                @map("session_id") @db.Uuid
   reportRules      ReportRule[]
+  /**
+   * @deprecated use ReportFile
+   */
+  attachedFiles    Json?                 @map("attached_files")
+
+  files ReportFile[]
 
   @@map("reports")
+  @@schema("reports_context")
+}
+
+model ReportFile {
+  fileId   String                    @db.Uuid
+  reportId String                    @db.Uuid
+  usage    PrismaReportFileUsageEnum
+
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([fileId, reportId], name: "primaryKey")
+  @@map("report_files")
+  @@schema("reports_context")
+}
+
+enum PrismaReportFileUsageEnum {
+  ATTACHMENT
+  EMBEDDED_SCREENSHOT
+
+  @@map("report_file_usage_enum")
   @@schema("reports_context")
 }
 

@@ -20,11 +20,6 @@ export const reportSignedUrlsSchema = z
   .array() satisfies z.ZodType<ReportSignedUrl[]>;
 
 export interface ReportFileService {
-  uploadFile(
-    file: ReportAttachedFile,
-    fileBuffer: Buffer,
-    filePath: string[],
-  ): Promise<void>;
   uploadFiles(fileUploads: FileUpload[], filesPath: string[]): Promise<void>;
   deleteFile(file: ReportAttachedFile): Promise<void>;
   deleteFiles(files: ReportAttachedFile[]): Promise<void>;

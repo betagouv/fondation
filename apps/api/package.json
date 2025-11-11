@@ -141,9 +141,6 @@
       "**/*.(ts)"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": [
-      "<rootDir>/../test/jest/custom-expects.ts"
-    ]
+    "testEnvironment": "node"
   }
 }

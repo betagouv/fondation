@@ -1,6 +1,6 @@
 model UserFile {
-  file_id String             @id @db.Uuid
-  type    PrismaFileTypeEnum
+  fileId String             @id @map("file_id") @db.Uuid
+  type   PrismaFileTypeEnum
 
   @@map("files")
   @@schema("identity_and_access_context")

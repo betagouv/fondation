@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpException,
   HttpStatus,
   Param,
@@ -114,8 +115,10 @@ export class ReportsController implements IReportController {
     await this.changeRuleValidationStateUseCase.execute(ruleId, dto.validated);
   }
 
+  /** @deprecated in favor of ReportController.attachFiles */
   @Post(endpointsPaths.uploadFiles)
   @UseInterceptors(FilesInterceptor('files'))
+  @Header('Deprecation', 'true')
   async uploadFiles(
     @Param()
     { id }: UploadFilesParamsDto,

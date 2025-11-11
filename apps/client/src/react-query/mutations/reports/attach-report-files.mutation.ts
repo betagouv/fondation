@@ -1,37 +1,23 @@
 import { useMutation } from '@tanstack/react-query';
-import type { ReportFileUsage, ReportsContextRestContract } from 'shared-models';
+import type { ReportFileUsage } from 'shared-models';
+
 import { ACCEPTED_MIME_TYPES } from '../../../constants/mimetypes.constants';
 import { apiFetch } from '../../../utils/api-fetch.utils';
-import { DeterministicUuidGenerator } from '../../../utils/deterministicUuidGenerator';
-import { RealFileProvider } from '../../../utils/realFileProvider';
+import { InvalidMimeTypeError } from '../../../utils/InvalidMimeType.error';
 
 const attachReportFiles = (reportId: string, files: File[], usage: ReportFileUsage) => {
-  files.map(new RealFileProvider().assertMimeTypeFactory(ACCEPTED_MIME_TYPES));
-  const filesArg = files.map((file) => ({
-    file,
-    fileId: new DeterministicUuidGenerator().genUuid()
-  }));
-
   const formData = new FormData();
-  filesArg.forEach(({ file }) => {
-    formData.append('files', file, file.name);
-  });
-  const fileIds = filesArg.map(({ fileId }) => fileId);
+  for (const file of files) {
+    if (!ACCEPTED_MIME_TYPES.includes(file.type)) throw new InvalidMimeTypeError({ fileName: file.name });
+    formData.append('files', file);
+  }
 
-  const { method }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
-    method: 'POST'
-  };
+  const searchParams = new URLSearchParams({ usage });
 
-  // Construire l'URL avec les query params comme dans la version qui fonctionne
-  const queryParams = new URLSearchParams();
-  queryParams.append('usage', usage);
-  fileIds.forEach((fileId) => {
-    queryParams.append('fileIds', fileId);
-  });
-
-  return apiFetch(`/reports/${reportId}/files/upload-many?${queryParams}`, {
-    method,
-    body: formData
+  return apiFetch<void>(`/reports/v2/${reportId}/files?${searchParams.toString()}`, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include'
   });
 };
 
