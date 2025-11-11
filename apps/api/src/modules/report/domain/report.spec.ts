@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ReportFileUsage } from 'shared-models';
 import { FullName } from 'src/reports-context/business-logic/models/full-name';
 
-import { Report, ReportFilesAttached } from './report';
+import { Report, ReportFilesAttached, ReportFilesDetached } from './report';
 
 describe('Report', () => {
   it('should attach a file to a report', () => {
@@ -43,5 +43,55 @@ describe('Report', () => {
         },
       ],
     });
+  });
+
+  it('should ignore an empty list of files to attach', () => {
+    const report = Report.from({
+      id: randomUUID(),
+      sessionName: 'SESSION_NAME',
+      nomAspirant: 'Jean MOULIN',
+      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+    });
+
+    report.attachFiles({
+      reporterId: randomUUID(),
+      fileUsage: ReportFileUsage.ATTACHMENT,
+      files: [],
+    });
+    expect(report.messages).toHaveLength(0);
+  });
+
+  it('should detach files from report', () => {
+    const reportId = randomUUID();
+    const report = Report.from({
+      id: reportId,
+      sessionName: 'SESSION_NAME',
+      nomAspirant: 'Jean MOULIN',
+      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+    });
+
+    const reporterId = randomUUID();
+    report.detachFiles({ reporterId, fileNames: [randomUUID()] });
+
+    const [filesDetached] = report.messages;
+
+    expect(filesDetached).toBeInstanceOf(ReportFilesDetached);
+    expect(filesDetached).toMatchObject({
+      id: reportId,
+      reporterId,
+      fileIds: [expect.any(String)],
+    });
+  });
+
+  it('should ignore an empty list of file ids to detach', () => {
+    const report = Report.from({
+      id: randomUUID(),
+      sessionName: 'SESSION_NAME',
+      nomAspirant: 'Jean MOULIN',
+      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+    });
+
+    report.detachFiles({ reporterId: randomUUID(), fileNames: [] });
+    expect(report.messages).toHaveLength(0);
   });
 });

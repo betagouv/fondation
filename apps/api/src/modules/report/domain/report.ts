@@ -11,7 +11,15 @@ export class ReportFilesAttached {
   ) {}
 }
 
-type ReportEvent = ReportFilesAttached;
+export class ReportFilesDetached {
+  constructor(
+    readonly id: string,
+    readonly reporterId: string,
+    readonly fileNames: readonly string[],
+  ) {}
+}
+
+type ReportEvent = ReportFilesAttached | ReportFilesDetached;
 
 export class Report {
   private constructor(
@@ -59,6 +67,14 @@ export class Report {
           ].join('/'),
         })),
       ),
+    );
+  }
+
+  detachFiles(command: { reporterId: string; fileNames: readonly string[] }) {
+    if (command.fileNames.length === 0) return;
+
+    this.#messages.push(
+      new ReportFilesDetached(this.id, command.reporterId, command.fileNames),
     );
   }
 

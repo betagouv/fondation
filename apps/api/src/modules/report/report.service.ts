@@ -25,4 +25,20 @@ export class ReportService {
     });
     await this.reportRepository.persist(report);
   }
+
+  async detachFiles(command: {
+    userId: string;
+    reportId: string;
+    fileNames: readonly string[];
+  }): Promise<void> {
+    const report = await this.reportRepository.find({
+      id: command.reportId,
+      reporterId: command.userId,
+    });
+    report.detachFiles({
+      fileNames: command.fileNames,
+      reporterId: command.userId,
+    });
+    await this.reportRepository.persist(report);
+  }
 }

@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   Param,
@@ -7,13 +8,16 @@ import {
   Query,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 import { ReportFileUsage } from 'shared-models';
 import { hasMimeType } from 'src/modules/framework/files';
 import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
+import { DetachReportFilesQueryDto } from './infrastructure/dtos/report.dto';
 import { ReportService } from './report.service';
 
 @Controller('/api/reports/v2')
@@ -39,6 +43,22 @@ export class ReportController {
         name: file.originalname,
         type: file.mimetype,
       })),
+    });
+  }
+
+  @Delete(':reportId/files')
+  @HasRole()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async detachFiles(
+    @Param('reportId') reportId: string,
+    @Query() query: DetachReportFilesQueryDto,
+    @AuthedUserId() userId: string,
+  ) {
+    await this.reports.detachFiles({
+      userId,
+      reportId,
+      fileNames: query.fileNames,
     });
   }
 }

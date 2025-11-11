@@ -28,11 +28,11 @@ import { ReportOverviewState } from './ReportOverviewState';
 import { ReportRules } from './ReportRules';
 import { Summary } from './Summary';
 
-import { useDeleteFileReport } from '../../../../react-query/mutations/reports/delete-file-report.mutation';
 import {
   useUpdateReport,
   type UpdateReportParams
 } from '../../../../react-query/mutations/reports/update-report.mutation';
+import { useDetachReportFiles } from '../../../../react-query/mutations/reports/detach-report-files.mutation';
 
 export const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -92,7 +92,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const { report, isPending, error, refetch } = useReportById(id);
   const { mutate: updateRule } = useUpdateRule();
   const { mutate: attachReportFiles } = useAttachReportFiles();
-  const { mutate: deleteFileReport } = useDeleteFileReport();
+  const { mutate: detachReportFiles } = useDetachReportFiles();
   const { mutate: updateReport } = useUpdateReport();
 
   const onSuccess = {
@@ -172,10 +172,10 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   };
 
   const onAttachedFileDeleted = async (fileName: string) => {
-    deleteFileReport(
+    detachReportFiles(
       {
         reportId: id,
-        fileName
+        fileNames: [fileName]
       },
       onSuccess
     );

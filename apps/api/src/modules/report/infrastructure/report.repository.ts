@@ -5,7 +5,11 @@ import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
 import { FullName } from 'src/reports-context/business-logic/models/full-name';
 
-import { Report, ReportFilesAttached } from '../domain/report';
+import {
+  Report,
+  ReportFilesAttached,
+  ReportFilesDetached,
+} from '../domain/report';
 import z from 'zod';
 import { ReportFileUsage } from 'shared-models';
 
@@ -86,22 +90,42 @@ export class ReportRepository {
     for (const message of report.messages) {
       if (message instanceof ReportFilesAttached) {
         await this.persistReportFilesAttached(message);
+      } else if (message instanceof ReportFilesDetached) {
+        await this.persistReportFilesDetached(message);
       } else {
         assertNever(message);
       }
     }
   }
 
-  private async persistReportFilesAttached(event: ReportFilesAttached) {
+  private async persistReportFilesDetached(message: ReportFilesDetached) {
+    const report = await this.prisma.report.findFirst({
+      where: { id: message.id, reporterId: message.reporterId },
+      include: {
+        files: {
+          where: { file: { name: { in: message.fileNames as string[] } } },
+          include: { file: { select: { name: true, path: true } } },
+        },
+      },
+    });
+
+    const filePaths =
+      report?.files.map(({ file }) => file.path.concat(file.name).join('/')) ??
+      [];
+
+    await this.files.delete(filePaths);
+  }
+
+  private async persistReportFilesAttached(message: ReportFilesAttached) {
     /** @warning this works at the moment, because operations are done in 2 separate transactions */
-    const fileIds = await this.files.create(event.files);
+    const fileIds = await this.files.create(message.files);
 
     await this.prisma.$transaction(async (tx) => {
       await tx.reportFile.createMany({
         data: fileIds.map((fileId) => ({
           fileId,
-          usage: event.usage,
-          reportId: event.id,
+          usage: message.usage,
+          reportId: message.id,
         })),
       });
 
@@ -109,7 +133,7 @@ export class ReportRepository {
 
       const existingReport = await tx.report.findUnique({
         select: { attachedFiles: true },
-        where: { id: event.id },
+        where: { id: message.id },
       });
       if (!existingReport) return;
 
@@ -130,11 +154,15 @@ export class ReportRepository {
       });
 
       const attachedFiles = result.data.concat(
-        files.map((f) => ({ name: f.name, fileId: f.id, usage: event.usage })),
+        files.map((f) => ({
+          name: f.name,
+          fileId: f.id,
+          usage: message.usage,
+        })),
       );
 
       await tx.report.update({
-        where: { id: event.id },
+        where: { id: message.id },
         data: { attachedFiles },
       });
 

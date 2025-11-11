@@ -108,4 +108,39 @@ describe('Report E2E', () => {
       .set('cookie', cookie)
       .expect(HttpStatus.NO_CONTENT);
   });
+
+  it('should detach files from a report', async () => {
+    await http
+      .post(`/api/reports/v2/${report.id}/files`)
+      .query({ usage: ReportFileUsage.ATTACHMENT })
+      .attach('files', Buffer.alloc(8), {
+        contentType: 'image/png',
+        filename: 'image_1.png',
+      })
+      .attach('files', Buffer.alloc(8), {
+        contentType: 'image/png',
+        filename: 'image_2.png',
+      })
+      .set('cookie', cookie)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const filesCountBefore = await prisma.reportFile.count({
+      where: { reportId: report.id },
+    });
+    expect(filesCountBefore).toBe(2);
+
+    await http
+      .delete(`/api/reports/v2/${report.id}/files`)
+      .query({ fileNames: 'image_1.png' })
+      .set('cookie', cookie)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const filesAfter = await prisma.reportFile.findMany({
+      where: { reportId: report.id },
+      select: { file: { select: { name: true } } },
+    });
+
+    expect(filesAfter.length).toBe(1);
+    expect(filesAfter.map(({ file }) => file.name)).toEqual(['image_2.png']);
+  });
 });

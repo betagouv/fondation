@@ -3,8 +3,7 @@ import { reportHtmlIds } from '../../../dom/html-ids';
 
 import { ReportVM } from '../../../../../VM/ReportVM';
 import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
-import { useDeleteFileReport } from '../../../../../react-query/mutations/reports/delete-file-report.mutation';
-import { useDeleteFilesReport } from '../../../../../react-query/mutations/reports/delete-files-report.mutation';
+import { useDetachReportFiles } from '../../../../../react-query/mutations/reports/detach-report-files.mutation';
 import {
   addTimestampToFiles,
   useInsertImagesWithSignedUrls
@@ -30,8 +29,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
   contentScreenshots
 }) => {
   const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
-  const { mutateAsync: deleteFilesAsync } = useDeleteFilesReport();
-  const { mutateAsync: deleteFileAsync } = useDeleteFileReport();
+  const { mutateAsync: deleteFilesAsync } = useDetachReportFiles();
 
   // Extraire les fileIds des screenshots pour le refresh des URLs signées
   const screenshotFileIds = contentScreenshots ? extractScreenshotFileIds(contentScreenshots) : [];
@@ -60,9 +58,9 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       await Promise.all(
         images.map(
           async (image: { file: File; signedUrl: string; fileId: string }) =>
-            await deleteFileAsync({
+            await deleteFilesAsync({
               reportId,
-              fileName: image.file.name
+              fileNames: [image.file.name]
             })
         )
       );
