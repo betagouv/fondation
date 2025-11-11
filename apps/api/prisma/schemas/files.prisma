@@ -1,0 +1,20 @@
+model File {
+  id              String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
+  name            String                    @db.VarChar
+  path            String[]                  @db.VarChar
+  storageProvider PrismaStorageProviderEnum @map("storage_provider")
+  bucket          String                    @db.VarChar
+
+  transparenceFiles TransparenceFile[]
+
+  @@map("files")
+  @@schema("files_context")
+}
+
+enum PrismaStorageProviderEnum {
+  SCALEWAY
+
+  @@map("storage_provider")
+  @@schema("files_context")
+}

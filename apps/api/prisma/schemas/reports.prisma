@@ -1,0 +1,71 @@
+model ReportRule {
+  id        String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ruleGroup PrismaRuleGroupEnum @map("rule_group")
+  ruleName  PrismaRuleNameEnum  @map("rule_name")
+  validated Boolean
+  reportId  String              @map("report_id") @db.Uuid
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "report_rule_report_id_reports_id_fk")
+
+  @@map("report_rule")
+  @@schema("reports_context")
+}
+
+model Report {
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state            PrismaReportStateEnum @default(NEW)
+  formation        PrismaFormationEnum
+  comment          String?
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  nominationFileId String                @map("nomination_file_id") @db.Uuid
+  reporterId       String                @map("reporter_id") @db.Uuid
+  attachedFiles    Json?                 @map("attached_files")
+  version          Int                   @default(1)
+  sessionId        String                @map("session_id") @db.Uuid
+  reportRules      ReportRule[]
+
+  @@map("reports")
+  @@schema("reports_context")
+}
+
+enum PrismaRuleGroupEnum {
+  management
+  statutory
+  qualitative
+
+  @@map("rule_group")
+  @@schema("reports_context")
+}
+
+enum PrismaRuleNameEnum {
+  TRANSFER_TIME
+  GETTING_GRADE_IN_PLACE
+  JUDICIARY_ROLE_CHANGE_IN_SAME_RESSORT
+  JUDICIARY_ROLE_CHANGE_IN_SAME_JURIDICTION
+  GRADE_ON_SITE_AFTER_7_YEARS
+  MINISTRY_OF_JUSTICE_IN_LESS_THAN_3_YEARS
+  MINISTER_CABINET
+  GRADE_REGISTRATION
+  HH_WITHOUT_2_FIRST_GRADE_POSITIONS
+  LEGAL_PROFESSION_IN_JUDICIAL_COURT_LESS_THAN_5_YEARS_AGO
+  RETOUR_AVANT_5_ANS_DANS_FONCTION_SPECIALISEE_OCCUPEE_9_ANS
+  NOMINATION_CA_AVANT_4_ANS
+  CONFLICT_OF_INTEREST_PRE_MAGISTRATURE
+  CONFLICT_OF_INTEREST_WITH_RELATIVE_PROFESSION
+  EVALUATIONS
+  DISCIPLINARY_ELEMENTS
+
+  @@map("rule_name")
+  @@schema("reports_context")
+}
+
+enum PrismaReportStateEnum {
+  NEW
+  IN_PROGRESS
+  READY_TO_SUPPORT
+  SUPPORTED
+
+  @@map("report_state")
+  @@schema("public")
+}

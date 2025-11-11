@@ -1,15 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as cookieSignature from 'cookie-signature';
-import { and, eq, isNull } from 'drizzle-orm';
-import { Db } from 'src/modules/framework/drizzle';
-import { sessions, users } from 'src/modules/framework/drizzle/schemas';
 import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
+import { PrismaService } from '../framework/database';
 
 @Injectable()
 export class SimpleAuthService {
   private readonly cookieSecret: string;
   constructor(
-    private readonly db: Db,
+    private readonly prisma: PrismaService,
     @Inject(API_CONFIG_TOKEN)
     config: ApiConfig,
   ) {
@@ -25,19 +23,17 @@ export class SimpleAuthService {
     );
     if (!sessionId) return null;
 
-    const result = await this.db
-      .select()
-      .from(sessions)
-      .innerJoin(users, eq(users.id, sessions.userId))
-      .where(
-        and(eq(sessions.sessionId, sessionId), isNull(sessions.invalidatedAt)),
-      )
-      .limit(1);
+    const result = await this.prisma.authSession.findUnique({
+      select: { user: { select: { id: true, role: true } } },
+      where: {
+        sessionId,
+        invalidatedAt: null,
+      },
+    });
 
-    const [sessionAndUser] = result;
-    if (!sessionAndUser) return null;
+    if (!result) return null;
 
-    const { id, role } = sessionAndUser.users;
+    const { id, role } = result.user;
     return { id, role };
   }
 }

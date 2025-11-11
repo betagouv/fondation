@@ -10,6 +10,8 @@ on:
 jobs:
   build-and-upload-api-artifact:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:password@localhost:5432/db
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,6 +24,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm --filter api... install --frozen-lockfile
+      - name: Build prisma
+        run: pnpm --filter api prisma generate --config prisma.config.ts
       - name: Build api
         run: pnpm --filter api... build
       - name: Create Archive
