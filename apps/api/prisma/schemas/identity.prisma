@@ -1,0 +1,64 @@
+model UserFile {
+  file_id String             @id @db.Uuid
+  type    PrismaFileTypeEnum
+
+  @@map("files")
+  @@schema("identity_and_access_context")
+}
+
+model AuthSession {
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamp(6)
+  sessionId     String    @id @default(dbgenerated("gen_random_uuid()")) @map("session_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  invalidatedAt DateTime? @map("invalidated_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sessions_user_id_users_id_fk")
+
+  @@map("sessions")
+  @@schema("identity_and_access_context")
+}
+
+model User {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName String           @map("first_name") @db.VarChar
+  lastName  String           @map("last_name") @db.VarChar
+  role      PrismaRoleEnum
+  email     String           @unique(map: "users_email_unique") @db.VarChar
+  password  String
+  gender    PrismaGenderEnum
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+
+  sessions                AuthSession[]
+  excludedJurisdictionIds ExcludedJurisdiction[]
+
+  @@map("users")
+  @@schema("identity_and_access_context")
+}
+
+enum PrismaFileTypeEnum {
+  PIECE_JOINTE_TRANSPARENCE
+  PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET
+  PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE
+
+  @@map("file_type")
+  @@schema("identity_and_access_context")
+}
+
+enum PrismaGenderEnum {
+  MALE
+  FEMALE
+
+  @@map("gender")
+  @@schema("identity_and_access_context")
+}
+
+enum PrismaRoleEnum {
+  MEMBRE_DU_SIEGE
+  MEMBRE_DU_PARQUET
+  MEMBRE_COMMUN
+  ADJOINT_SECRETAIRE_GENERAL
+
+  @@map("role")
+  @@schema("identity_and_access_context")
+}

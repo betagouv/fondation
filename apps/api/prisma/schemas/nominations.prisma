@@ -1,0 +1,92 @@
+model Affectation {
+  id                                   String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt                            DateTime                    @default(now()) @map("created_at") @db.Timestamp(6)
+  sessionId                            String                      @map("session_id") @db.Uuid
+  formation                            PrismaFormationEnum
+  affectations_dossiers_de_nominations Json[]
+  version                              Int                         @default(1)
+  statut                               PrismaStatutAffectationEnum @default(BROUILLON)
+  datePublication                      DateTime?                   @map("date_publication") @db.Timestamp(6)
+  auteurPublicationId                  String?                     @map("auteur_publication") @db.Uuid
+
+  @@unique(fields: [sessionId, version], map: "affectation_session_id_version_index")
+  @@index(fields: [sessionId, version], map: "idx_affectation_session_version")
+  @@map("affectation")
+  @@schema("nominations_context")
+}
+
+model DossierDeNomination {
+  id                              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at                      DateTime @default(now()) @db.Timestamp(6)
+  session_id                      String   @db.Uuid
+  dossier_de_nomination_import_id String   @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @db.Uuid
+  content                         Json
+
+  @@map("dossier_de_nomination")
+  @@schema("nominations_context")
+}
+
+model PreAnalyse {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  dossierDeNominationId String   @unique(map: "pre_analyse_dossier_de_nomination_id_unique") @map("dossier_de_nomination_id") @db.Uuid
+  regles                Json[]
+
+  @@map("pre_analyse")
+  @@schema("nominations_context")
+}
+
+model Session {
+  id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  version         Int                     @default(1)
+  name            String
+  formation       PrismaFormationEnum
+  typeDeSaisine   PrismaTypeDeSaisineEnum @map("type_de_saisine")
+  sessionImportId String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
+  content         Json                    @default("{\"dateTransparence\": null, \"dateClôtureDélaiObservation\": null}")
+
+  @@map("session")
+  @@schema("nominations_context")
+}
+
+enum PrismaTypeDeSaisineEnum {
+  TRANSPARENCE_GDS
+
+  @@map("type_de_saisine")
+  @@schema("nominations_context")
+}
+
+enum PrismaStatutAffectationEnum {
+  BROUILLON
+  PUBLIEE
+
+  @@map("statut_affectation")
+  @@schema("nominations_context")
+}
+
+enum PrismaFormationEnum {
+  PARQUET
+  SIEGE
+
+  @@map("formation")
+  @@schema("public")
+}
+
+enum PrismaTransparencyEnum {
+  AUTOMNE_2024
+  PROCUREURS_GENERAUX_25_NOVEMBRE_2024
+  TABLEAU_GENERAL_T_DU_25_NOVEMBRE_2024
+  CABINET_DU_MINISTRE_DU_21_JANVIER_2025
+  SIEGE_DU_06_FEVRIER_2025
+  PARQUET_DU_06_FEVRIER_2025
+  PARQUET_DU_20_FEVRIER_2025
+  DU_03_MARS_2025
+  GRANDE_TRANSPA_DU_21_MARS_2025
+  DU_30_AVRIL_2025
+  MARCH_2026
+  PROCUREURS_GENERAUX_8_NOVEMBRE_2024
+
+  @@map("transparency")
+  @@schema("public")
+}

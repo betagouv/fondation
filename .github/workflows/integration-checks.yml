@@ -13,6 +13,8 @@ jobs:
   build:
     environment: ci
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -27,6 +29,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build the shared models, necessary for the type checks
         run: pnpm --filter shared-models build
+      - name: Generate prisma
+        run: pnpm --filter api prisma generate --config prisma.config.ts
       - name: Types check
         run: pnpm types:check
       - name: Lint

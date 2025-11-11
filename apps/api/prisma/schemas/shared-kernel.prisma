@@ -1,0 +1,19 @@
+model DomainEvent {
+  id          String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String
+  payload     Json
+  occurred_on DateTime                    @db.Timestamp(6)
+  status      PrismaDomainEventStatusEnum
+
+  @@map("domain_events")
+  @@schema("shared_kernel_context")
+}
+
+enum PrismaDomainEventStatusEnum {
+  NEW
+  PENDING
+  CONSUMED
+
+  @@map("domain_event_status")
+  @@schema("shared_kernel_context")
+}

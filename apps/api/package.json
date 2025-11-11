@@ -41,7 +41,8 @@
     "cli:register-users": "dotenvx run -- ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/register-user.cli.ts",
     "scalingo:register-users:staging": "dotenvx run -f .env.scalingo-upload.staging -f .env.scalingo-upload -- ./scripts/register-users-to-scalingo.sh",
     "scalingo:register-users:production": "dotenvx run -f .env.scalingo-upload.production -f .env.scalingo-upload -- ./scripts/register-users-to-scalingo.sh",
-    "cli:gen-password-hash": "dotenvx run -- ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/gen-password-hash.cli.ts"
+    "cli:gen-password-hash": "dotenvx run -- ts-node -r tsconfig-paths/register ./src/identity-and-access-context/adapters/primary/nestjs/cli/user-registration/gen-password-hash.cli.ts",
+    "prisma": "prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
@@ -50,6 +51,8 @@
     "@nestjs/core": "^11.1.8",
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/platform-express": "^11.1.8",
+    "@prisma/adapter-pg": "^6.19.0",
+    "@prisma/client": "^6.19.0",
     "@sentry/node": "^10.22.0",
     "axios": "^1.13.1",
     "bcrypt": "^6.0.0",
@@ -57,7 +60,6 @@
     "cookie-signature": "^1.2.2",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.35.2",
-    "form-data": "^4.0.4",
     "fast-xml-parser": "^5.3.0",
     "form-data": "^4.0.1",
     "json-diff": "^1.0.6",
@@ -67,6 +69,7 @@
     "pg": "^8.13.0",
     "pg-native": "^3.2.0",
     "postgres": "^3.4.4",
+    "prisma": "^6.19.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "shared-models": "workspace:*",
