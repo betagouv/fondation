@@ -36,7 +36,7 @@ export class ListSessionOfTypeGardeDesSceauxQuery {
     const affectedReporter = this.db
       .select({
         sessionId: affectationPm.sessionId,
-        id: sql<string>`(jsonb_array_elements_text(unnest(${affectationPm.affectationsDossiersDeNominations})->'rapporteursIds'))::uuid`.as(
+        id: sql<string>`(jsonb_array_elements_text(unnest(${affectationPm.affectationsDossiersDeNominations})->'rapporteurIds'))::uuid`.as(
           'rapporteurId',
         ),
       })

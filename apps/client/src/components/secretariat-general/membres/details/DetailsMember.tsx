@@ -41,7 +41,7 @@ export function DetailsMember(props: { member: DetailedMember }) {
             </div>
 
             <div className="flex flex-row justify-between">
-              <dt className="font-bold">Membre</dt>
+              <dt className="font-bold">Formation</dt>
               <dd className="text-right">
                 {props.member.role === 'MEMBRE_COMMUN'
                   ? 'Commun'
