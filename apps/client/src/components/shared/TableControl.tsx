@@ -23,7 +23,7 @@ export const TableControl: FC<TableControlProps> = ({
   displayedItems,
   totalPages,
   currentPage,
-  label = 'dossiers',
+  label = 'sessions',
   setCurrentPage
 }) => {
   const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
