@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
+import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
-import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { FiltersState } from '../../../shared/filter-configurations';
-import { DropdownRapporteurs } from './DropdownRapporteurs';
-import { DropdownPriorite } from './DropdownPriorite';
-import { MagistratDnModale } from './MagistratDnModale';
 import { CheckboxDossier } from './CheckboxDossier';
+import { DropdownPriorite } from './DropdownPriorite';
+import { DropdownRapporteurs } from './DropdownRapporteurs';
+import { MagistratDnModale } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -18,7 +18,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.grade', label: 'Grade actuel' },
   { field: 'content.posteCible', label: 'Poste cible' },
   { field: 'content.gradeCible', label: 'Grade cible' },
-  { field: 'content.observants', label: 'Observants' },
+  { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
@@ -46,7 +46,7 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
       content.grade,
       posteCible,
       gradeCible,
-      content.observants,
+      content.observants && content.observants.length > 0 ? content.observants : '-',
       dossier.priorite ? PrioriteLabels[dossier.priorite] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
       content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
