@@ -49,7 +49,7 @@ export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
               key={rapporteur.userId}
               options={[
                 {
-                  label: `${rapporteur.lastName} ${rapporteur.firstName}`,
+                  label: `${rapporteur.lastName.toUpperCase()} ${rapporteur.firstName.toUpperCase()}`,
                   nativeInputProps: {
                     checked: selectedRapporteurs.includes(rapporteur.userId),
                     onChange: () => toggleRapporteur(rapporteur.userId)

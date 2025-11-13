@@ -27,12 +27,7 @@ export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
   return (
     <div className="fr-col flex flex-col gap-3">
       {isSuccess && (
-        <Alert
-          id="edit-transparence-success"
-          closable
-          severity="success"
-          title="Transparence modifiée avec succès"
-        />
+        <Alert id="edit-transparence-success" closable severity="success" title="Données actualisées" />
       )}
       {isError && (
         <Alert

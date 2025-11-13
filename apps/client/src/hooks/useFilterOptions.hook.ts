@@ -31,7 +31,11 @@ export const useFilterOptions = (rapporteurs: string[] | null | undefined): Filt
     return {
       rapporteurs: uniqueRapporteurs.map((rapporteur) => ({
         value: rapporteur,
-        label: rapporteur.toLocaleUpperCase()
+        label:
+          rapporteur.split(' ')[0].toUpperCase() +
+          ' ' +
+          rapporteur.split(' ')[1].charAt(0).toUpperCase() +
+          rapporteur.split(' ')[1].slice(1)
       })),
       formations: FORMATION_OPTIONS,
       sessionType: SAISINE_OPTIONS,
