@@ -31,7 +31,7 @@ export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
           id="edit-transparence-success"
           closable
           severity="success"
-          title="Transparence modifiée avec succès"
+          title="Données actualisées"
         />
       )}
       {isError && (
