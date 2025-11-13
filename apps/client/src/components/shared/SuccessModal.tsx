@@ -9,7 +9,7 @@ export type SuccessModalConfig = {
 export const createSuccessModal = ({ id, message, title = 'Succès' }: SuccessModalConfig) => {
   const modal = createModal({ id, isOpenedByDefault: false });
 
-  const defaultMessage = "Données actualisées";
+  const defaultMessage = 'Données actualisées';
 
   const Component = () => (
     <modal.Component title={title}>

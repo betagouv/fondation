@@ -58,6 +58,7 @@ const TableauDossiersDeNominationContent = ({
     if (onSaveAffectations) {
       const affectations = getAllAffectations();
       onSaveAffectations(affectations);
+      setIsEditing(false);
     }
   };
 
