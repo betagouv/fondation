@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { Gender } from "../../gender";
+import { PrioriteEnum } from "../../priorite.enum";
 import { Role } from "../../role";
 import type { DossierDeNominationSnapshot, DossiersEtAffectationResponse } from "../../session/dossier-de-nomination";
 import type { RestContract, ZodDto, ZodParamsDto } from "../common";
-import { PrioriteEnum } from "../../priorite.enum";
 
 
 export type UserDescriptorSerialized = {

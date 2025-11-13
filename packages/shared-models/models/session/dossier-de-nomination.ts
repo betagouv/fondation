@@ -1,6 +1,6 @@
+import type { PrioriteEnum } from "../priorite.enum";
 import { TypeDeSaisine } from "../type-de-saisine.enum";
 import type { ContenuInconnu, ContenuPropositionDeNominationTransparenceV1, ContenuPropositionDeNominationTransparenceV2 } from "./contenu-transparence-par-version/proposition-content";
-import type { PrioriteEnum } from "../priorite.enum";
 
 export type DossierDeNominationContent<
   S extends TypeDeSaisine | unknown = unknown,
