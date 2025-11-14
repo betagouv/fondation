@@ -1,39 +1,68 @@
-import { Inject, Injectable } from '@nestjs/common';
-import * as cookieSignature from 'cookie-signature';
-import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
-import { PrismaService } from '../framework/database';
+import { Injectable } from '@nestjs/common';
+
+import { Clock } from '../framework/clock';
+
+import { AuthSession } from './domain/auth-session';
+import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
+import {
+  DetailedUserResponseDto,
+  DetailsUserQuery,
+} from './infrastructure/queries/details-user.query';
+import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { AuthUser } from './domain/auth-user';
+import { Gender, Role } from 'shared-models';
 
 @Injectable()
 export class SimpleAuthService {
-  private readonly cookieSecret: string;
   constructor(
-    private readonly prisma: PrismaService,
-    @Inject(API_CONFIG_TOKEN)
-    config: ApiConfig,
-  ) {
-    this.cookieSecret = config.cookieSecret;
-  }
+    private readonly detailsUserQuery: DetailsUserQuery,
+    private readonly detailsUserFromSessionQuery: DetailsUserFromSessionIdQuery,
+    private readonly userRepository: AuthUserRepository,
+    private readonly clock: Clock,
+  ) {}
 
   async findUserFromValidSession(
-    signedSessionId: string,
+    sessionId: string,
   ): Promise<{ id: string; role: string } | null> {
-    const sessionId = cookieSignature.unsign(
-      signedSessionId,
-      this.cookieSecret,
-    );
-    if (!sessionId) return null;
+    return this.detailsUserFromSessionQuery.handle({ sessionId });
+  }
 
-    const result = await this.prisma.authSession.findUnique({
-      select: { user: { select: { id: true, role: true } } },
-      where: {
-        sessionId,
-        invalidatedAt: null,
-      },
+  async login(command: {
+    email: string;
+    password: string;
+  }): Promise<AuthSession> {
+    const user = await this.userRepository.findByEmail(command.email);
+    const session = user.authenticate({
+      plainPassword: command.password,
+      now: this.clock.now(),
     });
+    await this.userRepository.persist(user);
+    return session;
+  }
 
-    if (!result) return null;
+  detailsUser(query: { userId: string }): Promise<DetailedUserResponseDto> {
+    return this.detailsUserQuery.handle(query);
+  }
 
-    const { id, role } = result.user;
-    return { id, role };
+  async unAuthenticate(command: {
+    userId: string;
+    sessionId: string;
+  }): Promise<void> {
+    const user = await this.userRepository.find(command.userId);
+    user.unAuthenticate(command.sessionId);
+    await this.userRepository.persist(user);
+  }
+
+  async registerUser(command: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: Role;
+    gender: Gender;
+  }): Promise<{ id: string }> {
+    const user = await AuthUser.register(command);
+    await this.userRepository.persist(user);
+    return { id: user.id };
   }
 }

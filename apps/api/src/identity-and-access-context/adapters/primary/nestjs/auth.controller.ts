@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -59,6 +60,7 @@ export class AuthController implements IAuthController {
   ) {}
 
   @Post(endpointsPaths.login)
+  @Header('Deprecation', 'true')
   async login(_: any, @Body() loginDto: LoginNestDto, @Res() res: Response) {
     try {
       const { sessionId, userDescriptor } = await this.loginUser.execute(
@@ -76,10 +78,9 @@ export class AuthController implements IAuthController {
   @Post(endpointsPaths.validateSession)
   @HttpCode(HttpStatus.OK)
   async validateSession(_: any, @Body() body: ValidateSessionNestDto) {
-    const signedSessionId = body.sessionId;
-    const sessionId = this.unsignedSessionId(signedSessionId);
+    const sessionId = body.sessionId;
 
-    if (sessionId === false) {
+    if (!sessionId) {
       throw new HttpException(
         'Cannot logout with this session ID',
         HttpStatus.UNAUTHORIZED,
@@ -92,8 +93,9 @@ export class AuthController implements IAuthController {
 
   @Post(endpointsPaths.validateSessionFromCookie)
   @HttpCode(HttpStatus.OK)
+  @Header('Deprecation', 'true')
   async validateSessionFromCookie(_: any, __: any, @Req() req: Request) {
-    const sessionId = this.unsignedSessionIdFromCookies(req.cookies);
+    const sessionId = this.unsignedSessionIdFromCookies(req.signedCookies);
 
     if (sessionId === false) {
       throw new HttpException(
@@ -107,8 +109,9 @@ export class AuthController implements IAuthController {
   }
 
   @Post(endpointsPaths.logout)
+  @Header('Deprecation', 'true')
   async logout(_: any, __: any, @Req() req: Request, @Res() res: Response) {
-    const sessionId = this.unsignedSessionIdFromCookies(req.cookies);
+    const sessionId = this.unsignedSessionIdFromCookies(req.signedCookies);
 
     if (sessionId === false) {
       return res
@@ -146,8 +149,8 @@ export class AuthController implements IAuthController {
   }
 
   private createSessionCookie(sessionId: string, res: Response) {
-    const signedSessionId = this.signedSessionId(sessionId);
-    res.cookie('sessionId', signedSessionId, {
+    res.cookie('sessionId', sessionId, {
+      signed: true,
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
@@ -163,18 +166,14 @@ export class AuthController implements IAuthController {
     });
   }
 
-  private signedSessionId(sessionId: string) {
-    return this.signatureProvider.sign(sessionId);
-  }
-
-  private unsignedSessionIdFromCookies(cookies: Request['cookies']) {
-    const signedSessionId = cookies['sessionId'];
-    if (!signedSessionId)
+  private unsignedSessionIdFromCookies(cookies: Request['signedCookies']) {
+    const unsignedSessionId = cookies['sessionId'];
+    if (!unsignedSessionId)
       throw new HttpException(
         'Session ID not found in cookies',
         HttpStatus.UNAUTHORIZED,
       );
-    return this.unsignedSessionId(signedSessionId);
+    return unsignedSessionId;
   }
 
   private unsignedSessionId(signedSessionId: string) {

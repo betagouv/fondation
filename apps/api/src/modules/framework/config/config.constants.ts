@@ -15,6 +15,7 @@ export const apiConfig: ProdApiConfig = {
     (process.env.DEPLOY_ENV as DeployEnvMode) || DeployEnvMode.PRODUCTION,
   port: 3000,
   cookieSecret: process.env.COOKIE_SECRET!,
+  /** @deprecated - prefer AuthSession.DEFAULT_DURATION */
   cookieMaxAgeInMs: Number(process.env.COOKIE_MAX_AGE_IN_MS!),
   database: {
     connectionString: process.env.DATABASE_URL!,

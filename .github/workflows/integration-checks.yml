@@ -14,6 +14,7 @@ jobs:
     environment: ci
     runs-on: ubuntu-latest
     env:
+      TZ: Etc/UTC
       DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
     steps:
       - uses: actions/checkout@v4

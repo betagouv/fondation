@@ -9,7 +9,7 @@ import { SentryService } from 'src/shared-kernel/business-logic/gateways/service
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(private readonly sentryService: SentryService) {}
+  constructor(private readonly sentryService: SentryService | undefined) {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -17,7 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    if (this.sentryService.canCapture && status >= 500) {
+    if (this.sentryService?.canCapture && status >= 500) {
       this.sentryService.captureException(exception, request, status);
     }
 

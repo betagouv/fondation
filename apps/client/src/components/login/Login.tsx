@@ -1,20 +1,16 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useMutation } from '@tanstack/react-query';
-import { apiFetch } from '../../utils/api-fetch.utils';
 import { useNavigate } from 'react-router-dom';
-import type { IdentityAndAccessRestContract } from 'shared-models';
+
+import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 const loginUser = async (credentials: { email: string; password: string }) => {
-  const { method, path }: Partial<IdentityAndAccessRestContract['endpoints']['login']> = {
+  return apiFetch(`/auth/v2/login`, {
     method: 'POST',
-    path: 'login'
-  };
-  return apiFetch(`/auth/${path}`, {
-    method,
     headers: {
       'Content-Type': 'application/json'
     },
