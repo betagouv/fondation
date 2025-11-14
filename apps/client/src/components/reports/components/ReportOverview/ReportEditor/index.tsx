@@ -8,7 +8,6 @@ import {
   addTimestampToFiles,
   useInsertImagesWithSignedUrls
 } from '../../../../../react-query/mutations/reports/screenshots/insert-images.mutation';
-import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
 import { extractScreenshotFileIds } from '../../../../../utils/refresh-signed-urls.utils';
@@ -42,28 +41,22 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       )
     );
 
-    const filesArg = filesToUpload.map((file) => ({
-      file,
-      fileId: new DeterministicUuidGenerator().genUuid()
-    }));
+    // const filesArg = filesToUpload.map((file) => ({
+    //   file,
+    //   fileId: new DeterministicUuidGenerator().genUuid()
+    // }));
 
     const images = await insertImagesWithSignedUrlsAsync({
       reportId,
-      files: filesArg
+      files: filesToUpload
     });
 
     const success = new TipTapEditorProvider(editor).setImages(images);
-
     if (!success) {
-      await Promise.all(
-        images.map(
-          async (image: { file: File; signedUrl: string; fileId: string }) =>
-            await deleteFilesAsync({
-              reportId,
-              fileNames: [image.file.name]
-            })
-        )
-      );
+      await deleteFilesAsync({
+        reportId,
+        fileNames: images.map(({ file }) => file.name)
+      });
       throw new Error(`Failed to embed the screenshot for report id ${reportId}`);
     }
 

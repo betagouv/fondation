@@ -5,11 +5,11 @@ import { ACCEPTED_MIME_TYPES } from '../../../constants/mimetypes.constants';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 import { InvalidMimeTypeError } from '../../../utils/InvalidMimeType.error';
 
-const attachReportFiles = (reportId: string, files: File[], usage: ReportFileUsage) => {
+export const attachReportFiles = (reportId: string, files: readonly File[], usage: ReportFileUsage) => {
   const formData = new FormData();
   for (const file of files) {
     if (!ACCEPTED_MIME_TYPES.includes(file.type)) throw new InvalidMimeTypeError({ fileName: file.name });
-    formData.append('files', file);
+    formData.append('files', file, file.name);
   }
 
   const searchParams = new URLSearchParams({ usage });
