@@ -1,90 +1,66 @@
 import { Magistrat } from 'shared-models';
 
-export type Jurisdiction = { code: string };
+export type Candidate = {
+  jurisdiction: string;
+  formation: Magistrat.Formation;
+};
 
-export class Candidate {
-  constructor(
-    readonly formation: Magistrat.Formation,
-    readonly jurisdiction: Jurisdiction,
-  ) {}
+export class Affectations {
+  autoAffect(props: {
+    members: readonly Member[];
+    candidates: readonly Candidate[];
+  }): Map<Candidate, Member[]> {
+    return props.candidates.reduce((affectation, candidate) => {
+      const affectedMembers = Affectations.sort(props.members)
+        .filter((member) => member.canReportOn(candidate))
+        .slice(0, 2)
+        .map((member) => member.affect(candidate));
 
-  static from(props: {
-    formation: Magistrat.Formation;
-    jurisdiction: Jurisdiction;
-  }): Candidate {
-    const { formation, jurisdiction } = props;
-    return new Candidate(formation, jurisdiction);
-  }
-}
-
-export class MemberCollection {
-  constructor(
-    readonly members: Member[],
-    readonly candidates: Candidate[],
-  ) {
-    this.refreshMembersOrder();
+      return affectation.set(candidate, affectedMembers);
+    }, new Map<Candidate, Member[]>());
   }
 
-  autoAffect(): void {
-    for (const candidate of this.candidates) {
-      let affectationsCount = 0;
-      memberLoop: for (const member of this.members) {
-        if (member.canReportOn(candidate)) {
-          member.affect(candidate);
-
-          affectationsCount++;
-          if (affectationsCount == 2) {
-            break memberLoop;
-          }
-        }
-      }
-
-      this.refreshMembersOrder();
-    }
-  }
-
-  private refreshMembersOrder() {
-    this.members.sort(Member.compareByChargeAsc);
+  private static sort(members: readonly Member[]): readonly Member[] {
+    return [...members].sort(Member.compareByPastReportContributionsCountAsc);
   }
 }
 
 export class Member {
-  static compareByChargeAsc(a: Member, b: Member): number {
-    return a.pastReportContributionsCount - b.pastReportContributionsCount;
-  }
-
   readonly affectations: Candidate[] = [];
 
   constructor(
     readonly formation: Magistrat.Formation,
-    readonly jurisdiction: Jurisdiction | null,
+    readonly jurisdiction: string | null,
     private pastReportContributionsCount: number = 0,
   ) {}
 
   static from(props: {
     formation: Magistrat.Formation;
-    jurisdiction: Jurisdiction | null;
+    jurisdiction: string | null;
     pastReportContributionsCount: number;
   }): Member {
     const { formation, jurisdiction, pastReportContributionsCount } = props;
     return new Member(formation, jurisdiction, pastReportContributionsCount);
   }
 
-  affect(candidate: Candidate) {
+  affect(candidate: Candidate): this {
     this.affectations.push(candidate);
     this.pastReportContributionsCount += 1;
+
+    return this;
   }
 
   canReportOn(candidate: Candidate): boolean {
-    if (candidate.formation !== this.formation) {
-      return false;
-    }
+    return (
+      candidate.formation === this.formation &&
+      candidate.jurisdiction !== this.jurisdiction
+    );
+  }
 
-    if (!this.jurisdiction) {
-      return true;
-    }
-    return this.jurisdiction.code !== candidate.jurisdiction.code;
+  static compareByPastReportContributionsCountAsc(
+    a: Member,
+    b: Member,
+  ): number {
+    return a.pastReportContributionsCount - b.pastReportContributionsCount;
   }
 }
-
-export class Affectation {}

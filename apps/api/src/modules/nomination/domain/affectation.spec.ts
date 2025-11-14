@@ -1,62 +1,61 @@
 import { Magistrat } from 'shared-models';
-import { Candidate, Member, MemberCollection } from './affectation';
+import { Affectations, Candidate, Member } from './affectation';
 
 describe('automated affectation', () => {
-  it('should exclude a candidate, when the target is of the same jurisdiction', () => {
+  it('should exclude a candidate, when targeting the same jurisdiction as the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'CA  RENNES' },
+      jurisdiction: 'CA  RENNES',
       pastReportContributionsCount: 0,
     });
-    const candidate = Candidate.from({
+    const candidate: Candidate = {
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'CA  RENNES' },
-    });
+      jurisdiction: 'CA  RENNES',
+    };
 
     expect(member.canReportOn(candidate)).toBe(false);
   });
 
-  it('should allow a candidate, when the juridiscition is not defined', () => {
+  it('should allow a candidate, when the jurisdiction is not defined', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
       jurisdiction: null,
       pastReportContributionsCount: 0,
     });
 
-    const candidate = Candidate.from({
+    const candidate: Candidate = {
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'CA RENNES' },
-    });
+      jurisdiction: 'CA RENNES',
+    };
 
     expect(member.canReportOn(candidate)).toBe(true);
   });
 
-  it('should allow a candidate, when the target is NOT of the same jurisdiction', () => {
+  it('should allow a candidate, when targeting a different jurisdiction than the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'CA  RENNES' },
+      jurisdiction: 'CA  RENNES',
       pastReportContributionsCount: 0,
     });
 
-    const candidate = Candidate.from({
+    const candidate: Candidate = {
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'TGI RENNES' },
-    });
+      jurisdiction: 'TGI RENNES',
+    };
 
     expect(member.canReportOn(candidate)).toBe(true);
   });
 
-  it('should exclude a candidate, when the formation is not the same', () => {
+  it('should exclude a candidate from a different formation than the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.SIEGE,
-      jurisdiction: { code: 'CA  RENNES' },
+      jurisdiction: 'CA  RENNES',
       pastReportContributionsCount: 0,
     });
-    const candidate = Candidate.from({
+    const candidate: Candidate = {
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: { code: 'TGI RENNES' },
-    });
-
+      jurisdiction: 'TGI RENNES',
+    };
     expect(member.canReportOn(candidate)).toBe(false);
   });
 
@@ -64,35 +63,34 @@ describe('automated affectation', () => {
     const members = [
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: { code: 'CA  RENNES' },
+        jurisdiction: 'CA  RENNES',
         pastReportContributionsCount: 10,
       }),
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: { code: 'CA  STRASBOURG' },
+        jurisdiction: 'CA  STRASBOURG',
         pastReportContributionsCount: 5,
       }),
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: { code: 'CA  LYON' },
+        jurisdiction: 'CA  LYON',
         pastReportContributionsCount: 0,
       }),
     ];
 
-    const membersCollection = new MemberCollection(
-      [...members],
-      [
-        Candidate.from({
-          formation: Magistrat.Formation.PARQUET,
-          jurisdiction: { code: 'TGI  NANTES' },
-        }),
-      ],
-    );
+    const candidate: Candidate = {
+      formation: Magistrat.Formation.PARQUET,
+      jurisdiction: 'TGI  NANTES',
+    };
 
-    membersCollection.autoAffect();
+    const result = new Affectations().autoAffect({
+      members: [...members],
+      candidates: [candidate],
+    });
 
-    expect(members[0]?.affectations).toHaveLength(0);
-    expect(members[1]?.affectations).toHaveLength(1);
-    expect(members[2]?.affectations).toHaveLength(1);
+    expect(result.get(candidate)).toEqual([
+      expect.objectContaining({ jurisdiction: 'CA  LYON' }),
+      expect.objectContaining({ jurisdiction: 'CA  STRASBOURG' }),
+    ]);
   });
 });
