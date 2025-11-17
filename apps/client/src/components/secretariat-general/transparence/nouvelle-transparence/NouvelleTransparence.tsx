@@ -88,7 +88,7 @@ const NouvelleTransparence: FC = () => {
 
       {transparenceUploadError ? (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <UploadExcelFailedAlert validationError={(transparenceUploadError as any).validationError} />
+        <UploadExcelFailedAlert validationErrors={(transparenceUploadError as any).validationErrors} />
       ) : null}
 
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
