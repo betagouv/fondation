@@ -1,10 +1,9 @@
+import { BadRequestException } from '@nestjs/common';
 import { DateOnlyJson, Magistrat, TransparenceSnapshot } from 'shared-models';
-import { InvalidRowValueError } from 'src/data-administration-context/transparences/business-logic/errors/invalid-row-value.error';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { TransparenceCsv } from '../../models/transparence-csv';
 import { XlsxReader } from '../../models/xlsx-reader';
 import { TransparenceService } from '../../services/transparence.service';
-import { BadRequestException } from '@nestjs/common';
 
 export class ImportTransparenceXlsxUseCase {
   constructor(
@@ -25,42 +24,32 @@ export class ImportTransparenceXlsxUseCase {
       const xlsxRead = await XlsxReader.read(file);
       const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);
 
-      const transparence = await this.transparenceService.transparence(
+      const existingTransparence = await this.transparenceService.transparence(
         nomTransparence,
         formation,
         dateTransparence,
       )(trx);
-      if (transparence) {
+
+      if (existingTransparence) {
         throw new BadRequestException({
           validationError: `Cette transparence existe déjà: ${nomTransparence}, ${formation}, ${JSON.stringify(dateTransparence)}`,
         });
       }
 
-      try {
-        const readCollection =
-          this.transparenceService.readFromCsv(transparenceCsv);
+      const readCollection =
+        this.transparenceService.readFromCsv(transparenceCsv);
 
-        const transparence =
-          await this.transparenceService.nouvelleTransparence(
-            nomTransparence,
-            formation,
-            dateTransparence,
-            dateEchéance,
-            datePriseDePosteCible,
-            dateClôtureDélaiObservation,
-            readCollection,
-          )(trx);
+      const transparence = await this.transparenceService.nouvelleTransparence(
+        nomTransparence,
+        formation,
+        dateTransparence,
+        dateEchéance,
+        datePriseDePosteCible,
+        dateClôtureDélaiObservation,
+        readCollection,
+      )(trx);
 
-        return transparence.sharedModelSnapshot();
-      } catch (error) {
-        console.error('Error while importing transparence xlsx:', error);
-
-        if (error instanceof InvalidRowValueError) {
-          throw new BadRequestException({ validationError: error.message });
-        }
-
-        throw error;
-      }
+      return transparence.sharedModelSnapshot();
     });
   }
 }
