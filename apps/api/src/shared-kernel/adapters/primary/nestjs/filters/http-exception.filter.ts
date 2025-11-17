@@ -17,7 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    if (this.sentryService.canCapture) {
+    if (this.sentryService.canCapture && status >= 500) {
       this.sentryService.captureException(exception, request, status);
     }
 
