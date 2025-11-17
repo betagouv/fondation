@@ -19,7 +19,7 @@ export class ImportTransparenceXlsxUseCase {
     dateEchéance: DateOnlyJson | null,
     datePriseDePosteCible: DateOnlyJson | null,
     dateClôtureDélaiObservation: DateOnlyJson,
-  ): Promise<{ validationError?: string } | TransparenceSnapshot> {
+  ): Promise<TransparenceSnapshot> {
     return await this.transactionPerformer.perform(async (trx) => {
       const xlsxRead = await XlsxReader.read(file);
       const transparenceCsv = TransparenceCsv.fromFichierXlsx(xlsxRead);

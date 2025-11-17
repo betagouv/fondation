@@ -15,6 +15,7 @@ import {
   GetTransparenceQueryParamsDto,
   GetTransparencesAttachmentDto,
   ImportSessionAttachmentDto,
+  TransparenceSnapshot,
 } from 'shared-models';
 
 import { GetTransparenceAttachmentsUseCase } from 'src/data-administration-context/transparence-xlsx/business-logic/use-cases/get-transparence-attachements/get-transparence-attachments.use-case';
@@ -82,8 +83,8 @@ export class DataAdministrationController
     _: unknown,
     @UploadedFile() fichier: Express.Multer.File,
     @Query() dto: ImportNouvelleTransparenceXlsxNestDto,
-  ) {
-    const resp = await this.importTransparenceXlsx.execute(
+  ): Promise<TransparenceSnapshot> {
+    return this.importTransparenceXlsx.execute(
       new File([fichier.buffer], fichier.originalname),
       dto.formation,
       dto.nomTransparence,
@@ -99,25 +100,21 @@ export class DataAdministrationController
         'yyyy-MM-dd',
       ).toJson(),
     );
-
-    return resp;
   }
 
   @Post(endpointsPaths.importObservantsXlsx)
   @UseInterceptors(FileInterceptor('fichier'))
-  async importObservantsXlsx(
+  importObservantsXlsx(
     _: unknown,
     @UploadedFile() fichier: Express.Multer.File,
     @Query() dto: ImportObservantsXlsxNestDto,
-  ) {
-    const resp = await this.importObservantsXlsxUseCase.execute(
+  ): Promise<void> {
+    return this.importObservantsXlsxUseCase.execute(
       new File([fichier.buffer], fichier.originalname),
       dto.formation,
       dto.nomTransparence,
       DateOnly.fromString(dto.dateTransparence, 'yyyy-MM-dd').toJson(),
     );
-
-    return resp;
   }
 
   @Post(endpointsPaths.importSessionAttachment)
