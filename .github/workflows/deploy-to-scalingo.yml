@@ -1,4 +1,6 @@
 name: Deploy application on scalingo
+permissions:
+  contents: read
 
 on:
   workflow_call:
@@ -14,31 +16,31 @@ on:
         required: true
 
 jobs:
-    deploy:
-      name: "Deploy to ${{ inputs.environment }}"
-      environment: ${{ inputs.environment }}
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Download api artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: api-scalingo-${{ inputs.tag }}
-        - name: Download client artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: client-scalingo-${{ inputs.tag }}
-        - name: Install scalingo CLI
-          run: |
-            curl -O https://cli-dl.scalingo.com/install && bash install
-            echo "$HOME/bin" >> $GITHUB_PATH
-        - name: Login to scalingo
-          run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
-        - name: Deploy api
-          run: |
-            echo "Deploying api on app ${{ vars.SCALINGO_API_APP_NAME }}"
-            scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} deploy api-scalingo.tar.gz
-        - name: Deploy client
-          run: |
-            echo "Deploying client on app ${{ vars.SCALINGO_CLIENT_APP_NAME }}"
-            scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_CLIENT_APP_NAME }} deploy client-scalingo.tar.gz
+  deploy:
+    name: "Deploy to ${{ inputs.environment }}"
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download api artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-scalingo-${{ inputs.tag }}
+      - name: Download client artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-scalingo-${{ inputs.tag }}
+      - name: Install scalingo CLI
+        run: |
+          curl -O https://cli-dl.scalingo.com/install && bash install
+          echo "$HOME/bin" >> $GITHUB_PATH
+      - name: Login to scalingo
+        run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+      - name: Deploy api
+        run: |
+          echo "Deploying api on app ${{ vars.SCALINGO_API_APP_NAME }}"
+          scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} deploy api-scalingo.tar.gz
+      - name: Deploy client
+        run: |
+          echo "Deploying client on app ${{ vars.SCALINGO_CLIENT_APP_NAME }}"
+          scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_CLIENT_APP_NAME }} deploy client-scalingo.tar.gz

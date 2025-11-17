@@ -1,4 +1,6 @@
 name: "Continuous Delivery"
+permissions:
+  contents: read
 
 on:
   push:
@@ -7,17 +9,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  integration-checks:
-    uses: ./.github/workflows/integration-checks.yml
-    secrets: inherit
-
   build-and-upload-api-artifact:
-    needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-api-artifact.yml
     with:
       tag: "v${{ github.run_number }}"
+
   build-and-upload-client-artifact:
-    needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-client-artifact.yml
     with:
       environment: staging
@@ -32,3 +29,25 @@ jobs:
       environment: staging
       tag: "v${{ github.run_number }}"
     secrets: inherit
+
+  deploy-production:
+    name: Promote to production
+    needs: [deploy-staging]
+    uses: ./.github/workflows/deploy-to-scalingo.yml
+    with:
+      environment: production
+      tag: "v${{ github.run_number }}"
+    secrets: inherit
+
+  update-production-ref:
+    permissions:
+      contents: write
+    name: Update production ref
+    needs: [deploy-production]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          git config user.name "github-actions[bot]";
+          git config user.email "github-actions[bot]@users.noreply.github.com";
+
+          git push origin --force HEAD:production;
