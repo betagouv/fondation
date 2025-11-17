@@ -1,7 +1,7 @@
 {
   "name": "fondation",
   "version": "1.0.0",
-  "description": "",
+  "license": "Apache-2.0",
   "scripts": {
     "lint:check": "pnpm run -r lint:check",
     "format:check": "pnpm run -r format:check",
@@ -10,11 +10,9 @@
     "build": "pnpm run -r build",
     "manual-deps": "pnpm --filter shared-models build",
     "preci:local-check": "pnpm manual-deps",
-    "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build"
+    "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build",
+    "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "husky": "^9.1.6",
     "type-fest": "^4.41.0"
