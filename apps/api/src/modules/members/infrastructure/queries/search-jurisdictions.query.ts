@@ -19,7 +19,7 @@ export class SearchJurisdictionsQuery {
               : undefined,
             query.search
               ? or(
-                  ...[j.codejur, j.ville].map((field) =>
+                  ...[j.codejur, j.ville, j.libelle].map((field) =>
                     ilike(field, `%${query.search}%`),
                   ),
                 )

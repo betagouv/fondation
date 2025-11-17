@@ -15,6 +15,7 @@ export function useFoundJurisdictionsQuery(
   } = {}
 ) {
   return useQuery({
+    placeholderData: (prev) => prev,
     queryKey: ['searchJurisdictions', options.search, options.includeIds],
     queryFn: () => {
       const encodeArray = (value: string[] | undefined) =>
