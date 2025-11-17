@@ -9,8 +9,7 @@ export function JuridictionAutocomplete(props: {
   onChange?: (selected: string[]) => unknown;
 }) {
   const [selected, setSelected] = useState(props.selected.map(({ id }) => id));
-  const [search, setSearch] = useState<string>('');
-  const [debouncedSearch] = useDebounce(search, 400);
+  const [debouncedSearch, setSearch] = useDebounce('', 400);
 
   const [includeIds, setIncludeIds] = useState<string[] | undefined>([...selected]);
   const { data: foundJurisdictions, isLoading } = useFoundJurisdictionsQuery({
@@ -27,12 +26,11 @@ export function JuridictionAutocomplete(props: {
         renderInput={(props) => (
           <input
             {...props}
-            value={search}
             onChange={(e) => {
               const value = e.target.value.trim();
 
               setIncludeIds(value === '' ? [...selected] : undefined);
-              setSearch(value);
+              setSearch(e.target.value);
             }}
           />
         )}
