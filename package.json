@@ -11,7 +11,8 @@
     "manual-deps": "pnpm --filter shared-models build",
     "preci:local-check": "pnpm manual-deps",
     "ci:local-check": "pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test:all && pnpm build",
-    "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'"
+    "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
+    "heroku-postbuild": "echo 'App already built'"
   },
   "devDependencies": {
     "husky": "^9.1.6",
