@@ -1,56 +1,94 @@
-import { Injectable } from '@nestjs/common';
-import { startOfYear } from 'date-fns';
-import { and, eq, gte, inArray, sql } from 'drizzle-orm';
-import { Db } from 'src/modules/framework/drizzle';
-import {
-  affectationPm,
-  dossierDeNominationPm,
-  reports,
-  sessionPm,
-} from 'src/modules/framework/drizzle/schemas';
-import { MEMBER_ROLES } from 'src/modules/members/infrastructure/member.utils';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/modules/framework/database';
+import { MembersService } from 'src/modules/members';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
-import z from 'zod';
-import { Affectations } from '../domain/affectation';
+import { Affectations, Candidate, Member } from '../domain/affectation';
+import { startOfYear } from 'date-fns';
 
 @Injectable()
 export class AffectationRepository {
-  // TODO: move to prisma
   constructor(
-    private readonly db: Db,
+    private readonly prisma: PrismaService,
+    private readonly membersService: MembersService,
     private readonly clock: DateTimeProvider,
   ) {}
 
   async findByNominationFileIds(
     sessionId: string,
     nominationFileIds: readonly string[],
-  ): Promise<Affectations> {
-    await this.db.transaction(async (tx) => {
-      const existingAffectations = await this.db.query.affectationPm.findFirst({
-        where: (a, { eq }) => eq(a.sessionId, sessionId),
-      });
-
-      const members = await tx.query.users.findMany({
-        where: (u, { and, inArray }) => and(inArray(u.role, MEMBER_ROLES)),
-        with: {
-          excludedJurisdictionIds: true,
+  ): Promise<{ members: Member[]; candidates: Candidate[] }> {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      select: {
+        formation: true,
+        dossierDeNominations: {
+          where: {
+            id: { in: nominationFileIds as string[] },
+            reporterIds: { none: {} },
+          },
         },
-      });
-      const memberIds = members.map(({ id }) => id);
-
-      const pastReportContributionsCountByReportId = await this.db
-        .select({
-          reporterId: reports.reporterId,
-          count: sql<number>`COUNT(*)`,
-        })
-        .from(reports)
-        .where(
-          and(
-            inArray(reports.reporterId, memberIds),
-            gte(reports.createdAt, startOfYear(this.clock.now())),
-          ),
-        )
-        .groupBy(reports.reporterId);
+      },
     });
+
+    if (!session) throw new NotFoundException();
+
+    const memberIds = await this.membersService.findMembers({
+      ids: undefined,
+      formation: prismaFormationEnumToFormationEnum(session.formation),
+    });
+
+    const jurisdiction = await this.prisma.user.findMany({
+      where: { id: { in: memberIds } },
+      select: {
+        id: true,
+        excludedJurisdictionIds: {
+          select: { jurisdictionId: true },
+        },
+      },
+    });
+
+    const excludedJurisdictionIdByMemberId = new Map(
+      jurisdiction.map(
+        (x) =>
+          [
+            x.id,
+            x.excludedJurisdictionIds.map(
+              ({ jurisdictionId }) => jurisdictionId,
+            ),
+          ] as const,
+      ),
+    );
+
+    const reportCounts = await this.prisma.report.groupBy({
+      by: ['reporterId'],
+      _count: { _all: true },
+      where: {
+        reporterId: { in: memberIds },
+        createdAt: { gte: startOfYear(this.clock.now()) },
+      },
+    });
+
+    const reportCountByMemberId = new Map(
+      reportCounts.map(
+        ({ reporterId, _count }) => [reporterId, _count._all] as const,
+      ),
+    );
+
+    const members = memberIds.map((id) => {
+      const exludedJurisdictions = new Set<string>(
+        excludedJurisdictionIdByMemberId.get(id) ?? [],
+      );
+      const pastReportContributionsCount = reportCountByMemberId.get(id) ?? 0;
+
+      return Member.from({
+        formation: prismaFormationEnumToFormationEnum(session.formation),
+        jurisdiction: exludedJurisdictions,
+        pastReportContributionsCount,
+      });
+    });
+
+    // TODO: map candidates from dossier de nomination
+    return { members, candidates: [] };
   }
 }

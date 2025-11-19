@@ -30,13 +30,13 @@ export class Member {
 
   constructor(
     readonly formation: Magistrat.Formation,
-    readonly jurisdiction: string | null,
+    readonly jurisdictions: Set<string>,
     private pastReportContributionsCount: number = 0,
   ) {}
 
   static from(props: {
     formation: Magistrat.Formation;
-    jurisdiction: string | null;
+    jurisdiction: Set<string>;
     pastReportContributionsCount: number;
   }): Member {
     const { formation, jurisdiction, pastReportContributionsCount } = props;
@@ -53,7 +53,7 @@ export class Member {
   canReportOn(candidate: Candidate): boolean {
     return (
       candidate.formation === this.formation &&
-      candidate.jurisdiction !== this.jurisdiction
+      candidate.jurisdiction !== this.jurisdictions
     );
   }
 
