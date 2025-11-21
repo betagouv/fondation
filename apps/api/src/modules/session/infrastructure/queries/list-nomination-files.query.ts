@@ -102,7 +102,7 @@ export class ListNominationFilesQuery {
   }
 }
 
-const NominationFileContentSchema = z
+export const NominationFileContentSchema = z
   .discriminatedUnion('version', [
     z.object({
       version: z.literal(1).nullish(),

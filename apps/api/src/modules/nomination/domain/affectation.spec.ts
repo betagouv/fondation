@@ -5,12 +5,14 @@ describe('automated affectation', () => {
   it('should exclude a candidate, when targeting the same jurisdiction as the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'CA  RENNES',
+      forbiddenJurisdiction: new Set(['CA  RENNES']),
       pastReportContributionsCount: 0,
+      id: 'memberId',
     });
     const candidate: Candidate = {
+      nominationSessionFileId: 'nominationSessionFileId',
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'CA  RENNES',
+      jurisdictionTarget: 'CA  RENNES',
     };
 
     expect(member.canReportOn(candidate)).toBe(false);
@@ -19,13 +21,15 @@ describe('automated affectation', () => {
   it('should allow a candidate, when the jurisdiction is not defined', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: null,
+      forbiddenJurisdiction: null,
       pastReportContributionsCount: 0,
+      id: 'memberId',
     });
 
     const candidate: Candidate = {
+      nominationSessionFileId: 'nominationSessionFileId',
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'CA RENNES',
+      jurisdictionTarget: 'CA RENNES',
     };
 
     expect(member.canReportOn(candidate)).toBe(true);
@@ -34,13 +38,15 @@ describe('automated affectation', () => {
   it('should allow a candidate, when targeting a different jurisdiction than the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'CA  RENNES',
+      forbiddenJurisdiction: new Set(['CA  RENNES']),
       pastReportContributionsCount: 0,
+      id: 'memberId',
     });
 
     const candidate: Candidate = {
+      nominationSessionFileId: 'nominationSessionFileId',
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'TGI RENNES',
+      jurisdictionTarget: 'TGI RENNES',
     };
 
     expect(member.canReportOn(candidate)).toBe(true);
@@ -49,12 +55,14 @@ describe('automated affectation', () => {
   it('should exclude a candidate from a different formation than the member', () => {
     const member = Member.from({
       formation: Magistrat.Formation.SIEGE,
-      jurisdiction: 'CA  RENNES',
+      forbiddenJurisdiction: new Set(['CA  RENNES']),
       pastReportContributionsCount: 0,
+      id: 'memberId',
     });
     const candidate: Candidate = {
+      nominationSessionFileId: 'nominationSessionFileId',
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'TGI RENNES',
+      jurisdictionTarget: 'TGI RENNES',
     };
     expect(member.canReportOn(candidate)).toBe(false);
   });
@@ -63,34 +71,37 @@ describe('automated affectation', () => {
     const members = [
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: 'CA  RENNES',
+        forbiddenJurisdiction: new Set(['CA  RENNES']),
         pastReportContributionsCount: 10,
+        id: 'memberId',
       }),
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: 'CA  STRASBOURG',
+        forbiddenJurisdiction: new Set(['CA  STRASBOURG']),
         pastReportContributionsCount: 5,
+        id: 'memberId2',
       }),
       Member.from({
         formation: Magistrat.Formation.PARQUET,
-        jurisdiction: 'CA  LYON',
+        forbiddenJurisdiction: new Set(['CA  LYON']),
         pastReportContributionsCount: 0,
+        id: 'memberId3',
       }),
     ];
 
     const candidate: Candidate = {
+      nominationSessionFileId: 'nominationSessionFileId',
       formation: Magistrat.Formation.PARQUET,
-      jurisdiction: 'TGI  NANTES',
+      jurisdictionTarget: 'TGI  NANTES',
     };
 
-    const result = new Affectations().autoAffect({
-      members: [...members],
-      candidates: [candidate],
-    });
+    const result = new Affectations([candidate], [...members]).autoAffect();
 
     expect(result.get(candidate)).toEqual([
-      expect.objectContaining({ jurisdiction: 'CA  LYON' }),
-      expect.objectContaining({ jurisdiction: 'CA  STRASBOURG' }),
+      expect.objectContaining({
+        forbiddenJurisdiction: new Set(['CA  LYON']),
+        pastReportContributionsCount: 1,
+      }),
     ]);
   });
 });
