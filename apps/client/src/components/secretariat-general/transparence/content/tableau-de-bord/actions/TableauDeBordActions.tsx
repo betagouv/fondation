@@ -12,6 +12,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { DateOnly } from '../../../../../../models/date-only.model';
 import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
 import { usePublishVersionMutation } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
+import { useAutoAffectationMutation } from '../../../../../../react-query/mutations/sg/auto-affectation.mutation';
 import { useGetDossierDeNominationParSession } from '../../../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { createSuccessModal } from '../../../../../shared/SuccessModal';
 import { AttachedFilesList } from './AttachedFilesList';
@@ -23,6 +24,11 @@ type TableauDeBordActionsProps = TransparenceSnapshot & {
 const publishSuccessModal = createSuccessModal({
   id: 'publish-success-modal-actions',
   message: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
+});
+
+const autoAffectationSuccessModal = createSuccessModal({
+  id: 'auto-affectation-success-modal-actions',
+  message: "L'attribution automatique des rapports a été effectuée avec succès."
 });
 
 export const TableauDeBordActions = ({
@@ -37,6 +43,7 @@ export const TableauDeBordActions = ({
 
   const { mutate: deleteFile } = useDeleteFile();
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
+  const { mutate: autoAffectation, isPending: isAutoAffectating } = useAutoAffectationMutation();
 
   const handleDeleteFile = (id: string) => {
     deleteFile(id, {
@@ -64,6 +71,30 @@ export const TableauDeBordActions = ({
         },
         onError: (error) => {
           console.error('Erreur lors de la publication des affectations:', error);
+        }
+      }
+    );
+  };
+
+  const onAutoAffectation = () => {
+    // Récupérer tous les dossiers sans affectation
+    const dossiersWithoutReporters =
+      dossiersResponse?.dossiers
+        ?.filter((dossier) => !dossier.rapporteurs || dossier.rapporteurs.length === 0)
+        .map((dossier) => dossier.id) || [];
+
+    if (dossiersWithoutReporters.length === 0) {
+      return;
+    }
+
+    autoAffectation(
+      { sessionId, nominationFileIds: dossiersWithoutReporters },
+      {
+        onSuccess: () => {
+          autoAffectationSuccessModal.open();
+        },
+        onError: (error) => {
+          console.error("Erreur lors de l'auto-affectation:", error);
         }
       }
     );
@@ -109,21 +140,34 @@ export const TableauDeBordActions = ({
             transparenceDate={dateTransparenceDateOnly}
           />
           {isBrouillon && (
-            <Button
-              priority="primary"
-              onClick={onPublierAffectations}
-              disabled={isPublishing}
-              className="w-full"
-            >
-              <div className="w-full text-center">
-                {isPublishing ? 'Publication en cours...' : 'Publier aux membres'}
-              </div>
-            </Button>
+            <>
+              <Button
+                priority="secondary"
+                onClick={onAutoAffectation}
+                disabled={isAutoAffectating || isPublishing}
+                className="w-full"
+              >
+                <div className="w-full text-center">
+                  {isAutoAffectating ? 'Attribution en cours...' : 'Attribuer les rapports'}
+                </div>
+              </Button>
+              <Button
+                priority="primary"
+                onClick={onPublierAffectations}
+                disabled={isPublishing || isAutoAffectating}
+                className="w-full"
+              >
+                <div className="w-full text-center">
+                  {isPublishing ? 'Publication en cours...' : 'Publier aux membres'}
+                </div>
+              </Button>
+            </>
           )}
         </div>
       </div>
 
       <publishSuccessModal.Component />
+      <autoAffectationSuccessModal.Component />
     </>
   );
 };

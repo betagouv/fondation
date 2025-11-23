@@ -44,7 +44,7 @@ export class DossierDeNominationController
     private readonly getBySessionIdUseCase: GetBySessionIdUseCase,
     private readonly saveAffectationsRapporteursUseCase: SaveAffectationsRapporteursUseCase,
     private readonly publierAffectationsUseCase: PublierAffectationsUseCase,
-  ) { }
+  ) {}
 
   @Get(
     dossierDeNominationsEndpointsPath.dossierDeNominationEtAffectationParSession,

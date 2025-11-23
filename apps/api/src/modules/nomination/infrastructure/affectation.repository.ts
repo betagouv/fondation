@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   Affectations,
   CandidateAffectationEvent,
 } from 'src/modules/nomination/domain/affectation';
-import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
+import { DATE_TIME_PROVIDER } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
+import { type DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 
 @Injectable()
 export class AffectationRepository {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(DATE_TIME_PROVIDER)
     private readonly clock: DateTimeProvider,
   ) {}
 
@@ -34,10 +36,15 @@ export class AffectationRepository {
     });
 
     if (lastAffectation) {
-      this.prisma.affectationVersion.update({
+      await this.prisma.affectationVersion.update({
         where: {
-          sessionId_version: [sessionId, lastAffectation.version],
+          sessionId_version: {
+            sessionId,
+            version: lastAffectation.version,
+          },
         },
+        // TODO REGLER LA MISE A JOUR
+        data: {},
       });
       return;
     }

@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { startOfYear } from 'date-fns';
 import { Magistrat } from 'shared-models';
 import { DossierDeNomination } from 'src/generated/prisma/client';
@@ -8,12 +8,15 @@ import { MembersService } from 'src/modules/members';
 import { Candidate, Member } from 'src/modules/nomination/domain/affectation';
 import { NominationFileContentSchema } from 'src/modules/session/infrastructure/queries/list-nomination-files.query';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { DATE_TIME_PROVIDER } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
 import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 
+@Injectable()
 export class ListAutoAffectationQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
+    @Inject(DATE_TIME_PROVIDER)
     private readonly clock: DateTimeProvider,
   ) {}
 
