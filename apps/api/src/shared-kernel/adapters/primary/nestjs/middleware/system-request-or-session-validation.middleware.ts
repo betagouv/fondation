@@ -13,7 +13,7 @@ export class SystemRequestOrSessionValidationMiddleware
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    if (req.cookies && 'sessionId' in req.cookies) {
+    if (req.cookies && 'sessionId' in req.signedCookies) {
       return this.sessionValidationMiddleware.use(req, res, next);
     } else {
       return this.systemRequestValidationMiddleware.use(req, res, next);

@@ -1,42 +1,46 @@
-import { z } from "zod";
-import { Gender } from "../../gender";
-import { Role } from "../../role";
-import { type RestContract, type ZodDto, type ZodParamsDto } from "../common";
+import { z } from 'zod';
+import { Gender } from '../../gender';
+import { Role } from '../../role';
+import { type RestContract, type ZodDto, type ZodParamsDto } from '../common';
 
 export interface IdentityAndAccessRestContract extends RestContract {
-  basePath: "api/auth";
+  basePath: 'api/auth';
   endpoints: {
+    /** @deprecated */
     login: {
-      method: "POST";
-      path: "login";
+      method: 'POST';
+      path: 'login';
       body: LoginDto;
       response: AuthenticatedUser;
     };
+    /** @deprecated */
     validateSessionFromCookie: {
-      method: "POST";
-      path: "validate-session-from-cookie";
+      method: 'POST';
+      path: 'validate-session-from-cookie';
       response: AuthenticatedUser | null;
     };
+    /** @deprecated */
     validateSession: {
-      method: "POST";
-      path: "validate-session";
+      method: 'POST';
+      path: 'validate-session';
       body: ValidateSessionDto;
       response: AuthenticatedUser | null;
     };
+    /** @deprecated */
     logout: {
-      method: "POST";
-      path: "logout";
+      method: 'POST';
+      path: 'logout';
       response: void;
     };
     userWithFullName: {
-      method: "GET";
-      path: "user-with-full-name/:fullName";
+      method: 'GET';
+      path: 'user-with-full-name/:fullName';
       params: UserWithFullNameParamsDto;
       response: AuthenticatedUser;
     };
     userWithId: {
-      method: "GET";
-      path: "user-with-id/:userId";
+      method: 'GET';
+      path: 'user-with-id/:userId';
       params: UserWithIdParamsDto;
       response: AuthenticatedUser;
     };
@@ -71,16 +75,16 @@ export interface UserWithIdParamsDto extends Record<string, string> {
 export const loginDtoSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
-}) satisfies ZodDto<IdentityAndAccessRestContract, "login">;
+}) satisfies ZodDto<IdentityAndAccessRestContract, 'login'>;
 
 export const validateSessionDtoSchema = z.object({
   sessionId: z.string(),
-}) satisfies ZodDto<IdentityAndAccessRestContract, "validateSession">;
+}) satisfies ZodDto<IdentityAndAccessRestContract, 'validateSession'>;
 
 export const userWithFullNameParamsDtoSchema = z.object({
   fullName: z.string().min(3),
-}) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithFullName">;
+}) satisfies ZodParamsDto<IdentityAndAccessRestContract, 'userWithFullName'>;
 
 export const userWithIdParamsDtoSchema = z.object({
   userId: z.uuid(),
-}) satisfies ZodParamsDto<IdentityAndAccessRestContract, "userWithId">;
+}) satisfies ZodParamsDto<IdentityAndAccessRestContract, 'userWithId'>;

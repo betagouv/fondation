@@ -30,8 +30,11 @@ export class SessionValidationMiddleware implements NestMiddleware {
   }
 
   private invalidSession(req: Request) {
-    if (!req.cookies) return true;
-    return !('sessionId' in req.cookies) || !this.sessionId(req);
+    return (
+      !req.signedCookies ||
+      !('sessionId' in req.signedCookies) ||
+      !this.sessionId(req)
+    );
   }
 
   private async validateUserSession(req: Request) {
@@ -39,6 +42,6 @@ export class SessionValidationMiddleware implements NestMiddleware {
   }
 
   private sessionId(req: Request) {
-    return req.cookies['sessionId'];
+    return req.signedCookies['sessionId'];
   }
 }

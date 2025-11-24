@@ -1,31 +1,19 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Gender, Role, type IdentityAndAccessRestContract } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
-type Endpoint = IdentityAndAccessRestContract['endpoints']['validateSessionFromCookie'];
-type ValidateSessionFromCookieResponse = Endpoint['response'];
-
-const validateSessionFromCookie = async () => {
-  const { method, path }: Endpoint = {
-    method: 'POST',
-    path: 'validate-session-from-cookie',
-    response: null
-  };
-
-  return apiFetch<ValidateSessionFromCookieResponse>(`/auth/${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-};
+const introspectSession = () =>
+  apiFetch<{ id: string; firstName: string; lastName: string; role: Role; gender: Gender }>(
+    `/auth/v2/introspect`,
+    { method: 'GET' }
+  );
 
 export const useValidateSessionFromCookie = () => {
   const queryClient = useQueryClient();
 
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ['validateSessionFromCookie'],
-    queryFn: validateSessionFromCookie,
+    queryKey: ['introspectSession'],
+    queryFn: introspectSession,
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: true,

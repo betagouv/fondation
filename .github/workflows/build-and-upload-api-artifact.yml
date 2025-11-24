@@ -11,6 +11,7 @@ jobs:
   build-and-upload-api-artifact:
     runs-on: ubuntu-latest
     env:
+      TZ: Etc/UTC
       DATABASE_URL: postgresql://postgres:password@localhost:5432/db
     steps:
       - uses: actions/checkout@v4

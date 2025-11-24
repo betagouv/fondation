@@ -164,81 +164,6 @@ describe('Auth Controller', () => {
     });
   });
 
-  describe('Session validation with fake encryption and fake signatures', () => {
-    const signedSessionId = 'signed-session-id';
-    const sessionId = 'ad4b3b3b-4b3b-4b3b-4b3b-4b3b4b3b4b3b';
-
-    beforeEach(async () => {
-      const moduleFixture = await new AppTestingModule()
-        .withFakeEncryption()
-        .withFakeCookieSignature({
-          [signedSessionId]: sessionId,
-        })
-        .compile();
-
-      app = new MainAppConfigurator(moduleFixture.createNestApplication())
-        .withCookies()
-        .configure();
-
-      await app.init();
-    });
-
-    it('validates a session id', async () => {
-      await givenSomeSessions({
-        sessionId,
-        userId: aUserDb.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
-      });
-
-      const response = await supertest(app.getHttpServer())
-        .post('/api/auth/validate-session')
-        .send({ sessionId: signedSessionId })
-        .expect(HttpStatus.OK);
-
-      expectUserDescriptor(response.body);
-    });
-
-    it('validates a session id from cookie', async () => {
-      await givenSomeSessions({
-        sessionId,
-        userId: aUserDb.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
-      });
-
-      const response = await supertest(app.getHttpServer())
-        .post('/api/auth/validate-session-from-cookie')
-        .set('Cookie', `sessionId=${signedSessionId}`)
-        .expect(HttpStatus.OK);
-
-      expectUserDescriptor(response.body);
-    });
-
-    it('logs out a user and invalidates the session', async () => {
-      await givenSomeSessions({
-        sessionId,
-        userId: aUserDb.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour later
-      });
-
-      await supertest(app.getHttpServer())
-        .post('/api/auth/logout')
-        .set('Cookie', `sessionId=${signedSessionId}`)
-        .expect(HttpStatus.OK)
-        .expect('set-cookie', new SetCookieRegex('cleared').build());
-
-      await expectSessions({
-        sessionId,
-        userId: aUserDb.id,
-        createdAt: expect.any(Date),
-        expiresAt: expect.any(Date),
-        invalidatedAt: expect.any(Date),
-      });
-    });
-  });
-
   describe('User retrieval', () => {
     it.each`
       description    | pathname
@@ -277,12 +202,6 @@ describe('Auth Controller', () => {
         )
         .request();
   });
-
-  const givenSomeSessions = async (
-    ...sessionsToInsert: (typeof sessions.$inferInsert)[]
-  ) => {
-    await db.insert(sessions).values(sessionsToInsert).execute();
-  };
 
   const expectSessions = async (
     ...expectedSessions: (typeof sessions.$inferSelect)[]
