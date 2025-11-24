@@ -96,3 +96,23 @@ export function usePublishVersionMutation() {
       })
   });
 }
+
+export function useAutoAffectationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: { sessionId: string; nominationFileIds: readonly string[] }) =>
+      apiFetch(`/sessions/v2/${mutation.sessionId}/auto-affectation`, {
+        method: 'POST',
+        body: JSON.stringify({ nominationFileIds: mutation.nominationFileIds }),
+        headers: { 'content-type': 'application/json' }
+      }),
+    onSuccess: (_data, { sessionId }) => {
+      queryClient.invalidateQueries({
+        predicate: ({ queryKey }) =>
+          (queryKey[0] === 'sessionNominationFiles' && queryKey[1] === sessionId) ||
+          (queryKey[0] === 'detailedNominationSessionAffectationsVersion' && queryKey[1] === sessionId)
+      });
+    }
+  });
+}

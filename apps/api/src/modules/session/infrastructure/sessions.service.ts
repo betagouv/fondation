@@ -1,25 +1,28 @@
 import { Injectable } from '@nestjs/common';
 
-import { ListSessionOfTypeGardeDesSceauxQuery } from './queries/list-sessions-of-type-garde-des-sceaux.query';
-import { DetailSessionQuery } from './queries/detail-session.query';
 import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { Paginated, Pagination } from 'src/modules/framework/pagination';
+
+import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
+import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
+import { DetailSessionQuery } from './queries/detail-session.query';
 import {
   ListNominationFilesQuery,
-  NominationFileAffectationItem,
+  type NominationFileAffectationItem,
 } from './queries/list-nomination-files.query';
+import { ListSessionOfTypeGardeDesSceauxQuery } from './queries/list-sessions-of-type-garde-des-sceaux.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
-import { Paginated, Pagination } from 'src/modules/framework/pagination';
-import { FoundAffectationVersion } from './finders/affectation-version.finder';
 
 @Injectable()
 export class SessionService {
   constructor(
-    private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
-    private readonly detailSessionQuery: DetailSessionQuery,
-    private readonly nominationSessionRepository: NominationSessionRepository,
-    private readonly listNominationFilesQuery: ListNominationFilesQuery,
+    private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
+    private readonly detailSessionQuery: DetailSessionQuery,
+    private readonly listNominationFilesQuery: ListNominationFilesQuery,
+    private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
+    private readonly nominationSessionRepository: NominationSessionRepository,
   ) {}
 
   listSessionsOfTypeGardeDesSceaux(userId: string) {
@@ -92,6 +95,23 @@ export class SessionService {
       command.sessionId,
     );
     session.publishAffectationVersion({ userId: command.userId });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  async autoAffectation(command: {
+    sessionId: string;
+    nominationFileIds: readonly string[];
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+    const autoAffectations = await this.autoAffectationsFinder.find({
+      sessionId: command.sessionId,
+      nominationFileIds: command.nominationFileIds,
+    });
+
+    session.autoAffectNominationFileReporters(autoAffectations);
+
     await this.nominationSessionRepository.persist(session);
   }
 }

@@ -1,4 +1,6 @@
 import { PrioriteEnum } from 'shared-models';
+
+import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
 import { makeId } from 'src/utils/id';
 
 export class NominationSessionFileReportersAffected {
@@ -136,6 +138,11 @@ export class NominationSession {
         props.userId,
       ),
     );
+  }
+
+  autoAffectNominationFileReporters(autoAffectations: AutoAffectations) {
+    const affectations = autoAffectations.distribute();
+    this.affectNominationFileReporters(affectations);
   }
 
   #messages: NominationSessionEvent[] = [];

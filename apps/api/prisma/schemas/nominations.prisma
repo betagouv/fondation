@@ -4,7 +4,7 @@ model AffectationVersion {
   sessionId                            String                      @map("session_id") @db.Uuid
   version                              Int                         @default(1)
   statut                               PrismaStatutAffectationEnum @default(BROUILLON)
-  datePublication                      DateTime?                   @default(now()) @map("date_publication") @db.Timestamp(6)
+  datePublication                      DateTime?                   @map("date_publication") @db.Timestamp(6)
   auteurPublicationId                  String?                     @map("auteur_publication") @db.Uuid
   /**
    * @deprecated

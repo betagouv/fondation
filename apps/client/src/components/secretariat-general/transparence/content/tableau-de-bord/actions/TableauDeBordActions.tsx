@@ -11,8 +11,10 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { DateOnly } from '../../../../../../models/date-only.model';
 import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
-import { usePublishVersionMutation } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useAutoAffectationMutation } from '../../../../../../react-query/mutations/sg/auto-affectation.mutation';
+import {
+  usePublishVersionMutation,
+  useAutoAffectationMutation
+} from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useGetDossierDeNominationParSession } from '../../../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { createSuccessModal } from '../../../../../shared/SuccessModal';
 import { AttachedFilesList } from './AttachedFilesList';
