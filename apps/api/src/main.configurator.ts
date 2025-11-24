@@ -28,7 +28,7 @@ export class MainAppConfigurator {
   withCookies(secret?: string): MainAppConfigurator {
     this.app.use(cookieParser(secret ?? this.apiConfig.cookieSecret));
     if (process.env.NODE_ENV !== 'production') {
-      // FIXME: temporary, remove once the custom signer is used
+      // FIXME: temporary, remove once the custom signer is not used anymore
       this.app.use(
         (req: ExpressRequest, _res: ExpressResponse, next: NextFunction) => {
           if (!Object.keys(req.signedCookies).length && req.headers['cookie']) {

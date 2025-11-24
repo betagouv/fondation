@@ -19,10 +19,11 @@ export class TipTapEditorProvider implements TextEditorProvider {
 
     for (const { file, signedUrl } of images) {
       chained = chained.setImage({
+        src: signedUrl,
+
         // Cet attribut est ajouté lors de la customisation de l'extension Image
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         [dataFileNameKey as any]: file.name,
-        src: signedUrl,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         [fileKey as any]: file
       });

@@ -1,9 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import {
-  ReportFileUsage,
-  type FilesContextRestContract,
-  type ReportsContextRestContract
-} from 'shared-models';
+import { ReportFileUsage } from 'shared-models';
+import { attachReportFiles } from '../attach-report-files.mutation';
 import { apiFetch } from '../../../../utils/api-fetch.utils';
 
 export const addTimestampToFiles = async (files: File[], timestamp: number) => {
@@ -18,64 +15,43 @@ export const addTimestampToFiles = async (files: File[], timestamp: number) => {
   );
 };
 
-const insertImages = async (reportId: string, files: { file: File; fileId: string }[]) => {
-  const formData = new FormData();
-  files.forEach(({ file }) => {
-    formData.append('files', file, file.name);
-  });
-  const fileIds = files.map(({ fileId }) => fileId);
+async function getReportImageUrls(props: {
+  reportId: string;
+  files: readonly File[];
+}): Promise<{ file: File; name: string; signedUrl: string; fileId: string }[]> {
+  const urlSearchParams = new URLSearchParams();
+  for (const file of props.files) {
+    urlSearchParams.append('fileNames', file.name);
+  }
 
-  const { method }: Partial<ReportsContextRestContract['endpoints']['uploadFiles']> = {
-    method: 'POST'
-  };
+  const result = await apiFetch<{ items: { id: string; name: string; url: string }[] }>(
+    `/reports/v2/${props.reportId}/files/url?${urlSearchParams}`,
+    { method: 'GET' }
+  );
+  if (!result) return [];
 
-  const queryParams = new URLSearchParams();
-  queryParams.append('usage', ReportFileUsage.EMBEDDED_SCREENSHOT);
-  fileIds.forEach((fileId) => {
-    queryParams.append('fileIds', fileId);
-  });
+  const fileByName = new Map(props.files.map((file) => [file.name, file]));
+  return result.items
+    .map(({ id: fileId, name, url: signedUrl }) => {
+      const file = fileByName.get(name);
+      if (!file) return undefined;
 
-  return apiFetch(`/reports/${reportId}/files/upload-many?${queryParams}`, {
-    method,
-    body: formData
-  });
-};
+      return { file, name, signedUrl, fileId };
+    })
+    .filter((x): x is NonNullable<typeof x> => Boolean(x));
+}
 
-type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
-type GetSignedUrlsResponse = Endpoint['response'];
-
-const insertImagesWithSignedUrls = async (reportId: string, files: { file: File; fileId: string }[]) => {
-  await insertImages(reportId, files);
-
-  const fileIds = files.map(({ fileId }) => fileId);
-  const queryParams = new URLSearchParams({
-    ids: fileIds.join(',')
-  });
-
-  const signedUrls = await apiFetch<GetSignedUrlsResponse>(`/files/signed-urls?${queryParams}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  return (signedUrls || []).map((f: { name: string; signedUrl: string }) => {
-    const file = files.find((file) => file.file.name === f.name);
-    if (!file) {
-      throw new Error(`File with name ${f.name} not found in the uploaded files`);
-    }
-
-    return {
-      file: file.file,
-      signedUrl: f.signedUrl,
-      fileId: file.fileId
-    };
-  });
+const insertImagesWithSignedUrls = async (
+  reportId: string,
+  files: readonly File[]
+): Promise<{ file: File; signedUrl: string }[]> => {
+  await attachReportFiles(reportId, files, ReportFileUsage.EMBEDDED_SCREENSHOT);
+  return getReportImageUrls({ reportId, files });
 };
 
 export const useInsertImagesWithSignedUrls = () => {
   return useMutation({
-    mutationFn: ({ reportId, files }: { reportId: string; files: { file: File; fileId: string }[] }) =>
+    mutationFn: ({ reportId, files }: { reportId: string; files: readonly File[] }) =>
       insertImagesWithSignedUrls(reportId, files)
   });
 };

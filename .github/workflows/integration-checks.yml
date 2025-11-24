@@ -11,11 +11,35 @@ on:
         required: true
 jobs:
   build:
+    timeout-minutes: 5
     environment: ci
     runs-on: ubuntu-latest
     env:
       TZ: Etc/UTC
       DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
+    services:
+      postgres:
+        image: postgres:13.2
+        env:
+          POSTGRES_USER: fondation
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: fondation
+        ports:
+          - 5435:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      minio:
+        image: ghcr.io/betagouv/fondation-ci-minio:2025-11-11
+        env:
+          MINIO_ROOT_USER: fondation
+          MINIO_ROOT_PASSWORD: fondation-secret
+        ports:
+          - 9000:9000
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,24 +52,36 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build the shared models, necessary for the type checks
         run: pnpm --filter shared-models build
+
       - name: Generate prisma
         run: pnpm --filter api prisma generate --config prisma.config.ts
+
       - name: Types check
         run: pnpm types:check
+
       - name: Lint
         run: pnpm lint:check
+
       - name: Format
         run: pnpm format:check
+
+      - name: Migrate Prisma
+        run: pnpm run --filter api prisma migrate deploy
+
+      - name: Create buckets if necessary
+        run: node apps/api/scripts/init-buckets.js
+
       - name: Test
         run: pnpm test:all
         env:
           DATABASE_PORT: 5435
+          COOKIE_SECRET: "secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e"
           SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
           SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
-          S3_REPORTS_ATTACHED_FILES_BUCKET: ${{ vars.S3_REPORTS_ATTACHED_FILES_BUCKET }}
-          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+
       - name: Build
         run: pnpm build

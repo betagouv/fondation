@@ -3,13 +3,11 @@ import { reportHtmlIds } from '../../../dom/html-ids';
 
 import { ReportVM } from '../../../../../VM/ReportVM';
 import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
-import { useDeleteFileReport } from '../../../../../react-query/mutations/reports/delete-file-report.mutation';
-import { useDeleteFilesReport } from '../../../../../react-query/mutations/reports/delete-files-report.mutation';
+import { useDetachReportFiles } from '../../../../../react-query/mutations/reports/detach-report-files.mutation';
 import {
   addTimestampToFiles,
   useInsertImagesWithSignedUrls
 } from '../../../../../react-query/mutations/reports/screenshots/insert-images.mutation';
-import { DeterministicUuidGenerator } from '../../../../../utils/deterministicUuidGenerator';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
 import { extractScreenshotFileIds } from '../../../../../utils/refresh-signed-urls.utils';
@@ -30,8 +28,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
   contentScreenshots
 }) => {
   const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
-  const { mutateAsync: deleteFilesAsync } = useDeleteFilesReport();
-  const { mutateAsync: deleteFileAsync } = useDeleteFileReport();
+  const { mutateAsync: deleteFilesAsync } = useDetachReportFiles();
 
   // Extraire les fileIds des screenshots pour le refresh des URLs signées
   const screenshotFileIds = contentScreenshots ? extractScreenshotFileIds(contentScreenshots) : [];
@@ -44,28 +41,22 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       )
     );
 
-    const filesArg = filesToUpload.map((file) => ({
-      file,
-      fileId: new DeterministicUuidGenerator().genUuid()
-    }));
+    // const filesArg = filesToUpload.map((file) => ({
+    //   file,
+    //   fileId: new DeterministicUuidGenerator().genUuid()
+    // }));
 
     const images = await insertImagesWithSignedUrlsAsync({
       reportId,
-      files: filesArg
+      files: filesToUpload
     });
 
     const success = new TipTapEditorProvider(editor).setImages(images);
-
     if (!success) {
-      await Promise.all(
-        images.map(
-          async (image: { file: File; signedUrl: string; fileId: string }) =>
-            await deleteFileAsync({
-              reportId,
-              fileName: image.file.name
-            })
-        )
-      );
+      await deleteFilesAsync({
+        reportId,
+        fileNames: images.map(({ file }) => file.name)
+      });
       throw new Error(`Failed to embed the screenshot for report id ${reportId}`);
     }
 

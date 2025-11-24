@@ -7,6 +7,7 @@ model File {
   bucket          String                    @db.VarChar
 
   transparenceFiles TransparenceFile[]
+  attachedToReports ReportFile[]
 
   @@map("files")
   @@schema("files_context")

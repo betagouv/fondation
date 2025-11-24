@@ -1,9 +1,9 @@
 services:
   postgres:
     container_name: postgres-test
-    image: 'postgres:13.2'
+    image: "postgres:13.2"
     ports:
-      - '5435:5432'
+      - "5435:5432"
     networks:
       - app_test
     user: postgres
@@ -14,11 +14,12 @@ services:
 
   minio:
     container_name: minio-test
-    image: 'minio/minio:latest'
+    image: "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"
     # Erasure Coding is required to enable versionning, so we create 4 drives
-    entrypoint: sh -c "mkdir -p /data/{1..4} && minio server /data/{1...4}"
+    entrypoint: sh -c "mkdir -p /data/{1..4} && minio server /data/{1...4} --console-address ':41079'"
     ports:
-      - '9000:9000' # API
+      - "9000:9000" # API
+      - "41079:41079" # web-UI
     networks:
       - app_test
     environment:
