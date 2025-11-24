@@ -68,8 +68,8 @@ describe('Report E2E', () => {
       const nominationFile = await tx.dossierDeNomination.create({
         select: { id: true },
         data: {
-          session_id: session.id,
-          dossier_de_nomination_import_id: randomUUID(),
+          sessionId: session.id,
+          dossierDeNominationImportId: randomUUID(),
           content: { version: 2, nomMagistrat: faker.person.fullName() },
         },
       });

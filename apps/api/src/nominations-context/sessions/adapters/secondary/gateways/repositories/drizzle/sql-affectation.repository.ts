@@ -1,4 +1,5 @@
 import { and, desc, eq, max, sql } from 'drizzle-orm';
+import { PrioriteEnum } from 'shared-models';
 import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
 import {
   Affectation,
@@ -46,21 +47,61 @@ export class SqlAffectationRepository implements AffectationRepository {
     sessionId: string,
   ): DrizzleTransactionableAsync<Affectation | null> {
     return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(eq(affectationPm.sessionId, sessionId))
-        .orderBy(
+      const result = await db.query.affectationPm.findFirst({
+        where: eq(affectationPm.sessionId, sessionId),
+        orderBy: [
           sql`CASE WHEN ${affectationPm.statut} = 'BROUILLON' THEN 0 ELSE 1 END`,
           desc(affectationPm.version),
-        )
-        .limit(1);
+        ],
+        with: {
+          affectations: {
+            with: {
+              nominationFile: {
+                columns: {
+                  priorite: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
-      if (result.length === 0) {
+      if (!result) {
         return null;
       }
 
-      return SqlAffectationRepository.mapToDomain(result[0]!);
+      const affectationsDossiersDeNominations = Array.from(
+        result.affectations
+          .reduce(
+            (map, affectation) => {
+              const x = map.get(affectation.nominationFileId) ?? {
+                dossierDeNominationId: affectation.nominationFileId,
+                priorite: affectation.nominationFile?.priorite ?? undefined,
+                rapporteurIds: [] as string[],
+              };
+              x.rapporteurIds.push(affectation.userId);
+              map.set(affectation.nominationFileId, x);
+              return map;
+            },
+            new Map<
+              string,
+              {
+                dossierDeNominationId: string;
+                priorite?: PrioriteEnum;
+                rapporteurIds: string[];
+              }
+            >(),
+          )
+          .values(),
+      );
+
+      return Affectation.fromSnapshot({
+        ...result,
+        affectationsDossiersDeNominations,
+        formation: toFormation(result.formation),
+        datePublication: result.datePublication ?? undefined,
+        auteurPublication: result.auteurPublication ?? undefined,
+      });
     };
   }
 

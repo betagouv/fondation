@@ -14,7 +14,6 @@ import { MagistratDnModale } from './MagistratDnModale';
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
   { field: 'content.nomMagistrat', label: 'Magistrat' },
-  // { field: 'content.posteActuel', label: 'Poste actuel' },
   { field: 'content.grade', label: 'Grade actuel' },
   { field: 'content.posteCible', label: 'Poste cible' },
   { field: 'content.gradeCible', label: 'Grade cible' },
@@ -22,6 +21,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
+  // { field: 'content.posteActuel', label: 'Poste actuel' },
 ];
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: Array<{ field: string; label: string }> = [
