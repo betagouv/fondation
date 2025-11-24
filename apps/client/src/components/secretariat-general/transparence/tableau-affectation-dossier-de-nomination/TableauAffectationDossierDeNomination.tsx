@@ -1,15 +1,16 @@
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
+import type { Magistrat } from 'shared-models';
+import { useAffectNominationFilesReportersMutation } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
-import { useSaveAffectationsRapporteurs } from '../../../../react-query/mutations/sg/save-affectations-rapporteurs.mutation';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
+import { createSuccessModal } from '../../../shared/SuccessModal';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
-import { Badge } from '@codegouvfr/react-dsfr/Badge';
-import type { Magistrat } from 'shared-models';
-import type { FC } from 'react';
-import { createSuccessModal } from '../../../shared/SuccessModal';
+import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
+import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
 
 const successModal = createSuccessModal({
   id: 'affectations-success-modal'
@@ -37,15 +38,21 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     isError: isErrorRapporteurs
   } = useGetUsersByFormation(formation);
 
-  const { mutate: saveAffectations } = useSaveAffectationsRapporteurs();
+  const { mutate: saveAffectations } = useAffectNominationFilesReportersMutation();
 
-  const onSaveAffectations = (affectations: { dossierId: string; rapporteurIds: string[] }[]) => {
+  const onSaveAffectations = (affectations: readonly DossierAffectation[]) => {
     if (!sessionId) return;
 
     saveAffectations(
       {
         sessionId,
-        affectations
+        affectations: affectations.map(
+          ({ dossierId: nominationFileId, rapporteurIds: reporterIds, priorite }) => ({
+            nominationFileId,
+            reporterIds,
+            priority: priorite ?? null
+          })
+        )
       },
       {
         onSuccess: () => {
@@ -66,20 +73,10 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     return <ErrorMessage message="Erreur lors de la récupération des données" />;
   }
 
-  const metadata = dossiersResponse?.metadata;
-  const isBrouillon = metadata?.statut === 'BROUILLON';
-
   return (
     <>
       <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
-        {metadata && (
-          <div className={'mb-4 flex flex-col gap-2'}>
-            <Badge severity={isBrouillon ? 'info' : 'success'}>
-              {isBrouillon ? 'Brouillon' : 'Publiée'}
-              {metadata.version > 1 && ` - Version ${metadata.version}`}
-            </Badge>
-          </div>
-        )}
+        <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
 
         <TableauDossiersDeNomination
           dossiersDeNomination={dossiersResponse?.dossiers || []}

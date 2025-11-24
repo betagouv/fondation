@@ -29,8 +29,10 @@ model User {
   gender    PrismaGenderEnum
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
 
-  sessions                AuthSession[]
-  excludedJurisdictionIds ExcludedJurisdiction[]
+  sessions                    AuthSession[]
+  excludedJurisdictionIds     ExcludedJurisdiction[]
+  reporterOnNominationFileIds NominationFileToReporter[]
+  publishedVersions           AffectationVersion[]
 
   @@map("users")
   @@schema("identity_and_access_context")

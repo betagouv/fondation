@@ -308,10 +308,9 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap(): Promise<void> {
-    // TODO: shouldn't we create it to ease things?
-    await this.ensureBucketExists();
-
     if (process.env.NODE_ENV === 'production') {
+      // TODO: shouldn't we create it to ease things?
+      await this.ensureBucketExists();
       await this.putBucketCors();
     }
   }

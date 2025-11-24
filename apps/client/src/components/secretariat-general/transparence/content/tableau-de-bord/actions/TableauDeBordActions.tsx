@@ -7,14 +7,14 @@ import { ImportObservantsModal } from './ImportObservantsModal';
 import { type TransparenceSnapshot } from 'shared-models';
 import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-query/queries/get-transparency-attachments.query';
 
-import { DateOnly } from '../../../../../../models/date-only.model';
-import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
-import { AttachedFilesList } from './AttachedFilesList';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { DateOnly } from '../../../../../../models/date-only.model';
+import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
+import { usePublishVersionMutation } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useGetDossierDeNominationParSession } from '../../../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
-import { usePublierAffectations } from '../../../../../../react-query/mutations/sg/publier-affectations.mutation';
 import { createSuccessModal } from '../../../../../shared/SuccessModal';
+import { AttachedFilesList } from './AttachedFilesList';
 
 type TableauDeBordActionsProps = TransparenceSnapshot & {
   sessionId: string;
@@ -36,7 +36,7 @@ export const TableauDeBordActions = ({
   const { data: dossiersResponse } = useGetDossierDeNominationParSession({ sessionId });
 
   const { mutate: deleteFile } = useDeleteFile();
-  const { mutate: publierAffectations, isPending: isPublishing } = usePublierAffectations();
+  const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
 
   const handleDeleteFile = (id: string) => {
     deleteFile(id, {
@@ -56,14 +56,17 @@ export const TableauDeBordActions = ({
   const isBrouillon = metadata?.statut === 'BROUILLON';
 
   const onPublierAffectations = () => {
-    publierAffectations(sessionId, {
-      onSuccess: () => {
-        publishSuccessModal.open();
-      },
-      onError: (error) => {
-        console.error('Erreur lors de la publication des affectations:', error);
+    publierAffectations(
+      { sessionId },
+      {
+        onSuccess: () => {
+          publishSuccessModal.open();
+        },
+        onError: (error) => {
+          console.error('Erreur lors de la publication des affectations:', error);
+        }
       }
-    });
+    );
   };
 
   return (

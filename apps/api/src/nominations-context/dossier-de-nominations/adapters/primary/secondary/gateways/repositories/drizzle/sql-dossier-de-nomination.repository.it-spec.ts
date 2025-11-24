@@ -11,7 +11,10 @@ import {
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { clearDB } from 'test/docker-postgresql-manager';
 
+import { faker } from '@faker-js/faker';
+import { Magistrat } from 'shared-models';
 import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
+import { sessionPm } from 'src/modules/framework/drizzle/schemas';
 import { dossierDeNominationPm } from 'src/nominations-context/dossier-de-nominations/adapters/primary/secondary/gateways/repositories/drizzle/schema/dossier-de-nomination-pm';
 import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { SqlDossierDeNominationRepository } from './sql-dossier-de-nomination.repository';
@@ -22,12 +25,28 @@ describe('SQL Dossier De Nomination Repository', () => {
   let uuidGenerator: DeterministicUuidGenerator;
   let db: DrizzleDb;
 
+  let aSessionId: string;
+
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
     await clearDB(db);
+
+    const [session] = await db
+      .insert(sessionPm)
+      .values({
+        content: {},
+        formation: faker.helpers.enumValue(Magistrat.Formation),
+        name: faker.lorem.words(7),
+        sessionImportéeId: aImportId,
+        typeDeSaisine: 'TRANSPARENCE_GDS',
+      })
+      .returning({ id: sessionPm.id });
+
+    aSessionId = session!.id;
+
     sqlDossierDeNominationRepository = new SqlDossierDeNominationRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
     uuidGenerator = new DeterministicUuidGenerator();
@@ -57,6 +76,7 @@ describe('SQL Dossier De Nomination Repository', () => {
       dossierDeNominationImportéId: aImportId,
       content: aContent,
       createdAt: expect.any(Date),
+      priorite: null,
     });
   });
 
@@ -140,7 +160,6 @@ describe('SQL Dossier De Nomination Repository', () => {
 });
 
 const aDossierId = 'cd4bb1cb-9c34-4c47-803e-92d77aa6d9ce';
-const aSessionId = '343fd922-2d00-4018-87c5-e4c66140f98b';
 const aImportId = 'aec19e67-dc06-475f-909d-e4eb63d8e081';
 const aContent = {
   folderNumber: 123,
