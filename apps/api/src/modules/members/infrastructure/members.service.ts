@@ -9,6 +9,8 @@ import {
   DetailsMemberQuery,
 } from './queries/details-member.query';
 import { MemberRepository } from './member-repository';
+import { InternalFindMembersQuery } from './queries/internal-find-members.query';
+import { Magistrat } from 'shared-models';
 
 @Injectable()
 export class MembersService {
@@ -16,6 +18,7 @@ export class MembersService {
     private readonly memberRepository: MemberRepository,
     private readonly listMembersQuery: ListMembersQuery,
     private readonly detailsMemberQuery: DetailsMemberQuery,
+    private readonly internalFindMembersQuery: InternalFindMembersQuery,
   ) {}
 
   listMembers(query: {
@@ -36,5 +39,13 @@ export class MembersService {
     const member = await this.memberRepository.findWithJurisdictions(command);
     member.excludeJurisdictions(command.jurisdictionIds);
     await this.memberRepository.persist(member);
+  }
+
+  /** @internal */
+  findMembers(query: {
+    ids: readonly string[];
+    formation: Magistrat.Formation | undefined;
+  }): Promise<string[]> {
+    return this.internalFindMembersQuery.handle(query);
   }
 }

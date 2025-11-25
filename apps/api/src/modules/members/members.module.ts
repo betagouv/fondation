@@ -7,11 +7,14 @@ import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
 import { JurisdictionsController } from './jurisdictions.controller';
 import { MembersController } from './members.controller';
+import { InternalFindMembersQuery } from './infrastructure/queries/internal-find-members.query';
 
 @Module({
   controllers: [MembersController, JurisdictionsController],
+  exports: [MembersService],
   providers: [
     DetailsMemberQuery,
+    InternalFindMembersQuery,
     JurisdictionsService,
     ListMembersQuery,
     MemberRepository,

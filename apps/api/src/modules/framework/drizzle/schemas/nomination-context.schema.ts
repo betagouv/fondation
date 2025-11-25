@@ -1,9 +1,11 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgSchema,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -11,6 +13,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
 import { formationEnum } from './shared-kernel.schema';
+import { users } from './identity-and-access-context.schema';
+import { PrioriteEnum } from 'shared-models';
 
 export const nominationsContextSchema = pgSchema('nominations_context');
 
@@ -42,6 +46,7 @@ export const affectationPm = nominationsContextSchema.table(
     datePublication: timestamp('date_publication'),
     auteurPublication: uuid('auteur_publication'),
     formation: formationEnum('formation').notNull(),
+    /** @deprecated */
     affectationsDossiersDeNominations: jsonb(
       'affectations_dossiers_de_nominations',
     )
@@ -59,6 +64,10 @@ export const affectationPm = nominationsContextSchema.table(
       .where(sql`${table.statut} = 'BROUILLON'`),
   }),
 );
+
+export const affectationRelations = relations(affectationPm, ({ many }) => ({
+  affectations: many(drizzleNominationFileToReporterPm),
+}));
 
 export const préAnalysePm = nominationsContextSchema.table('pre_analyse', {
   id: uuid('id')
@@ -82,6 +91,11 @@ export const sessionPm = nominationsContextSchema.table('session', {
   content: jsonb('content').$type<object>().notNull(),
 });
 
+export const drizzlePrioriteEnum = pgEnum(
+  'priorite_enum',
+  Object.values(PrioriteEnum) as [PrioriteEnum, ...PrioriteEnum[]],
+);
+
 export const dossierDeNominationPm = nominationsContextSchema.table(
   'dossier_de_nomination',
   {
@@ -94,5 +108,51 @@ export const dossierDeNominationPm = nominationsContextSchema.table(
       .unique()
       .notNull(),
     content: jsonb('content').notNull(),
+    priorite: drizzlePrioriteEnum('priorite'),
   },
+);
+
+export const drizzleNominationFileToReporterPm = nominationsContextSchema.table(
+  'nomination_file_to_reporter',
+  {
+    versionId: uuid('version_id')
+      .notNull()
+      .references(() => affectationPm.id, {
+        onDelete: 'cascade',
+        onUpdate: 'no action',
+      }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, {
+        onDelete: 'cascade',
+        onUpdate: 'no action',
+      }),
+    nominationFileId: uuid('nomination_file_id')
+      .notNull()
+      .references(() => dossierDeNominationPm.id, {
+        onDelete: 'cascade',
+        onUpdate: 'no action',
+      }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.versionId, t.userId, t.nominationFileId] }),
+  }),
+);
+
+export const drizzleNominationFileToReporterRelations = relations(
+  drizzleNominationFileToReporterPm,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [drizzleNominationFileToReporterPm.userId],
+      references: [users.id],
+    }),
+    nominationFile: one(dossierDeNominationPm, {
+      fields: [drizzleNominationFileToReporterPm.nominationFileId],
+      references: [dossierDeNominationPm.id],
+    }),
+    version: one(affectationPm, {
+      fields: [drizzleNominationFileToReporterPm.versionId],
+      references: [affectationPm.id],
+    }),
+  }),
 );

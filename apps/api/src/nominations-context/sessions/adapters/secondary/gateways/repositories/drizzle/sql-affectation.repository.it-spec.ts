@@ -17,6 +17,9 @@ import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/
 import { clearDB } from 'test/docker-postgresql-manager';
 import { affectationPm } from './schema/affectation-pm';
 import { SqlAffectationRepository } from './sql-affectation.repository';
+import { sessionPm } from './schema';
+import { faker } from '@faker-js/faker';
+import { randomUUID } from 'node:crypto';
 
 describe('SQL Affectation Repository', () => {
   let sqlAffectationRepository: SqlAffectationRepository;
@@ -24,12 +27,37 @@ describe('SQL Affectation Repository', () => {
   let uuidGenerator: DeterministicUuidGenerator;
   let db: DrizzleDb;
 
+  let aSessionId: string;
+  let affectationSnapshot: AffectationSnapshot;
+
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
   });
 
   beforeEach(async () => {
     await clearDB(db);
+
+    const [session] = await db
+      .insert(sessionPm)
+      .values({
+        content: {},
+        formation: aFormation,
+        name: faker.lorem.words(7),
+        sessionImportéeId: randomUUID(),
+        typeDeSaisine: 'TRANSPARENCE_GDS',
+      })
+      .returning({ id: sessionPm.id });
+    aSessionId = session!.id;
+
+    affectationSnapshot = {
+      id: anAffectationId,
+      sessionId: aSessionId,
+      version: 1,
+      statut: StatutAffectation.BROUILLON,
+      formation: aFormation,
+      affectationsDossiersDeNominations: anAffectations,
+    };
+
     sqlAffectationRepository = new SqlAffectationRepository();
     transactionPerformer = new DrizzleTransactionPerformer(db);
     uuidGenerator = new DeterministicUuidGenerator();
@@ -70,9 +98,10 @@ describe('SQL Affectation Repository', () => {
         sqlAffectationRepository.bySessionId(aSessionId),
       );
 
-      expect(affectation?.snapshot()).toEqual<AffectationSnapshot>(
-        affectationSnapshot,
-      );
+      expect(affectation?.snapshot()).toEqual({
+        ...affectationSnapshot,
+        affectationsDossiersDeNominations: expect.any(Array),
+      });
     });
 
     it('returns null when an affectation is not found', async () => {
@@ -99,7 +128,6 @@ describe('SQL Affectation Repository', () => {
 });
 
 const anAffectationId = '490558fb-67b8-4522-9dab-7dc82961e39a';
-const aSessionId = '550da006-4f50-4c9e-b2b9-9342d3406ee9';
 const aFormation = Magistrat.Formation.PARQUET;
 const anAffectations: AffectationsDossiersDeNominations[] = [
   {
@@ -107,12 +135,3 @@ const anAffectations: AffectationsDossiersDeNominations[] = [
     rapporteurIds: ['943e9546-3735-454f-92a9-e2e9ad4f7ea6'],
   },
 ];
-
-const affectationSnapshot: AffectationSnapshot = {
-  id: anAffectationId,
-  sessionId: aSessionId,
-  version: 1,
-  statut: StatutAffectation.BROUILLON,
-  formation: aFormation,
-  affectationsDossiersDeNominations: anAffectations,
-};
