@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { Magistrat } from 'shared-models';
 import { Paginated, Pagination } from 'src/modules/framework/pagination';
-import {
-  ListMembersQuery,
-  MemberListItemDto,
-} from './queries/list-members.query';
+import { MemberRepository } from './member-repository';
 import {
   DetailedMemberDto,
   DetailsMemberQuery,
 } from './queries/details-member.query';
-import { MemberRepository } from './member-repository';
 import { InternalFindMembersQuery } from './queries/internal-find-members.query';
-import { Magistrat } from 'shared-models';
+import {
+  ListMembersQuery,
+  MemberListItemDto,
+} from './queries/list-members.query';
 
 @Injectable()
 export class MembersService {
@@ -43,7 +43,7 @@ export class MembersService {
 
   /** @internal */
   findMembers(query: {
-    ids: readonly string[];
+    ids: readonly string[] | undefined;
     formation: Magistrat.Formation | undefined;
   }): Promise<string[]> {
     return this.internalFindMembersQuery.handle(query);

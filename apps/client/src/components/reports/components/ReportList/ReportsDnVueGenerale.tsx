@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
+import { useSessionNominationFilesQuery } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 
 export const ReportsDnVueGenerale = () => {
   const { sessionId } = useParams();
@@ -9,7 +9,7 @@ export const ReportsDnVueGenerale = () => {
     data,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
-  } = useGetDossierDeNominationParSession({
+  } = useSessionNominationFilesQuery({
     sessionId: sessionId as string
   });
 
@@ -23,7 +23,7 @@ export const ReportsDnVueGenerale = () => {
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <TableauDossiersDeNomination dossiersDeNomination={data?.dossiers || []} />
+      <TableauDossiersDeNomination dossiersDeNomination={data?.items || []} />
     </div>
   );
 };

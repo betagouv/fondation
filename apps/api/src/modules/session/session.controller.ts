@@ -12,11 +12,8 @@ import {
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { Role, TypeDeSaisine } from 'shared-models';
-import {
-  Paginated,
-  Pagination,
-  QueryPagination,
-} from '../framework/pagination';
+
+import { AutoAffectationDto } from 'src/modules/session/infrastructure/dtos/auto-affectation.dto';
 import { AuthedUserId, HasRole } from '../simple-auth';
 import {
   AffectReportersDto,
@@ -26,8 +23,8 @@ import { FoundAffectationVersion } from './infrastructure/finders/affectation-ve
 import { type DetailedSessionResponse } from './infrastructure/queries/detail-session.query';
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { type ListSessionOfTypeGardeDesSceauxResponse } from './infrastructure/queries/list-sessions-of-type-garde-des-sceaux.query';
-import { SessionService } from './infrastructure/sessions.service';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
+import { SessionService } from './infrastructure/sessions.service';
 
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
@@ -74,12 +71,10 @@ export class SessionController {
   @UsePipes(ZodValidationPipe)
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @QueryPagination() pagination: Pagination,
     @Query() query: ListNominationFilesQueryDto,
-  ): Promise<Paginated<NominationFileAffectationItem>> {
+  ): Promise<{ items: NominationFileAffectationItem[] }> {
     return this.sessions.listNominationFiles({
       sessionId,
-      pagination,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
@@ -106,6 +101,20 @@ export class SessionController {
     return this.sessions.publishNominationSessionAffectationsVersion({
       sessionId,
       userId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/:sessionId/auto-affectation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async autoAffectation(
+    @Param('sessionId') sessionId: string,
+    @Body() body: AutoAffectationDto,
+  ): Promise<void> {
+    await this.sessions.autoAffectation({
+      sessionId,
+      nominationFileIds: body.nominationFileIds,
     });
   }
 }

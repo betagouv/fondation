@@ -1,20 +1,25 @@
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { ImportAttachmentModal } from './ImportAttachmentModal';
-import { ImportObservantsModal } from './ImportObservantsModal';
 
-import { type TransparenceSnapshot } from 'shared-models';
-import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-query/queries/get-transparency-attachments.query';
-
-import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { DateOnly } from '../../../../../../models/date-only.model';
-import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
-import { usePublishVersionMutation } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useGetDossierDeNominationParSession } from '../../../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
 import { createSuccessModal } from '../../../../../shared/SuccessModal';
 import { AttachedFilesList } from './AttachedFilesList';
+import * as importAttachments from './ImportAttachmentModal';
+import * as importObservers from './ImportObservantsModal';
+
+import { type TransparenceSnapshot } from 'shared-models';
+import { DateOnly } from '../../../../../../models/date-only.model';
+
+import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
+import {
+  useAutoAffectationMutation,
+  useDetailedNominationSessionAffectationsVersionQuery,
+  usePublishVersionMutation,
+  useSessionNominationFilesQuery
+} from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
+import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-query/queries/get-transparency-attachments.query';
 
 type TableauDeBordActionsProps = TransparenceSnapshot & {
   sessionId: string;
@@ -25,6 +30,11 @@ const publishSuccessModal = createSuccessModal({
   message: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
 });
 
+const autoAffectationSuccessModal = createSuccessModal({
+  id: 'auto-affectation-success-modal-actions',
+  message: "L'attribution automatique des rapports a été effectuée avec succès."
+});
+
 export const TableauDeBordActions = ({
   name,
   formation,
@@ -33,10 +43,12 @@ export const TableauDeBordActions = ({
   sessionId
 }: TableauDeBordActionsProps) => {
   const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(id);
-  const { data: dossiersResponse } = useGetDossierDeNominationParSession({ sessionId });
+  const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
+  const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
 
   const { mutate: deleteFile } = useDeleteFile();
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
+  const { mutate: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
 
   const handleDeleteFile = (id: string) => {
     deleteFile(id, {
@@ -52,8 +64,7 @@ export const TableauDeBordActions = ({
     dateTransparence.day
   );
 
-  const metadata = dossiersResponse?.metadata;
-  const isBrouillon = metadata?.statut === 'BROUILLON';
+  const isBrouillon = metadata?.status === 'BROUILLON';
 
   const onPublierAffectations = () => {
     publierAffectations(
@@ -64,6 +75,28 @@ export const TableauDeBordActions = ({
         },
         onError: (error) => {
           console.error('Erreur lors de la publication des affectations:', error);
+        }
+      }
+    );
+  };
+
+  const onAutoAffectation = () => {
+    const dossiersWithoutReporters = (nominationFiles?.items ?? [])
+      .filter((dossier) => dossier.reporters.length === 0)
+      .map(({ id }) => id);
+
+    if (dossiersWithoutReporters.length === 0) {
+      return;
+    }
+
+    autoAffectation(
+      { sessionId, nominationFileIds: dossiersWithoutReporters },
+      {
+        onSuccess: () => {
+          autoAffectationSuccessModal.open();
+        },
+        onError: (error) => {
+          console.error("Erreur lors de l'auto-affectation:", error);
         }
       }
     );
@@ -97,33 +130,50 @@ export const TableauDeBordActions = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <ImportObservantsModal
+          <importObservers.ImportObservantsModal
             nomTransparence={name}
             formation={formation}
             dateTransparence={dateTransparenceDateOnly}
           />
-          <ImportAttachmentModal
+          <importAttachments.ImportAttachmentModal
             sessionImportId={id}
             transparenceName={name}
             transparenceFormation={formation}
             transparenceDate={dateTransparenceDateOnly}
           />
-          {isBrouillon && (
-            <Button
-              priority="primary"
-              onClick={onPublierAffectations}
-              disabled={isPublishing}
-              className="w-full"
-            >
-              <div className="w-full text-center">
-                {isPublishing ? 'Publication en cours...' : 'Publier aux membres'}
-              </div>
-            </Button>
-          )}
+
+          <ButtonsGroup
+            buttons={[
+              {
+                children: 'Importer les observations',
+                nativeButtonProps: importObservers.modal.buttonProps
+              },
+              {
+                priority: 'secondary',
+                children: 'Importer une pièce jointe',
+                nativeButtonProps: importAttachments.modal.buttonProps
+              },
+              {
+                iconId: isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line',
+                priority: 'secondary',
+                onClick: onAutoAffectation,
+                disabled: isAutoAffecting || isPublishing,
+                children: isAutoAffecting ? 'Attribution en cours...' : 'Attribuer les rapports'
+              },
+              {
+                priority: 'primary',
+                onClick: onPublierAffectations,
+                disabled: isPublishing || isAutoAffecting,
+                children: isPublishing ? 'Publication en cours...' : 'Publier aux membres',
+                className: isBrouillon ? 'block' : 'hidden'
+              }
+            ]}
+          />
         </div>
       </div>
 
       <publishSuccessModal.Component />
+      <autoAffectationSuccessModal.Component />
     </>
   );
 };

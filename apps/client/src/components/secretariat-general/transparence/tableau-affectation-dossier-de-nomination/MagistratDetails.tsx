@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import {
   formatBiography,
   formatBirthDate,
@@ -13,9 +12,10 @@ import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-repo
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { AvatarInitials } from '../../../layout/AvatarInitials';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 
 export type MagistratDetailsProps = {
-  content: ContenuPropositionDeNominationTransparenceV2;
+  content: SessionNominationFile['content'];
   idDn: string;
 };
 

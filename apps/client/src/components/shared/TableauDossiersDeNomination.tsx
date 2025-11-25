@@ -2,7 +2,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
 import { useState, useMemo } from 'react';
-import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import { useTable } from '../../hooks/useTable.hook';
 import {
@@ -24,13 +23,14 @@ import {
   useAffectation,
   type DossierAffectation
 } from '../../contexts/AffectationDossiersContext';
+import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
 
 export interface TableauDossiersDeNominationProps {
-  dossiersDeNomination: DossierDeNominationEtAffectationSnapshot[];
+  dossiersDeNomination: SessionNominationFile[];
   availableRapporteurs?: UserDescriptorSerialized[];
   showExportButton?: boolean;
   ExportComponent?: React.ComponentType<{
-    data: DossierDeNominationEtAffectationSnapshot[];
+    data: SessionNominationFile[];
   }>;
   canEdit?: boolean;
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
@@ -78,7 +78,7 @@ const TableauDossiersDeNominationContent = ({
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<DossierDeNominationEtAffectationSnapshot, FiltersState>(dossiersDeNomination, {
+  } = useTable<SessionNominationFile, FiltersState>(dossiersDeNomination, {
     filters,
     applyFilters,
     getSortValue: sortValueSpecificDnField
@@ -109,7 +109,7 @@ const TableauDossiersDeNominationContent = ({
     : dataRowsDn(paginatedData);
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
-    dossier.rapporteurs.map((r) => r.nom).filter((nom): nom is string => nom != null)
+    dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)
   );
 
   return (
@@ -180,7 +180,7 @@ export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationPr
   const initialAffectations = useMemo(() => {
     return props.dossiersDeNomination.reduce(
       (acc, dossier) => {
-        acc[dossier.id] = dossier.rapporteurs.map((r) => r.userId);
+        acc[dossier.id] = dossier.reporters.map((r) => r.id);
         return acc;
       },
       {} as Record<string, string[]>
@@ -190,8 +190,8 @@ export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationPr
   const initialPriorites = useMemo(() => {
     return props.dossiersDeNomination.reduce(
       (acc, dossier) => {
-        if (dossier.priorite) {
-          acc[dossier.id] = dossier.priorite;
+        if (dossier.priority) {
+          acc[dossier.id] = dossier.priority;
         }
         return acc;
       },

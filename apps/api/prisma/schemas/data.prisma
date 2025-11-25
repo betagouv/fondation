@@ -1,27 +1,29 @@
 model ExcludedJurisdiction {
-  user_id         String       @db.Uuid
-  jurisdiction_id String
-  jurisdictions   Jurisdiction @relation(fields: [jurisdiction_id], references: [codejur], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_jurisdiction_id_jurisdictions_codejur_fk")
-  users           User         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_user_id_users_id_fk")
+  userId         String @map("user_id") @db.Uuid
+  jurisdictionId String @map("jurisdiction_id")
 
-  @@id([user_id, jurisdiction_id], map: "excluded_jurisdictions_user_id_jurisdiction_id_pk")
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [codejur], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_jurisdiction_id_jurisdictions_codejur_fk")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_user_id_users_id_fk")
+
+  @@id([userId, jurisdictionId], map: "excluded_jurisdictions_user_id_jurisdiction_id_pk")
   @@map("excluded_jurisdictions")
   @@schema("data_administration_context")
 }
 
 model Jurisdiction {
-  codejur                String                 @id
-  type_jur               String
-  adr1                   String?
-  adr2                   String?
-  arrondissement         String?
-  codepos                String?
-  date_suppression       DateTime?              @db.Date
-  libelle                String?
-  ressort                String?
-  ville_jur              String?
-  ville                  String?
-  excluded_jurisdictions ExcludedJurisdiction[]
+  codejur         String    @id
+  typeJur         String    @map("type_jur")
+  adr1            String?
+  adr2            String?
+  arrondissement  String?
+  codepos         String?
+  dateSuppression DateTime? @map("date_suppression") @db.Date
+  libelle         String?
+  ressort         String?
+  ville_jur       String?
+  ville           String?
+
+  excludedByUserIds ExcludedJurisdiction[]
 
   @@map("jurisdictions")
   @@schema("data_administration_context")

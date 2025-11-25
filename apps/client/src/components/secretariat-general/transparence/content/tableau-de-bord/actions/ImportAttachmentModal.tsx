@@ -1,4 +1,3 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
@@ -14,7 +13,7 @@ type ImportAttachmentModalProps = {
   transparenceDate: DateOnly;
 };
 
-const modalAttachment = createModal({
+export const modal = createModal({
   id: 'modal-import-attachment-transparence',
   isOpenedByDefault: false
 });
@@ -29,10 +28,6 @@ export const ImportAttachmentModal = ({
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const { mutate: importAttachment, isPending } = useImportAttachment();
-
-  const handleOpenModal = () => {
-    modalAttachment.open();
-  };
 
   const onChangeAttachmentFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -56,7 +51,7 @@ export const ImportAttachmentModal = ({
       {
         onSuccess: () => {
           setAttachmentFile(null);
-          modalAttachment.close();
+          modal.close();
         },
         onError: (error: Error) => {
           console.error("Erreur lors de l'import de la pièce jointe:", error);
@@ -66,41 +61,31 @@ export const ImportAttachmentModal = ({
   };
 
   return (
-    <div>
-      <modalAttachment.Component
-        title={title}
-        buttons={[
-          {
-            doClosesModal: false,
-            children: isPending ? 'Import en cours...' : 'Importer',
-            nativeButtonProps: {
-              onClick: handleImportAttachment,
-              disabled: !attachmentFile || isPending
-            }
+    <modal.Component
+      title={title}
+      buttons={[
+        {
+          doClosesModal: false,
+          children: isPending ? 'Import en cours...' : 'Importer',
+          nativeButtonProps: {
+            onClick: handleImportAttachment,
+            disabled: !attachmentFile || isPending
           }
-        ]}
-      >
-        <div className={clsx('gap-8', 'fr-grid-row')}>
-          <Upload
-            id="import-observations-transparence"
-            nativeInputProps={{
-              onChange: onChangeAttachmentFile,
-              disabled: isPending
-            }}
-            hint={null}
-            label={null}
-            multiple={false}
-          />
-        </div>
-      </modalAttachment.Component>
-      <Button
-        id="import-attachment-transparence"
-        priority="secondary"
-        onClick={handleOpenModal}
-        className={'w-full text-center'}
-      >
-        <div className="w-full text-center">{title}</div>
-      </Button>
-    </div>
+        }
+      ]}
+    >
+      <div className={clsx('gap-8', 'fr-grid-row')}>
+        <Upload
+          id="import-observations-transparence"
+          nativeInputProps={{
+            onChange: onChangeAttachmentFile,
+            disabled: isPending
+          }}
+          hint={null}
+          label={null}
+          multiple={false}
+        />
+      </div>
+    </modal.Component>
   );
 };

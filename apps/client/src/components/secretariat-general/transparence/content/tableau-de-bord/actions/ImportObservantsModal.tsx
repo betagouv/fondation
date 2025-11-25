@@ -1,4 +1,3 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
@@ -12,7 +11,7 @@ import { useImportObservants } from '../../../../../../react-query/mutations/sg/
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
 import { ImportObservantsExcelValidationAlert } from './ImportObservantsExcelValidationAlert';
 
-const modal = createModal({
+export const modal = createModal({
   id: 'modal-import-observations-transparence',
   isOpenedByDefault: false
 });
@@ -60,45 +59,39 @@ export const ImportObservantsModal: FC<ImportObservantsModalProps> = ({
   };
 
   return (
-    <div>
-      <modal.Component
-        title="Importer les observations"
-        buttons={[
-          {
-            doClosesModal: false,
-            children: 'Importer',
-            nativeButtonProps: {
-              onClick: () => {
-                onImportObservations();
-              }
+    <modal.Component
+      title="Importer les observations"
+      buttons={[
+        {
+          doClosesModal: false,
+          children: 'Importer',
+          nativeButtonProps: {
+            onClick: () => {
+              onImportObservations();
             }
           }
-        ]}
-      >
-        <div className={clsx('gap-8', cx('fr-grid-row'))}>
-          <Upload
-            id="import-observations-transparence"
-            nativeInputProps={{
-              onChange: (e) => {
-                e.preventDefault();
-                if (e.target.files && e.target.files.length === 1) {
-                  setObservantsFile(e.target.files[0]!);
-                }
-              },
-              accept: ACCEPT_XLSX_FILE
-            }}
-            hint={<HintImportXlsxFile />}
-            label={null}
-            multiple={false}
-          />
+        }
+      ]}
+    >
+      <div className={clsx('gap-8', cx('fr-grid-row'))}>
+        <Upload
+          id="import-observations-transparence"
+          nativeInputProps={{
+            onChange: (e) => {
+              e.preventDefault();
+              if (e.target.files && e.target.files.length === 1) {
+                setObservantsFile(e.target.files[0]!);
+              }
+            },
+            accept: ACCEPT_XLSX_FILE
+          }}
+          hint={<HintImportXlsxFile />}
+          label={null}
+          multiple={false}
+        />
 
-          {importObservantsFailed && <ImportObservantsExcelValidationAlert />}
-        </div>
-      </modal.Component>
-
-      <Button className={'w-full'} nativeButtonProps={modal.buttonProps}>
-        <div className="w-full text-center">Importer les observations</div>
-      </Button>
-    </div>
+        {importObservantsFailed && <ImportObservantsExcelValidationAlert />}
+      </div>
+    </modal.Component>
   );
 };
