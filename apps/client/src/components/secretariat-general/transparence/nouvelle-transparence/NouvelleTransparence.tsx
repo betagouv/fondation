@@ -54,8 +54,9 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
   const { mutateAsync: addTransparencyAsync, error: transparenceUploadError } = useAddTransparency({
-    onSuccess() {
-      navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+    onSuccess(data) {
+      const name = data?.name;
+      navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: name ? { success: name } : undefined });
     }
   });
   const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE, navigate);

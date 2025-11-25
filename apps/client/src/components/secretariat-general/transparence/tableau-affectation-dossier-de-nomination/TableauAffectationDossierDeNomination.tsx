@@ -1,4 +1,3 @@
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Magistrat } from 'shared-models';
@@ -8,15 +7,11 @@ import {
 } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
-import { createSuccessModal } from '../../../shared/SuccessModal';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
 import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
 import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
-
-const successModal = createSuccessModal({
-  id: 'affectations-success-modal'
-});
+import Alert from '@codegouvfr/react-dsfr/Alert';
 
 export type TableauAffectationDossierDeNominationProps = {
   formation: Magistrat.Formation;
@@ -40,31 +35,22 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     isError: isErrorRapporteurs
   } = useGetUsersByFormation(formation);
 
-  const { mutate: saveAffectations } = useAffectNominationFilesReportersMutation();
+  const { mutate: saveAffectations, isSuccess: saveAffectationsIsSuccess } =
+    useAffectNominationFilesReportersMutation();
 
   const onSaveAffectations = (affectations: readonly DossierAffectation[]) => {
     if (!sessionId) return;
 
-    saveAffectations(
-      {
-        sessionId,
-        affectations: affectations.map(
-          ({ dossierId: nominationFileId, rapporteurIds: reporterIds, priorite }) => ({
-            nominationFileId,
-            reporterIds,
-            priority: priorite ?? null
-          })
-        )
-      },
-      {
-        onSuccess: () => {
-          successModal.open();
-        },
-        onError: (error) => {
-          console.error('Erreur lors de la sauvegarde des affectations:', error);
-        }
-      }
-    );
+    saveAffectations({
+      sessionId,
+      affectations: affectations.map(
+        ({ dossierId: nominationFileId, rapporteurIds: reporterIds, priorite }) => ({
+          nominationFileId,
+          reporterIds,
+          priority: priorite ?? null
+        })
+      )
+    });
   };
 
   if (isLoadingDossiersDeNomination || isLoadingRapporteurs) {
@@ -77,8 +63,20 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
 
   return (
     <>
-      <div id="session-affectation-dossier-de-nomination" className={cx('fr-py-1v')}>
-        <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
+      <div id="session-affectation-dossier-de-nomination">
+        <div className="flex h-16 items-end justify-between">
+          <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
+
+          {saveAffectationsIsSuccess && (
+            <Alert
+              small
+              className="my-3 flex-shrink-0"
+              severity="success"
+              description="Succès: Données actualisées"
+              closable
+            />
+          )}
+        </div>
 
         <TableauDossiersDeNomination
           dossiersDeNomination={dossiersResponse?.items || []}
@@ -89,8 +87,6 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
           onSaveAffectations={onSaveAffectations}
         />
       </div>
-
-      <successModal.Component />
     </>
   );
 };
