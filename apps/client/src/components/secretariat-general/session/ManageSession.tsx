@@ -1,16 +1,17 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
-import { useGetSessions } from '../../../react-query/queries/sg/get-sessions.query';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
+import { useTable } from '../../../hooks/useTable.hook';
+import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
+import { DateOnly } from '../../../models/date-only.model';
+import { useGetSessions } from '../../../react-query/queries/sg/get-sessions.query';
 import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { Breadcrumb } from '../../shared/Breadcrumb';
-import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
-import { useNavigate } from 'react-router-dom';
-import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
-import { DateOnly } from '../../../models/date-only.model';
-import { useTable } from '../../../hooks/useTable.hook';
-import { TableControl } from '../../shared/TableControl';
 import { SortButton } from '../../shared/SortButton';
+import { TableControl } from '../../shared/TableControl';
 import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
 
 // Fonction de filtrage des sessions
@@ -38,8 +39,11 @@ const applySessionFilters = (
 };
 
 export const ManageSession = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { data: sessions } = useGetSessions();
+
+  const successSessionImportTitle = location.state?.success ?? undefined;
 
   const [filters, setFilters] = useState<SessionFiltersState>({
     formations: [],
@@ -119,6 +123,15 @@ export const ManageSession = () => {
         ariaLabel="Fil d'Ariane de la gestion des sessions"
         breadcrumb={breadcrumb}
       />
+
+      {successSessionImportTitle && (
+        <Alert
+          closable
+          severity="success"
+          title={`Session «\u00A0${successSessionImportTitle}\u00A0» créée`}
+          className="mb-10"
+        />
+      )}
 
       <FiltresSessions filters={filters} onFiltersChange={setFilters} />
 
