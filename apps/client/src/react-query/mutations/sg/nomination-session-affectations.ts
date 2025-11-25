@@ -17,38 +17,34 @@ export function useDetailedNominationSessionAffectationsVersionQuery(sessionId: 
   });
 }
 
-export function useSessionNominationFilesQuery(options: { sessionId: string; page?: number }) {
-  return useQuery({
-    queryKey: ['sessionNominationFiles', options.sessionId, options.page ?? 1],
-    queryFn: () => {
-      const searchParams = new URLSearchParams({
-        limit: '25',
-        page: String(options.page ?? 1)
-      });
+export type SessionNominationFile = {
+  id: string;
+  priority: PrioriteEnum | null;
+  reporters: { id: string; firstName: string; lastName: string }[];
+  content: {
+    numeroDeDossier: number | null;
+    nomMagistrat: string;
+    dateEchéance: DateOnlyJson | null;
+    grade: Magistrat.Grade;
+    posteActuel: string;
+    posteCible: string;
+    rang: string;
+    dateDeNaissance: DateOnlyJson;
+    historique: string | null;
+    observants: string[] | null;
+    datePassageAuGrade: DateOnlyJson | null;
+    datePriseDeFonctionPosteActuel: DateOnlyJson | null;
+    informationCarrière: string | null;
+  };
+};
 
+export function useSessionNominationFilesQuery(options: { sessionId: string }) {
+  return useQuery({
+    queryKey: ['sessionNominationFiles', options.sessionId],
+    queryFn: () => {
       return apiFetch<{
-        totalCount: number;
-        items: {
-          id: string;
-          priority: PrioriteEnum | null;
-          reporters: { id: string; firstName: string; lastName: string }[];
-          content: {
-            numeroDeDossier: number | null;
-            nomMagistrat: string;
-            dateEchéance: DateOnlyJson | null;
-            grade: Magistrat.Grade;
-            posteActuel: string;
-            posteCible: string;
-            rang: string;
-            dateDeNaissance: DateOnlyJson;
-            historique: string | null;
-            observants: string[] | null;
-            datePassageAuGrade: DateOnlyJson | null;
-            datePriseDeFonctionPosteActuel: DateOnlyJson | null;
-            informationCarrière: string | null;
-          };
-        }[];
-      }>(`sessions/v2/${options.sessionId}/files?${searchParams.toString()}`, { method: 'GET' });
+        items: SessionNominationFile[];
+      }>(`/sessions/v2/${options.sessionId}/files`, { method: 'GET' });
     }
   });
 }

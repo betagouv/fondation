@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
-import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import * as XLSX from 'xlsx';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 
 export type ExcelExportProps = {
-  data: DossierDeNominationEtAffectationSnapshot[];
+  data: SessionNominationFile[];
 };
 
 export const ExcelExport: FC<ExcelExportProps> = ({ data }) => {
@@ -14,7 +14,7 @@ export const ExcelExport: FC<ExcelExportProps> = ({ data }) => {
 
     const exportData = data.map((dossier) => {
       const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
-      const rapporteursNames = dossier.rapporteurs.map((r) => r.nom).join(', ');
+      const rapporteursNames = dossier.reporters.map((r) => r.lastName + ' ' + r.firstName).join(', ');
 
       return {
         'N°': content.numeroDeDossier,

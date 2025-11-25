@@ -14,11 +14,6 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { Role, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectationDto } from 'src/modules/session/infrastructure/dtos/auto-affectation.dto';
-import {
-  Paginated,
-  Pagination,
-  QueryPagination,
-} from '../framework/pagination';
 import { AuthedUserId, HasRole } from '../simple-auth';
 import {
   AffectReportersDto,
@@ -76,12 +71,10 @@ export class SessionController {
   @UsePipes(ZodValidationPipe)
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @QueryPagination() pagination: Pagination,
     @Query() query: ListNominationFilesQueryDto,
-  ): Promise<Paginated<NominationFileAffectationItem>> {
+  ): Promise<{ items: NominationFileAffectationItem[] }> {
     return this.sessions.listNominationFiles({
       sessionId,
-      pagination,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],

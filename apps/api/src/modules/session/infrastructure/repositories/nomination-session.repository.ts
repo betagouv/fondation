@@ -41,14 +41,12 @@ export class NominationSessionRepository {
         sessionId: id,
       });
 
-      const formationMemberIds = options.memberIds
-        ? await this.members
-            .findMembers({
-              ids: options.memberIds,
-              formation: prismaFormationEnumToFormationEnum(session.formation),
-            })
-            .then((ids) => new Set(ids))
-        : new Set<string>();
+      const formationMemberIds = await this.members
+        .findMembers({
+          ids: options.memberIds,
+          formation: prismaFormationEnumToFormationEnum(session.formation),
+        })
+        .then((ids) => new Set(ids));
 
       return NominationSession.from({
         id,

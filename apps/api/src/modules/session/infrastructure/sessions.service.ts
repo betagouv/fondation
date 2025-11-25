@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
-import { Paginated, Pagination } from 'src/modules/framework/pagination';
 
-import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
+import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import { DetailSessionQuery } from './queries/detail-session.query';
 import {
@@ -72,12 +71,11 @@ export class SessionService {
 
   listNominationFiles(query: {
     sessionId: string;
-    pagination: Pagination;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<Paginated<NominationFileAffectationItem>> {
+  }): Promise<{ items: NominationFileAffectationItem[] }> {
     return this.listNominationFilesQuery.handle(query);
   }
 

@@ -2,8 +2,10 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Magistrat } from 'shared-models';
-import { useAffectNominationFilesReportersMutation } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useGetDossierDeNominationParSession } from '../../../../react-query/queries/sg/get-dossier-de-nomination-par-session.query';
+import {
+  useAffectNominationFilesReportersMutation,
+  useSessionNominationFilesQuery
+} from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { createSuccessModal } from '../../../shared/SuccessModal';
@@ -28,7 +30,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     data: dossiersResponse,
     isLoading: isLoadingDossiersDeNomination,
     isError: isErrorDossiersDeNomination
-  } = useGetDossierDeNominationParSession({
+  } = useSessionNominationFilesQuery({
     sessionId: sessionId as string
   });
 
@@ -79,7 +81,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
         <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
 
         <TableauDossiersDeNomination
-          dossiersDeNomination={dossiersResponse?.dossiers || []}
+          dossiersDeNomination={dossiersResponse?.items || []}
           availableRapporteurs={rapporteursData || []}
           showExportButton={true}
           ExportComponent={ExcelExport}

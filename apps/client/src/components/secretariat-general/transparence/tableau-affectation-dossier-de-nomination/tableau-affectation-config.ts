@@ -3,8 +3,8 @@ import React from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
-import type { DossierDeNominationEtAffectationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { DateOnly } from '../../../../models/date-only.model';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import type { FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
@@ -29,13 +29,13 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: Array<{ field: string; labe
   ...HEADER_COLUMNS_AFFECTATIONS_DN
 ];
 
-export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): ReactNode[][] => {
+export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
   return data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-    const rapporteursNames = dossier.rapporteurs
-      .map((r) => r.nom)
+    const rapporteursNames = dossier.reporters
+      .map((r) => r.firstName + ' ' + r.lastName)
       .join('\n')
       .toLocaleUpperCase();
 
@@ -47,7 +47,7 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
       posteCible,
       gradeCible,
       content.observants && content.observants.length > 0 ? content.observants : '-',
-      dossier.priorite ? PrioriteLabels[dossier.priorite] : '-',
+      dossier.priority ? PrioriteLabels[dossier.priority] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
       content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
     ];
@@ -55,14 +55,14 @@ export const dataRowsDn = (data: DossierDeNominationEtAffectationSnapshot[]): Re
 };
 
 export const dataRowsDnEdition = (
-  data: DossierDeNominationEtAffectationSnapshot[],
+  data: SessionNominationFile[],
   availableRapporteurs: UserDescriptorSerialized[]
 ): ReactNode[][] => {
   return data.map((dossier) => {
-    const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+    const content = dossier.content;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-    const initialRapporteurIds = dossier.rapporteurs.map((r) => r.userId);
+    const initialRapporteurIds = dossier.reporters.map((r) => r.id);
 
     return [
       React.createElement(CheckboxDossier, { dossierId: dossier.id }),
@@ -75,7 +75,7 @@ export const dataRowsDnEdition = (
       content.observants,
       React.createElement(DropdownPriorite, {
         dossierId: dossier.id,
-        initialPriorite: dossier.priorite
+        initialPriorite: dossier.priority ?? undefined
       }),
       React.createElement(DropdownRapporteurs, {
         dossierId: dossier.id,
@@ -87,7 +87,7 @@ export const dataRowsDnEdition = (
   });
 };
 
-export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], filters: FiltersState) => {
+export const applyFilters = (data: SessionNominationFile[], filters: FiltersState) => {
   return data.filter((dossier) => {
     if (filters.priorite && filters.priorite.length > 0) {
       return false;
@@ -97,17 +97,15 @@ export const applyFilters = (data: DossierDeNominationEtAffectationSnapshot[], f
       return true;
     }
 
-    return filters.rapporteurs.some((nom) => dossier.rapporteurs.some((r) => r.nom === nom));
+    return filters.rapporteurs.some((nom) =>
+      dossier.reporters.some((r) => r.firstName + ' ' + r.lastName === nom)
+    );
   });
 };
 
-export const sortValueSpecificDnField = (
-  item: NonNullable<DossierDeNominationEtAffectationSnapshot>,
-  field: string
-) => {
+export const sortValueSpecificDnField = (item: SessionNominationFile, field: string) => {
   if (field === 'content.gradeCible') {
-    const content = item.content as ContenuPropositionDeNominationTransparenceV2;
-    const posteCible = content?.posteCible || '';
+    const posteCible = item.content?.posteCible || '';
     return posteCible.substring(posteCible.lastIndexOf('-') + 1);
   }
   return undefined;

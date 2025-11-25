@@ -14,7 +14,7 @@ export const usePublierAffectations = () => {
     mutationFn: publierAffectations,
     onSuccess: (_data, sessionId) => {
       queryClient.invalidateQueries({
-        queryKey: ['dossiers-de-nomination-par-session', sessionId]
+        queryKey: ['sessionNominationFiles', sessionId]
       });
     }
   });

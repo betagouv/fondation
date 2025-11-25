@@ -2,11 +2,11 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import type { FC } from 'react';
 
 import { MagistratDetails } from './MagistratDetails';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 
 export type MagistratDnModaleProps = {
   idDn: string;
-  content: ContenuPropositionDeNominationTransparenceV2;
+  content: SessionNominationFile['content'];
 };
 
 export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn }) => {
