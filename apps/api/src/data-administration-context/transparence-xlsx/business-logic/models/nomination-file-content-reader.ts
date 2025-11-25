@@ -84,7 +84,7 @@ export class NominationFileContentReader {
                 ? ObserversTsvNormalizer.normalize(observersValue)
                 : null,
               reporters: ReportersTsvNormalizer.normalize(
-                this.findValue('Rapporteur', rowIndex)!,
+                this.findValue('Rapporteur', rowIndex, { optional: true }),
               ),
               informationCarriere: this.findValue(
                 'Information carrière',

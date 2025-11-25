@@ -20,6 +20,10 @@ import { SqlAffectationRepository } from './sql-affectation.repository';
 import { sessionPm } from './schema';
 import { faker } from '@faker-js/faker';
 import { randomUUID } from 'node:crypto';
+import {
+  dossierDeNominationPm,
+  users,
+} from 'src/modules/framework/drizzle/schemas';
 
 describe('SQL Affectation Repository', () => {
   let sqlAffectationRepository: SqlAffectationRepository;
@@ -27,6 +31,11 @@ describe('SQL Affectation Repository', () => {
   let uuidGenerator: DeterministicUuidGenerator;
   let db: DrizzleDb;
 
+  const anAffectationId = '490558fb-67b8-4522-9dab-7dc82961e39a';
+  const aFormation = Magistrat.Formation.PARQUET;
+  let aReporterId: string;
+  let aDossierDeNominationId: string;
+  let anAffectations: AffectationsDossiersDeNominations[];
   let aSessionId: string;
   let affectationSnapshot: AffectationSnapshot;
 
@@ -36,6 +45,20 @@ describe('SQL Affectation Repository', () => {
 
   beforeEach(async () => {
     await clearDB(db);
+
+    const [createdUser] = await db
+      .insert(users)
+      .values({
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        gender: 'MALE',
+        password: faker.string.alphanumeric({ length: 20 }),
+        role: 'MEMBRE_COMMUN',
+      })
+      .returning({ id: users.id });
+
+    aReporterId = createdUser!.id;
 
     const [session] = await db
       .insert(sessionPm)
@@ -48,6 +71,23 @@ describe('SQL Affectation Repository', () => {
       })
       .returning({ id: sessionPm.id });
     aSessionId = session!.id;
+
+    const [nominationFile] = await db
+      .insert(dossierDeNominationPm)
+      .values({
+        content: {},
+        dossierDeNominationImportéId: randomUUID(),
+        sessionId: aSessionId,
+      })
+      .returning({ id: dossierDeNominationPm.id });
+    aDossierDeNominationId = nominationFile!.id;
+
+    anAffectations = [
+      {
+        dossierDeNominationId: aDossierDeNominationId,
+        rapporteurIds: [aReporterId],
+      },
+    ];
 
     affectationSnapshot = {
       id: anAffectationId,
@@ -126,12 +166,3 @@ describe('SQL Affectation Repository', () => {
     );
   };
 });
-
-const anAffectationId = '490558fb-67b8-4522-9dab-7dc82961e39a';
-const aFormation = Magistrat.Formation.PARQUET;
-const anAffectations: AffectationsDossiersDeNominations[] = [
-  {
-    dossierDeNominationId: '3024f09a-1663-4c9c-a730-b9221f1b0067',
-    rapporteurIds: ['943e9546-3735-454f-92a9-e2e9ad4f7ea6'],
-  },
-];
