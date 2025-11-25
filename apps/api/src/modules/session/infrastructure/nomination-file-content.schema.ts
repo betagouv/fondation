@@ -1,5 +1,5 @@
 import { Magistrat, dateOnlyJsonSchema } from 'shared-models';
-import z from 'zod/v4/classic/external.cjs';
+import z from 'zod';
 
 export const NominationFileContentSchema = z
   .discriminatedUnion('version', [

@@ -1,15 +1,15 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { startOfYear } from 'date-fns';
 import { Magistrat } from 'shared-models';
 import z from 'zod';
 
-import { DossierDeNomination } from 'src/generated/prisma/client';
+import { type DossierDeNomination } from 'src/generated/prisma/client';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import {
-  AutoAffectationNominationFile,
   AutoAffectationMember,
+  AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectations';
 import { NominationFileContentSchema } from 'src/modules/session/infrastructure/nomination-file-content.schema';
@@ -17,9 +17,7 @@ import { NominationFileContentSchema } from 'src/modules/session/infrastructure/
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isDefined } from 'src/utils/is-defined';
 
-// TODO: replace with Clock
-import { DATE_TIME_PROVIDER } from 'src/shared-kernel/adapters/primary/nestjs/tokens';
-import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
+import { Clock } from 'src/modules/framework/clock';
 
 @Injectable()
 export class AutoAffectationsFinder {
@@ -28,8 +26,7 @@ export class AutoAffectationsFinder {
   constructor(
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
-    @Inject(DATE_TIME_PROVIDER)
-    private readonly clock: DateTimeProvider,
+    private readonly clock: Clock,
   ) {}
 
   async find(predicate: {
