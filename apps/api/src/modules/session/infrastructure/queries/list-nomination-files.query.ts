@@ -10,10 +10,14 @@ import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListNominationFilesQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly versionFinder: AffectationVersionFinder,
+  ) {}
 
   // TODO: paginate, sort, filter...
   async handle(query: {
@@ -23,38 +27,45 @@ export class ListNominationFilesQuery {
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
-    const files = await this.prisma.dossierDeNomination.findMany({
-      where: {
+    const files = await this.prisma.$transaction(async (tx) => {
+      const lastVersion = await this.versionFinder.last({
+        tx,
         sessionId: query.sessionId,
-        priorite: {
-          in:
-            query.filters.priorities.length > 0
-              ? query.filters.priorities.map(prioriteEnumToPrismaPrioriteEnum)
+      });
+
+      return tx.dossierDeNomination.findMany({
+        where: {
+          sessionId: query.sessionId,
+          priorite: {
+            in:
+              query.filters.priorities.length > 0
+                ? query.filters.priorities.map(prioriteEnumToPrismaPrioriteEnum)
+                : undefined,
+          },
+          reporterIds:
+            query.filters.reporterIds.length > 0
+              ? {
+                  some: {
+                    versionId: lastVersion?.id,
+                    userId: { in: query.filters.reporterIds as string[] },
+                  },
+                }
               : undefined,
         },
-        reporterIds: {
-          some: {
-            userId: {
-              in:
-                query.filters.reporterIds.length > 0
-                  ? (query.filters.reporterIds as string[])
-                  : undefined,
+        select: {
+          id: true,
+          priorite: true,
+          content: true,
+          reporterIds: {
+            where: { versionId: lastVersion?.id },
+            include: {
+              user: {
+                select: { id: true, firstName: true, lastName: true },
+              },
             },
           },
         },
-      },
-      select: {
-        id: true,
-        priorite: true,
-        content: true,
-        reporterIds: {
-          include: {
-            user: {
-              select: { id: true, firstName: true, lastName: true },
-            },
-          },
-        },
-      },
+      });
     });
 
     const partialItems = files.map((x) => ({

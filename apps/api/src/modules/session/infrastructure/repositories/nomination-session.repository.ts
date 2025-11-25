@@ -105,7 +105,7 @@ export class NominationSessionRepository {
     }
 
     if (!versionId) {
-      tx.affectationVersion.create({
+      await tx.affectationVersion.create({
         data: {
           sessionId: message.sessionId,
           affectations: {
