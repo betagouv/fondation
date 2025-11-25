@@ -11,25 +11,21 @@ import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondar
 import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
 import z from 'zod';
 import { affectationPm } from './schema/affectation-pm';
+import {
+  dossierDeNominationPm,
+  drizzleNominationFileToReporterPm,
+} from 'src/modules/framework/drizzle/schemas';
 
 export class SqlAffectationRepository implements AffectationRepository {
   save(affectation: Affectation): DrizzleTransactionableAsync<void> {
     return async (db) => {
       const affectationSnapshot = affectation.snapshot();
-
-      const existingAffectation = await db
-        .select({ id: affectationPm.id })
-        .from(affectationPm)
-        .where(eq(affectationPm.id, affectationSnapshot.id))
-        .limit(1);
-
-      if (existingAffectation.length === 0) {
-        const affectationDb = SqlAffectationRepository.mapToDb(affectation);
-        await db.insert(affectationPm).values(affectationDb);
-      } else {
-        await db
-          .update(affectationPm)
-          .set({
+      await db
+        .insert(affectationPm)
+        .values(affectationSnapshot)
+        .onConflictDoUpdate({
+          target: affectationPm.id,
+          set: {
             formation: affectationSnapshot.formation,
             version: affectationSnapshot.version,
             statut: affectationSnapshot.statut,
@@ -37,8 +33,35 @@ export class SqlAffectationRepository implements AffectationRepository {
             auteurPublication: affectationSnapshot.auteurPublication,
             affectationsDossiersDeNominations:
               affectationSnapshot.affectationsDossiersDeNominations,
-          })
-          .where(eq(affectationPm.id, affectationSnapshot.id));
+          },
+        });
+
+      if (
+        affectationSnapshot.affectationsDossiersDeNominations.length > 0 &&
+        affectationSnapshot.affectationsDossiersDeNominations.some(
+          ({ rapporteurIds }) => rapporteurIds.length > 0,
+        )
+      ) {
+        await db.insert(drizzleNominationFileToReporterPm).values(
+          affectationSnapshot.affectationsDossiersDeNominations.flatMap(
+            ({ dossierDeNominationId, rapporteurIds }) =>
+              rapporteurIds.map((userId) => ({
+                userId,
+                versionId: affectationSnapshot.id,
+                nominationFileId: dossierDeNominationId,
+              })),
+          ),
+        );
+      }
+
+      for (const {
+        dossierDeNominationId,
+        priorite,
+      } of affectationSnapshot.affectationsDossiersDeNominations) {
+        await db
+          .update(dossierDeNominationPm)
+          .set({ priorite: priorite ?? null })
+          .where(eq(dossierDeNominationPm.id, dossierDeNominationId));
       }
     };
   }

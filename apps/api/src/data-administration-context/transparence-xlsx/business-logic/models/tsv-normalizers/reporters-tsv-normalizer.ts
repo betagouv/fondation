@@ -1,6 +1,6 @@
 export class ReportersTsvNormalizer {
-  static normalize(reportersValue: string): string[] {
-    const reporters = reportersValue
+  static normalize(reportersValue: string | null | undefined): string[] {
+    const reporters = (reportersValue ?? '')
       .split('\n')
       .map((value) => value.trim())
       .filter((value) => value.length > 0)
