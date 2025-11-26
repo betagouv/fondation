@@ -28,6 +28,18 @@ import { ReportService } from './report.service';
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
+  @Get(':reportId')
+  @HasRole()
+  async retrieveReport(
+    @Param('reportId') reportId: string,
+    @AuthedUserId() userId: string,
+  ) {
+    return this.reports.retrieveReport({
+      reportId,
+      reporterId: userId,
+    });
+  }
+
   @Post(':reportId/files')
   @HasRole()
   @HttpCode(HttpStatus.NO_CONTENT)

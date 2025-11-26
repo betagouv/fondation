@@ -81,6 +81,7 @@ export class ReportsController implements IReportController {
     return this.listReportByDnIdUseCase.execute(dnId);
   }
 
+  /** @deprecated */
   @Get(endpointsPaths.retrieveReport)
   async retrieveReport(
     @Param()

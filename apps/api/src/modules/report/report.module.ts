@@ -6,11 +6,17 @@ import { ReportRepository } from './infrastructure/report.repository';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 import { GetReportFileUrlsQuery } from './infrastructure/queries/get-report-file-urls.query';
+import { RetrieveReportQuery } from './infrastructure/queries/retrieve-report.query';
 
 @Module({
   controllers: [ReportController],
   imports: [FilesModule.forFeature('reports')],
   exports: [ReportService],
-  providers: [ReportRepository, ReportService, GetReportFileUrlsQuery],
+  providers: [
+    ReportRepository,
+    ReportService,
+    GetReportFileUrlsQuery,
+    RetrieveReportQuery,
+  ],
 })
 export class ReportModule {}
