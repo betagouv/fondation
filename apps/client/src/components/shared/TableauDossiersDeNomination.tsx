@@ -1,9 +1,18 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { UserDescriptorSerialized } from 'shared-models';
 import { PrioriteEnum } from 'shared-models/models/priorite.enum';
+import {
+  AffectationProvider,
+  useAffectation,
+  type DossierAffectation
+} from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
+import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
+import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
+import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 import {
   applyFilters,
   dataRowsDn,
@@ -12,18 +21,9 @@ import {
   HEADER_COLUMNS_AFFECTATIONS_DN_EDITION,
   sortValueSpecificDnField
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
-import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
-import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
-import type { UserDescriptorSerialized } from 'shared-models';
-import {
-  AffectationProvider,
-  useAffectation,
-  type DossierAffectation
-} from '../../contexts/AffectationDossiersContext';
-import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -162,6 +162,7 @@ const TableauDossiersDeNominationContent = ({
         headers={TABLE_HEADER}
         data={dossierDataRows}
       />
+      {paginatedData.length === 0 ? <p className="mt-2 text-gray-600">Aucun résultat</p> : null}
 
       <TableControl
         onChange={setItemsPerPage}
