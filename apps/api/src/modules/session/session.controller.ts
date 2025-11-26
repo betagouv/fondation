@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseInterceptors,
@@ -18,6 +19,7 @@ import { AuthedUserId, HasRole } from '../simple-auth';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
+  UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { type DetailedSessionResponse } from './infrastructure/queries/detail-session.query';
@@ -115,6 +117,22 @@ export class SessionController {
     await this.sessions.autoAffectation({
       sessionId,
       nominationFileIds: body.nominationFileIds,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Patch('/:sessionId/files/:nominationFileId/comment')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFileComment(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: UpdateCommentDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFileComment({
+      sessionId,
+      nominationFileId,
+      comment: body.comment,
     });
   }
 }

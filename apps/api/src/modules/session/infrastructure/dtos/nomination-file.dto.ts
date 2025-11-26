@@ -20,3 +20,9 @@ export class ListNominationFilesQueryDto extends createZodDto(
     reporterIds: z.array(z.uuid()).optional(),
   }),
 ) {}
+
+export class UpdateCommentDto extends createZodDto(
+  z.object({
+    comment: z.string().max(50000).nullable(),
+  }),
+) {}

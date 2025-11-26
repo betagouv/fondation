@@ -46,6 +46,7 @@ model DossierDeNomination {
   dossierDeNominationImportId String              @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @map("dossier_de_nomination_import_id") @db.Uuid
   content                     Json
   priorite                    PrismaPrioriteEnum?
+  comment                     String?             @map("comment") @db.Text
 
   reporterIds NominationFileToReporter[]
   session     Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)

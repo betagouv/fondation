@@ -20,7 +20,8 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
-  { field: 'content.dateEchéance', label: "Date d'écheance" }
+  { field: 'content.dateEchéance', label: "Date d'écheance" },
+  { field: 'comment', label: '' }
   // { field: 'content.posteActuel', label: 'Poste actuel' },
 ];
 
@@ -41,7 +42,7 @@ export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
 
     return [
       content.numeroDeDossier,
-      React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
+      React.createElement(MagistratDnModale, { content, idDn: dossier.id, comment: dossier.comment }),
       // content.posteActuel,
       content.grade,
       posteCible,
@@ -49,7 +50,8 @@ export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
       content.observants && content.observants.length > 0 ? content.observants : '-',
       dossier.priority ? PrioriteLabels[dossier.priority] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
+      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
+      dossier.comment ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' }) : ''
     ];
   });
 };
@@ -67,7 +69,7 @@ export const dataRowsDnEdition = (
     return [
       React.createElement(CheckboxDossier, { dossierId: dossier.id }),
       content.numeroDeDossier,
-      React.createElement(MagistratDnModale, { content, idDn: dossier.id }),
+      React.createElement(MagistratDnModale, { content, idDn: dossier.id, comment: dossier.comment }),
       // content.posteActuel,
       content.grade,
       posteCible,
@@ -82,7 +84,8 @@ export const dataRowsDnEdition = (
         initialRapporteurs: initialRapporteurIds,
         availableRapporteurs
       }),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
+      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
+      dossier.comment ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' }) : ''
     ];
   });
 };
