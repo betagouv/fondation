@@ -15,7 +15,6 @@ export class RetrieveReportResponseDto extends createZodDto(
     comment: z.string().nullable(),
     transparency: z.string(),
     dateTransparence: dateOnlyJsonSchema,
-    // Fichiers attachés
     attachedFiles: z
       .array(
         z.object({
@@ -25,9 +24,7 @@ export class RetrieveReportResponseDto extends createZodDto(
         }),
       )
       .nullable(),
-    // Règles
     rules: z.record(z.string(), z.record(z.string(), z.any())),
-    // Données du dossier
     name: z.string(),
     grade: z.string(),
     birthDate: dateOnlyJsonSchema,
@@ -122,7 +119,7 @@ export class RetrieveReportQuery {
   }
 
   private parseDossierContent(content: any) {
-    const normalized = z.parse(NominationFileContentSchema, content);
+    const normalized = NominationFileContentSchema.parse(content);
 
     return {
       name: normalized.nomMagistrat,
@@ -188,9 +185,9 @@ export class RetrieveReportQuery {
   }
 
   private buildAttachedFiles(
-    files: Array<{ usage: string; file: { id: string; name: string } }>,
+    files: readonly { usage: string; file: { id: string; name: string } }[],
   ) {
-    if (files.length === 0) return null;
+    if (files.length === 0) return [];
 
     return files.map((f) => ({
       usage: f.usage as ReportFileUsage,
