@@ -17,6 +17,8 @@ export const FORMATION_OPTIONS: Array<FormationOptions> = [
   }
 ];
 
+export const FILTER_RAPPORTEUR_NOBODY = { value: 'EMPTY', label: 'aucun' };
+
 type SessionTypeOptions = {
   value: TypeDeSaisine;
   label: (typeof TypeDeSaisineLabels)[TypeDeSaisine];

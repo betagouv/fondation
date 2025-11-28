@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { FilterOption } from '../components/shared/DropdownFilter';
 import {
+  FILTER_RAPPORTEUR_NOBODY,
   FORMATION_OPTIONS,
   PRIORITE_OPTIONS,
   SAISINE_OPTIONS
@@ -15,28 +16,21 @@ interface FilterOptions {
 
 export const useFilterOptions = (rapporteurs: string[] | null | undefined): FilterOptions => {
   return useMemo(() => {
-    if (!rapporteurs || rapporteurs.length === 0) {
-      return {
-        rapporteurs: [],
-        formations: FORMATION_OPTIONS,
-        sessionType: SAISINE_OPTIONS,
-        priorite: PRIORITE_OPTIONS
-      };
+    const uniqueRapporteurs: { value: string; label: string }[] = [];
+    for (const value of new Set(rapporteurs)) {
+      if (!value) continue;
+
+      const [firstName, lastName] = value.split(' ');
+      uniqueRapporteurs.push({
+        value,
+        label: firstName.toUpperCase() + ' ' + lastName.charAt(0).toUpperCase() + lastName.slice(1)
+      });
     }
 
-    const uniqueRapporteurs = Array.from(new Set(rapporteurs))
-      .filter((r): r is string => r != null)
-      .sort((a, b) => a.localeCompare(b));
+    uniqueRapporteurs.sort((a, b) => a.value.localeCompare(b.value));
 
     return {
-      rapporteurs: uniqueRapporteurs.map((rapporteur) => ({
-        value: rapporteur,
-        label:
-          rapporteur.split(' ')[0].toUpperCase() +
-          ' ' +
-          rapporteur.split(' ')[1].charAt(0).toUpperCase() +
-          rapporteur.split(' ')[1].slice(1)
-      })),
+      rapporteurs: [FILTER_RAPPORTEUR_NOBODY].concat(uniqueRapporteurs),
       formations: FORMATION_OPTIONS,
       sessionType: SAISINE_OPTIONS,
       priorite: PRIORITE_OPTIONS
