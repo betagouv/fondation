@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import React from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
@@ -9,7 +9,7 @@ import type { FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
-import { MagistratDnModale } from './MagistratDnModale';
+import { MagistratDnModalLink } from './MagistratDnModale';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -30,8 +30,11 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: Array<{ field: string; labe
   ...HEADER_COLUMNS_AFFECTATIONS_DN
 ];
 
-export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
-  return data.map((dossier) => {
+export const dataRowsDn = (options: {
+  data: SessionNominationFile[];
+  magistratModalRef: RefObject<HTMLDivElement | null>;
+}): ReactNode[][] => {
+  return options.data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
@@ -42,7 +45,10 @@ export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
 
     return [
       content.numeroDeDossier,
-      React.createElement(MagistratDnModale, { content, idDn: dossier.id, comment: dossier.comment }),
+      React.createElement(MagistratDnModalLink, {
+        nominationFile: dossier,
+        modalRef: options.magistratModalRef
+      }),
       // content.posteActuel,
       content.grade,
       posteCible,
@@ -51,16 +57,19 @@ export const dataRowsDn = (data: SessionNominationFile[]): ReactNode[][] => {
       dossier.priority ? PrioriteLabels[dossier.priority] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
       content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
-      dossier.comment ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' }) : ''
+      dossier.comment
+        ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' })
+        : ''
     ];
   });
 };
 
-export const dataRowsDnEdition = (
-  data: SessionNominationFile[],
-  availableRapporteurs: UserDescriptorSerialized[]
-): ReactNode[][] => {
-  return data.map((dossier) => {
+export const dataRowsDnEdition = (options: {
+  data: SessionNominationFile[];
+  availableRapporteurs: UserDescriptorSerialized[];
+  magistratModalRef: RefObject<HTMLDivElement | null>;
+}): ReactNode[][] => {
+  return options.data.map((dossier) => {
     const content = dossier.content;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
@@ -69,7 +78,10 @@ export const dataRowsDnEdition = (
     return [
       React.createElement(CheckboxDossier, { dossierId: dossier.id }),
       content.numeroDeDossier,
-      React.createElement(MagistratDnModale, { content, idDn: dossier.id, comment: dossier.comment }),
+      React.createElement(MagistratDnModalLink, {
+        nominationFile: dossier,
+        modalRef: options.magistratModalRef
+      }),
       // content.posteActuel,
       content.grade,
       posteCible,
@@ -82,10 +94,12 @@ export const dataRowsDnEdition = (
       React.createElement(DropdownRapporteurs, {
         dossierId: dossier.id,
         initialRapporteurs: initialRapporteurIds,
-        availableRapporteurs
+        availableRapporteurs: options.availableRapporteurs
       }),
       content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
-      dossier.comment ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' }) : ''
+      dossier.comment
+        ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' })
+        : ''
     ];
   });
 };

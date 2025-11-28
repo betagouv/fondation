@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
 import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import {
@@ -24,6 +24,7 @@ import {
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import { MagistratDnModale } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -44,6 +45,7 @@ const TableauDossiersDeNominationContent = ({
   canEdit = false,
   onSaveAffectations
 }: TableauDossiersDeNominationProps) => {
+  const magistratModalRef = useRef<HTMLDivElement>(null);
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
@@ -105,8 +107,12 @@ const TableauDossiersDeNominationContent = ({
   });
 
   const dossierDataRows = isEditing
-    ? dataRowsDnEdition(paginatedData, availableRapporteurs || [])
-    : dataRowsDn(paginatedData);
+    ? dataRowsDnEdition({
+        magistratModalRef,
+        data: paginatedData,
+        availableRapporteurs: availableRapporteurs || []
+      })
+    : dataRowsDn({ magistratModalRef, data: paginatedData });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)
@@ -155,6 +161,8 @@ const TableauDossiersDeNominationContent = ({
           )}
         </div>
       </div>
+
+      <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
 
       <Table
         id="session-affectation-dossier-de-nomination-table"

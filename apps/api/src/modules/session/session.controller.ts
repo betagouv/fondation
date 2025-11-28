@@ -68,7 +68,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole()
   @Get('/:sessionId/files')
   @UsePipes(ZodValidationPipe)
   listNominationFiles(
