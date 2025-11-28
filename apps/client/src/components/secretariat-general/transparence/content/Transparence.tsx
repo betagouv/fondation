@@ -58,13 +58,15 @@ export const Transparence: FC = () => {
 
   return (
     <>
-      <Breadcrumb
-        id="transparence-details-breadcrumb"
-        ariaLabel="Fil d'Ariane d'une transparence détaillée"
-        breadcrumb={breadcrumb}
-      />
+      <div className={cx('fr-container')}>
+        <Breadcrumb
+          id="transparence-details-breadcrumb"
+          ariaLabel="Fil d'Ariane d'une transparence détaillée"
+          breadcrumb={breadcrumb}
+        />
+      </div>
       <div className={'flex flex-col gap-8'}>
-        <div className={clsx('gap-8', cx('fr-grid-row'))}>
+        <div className={clsx('gap-8', cx('fr-grid-row', 'fr-container'))}>
           <TableauDeBordActions {...transparence} sessionId={sessionId!} />
           <TableauDeBordResume {...transparence} />
         </div>
