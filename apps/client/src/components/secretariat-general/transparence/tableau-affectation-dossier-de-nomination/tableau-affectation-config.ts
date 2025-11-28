@@ -76,7 +76,10 @@ export const dataRowsDnEdition = (options: {
     const initialRapporteurIds = dossier.reporters.map((r) => r.id);
 
     return [
-      React.createElement(CheckboxDossier, { dossierId: dossier.id }),
+      React.createElement('div', {
+        className: 'size-full items-center flex justify-center',
+        children: React.createElement(CheckboxDossier, { dossierId: dossier.id })
+      }),
       content.numeroDeDossier,
       React.createElement(MagistratDnModalLink, {
         nominationFile: dossier,

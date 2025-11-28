@@ -1,5 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
+import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
@@ -125,7 +127,7 @@ const TableauDossiersDeNominationContent = ({
         <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
       </div>
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className={clsx(cx('fr-container'), 'mb-4 flex items-center justify-between')}>
         <FiltresDossiersDeNomination
           filters={filters}
           onFiltersChange={setFilters}
@@ -162,25 +164,31 @@ const TableauDossiersDeNominationContent = ({
         </div>
       </div>
 
-      <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
+      <div className="mx-auto max-w-screen-2xl">
+        <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
 
-      <Table
-        id="session-affectation-dossier-de-nomination-table"
-        bordered
-        headers={TABLE_HEADER}
-        data={dossierDataRows}
-      />
-      {paginatedData.length === 0 ? <p className="mt-2 text-gray-600">Aucun résultat</p> : null}
+        <Table
+          id="session-affectation-dossier-de-nomination-table"
+          bordered
+          fixed
+          headers={TABLE_HEADER}
+          data={dossierDataRows}
+        />
 
-      <TableControl
-        onChange={setItemsPerPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalItems}
-        displayedItems={displayedItems}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-      />
+        <div className={clsx('mb-10', cx('fr-container'))}>
+          {paginatedData.length === 0 ? <p className="mt-2 text-gray-600">Aucun résultat</p> : null}
+
+          <TableControl
+            onChange={setItemsPerPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
+            displayedItems={displayedItems}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </div>
+      </div>
     </div>
   );
 };

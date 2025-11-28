@@ -1,6 +1,10 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import clsx from 'clsx';
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Magistrat } from 'shared-models';
+import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
 import {
   useAffectNominationFilesReportersMutation,
   useSessionNominationFilesQuery
@@ -10,8 +14,6 @@ import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
 import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
-import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
-import Alert from '@codegouvfr/react-dsfr/Alert';
 
 export type TableauAffectationDossierDeNominationProps = {
   formation: Magistrat.Formation;
@@ -64,7 +66,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
   return (
     <>
       <div id="session-affectation-dossier-de-nomination">
-        <div className="flex h-16 items-end justify-between">
+        <div className={clsx(`flex h-16 items-end justify-between`, cx('fr-container'))}>
           <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
 
           {saveAffectationsIsSuccess && (
