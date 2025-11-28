@@ -3,7 +3,7 @@ import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { useSessionNominationFilesQuery } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 
-export const ReportsDnVueGenerale = () => {
+export const ReportsDnVueGenerale = (props: React.PropsWithChildren) => {
   const { sessionId } = useParams();
   const {
     data,
@@ -23,7 +23,9 @@ export const ReportsDnVueGenerale = () => {
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <TableauDossiersDeNomination dossiersDeNomination={data?.items || []} />
+      <TableauDossiersDeNomination dossiersDeNomination={data?.items || []}>
+        {props.children}
+      </TableauDossiersDeNomination>
     </div>
   );
 };

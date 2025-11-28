@@ -66,7 +66,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
   return (
     <>
       <div id="session-affectation-dossier-de-nomination">
-        <div className={clsx(`flex h-16 items-end justify-between`, cx('fr-container'))}>
+        <div className={clsx(`flex h-16 items-end justify-between px-0`, cx('fr-container'))}>
           <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
 
           {saveAffectationsIsSuccess && (

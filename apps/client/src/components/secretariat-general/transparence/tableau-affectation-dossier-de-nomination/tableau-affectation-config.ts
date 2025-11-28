@@ -5,13 +5,13 @@ import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import type { FiltersState } from '../../../shared/filter-configurations';
+import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
 
-export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: string }> = [
+export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.numeroDeDossier', label: 'N°' },
   { field: 'content.nomMagistrat', label: 'Magistrat' },
   { field: 'content.grade', label: 'Grade actuel' },
@@ -22,13 +22,12 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN: Array<{ field: string; label: strin
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
   { field: 'content.dateEchéance', label: "Date d'écheance" },
   { field: 'comment', label: '' }
-  // { field: 'content.posteActuel', label: 'Poste actuel' },
-];
+] as const satisfies { field: string; label: string }[];
 
-export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: Array<{ field: string; label: string }> = [
+export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
   { field: 'checkbox', label: '' },
   ...HEADER_COLUMNS_AFFECTATIONS_DN
-];
+] as const satisfies { field: string; label: string }[];
 
 export const dataRowsDn = (options: {
   data: SessionNominationFile[];
@@ -118,7 +117,9 @@ export const applyFilters = (data: SessionNominationFile[], filters: FiltersStat
     }
 
     return filters.rapporteurs.some((nom) =>
-      dossier.reporters.some((r) => r.firstName + ' ' + r.lastName === nom)
+      nom === FILTER_RAPPORTEUR_NOBODY.value
+        ? (dossier.reporters?.length ?? 0) === 0
+        : dossier.reporters.some((r) => r.firstName + ' ' + r.lastName === nom)
     );
   });
 };

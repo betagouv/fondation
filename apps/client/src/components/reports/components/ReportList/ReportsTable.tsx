@@ -28,7 +28,11 @@ export type ReportsTableProps = {
   reports: ReportListItemVM[];
 };
 
-export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) => {
+export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> = ({
+  headers,
+  reports,
+  children
+}) => {
   const [filters, setFilters] = useState<ReportFiltersState>({
     statuts: []
   });
@@ -62,7 +66,11 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
 
   return (
     <div>
-      <FiltresRapports filters={filters} onFiltersChange={setFilters} />
+      <div className="flex items-center justify-between">
+        <FiltresRapports filters={filters} onFiltersChange={setFilters} />
+        {children}
+      </div>
+
       <Table
         id="reports-table"
         headers={headersWithSort}
@@ -87,6 +95,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ headers, reports }) 
         totalPages={totalPages}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
+        label={{ one: 'rapport', other: 'rapports' }}
       />
     </div>
   );

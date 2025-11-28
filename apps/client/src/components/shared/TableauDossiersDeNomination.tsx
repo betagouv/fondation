@@ -37,6 +37,7 @@ export interface TableauDossiersDeNominationProps {
   }>;
   canEdit?: boolean;
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
+  children?: React.ReactNode[] | React.ReactNode | undefined;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -45,7 +46,8 @@ const TableauDossiersDeNominationContent = ({
   availableRapporteurs,
   ExportComponent,
   canEdit = false,
-  onSaveAffectations
+  onSaveAffectations,
+  children
 }: TableauDossiersDeNominationProps) => {
   const magistratModalRef = useRef<HTMLDivElement>(null);
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
@@ -91,8 +93,7 @@ const TableauDossiersDeNominationContent = ({
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
 
   const TABLE_HEADER: ReactNode[] = headerColumns.map((header) => {
-    // Colonne checkbox : pas de tri
-    if (header.field === 'checkbox') {
+    if (header.field === 'checkbox' || header.field === 'comment') {
       return <span key={header.field}>{header.label}</span>;
     }
 
@@ -122,12 +123,7 @@ const TableauDossiersDeNominationContent = ({
 
   return (
     <div>
-      <div style={{ display: 'none' }}>
-        <Button iconId="fr-icon-arrow-down-line" onClick={() => {}} children={null} />
-        <Button iconId="fr-icon-arrow-up-line" onClick={() => {}} children={null} />
-      </div>
-
-      <div className={clsx(cx('fr-container'), 'mb-4 flex items-center justify-between')}>
+      <div className={clsx(cx('fr-container'), 'mb-4 flex items-center justify-between px-0')}>
         <FiltresDossiersDeNomination
           filters={filters}
           onFiltersChange={setFilters}
@@ -161,10 +157,11 @@ const TableauDossiersDeNominationContent = ({
               </Button>
             </>
           )}
+          {children}
         </div>
       </div>
 
-      <div className="mx-auto max-w-screen-2xl">
+      <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
 
         <Table
@@ -186,6 +183,7 @@ const TableauDossiersDeNominationContent = ({
             totalPages={totalPages}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
+            label={{ one: 'proposition', other: 'propositions' }}
           />
         </div>
       </div>

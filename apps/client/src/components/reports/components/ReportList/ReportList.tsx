@@ -6,7 +6,9 @@ import type { DetailedSessionReport } from '../../../../react-query/queries/memb
 import { ReportsTable } from './ReportsTable';
 import { TransparencyFilesList } from './TransparencyFilesList';
 
-export function ReportList(props: { sessionImportId: string; reports: DetailedSessionReport[] }) {
+export function ReportList(
+  props: React.PropsWithChildren<{ sessionImportId: string; reports: DetailedSessionReport[] }>
+) {
   const { reports, headers } = formatReportList(props.reports);
 
   const {
@@ -17,8 +19,13 @@ export function ReportList(props: { sessionImportId: string; reports: DetailedSe
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      {/* {newReportsCount > 0 && <NewReportsCount newReportsCount={newReportsCount} />} */}
-      {reports.length ? <ReportsTable headers={headers} reports={reports} /> : <div>Aucun rapport.</div>}
+      {reports.length ? (
+        <ReportsTable headers={headers} reports={reports}>
+          {props.children}
+        </ReportsTable>
+      ) : (
+        <div>Aucun rapport.</div>
+      )}
       {!isAttachmentsLoading && !isAttachmentsError && attachments && attachments.length > 0 && (
         <div>
           <h2>Pièces jointes</h2>
