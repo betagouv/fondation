@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { PrismaService } from 'src/modules/framework/database';
 
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
@@ -22,6 +23,7 @@ export class SessionService {
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
     private readonly nominationSessionRepository: NominationSessionRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   listSessionsOfTypeGardeDesSceaux(userId: string) {
@@ -111,5 +113,19 @@ export class SessionService {
     session.autoAffectNominationFileReporters(autoAffectations);
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  async updateNominationFileComment(command: {
+    sessionId: string;
+    nominationFileId: string;
+    comment: string | null;
+  }): Promise<void> {
+    await this.prisma.dossierDeNomination.update({
+      where: {
+        id: command.nominationFileId,
+        sessionId: command.sessionId,
+      },
+      data: { comment: command.comment },
+    });
   }
 }

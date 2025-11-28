@@ -7,9 +7,10 @@ import type { SessionNominationFile } from '../../../../react-query/mutations/sg
 export type MagistratDnModaleProps = {
   idDn: string;
   content: SessionNominationFile['content'];
+  comment?: string | null;
 };
 
-export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn }) => {
+export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn, comment }) => {
   const modalMagistratDnDetails = createModal({
     id: `modal-magistrat-dn-details-${idDn}`,
     isOpenedByDefault: false
@@ -31,7 +32,7 @@ export const MagistratDnModale: FC<MagistratDnModaleProps> = ({ content, idDn })
         {content.nomMagistrat}
       </a>
       <modalMagistratDnDetails.Component title={null}>
-        <MagistratDetails content={content} idDn={idDn} />
+        <MagistratDetails content={content} idDn={idDn} comment={comment} />
       </modalMagistratDnDetails.Component>
     </>
   );

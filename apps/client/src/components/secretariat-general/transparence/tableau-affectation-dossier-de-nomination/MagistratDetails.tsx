@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useEffect, useState } from 'react';
 import {
   formatBiography,
   formatBirthDate,
@@ -13,13 +14,28 @@ import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { AvatarInitials } from '../../../layout/AvatarInitials';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import { Input } from '@codegouvfr/react-dsfr/Input';
+import { useDebouncedValue } from 'use-debounce';
+import { useUpdateNominationFileCommentMutation } from '../../../../react-query/mutations/sg/update-nomination-file-comment';
+import { useParams } from 'react-router-dom';
 
 export type MagistratDetailsProps = {
   content: SessionNominationFile['content'];
   idDn: string;
+  comment?: string | null;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) => {
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn, comment: initialComment }) => {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const [comment, setComment] = useState(initialComment || '');
+  const [debouncedComment] = useDebouncedValue(comment, 1000);
+  const { mutate } = useUpdateNominationFileCommentMutation();
+
+  useEffect(() => {
+    if (debouncedComment !== initialComment && sessionId) {
+      mutate({ sessionId, nominationFileId: idDn, comment: debouncedComment || null });
+    }
+  }, [debouncedComment, initialComment, idDn, mutate, sessionId]);
   // Créer une référence à la modale pour détecter son état
   const modalRef = { id: `modal-magistrat-dn-details-${idDn}`, isOpenedByDefault: false };
   const isModalOpen = useIsModalOpen(modalRef);
@@ -119,6 +135,23 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ content, idDn }) =
         >
           {formattedBiography}
         </div>
+      </div>
+
+      <div>
+        <Input
+          label="Commentaire"
+          textArea
+          nativeTextAreaProps={{
+            value: comment,
+            onChange: (e) => setComment(e.target.value),
+            maxLength: 50000,
+            rows: 6,
+            placeholder: 'Saisissez un commentaire...'
+          }}
+        />
+        <p className="text-sm text-gray-500 mt-1">
+          {comment.length} / 50 000 caractères
+        </p>
       </div>
     </div>
   );

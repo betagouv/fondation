@@ -56,6 +56,7 @@ export class ListNominationFilesQuery {
           id: true,
           priorite: true,
           content: true,
+          comment: true,
           reporterIds: {
             where: { versionId: lastVersion?.id },
             include: {
@@ -74,6 +75,7 @@ export class ListNominationFilesQuery {
       priority: x.priorite
         ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
         : null,
+      comment: x.comment,
       reporters: x.reporterIds.map(({ user: { id, firstName, lastName } }) => ({
         id,
         firstName,
@@ -93,6 +95,7 @@ const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
   priority: z.enum(PrioriteEnum).nullable(),
   content: NominationFileContentSchema,
+  comment: z.string().nullable(),
   reporters: z.array(
     z.object({
       id: z.string(),
