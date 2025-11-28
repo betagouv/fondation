@@ -118,6 +118,7 @@ export function MagistratDnModalLink(props: {
               content={props.nominationFile.content}
               idDn={props.nominationFile.id}
               comment={props.nominationFile.comment}
+              commentAccessUserIds={props.nominationFile.commentAccessUserIds}
             />
           ) : null,
           props.modalRef.current!

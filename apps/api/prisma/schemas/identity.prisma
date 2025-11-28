@@ -33,6 +33,7 @@ model User {
   excludedJurisdictionIds     ExcludedJurisdiction[]
   reporterOnNominationFileIds NominationFileToReporter[]
   publishedVersions           AffectationVersion[]
+  commentAccess               CommentAccess[]
 
   @@map("users")
   @@schema("identity_and_access_context")
