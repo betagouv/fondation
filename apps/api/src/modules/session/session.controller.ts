@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseInterceptors,
   UsePipes,
@@ -19,6 +20,7 @@ import { AuthedUserId, HasRole } from '../simple-auth';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
+  UpdateCommentAccessDto,
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
@@ -73,10 +75,12 @@ export class SessionController {
   @UsePipes(ZodValidationPipe)
   listNominationFiles(
     @Param('sessionId') sessionId: string,
+    @AuthedUserId() userId: string,
     @Query() query: ListNominationFilesQueryDto,
   ): Promise<{ items: NominationFileAffectationItem[] }> {
     return this.sessions.listNominationFiles({
       sessionId,
+      userId,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
@@ -133,6 +137,34 @@ export class SessionController {
       sessionId,
       nominationFileId,
       comment: body.comment,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/:sessionId/files/:nominationFileId/comment-access')
+  getCommentAccess(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<{ userIds: string[] }> {
+    return this.sessions.getCommentAccess({
+      sessionId,
+      nominationFileId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId/files/:nominationFileId/comment-access')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateCommentAccess(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: UpdateCommentAccessDto,
+  ): Promise<void> {
+    await this.sessions.updateCommentAccess({
+      sessionId,
+      nominationFileId,
+      userIds: body.userIds,
     });
   }
 }

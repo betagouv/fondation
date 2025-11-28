@@ -21,7 +21,8 @@ export type SessionNominationFile = {
   id: string;
   priority: PrioriteEnum | null;
   reporters: { id: string; firstName: string; lastName: string }[];
-  comment: string | null;
+  comment?: string | null;
+  commentAccessUserIds?: string[];
   content: {
     numeroDeDossier: number | null;
     nomMagistrat: string;

@@ -7,12 +7,14 @@ import { type FoundAffectationVersion } from './finders/affectation-version.find
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import { DetailSessionQuery } from './queries/detail-session.query';
+import { GetCommentAccessQuery } from './queries/get-comment-access.query';
 import {
   ListNominationFilesQuery,
   type NominationFileAffectationItem,
 } from './queries/list-nomination-files.query';
 import { ListSessionOfTypeGardeDesSceauxQuery } from './queries/list-sessions-of-type-garde-des-sceaux.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
+import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
 export class SessionService {
@@ -20,6 +22,7 @@ export class SessionService {
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailSessionQuery: DetailSessionQuery,
+    private readonly getCommentAccessQuery: GetCommentAccessQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
     private readonly nominationSessionRepository: NominationSessionRepository,
@@ -71,14 +74,23 @@ export class SessionService {
     await this.nominationSessionRepository.persist(session);
   }
 
-  listNominationFiles(query: {
+  async listNominationFiles(query: {
     sessionId: string;
+    userId: string;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
-    return this.listNominationFilesQuery.handle(query);
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: query.userId },
+      select: { role: true },
+    });
+
+    return this.listNominationFilesQuery.handle({
+      ...query,
+      userRole: prismaRoleEnumToRoleEnum(user.role),
+    });
   }
 
   detailNominationSessionAffectationsVersion(query: {
@@ -126,6 +138,43 @@ export class SessionService {
         sessionId: command.sessionId,
       },
       data: { comment: command.comment },
+    });
+  }
+
+  getCommentAccess(query: {
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<{ userIds: string[] }> {
+    return this.getCommentAccessQuery.handle(query);
+  }
+
+  async updateCommentAccess(command: {
+    sessionId: string;
+    nominationFileId: string;
+    userIds: readonly string[];
+  }): Promise<void> {
+    // Verify the nomination file belongs to the session
+    await this.prisma.dossierDeNomination.findFirstOrThrow({
+      where: {
+        id: command.nominationFileId,
+        sessionId: command.sessionId,
+      },
+    });
+
+    // Delete all existing accesses and create new ones
+    await this.prisma.$transaction(async (tx) => {
+      await tx.commentAccess.deleteMany({
+        where: { nominationFileId: command.nominationFileId },
+      });
+
+      if (command.userIds.length > 0) {
+        await tx.commentAccess.createMany({
+          data: command.userIds.map((userId) => ({
+            nominationFileId: command.nominationFileId,
+            userId,
+          })),
+        });
+      }
     });
   }
 }

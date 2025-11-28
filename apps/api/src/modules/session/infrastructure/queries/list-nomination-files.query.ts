@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrioriteEnum } from 'shared-models';
+import { PrioriteEnum, Role } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { NominationFileContentSchema } from 'src/modules/session/infrastructure/nomination-file-content.schema';
@@ -22,11 +22,15 @@ export class ListNominationFilesQuery {
   // TODO: paginate, sort, filter...
   async handle(query: {
     sessionId: string;
+    userId: string;
+    userRole: Role;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
+    const isSG = query.userRole === Role.ADJOINT_SECRETAIRE_GENERAL;
+
     const files = await this.prisma.$transaction(async (tx) => {
       const lastVersion = await this.versionFinder.last({
         tx,
@@ -57,6 +61,9 @@ export class ListNominationFilesQuery {
           priorite: true,
           content: true,
           comment: true,
+          commentAccess: {
+            select: { userId: true },
+          },
           reporterIds: {
             where: { versionId: lastVersion?.id },
             include: {
@@ -69,19 +76,28 @@ export class ListNominationFilesQuery {
       });
     });
 
-    const partialItems = files.map((x) => ({
-      id: x.id,
-      content: x.content,
-      priority: x.priorite
-        ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
-        : null,
-      comment: x.comment,
-      reporters: x.reporterIds.map(({ user: { id, firstName, lastName } }) => ({
-        id,
-        firstName,
-        lastName,
-      })),
-    }));
+    const partialItems = files.map((x) => {
+      const commentAccessUserIds = x.commentAccess.map((a) => a.userId);
+      const hasCommentAccess =
+        isSG || commentAccessUserIds.includes(query.userId);
+
+      return {
+        id: x.id,
+        content: x.content,
+        priority: x.priorite
+          ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
+          : null,
+        comment: hasCommentAccess ? x.comment : null,
+        commentAccessUserIds: isSG ? commentAccessUserIds : undefined,
+        reporters: x.reporterIds.map(
+          ({ user: { id, firstName, lastName } }) => ({
+            id,
+            firstName,
+            lastName,
+          }),
+        ),
+      };
+    });
 
     const items = await z
       .array(NominationFileAffectationItemSchema)
@@ -96,6 +112,7 @@ const NominationFileAffectationItemSchema = z.object({
   priority: z.enum(PrioriteEnum).nullable(),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
+  commentAccessUserIds: z.array(z.string()).optional(),
   reporters: z.array(
     z.object({
       id: z.string(),
