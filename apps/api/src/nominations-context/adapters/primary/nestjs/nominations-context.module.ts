@@ -6,8 +6,6 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { GetDossierDeNominationSnapshotUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/get-dossier-de-nomination-snapshot/get-dossier-de-nomination-snapshot.use-case';
-import { PublierAffectationsUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/publier-affectations/publier-affectations.use-case';
-import { SaveAffectationsRapporteursUseCase } from 'src/nominations-context/dossier-de-nominations/business-logic/use-cases/save-affectations-rapporteurs/save-affectations-rapporteurs.use-case';
 import { GdsNouvellesTransparencesImportéesNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-nouvelles-transparences-importées.nest-subscriber';
 import { GdsTransparenceDossiersModifiésNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-dossiers-modifiés.nest-subscriber';
 import { GdsTransparenceNouveauxDossiersNestSubscriber } from 'src/nominations-context/pp-gds/transparences/adapters/primary/nestjs/event-subscribers/gds-transparence-nouveaux-dossiers.nest-subscriber';
@@ -162,17 +160,6 @@ import {
       },
       inject: [REPORT_REPOSITORY, CreateReportUseCase],
     },
-    generateProvider(SaveAffectationsRapporteursUseCase, [
-      AFFECTATION_REPOSITORY,
-      SESSION_REPOSITORY,
-      TRANSACTION_PERFORMER,
-    ]),
-    generateProvider(PublierAffectationsUseCase, [
-      AFFECTATION_REPOSITORY,
-      SESSION_REPOSITORY,
-      HandleAffectationUpdatedUseCase,
-      TRANSACTION_PERFORMER,
-    ]),
     generateProvider(ImportNouvelleTransparenceUseCase, [
       TRANSACTION_PERFORMER,
       TransparenceService,
@@ -231,17 +218,10 @@ export class NominationsContextModule implements OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(SessionValidationMiddleware)
-      .forRoutes(
-        TransparencesController,
-        {
-          path: `${baseRouteDossierDeNomination}/${dossierDeNominationsEndpointsPath.saveAffectationsRapporteurs}`,
-          method: RequestMethod.POST,
-        },
-        {
-          path: `${baseRouteDossierDeNomination}/affectations-rapporteurs/:sessionId/publier`,
-          method: RequestMethod.POST,
-        },
-      )
+      .forRoutes(TransparencesController, {
+        path: `${baseRouteDossierDeNomination}/affectations-rapporteurs/:sessionId/publier`,
+        method: RequestMethod.POST,
+      })
       .apply(SystemRequestValidationMiddleware)
       .forRoutes(
         `${baseRouteSession}/${endpointsPathsSession.sessionSnapshot}`,

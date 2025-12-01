@@ -1,28 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
 import z from 'zod';
 
-import { Magistrat, Role, TypeDeSaisine } from 'shared-models';
-
-import { Db } from 'src/modules/framework/drizzle';
 import {
-  affectationPm,
-  sessionPm,
-  users,
-} from 'src/modules/framework/drizzle/schemas';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+  DateOnlyJson,
+  dateOnlyJsonSchema,
+  Magistrat,
+  Role,
+  TypeDeSaisine,
+} from 'shared-models';
+
+import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
+import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ListSessionOfTypeGardeDesSceauxQuery {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
     userId: string;
   }): Promise<ListSessionOfTypeGardeDesSceauxResponse> {
     // TODO: could be provided as parameter
     const { role } = assertIsDefined(
-      await this.db.query.users.findFirst({
-        where: eq(users.id, query.userId),
+      await this.prisma.user.findFirst({
+        select: { role: true },
+        where: { id: query.userId },
       }),
     );
 
@@ -33,36 +35,32 @@ export class ListSessionOfTypeGardeDesSceauxQuery {
           ? Magistrat.Formation.SIEGE
           : null;
 
-    const affectedReporter = this.db
-      .select({
-        sessionId: affectationPm.sessionId,
-        id: sql<string>`(jsonb_array_elements_text(unnest(${affectationPm.affectationsDossiersDeNominations})->'rapporteurIds'))::uuid`.as(
-          'rapporteurId',
-        ),
-      })
-      .from(affectationPm)
-      .as('affectedReporter');
+    const sessions = await this.prisma.$queryRawTyped(
+      listMemberGardeDesSceauxSessions(query.userId, userFormationRestriction),
+    );
 
-    const allSessions = await this.db
-      .select()
-      .from(sessionPm)
-      .leftJoin(affectedReporter, eq(affectedReporter.sessionId, sessionPm.id))
-      .where(
-        and(
-          eq(sessionPm.typeDeSaisine, TypeDeSaisine.TRANSPARENCE_GDS),
-          or(
-            isNull(affectedReporter.sessionId),
-            eq(affectedReporter.id, query.userId),
-          ),
-          userFormationRestriction
-            ? eq(sessionPm.formation, userFormationRestriction)
-            : undefined,
-        ),
+    const result = await z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          createdAt: z.date(),
+          formation: z.enum(Magistrat.Formation),
+          typeDeSaisine: z.enum(TypeDeSaisine),
+          reporterIds: z.array(z.string()).nullable(),
+          content: z.object({
+            dateTransparence: dateOnlyJsonSchema,
+          }),
+        }),
       )
-      .orderBy(desc(sessionPm.createdAt));
+      .safeParseAsync(sessions);
 
-    const items = allSessions.reduce(
-      (list, { session, affectedReporter }) => {
+    if (!result.success) {
+      return { items: [] };
+    }
+
+    const items = result.data.reduce(
+      (list, session) => {
         const label =
           ListSessionOfTypeGardeDesSceauxQuery.labelizeSession(session);
         if (!label) return list;
@@ -72,7 +70,7 @@ export class ListSessionOfTypeGardeDesSceauxQuery {
           id: session.id,
           formation: session.formation,
           typeDeSaisine: session.typeDeSaisine,
-          isAffected: isDefined(affectedReporter),
+          isAffected: (session.reporterIds ?? []).length > 0,
           createdAt: session.createdAt.toISOString(),
         });
         return list;
@@ -84,22 +82,11 @@ export class ListSessionOfTypeGardeDesSceauxQuery {
   }
 
   // TODO: extract
-  private static labelizeSession(
-    session: typeof sessionPm.$inferSelect,
-  ): string | null {
-    const result = z
-      .object({
-        dateTransparence: z.object({
-          day: z.number(),
-          month: z.number(),
-          year: z.number(),
-        }),
-      })
-      .safeParse(session.content);
-
-    if (!result.success) return null;
-
-    const { day, month, year } = result.data.dateTransparence;
+  private static labelizeSession(session: {
+    content: { dateTransparence: DateOnlyJson };
+    name: string;
+  }): string | null {
+    const { day, month, year } = session.content.dateTransparence;
     const formattedDate = `${day.toString().padStart(2, '0')}/${month
       .toString()
       .padStart(2, '0')}/${year}`;
@@ -107,6 +94,7 @@ export class ListSessionOfTypeGardeDesSceauxQuery {
     return `T ${formattedDate} (${session.name})`;
   }
 }
+
 export const ListSessionOfTypeGardeDesSceauxResponseSchema = z.object({
   items: z.array(
     z.object({

@@ -1,145 +1,142 @@
-import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { z } from 'zod';
+
 import {
   DateOnlyJson,
   dateOnlyJsonSchema,
   Magistrat,
+  NominationFile,
   Role,
   TypeDeSaisine,
 } from 'shared-models';
-import { Db } from 'src/modules/framework/drizzle';
-import {
-  dossierDeNominationPm,
-  formationEnum,
-  reports,
-  reportStateEnum,
-  sessionPm,
-  users,
-} from 'src/modules/framework/drizzle/schemas';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { z } from 'zod';
+
+import { PrismaService } from 'src/modules/framework/database';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class DetailSessionQuery {
-  constructor(private readonly db: Db) {}
+  private readonly logger = new Logger(DetailSessionQuery.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private versionFinder: AffectationVersionFinder,
+  ) {}
 
   async handle(query: {
     userId: string;
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
   }): Promise<DetailedSessionResponse> {
-    const { role } = assertIsDefined(
-      await this.db.query.users.findFirst({
-        where: eq(users.id, query.userId),
-      }),
-    );
-
-    const userFormationRestriction =
-      role === Role.MEMBRE_DU_PARQUET
-        ? Magistrat.Formation.PARQUET
-        : role === Role.MEMBRE_DU_SIEGE
-          ? Magistrat.Formation.SIEGE
-          : null;
-
-    const results = await this.db
-      .select()
-      .from(sessionPm)
-      .leftJoin(reports, eq(reports.sessionId, sessionPm.id))
-      .leftJoin(
-        dossierDeNominationPm,
-        eq(dossierDeNominationPm.id, reports.dossierDeNominationId),
-      )
-      .where(
-        and(
-          eq(sessionPm.id, query.sessionId),
-          eq(sessionPm.typeDeSaisine, query.typeDeSaisine),
-          eq(reports.reporterId, query.userId),
-          userFormationRestriction
-            ? eq(sessionPm.formation, userFormationRestriction)
-            : undefined,
-        ),
+    const session = await this.prisma.$transaction(async (tx) => {
+      const { role } = assertIsDefined(
+        await tx.user.findFirst({
+          where: { id: query.userId },
+          select: { role: true },
+        }),
       );
 
-    const lines = await z
-      .array(
-        z.object({
-          session: z.object({
+      const version = await this.versionFinder.lastPublished({
+        sessionId: query.sessionId,
+        tx,
+      });
+
+      if (!version) throw new NotFoundException();
+
+      const formation =
+        role === Role.MEMBRE_DU_PARQUET
+          ? Magistrat.Formation.PARQUET
+          : role === Role.MEMBRE_DU_SIEGE
+            ? Magistrat.Formation.SIEGE
+            : undefined;
+
+      return tx.session.findFirst({
+        where: {
+          formation,
+          id: query.sessionId,
+          typeDeSaisine: query.typeDeSaisine,
+        },
+        select: {
+          id: true,
+          name: true,
+          typeDeSaisine: true,
+          formation: true,
+          sessionImportId: true,
+          content: true,
+          dossierDeNominations: {
+            where: {
+              reporterIds: {
+                some: { versionId: version.id, userId: query.userId },
+              },
+            },
+            select: {
+              id: true,
+              content: true,
+              reports: {
+                take: 1,
+                select: { id: true, state: true },
+                where: { reporterId: query.userId },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    if (!session) throw new NotFoundException();
+
+    const result = await z
+      .object({
+        id: z.string(),
+        typeDeSaisine: z.enum(TypeDeSaisine),
+        formation: z.enum(Magistrat.Formation),
+        sessionImportId: z.string(),
+        name: z.string(),
+        content: z.object({ dateTransparence: dateOnlyJsonSchema }),
+        dossierDeNominations: z.array(
+          z.object({
             id: z.string(),
-            sessionImportéeId: z.string(),
-            name: z.string(),
-            formation: z.enum(formationEnum.enumValues),
-            content: z.object({ dateTransparence: dateOnlyJsonSchema }),
+            content: DossierDeNominationContentSchema,
+            reports: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  state: z.enum(NominationFile.ReportState),
+                }),
+              )
+              .min(1),
           }),
-          reports: z
-            .object({
-              id: z.string(),
-              state: z.enum(reportStateEnum.enumValues),
-              formation: z.enum(formationEnum.enumValues),
-            })
-            .nullable(),
-          dossier_de_nomination: z
-            .object({
-              content: DossierDeNominationContentSchema,
-            })
-            .nullable(),
-        }),
-      )
-      .parseAsync(results);
+        ),
+      })
+      .safeParseAsync(session);
 
-    const data = lines.reduce(
-      (bySession, result) => {
-        if (
-          !isDefined(result.reports) ||
-          !isDefined(result.dossier_de_nomination)
-        ) {
-          return bySession;
-        }
+    if (!result.success) {
+      this.logger.error(z.prettifyError(result.error));
 
-        if (!bySession.session) {
-          bySession.session = {
-            id: result.session.id,
-            sessionImportId: result.session.sessionImportéeId,
-            formation: result.session.formation,
-            transparency: result.session.name,
-            dateTransparence: result.session.content.dateTransparence,
-          };
-        }
+      throw new NotFoundException();
+    }
 
-        if (!bySession.reports) bySession.reports = [];
-
-        bySession.reports.push({
-          id: result.reports.id,
-          state: result.reports.state,
-          formation: result.reports.formation,
-          ...DetailSessionQuery.nomalizeDossierDeNomination(
-            result.dossier_de_nomination.content,
-          ),
-        });
-        return bySession;
-      },
-      {} as {
+    return {
+      data: {
         session: {
-          id: string;
-          sessionImportId: string;
-          transparency: string;
-          formation: (typeof formationEnum)['enumValues'][number];
-          dateTransparence: DateOnlyJson;
-        };
-        reports: {
-          id: string;
-          state: (typeof reportStateEnum)['enumValues'][number];
-          formation: (typeof formationEnum)['enumValues'][number];
-          folderNumber: number | null;
-          dueDate: DateOnlyJson | null;
-          name: string;
-          grade: Magistrat.Grade;
-          targettedPosition: string;
-          observersCount: number;
-        }[];
-      },
-    );
+          id: result.data.id,
+          sessionImportId: result.data.sessionImportId,
+          formation: result.data.formation,
+          transparency: result.data.name,
+          dateTransparence: result.data.content.dateTransparence,
+        },
+        reports: result.data.dossierDeNominations.map((d) => {
+          const { id, state } = assertIsDefined(d.reports[0]);
 
-    return { data };
+          return {
+            id,
+            state,
+            formation: result.data.formation,
+            ...DetailSessionQuery.nomalizeDossierDeNomination(d.content),
+          };
+        }),
+      },
+    };
   }
 
   private static nomalizeDossierDeNomination(

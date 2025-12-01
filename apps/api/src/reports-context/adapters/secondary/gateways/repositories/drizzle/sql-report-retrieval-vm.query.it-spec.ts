@@ -19,11 +19,9 @@ import {
   givenSomeReportsFactory,
 } from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRetrievalQuery } from './sql-report-retrieval-vm.query';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
-import { SqlReportRepository } from './sql-report.repository';
 
 describe('SQL Report Retrieval VM Query', () => {
   let db: DrizzleDb;
@@ -118,9 +116,7 @@ describe('SQL Report Retrieval VM Query', () => {
     beforeEach(async () => {
       aReport = new ReportBuilder('uuid').with('comment', null).build();
 
-      const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-      await db.insert(reports).values(reportRow).execute();
-
+      await givenSomeReports(aReport);
       aReportRuleSnapshot = await givenSomeRule(aReport.id);
     });
 

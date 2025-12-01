@@ -9,20 +9,24 @@ import {
   getDrizzleInstance,
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
+import {
+  GivenSomeReports,
+  givenSomeReportsFactory,
+} from 'test/bounded-contexts/reports';
 import { clearDB } from 'test/docker-postgresql-manager';
-import { reports } from './schema/report-pm';
 import { reportRules } from './schema/report-rule-pm';
 import { SqlReportRuleRepository } from './sql-report-rule.repository';
-import { SqlReportRepository } from './sql-report.repository';
 
 describe('SQL Report Rule Repository', () => {
   let db: DrizzleDb;
   let sqlReportRuleRepository: SqlReportRuleRepository;
   let aReport: NominationFileReportSnapshot;
   let transactionPerformer: TransactionPerformer;
+  let givenSomeReports: GivenSomeReports;
 
   beforeAll(() => {
     db = getDrizzleInstance(drizzleConfigForTest);
+    givenSomeReports = givenSomeReportsFactory(db);
   });
 
   beforeEach(async () => {
@@ -31,8 +35,7 @@ describe('SQL Report Rule Repository', () => {
     transactionPerformer = new DrizzleTransactionPerformer(db);
 
     aReport = new ReportBuilder('uuid').build();
-    const reportRow = SqlReportRepository.mapSnapshotToDb(aReport);
-    await db.insert(reports).values(reportRow).execute();
+    await givenSomeReports(aReport);
   });
 
   afterAll(async () => {

@@ -46,12 +46,6 @@ export const affectationPm = nominationsContextSchema.table(
     datePublication: timestamp('date_publication'),
     auteurPublication: uuid('auteur_publication'),
     formation: formationEnum('formation').notNull(),
-    /** @deprecated */
-    affectationsDossiersDeNominations: jsonb(
-      'affectations_dossiers_de_nominations',
-    )
-      .array()
-      .notNull(),
   },
   (table) => ({
     sessionVersionUnique: uniqueIndex().on(table.sessionId, table.version),

@@ -11,7 +11,10 @@ export class PrismaService
   implements OnApplicationShutdown
 {
   constructor(@Inject(PG_POOL_TOKEN) private readonly pool: Pool) {
-    super({ adapter: new PrismaPg(pool) });
+    super({
+      adapter: new PrismaPg(pool),
+      // log: ['query', 'error', 'info', 'warn'],
+    });
   }
 
   onApplicationShutdown(): Promise<void> {

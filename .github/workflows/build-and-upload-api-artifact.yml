@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: pnpm --filter api... install --frozen-lockfile --ignore-scripts
       - name: Build prisma
-        run: pnpm --filter api prisma generate --config prisma.config.ts
+        run: pnpm --filter api prisma generate --sql --config prisma.config.ts
       - name: Build api
         run: pnpm --filter api... build
       - name: Create Archive
