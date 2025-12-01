@@ -22,8 +22,7 @@ export const MagistratComment: FC<MagistratCommentProps> = ({
   const { user } = useValidateSessionFromCookie();
   const isSG = user?.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
-  const canAccessComment = user?.id && initialCommentAccessUserIds?.includes(user.id);
-  const showComment = isSG || canAccessComment;
+  const showComment = isSG || initialComment !== null;
 
   if (!showComment) {
     return null;
