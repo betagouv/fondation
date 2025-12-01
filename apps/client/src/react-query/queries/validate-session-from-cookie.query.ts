@@ -3,7 +3,7 @@ import { Gender, Role } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
 const introspectSession = () =>
-  apiFetch<{ id: string; firstName: string; lastName: string; role: Role; gender: Gender }>(
+  apiFetch<{ userId: string; firstName: string; lastName: string; role: Role; gender: Gender }>(
     `/auth/v2/introspect`,
     { method: 'GET' }
   );
@@ -24,6 +24,7 @@ export const useValidateSessionFromCookie = () => {
 
   const user = data
     ? {
+        id: data.userId,
         firstLetters: `${data.lastName.charAt(0).toUpperCase()}${data.firstName.charAt(0).toUpperCase()}`,
         civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
         role: data.role as Role
