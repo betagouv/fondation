@@ -24,7 +24,7 @@ jobs:
           node-version: "20.9.0"
           cache: "pnpm"
       - name: Install dependencies
-        run: pnpm --filter api... install --frozen-lockfile
+        run: pnpm --filter api... install --frozen-lockfile --ignore-scripts
       - name: Build prisma
         run: pnpm --filter api prisma generate --config prisma.config.ts
       - name: Build api
