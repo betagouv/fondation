@@ -3,6 +3,7 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { useCallback, useEffect, useMemo, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
+import type { Magistrat } from 'shared-models';
 
 import { type SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { MagistratDetails } from './MagistratDetails';
@@ -90,6 +91,7 @@ export function MagistratDnModale(props: {
 export function MagistratDnModalLink(props: {
   nominationFile: SessionNominationFile;
   modalRef: React.RefObject<HTMLDivElement | null>;
+  formation: Magistrat.Formation;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isVisible = searchParams.get('active') === props.nominationFile.id;
@@ -119,6 +121,7 @@ export function MagistratDnModalLink(props: {
               idDn={props.nominationFile.id}
               comment={props.nominationFile.comment}
               commentAccessUserIds={props.nominationFile.commentAccessUserIds}
+              formation={props.formation}
             />
           ) : null,
           props.modalRef.current!
