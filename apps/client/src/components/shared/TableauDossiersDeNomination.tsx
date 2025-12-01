@@ -4,7 +4,8 @@ import Table from '@codegouvfr/react-dsfr/Table';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import type { UserDescriptorSerialized } from 'shared-models';
+import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
+import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import {
   AffectationProvider,
   useAffectation,
@@ -38,6 +39,7 @@ export interface TableauDossiersDeNominationProps {
   canEdit?: boolean;
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
   children?: React.ReactNode[] | React.ReactNode | undefined;
+  formation: Magistrat.Formation;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -47,7 +49,8 @@ const TableauDossiersDeNominationContent = ({
   ExportComponent,
   canEdit = false,
   onSaveAffectations,
-  children
+  children,
+  formation
 }: TableauDossiersDeNominationProps) => {
   const magistratModalRef = useRef<HTMLDivElement>(null);
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
@@ -113,9 +116,10 @@ const TableauDossiersDeNominationContent = ({
     ? dataRowsDnEdition({
         magistratModalRef,
         data: paginatedData,
-        availableRapporteurs: availableRapporteurs || []
+        availableRapporteurs: availableRapporteurs || [],
+        formation
       })
-    : dataRowsDn({ magistratModalRef, data: paginatedData });
+    : dataRowsDn({ magistratModalRef, data: paginatedData, formation });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)

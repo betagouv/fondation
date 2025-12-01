@@ -87,6 +87,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
           ExportComponent={ExcelExport}
           canEdit={true}
           onSaveAffectations={onSaveAffectations}
+          formation={formation}
         />
       </div>
     </>

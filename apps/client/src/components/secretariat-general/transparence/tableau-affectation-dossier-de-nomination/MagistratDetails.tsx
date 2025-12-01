@@ -10,7 +10,6 @@ import { useUpdateNominationFileCommentMutation } from '../../../../react-query/
 import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
 import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { useValidateSessionFromCookie } from '../../../../react-query/queries/validate-session-from-cookie.query';
-import { FormationsRoutesMapper } from '../../../../utils/formations-routes.utils';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
@@ -20,24 +19,26 @@ import {
   formatObservers
 } from '../../../reports/components/ReportOverview/ReportOverview';
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
-import { DropdownFilter, type FilterOption } from '../../../shared/DropdownFilter';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TextValue } from '../../../shared/TextValue';
+import { UserChipsSelect } from '../../../shared/UserChipsSelect';
 
 export type MagistratDetailsProps = {
   content: SessionNominationFile['content'];
   idDn: string;
   comment?: string | null;
   commentAccessUserIds?: string[];
+  formation: Magistrat.Formation;
 };
 
 export const MagistratDetails: FC<MagistratDetailsProps> = ({
   content,
   idDn,
   comment: initialComment,
-  commentAccessUserIds: initialCommentAccessUserIds
+  commentAccessUserIds: initialCommentAccessUserIds,
+  formation
 }) => {
-  const { sessionId, formation: formationParam } = useParams<{ sessionId: string; formation: string }>();
+  const { sessionId } = useParams<{ sessionId: string }>();
   const { user } = useValidateSessionFromCookie();
   const isSG = user?.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
@@ -49,10 +50,6 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
     initialCommentAccessUserIds || []
   );
   const { mutate: updateCommentAccess } = useUpdateCommentAccessMutation();
-
-  const formation = formationParam
-    ? FormationsRoutesMapper.toFormation(formationParam)
-    : Magistrat.Formation.SIEGE;
 
   const { data: eligibleUsers } = useGetUsersByFormation(formation);
 
@@ -115,11 +112,6 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
       .map((name) => name[0])
       .join('')
   );
-
-  const accessOptions: FilterOption[] = (eligibleUsers || []).map((u) => ({
-    value: u.userId,
-    label: `${u.firstName} ${u.lastName}`
-  }));
 
   const showComment = isSG || initialComment !== null;
 
@@ -189,11 +181,12 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
               <p className="mt-1 text-sm text-gray-500">{comment.length} / 50 000 caractères</p>
 
               <div className="mt-4">
-                <DropdownFilter
-                  tagName="Partager avec"
-                  options={accessOptions}
-                  selectedValues={selectedAccessUserIds}
+                <UserChipsSelect
+                  availableUsers={eligibleUsers || []}
+                  selectedUserIds={selectedAccessUserIds}
                   onSelectionChange={handleAccessChange}
+                  placeholder="Rechercher un utilisateur..."
+                  label="Partager ce commentaire avec"
                 />
               </div>
             </>

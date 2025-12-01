@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from 'react';
 import React from 'react';
-import type { UserDescriptorSerialized } from 'shared-models';
+import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import { DateOnly } from '../../../../models/date-only.model';
@@ -32,6 +32,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
 export const dataRowsDn = (options: {
   data: SessionNominationFile[];
   magistratModalRef: RefObject<HTMLDivElement | null>;
+  formation: Magistrat.Formation;
 }): ReactNode[][] => {
   return options.data.map((dossier) => {
     const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
@@ -46,7 +47,8 @@ export const dataRowsDn = (options: {
       content.numeroDeDossier,
       React.createElement(MagistratDnModalLink, {
         nominationFile: dossier,
-        modalRef: options.magistratModalRef
+        modalRef: options.magistratModalRef,
+        formation: options.formation
       }),
       // content.posteActuel,
       content.grade,
@@ -67,6 +69,7 @@ export const dataRowsDnEdition = (options: {
   data: SessionNominationFile[];
   availableRapporteurs: UserDescriptorSerialized[];
   magistratModalRef: RefObject<HTMLDivElement | null>;
+  formation: Magistrat.Formation;
 }): ReactNode[][] => {
   return options.data.map((dossier) => {
     const content = dossier.content;
@@ -82,7 +85,8 @@ export const dataRowsDnEdition = (options: {
       content.numeroDeDossier,
       React.createElement(MagistratDnModalLink, {
         nominationFile: dossier,
-        modalRef: options.magistratModalRef
+        modalRef: options.magistratModalRef,
+        formation: options.formation
       }),
       // content.posteActuel,
       content.grade,
