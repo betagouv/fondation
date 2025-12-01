@@ -5,3 +5,7 @@ onlyBuiltDependencies:
   - '@nestjs/core'
   - '@swc/core'
   - bcrypt
+
+preferFrozenLockfile: true
+ignoreDepScripts: true
+minimumReleaseAge: 10080 # 7 days

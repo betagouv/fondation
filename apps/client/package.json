@@ -14,10 +14,9 @@
     "types:check:watch": "tsc --noEmit -p ./tsconfig.app.json --watch",
     "test": "vitest",
     "test:watch": "vitest",
-    "predev": "react-dsfr update-icons",
-    "prebuild": "react-dsfr update-icons",
-    "postinstall": "pnpm dsfr:build",
-    "dsfr:build": "react-dsfr update-icons",
+    "update-icons": "react-dsfr update-icons",
+    "predev": "pnpm run update-icons",
+    "prebuild": "pnpm run update-icons",
     "test:ct": "playwright test -c playwright-ct.config.ts",
     "test:ct:watch": "PWTEST_WATCH=1 playwright test -c playwright-ct.config.ts"
   },
