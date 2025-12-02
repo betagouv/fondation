@@ -1,4 +1,10 @@
+import { faker } from '@faker-js/faker';
+import { randomUUID } from 'node:crypto';
 import { Magistrat } from 'shared-models';
+import {
+  dossierDeNominationPm,
+  users,
+} from 'src/modules/framework/drizzle/schemas';
 import {
   Affectation,
   AffectationsDossiersDeNominations,
@@ -15,15 +21,9 @@ import {
 } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-instance';
 import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { clearDB } from 'test/docker-postgresql-manager';
+import { sessionPm } from './schema';
 import { affectationPm } from './schema/affectation-pm';
 import { SqlAffectationRepository } from './sql-affectation.repository';
-import { sessionPm } from './schema';
-import { faker } from '@faker-js/faker';
-import { randomUUID } from 'node:crypto';
-import {
-  dossierDeNominationPm,
-  users,
-} from 'src/modules/framework/drizzle/schemas';
 
 describe('SQL Affectation Repository', () => {
   let sqlAffectationRepository: SqlAffectationRepository;
@@ -123,8 +123,8 @@ describe('SQL Affectation Repository', () => {
     await expectAffectations({
       ...affectationSnapshot,
       createdAt: expect.any(Date),
-      datePublication: null,
-      auteurPublication: null,
+      datePublication: undefined,
+      auteurPublication: undefined,
     });
   });
 
@@ -155,14 +155,51 @@ describe('SQL Affectation Repository', () => {
   });
 
   const expectAffectations = async (
-    ...expectedAffectations: (typeof affectationPm.$inferSelect)[]
+    ...expectedAffectations: (AffectationSnapshot & {
+      createdAt: Date | null;
+    })[]
   ) => {
-    const existingAffectations = await db
-      .select()
-      .from(affectationPm)
-      .execute();
-    expect(existingAffectations).toEqual<(typeof affectationPm.$inferSelect)[]>(
-      expectedAffectations,
-    );
+    await db.transaction(async (tx) => {
+      const existingAffectations = await tx
+        .select()
+        .from(affectationPm)
+        .execute();
+
+      const expectedVersions = expectedAffectations.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ({ affectationsDossiersDeNominations: _, ...expected }) => expected,
+      );
+      expect(existingAffectations).toEqual(
+        expectedVersions.map((expectedVersion) =>
+          Object.fromEntries(
+            Object.entries(expectedVersion).map(([k, v]) =>
+              v === undefined ? [k, null] : [k, v],
+            ),
+          ),
+        ),
+      );
+
+      for (const version of expectedAffectations) {
+        for (const {
+          dossierDeNominationId,
+          rapporteurIds,
+        } of version.affectationsDossiersDeNominations) {
+          const reporterIds = await tx.query.drizzleNominationFileToReporterPm
+            .findMany({
+              columns: { userId: true },
+              where: (nfr, { and, eq }) =>
+                and(
+                  eq(nfr.versionId, version.id),
+                  eq(nfr.nominationFileId, dossierDeNominationId),
+                ),
+            })
+            .then((reporters) => reporters.map(({ userId }) => userId));
+
+          for (const expectedReporterId of rapporteurIds) {
+            expect(reporterIds).toContain(expectedReporterId);
+          }
+        }
+      }
+    });
   };
 });

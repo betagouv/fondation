@@ -1,4 +1,14 @@
+import { randomUUID } from 'node:crypto';
 import { NominationFile } from 'shared-models';
+import {
+  dossierDeNominationPm,
+  sessionPm,
+} from 'src/modules/framework/drizzle/schemas';
+import {
+  stubDossier,
+  stubSession,
+} from 'src/reports-context/adapters/primary/nestjs/reports.controller.fixtures';
+import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 import {
   NominationFileReport,
   NominationFileReportSnapshot,
@@ -19,7 +29,6 @@ import {
 import { clearDB } from 'test/docker-postgresql-manager';
 import { reports } from './schema/report-pm';
 import { SqlReportRepository } from './sql-report.repository';
-import { OptimisticLockError } from 'src/reports-context/business-logic/errors/optimistic-lock.error';
 
 describe('SQL Report Repository', () => {
   let sqlReportRepository: SqlReportRepository;
@@ -45,7 +54,21 @@ describe('SQL Report Repository', () => {
   it('saves a report', async () => {
     const aReport = new ReportBuilder('uuid').build();
 
-    await transactionPerformer.perform(
+    await db.transaction(async (tx) => {
+      await tx.insert(sessionPm).values({
+        ...stubSession,
+        sessionImportéeId: randomUUID(),
+        id: aReport.sessionId,
+      });
+      await tx.insert(dossierDeNominationPm).values({
+        ...stubDossier,
+        dossierDeNominationImportéId: randomUUID(),
+        id: aReport.dossierDeNominationId,
+        sessionId: aReport.sessionId,
+      });
+    });
+
+    await await transactionPerformer.perform(
       sqlReportRepository.save(NominationFileReport.fromSnapshot(aReport)),
     );
 
@@ -181,12 +204,30 @@ describe('SQL Report Repository', () => {
   describe('Given a saved report with a file', () => {
     const aReport = new ReportBuilder('uuid')
       .with('version', 1)
-      .with('attachedFiles', [new ReportAttachedFileBuilder().build()])
+      .with('attachedFiles', [
+        new ReportAttachedFileBuilder()
+          .with('fileId', '4487b61c-e6bf-4f1c-b703-2100a4302c13')
+          .build(),
+      ])
       .build();
     const aReportDb = SqlReportRepository.mapSnapshotToDb(aReport);
 
     beforeEach(async () => {
-      await db.insert(reports).values(aReportDb).execute();
+      await db.transaction(async (tx) => {
+        await tx.insert(sessionPm).values({
+          ...stubSession,
+          id: aReport.sessionId,
+          sessionImportéeId: randomUUID(),
+        });
+        await tx.insert(dossierDeNominationPm).values({
+          ...stubDossier,
+          sessionId: aReport.sessionId,
+          id: aReport.dossierDeNominationId,
+          dossierDeNominationImportéId: randomUUID(),
+        });
+
+        await tx.insert(reports).values(aReportDb).execute();
+      });
     });
 
     it('removes attached files from a report', async () => {

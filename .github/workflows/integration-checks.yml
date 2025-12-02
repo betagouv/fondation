@@ -51,13 +51,16 @@ jobs:
           node-version: "20.9.0"
           cache: "pnpm"
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Build the shared models, necessary for the type checks
         run: pnpm --filter shared-models build
 
+      - name: Migrate Prisma
+        run: pnpm run --filter api prisma migrate deploy
+
       - name: Generate prisma
-        run: pnpm --filter api prisma generate --config prisma.config.ts
+        run: pnpm --filter api prisma generate --sql --config prisma.config.ts
 
       - name: Types check
         run: pnpm types:check
@@ -67,9 +70,6 @@ jobs:
 
       - name: Format
         run: pnpm format:check
-
-      - name: Migrate Prisma
-        run: pnpm run --filter api prisma migrate deploy
 
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js

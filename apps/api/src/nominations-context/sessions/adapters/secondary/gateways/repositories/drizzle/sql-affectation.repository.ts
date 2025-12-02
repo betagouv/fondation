@@ -1,20 +1,14 @@
-import { and, desc, eq, max, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { PrioriteEnum } from 'shared-models';
-import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
-import {
-  Affectation,
-  affectationsDossiersDeNominationsSchema,
-  AffectationSnapshot,
-  StatutAffectation,
-} from 'src/nominations-context/sessions/business-logic/models/affectation';
-import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
-import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
-import z from 'zod';
-import { affectationPm } from './schema/affectation-pm';
 import {
   dossierDeNominationPm,
   drizzleNominationFileToReporterPm,
 } from 'src/modules/framework/drizzle/schemas';
+import { AffectationRepository } from 'src/nominations-context/sessions/business-logic/gateways/repositories/affectation.repository';
+import { Affectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { DrizzleTransactionableAsync } from 'src/shared-kernel/adapters/secondary/gateways/providers/drizzle-transaction-performer';
+import { toFormation } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/schema';
+import { affectationPm } from './schema/affectation-pm';
 
 export class SqlAffectationRepository implements AffectationRepository {
   save(affectation: Affectation): DrizzleTransactionableAsync<void> {
@@ -31,8 +25,6 @@ export class SqlAffectationRepository implements AffectationRepository {
             statut: affectationSnapshot.statut,
             datePublication: affectationSnapshot.datePublication,
             auteurPublication: affectationSnapshot.auteurPublication,
-            affectationsDossiersDeNominations:
-              affectationSnapshot.affectationsDossiersDeNominations,
           },
         });
 
@@ -126,88 +118,5 @@ export class SqlAffectationRepository implements AffectationRepository {
         auteurPublication: result.auteurPublication ?? undefined,
       });
     };
-  }
-
-  derniereVersionPubliee(
-    sessionId: string,
-  ): DrizzleTransactionableAsync<Affectation | null> {
-    return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(
-          and(
-            eq(affectationPm.sessionId, sessionId),
-            eq(affectationPm.statut, StatutAffectation.PUBLIEE),
-          ),
-        )
-        .orderBy(desc(affectationPm.version))
-        .limit(1);
-
-      if (result.length === 0) {
-        return null;
-      }
-
-      return SqlAffectationRepository.mapToDomain(result[0]!);
-    };
-  }
-
-  versionBrouillon(
-    sessionId: string,
-  ): DrizzleTransactionableAsync<Affectation | null> {
-    return async (db) => {
-      const result = await db
-        .select()
-        .from(affectationPm)
-        .where(
-          and(
-            eq(affectationPm.sessionId, sessionId),
-            eq(affectationPm.statut, StatutAffectation.BROUILLON),
-          ),
-        )
-        .limit(1);
-
-      if (result.length === 0) {
-        return null;
-      }
-
-      return SqlAffectationRepository.mapToDomain(result[0]!);
-    };
-  }
-
-  prochainNumeroVersion(
-    sessionId: string,
-  ): DrizzleTransactionableAsync<number> {
-    return async (db) => {
-      const result = await db
-        .select({ maxVersion: max(affectationPm.version) })
-        .from(affectationPm)
-        .where(eq(affectationPm.sessionId, sessionId));
-
-      const dernierNumero = result[0]?.maxVersion ?? 0;
-      return dernierNumero + 1;
-    };
-  }
-
-  static mapToDb(affectation: Affectation): typeof affectationPm.$inferInsert {
-    return SqlAffectationRepository.mapSnapshotToDb(affectation.snapshot());
-  }
-
-  static mapSnapshotToDb(
-    snapshot: AffectationSnapshot,
-  ): typeof affectationPm.$inferInsert {
-    return snapshot;
-  }
-
-  static mapToDomain(row: typeof affectationPm.$inferSelect): Affectation {
-    return Affectation.fromSnapshot({
-      ...row,
-      formation: toFormation(row.formation),
-      affectationsDossiersDeNominations: z
-        .array(affectationsDossiersDeNominationsSchema)
-        .parse(row.affectationsDossiersDeNominations),
-      datePublication: row.datePublication ?? undefined,
-      auteurPublication: row.auteurPublication ?? undefined,
-    });
   }
 }
