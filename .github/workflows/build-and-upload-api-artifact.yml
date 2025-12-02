@@ -12,7 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Etc/UTC
-      DATABASE_URL: postgresql://postgres:password@localhost:5432/db
+      DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
+    services:
+      postgres:
+        image: postgres:13.2
+        env:
+          POSTGRES_USER: fondation
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: fondation
+        ports:
+          - 5435:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,6 +39,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm --filter api... install --frozen-lockfile --ignore-scripts
+      - name: Migrate Prisma for generation
+        run: pnpm --filter api prisma migrate --config prisma.config.ts deploy
       - name: Build prisma
         run: pnpm --filter api prisma generate --sql --config prisma.config.ts
       - name: Build api
