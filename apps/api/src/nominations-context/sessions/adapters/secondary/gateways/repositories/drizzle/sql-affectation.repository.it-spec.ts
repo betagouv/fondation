@@ -75,7 +75,6 @@ describe('SQL Affectation Repository', () => {
     const [nominationFile] = await db
       .insert(dossierDeNominationPm)
       .values({
-        content: {},
         dossierDeNominationImportéId: randomUUID(),
         sessionId: aSessionId,
       })

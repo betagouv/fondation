@@ -116,7 +116,7 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
     formation: unRapportVM.formation,
     dueDate: unRapportVM.dueDate,
     grade: unRapportVM.grade,
-    targettedPosition: unRapportVM.targettedPosition,
+    targetedPosition: unRapportVM.targettedPosition,
     currentPosition: 'a current position',
     birthDate: {
       year: 1980,
@@ -126,9 +126,8 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
     biography: 'a biography',
     rank: '1 sur 1',
     observers: ['a list of observers'],
-    datePassageAuGrade: null,
-    datePriseDeFonctionPosteActuel: null,
-    informationCarrière: null,
+    lastRankingDate: null,
+    lastPositionDate: null,
   },
 };
 

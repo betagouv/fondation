@@ -196,7 +196,6 @@ import {
       [],
       DOSSIER_DE_NOMINATION_REPOSITORY,
     ),
-    generateProvider(SqlPréAnalyseRepository, [], PRE_ANALYSE_REPOSITORY),
     generateProvider(SqlAffectationRepository, [], AFFECTATION_REPOSITORY),
     generateProvider(SqlReportRepository, [], REPORT_REPOSITORY),
   ],

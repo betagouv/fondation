@@ -41,7 +41,7 @@ export class RetrieveReportUseCase {
   constructor(
     private readonly reportRetrievalVMQuery: ReportRetrievalQuery,
     private readonly transparenceService: TransparenceService,
-    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
+    private readonly dossierDeNominationService: DossierDeNominationService,
     private readonly dateTimeProvider: DateTimeProvider,
   ) {}
 
@@ -90,7 +90,7 @@ export class RetrieveReportUseCase {
   }
 
   private rapportFromDossierDeNomination(
-    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>,
+    dossierDeNomination: DossierDeNominationSnapshot,
   ): Pick<
     ReportRetrievalVM,
     | 'biography'
@@ -119,47 +119,25 @@ export class RetrieveReportUseCase {
       ? formatMonthsToYearsAndMonths(dureeDuPosteEnMois)
       : null;
 
-    const version = dossierDeNomination.content.version;
-    switch (version) {
-      case undefined:
-      case 1:
-        return {
-          dureeDuPoste,
-          biography: dossierDeNomination.content.biography,
-          dueDate: dossierDeNomination.content.dueDate,
-          name: dossierDeNomination.content.name,
-          birthDate: dossierDeNomination.content.birthDate,
-          grade: dossierDeNomination.content.grade,
-          currentPosition: dossierDeNomination.content.currentPosition,
-          targettedPosition: dossierDeNomination.content.targettedPosition,
-          rank: dossierDeNomination.content.rank,
-          observers: dossierDeNomination.content.observers,
-          folderNumber: dossierDeNomination.content.folderNumber,
-        };
-      case 2:
-        return {
-          dureeDuPoste,
-          biography: dossierDeNomination.content.historique,
-          dueDate: dossierDeNomination.content.dateEchéance,
-          name: dossierDeNomination.content.nomMagistrat,
-          birthDate: dossierDeNomination.content.dateDeNaissance,
-          grade: dossierDeNomination.content.grade,
-          currentPosition: dossierDeNomination.content.posteActuel,
-          targettedPosition: dossierDeNomination.content.posteCible,
-          rank: dossierDeNomination.content.rang,
-          observers: dossierDeNomination.content.observants,
-          folderNumber: dossierDeNomination.content.numeroDeDossier,
-        };
-      default:
-        const _exhaustiveCheck: never = version;
-        throw new Error(`Version de contenu non gérée: ${_exhaustiveCheck}`);
-    }
+    return {
+      dureeDuPoste,
+      biography: dossierDeNomination.content.biography,
+      dueDate: dossierDeNomination.content.dueDate,
+      name: dossierDeNomination.content.name,
+      birthDate: dossierDeNomination.content.birthDate,
+      grade: dossierDeNomination.content.grade,
+      currentPosition: dossierDeNomination.content.currentPosition,
+      targettedPosition: dossierDeNomination.content.targetedPosition,
+      rank: dossierDeNomination.content.rank,
+      observers: dossierDeNomination.content.observers,
+      folderNumber: dossierDeNomination.content.folderNumber,
+    };
   }
 
   private datePriseDeFonctionPosteActuel(
     content: PropositionDeNominationTransparenceDto['content'],
   ) {
-    return content.datePriseDeFonctionPosteActuel;
+    return content.lastPositionDate;
   }
 }
 

@@ -13,17 +13,15 @@ export const dossierDeNominationContentSchema = z.record(
   z.unknown(),
 );
 
-export class DossierDeNomination<S extends TypeDeSaisine | unknown = unknown> {
+export class DossierDeNomination {
   protected constructor(
     private readonly _id: string,
     private readonly _sessionId: string,
     private readonly _nominationFileImportedId: string,
-    private _content: DossierDeNominationContent<S>,
+    private _content: DossierDeNominationContent,
   ) {}
 
-  protected updateContent<
-    Content extends Partial<DossierDeNominationContent<S>>,
-  >(content: Exact<Partial<Content>, Partial<Content>>) {
+  protected updateContent(content: Exact<Partial<Content>, Partial<Content>>) {
     this.setContent({
       ...this._content,
       ...content,

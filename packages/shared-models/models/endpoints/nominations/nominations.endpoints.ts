@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type DateOnlyJson, type Month } from '../../date';
+import { type DateOnlyJson } from '../../date';
 import { Magistrat } from '../../magistrat.namespace';
 import type { SessionSnapshot } from '../../session/session-content';
 import type { SessionMetadataSnapshot } from '../../session/session-metadata';
@@ -74,9 +74,6 @@ export const transparenceSnapshotQueryParamsSchema = z.object({
     .int()
     .min(2025, "L'année doit être supérieure ou égale à 2025.")
     .transform((value) => Number(value)),
-  month: z.custom<Month>((value) => {
-    const n = Number(value);
-    return 1 <= n && n <= 12;
-  }),
+  month: z.number().gte(1).lte(12),
   day: z.coerce.number().int().min(1, 'Le jour doit être compris entre 1 et 31.').max(31),
 }) satisfies ZodQueryParamsDto<NominationsContextTransparenceRestContract, 'transparenceSnapshot'>;

@@ -1,5 +1,4 @@
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { Magistrat } from 'shared-models';
 import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { TransparenceXlsxObservantsImportésEventPayload } from 'src/data-administration-context/transparence-xlsx/business-logic/models/events/transparence-xlsx-observants-importés.event';
 import { getDependencies as getContextDependencies } from 'src/nominations-context/tests-dependencies';
@@ -22,28 +21,24 @@ export const commandWithNewObservers = new UpdateObservantsCommand(
   [nominationFileModificationWithObservers],
 );
 
-export const aDossierDeNomination: DossierDeNominationSnapshot<
-  TypeDeSaisine.TRANSPARENCE_GDS,
-  ContenuPropositionDeNominationTransparenceV2
-> = {
+export const aDossierDeNomination: DossierDeNominationSnapshot = {
   id: existingDossierDeNominationId,
   nominationFileImportedId: dossierDeNominationImportedId,
   sessionId: 'un-id-de-session',
   content: {
-    version: 2,
-    numeroDeDossier: 1,
-    observants: [],
-    historique: 'Nominee biography',
-    dateDeNaissance: { day: 1, month: 1, year: 1980 },
-    posteActuel: 'Current position',
-    posteCible: 'Target position',
-    dateEchéance: { day: 1, month: 6, year: 2023 },
+    folderNumber: 1,
+    formation: null,
+    observers: [],
+    biography: 'Nominee biography',
+    birthDate: { day: 1, month: 1, year: 1980 },
+    currentPosition: 'Current position',
+    targetedPosition: 'Target position',
+    dueDate: { day: 1, month: 6, year: 2023 },
     grade: Magistrat.Grade.I,
-    nomMagistrat: 'Nominee Name',
-    rang: 'A',
-    datePassageAuGrade: null,
-    datePriseDeFonctionPosteActuel: null,
-    informationCarrière: null,
+    name: 'Nominee Name',
+    rank: 'A',
+    lastRankingDate: null,
+    lastPositionDate: null,
   },
 };
 
@@ -68,14 +63,12 @@ export const getDependencies = () => {
       ...aDossierDeNomination,
       content: {
         ...aDossierDeNomination.content,
-        observants: ['observer-1', 'observer-2'],
+        observers: ['observer-1', 'observer-2'],
       },
     });
   }
 
-  function expectDossierWith(
-    dossierDeNomination: DossierDeNominationSnapshot<TypeDeSaisine.TRANSPARENCE_GDS>,
-  ) {
+  function expectDossierWith(dossierDeNomination: DossierDeNominationSnapshot) {
     const dossiers =
       dependencies.propropositionDeNominationTransparenceRepository.getDossiers();
     expect(dossiers).toHaveLength(1);

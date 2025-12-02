@@ -1,17 +1,16 @@
-import { TypeDeSaisine } from 'shared-models';
 import {
   DossierDeNominationDto,
   DossierDeNominationService,
 } from 'src/shared-kernel/business-logic/gateways/services/dossier-de-nomination.service';
 
-export class StubDossierDeNominationService<S extends TypeDeSaisine>
-  implements DossierDeNominationService<S>
+export class StubDossierDeNominationService
+  implements DossierDeNominationService
 {
-  stubDossier: DossierDeNominationDto<S>;
+  stubDossier: DossierDeNominationDto;
 
   async dossierDeNomination(
     dossierDeNominationId: string,
-  ): Promise<DossierDeNominationDto<S>> {
+  ): Promise<DossierDeNominationDto> {
     if (this.stubDossier.id !== dossierDeNominationId) {
       throw new Error('Dossier de nomination not found.');
     }

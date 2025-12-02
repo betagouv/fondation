@@ -20,6 +20,7 @@ export class XlsxReader {
 
   static async read(file: File) {
     const buffer = xlsx.parse(await file.arrayBuffer(), {
+      cellDates: true,
       raw: false,
       dateNF: 'dd/mm/yyyy',
     });

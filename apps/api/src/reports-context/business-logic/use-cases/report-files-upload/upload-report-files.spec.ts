@@ -39,7 +39,7 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
     name: 'a name',
     formation: Magistrat.Formation.PARQUET,
     grade: Magistrat.Grade.HH,
-    targettedPosition: 'a position',
+    targetedPosition: 'a position',
     currentPosition: 'a current position',
     birthDate: {
       year: 1980,
@@ -49,9 +49,8 @@ const unDossierDeNomination: PropositionDeNominationTransparenceV1Dto = {
     biography: 'a biography',
     rank: '1 sur 1',
     observers: ['a list of observers'],
-    datePassageAuGrade: null,
-    datePriseDeFonctionPosteActuel: null,
-    informationCarrière: null,
+    lastRankingDate: null,
+    lastPositionDate: null,
   },
 };
 

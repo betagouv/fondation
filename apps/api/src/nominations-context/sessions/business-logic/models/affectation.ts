@@ -44,10 +44,7 @@ export class Affectation {
     private _affectationsDossiersDeNominations: AffectationsDossiersDeNominations[],
   ) {}
 
-  ajouterDossier(
-    dossier: DossierDeNomination<unknown>,
-    rapporteurIds: string[],
-  ) {
+  ajouterDossier(dossier: DossierDeNomination, rapporteurIds: string[]) {
     this._affectationsDossiersDeNominations.push({
       dossierDeNominationId: dossier.id,
       rapporteurIds,

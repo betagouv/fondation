@@ -49,12 +49,13 @@ model DossierDeNomination {
   /**
    * @deprecated
    */
-  content                     Json
+  content                     Json                @ignore
 
   number           Int?
   name             String?
   rank             String?
   grade            String?
+  observers        String[]             @default([])
   dueDate          DateTime?            @map("due_date") @db.Date
   biography        String?
   birthDate        DateTime?            @map("birth_date") @db.Date
@@ -65,24 +66,11 @@ model DossierDeNomination {
   lastPositionDate DateTime?            @map("last_position_date") @db.Date
 
   reports       Report[]
-  observerIds   NominationFileToObserver[]
   reporterIds   NominationFileToReporter[]
   session       Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   commentAccess CommentAccess[]
 
   @@map("dossier_de_nomination")
-  @@schema("nominations_context")
-}
-
-model NominationFileToObserver {
-  userId           String @map("user_id") @db.Uuid
-  nominationFileId String @db.Uuid
-
-  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@id([nominationFileId, userId])
-  @@map("nomination_file_to_observer")
   @@schema("nominations_context")
 }
 

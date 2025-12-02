@@ -7,9 +7,9 @@ export class FakeDossierDeNominationRepository<
   S extends TypeDeSaisine | unknown = unknown,
 > implements DossierDeNominationRepository<S>
 {
-  private dossiers: Record<string, DossierDeNominationSnapshot<S>> = {};
+  private dossiers: Record<string, DossierDeNominationSnapshot> = {};
 
-  save(dossier: DossierDeNomination<S>) {
+  save(dossier: DossierDeNomination) {
     return async () => {
       this.dossiers[dossier.id] = dossier.snapshot();
     };
@@ -45,7 +45,7 @@ export class FakeDossierDeNominationRepository<
     };
   }
 
-  ajouterDossiers(...dossiers: DossierDeNominationSnapshot<S>[]) {
+  ajouterDossiers(...dossiers: DossierDeNominationSnapshot[]) {
     for (const dossier of dossiers) {
       this.dossiers[dossier.id] = dossier;
     }

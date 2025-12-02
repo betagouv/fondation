@@ -5,7 +5,6 @@ import {
   getDependencies,
 } from 'src/nominations-context/tests-dependencies';
 
-import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import {
   aDossierDeNominationId,
   aDossierDeNominationPayload,
@@ -40,9 +39,7 @@ describe('Nouvelle transparence GDS - Events', () => {
     expect(event.occurredOn).toBe(currentDate);
     expect(event.payload.dossierDeNominationId).toBe(aDossierDeNominationId);
     expect(event.payload.sessionId).toBe(aSessionId);
-    expect(
-      event.payload.content,
-    ).toEqual<ContenuPropositionDeNominationTransparenceV2>({
+    expect(event.payload.content).toEqual({
       version: 2,
       historique: aDossierDeNominationPayload.content.biography,
       dateDeNaissance: aDossierDeNominationPayload.content.birthDate,

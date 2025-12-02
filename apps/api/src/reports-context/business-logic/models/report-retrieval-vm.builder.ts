@@ -176,7 +176,7 @@ export class ReportRetrievalBuilder<
       .with('name', dossierDeNomination.content.name)
       .with('formation', session.formation)
       .with('grade', dossierDeNomination.content.grade)
-      .with('targettedPosition', dossierDeNomination.content.targettedPosition)
+      .with('targettedPosition', dossierDeNomination.content.targetedPosition)
       .with('dueDate', dossierDeNomination.content.dueDate)
       .with('birthDate', dossierDeNomination.content.birthDate)
       .with('currentPosition', dossierDeNomination.content.currentPosition)

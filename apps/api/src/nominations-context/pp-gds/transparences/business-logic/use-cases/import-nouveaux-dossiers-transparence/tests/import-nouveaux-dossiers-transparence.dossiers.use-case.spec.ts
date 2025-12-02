@@ -1,5 +1,4 @@
-import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { Magistrat } from 'shared-models';
 import { DossierDeNominationSnapshot } from 'shared-models/models/session/dossier-de-nomination';
 import { getDependencies } from 'src/nominations-context/tests-dependencies';
 import {
@@ -32,31 +31,25 @@ describe('Import nouveaux dossiers dans une transparence - Dossiers de nominatio
   function expectDossierDeNominationCréé() {
     expect(
       dependencies.propropositionDeNominationTransparenceRepository.getDossiers(),
-    ).toEqual<
-      DossierDeNominationSnapshot<
-        TypeDeSaisine.TRANSPARENCE_GDS,
-        ContenuPropositionDeNominationTransparenceV2
-      >[]
-    >([
+    ).toEqual<DossierDeNominationSnapshot[]>([
       {
         id: aDossierDeNominationId,
         nominationFileImportedId: aDossierDeNominationImportedId,
         sessionId: aParquetSessionId,
         content: {
-          version: 2,
-          historique: 'Nominee biography',
-          dateDeNaissance: { day: 1, month: 1, year: 1980 },
-          posteActuel: 'Current position',
-          posteCible: 'Target position',
-          dateEchéance: { day: 1, month: 6, year: 2023 },
-          numeroDeDossier: 1,
+          biography: 'Nominee biography',
+          birthDate: { day: 1, month: 1, year: 1980 },
+          currentPosition: 'Current position',
+          targetedPosition: 'Target position',
+          dueDate: { day: 1, month: 6, year: 2023 },
+          folderNumber: 1,
           grade: Magistrat.Grade.I,
-          nomMagistrat: 'Nominee Name',
-          observants: [],
-          rang: 'A',
-          datePassageAuGrade: { day: 1, month: 1, year: 2020 },
-          datePriseDeFonctionPosteActuel: { day: 1, month: 1, year: 2021 },
-          informationCarrière: 'Carrière',
+          name: 'Nominee Name',
+          observers: [],
+          rank: 'A',
+          lastRankingDate: { day: 1, month: 1, year: 2020 },
+          lastPositionDate: { day: 1, month: 1, year: 2021 },
+          formation: null,
         },
       },
     ]);

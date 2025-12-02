@@ -1,9 +1,5 @@
 import { Magistrat, TypeDeSaisine } from 'shared-models';
-import {
-  ContenuInconnu,
-  ContenuV1,
-  ContenuV2,
-} from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
+import { DossierDeNominationContent } from 'shared-models/models/session/dossier-de-nomination';
 import { DossierDeNomination } from 'src/nominations-context/dossier-de-nominations/business-logic/models/dossier-de-nomination';
 import { dateOnlyJsonSchema } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
@@ -43,21 +39,11 @@ export const propositionDeNominationTransparenceContentV2Schema = z.object({
   dateEchéance: dateOnlyJsonSchema.nullable(),
 }) satisfies z.ZodType<ContenuV2>;
 
-export class PropositionDeNominationTransparence extends DossierDeNomination<TypeDeSaisine.TRANSPARENCE_GDS> {
-  updateFolderNumber(
-    content:
-      | Pick<ContenuV1, 'version' | 'folderNumber'>
-      | Pick<ContenuV2, 'version' | 'numeroDeDossier'>,
-  ) {
-    if (content.version === undefined || content.version === 1) {
-      this.updateContent<typeof content>({
-        folderNumber: content.folderNumber,
-      });
-    } else if (content.version === 2) {
-      this.updateContent<typeof content>({
-        numeroDeDossier: content.numeroDeDossier,
-      });
-    }
+export class PropositionDeNominationTransparence extends DossierDeNomination {
+  updateFolderNumber(content: DossierDeNominationContent) {
+    this.updateContent({
+      folderNumber: content.folderNumber,
+    });
   }
 
   updateObservers(

@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  date,
   index,
   integer,
   jsonb,
@@ -101,8 +102,24 @@ export const dossierDeNominationPm = nominationsContextSchema.table(
     dossierDeNominationImportéId: uuid('dossier_de_nomination_import_id')
       .unique()
       .notNull(),
-    content: jsonb('content').notNull(),
+    // content: jsonb('content').notNull(),
     priorite: drizzlePrioriteEnum('priorite'),
+    number: integer(),
+    name: text(),
+    rank: text(),
+    grade: text(),
+    observers: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::TEXT[]`),
+    dueDate: date('due_date'),
+    biography: text(),
+    birthDate: date('birth_date'),
+    formation: formationEnum(),
+    currentPosition: text('current_position'),
+    targetedPosition: text('targeted_position'),
+    lastRankingDate: date('last_ranking_date'),
+    lastPositionDate: date('last_position_date'),
   },
 );
 

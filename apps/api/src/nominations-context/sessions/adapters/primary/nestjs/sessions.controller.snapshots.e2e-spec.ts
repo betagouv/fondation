@@ -51,8 +51,8 @@ describe('Sessions Controller- Snapshots', () => {
     const [dossier] = await db
       .insert(dossierDeNominationPm)
       .values({
+        number: dossierContent.folderNumber,
         sessionId: aSessionId,
-        content: dossierContent,
         dossierDeNominationImportéId: aDossierDeNominationImportéId,
       })
       .returning({ id: dossierDeNominationPm.id });
@@ -104,7 +104,7 @@ describe('Sessions Controller- Snapshots', () => {
         HttpStatus.OK,
       );
 
-      expect(response.body).toEqual<DossierDeNominationSnapshot>({
+      expect(response.body).toEqual({
         id: aDossierId,
         sessionId: aSessionId,
         nominationFileImportedId: aDossierDeNominationImportéId,

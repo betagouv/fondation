@@ -1,6 +1,4 @@
 import { Gender, Magistrat, Role, Transparency } from 'shared-models';
-import { GdsNewTransparenceImportedEventPayload } from 'src/data-administration-context/transparence-tsv/business-logic/models/events/gds-transparence-imported.event';
-import { NominationFileReadRulesBuilder } from 'src/data-administration-context/transparence-tsv/business-logic/use-cases/nomination-files-import/import-nomination-files.use-case.fixtures';
 import { DeterministicUuidGenerator } from 'src/shared-kernel/adapters/secondary/gateways/providers/deterministic-uuid-generator';
 import { ImportNouvelleTransparenceCommand } from '../Import-nouvelle-transparence.command';
 import { ImportNouvelleTransparenceUseCase } from '../import-nouvelle-transparence.use-case';

@@ -1,11 +1,10 @@
 import { differenceInMonths, format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { z, ZodType } from 'zod';
+import { z } from 'zod';
 
-export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyJson = {
   year: number;
-  month: Month;
+  month: number;
   day: number;
 };
 
@@ -14,7 +13,7 @@ export const gsheetDateFormat = 'dd/MM/yyyy';
 
 export const dateOnlyJsonSchema = z.object({
   year: z.number(),
-  month: z.number().min(1).max(12) as ZodType<Month>,
+  month: z.number().min(1).max(12),
   day: z.number(),
 });
 
@@ -23,7 +22,7 @@ export class DateOnly {
 
   static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
 
-  constructor(year: number, month: Month, day: number) {
+  constructor(year: number, month: number, day: number) {
     // Month is 0-indexed in JS Date
     this.value = new Date(Date.UTC(year, month - 1, day));
   }
@@ -51,7 +50,7 @@ export class DateOnly {
   toJson(): DateOnlyJson {
     return {
       year: this.getYear(),
-      month: this.getMonth() as Month,
+      month: this.getMonth(),
       day: this.value.getDate(),
     };
   }
@@ -62,7 +61,7 @@ export class DateOnly {
   static fromDate(dueDate: Date): DateOnly {
     return new DateOnly(
       dueDate.getFullYear(),
-      (dueDate.getMonth() + 1) as Month,
+      dueDate.getMonth() + 1,
       dueDate.getDate(),
     );
   }
@@ -83,10 +82,6 @@ export class DateOnly {
       throw new Error('Invalid date: ' + dateString);
     }
 
-    return new this(
-      date.getFullYear(),
-      (date.getMonth() + 1) as Month,
-      date.getDate(),
-    );
+    return new this(date.getFullYear(), date.getMonth() + 1, date.getDate());
   }
 }

@@ -9,7 +9,7 @@ import { ReportListingQuery } from '../../gateways/queries/report-listing-vm.que
 export class ListReportsUseCase {
   constructor(
     private readonly reportListingVMRepository: ReportListingQuery,
-    private readonly dossierDeNominationService: DossierDeNominationService<TypeDeSaisine.TRANSPARENCE_GDS>,
+    private readonly dossierDeNominationService: DossierDeNominationService,
     private readonly transparenceService: TransparenceService,
   ) {}
 
@@ -64,28 +64,13 @@ export class ListReportsUseCase {
     | 'targettedPosition'
     | 'observersCount'
   > {
-    const version = proposition.content.version;
-
-    switch (version) {
-      case undefined:
-      case 1:
-        return {
-          folderNumber: proposition.content.folderNumber,
-          dueDate: proposition.content.dueDate,
-          name: proposition.content.name,
-          grade: proposition.content.grade,
-          targettedPosition: proposition.content.targettedPosition,
-          observersCount: proposition.content.observers?.length ?? 0,
-        };
-      case 2:
-        return {
-          folderNumber: proposition.content.numeroDeDossier,
-          dueDate: proposition.content.dateEchéance,
-          name: proposition.content.nomMagistrat,
-          grade: proposition.content.grade,
-          targettedPosition: proposition.content.posteCible,
-          observersCount: proposition.content.observants?.length ?? 0,
-        };
-    }
+    return {
+      folderNumber: proposition.content.folderNumber,
+      dueDate: proposition.content.dueDate,
+      name: proposition.content.name,
+      grade: proposition.content.grade,
+      targettedPosition: proposition.content.targetedPosition,
+      observersCount: proposition.content.observers?.length ?? 0,
+    };
   }
 }

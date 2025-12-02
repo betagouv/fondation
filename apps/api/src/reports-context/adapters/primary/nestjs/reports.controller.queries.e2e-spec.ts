@@ -77,7 +77,7 @@ describe('Reports Controller', () => {
       name: stubDossier.content.name,
       transparency: stubSession.name,
       grade: stubDossier.content.grade,
-      targettedPosition: stubDossier.content.targettedPosition,
+      targettedPosition: stubDossier.content.targetedPosition,
       observersCount: stubDossier.content.observers.length,
       dateTransparence: stubSession.content.dateTransparence,
     };
