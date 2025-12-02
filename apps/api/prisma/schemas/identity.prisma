@@ -33,6 +33,7 @@ model User {
   excludedJurisdictionIds     ExcludedJurisdiction[]
   reporterOnNominationFileIds NominationFileToReporter[]
   publishedVersions           AffectationVersion[]
+  nominationFileToObservers   NominationFileToObserver[]
   commentAccess               CommentAccess[]
 
   @@map("users")
