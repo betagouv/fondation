@@ -95,23 +95,45 @@ export function MagistratDnModalLink(props: {
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isVisible = searchParams.get('active') === props.nominationFile.id;
+  const hasComment = !!props.nominationFile.comment;
 
   return (
     <>
-      <a
-        {...modalMagistratDnDetails.buttonProps}
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          setSearchParams((s) => {
-            s.set('active', props.nominationFile.id);
-            return s;
-          });
-          modalMagistratDnDetails.open();
-        }}
-      >
-        {props.nominationFile.content.nomMagistrat}
-      </a>
+      <span>
+        <a
+          {...modalMagistratDnDetails.buttonProps}
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setSearchParams((s) => {
+              s.set('active', props.nominationFile.id);
+              return s;
+            });
+            modalMagistratDnDetails.open();
+          }}
+        >
+          {props.nominationFile.content.nomMagistrat}
+        </a>
+        {hasComment && (
+          <>
+            {' '}
+            <i
+              className="ri-message-3-line cursor-pointer"
+              style={{ fontSize: '10px' }}
+              title="Commentaire présent"
+              aria-label="Commentaire présent"
+              onClick={(e) => {
+                e.preventDefault();
+                setSearchParams((s) => {
+                  s.set('active', props.nominationFile.id);
+                  return s;
+                });
+                modalMagistratDnDetails.open();
+              }}
+            />
+          </>
+        )}
+      </span>
 
       {isVisible &&
         createPortal(
