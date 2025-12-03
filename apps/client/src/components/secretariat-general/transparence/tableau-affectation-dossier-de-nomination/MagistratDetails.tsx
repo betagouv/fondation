@@ -1,4 +1,3 @@
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import type { FC } from 'react';
 import { Magistrat } from 'shared-models';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
@@ -31,16 +30,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
   commentAccessUserIds: initialCommentAccessUserIds,
   formation
 }) => {
-  const modalRef = { id: `modal-magistrat-dn-details-${idDn}`, isOpenedByDefault: false };
-  const isModalOpen = useIsModalOpen(modalRef);
-
-  const {
-    data: reports,
-    isLoading,
-    error
-  } = useGetReportsByDnId(idDn, {
-    enabled: isModalOpen
-  });
+  const { data: reports, isLoading, error } = useGetReportsByDnId(idDn);
 
   if (isLoading) {
     return <div>Chargement des rapports...</div>;
