@@ -12,12 +12,26 @@ export function useUpdateCommentAccessMutation() {
         headers: { 'content-type': 'application/json' }
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId }) => {
+    onSuccess: (_, { sessionId, nominationFileId, userIds }) => {
+      // Mise à jour optimiste du cache sans refetch
+      queryClient.setQueryData(
+        ['sessionNominationFiles', sessionId],
+        (old: { items: Array<{ id: string; commentAccessUserIds?: string[] }> } | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((file) =>
+              file.id === nominationFileId
+                ? { ...file, commentAccessUserIds: userIds }
+                : file
+            )
+          };
+        }
+      );
+
       queryClient.invalidateQueries({
         queryKey: ['commentAccess', sessionId, nominationFileId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['sessionNominationFiles', sessionId]
       });
     }
   });
