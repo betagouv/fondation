@@ -20,8 +20,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
-  { field: 'content.dateEchéance', label: "Date d'écheance" },
-  { field: 'comment', label: '' }
+  { field: 'content.dateEchéance', label: "Date d'écheance" }
 ] as const satisfies { field: string; label: string }[];
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
@@ -57,10 +56,7 @@ export const dataRowsDn = (options: {
       content.observants && content.observants.length > 0 ? content.observants : '-',
       dossier.priority ? PrioriteLabels[dossier.priority] : '-',
       React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
-      dossier.comment
-        ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' })
-        : ''
+      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
     ];
   });
 };
@@ -102,10 +98,7 @@ export const dataRowsDnEdition = (options: {
         initialRapporteurs: initialRapporteurIds,
         availableRapporteurs: options.availableRapporteurs
       }),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance),
-      dossier.comment
-        ? React.createElement('i', { className: 'ri-message-3-line', title: 'Commentaire présent' })
-        : ''
+      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
     ];
   });
 };
