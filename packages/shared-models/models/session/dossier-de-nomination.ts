@@ -1,6 +1,6 @@
-import { Magistrat } from 'models/magistrat.namespace';
+import { DateOnlyJson } from '../date';
+import { Magistrat } from '../magistrat.namespace';
 import type { PrioriteEnum } from '../priorite.enum';
-import { DateOnlyJson } from 'models/date';
 
 export type DossierDeNominationContent = {
   folderNumber: number | null;

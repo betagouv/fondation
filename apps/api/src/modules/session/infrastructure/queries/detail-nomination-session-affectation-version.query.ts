@@ -3,7 +3,7 @@ import {
   AffectationVersionFinder,
   FoundAffectationVersion,
 } from '../finders/affectation-version.finder';
-import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()

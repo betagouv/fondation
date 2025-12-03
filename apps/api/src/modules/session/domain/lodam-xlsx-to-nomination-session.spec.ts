@@ -25,7 +25,8 @@ describe('lodamXlsxToNominationSession', () => {
            "value": 1968-04-09T00:00:00.000Z,
          },
          "currentPosition": "Procureur de la République TJ  NARBONNE",
-         "folderNumber": 1,
+         "fileNumber": 1,
+         "grade": "HH",
          "lastPositionDate": DateOnly {
            "value": 2020-09-01T00:00:00.000Z,
          },
@@ -38,7 +39,7 @@ describe('lodamXlsxToNominationSession', () => {
          "reporters": [
            "DURAND Côme",
          ],
-         "targetedPosition": "Procureur de la République TJ  GRASSE - HH",
+         "targetedPosition": "Procureur de la République TJ  GRASSE",
        },
        {
          "biography": "SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).",
@@ -46,7 +47,8 @@ describe('lodamXlsxToNominationSession', () => {
            "value": 1972-05-20T00:00:00.000Z,
          },
          "currentPosition": "Procureur de la République TJ  BEZIERS",
-         "folderNumber": 2,
+         "fileNumber": 2,
+         "grade": "HH",
          "lastPositionDate": DateOnly {
            "value": 2019-09-02T00:00:00.000Z,
          },
@@ -62,7 +64,7 @@ describe('lodamXlsxToNominationSession', () => {
            "ANDOCHE Charles",
            "DURAND Côme",
          ],
-         "targetedPosition": "Procureur de la République TJ  TOULON - HH",
+         "targetedPosition": "Procureur de la République TJ  TOULON",
        },
      ]
     `);

@@ -1,7 +1,9 @@
-import { PrioriteEnum } from 'shared-models';
+import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { makeId } from 'src/utils/id';
+import { NominationFile, NominationFileEntity } from './nomination-file';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -37,6 +39,26 @@ export class NominationSessionAffectationVersionCreated {
   ) {}
 }
 
+export class NominationSessionCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly name: string,
+    readonly typeDeSaisine: TypeDeSaisine,
+    readonly formation: Magistrat.Formation,
+    readonly date: DateOnly,
+    readonly observationClosingDate: DateOnly,
+    readonly dueDate: DateOnly | null,
+    readonly positionStartDate: DateOnly | null,
+  ) {}
+}
+
+export class NominationSessionFilesCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly file: readonly NominationFileEntity[],
+  ) {}
+}
+
 export class NominationSessionFileCommentAccessGranted {
   constructor(
     readonly sessionId: string,
@@ -50,7 +72,9 @@ type NominationSessionEvent =
   | NominationSessionAffectationVersionPublished
   | NominationSessionFilePriorityUpdated
   | NominationSessionFileReportersAffected
-  | NominationSessionFileCommentAccessGranted;
+  | NominationSessionFileCommentAccessGranted
+  | NominationSessionCreated
+  | NominationSessionFilesCreated;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -63,6 +87,17 @@ export class NonFormationMemberDefinedAsReporter extends Error {
     super(
       `Impossible d'affecter un membre d'une formation incompatible avec cette session`,
     );
+  }
+}
+
+export class NominationSessionAffectationHasUnknownReporter extends Error {
+  constructor(
+    readonly errors: readonly {
+      fileNumber: number;
+      reporters: readonly string[];
+    }[],
+  ) {
+    super(`Impossible d'affecter un membre inconnu`);
   }
 }
 
@@ -83,6 +118,91 @@ export class NominationSession {
       props.version,
       props.formationMemberIds ?? new Set<string>(),
     );
+  }
+
+  static createNominationTreeAndAffectMembers(
+    command: CreateNominationSessionCommand,
+  ): NominationSession {
+    const formationMemberIds = new Set(
+      command.formationMembers.map(({ id }) => id),
+    );
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds,
+      version: null,
+    });
+
+    session.#messages.push(
+      new NominationSessionCreated(
+        session.id,
+        command.name,
+        command.typeDeSaisine,
+        command.formation,
+        command.date,
+        command.observationClosingDate,
+        command.dueDate,
+        command.positionStartDate,
+      ),
+    );
+
+    const memberPerFullName = new Map(
+      command.formationMembers.map(
+        (member) => [member.fullName.toLowerCase(), member] as const,
+      ),
+    );
+
+    const nominationFileEntities: NominationFileEntity[] = [];
+    const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
+    const affectations: {
+      nominationFileId: string;
+      reporterIds: readonly string[];
+    }[] = [];
+
+    for (const file of command.files) {
+      const reporterIds: string[] = [];
+      const fileUnknownReporters: string[] = [];
+
+      for (const reporter of file.reporters) {
+        const fullName = reporter;
+        const member = memberPerFullName.get(fullName);
+
+        if (member) {
+          reporterIds.push(member.id);
+        } else {
+          fileUnknownReporters.push(reporter);
+        }
+      }
+
+      if (fileUnknownReporters.length) {
+        unknownReporters.push({
+          fileNumber: file.fileNumber,
+          reporters: fileUnknownReporters,
+        });
+      } else {
+        const nominationFileId = makeId('NominationFileId');
+        nominationFileEntities.push({ ...file, id: nominationFileId });
+
+        if (reporterIds.length > 0) {
+          affectations.push({ nominationFileId, reporterIds });
+        }
+      }
+    }
+
+    if (unknownReporters.length) {
+      throw new NominationSessionAffectationHasUnknownReporter(
+        unknownReporters,
+      );
+    }
+
+    session.#messages.push(
+      new NominationSessionFilesCreated(session.id, nominationFileEntities),
+    );
+
+    if (affectations.length > 0) {
+      session.affectNominationFileReporters(affectations);
+    }
+
+    return session;
   }
 
   setNominationFilePriority(props: {
@@ -180,3 +300,15 @@ export class NominationSession {
     return this.#messages;
   }
 }
+
+export type CreateNominationSessionCommand = {
+  typeDeSaisine: TypeDeSaisine;
+  files: readonly NominationFile[];
+  name: string;
+  date: DateOnly;
+  observationClosingDate: DateOnly;
+  dueDate: DateOnly | null;
+  positionStartDate: DateOnly | null;
+  formation: Magistrat.Formation;
+  formationMembers: readonly { id: string; fullName: string }[];
+};

@@ -3,10 +3,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma, User } from 'src/generated/prisma/client';
 import { MembersService } from 'src/modules/members';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import {
   NominationSession,
   NominationSessionAffectationVersionCreated,
@@ -16,6 +16,11 @@ import {
   NominationSessionFileCommentAccessGranted,
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { Magistrat } from 'shared-models';
+import {
+  MEMBER_ROLES,
+  memberRoles,
+} from 'src/modules/members/infrastructure/member.utils';
 
 @Injectable()
 export class NominationSessionRepository {
@@ -61,6 +66,22 @@ export class NominationSessionRepository {
           : null,
       });
     });
+  }
+
+  async createWithReporterFullNames(props: {
+    reporters: Set<string>;
+    formation: Magistrat.Formation;
+  }): Promise<NominationSession> {
+    const roles = memberRoles(props.formation);
+    const reporterFullNames = Array.from(props.reporters).map((x) =>
+      x.toLowerCase(),
+    );
+
+    // typed sql does not support array --"
+
+    const formationMemberIds = new Set(members.map(({ id }) => id));
+
+    return NominationSession.createNominationTreeAndAffectMembers({});
   }
 
   persist(session: NominationSession) {

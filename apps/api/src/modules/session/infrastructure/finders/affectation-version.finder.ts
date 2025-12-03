@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
-import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 
 @Injectable()
 export class AffectationVersionFinder {

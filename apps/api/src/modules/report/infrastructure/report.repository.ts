@@ -3,7 +3,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
-import { FullName } from 'src/reports-context/business-logic/models/full-name';
 
 import {
   Report,
@@ -41,10 +40,11 @@ export class ReportRepository {
       });
       if (!user) return null;
 
-      const reporterFullName = new FullName(
-        user?.firstName,
-        user?.lastName,
-      ).fullName();
+      const { firstName, lastName } = user;
+      const reporterFullName =
+        lastName.toUpperCase() +
+        ' ' +
+        (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
       const session = await tx.session.findUnique({
         select: { name: true },

@@ -12,7 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { StatutAffectation } from 'src/nominations-context/sessions/business-logic/models/affectation';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import { formationEnum } from './shared-kernel.schema';
 import { users } from './identity-and-access-context.schema';
 import { PrioriteEnum } from 'shared-models';

@@ -99,14 +99,19 @@ model PreAnalyse {
 }
 
 model Session {
-  id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
-  version         Int                     @default(1)
-  name            String
-  formation       PrismaFormationEnum
-  typeDeSaisine   PrismaTypeDeSaisineEnum @map("type_de_saisine")
-  sessionImportId String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
-  content         Json                    @default("{\"dateTransparence\": null, \"dateClôtureDélaiObservation\": null}")
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  version                 Int                     @default(1)
+  name                    String
+  formation               PrismaFormationEnum
+  typeDeSaisine           PrismaTypeDeSaisineEnum @map("type_de_saisine")
+  sessionImportId         String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
+  date                    DateTime                @db.Date
+  observationsClosingDate DateTime                @map("observations_closing_date") @db.Date
+  dueDate                 DateTime?               @map("due_date") @db.Date
+  positionStartDate       DateTime?               @map("position_start_date") @db.Date
+  /// @deprecated
+  content                 Json                    @default("{\"dateTransparence\": null, \"dateClôtureDélaiObservation\": null}") @ignore
 
   affectationVersions  AffectationVersion[]
   dossierDeNominations DossierDeNomination[]

@@ -1,15 +1,17 @@
-import { setTimeout } from 'node:timers/promises';
-import * as xlsx from 'node-xlsx';
-
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { Logger } from '@nestjs/common';
+import * as xlsx from 'node-xlsx';
+import { setTimeout } from 'node:timers/promises';
+
+import { Magistrat } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { NominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');
 export async function lodamXlsxToNominationSession(input: {
   file: Buffer;
 }): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
-  | { success: true; files: NominationFileToImport[] }
+  | { success: true; files: NominationFile[] }
 > {
   const [result] = xlsx.parse<RawLodamLine>(input.file, {
     raw: false,
@@ -62,14 +64,14 @@ export function parseLodamXlsxLine(
   line: RawLodamLine,
   lineNumber: number,
 ): LineResult {
-  const folderNumber = Number(line.folderNumber);
-  if (!Number.isFinite(folderNumber) || folderNumber <= 0) {
+  const fileNumber = Number(line.fileNumber);
+  if (!Number.isFinite(fileNumber) || fileNumber <= 0) {
     return {
       success: false,
       error: {
         lineNumber,
         messages: [
-          `Le numéro de proposition est inexploitable: "${line.folderNumber}"`,
+          `Le numéro de proposition est inexploitable: "${line.fileNumber}"`,
         ],
       },
     } satisfies LineResultFailure;
@@ -77,9 +79,9 @@ export function parseLodamXlsxLine(
 
   const errors: string[] = [];
   const output = new Map<
-    FieldName | 'rank',
+    FieldName | 'rank' | 'grade',
     number | string[] | string | DateOnly | null
-  >([['folderNumber', folderNumber]]);
+  >([['fileNumber', fileNumber]]);
 
   const [name, rank] = (line.name ?? '').split('\n').map((x) => x.trim());
 
@@ -127,23 +129,36 @@ export function parseLodamXlsxLine(
   output.set('biography', (line.biography ?? '').trim());
   output.set('currentPosition', (line.currentPosition ?? '').trim());
 
-  const targetedPosition = (line.targetedPosition ?? '').trim();
-  if (targetedPosition.length === 0) {
+  const targetedPositionAndGrade = (line.targetedPosition ?? '').trim();
+  if (targetedPositionAndGrade.length === 0) {
     errors.push(`Le poste cible est vide`);
   } else {
-    output.set('targetedPosition', targetedPosition);
+    const splitted = targetedPositionAndGrade.split(/\s+-\s+/);
+
+    const maybeGrade = splitted.at(-1)?.trim() ?? '';
+    const isGrade = Object.values(Magistrat.Grade).includes(maybeGrade as any);
+    if (!isGrade) {
+      errors.push(`Grade inconnu: "${maybeGrade}"`);
+    } else {
+      output.set('grade', maybeGrade);
+    }
+
+    output.set('targetedPosition', splitted.slice(0, -1).join(' - '));
   }
 
   if (errors.length > 0) {
     return {
       success: false,
-      error: { folderNumber, messages: errors },
+      error: { fileNumber: fileNumber, messages: errors },
     } satisfies LineResultFailure;
   }
 
   const value = Object.fromEntries(
-    ([...RAW_LODAM_HEADERS, 'rank'] as const)
-      .filter((field): field is FieldName | 'rank' => !field.startsWith('_'))
+    ([...RAW_LODAM_HEADERS, 'rank', 'grade'] as const)
+      .filter(
+        (field): field is FieldName | 'rank' | 'grade' =>
+          !field.startsWith('_'),
+      )
       .map((field) => [field, output.get(field)] as const),
   ) as unknown as LineResultSuccess['value'];
 
@@ -179,7 +194,7 @@ function toDateOnly(value: string | undefined | null): DateOnly | null {
 }
 
 const RAW_LODAM_HEADERS = [
-  'folderNumber',
+  'fileNumber',
   'name',
   'targetedPosition',
   'birthDate',
@@ -197,29 +212,16 @@ type LodamHeader = (typeof RAW_LODAM_HEADERS)[number];
 type FieldName = Exclude<LodamHeader, `_${string}`>;
 type RawLodamLine = Record<FieldName, string | undefined>;
 
-type NominationFileToImport = {
-  folderNumber: number;
-  name: string;
-  rank: string | null;
-  targetedPosition: string;
-  birthDate: DateOnly | null;
-  currentPosition: string;
-  lastPositionDate: DateOnly | null;
-  observers: string[];
-  reporters: string[];
-  biography: string;
-};
-
 type LineResultSuccess = {
   success: true;
-  value: NominationFileToImport;
+  value: NominationFile;
 };
 
 type LineResultFailure = {
   success: false;
   error:
     | { lineNumber: number; messages: string[] }
-    | { folderNumber: number; messages: string[] };
+    | { fileNumber: number; messages: string[] };
 };
 
 type LineResult = LineResultSuccess | LineResultFailure;

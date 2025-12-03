@@ -11,6 +11,7 @@ import {
   ListMembersQuery,
   MemberListItemDto,
 } from './queries/list-members.query';
+import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
 
 @Injectable()
 export class MembersService {
@@ -19,6 +20,7 @@ export class MembersService {
     private readonly listMembersQuery: ListMembersQuery,
     private readonly detailsMemberQuery: DetailsMemberQuery,
     private readonly internalFindMembersQuery: InternalFindMembersQuery,
+    private readonly internalFindMembersByFullName: InternalFindMembersByFullNameQuery,
   ) {}
 
   listMembers(query: {
@@ -47,5 +49,15 @@ export class MembersService {
     formation: Magistrat.Formation | undefined;
   }): Promise<string[]> {
     return this.internalFindMembersQuery.handle(query);
+  }
+
+  /** @internal */
+  findMembersByFullName(query: {
+    formation: Magistrat.Formation | undefined;
+    fullNames: readonly string[];
+  }): Promise<
+    { fullName: string; id: string; firstName: string; lastName: string }[]
+  > {
+    return this.internalFindMembersByFullName.handle(query);
   }
 }

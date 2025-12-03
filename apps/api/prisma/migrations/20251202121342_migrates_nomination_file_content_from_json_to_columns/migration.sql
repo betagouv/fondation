@@ -67,6 +67,29 @@ UPDATE nominations_context.dossier_de_nomination SET
   last_ranking_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePassageAuGrade')
 WHERE (NOT "content" ? 'version') OR "content" ->> 'version' = '1';
 
+ALTER TABLE nominations_context."session"
+ADD COLUMN "date" DATE,
+ADD COLUMN observations_closing_date DATE,
+ADD COLUMN due_date DATE,
+ADD COLUMN position_start_date DATE;
+
+UPDATE nominations_context."session" SET
+  "date" = ("import".date_transparence)::DATE,
+  observations_closing_date = ("import".date_cloture_delai_observation)::date,
+  due_date = ("import".date_echeance)::DATE,
+  position_start_date = ("import".date_prise_de_poste)::DATE
+FROM data_administration_context.transparences AS "import"
+WHERE "import".id::TEXT = session_import_id;
+
+UPDATE nominations_context."session" SET
+  "date" = DATE_ONLY_TO_SQL_DATE("content" -> 'dateTransparence'),
+  observations_closing_date = DATE_ONLY_TO_SQL_DATE("content" -> 'dateClôtureDélaiObservation')
+WHERE "date" IS NULL OR observations_closing_date IS NULL;
+
+ALTER TABLE nominations_context."session"
+ALTER COLUMN "date" SET NOT NULL,
+ALTER COLUMN observations_closing_date SET NOT NULL;
+
 DROP FUNCTION IF EXISTS date_only_to_sql_date(date_only JSONB);
 
 COMMIT;

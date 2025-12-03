@@ -3,6 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
+import { MembersService } from 'src/modules/members';
+import {
+  CreateNominationSessionCommand,
+  NominationSession,
+} from '../domain/nomination-session';
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
@@ -19,6 +24,7 @@ import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.m
 @Injectable()
 export class SessionService {
   constructor(
+    private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailSessionQuery: DetailSessionQuery,
@@ -167,5 +173,30 @@ export class SessionService {
     });
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  async createNominationSessionFromLodam(
+    command: CreateNominationSessionCommand,
+  ): Promise<{ id: string }> {
+    const fullNames = command.files.flatMap(({ reporters }) => reporters);
+    const members = await this.members.findMembersByFullName({
+      fullNames,
+      formation: command.formation,
+    });
+
+    const session = NominationSession.createNominationTreeAndAffectMembers({
+      files: command.files,
+      formationMembers: members,
+      name: command.name,
+      date: command.date,
+      dueDate: command.dueDate,
+      formation: command.formation,
+      observationClosingDate: command.observationClosingDate,
+      positionStartDate: command.positionStartDate,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+    });
+    await this.nominationSessionRepository.persist(session);
+
+    return { id: session.id };
   }
 }

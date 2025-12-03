@@ -19,7 +19,6 @@ import { scalewayS3StorageClient } from 'src/files-context/adapters/secondary/ga
 import { SqlFileRepository } from 'src/files-context/adapters/secondary/gateways/repositories/drizzle/sql-file.repository';
 import { S3Commands } from 'src/files-context/business-logic/gateways/providers/s3-commands';
 import { S3StorageProvider } from 'src/files-context/business-logic/gateways/providers/s3-storage.provider';
-import { FileRepository } from 'src/files-context/business-logic/gateways/repositories/file-repository';
 import { SystemRequestSignatureProvider } from 'src/identity-and-access-context/adapters/secondary/gateways/providers/service-request-signature.provider';
 import { type ApiConfig } from 'src/modules/framework/config';
 import {
@@ -31,9 +30,7 @@ import { BoundedContextHttpClient } from 'src/shared-kernel/adapters/secondary/g
 import { HttpDossierDeNominationService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-dossier-de-nomination.service';
 import { HttpSessionService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-session.service';
 import { HttpUserService } from 'src/shared-kernel/adapters/secondary/gateways/services/http-user.service';
-import { DateTimeProvider } from 'src/shared-kernel/business-logic/gateways/providers/date-time-provider';
 import { FileReaderProvider } from 'src/shared-kernel/business-logic/gateways/providers/file-reader.provider';
-import { TransactionPerformer } from 'src/shared-kernel/business-logic/gateways/providers/transaction-performer';
 import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
 import { SessionValidationService } from 'src/shared-kernel/business-logic/gateways/services/session-validation.service';
 import { UploadFileService } from 'src/shared-kernel/business-logic/services/upload-file.service';
@@ -182,18 +179,8 @@ const isScalewayS3 = isProduction;
 
     {
       provide: UPLOAD_FILE_SERVICE,
-      useFactory: (
-        transactionPerformer: TransactionPerformer,
-        fileRepository: FileRepository,
-        dateTimeProvider: DateTimeProvider,
-        s3StorageProvider: S3StorageProvider,
-      ) => {
-        return new UploadFileService(
-          transactionPerformer,
-          fileRepository,
-          dateTimeProvider,
-          s3StorageProvider,
-        );
+      useFactory: (s3StorageProvider: S3StorageProvider) => {
+        return new UploadFileService(s3StorageProvider);
       },
       inject: [
         TRANSACTION_PERFORMER,
