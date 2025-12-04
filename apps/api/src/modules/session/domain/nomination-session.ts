@@ -37,11 +37,20 @@ export class NominationSessionAffectationVersionCreated {
   ) {}
 }
 
+export class NominationSessionFileCommentAccessGranted {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly userIds: readonly string[],
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
   | NominationSessionFilePriorityUpdated
-  | NominationSessionFileReportersAffected;
+  | NominationSessionFileReportersAffected
+  | NominationSessionFileCommentAccessGranted;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -143,6 +152,19 @@ export class NominationSession {
   autoAffectNominationFileReporters(autoAffectations: AutoAffectations) {
     const affectations = autoAffectations.distribute();
     this.affectNominationFileReporters(affectations);
+  }
+
+  grantCommentAccess(command: {
+    nominationFileId: string;
+    userIds: readonly string[];
+  }) {
+    this.#messages.push(
+      new NominationSessionFileCommentAccessGranted(
+        this.id,
+        command.nominationFileId,
+        command.userIds,
+      ),
+    );
   }
 
   #messages: NominationSessionEvent[] = [];

@@ -5,6 +5,7 @@ import {
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
   NominationSessionFilePriorityUpdated,
+  NominationSessionFileCommentAccessGranted,
   NonFormationMemberDefinedAsReporter,
 } from './nomination-session';
 
@@ -158,5 +159,49 @@ describe('NominationSession', () => {
 
     const { messages } = session;
     expect(messages).toEqual([]);
+  });
+
+  it('should grant comment access to users', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: null,
+      formationMemberIds: new Set<string>(),
+    });
+
+    session.grantCommentAccess({
+      nominationFileId: 'nomination-file-id-1',
+      userIds: ['user-1', 'user-2'],
+    });
+
+    const { messages } = session;
+    expect(messages).toEqual([
+      new NominationSessionFileCommentAccessGranted(
+        'session-id',
+        'nomination-file-id-1',
+        ['user-1', 'user-2'],
+      ),
+    ]);
+  });
+
+  it('should grant comment access with empty user list', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: null,
+      formationMemberIds: new Set<string>(),
+    });
+
+    session.grantCommentAccess({
+      nominationFileId: 'nomination-file-id-1',
+      userIds: [],
+    });
+
+    const { messages } = session;
+    expect(messages).toEqual([
+      new NominationSessionFileCommentAccessGranted(
+        'session-id',
+        'nomination-file-id-1',
+        [],
+      ),
+    ]);
   });
 });

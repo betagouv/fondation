@@ -153,28 +153,15 @@ export class SessionService {
     nominationFileId: string;
     userIds: readonly string[];
   }): Promise<void> {
-    // Verify the nomination file belongs to the session
-    await this.prisma.dossierDeNomination.findFirstOrThrow({
-      where: {
-        id: command.nominationFileId,
-        sessionId: command.sessionId,
-      },
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+
+    session.grantCommentAccess({
+      nominationFileId: command.nominationFileId,
+      userIds: command.userIds,
     });
 
-    // Delete all existing accesses and create new ones
-    await this.prisma.$transaction(async (tx) => {
-      await tx.commentAccess.deleteMany({
-        where: { nominationFileId: command.nominationFileId },
-      });
-
-      if (command.userIds.length > 0) {
-        await tx.commentAccess.createMany({
-          data: command.userIds.map((userId) => ({
-            nominationFileId: command.nominationFileId,
-            userId,
-          })),
-        });
-      }
-    });
+    await this.nominationSessionRepository.persist(session);
   }
 }
