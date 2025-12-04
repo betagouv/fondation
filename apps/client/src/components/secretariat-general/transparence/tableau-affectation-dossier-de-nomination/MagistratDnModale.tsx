@@ -23,7 +23,7 @@ export function MagistratDnModale(props: {
   const isOpen = useIsModalOpen(modalMagistratDnDetails);
 
   const dataIndex = useMemo(
-    () => (currentFileId ? props.nominationFiles.findIndex(({ id}) => id === currentFileId) : -1),
+    () => (currentFileId ? props.nominationFiles.findIndex(({ id }) => id === currentFileId) : -1),
     [props.nominationFiles, currentFileId]
   );
 

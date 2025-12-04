@@ -82,10 +82,14 @@ export class SessionService {
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
-    const user = await this.prisma.user.findUniqueOrThrow({
+    const user = await this.prisma.user.findUnique({
       where: { id: query.userId },
       select: { role: true },
     });
+
+    if (!user) {
+      throw new Error(`User with id ${query.userId} not found`);
+    }
 
     return this.listNominationFilesQuery.handle({
       ...query,

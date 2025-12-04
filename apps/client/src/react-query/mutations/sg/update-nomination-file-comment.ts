@@ -21,11 +21,7 @@ export function useUpdateNominationFileCommentMutation() {
 
           return {
             ...old,
-            items: old.items.map((file) =>
-              file.id === nominationFileId
-                ? { ...file, comment }
-                : file
-            )
+            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file))
           };
         }
       );
