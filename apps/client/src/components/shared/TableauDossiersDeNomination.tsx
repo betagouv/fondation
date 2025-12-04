@@ -96,7 +96,7 @@ const TableauDossiersDeNominationContent = ({
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
 
   const TABLE_HEADER: ReactNode[] = headerColumns.map((header) => {
-    if (header.field === 'checkbox' || header.field === 'comment') {
+    if (header.field === 'checkbox') {
       return <span key={header.field}>{header.label}</span>;
     }
 
