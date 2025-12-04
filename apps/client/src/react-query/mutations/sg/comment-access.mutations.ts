@@ -22,9 +22,7 @@ export function useUpdateCommentAccessMutation() {
           return {
             ...old,
             items: old.items.map((file) =>
-              file.id === nominationFileId
-                ? { ...file, commentAccessUserIds: userIds }
-                : file
+              file.id === nominationFileId ? { ...file, commentAccessUserIds: userIds } : file
             )
           };
         }

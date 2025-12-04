@@ -199,12 +199,18 @@ export class NominationSessionRepository {
     message: NominationSessionFileCommentAccessGranted,
   ) {
     // Verify the nomination file belongs to the session
-    await tx.dossierDeNomination.findFirstOrThrow({
+    const nominationFile = await tx.dossierDeNomination.findFirst({
       where: {
         id: message.nominationFileId,
         sessionId: message.sessionId,
       },
     });
+
+    if (!nominationFile) {
+      throw new NotFoundException(
+        `Nomination file ${message.nominationFileId} not found in session ${message.sessionId}`,
+      );
+    }
 
     // Delete all existing accesses and create new ones
     await tx.commentAccess.deleteMany({
