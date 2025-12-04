@@ -23,7 +23,6 @@ export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
     onSelectionChange(newSelection);
   };
 
-  // Filtrer les rapporteurs selon la recherche
   const filteredRapporteurs = availableRapporteurs
     .filter((r) => `${r.lastName} ${r.firstName}`.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
@@ -42,7 +41,7 @@ export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
         />
       </div>
 
-      <div className="max-h-96 space-y-2 overflow-y-auto p-4">
+      <div className="max-h-48 space-y-2 overflow-y-auto p-4">
         {filteredRapporteurs.length > 0 ? (
           filteredRapporteurs.map((rapporteur) => (
             <Checkbox

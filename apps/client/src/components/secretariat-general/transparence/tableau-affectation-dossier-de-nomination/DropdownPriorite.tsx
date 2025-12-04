@@ -12,7 +12,7 @@ const EMPTY_VALUE = '__EMPTY__' as const;
 
 export const DropdownPriorite: FC<DropdownPrioriteProps> = ({ dossierId, initialPriorite }) => {
   const { priorites, updatePriorite, clearPriorite } = useAffectation();
-  const selectedPriorite = priorites[dossierId] ?? initialPriorite;
+  const selectedPriorite = dossierId in priorites ? priorites[dossierId] : initialPriorite;
 
   const options = [
     { value: EMPTY_VALUE, label: 'Aucune' },

@@ -5,11 +5,11 @@ import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
 import type { UserDescriptorSerialized } from 'shared-models';
-import { PrioriteEnum } from 'shared-models/models/priorite.enum';
 import {
   AffectationProvider,
   useAffectation,
-  type DossierAffectation
+  type DossierAffectation,
+  type PrioriteValue
 } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
 import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
@@ -210,7 +210,7 @@ export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationPr
         }
         return acc;
       },
-      {} as Record<string, PrioriteEnum | undefined>
+      {} as Record<string, PrioriteValue>
     );
   }, [props.dossiersDeNomination]);
 
