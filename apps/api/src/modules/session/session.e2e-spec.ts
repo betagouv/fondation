@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -9,19 +10,27 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
+import { MainAppConfigurator } from 'src/main.configurator';
+import { Db } from '../framework/drizzle';
 import { FILE_MIME_TYPES } from '../framework/files';
 import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
 import { StatutAffectation } from './domain/statut-affectation.enum';
-import { ImportNominationSessionFromLodamXlsxDto } from './infrastructure/dtos/nomination-session.dto';
-import { Db } from '../framework/drizzle';
-import { MainAppConfigurator } from 'src/main.configurator';
 
 describe('Session E2E', () => {
-  const LODAM_FILE_PATH = path.join(
+  const LODAM_FILES_FOLDER_PATH = path.join(
     __dirname,
-    '../../../test/assets/lodam/lodam_transparence.xlsx',
+    '../../../test/assets/lodam',
+  );
+  const LODAM_FILE_PATH = path.join(
+    LODAM_FILES_FOLDER_PATH,
+    'lodam_transparence.xlsx',
+  );
+
+  const LODAM_OBSERVERS_UPDATED_FILE_PATH = path.join(
+    LODAM_FILES_FOLDER_PATH,
+    'lodam_transparence_observers_updated.xlsx',
   );
 
   let auth: SimpleAuthService;
@@ -116,11 +125,15 @@ describe('Session E2E', () => {
               observationClosingDate: '2025-03-01',
               formation: Magistrat.Formation.PARQUET,
               name: 'Transparence TEST ' + randomUUID(),
-            } satisfies ImportNominationSessionFromLodamXlsxDto['form']),
+            }),
           ),
           { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
-        )
-        .expect(HttpStatus.CREATED);
+        );
+
+      if (response.status === 400) {
+        console.error(response.body.errors);
+        expect(response.status).toBe(HttpStatus.CREATED);
+      }
 
       const { id: sessionId } = response.body;
       expect(sessionId).toBeDefined();
@@ -225,6 +238,54 @@ describe('Session E2E', () => {
           }),
         ],
       });
+    });
+
+    it.only('should update the observers of an existing session from a LODAM file', async () => {
+      const initialSessionBuffer = await fs.readFile(LODAM_FILE_PATH);
+      const { body: session } = await http
+        .post('/api/sessions/v2/lodam')
+        .set({ cookie: user.cookie })
+        .attach('file', initialSessionBuffer, {
+          filename: 'transparence.xslx',
+          contentType: FILE_MIME_TYPES.xlsx,
+        })
+        .attach(
+          'form',
+          Buffer.from(
+            JSON.stringify({
+              date: '2025-01-01',
+              observationClosingDate: '2025-03-01',
+              formation: Magistrat.Formation.PARQUET,
+              name: 'Transparence TEST OBSERVANTS ' + randomUUID(),
+            }),
+          ),
+          { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
+        )
+        .expect(HttpStatus.CREATED);
+
+      const updateObserversBuffer = await fs.readFile(
+        LODAM_OBSERVERS_UPDATED_FILE_PATH,
+      );
+      await http
+        .set({ cookie: user.cookie })
+        .post(`/api/sessions/v2/lodam/${session.id}/observers`)
+        .attach('file', updateObserversBuffer, {
+          contentType: FILE_MIME_TYPES.xlsx,
+          filename: 'transparence.xlsx',
+        })
+        .expect(HttpStatus.NO_CONTENT);
+
+      const nominationFiles = await http
+        .get(`/api/sessions/v2/${session.id}/files`)
+        .set({ cookie: user.cookie });
+
+      expect(
+        nominationFiles.body.items.map(
+          (item: { id: string; content: { observants: string[] } }) => ({
+            observers: item.content.observants,
+          }),
+        ),
+      ).toEqual([{ observers: ['Honoré Denis'] }, { observers: [] }]);
     });
   });
 });

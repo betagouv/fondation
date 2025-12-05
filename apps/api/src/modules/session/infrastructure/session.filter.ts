@@ -9,6 +9,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   NominationSessionAffectationHasUnknownReporter,
   NonFormationMemberDefinedAsReporter,
+  UnknownNominationFiles,
 } from '../domain/nomination-session';
 
 export class SessionExceptionFilter implements NestInterceptor {
@@ -35,6 +36,17 @@ export class SessionExceptionFilter implements NestInterceptor {
 
                   return `n°${error.fileNumber} ${message}`;
                 }),
+              },
+              { cause: err },
+            );
+          }
+
+          if (err instanceof UnknownNominationFiles) {
+            throw new BadRequestException(
+              {
+                validationErrors: err.unknownFileNumbers.map(
+                  (fileNumber) => `n°${fileNumber} inconnu`,
+                ),
               },
               { cause: err },
             );

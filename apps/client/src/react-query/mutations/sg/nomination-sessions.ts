@@ -18,3 +18,13 @@ export function createNominationSessionFromLodam(input: {
 
   return apiFetch<{ id: string }>(`/sessions/v2/lodam`, { body: formData, method: 'POST' });
 }
+
+export function updateNominationSessionObserversFromLodam(input: { file: File; sessionId: string }) {
+  const formData = new FormData();
+  formData.set('file', input.file);
+
+  return apiFetch<void>(`/sessions/v2/lodam/${input.sessionId}/observers`, {
+    method: 'POST',
+    body: formData
+  });
+}

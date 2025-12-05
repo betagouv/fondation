@@ -24,6 +24,7 @@ import {
   NominationSessionFileReportersAffected,
   NominationSessionFileCommentAccessGranted,
   NominationSessionFilesCreated,
+  NominationSessionFilesObserversUpdated,
 } from '../../domain/nomination-session';
 
 @Injectable()
@@ -108,6 +109,8 @@ export class NominationSessionRepository {
           await this.persistNominationSessionCreated(tx, message);
         } else if (message instanceof NominationSessionFilesCreated) {
           await this.persistNominationSessionFilesCreated(tx, message);
+        } else if (message instanceof NominationSessionFilesObserversUpdated) {
+          await this.persistNominationSessionFilesObserversUpdated(tx, message);
         } else {
           assertNever(message);
         }
@@ -309,5 +312,17 @@ export class NominationSessionRepository {
           }) satisfies Prisma.DossierDeNominationCreateManyInput,
       ),
     });
+  }
+
+  private async persistNominationSessionFilesObserversUpdated(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionFilesObserversUpdated,
+  ) {
+    for (const x of message.nominationFileObservers) {
+      await tx.dossierDeNomination.update({
+        data: { observers: x.observers as string[] },
+        where: { id: x.id },
+      });
+    }
   }
 }

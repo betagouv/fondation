@@ -7,7 +7,7 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { NominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');
-export async function lodamXlsxToNominationSession(input: {
+export function lodamXlsxToNominationFiles(input: {
   file: Buffer;
 }): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
@@ -20,21 +20,33 @@ export async function lodamXlsxToNominationSession(input: {
     header: RAW_LODAM_HEADERS as unknown as string[],
   });
 
+  const lines = result?.data ?? [];
+  return lodamToNominationFiles(lines);
+}
+
+/** @internal */
+export async function lodamToNominationFiles(
+  rawLines: readonly RawLodamLine[],
+): Promise<
+  | { success: false; errors: LineResultFailure['error'][] }
+  | { success: true; files: NominationFile[] }
+> {
   const lineResults: LineResult[] = [];
   let parsedLinesCount = 0;
+  const fileNumbers = new Map<number, number>();
 
   for await (const linesChunk of toAsyncChunkedData({
-    input: (result ?? { data: [] }).data,
+    input: rawLines,
   })) {
     const chunkLineResults = linesChunk.map((line, index) => {
-      const lineNumber = parsedLinesCount + index;
+      const lineNumber = parsedLinesCount + index + 1;
       try {
-        return parseLodamXlsxLine(line, lineNumber);
+        return parseLodamXlsxLine(line, lineNumber, fileNumbers);
       } catch (e) {
         logger.warn(`failed parsing LODAM line ${lineNumber}: ${e}`);
         return {
           success: false,
-          error: { lineNumber, messages: [`Ligne mal formatée`] },
+          error: { lineNumber, messages: [`Ligne mal formée`] },
         } satisfies LineResultFailure;
       }
     });
@@ -63,6 +75,7 @@ export async function lodamXlsxToNominationSession(input: {
 export function parseLodamXlsxLine(
   line: RawLodamLine,
   lineNumber: number,
+  fileNumbers: Map<number, number>,
 ): LineResult {
   const fileNumber = Number(line.fileNumber);
   if (!Number.isFinite(fileNumber) || fileNumber <= 0) {
@@ -82,6 +95,14 @@ export function parseLodamXlsxLine(
     FieldName | 'rank' | 'grade',
     number | string[] | string | DateOnly | null
   >([['fileNumber', fileNumber]]);
+
+  if (fileNumbers.has(fileNumber)) {
+    errors.push(
+      `l.${lineNumber} un dossier n°${fileNumber} est déjà défini l.${fileNumbers.get(fileNumber)!}`,
+    );
+  } else {
+    fileNumbers.set(fileNumber, lineNumber);
+  }
 
   const [name, rank] = (line.name ?? '').split('\n').map((x) => x.trim());
 
@@ -214,7 +235,7 @@ function toDateOnly(value: string | undefined | null): DateOnly | null {
 
 type LodamHeader = (typeof RAW_LODAM_HEADERS)[number];
 type FieldName = Exclude<LodamHeader, `_${string}`>;
-type RawLodamLine = Record<FieldName, string | undefined>;
+export type RawLodamLine = Record<FieldName, string | undefined>;
 
 type LineResultSuccess = {
   success: true;

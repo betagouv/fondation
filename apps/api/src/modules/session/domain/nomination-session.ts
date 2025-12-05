@@ -3,6 +3,7 @@ import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
 import { NominationFile, NominationFileEntity } from './nomination-file';
 
 export class NominationSessionFileReportersAffected {
@@ -67,6 +68,16 @@ export class NominationSessionFileCommentAccessGranted {
   ) {}
 }
 
+export class NominationSessionFilesObserversUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileObservers: readonly {
+      id: string;
+      observers: readonly string[];
+    }[],
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
@@ -74,7 +85,8 @@ type NominationSessionEvent =
   | NominationSessionFileReportersAffected
   | NominationSessionFileCommentAccessGranted
   | NominationSessionCreated
-  | NominationSessionFilesCreated;
+  | NominationSessionFilesCreated
+  | NominationSessionFilesObserversUpdated;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -98,6 +110,14 @@ export class NominationSessionAffectationHasUnknownReporter extends Error {
     }[],
   ) {
     super(`Impossible d'affecter un membre inconnu`);
+  }
+}
+
+export class UnknownNominationFiles extends Error {
+  constructor(readonly unknownFileNumbers: number[]) {
+    super(
+      unknownFileNumbers.length > 1 ? `Dossiers inconnus` : 'Dossier inconnu',
+    );
   }
 }
 
@@ -288,6 +308,35 @@ export class NominationSession {
         command.nominationFileId,
         command.userIds,
       ),
+    );
+  }
+
+  updateNominationFileObservers(command: {
+    existingNominationFiles: readonly { id: string; fileNumber: number }[];
+    nominationFiles: readonly { fileNumber: number; observers: string[] }[];
+  }): void {
+    const existingNominationFiles = new Map(
+      command.existingNominationFiles.map((x) => [x.fileNumber, x.id] as const),
+    );
+
+    const knownFiles: { id: string; observers: readonly string[] }[] = [];
+    const unknownFileNumbers: number[] = [];
+
+    for (const file of command.nominationFiles) {
+      const existingFileId = existingNominationFiles.get(file.fileNumber);
+      if (!isDefined(existingFileId)) {
+        unknownFileNumbers.push(file.fileNumber);
+      } else {
+        knownFiles.push({ id: existingFileId, observers: file.observers });
+      }
+    }
+
+    if (unknownFileNumbers.length > 0) {
+      throw new UnknownNominationFiles(unknownFileNumbers);
+    }
+
+    this.#messages.push(
+      new NominationSessionFilesObserversUpdated(this.id, knownFiles),
     );
   }
 

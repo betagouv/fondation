@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { MembersService } from 'src/modules/members';
-import {
-  CreateNominationSessionCommand,
-  NominationSession,
-} from '../domain/nomination-session';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { NominationFile } from '../domain/nomination-file';
+import { NominationSession } from '../domain/nomination-session';
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
+import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import { DetailSessionQuery } from './queries/detail-session.query';
 import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
@@ -32,6 +32,7 @@ export class SessionService {
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
     private readonly nominationSessionRepository: NominationSessionRepository,
+    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -175,9 +176,15 @@ export class SessionService {
     await this.nominationSessionRepository.persist(session);
   }
 
-  async createNominationSessionFromLodam(
-    command: CreateNominationSessionCommand,
-  ): Promise<{ id: string }> {
+  async createNominationSessionFromLodam(command: {
+    files: readonly NominationFile[];
+    name: string;
+    date: DateOnly;
+    observationClosingDate: DateOnly;
+    dueDate: DateOnly | null;
+    positionStartDate: DateOnly | null;
+    formation: Magistrat.Formation;
+  }): Promise<{ id: string }> {
     const fullNames = command.files.flatMap(({ reporters }) => reporters);
     const members = await this.members.findMembersByFullName({
       fullNames,
@@ -185,18 +192,32 @@ export class SessionService {
     });
 
     const session = NominationSession.createNominationTreeAndAffectMembers({
-      files: command.files,
+      ...command,
       formationMembers: members,
-      name: command.name,
-      date: command.date,
-      dueDate: command.dueDate,
-      formation: command.formation,
-      observationClosingDate: command.observationClosingDate,
-      positionStartDate: command.positionStartDate,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     });
     await this.nominationSessionRepository.persist(session);
 
     return { id: session.id };
+  }
+
+  async updateSessionNominationFileObservers(command: {
+    sessionId: string;
+    files: readonly NominationFile[];
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+    const existingNominationFiles =
+      await this.nominationSessionFileFinder.bySessionAndFileNumber({
+        sessionId: session.id,
+        fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
+      });
+
+    session.updateNominationFileObservers({
+      existingNominationFiles,
+      nominationFiles: command.files,
+    });
+    await this.nominationSessionRepository.persist(session);
   }
 }

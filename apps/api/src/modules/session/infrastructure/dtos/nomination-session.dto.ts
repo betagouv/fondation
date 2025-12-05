@@ -1,18 +1,42 @@
 import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import z from 'zod';
 
-export class ImportNominationSessionFromLodamXlsxDto extends createZodDto(
+const ImportNominationSessionFromLodamMetaSchema = z.object({
+  form: z.object({
+    name: z.string().trim().nonempty(),
+    formation: z.enum(Magistrat.Formation),
+    date: z.iso.date().transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
+    observationClosingDate: z.iso
+      .date()
+      .transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
+    dueDate: z.iso
+      .date()
+      .transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd'))
+      .nullish(),
+    positionStartDate: z.iso
+      .date()
+      .transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd'))
+      .nullish(),
+  }),
+});
+
+export const ImportNominationSessionFromLodamXlsxDtoSchema =
+  ImportNominationSessionFromLodamMetaSchema.extend({
+    file: z
+      .file()
+      .mime(FILE_MIME_TYPES.xlsx)
+      .max(5 * 1_024 * 1_024 /* 5MB */),
+  });
+
+export type ImportNominationSessionFromLodamXlsxDto = z.infer<
+  typeof ImportNominationSessionFromLodamXlsxDtoSchema
+>;
+
+export class UpdateNominationSessionFilesObserversDto extends createZodDto(
   z.object({
-    form: z.object({
-      name: z.string().trim().min(1),
-      date: z.iso.date(),
-      observationClosingDate: z.iso.date(),
-      dueDate: z.iso.date().nullish(),
-      positionStartDate: z.iso.date().nullish(),
-      formation: z.enum(Magistrat.Formation),
-    }),
     file: z
       .file()
       .mime(FILE_MIME_TYPES.xlsx)

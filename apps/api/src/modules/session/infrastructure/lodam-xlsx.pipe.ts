@@ -1,23 +1,17 @@
-import { BadRequestException, Logger, PipeTransform } from '@nestjs/common';
-import { createZodDto } from 'nestjs-zod';
-import z from 'zod';
-import { ImportNominationSessionFromLodamXlsxDto } from './dtos/nomination-session.dto';
+import { File } from 'node:buffer';
 
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
-import { lodamXlsxToNominationSession } from '../domain/lodam-xlsx-to-nomination-session';
-import { CreateNominationSessionCommand } from '../domain/nomination-session';
+import { BadRequestException, PipeTransform } from '@nestjs/common';
+
+import { lodamXlsxToNominationFiles } from '../domain/lodam-xlsx-to-nomination-session';
+import { NominationFile } from '../domain/nomination-file';
 
 export class LodamXlsxPipe
-  implements
-    PipeTransform<
-      ImportNominationSessionFromLodamXlsxDto,
-      Promise<LodamNominationSession>
-    >
+  implements PipeTransform<{ file: File }, Promise<NominationFile[]>>
 {
-  async transform(value: ImportNominationSessionFromLodamXlsxDto) {
-    const { file, form } = value;
+  async transform(value: { file: File }) {
+    const { file } = value;
 
-    const result = await lodamXlsxToNominationSession({
+    const result = await lodamXlsxToNominationFiles({
       file: Buffer.from(await file.arrayBuffer()),
     });
 
@@ -32,37 +26,6 @@ export class LodamXlsxPipe
       });
     }
 
-    const date = DateOnly.fromString(form.date, 'yyyy-MM-dd');
-    const observationClosingDate = DateOnly.fromString(
-      form.observationClosingDate,
-      'yyyy-MM-dd',
-    );
-    const dueDate = form.dueDate
-      ? DateOnly.fromString(form.dueDate, 'yyyy-MM-dd')
-      : null;
-    const positionStartDate = form.positionStartDate
-      ? DateOnly.fromString(form.positionStartDate, 'yyyy-MM-dd')
-      : null;
-
-    return {
-      date,
-      dueDate,
-      positionStartDate,
-      observationClosingDate,
-
-      name: form.name,
-      formation: form.formation,
-
-      files: result.files,
-    };
+    return result.files;
   }
 }
-
-export class LodamXlsxImportErrorReport extends createZodDto(
-  z.object({ validationErrors: z.array(z.string()) }),
-) {}
-
-export type LodamNominationSession = Omit<
-  CreateNominationSessionCommand,
-  'typeDeSaisine' | 'formationMembers'
->;

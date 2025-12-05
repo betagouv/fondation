@@ -1,12 +1,20 @@
-import { PrioriteEnum } from 'shared-models';
+import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { makeId } from 'src/utils/id';
+import { NominationFile } from './nomination-file';
 import {
-  NominationSessionFileReportersAffected,
   NominationSession,
+  NominationSessionAffectationHasUnknownReporter,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
+  NominationSessionCreated,
   NominationSessionFilePriorityUpdated,
   NominationSessionFileCommentAccessGranted,
+  NominationSessionFileReportersAffected,
+  NominationSessionFilesCreated,
+  NominationSessionFilesObserversUpdated,
   NonFormationMemberDefinedAsReporter,
+  UnknownNominationFiles,
 } from './nomination-session';
 
 describe('NominationSession', () => {
@@ -218,5 +226,129 @@ describe('NominationSession', () => {
         userIds: ['user-1', 'user-2'],
       }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
+  });
+
+  describe('NominationSession tree creation (LODAM)', () => {
+    it('should create a nomination session tree', () => {
+      const session = NominationSession.createNominationTreeAndAffectMembers({
+        name: 'TEST transparence LODAM PARQUET',
+        date: new DateOnly(2025, 1, 1),
+        observationClosingDate: new DateOnly(2025, 2, 1),
+        formation: Magistrat.Formation.PARQUET,
+        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        dueDate: null,
+        positionStartDate: null,
+
+        // prettier-ignore
+        formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
+        // prettier-ignore
+        files: [
+          { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
+          { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
+        ],
+      });
+
+      expect(session.messages[0]).toEqual(
+        new NominationSessionCreated(
+          session.id,
+          'TEST transparence LODAM PARQUET',
+          TypeDeSaisine.TRANSPARENCE_GDS,
+          Magistrat.Formation.PARQUET,
+          new DateOnly(2025, 1, 1),
+          new DateOnly(2025, 2, 1),
+          null,
+          null,
+        ),
+      );
+
+      expect(session.messages[1]).toEqual(
+        new NominationSessionFilesCreated(
+          session.id,
+          // prettier-ignore
+          [
+            { id: expect.any(String), fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
+            { id: expect.any(String), fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
+          ],
+        ),
+      );
+
+      expect(session.messages[2]).toEqual(
+        new NominationSessionFileReportersAffected(
+          session.id,
+          null,
+          // prettier-ignore
+          [
+            { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] },
+            { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] }
+          ],
+        ),
+      );
+    });
+
+    it('should throw, when affecting an unknown reporter', () => {
+      const act = () =>
+        NominationSession.createNominationTreeAndAffectMembers({
+          name: 'TEST transparence LODAM PARQUET',
+          date: new DateOnly(2025, 1, 1),
+          observationClosingDate: new DateOnly(2025, 2, 1),
+          formation: Magistrat.Formation.PARQUET,
+          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          dueDate: null,
+          positionStartDate: null,
+
+          // prettier-ignore
+          formationMembers: [],
+          // prettier-ignore
+          files: [
+            { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
+            { fileNumber: 2, reporters: ['BOURDIEU Pierre'] }
+          ] as NominationFile[],
+        });
+
+      expect(act).toThrow(NominationSessionAffectationHasUnknownReporter);
+      expect(act).toThrow(
+        expect.objectContaining({
+          errors: [
+            { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
+            { fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
+          ],
+        }),
+      );
+    });
+  });
+
+  it('should update observers', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+    });
+
+    session.updateNominationFileObservers({
+      existingNominationFiles: [{ id: 'nf-1', fileNumber: 1 }],
+      nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
+    });
+
+    const [message] = session.messages;
+    expect(message).toEqual(
+      new NominationSessionFilesObserversUpdated(session.id, [
+        { id: 'nf-1', observers: ['BOURDIEU Pierre'] },
+      ]),
+    );
+  });
+
+  it('should throw when updating observers, but file number is unknown', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+    });
+
+    expect(() =>
+      session.updateNominationFileObservers({
+        existingNominationFiles: [],
+        nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
+      }),
+    ).toThrow(new UnknownNominationFiles([1]));
   });
 });

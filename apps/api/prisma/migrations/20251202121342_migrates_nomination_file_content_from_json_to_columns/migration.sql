@@ -67,6 +67,9 @@ WHERE (NOT "content" ? 'version') OR "content" ->> 'version' = '1';
 ALTER TABLE nominations_context.dossier_de_nomination
 ALTER COLUMN "name" SET NOT NULL;
 
+CREATE UNIQUE INDEX dossier_de_nomination_session_id_number_key
+ON nominations_context.dossier_de_nomination (session_id, number);
+
 ALTER TABLE nominations_context."session"
 ADD COLUMN "date" DATE,
 ADD COLUMN observations_closing_date DATE,

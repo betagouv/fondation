@@ -18,6 +18,7 @@ import { Role, TypeDeSaisine } from 'shared-models';
 
 import { UseMultipartBody } from 'src/modules/framework/multipart';
 import { AuthedUserId, HasRole } from '../simple-auth';
+import { NominationFile } from './domain/nomination-file';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
@@ -25,6 +26,11 @@ import {
   UpdateCommentAccessDto,
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
+import {
+  ImportNominationSessionFromLodamXlsxDto,
+  ImportNominationSessionFromLodamXlsxDtoSchema,
+  UpdateNominationSessionFilesObserversDto,
+} from './infrastructure/dtos/nomination-session.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { type DetailedSessionResponse } from './infrastructure/queries/detail-session.query';
@@ -32,8 +38,6 @@ import { NominationFileAffectationItem } from './infrastructure/queries/list-nom
 import { type ListSessionOfTypeGardeDesSceauxResponse } from './infrastructure/queries/list-sessions-of-type-garde-des-sceaux.query';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
-import { CreateNominationSessionCommand } from './domain/nomination-session';
-import { ImportNominationSessionFromLodamXlsxDto } from './infrastructure/dtos/nomination-session.dto';
 
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
@@ -62,12 +66,35 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Post('lodam')
-  @UseMultipartBody(ImportNominationSessionFromLodamXlsxDto.schema)
+  @Post('/lodam')
+  @UseMultipartBody(ImportNominationSessionFromLodamXlsxDtoSchema)
   async createSessionFromLodam(
-    @Body(LodamXlsxPipe) command: CreateNominationSessionCommand,
+    @Body(LodamXlsxPipe)
+    files: NominationFile[],
+    @Body()
+    { form }: ImportNominationSessionFromLodamXlsxDto,
   ) {
-    return this.sessions.createNominationSessionFromLodam(command);
+    return this.sessions.createNominationSessionFromLodam({
+      ...form,
+      files,
+      dueDate: form.dueDate ?? null,
+      positionStartDate: form.positionStartDate ?? null,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/lodam/:sessionId/observers')
+  @UseMultipartBody(UpdateNominationSessionFilesObserversDto.schema)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateSessionObservers(
+    @Param('sessionId') sessionId: string,
+    @Body(LodamXlsxPipe)
+    files: NominationFile[],
+  ) {
+    await this.sessions.updateSessionNominationFileObservers({
+      sessionId,
+      files,
+    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
