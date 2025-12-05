@@ -98,7 +98,7 @@ export function parseLodamXlsxLine(
     (line.reporters ?? '')
       .split('\n')
       .map((x) => x.trim())
-      .filter(Boolean),
+      .filter((x) => x !== EMPTY_PLACEHOLDERS.reporters && !!x),
   );
 
   output.set(
@@ -109,25 +109,24 @@ export function parseLodamXlsxLine(
       .filter(Boolean),
   );
 
-  for (const field of [
-    'birthDate',
-    'lastRankingDate',
-    'lastPositionDate',
+  for (const [field, dateI18n] of [
+    ['birthDate', 'La date de naissance'],
+    ['lastRankingDate', 'La date de passage au grade'],
+    ['lastPositionDate', 'La date de prise de fonction'],
   ] as const) {
     try {
-      output.set(field, toDateOnly(line[field] ?? ''));
+      output.set(field, toDateOnly(line[field]));
     } catch {
-      const fieldNames = {
-        birthDate: 'La date de naissance',
-        lastRankingDate: 'La date de passage au grade',
-        lastPositionDate: 'La date de prise de fonction',
-      };
-      errors.push(`${fieldNames[field]} est inexploitable: "${line[field]}"`);
+      errors.push(`${dateI18n} est inexploitable: "${line[field]}"`);
     }
   }
 
-  output.set('biography', (line.biography ?? '').trim());
-  output.set('currentPosition', (line.currentPosition ?? '').trim());
+  output.set('biography', (line.biography ?? '').trim() || null);
+  output.set('currentPosition', (line.currentPosition ?? '').trim() || null);
+  output.set(
+    'careerInformation',
+    (line.careerInformation ?? '').trim() || null,
+  );
 
   const targetedPositionAndGrade = (line.targetedPosition ?? '').trim();
   if (targetedPositionAndGrade.length === 0) {
@@ -165,6 +164,26 @@ export function parseLodamXlsxLine(
   return { success: true, value } satisfies LineResultSuccess;
 }
 
+const RAW_LODAM_HEADERS = [
+  'fileNumber',
+  'name',
+  'targetedPosition',
+  'birthDate',
+  'currentPosition',
+  'lastPositionDate',
+  'lastRankingDate',
+  '_eqav',
+  'observers',
+  'reporters',
+  'careerInformation',
+  'biography',
+] as const;
+
+const EMPTY_PLACEHOLDERS = {
+  date: 'NON DEFINI',
+  reporters: 'SANS AFFECTATION',
+} as const;
+
 /**
  * this method tries to decrease the pressure on the event loop while parsing a large number
  * of data by chunking said data, and waiting for some time between yields.
@@ -189,24 +208,9 @@ async function* toAsyncChunkedData<T>(options: {
 function toDateOnly(value: string | undefined | null): DateOnly | null {
   const trimmed = (value ?? '').replace(/\\n/g, '').trim();
 
-  if (trimmed.length === 0) return null;
+  if (trimmed.length === 0 || trimmed === EMPTY_PLACEHOLDERS.date) return null;
   return DateOnly.fromString(trimmed, 'dd/MM/yyyy', 'fr');
 }
-
-const RAW_LODAM_HEADERS = [
-  'fileNumber',
-  'name',
-  'targetedPosition',
-  'birthDate',
-  'currentPosition',
-  'lastPositionDate',
-  'lastRankingDate',
-  '_eqav',
-  'observers',
-  'reporters',
-  '_career',
-  'biography',
-] as const;
 
 type LodamHeader = (typeof RAW_LODAM_HEADERS)[number];
 type FieldName = Exclude<LodamHeader, `_${string}`>;

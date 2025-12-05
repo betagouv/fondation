@@ -42,6 +42,8 @@ export function UseMultipartBody(schema: z.ZodObject): MethodDecorator {
 }
 
 class MultipartBodyInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(MultipartBodyInterceptor.name);
+
   constructor(private readonly schema: z.ZodObject) {}
 
   intercept(
@@ -58,8 +60,7 @@ class MultipartBodyInterceptor implements NestInterceptor {
       const body = parseMultipartBody(this.schema, files);
       request.body = body;
     } catch (e) {
-      const logger = new Logger('MultipartBody');
-      logger.warn(e);
+      this.logger.warn(e);
 
       throw new BadRequestException();
     }
@@ -122,6 +123,5 @@ function parseMultipartBody(
     }
   }
 
-  console.log({ output });
   return output;
 }

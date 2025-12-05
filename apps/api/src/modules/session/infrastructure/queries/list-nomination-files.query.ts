@@ -11,6 +11,7 @@ import {
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -59,8 +60,18 @@ export class ListNominationFilesQuery {
         select: {
           id: true,
           priorite: true,
-          content: true,
           comment: true,
+          biography: true,
+          birthDate: true,
+          currentPosition: true,
+          grade: true,
+          lastPositionDate: true,
+          lastRankingDate: true,
+          name: true,
+          number: true,
+          observers: true,
+          rank: true,
+          targetedPosition: true,
           commentAccess: {
             select: { userId: true },
           },
@@ -83,7 +94,28 @@ export class ListNominationFilesQuery {
 
       return {
         id: x.id,
-        content: x.content,
+        content: {
+          version: 2,
+          numeroDeDossier: x.number,
+          nomMagistrat: x.name,
+          dateEchéance: null,
+          grade: x.grade,
+          posteActuel: x.currentPosition,
+          posteCible: x.targetedPosition,
+          rang: x.rank,
+          dateDeNaissance: x.birthDate
+            ? DateOnly.fromDate(x.birthDate).toJson()
+            : null,
+          historique: x.biography,
+          observants: x.observers,
+          datePassageAuGrade: x.lastRankingDate
+            ? DateOnly.fromDate(x.lastRankingDate).toJson()
+            : null,
+          datePriseDeFonctionPosteActuel: x.lastPositionDate
+            ? DateOnly.fromDate(x.lastPositionDate).toJson()
+            : null,
+          informationCarrière: null,
+        },
         priority: x.priorite
           ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
           : null,

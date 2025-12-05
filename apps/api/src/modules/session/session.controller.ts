@@ -13,12 +13,10 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
-import z from 'zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
 import { UseMultipartBody } from 'src/modules/framework/multipart';
-import { MembersService } from 'src/modules/members';
 import { AuthedUserId, HasRole } from '../simple-auth';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
@@ -28,17 +26,14 @@ import {
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
-import {
-  CreateNominationSessionCommand,
-  LodamXlsxPipe,
-} from './infrastructure/lodam-xlsx.pipe';
+import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { type DetailedSessionResponse } from './infrastructure/queries/detail-session.query';
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { type ListSessionOfTypeGardeDesSceauxResponse } from './infrastructure/queries/list-sessions-of-type-garde-des-sceaux.query';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
-
-const MultipartDtoSchema = z.object({ data: z.object({ hello: z.string() }) });
+import { CreateNominationSessionCommand } from './domain/nomination-session';
+import { ImportNominationSessionFromLodamXlsxDto } from './infrastructure/dtos/nomination-session.dto';
 
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
@@ -67,8 +62,8 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Post()
-  @UseMultipartBody(MultipartDtoSchema)
+  @Post('lodam')
+  @UseMultipartBody(ImportNominationSessionFromLodamXlsxDto.schema)
   async createSessionFromLodam(
     @Body(LodamXlsxPipe) command: CreateNominationSessionCommand,
   ) {

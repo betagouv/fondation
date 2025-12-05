@@ -10,9 +10,11 @@ export type NominationFile = {
   birthDate: DateOnly | null;
   currentPosition: string;
   lastPositionDate: DateOnly | null;
+  lastRankingDate: DateOnly | null;
   observers: string[];
   reporters: string[];
-  biography: string;
+  biography: string | null;
+  careerInformation: string | null;
 };
 
 export type NominationFileEntity = { id: string } & NominationFile;

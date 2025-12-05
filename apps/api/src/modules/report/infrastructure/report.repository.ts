@@ -55,29 +55,13 @@ export class ReportRepository {
       const dossier = await tx.dossierDeNomination.findUnique({
         where: { id: report.nominationFileId },
       });
-      if (!dossier) return null;
-
-      // FIXME:
-      //  We can't sprinkle the schema in the whole app.
-      //  The most elegant solution would be to remove the report files path
-      //  dependency on the session and nominationFile
-      const nomAspirantResult = await z
-        .discriminatedUnion('version', [
-          z.object({ version: z.literal(1).nullable(), name: z.string() }),
-          z.object({ version: z.literal(2), nomMagistrat: z.string() }),
-        ])
-        .transform((value) =>
-          value.version === 2 ? value.nomMagistrat : value.name,
-        )
-        .safeParseAsync(dossier.content);
-
-      if (!nomAspirantResult.success) return null;
+      if (!dossier || !dossier.name) return null;
 
       return {
         id: report.id,
         reporterFullName,
         sessionName: session.name,
-        nomAspirant: nomAspirantResult.data,
+        nomAspirant: dossier.name,
       };
     });
 

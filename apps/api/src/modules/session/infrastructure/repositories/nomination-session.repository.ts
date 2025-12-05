@@ -1,30 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
-
-import { Prisma, User } from 'src/generated/prisma/client';
 import { MembersService } from 'src/modules/members';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { isDefined } from 'src/utils/is-defined';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+
 import {
   NominationSession,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
+  NominationSessionCreated,
   NominationSessionFilePriorityUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFileCommentAccessGranted,
+  NominationSessionFilesCreated,
 } from '../../domain/nomination-session';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { Magistrat } from 'shared-models';
-import {
-  MEMBER_ROLES,
-  memberRoles,
-} from 'src/modules/members/infrastructure/member.utils';
 
 @Injectable()
 export class NominationSessionRepository {
   constructor(
+    private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly members: MembersService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
@@ -68,22 +73,6 @@ export class NominationSessionRepository {
     });
   }
 
-  async createWithReporterFullNames(props: {
-    reporters: Set<string>;
-    formation: Magistrat.Formation;
-  }): Promise<NominationSession> {
-    const roles = memberRoles(props.formation);
-    const reporterFullNames = Array.from(props.reporters).map((x) =>
-      x.toLowerCase(),
-    );
-
-    // typed sql does not support array --"
-
-    const formationMemberIds = new Set(members.map(({ id }) => id));
-
-    return NominationSession.createNominationTreeAndAffectMembers({});
-  }
-
   persist(session: NominationSession) {
     return this.prisma.$transaction(async (tx) => {
       for (const message of session.messages) {
@@ -115,6 +104,10 @@ export class NominationSessionRepository {
             tx,
             message,
           );
+        } else if (message instanceof NominationSessionCreated) {
+          await this.persistNominationSessionCreated(tx, message);
+        } else if (message instanceof NominationSessionFilesCreated) {
+          await this.persistNominationSessionFilesCreated(tx, message);
         } else {
           assertNever(message);
         }
@@ -187,9 +180,7 @@ export class NominationSessionRepository {
             data: {
               statut: 'PUBLIEE',
               auteurPublicationId: message.userId,
-
-              // TODO: replace with clock or DateTimeProvider
-              datePublication: new Date(),
+              datePublication: this.clock.now(),
             },
           },
         },
@@ -246,5 +237,77 @@ export class NominationSessionRepository {
         })),
       });
     }
+  }
+
+  private async persistNominationSessionCreated(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionCreated,
+  ) {
+    const existingSession = await tx.session.findFirst({
+      where: {
+        name: message.name,
+        formation: message.formation,
+        date: message.date.toDate(),
+      },
+    });
+
+    if (isDefined(existingSession)) {
+      const date = message.date.toDate();
+      const [day, month, year] = (
+        [date.getDate(), date.getMonth() + 1, date.getFullYear()] as const
+      ).map((x) => x.toString().padStart(2, '0'));
+
+      throw new ConflictException(
+        `La session "T ${day}/${month}/${year} - ${message.name}" existe déjà`,
+      );
+    }
+
+    await tx.session.create({
+      data: {
+        id: message.sessionId,
+        name: message.name,
+        typeDeSaisine: message.typeDeSaisine,
+        formation: message.formation,
+        date: message.date.toDate(),
+        observationsClosingDate: message.observationClosingDate.toDate(),
+        dueDate: message.dueDate?.toDate() ?? null,
+        positionStartDate: message.positionStartDate?.toDate() ?? null,
+
+        /** @deprecated */
+        sessionImportId: randomUUID(),
+      },
+    });
+  }
+
+  private async persistNominationSessionFilesCreated(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionFilesCreated,
+  ) {
+    await tx.dossierDeNomination.createMany({
+      data: message.files.map(
+        (f) =>
+          ({
+            id: f.id,
+            name: f.name,
+            number: f.fileNumber,
+            sessionId: message.sessionId,
+            biography: f.biography,
+            birthDate: f.birthDate?.toDate(),
+            currentPosition: f.currentPosition,
+            grade: f.grade,
+            lastPositionDate: f.lastPositionDate?.toDate(),
+            lastRankingDate: f.lastRankingDate?.toDate(),
+            observers: f.observers,
+            rank: f.rank,
+            targetedPosition: f.targetedPosition,
+            careerInformation: f.careerInformation,
+
+            /** @deprecated */
+            dossierDeNominationImportId: randomUUID(),
+            /** @deprecated */
+            content: {},
+          }) satisfies Prisma.DossierDeNominationCreateManyInput,
+      ),
+    });
   }
 }

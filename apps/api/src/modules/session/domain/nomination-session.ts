@@ -55,7 +55,7 @@ export class NominationSessionCreated {
 export class NominationSessionFilesCreated {
   constructor(
     readonly sessionId: string,
-    readonly file: readonly NominationFileEntity[],
+    readonly files: readonly NominationFileEntity[],
   ) {}
 }
 
@@ -123,13 +123,10 @@ export class NominationSession {
   static createNominationTreeAndAffectMembers(
     command: CreateNominationSessionCommand,
   ): NominationSession {
-    const formationMemberIds = new Set(
-      command.formationMembers.map(({ id }) => id),
-    );
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds,
       version: null,
+      formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
     });
 
     session.#messages.push(
@@ -163,8 +160,7 @@ export class NominationSession {
       const fileUnknownReporters: string[] = [];
 
       for (const reporter of file.reporters) {
-        const fullName = reporter;
-        const member = memberPerFullName.get(fullName);
+        const member = memberPerFullName.get(reporter.toLowerCase());
 
         if (member) {
           reporterIds.push(member.id);

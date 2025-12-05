@@ -1,23 +1,14 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { z } from 'zod';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import {
-  DateOnlyJson,
-  dateOnlyJsonSchema,
-  Magistrat,
-  NominationFile,
-  Role,
-  TypeDeSaisine,
-} from 'shared-models';
+import { DateOnlyJson, Magistrat, Role, TypeDeSaisine } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class DetailSessionQuery {
-  private readonly logger = new Logger(DetailSessionQuery.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private versionFinder: AffectationVersionFinder,
@@ -62,7 +53,7 @@ export class DetailSessionQuery {
           typeDeSaisine: true,
           formation: true,
           sessionImportId: true,
-          content: true,
+          date: true,
           dossierDeNominations: {
             where: {
               reporterIds: {
@@ -71,7 +62,17 @@ export class DetailSessionQuery {
             },
             select: {
               id: true,
-              content: true,
+              biography: true,
+              birthDate: true,
+              currentPosition: true,
+              grade: true,
+              lastPositionDate: true,
+              lastRankingDate: true,
+              name: true,
+              number: true,
+              observers: true,
+              rank: true,
+              targetedPosition: true,
               reports: {
                 take: 1,
                 select: { id: true, state: true },
@@ -85,99 +86,34 @@ export class DetailSessionQuery {
 
     if (!session) throw new NotFoundException();
 
-    const result = await z
-      .object({
-        id: z.string(),
-        typeDeSaisine: z.enum(TypeDeSaisine),
-        formation: z.enum(Magistrat.Formation),
-        sessionImportId: z.string(),
-        name: z.string(),
-        content: z.object({ dateTransparence: dateOnlyJsonSchema }),
-        dossierDeNominations: z.array(
-          z.object({
-            id: z.string(),
-            content: DossierDeNominationContentSchema,
-            reports: z
-              .array(
-                z.object({
-                  id: z.string(),
-                  state: z.enum(NominationFile.ReportState),
-                }),
-              )
-              .min(1),
-          }),
-        ),
-      })
-      .safeParseAsync(session);
-
-    if (!result.success) {
-      this.logger.error(z.prettifyError(result.error));
-
-      throw new NotFoundException();
-    }
-
     return {
       data: {
         session: {
-          id: result.data.id,
-          sessionImportId: result.data.sessionImportId,
-          formation: result.data.formation,
-          transparency: result.data.name,
-          dateTransparence: result.data.content.dateTransparence,
+          id: session.id,
+          sessionImportId: session.sessionImportId,
+          formation: session.formation,
+          transparency: session.name,
+          dateTransparence: DateOnly.fromDate(session.date).toJson(),
         },
-        reports: result.data.dossierDeNominations.map((d) => {
+        reports: session.dossierDeNominations.map((d) => {
           const { id, state } = assertIsDefined(d.reports[0]);
 
           return {
             id,
             state,
-            formation: result.data.formation,
-            ...DetailSessionQuery.nomalizeDossierDeNomination(d.content),
+            formation: session.formation,
+            folderNumber: d.number,
+            dueDate: null,
+            name: d.name ?? '',
+            grade: d.grade ?? '',
+            targettedPosition: d.targetedPosition ?? '',
+            observersCount: d.observers?.length ?? 0,
           };
         }),
       },
     };
   }
-
-  private static nomalizeDossierDeNomination(
-    input: z.infer<typeof DossierDeNominationContentSchema>,
-  ) {
-    if (input.version !== 2) {
-      const { observers, ...rest } = input;
-      return { ...rest, observersCount: observers?.length ?? 0 };
-    }
-
-    return {
-      folderNumber: input.numeroDeDossier,
-      dueDate: input.dateEchéance,
-      name: input.nomMagistrat,
-      grade: input.grade,
-      targettedPosition: input.posteCible,
-      observersCount: input.observants?.length ?? 0,
-    };
-  }
 }
-
-const DossierDeNominationContentSchema = z.discriminatedUnion('version', [
-  z.object({
-    version: z.literal(1).optional(),
-    folderNumber: z.number().nullable(),
-    name: z.string(),
-    dueDate: dateOnlyJsonSchema.nullable(),
-    grade: z.enum(Magistrat.Grade),
-    targettedPosition: z.string(),
-    observers: z.array(z.string()).nullable(),
-  }),
-  z.object({
-    version: z.literal(2),
-    numeroDeDossier: z.number().nullable(),
-    nomMagistrat: z.string(),
-    dateEchéance: dateOnlyJsonSchema.nullable(),
-    grade: z.enum(Magistrat.Grade),
-    posteCible: z.string(),
-    observants: z.array(z.string()).nullable(),
-  }),
-]);
 
 export type DetailedSessionResponse = {
   data: {
