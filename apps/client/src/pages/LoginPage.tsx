@@ -1,24 +1,28 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import Login from '../components/login/Login';
 import { AUTHORIZED_ROLES } from '../constants/authorized-roles.constants';
-import { useValidateSessionFromCookie } from '../react-query/queries/validate-session-from-cookie.query';
+import { useUser } from '../react-query/queries/use-user.queries';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
+import type { Role } from 'shared-models';
 
 export const LoginPage = () => {
-  const { user, isPending, isError } = useValidateSessionFromCookie();
+  const location = useLocation();
+  const { user, isPending, isFetched, isError } = useUser();
 
   if (isPending) {
     return null;
   }
 
-  if (isError || !user) {
+  if (isError || (isFetched && !user)) {
+    if (location.pathname != ROUTE_PATHS.LOGIN) {
+      return <Navigate replace to={ROUTE_PATHS.LOGIN} />;
+    }
+
     return <Login />;
   }
 
-  if (AUTHORIZED_ROLES.SG.includes(user.role)) {
+  if (AUTHORIZED_ROLES.SG.includes(user?.role as Role)) {
     return <Navigate to={ROUTE_PATHS.SG.DASHBOARD} />;
-  } else if (AUTHORIZED_ROLES.MEMBER.includes(user.role)) {
-    return <Navigate to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;
   }
 
   return <Navigate to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;

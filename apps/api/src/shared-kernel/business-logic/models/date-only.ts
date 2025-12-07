@@ -58,6 +58,13 @@ export class DateOnly {
     return new DateOnly(json.year, json.month, json.day);
   }
 
+  static fromOptionalDate<T extends Date | null | undefined>(
+    date: T,
+  ): DateOnly | Exclude<T, Date> {
+    if (date === undefined || date === null) return date as Exclude<T, Date>;
+    return this.fromDate(date);
+  }
+
   static fromDate(dueDate: Date): DateOnly {
     return new DateOnly(
       dueDate.getFullYear(),

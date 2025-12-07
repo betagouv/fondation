@@ -29,7 +29,7 @@ export function MemberList() {
                 priority="tertiary no outline"
                 iconId="fr-icon-edit-line"
                 title={`Éditer ${capitalize(member.firstName)} ${member.lastName.toUpperCase()}`}
-                linkProps={{ href: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', member.id) }}
+                linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', member.id) }}
               />
             ]) ?? []
           }

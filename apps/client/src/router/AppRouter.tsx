@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, redirect, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Navigate to={ROUTE_PATHS.LOGIN} replace />,
+        element: <LoginPage />,
         index: true
       },
       {

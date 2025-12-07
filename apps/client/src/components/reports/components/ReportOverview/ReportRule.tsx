@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { allRulesMapV2, NominationFile } from 'shared-models';
 
 import type { ReportVM, VMReportRuleValue } from '../../../../VM/ReportVM';
-import type { ReportSM } from '../../../../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
 import { Card } from './Card';
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {
@@ -16,7 +16,7 @@ export type ReportRuleProps<R extends NominationFile.RuleName> = {
   rulesChecked: ReportVM['rulesChecked'][NominationFile.RuleGroup];
   onUpdateReportRule: (ruleName: R) => () => void;
   showNotice?: boolean;
-  rules: ReportSM['rules'];
+  rules: DetailedReportDto['rules'];
   ruleGroup: NominationFile.RuleGroup;
 };
 

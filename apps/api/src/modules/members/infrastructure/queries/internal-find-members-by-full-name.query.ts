@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
-import { memberRoles } from '../member.utils';
+import { formationToMemberRole } from '../member.utils';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {
@@ -11,7 +11,7 @@ export class InternalFindMembersByFullNameQuery {
     formation: Magistrat.Formation | undefined;
     fullNames: readonly string[];
   }): Promise<FoundMemberByFullName[]> {
-    const roles = memberRoles(query.formation);
+    const roles = formationToMemberRole(query.formation);
 
     const queriedFullNames = new Map<string, string>(
       query.fullNames.map((x) => [x.trim().toLowerCase(), x]),

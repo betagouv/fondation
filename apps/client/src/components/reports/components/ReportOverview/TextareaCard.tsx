@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Card } from './Card';
 import { type DeleteImages, type InsertImages, type RedoImages, TipTapEditor } from './TipTapEditor';
+import { useDebouncedCallback } from 'use-debounce';
 
 export type TextareaCardProps = {
   cardId: string;
@@ -11,25 +12,6 @@ export type TextareaCardProps = {
   insertImages: InsertImages;
   deleteImages: DeleteImages;
   redoImages: RedoImages;
-  screenshotFileIds?: string[];
-};
-
-const TEXT_AREA_DEBOUNCE_TIME = 400;
-
-const useDebounce = (callback: (value: string) => void, delay: number) => {
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-
-  return useCallback(
-    (value: string) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        callback(value);
-      }, delay);
-    },
-    [callback, delay]
-  );
 };
 
 export const TextareaCard: React.FC<TextareaCardProps> = ({
@@ -40,12 +22,10 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   onContentChange,
   insertImages,
   deleteImages,
-  redoImages,
-  screenshotFileIds
+  redoImages
 }) => {
   const [textareaContent, setTextareaContent] = useState(content);
-
-  const debouncedOnContentChange = useDebounce(onContentChange, TEXT_AREA_DEBOUNCE_TIME);
+  const debouncedOnContentChange = useDebouncedCallback(onContentChange, 400);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -65,7 +45,6 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
         insertImages={insertImages}
         deleteImages={deleteImages}
         redoImages={redoImages}
-        screenshotFileIds={screenshotFileIds}
       />
     </Card>
   );

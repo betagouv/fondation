@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -9,16 +10,24 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
+import { FILE_MIME_TYPES, isMimeType } from 'src/modules/framework/files';
 import { UseMultipartBody } from 'src/modules/framework/multipart';
-import { AuthedUserId, HasRole } from '../simple-auth';
-import { NominationFile } from './domain/nomination-file';
+import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
+
+import { type NominationFile } from './domain/nomination-file';
+import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
+import { SessionExceptionFilter } from './infrastructure/session.filter';
+import { SessionService } from './infrastructure/sessions.service';
+
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
@@ -27,17 +36,18 @@ import {
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
-  ImportNominationSessionFromLodamXlsxDto,
   ImportNominationSessionFromLodamXlsxDtoSchema,
   UpdateNominationSessionFilesObserversDto,
+  ImportNominationSessionFromLodamXlsxDto,
+  UpdateNominationSessionDto,
 } from './infrastructure/dtos/nomination-session.dto';
-import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
-import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
-import { type DetailedSessionResponse } from './infrastructure/queries/detail-session.query';
+import { type FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
+import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
+import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
-import { type ListSessionOfTypeGardeDesSceauxResponse } from './infrastructure/queries/list-sessions-of-type-garde-des-sceaux.query';
-import { SessionExceptionFilter } from './infrastructure/session.filter';
-import { SessionService } from './infrastructure/sessions.service';
+import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
+import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
@@ -46,21 +56,8 @@ export class SessionController {
 
   @HasRole()
   @Get('/garde-des-sceaux')
-  listSessionsOfTypeGardeDesSceaux(
-    @AuthedUserId() userId: string,
-  ): Promise<ListSessionOfTypeGardeDesSceauxResponse> {
-    return this.sessions.listSessionsOfTypeGardeDesSceaux(userId);
-  }
-
-  @HasRole()
-  @Get('/garde-des-sceaux/:sessionId')
-  detailSession(
-    @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-  ): Promise<DetailedSessionResponse> {
-    return this.sessions.detailSession({
-      userId,
-      sessionId,
+  listSessionsOfTypeGardeDesSceaux(): Promise<ListedNominationSessionsDto> {
+    return this.sessions.listNominationSessions({
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     });
   }
@@ -206,6 +203,95 @@ export class SessionController {
       sessionId,
       nominationFileId,
       userIds: body.userIds,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId/attachments')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { files: 1, fileSize: 10 * 1024 * 1024 /* 10Mb */ },
+    }),
+  )
+  async uploadSessionAttachment(
+    @Param('sessionId') sessionId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    await this.sessions.addNominationSessionAttachment({
+      sessionId,
+      file: {
+        buffer: file.buffer,
+        type: isMimeType(file.mimetype) ? file.mimetype : FILE_MIME_TYPES.bin,
+        name: file.originalname,
+      },
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/:sessionId/attachments/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeSessionAttachment(
+    @Param('sessionId') sessionId: string,
+    @Param('fileId') fileId: string,
+  ) {
+    await this.sessions.removeNominationSessionAttachment({
+      sessionId,
+      fileId,
+    });
+  }
+
+  @HasRole()
+  @Get('/:sessionId/attachments')
+  async listNominationSessionAttachments(
+    @Param('sessionId') sessionId: string,
+  ): Promise<ListedNominationSessionAttachmentDto> {
+    return this.sessions.listAttachments({ sessionId });
+  }
+
+  /** @warning this is a mutation */
+  @HasRole()
+  @Get('/:sessionId/attachments/:fileId')
+  async createNominationSessionAttachmentUrl(
+    @Param('sessionId') sessionId: string,
+    @Param('fileId') fileId: string,
+  ): Promise<DetailedNominationSessionAttachmentDto> {
+    return this.sessions.detailAttachment({ sessionId, fileId });
+  }
+
+  @HasRole()
+  @Get('/:sessionId')
+  async detailsNominationSession(
+    @Param('sessionId') sessionId: string,
+  ): Promise<DetailedNominationSessionDto> {
+    return this.sessions.details({ sessionId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateNominationSession(
+    @Param('sessionId') sessionId: string,
+    @Body() data: UpdateNominationSessionDto,
+  ): Promise<void> {
+    return this.sessions.update({
+      sessionId,
+      data: {
+        ...data,
+
+        date: DateOnly.fromString(data.date, 'yyyy-MM-dd'),
+        observationsClosingDate: DateOnly.fromString(
+          data.observationsClosingDate,
+          'yyyy-MM-dd',
+        ),
+        dueDate: data.dueDate
+          ? DateOnly.fromString(data.dueDate, 'yyyy-MM-dd')
+          : null,
+        positionStartDate: data.positionStartDate
+          ? DateOnly.fromString(data.positionStartDate, 'yyyy-MM-dd')
+          : null,
+      },
     });
   }
 }

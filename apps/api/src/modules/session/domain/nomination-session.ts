@@ -5,6 +5,7 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { NominationFile, NominationFileEntity } from './nomination-file';
+import { FileMimeType } from 'src/modules/framework/files';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -78,6 +79,34 @@ export class NominationSessionFilesObserversUpdated {
   ) {}
 }
 
+export class NominationSessionAttachmentAdded {
+  constructor(
+    readonly sessionId: string,
+    readonly file: { name: string; buffer: Buffer; type: FileMimeType },
+  ) {}
+}
+
+export class NominationSessionAttachmentRemoved {
+  constructor(
+    readonly sessionId: string,
+    readonly fileId: string,
+  ) {}
+}
+
+export class NominationSessionUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly data: {
+      name: string;
+      formation: Magistrat.Formation;
+      date: DateOnly;
+      observationsClosingDate: DateOnly;
+      dueDate: DateOnly | null;
+      positionStartDate: DateOnly | null;
+    },
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
@@ -86,7 +115,10 @@ type NominationSessionEvent =
   | NominationSessionFileCommentAccessGranted
   | NominationSessionCreated
   | NominationSessionFilesCreated
-  | NominationSessionFilesObserversUpdated;
+  | NominationSessionFilesObserversUpdated
+  | NominationSessionAttachmentAdded
+  | NominationSessionAttachmentRemoved
+  | NominationSessionUpdated;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -338,6 +370,31 @@ export class NominationSession {
     this.#messages.push(
       new NominationSessionFilesObserversUpdated(this.id, knownFiles),
     );
+  }
+
+  addAttachment(command: {
+    file: { name: string; type: FileMimeType; buffer: Buffer };
+  }) {
+    this.#messages.push(
+      new NominationSessionAttachmentAdded(this.id, command.file),
+    );
+  }
+
+  removeAttachment(command: { fileId: string }) {
+    this.#messages.push(
+      new NominationSessionAttachmentRemoved(this.id, command.fileId),
+    );
+  }
+
+  update(command: {
+    name: string;
+    formation: Magistrat.Formation;
+    date: DateOnly;
+    observationsClosingDate: DateOnly;
+    dueDate: DateOnly | null;
+    positionStartDate: DateOnly | null;
+  }): void {
+    this.#messages.push(new NominationSessionUpdated(this.id, command));
   }
 
   #messages: NominationSessionEvent[] = [];

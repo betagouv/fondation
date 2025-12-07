@@ -5,7 +5,7 @@ import { apiFetch } from '../../utils/api-fetch.utils';
 type Endpoint = FilesContextRestContract['endpoints']['getSignedUrls'];
 type GetSignedUrlsResponse = Endpoint['response'];
 
-const getSignedUrl = async (fileIds: string[]) => {
+const getSignedUrl = async (fileIds: readonly string[]) => {
   const { method, path }: Partial<Endpoint> = {
     method: 'GET',
     path: 'signed-urls'
@@ -21,7 +21,9 @@ const getSignedUrl = async (fileIds: string[]) => {
   });
 };
 
-export const useGetSignedUrl = (fileIds: string[]): UseQueryResult<GetSignedUrlsResponse | null, Error> => {
+export const useGetSignedUrl = (
+  fileIds: readonly string[]
+): UseQueryResult<GetSignedUrlsResponse | null, Error> => {
   return useQuery({
     queryKey: ['signed-url', fileIds],
     queryFn: () => getSignedUrl(fileIds),

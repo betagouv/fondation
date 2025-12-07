@@ -43,3 +43,14 @@ export class UpdateNominationSessionFilesObserversDto extends createZodDto(
       .max(5 * 1_024 * 1_024 /* 5MB */),
   }),
 ) {}
+
+export class UpdateNominationSessionDto extends createZodDto(
+  z.object({
+    name: z.string(),
+    formation: z.enum(Magistrat.Formation),
+    date: z.iso.date(),
+    observationsClosingDate: z.iso.date(),
+    dueDate: z.iso.date().nullable(),
+    positionStartDate: z.iso.date().nullable(),
+  }),
+) {}

@@ -25,7 +25,7 @@ const Dashboard: FC = () => {
           title="Créer une nouvelle transparence"
           description="Renseignez les premières informations à votre disposition concernant une nouvelle transparence."
           linkProps={{
-            href: SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence,
+            to: SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence,
             onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
               event.preventDefault();
               navigate(SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence);

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
-import { type ReportSM } from '../../../../react-query/queries/list-reports.queries';
+import { type DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
@@ -21,7 +21,6 @@ import { ReportEditor } from './ReportEditor';
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
 import { useAttachReportFiles } from '../../../../react-query/mutations/reports/attach-report-files.mutation';
-import { useUpdateRule } from '../../../../react-query/mutations/reports/rules/update-rule.mutation';
 import { useReportById } from '../../../../react-query/queries/report-by-id.queries';
 import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportOverviewState } from './ReportOverviewState';
@@ -30,7 +29,7 @@ import { Summary } from './Summary';
 
 import {
   useUpdateReport,
-  type UpdateReportParams
+  useUpdateReportRuleValidation
 } from '../../../../react-query/mutations/reports/update-report.mutation';
 import { useDetachReportFiles } from '../../../../react-query/mutations/reports/detach-report-files.mutation';
 
@@ -47,7 +46,7 @@ export const formatBiography = (biography: string | null) => {
   return `- ${firstElement}\n- ${otherElements.join('\n- ')}`;
 };
 
-export const formatObservers = (observers: ReportSM['observers']) => {
+export const formatObservers = (observers: DetailedReportDto['observers']) => {
   if (!observers || observers.length === 0) {
     return null;
   }
@@ -89,8 +88,8 @@ export type ReportOverviewProps = {
 export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const navigate = useNavigate();
 
-  const { report, isPending, error, refetch } = useReportById(id);
-  const { mutate: updateRule } = useUpdateRule();
+  const { data: retrievedReport, isPending, error, refetch } = useReportById(id);
+  const { mutate: updateRule } = useUpdateReportRuleValidation();
   const { mutate: attachReportFiles } = useAttachReportFiles();
   const { mutate: detachReportFiles } = useDetachReportFiles();
   const { mutate: updateReport } = useUpdateReport();
@@ -101,8 +100,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     }
   };
 
-  const retrievedReport = report as ReportSM;
-  if (isPending || error) {
+  if (isPending || error || !retrievedReport) {
     return null;
   }
 
@@ -123,28 +121,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
-  const onUpdateReport = <T extends keyof UpdateReportParams['data']>(data: {
-    [key in keyof UpdateReportParams['data']]: T extends key ? UpdateReportParams['data'][key] : undefined;
-  }) => {
-    updateReport(
-      {
-        reportId: id,
-        data
-      },
-      onSuccess
-    );
-  };
-
-  const onUpdateContent = (comment: string) => {
-    return onUpdateReport<'comment'>({ comment });
-  };
-  const onUpdateState = (state: ReportSM['state']) => {
-    return onUpdateReport<'state'>({ state });
-  };
+  const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
+  const onUpdateState = (status: NominationFile.ReportState) =>
+    updateReport({ reportId: id, data: { status } });
 
   const onUpdateReportRule =
     (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => {
-      if (!report) return;
+      if (!retrievedReport) return;
 
       const rule = {
         ...rulesChecked[ruleGroup].selected,
@@ -153,8 +136,9 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
 
       updateRule(
         {
+          reportId: id,
           ruleId: rule[ruleName].id,
-          validated: rule[ruleName].checked
+          isValidated: rule[ruleName].checked
         },
         onSuccess
       );
@@ -181,7 +165,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     );
   };
 
-  if (!report)
+  if (!retrievedReport)
     return isPending ? null : (
       <div>
         <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
@@ -217,16 +201,17 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             comment={retrievedReport.comment}
             onUpdate={onUpdateContent}
             reportId={id}
-            contentScreenshots={retrievedReport.contentScreenshots?.files}
+            screenshotFileIds={retrievedReport.screenshots.map(({ fileId }) => fileId)}
           />
           <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}
-            rules={report?.rules}
+            rules={retrievedReport?.rules}
             onUpdateReportRule={onUpdateReportRule}
           />
           <AttachedFileUpload
-            attachedFiles={retrievedReport.attachedFiles}
+            reportId={id}
+            attachments={retrievedReport.attachments}
             onFilesAttached={onFilesAttached}
             onAttachedFileDeleted={onAttachedFileDeleted}
           />

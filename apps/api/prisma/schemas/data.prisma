@@ -29,6 +29,7 @@ model Jurisdiction {
   @@schema("data_administration_context")
 }
 
+/// @deprecated - use nominations_context.dossier_de_nomination
 model NominationFile {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   row_number Int
@@ -39,6 +40,7 @@ model NominationFile {
   @@schema("data_administration_context")
 }
 
+/// @deprecated - use nominations_context.session_attachment
 model TransparenceFile {
   id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   transparence_id String       @db.Uuid
@@ -51,6 +53,7 @@ model TransparenceFile {
   @@schema("data_administration_context")
 }
 
+/// @deprecated - use nominations_context.session
 model Transparence {
   id                             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                           String

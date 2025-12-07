@@ -2,7 +2,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { PasswordInput } from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
@@ -12,24 +12,24 @@ import { apiFetch } from '../../utils/api-fetch.utils';
 const loginUser = async (credentials: { email: string; password: string }) => {
   return apiFetch(`/auth/v2/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(credentials)
+    body: JSON.stringify(credentials),
+    headers: { 'content-type': 'application/json' }
   });
 };
 
 export const Login = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const {
-    mutateAsync: authenticateAsync,
     isError,
-    isPending
+    isPending,
+    mutateAsync: authenticateAsync
   } = useMutation({
     mutationFn: loginUser,
-    onSuccess: () => {
-      navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['introspectSession'] });
+      await navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
     }
   });
 

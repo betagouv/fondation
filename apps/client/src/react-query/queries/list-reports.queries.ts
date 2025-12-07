@@ -1,20 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Magistrat, NominationFile, ReportsContextRestContract, Transparency } from 'shared-models';
+import type { Magistrat, NominationFile, ReportsContextRestContract } from 'shared-models';
 import type { DateOnlyStoreModel } from '../../models/date-only.model';
 import { apiFetch } from '../../utils/api-fetch.utils';
 
-export type ReportScreenshotSM = {
-  // On n'a pas de fileId avant la fin de l'upload
-  fileId: string | null;
-  name: string;
-  signedUrl: string | null;
-};
-
-export type ReportScreenshots = {
-  files: ReportScreenshotSM[];
-};
-
-export interface ReportSM {
+export interface DetailedReportDto {
   id: string;
   sessionId: string;
   folderNumber: number | null;
@@ -24,7 +13,7 @@ export interface ReportSM {
   biography: string | null;
   dueDate: DateOnlyStoreModel | null;
   birthDate: DateOnlyStoreModel;
-  transparency: Transparency;
+  transparency: string;
   dateTransparence: DateOnlyStoreModel;
   grade: Magistrat.Grade;
   currentPosition: string;
@@ -33,18 +22,13 @@ export interface ReportSM {
   rank: string;
   observers: string[] | null;
   rules: NominationFile.Rules;
-  attachedFiles:
-    | {
-        name: string;
-        fileId: string | null;
-        signedUrl: string | null;
-      }[]
-    | null;
-  contentScreenshots: ReportScreenshots | null;
+  attachments: { name: string; fileId: string }[];
+  screenshots: { fileId: string; name: string; url: string }[];
   dureeDuPoste: string | null;
 }
+
 export type ReportListItem = Pick<
-  ReportSM,
+  DetailedReportDto,
   | 'id'
   | 'sessionId'
   | 'folderNumber'

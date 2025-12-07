@@ -1,18 +1,17 @@
 import { differenceInYears, format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { DateOnlyJson } from 'shared-models';
-import { z, ZodType } from 'zod';
+import { z } from 'zod';
 
-export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type DateOnlyStoreModel = {
   year: number;
-  month: Month;
+  month: number;
   day: number;
 };
 
 export const dateOnlyJsonSchema = z.object({
   year: z.number(),
-  month: z.number().min(1).max(12) as ZodType<Month>,
+  month: z.number().min(1).max(12),
   day: z.number().min(1).max(31)
 });
 
@@ -21,7 +20,7 @@ export class DateOnly {
 
   static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
 
-  constructor(year: number, month: Month, day: number) {
+  constructor(year: number, month: number, day: number) {
     // Month is 0-indexed in JS Date
     this.value = new Date(Date.UTC(year, month - 1, day));
   }
@@ -63,15 +62,15 @@ export class DateOnly {
   private getYear(): number {
     return this.value.getFullYear();
   }
-  private getMonth(): Month {
-    return (this.value.getMonth() + 1) as Month;
+  private getMonth(): number {
+    return this.value.getMonth() + 1;
   }
   private getDay(): number {
     return this.value.getDate();
   }
 
   static fromDate(date: Date): DateOnly {
-    return new DateOnly(date.getFullYear(), (date.getMonth() + 1) as Month, date.getDate());
+    return new DateOnly(date.getFullYear(), date.getMonth() + 1, date.getDate());
   }
   static fromStoreModel(date: DateOnlyStoreModel): DateOnly {
     return new DateOnly(date.year, date.month, date.day);
@@ -99,6 +98,6 @@ export class DateOnly {
       throw new Error('Invalid date: ' + dateString);
     }
 
-    return new this(date.getFullYear(), (date.getMonth() + 1) as Month, date.getDate());
+    return new this(date.getFullYear(), date.getMonth() + 1, date.getDate());
   }
 }

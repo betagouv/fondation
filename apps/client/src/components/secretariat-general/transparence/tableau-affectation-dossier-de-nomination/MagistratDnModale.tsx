@@ -139,10 +139,8 @@ export function MagistratDnModalLink(props: {
         createPortal(
           isVisible ? (
             <MagistratDetails
-              content={props.nominationFile.content}
-              idDn={props.nominationFile.id}
-              comment={props.nominationFile.comment}
-              commentAccessUserIds={props.nominationFile.commentAccessUserIds}
+              key={props.nominationFile.id}
+              nominationFile={props.nominationFile}
               formation={props.formation}
             />
           ) : null,

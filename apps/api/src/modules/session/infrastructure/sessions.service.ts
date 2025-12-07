@@ -1,23 +1,47 @@
 import { Injectable } from '@nestjs/common';
 
-import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
+import { FileMimeType } from 'src/modules/framework/files';
 import { MembersService } from 'src/modules/members';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { inspect } from 'util';
 import { NominationFile } from '../domain/nomination-file';
 import { NominationSession } from '../domain/nomination-session';
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
-import { DetailSessionQuery } from './queries/detail-session.query';
+import {
+  type DetailedNominationSessionAttachmentDto,
+  DetailNominationSessionAttachmentQuery,
+} from './queries/detail-nomination-session-attachment.query';
+import {
+  type DetailedNominationSessionDto,
+  DetailNominationSessionQuery,
+} from './queries/detail-nomination-session.query';
 import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
+import {
+  type DetailedMemberSessionDto,
+  InternalDetailMemberSessionQuery,
+} from './queries/internal-detail-member-session.query';
+import {
+  InternalListMemberSessionsQuery,
+  type ListedMemberSessionsDto,
+} from './queries/internal-list-member-sessions.query';
 import {
   ListNominationFilesQuery,
   type NominationFileAffectationItem,
 } from './queries/list-nomination-files.query';
-import { ListSessionOfTypeGardeDesSceauxQuery } from './queries/list-sessions-of-type-garde-des-sceaux.query';
+import {
+  type ListedNominationSessionAttachmentDto,
+  ListNominationSessionAttachmentsQuery,
+} from './queries/list-nomination-session-attachments.query';
+import {
+  ListedNominationSessionsDto,
+  ListNominationSessionsQuery,
+} from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
@@ -27,25 +51,34 @@ export class SessionService {
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
-    private readonly detailSessionQuery: DetailSessionQuery,
+    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
-    private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
+    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly nominationSessionRepository: NominationSessionRepository,
     private readonly nominationSessionFileFinder: NominationSessionFileFinder,
+    private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
+    private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
+    private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
+    private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
     private readonly prisma: PrismaService,
   ) {}
 
-  listSessionsOfTypeGardeDesSceaux(userId: string) {
-    return this.listSessionsOfTypeGardeDesSceauxQuery.handle({ userId });
+  /** @internal */
+  listMemberSessions(query: {
+    user: { id: string; role: Role };
+    typeDeSaisine: TypeDeSaisine;
+  }): Promise<ListedMemberSessionsDto> {
+    return this.internalListMemberSessionsQuery.handle(query);
   }
 
-  detailSession(query: {
-    userId: string;
+  /** @internal */
+  detailMemberSession(query: {
+    user: { id: string; role: Role };
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
-  }) {
-    return this.detailSessionQuery.handle(query);
+  }): Promise<DetailedMemberSessionDto> {
+    return this.internalDetailMemberSessionQuery.handle(query);
   }
 
   async affectReportersAndPriorities(command: {
@@ -219,5 +252,71 @@ export class SessionService {
       nominationFiles: command.files,
     });
     await this.nominationSessionRepository.persist(session);
+  }
+
+  async addNominationSessionAttachment(command: {
+    sessionId: string;
+    file: { buffer: Buffer; name: string; type: FileMimeType };
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+
+    session.addAttachment({ file: command.file });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  async removeNominationSessionAttachment(command: {
+    sessionId: string;
+    fileId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+
+    session.removeAttachment({ fileId: command.fileId });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  listAttachments(query: {
+    sessionId: string;
+  }): Promise<ListedNominationSessionAttachmentDto> {
+    return this.listNominationSessionAttachmentsQuery.handle(query);
+  }
+
+  detailAttachment(query: {
+    sessionId: string;
+    fileId: string;
+  }): Promise<DetailedNominationSessionAttachmentDto> {
+    return this.detailNominationSessionAttachmentQuery.handle(query);
+  }
+
+  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+    return this.detailNominationSessionQuery.handle(query);
+  }
+
+  async update(command: {
+    sessionId: string;
+    data: {
+      name: string;
+      formation: Magistrat.Formation;
+      date: DateOnly;
+      observationsClosingDate: DateOnly;
+      dueDate: DateOnly | null;
+      positionStartDate: DateOnly | null;
+    };
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+    console.log(inspect(command.data));
+    session.update(command.data);
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  listNominationSessions(query: {
+    typeDeSaisine: TypeDeSaisine;
+  }): Promise<ListedNominationSessionsDto> {
+    return this.listNominationSessionsQuery.handle(query);
   }
 }

@@ -1,5 +1,4 @@
 import type { FileVM } from 'shared-models';
-import { dataFileNameKey } from '../components/reports/components/ReportOverview/TipTapEditor/extensions';
 
 /**
  * Remplace les URLs signées expirées dans le HTML du commentaire
@@ -10,47 +9,38 @@ import { dataFileNameKey } from '../components/reports/components/ReportOverview
  */
 export function refreshSignedUrlsInComment(
   comment: string,
-  screenshots: Array<{ fileId: string | null; name: string }>,
-  signedUrlsVM: FileVM[]
+  screenshots: { fileId: string | null; name: string }[],
+  signedUrlsVM: readonly FileVM[]
 ): string {
   if (!comment || screenshots.length === 0) {
     return comment;
   }
 
-  const container = document.createElement('div');
-  container.innerHTML = comment;
+  const screenshotsById = new Map(screenshots.filter((s) => !!s.fileId).map((s) => [s.fileId, s]));
+  const screenshotsByName = new Map(screenshots.map((s) => [s.name, s]));
 
-  const images = container.querySelectorAll('img');
+  const $container = document.createElement('div');
+  $container.innerHTML = comment;
 
-  images.forEach((img) => {
-    const imgFileName = img.getAttribute(dataFileNameKey);
-    if (!imgFileName) return;
-
-    // Trouver le screenshot correspondant
-    const screenshot = screenshots.find((file) => file.name === imgFileName);
-    if (!screenshot) {
-      console.warn(`Screenshot ${imgFileName} not found`);
-      return;
+  for (const $img of $container.querySelectorAll('img')) {
+    let screenshot: { fileId: string | null; name: string } | undefined;
+    if ($img.dataset.fileId) {
+      screenshot = screenshotsById.get($img.dataset.fileId);
     }
 
-    // Trouver l'URL signée correspondante
-    const signedUrlVM = signedUrlsVM.find((file) => file.name === screenshot.name);
-
-    if (signedUrlVM) {
-      img.setAttribute('src', signedUrlVM.signedUrl);
+    if (!screenshot && $img.dataset.fileName) {
+      screenshot = screenshotsByName.get($img.dataset.fileName);
     }
-  });
 
-  return container.innerHTML;
-}
+    if (screenshot) {
+      const signedUrlVM = signedUrlsVM.find((file) => file.name === screenshot.name);
+      if (signedUrlVM) {
+        $img.setAttribute('src', signedUrlVM.signedUrl);
+      }
+    } else {
+      console.warn(`Screenshot "${$img.dataset.fileName}" not found`);
+    }
+  }
 
-/**
- * Extrait les fileIds des screenshots pour récupérer les URLs signées
- */
-export function extractScreenshotFileIds(
-  screenshots: Array<{ fileId: string | null; name: string }>
-): string[] {
-  return screenshots
-    .filter((screenshot) => screenshot.fileId !== null)
-    .map((screenshot) => screenshot.fileId!);
+  return $container.innerHTML;
 }

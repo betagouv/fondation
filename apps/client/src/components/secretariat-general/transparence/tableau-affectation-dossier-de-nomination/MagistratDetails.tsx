@@ -1,7 +1,8 @@
 import type { FC } from 'react';
-import { Magistrat } from 'shared-models';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useGetReportsByDnId } from '../../../../react-query/queries/sg/get-reports-by-dn-id.query';
+import { ReportVM } from '../../../../VM/ReportVM';
+import { AvatarInitials } from '../../../layout/AvatarInitials';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
@@ -11,35 +12,16 @@ import {
   formatObservers
 } from '../../../reports/components/ReportOverview/ReportOverview';
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
-import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TextValue } from '../../../shared/TextValue';
 import { MagistratComment } from './MagistratComment';
+import type { Magistrat } from 'shared-models';
 
 export type MagistratDetailsProps = {
-  content: SessionNominationFile['content'];
-  idDn: string;
-  comment?: string | null;
-  commentAccessUserIds?: string[];
   formation: Magistrat.Formation;
+  nominationFile: SessionNominationFile;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({
-  content,
-  idDn,
-  comment: initialComment,
-  commentAccessUserIds: initialCommentAccessUserIds,
-  formation
-}) => {
-  const { data: reports, isLoading, error } = useGetReportsByDnId(idDn);
-
-  if (isLoading) {
-    return <div>Chargement des rapports...</div>;
-  }
-
-  if (error) {
-    return <ErrorMessage message="Erreur lors du chargement des rapports" />;
-  }
-
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ formation, nominationFile }) => {
   const {
     dateDeNaissance,
     observants,
@@ -50,7 +32,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
     posteCible,
     rang,
     datePriseDeFonctionPosteActuel
-  } = content;
+  } = nominationFile.content;
 
   const formattedBirthDate = formatBirthDate(dateDeNaissance, new Date());
   const formattedObservers = formatObservers(observants);
@@ -66,11 +48,8 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
       )
     : null;
 
-  const reportersInitials = reports?.map((report) =>
-    report.name
-      .split(' ')
-      .map((name) => name[0])
-      .join('')
+  const reportersInitials = nominationFile.reporters.map(({ firstName, lastName }) =>
+    [lastName, firstName].map((x) => x.charAt(0).toUpperCase()).join('')
   );
 
   return (
@@ -122,9 +101,9 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({
       </div>
 
       <MagistratComment
-        nominationFileId={idDn}
-        initialComment={initialComment}
-        initialCommentAccessUserIds={initialCommentAccessUserIds}
+        nominationFileId={nominationFile.id}
+        initialComment={nominationFile.comment}
+        initialCommentAccessUserIds={nominationFile.commentAccessUserIds}
         formation={formation}
       />
     </div>

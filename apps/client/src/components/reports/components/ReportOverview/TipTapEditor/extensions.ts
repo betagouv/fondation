@@ -15,6 +15,7 @@ import Underline from '@tiptap/extension-underline';
 import ImageResize from 'tiptap-extension-resize-image';
 import { headingLevels } from './constant';
 
+export const dataFileIdKey = 'data-file-id';
 export const dataFileNameKey = 'data-file-name';
 export const dataIsScreenshotKey = 'data-is-screenshot';
 export const fileKey = 'file';

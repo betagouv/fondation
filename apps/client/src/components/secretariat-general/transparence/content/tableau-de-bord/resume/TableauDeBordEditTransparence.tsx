@@ -4,19 +4,24 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  Magistrat,
-  updateTransparenceSchema,
-  type EditTransparencyDto,
-  type TransparenceSnapshot
-} from 'shared-models';
+
+import { Magistrat } from 'shared-models';
 import { DateOnly } from '../../../../../../models/date-only.model';
+import type { DetailedNominationSession } from '../../../../../../react-query/mutations/sg/nomination-sessions';
 import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
+import { z } from 'zod';
 
 export type TableauDeBordEditTransparenceProps = {
-  transparence: TransparenceSnapshot;
+  transparence: DetailedNominationSession;
   onCancel: () => unknown;
-  onSubmit: (data: EditTransparencyDto) => Promise<void>;
+  onSubmit: (data: {
+    name: string;
+    formation: Magistrat.Formation;
+    date: string;
+    observationsClosingDate: string;
+    dueDate: string | null;
+    positionStartDate: string | null;
+  }) => Promise<void>;
 };
 
 export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProps> = ({
@@ -24,37 +29,37 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
   onSubmit,
   onCancel
 }) => {
-  const {
-    name,
-    formation,
-    dateTransparence,
-    dateClotureDelaiObservation,
-    dateEcheance,
-    datePriseDePosteCible
-  } = transparence;
+  const { name, formation, date, observationsClosingDate, dueDate, positionStartDate } = transparence;
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset
-  } = useForm<EditTransparencyDto>({
-    resolver: zodResolver(updateTransparenceSchema),
+  } = useForm({
+    resolver: zodResolver(
+      z.object({
+        name: z.string().nonempty(),
+        formation: z.nativeEnum(Magistrat.Formation),
+        date: z.string().date('Format de date invalide'),
+        observationsClosingDate: z.string().date('Format de date invalide'),
+        dueDate: z.string().date('Format de date invalide').nullable(),
+        positionStartDate: z.string().date('Format de date invalide').nullable()
+      })
+    ),
     defaultValues: {
       name,
       formation,
-      dateTransparence: DateOnly.fromDateOnly(dateTransparence, 'yyyy-MM-dd'),
-      dateClotureDelaiObservation: DateOnly.fromDateOnly(dateClotureDelaiObservation, 'yyyy-MM-dd'),
-      dateEcheance: dateEcheance ? DateOnly.fromDateOnly(dateEcheance, 'yyyy-MM-dd') : undefined,
-      datePriseDePosteCible: datePriseDePosteCible
-        ? DateOnly.fromDateOnly(datePriseDePosteCible, 'yyyy-MM-dd')
-        : undefined
+      date: DateOnly.fromDateOnly(date, 'yyyy-MM-dd'),
+      observationsClosingDate: DateOnly.fromDateOnly(observationsClosingDate, 'yyyy-MM-dd'),
+      dueDate: dueDate ? DateOnly.fromDateOnly(dueDate, 'yyyy-MM-dd') : null,
+      positionStartDate: positionStartDate ? DateOnly.fromDateOnly(positionStartDate, 'yyyy-MM-dd') : null
     }
   });
 
   return (
     <form className="m-auto w-full max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
-      <Controller<EditTransparencyDto, 'name'>
+      <Controller
         name="name"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
@@ -73,8 +78,8 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
           />
         )}
       />
-      <Controller<EditTransparencyDto, 'dateTransparence'>
-        name="dateTransparence"
+      <Controller
+        name="date"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
@@ -87,12 +92,12 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
               onChange,
               ...field
             }}
-            state={errors.dateTransparence ? 'error' : 'default'}
-            stateRelatedMessage={errors.dateTransparence?.message}
+            state={errors.date ? 'error' : 'default'}
+            stateRelatedMessage={errors.date?.message}
           />
         )}
       />
-      <Controller<EditTransparencyDto, 'formation'>
+      <Controller
         name="formation"
         control={control}
         render={({ field: { value, onChange } }) => (
@@ -114,8 +119,8 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
           </Select>
         )}
       />
-      <Controller<EditTransparencyDto, 'dateClotureDelaiObservation'>
-        name="dateClotureDelaiObservation"
+      <Controller
+        name="observationsClosingDate"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
@@ -128,13 +133,13 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
               onChange,
               ...field
             }}
-            state={errors.dateClotureDelaiObservation ? 'error' : 'default'}
-            stateRelatedMessage={errors.dateClotureDelaiObservation?.message}
+            state={errors.observationsClosingDate ? 'error' : 'default'}
+            stateRelatedMessage={errors.observationsClosingDate?.message}
           />
         )}
       />
-      <Controller<EditTransparencyDto, 'dateEcheance'>
-        name="dateEcheance"
+      <Controller
+        name="dueDate"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
@@ -143,17 +148,17 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
             id="date-echeance"
             nativeInputProps={{
               type: 'date',
-              value,
+              value: value ?? undefined,
               onChange,
               ...field
             }}
-            state={errors.dateEcheance ? 'error' : 'default'}
-            stateRelatedMessage={errors.dateEcheance?.message}
+            state={errors.dueDate ? 'error' : 'default'}
+            stateRelatedMessage={errors.dueDate?.message}
           />
         )}
       />
-      <Controller<EditTransparencyDto, 'datePriseDePosteCible'>
-        name="datePriseDePosteCible"
+      <Controller
+        name="positionStartDate"
         control={control}
         render={({ field: { value, onChange, ...field } }) => (
           <Input
@@ -162,12 +167,12 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
             id="date-prise-de-poste"
             nativeInputProps={{
               type: 'date',
-              value,
+              value: value ?? undefined,
               onChange,
               ...field
             }}
-            state={errors.datePriseDePosteCible ? 'error' : 'default'}
-            stateRelatedMessage={errors.datePriseDePosteCible?.message}
+            state={errors.positionStartDate ? 'error' : 'default'}
+            stateRelatedMessage={errors.positionStartDate?.message}
           />
         )}
       />

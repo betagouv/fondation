@@ -7,12 +7,16 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useDetailedGdsSession } from '../../../../react-query/queries/members/sessions.queries';
 import { HeaderReportList } from './HeaderReportList';
 import { ReportsDnVueGenerale } from './ReportsDnVueGenerale';
+import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export const ReportListPage: FC = () => {
   const routeParams = useParams();
-  const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedGdsSession(
-    routeParams.sessionId
-  );
+  const { user } = useUser();
+
+  const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedGdsSession({
+    sessionId: routeParams.sessionId,
+    userId: user?.id
+  });
 
   const [searchParams, setSearchParams] = useSearchParams({
     focus: 'affectations' as 'general' | 'affectations'
@@ -60,10 +64,7 @@ export const ReportListPage: FC = () => {
           {VueGeneraleSwitch}
         </ReportsDnVueGenerale>
       ) : (
-        <ReportList
-          reports={detailedGdsSession.data.reports}
-          sessionImportId={detailedGdsSession.data.session.sessionImportId}
-        >
+        <ReportList reports={detailedGdsSession.data.reports} sessionId={detailedGdsSession.data.session.id}>
           {VueGeneraleSwitch}
         </ReportList>
       )}

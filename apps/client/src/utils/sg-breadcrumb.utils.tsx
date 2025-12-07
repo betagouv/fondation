@@ -4,7 +4,7 @@ import type { NavigateFunction } from 'react-router-dom';
 
 export const getSgBreadCrumb = (path: RoutePathSecretariat, navigate: NavigateFunction): BreadcrumbVM => {
   const SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES = {
-    href: ROUTE_PATHS.SG.DASHBOARD,
+    to: ROUTE_PATHS.SG.DASHBOARD,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       navigate(ROUTE_PATHS.SG.DASHBOARD);

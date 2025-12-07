@@ -1,32 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { DateOnlyJson, Magistrat, Role, TypeDeSaisine } from 'shared-models';
+import { DateOnlyJson, Role, TypeDeSaisine } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 
 @Injectable()
-export class DetailSessionQuery {
+export class InternalDetailMemberSessionQuery {
   constructor(
     private readonly prisma: PrismaService,
     private versionFinder: AffectationVersionFinder,
   ) {}
 
   async handle(query: {
-    userId: string;
+    user: { id: string; role: Role };
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
-  }): Promise<DetailedSessionResponse> {
+  }): Promise<DetailedMemberSessionDto> {
     const session = await this.prisma.$transaction(async (tx) => {
-      const { role } = assertIsDefined(
-        await tx.user.findFirst({
-          where: { id: query.userId },
-          select: { role: true },
-        }),
-      );
-
       const version = await this.versionFinder.lastPublished({
         sessionId: query.sessionId,
         tx,
@@ -34,13 +28,7 @@ export class DetailSessionQuery {
 
       if (!version) throw new NotFoundException();
 
-      const formation =
-        role === Role.MEMBRE_DU_PARQUET
-          ? Magistrat.Formation.PARQUET
-          : role === Role.MEMBRE_DU_SIEGE
-            ? Magistrat.Formation.SIEGE
-            : undefined;
-
+      const formation = roleToFormation(query.user.role);
       return tx.session.findFirst({
         where: {
           formation,
@@ -57,7 +45,7 @@ export class DetailSessionQuery {
           dossierDeNominations: {
             where: {
               reporterIds: {
-                some: { versionId: version.id, userId: query.userId },
+                some: { versionId: version.id, userId: query.user.id },
               },
             },
             select: {
@@ -76,7 +64,7 @@ export class DetailSessionQuery {
               reports: {
                 take: 1,
                 select: { id: true, state: true },
-                where: { reporterId: query.userId },
+                where: { reporterId: query.user.id },
               },
             },
           },
@@ -115,7 +103,7 @@ export class DetailSessionQuery {
   }
 }
 
-export type DetailedSessionResponse = {
+export type DetailedMemberSessionDto = {
   data: {
     session: {
       id: string;

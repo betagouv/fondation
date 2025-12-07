@@ -1,101 +1,55 @@
 import { useQuery } from '@tanstack/react-query';
-import { ReportFileUsage, type ReportsContextRestContract } from 'shared-models';
 import { apiFetch } from '../../utils/api-fetch.utils';
-import { extractScreenshotFileIds, refreshSignedUrlsInComment } from '../../utils/refresh-signed-urls.utils';
-import { useGetSignedUrl } from './get-signed-url.query';
-import type { ReportSM } from './list-reports.queries';
+import type { DetailedReportDto } from './list-reports.queries';
 
-type Endpoint = ReportsContextRestContract['endpoints']['retrieveReport'];
-
-type GetReportByIdResponse = Endpoint['response'];
-
-const getReportById = async (id: string) => {
-  const { method }: Partial<Endpoint> = {
-    method: 'GET'
-  };
-
-  return await apiFetch<GetReportByIdResponse>(`/reports/${id}`, {
-    method
-  });
-};
-
-export const useReportById = (
-  id: string
-): {
-  report: ReportSM | null;
-  isPending: boolean;
-  error: Error | null;
-  refetch: () => void;
-} => {
-  const { data, isPending, error, refetch } = useQuery({
+export const useReportById = (id: string) =>
+  useQuery({
     queryKey: ['report', id],
-    queryFn: () => getReportById(id)
+    queryFn: async () => {
+      const report = await apiFetch<DetailedReportDto>(`/reports/v2/${id}`, {
+        method: 'GET'
+      });
+
+      if (!report) return null;
+
+      const updatedComment =
+        report.comment && report.screenshots.length
+          ? updateCommentsScreenshot(report.comment, report.screenshots)
+          : report.comment || null;
+
+      return { ...report, comment: updatedComment } satisfies DetailedReportDto;
+    }
   });
 
-  // Récupérer les URLs signées pour les screenshots si nécessaire
-  const contentScreenshots =
-    data?.attachedFiles
-      ?.filter((file) => file.usage === ReportFileUsage.EMBEDDED_SCREENSHOT)
-      .reduce(
-        (acc, file) => ({
-          files: [
-            ...acc.files,
-            {
-              fileId: file.fileId,
-              name: file.name,
-              signedUrl: null
-            }
-          ]
-        }),
-        { files: [] as Array<{ fileId: string | null; name: string; signedUrl: string | null }> }
-      ) ?? null;
+/** more readable version of {@link refreshSignedUrlsInComment}  */
+function updateCommentsScreenshot(
+  html: string,
+  screenshots: readonly { fileId: string; name: string; url: string }[]
+): string {
+  const byId = new Map(screenshots.map((s) => [s.fileId, s]));
+  const byName = new Map(screenshots.map((s) => [s.name, s]));
 
-  const screenshotFileIds = contentScreenshots?.files
-    ? extractScreenshotFileIds(contentScreenshots.files)
-    : [];
+  const $div = document.createElement('div');
+  $div.innerHTML = html;
 
-  // Récupérer les IDs des fichiers attachés
-  const attachmentFileIds =
-    data?.attachedFiles
-      ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
-      .map((file) => file.fileId)
-      .filter((id): id is string => id !== null) ?? [];
+  for (const $img of $div.querySelectorAll('img')) {
+    let file: { fileId: string; name: string; url: string } | undefined;
 
-  // Combiner tous les IDs de fichiers pour lesquels on a besoin d'URLs signées
-  const allFileIds = [...screenshotFileIds, ...attachmentFileIds];
+    if ($img.dataset.fileId) {
+      file = byId.get($img.dataset.fileId);
+    }
 
-  const { data: signedUrlsData } = useGetSignedUrl(allFileIds);
+    if (!file && $img.dataset.fileName) {
+      file = byName.get($img.dataset.fileName);
+    }
 
-  if (!data) {
-    return { report: null, isPending, error, refetch };
+    if (file) {
+      $img.dataset.fileId = file.fileId;
+      $img.dataset.fileName = file.fileId;
+      $img.src = file.url;
+      continue;
+    }
   }
 
-  const finalContentScreenshots = contentScreenshots ?? null;
-
-  const attachedFiles =
-    data?.attachedFiles
-      ?.filter((file) => file.usage === ReportFileUsage.ATTACHMENT)
-      .map((file) => {
-        const signedUrl = signedUrlsData?.find((urlData) => urlData.id === file.fileId)?.signedUrl ?? null;
-        return {
-          fileId: file.fileId,
-          name: file.name,
-          signedUrl
-        };
-      }) ?? null;
-
-  // Rafraîchir les URLs signées dans le commentaire si nécessaire
-  let updatedComment = data.comment;
-  if (data.comment && finalContentScreenshots?.files && signedUrlsData) {
-    updatedComment = refreshSignedUrlsInComment(data.comment, finalContentScreenshots.files, signedUrlsData);
-  }
-
-  const report: ReportSM = {
-    ...data,
-    comment: updatedComment,
-    contentScreenshots: finalContentScreenshots,
-    attachedFiles
-  };
-
-  return { report, isPending, error, refetch };
-};
+  return $div.innerHTML;
+}

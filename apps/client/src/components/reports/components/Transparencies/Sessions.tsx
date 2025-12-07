@@ -2,15 +2,17 @@ import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
-import { useValidateSessionFromCookie } from '../../../../react-query/queries/validate-session-from-cookie.query';
+import { useUser } from '../../../../react-query/queries/use-user.queries';
 import { useListSessionsOfTypeGardeDesSceaux } from '../../../../react-query/queries/members/sessions.queries';
 
 import { SessionCsmList } from './SessionCsmList';
 import { SessionGardeDesSceauxList } from './SessionGardeDesSceauxList';
 
 const Sessions = () => {
-  const { user } = useValidateSessionFromCookie();
-  const { data: sessionsList, isPending: areSessionsPending } = useListSessionsOfTypeGardeDesSceaux();
+  const { user } = useUser();
+  const { data: sessionsList, isPending: areSessionsPending } = useListSessionsOfTypeGardeDesSceaux({
+    userId: user?.id
+  });
 
   const civility = user?.civility;
   if (areSessionsPending) {

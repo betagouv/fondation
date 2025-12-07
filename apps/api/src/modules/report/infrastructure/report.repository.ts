@@ -8,6 +8,8 @@ import {
   Report,
   ReportFilesAttached,
   ReportFilesDetached,
+  ReportRuleValidationUpdated,
+  ReportUpdated,
 } from '../domain/report';
 import z from 'zod';
 import { ReportFileUsage } from 'shared-models';
@@ -22,7 +24,7 @@ export class ReportRepository {
   async find(props: { id: string; reporterId: string }): Promise<Report> {
     const result = await this.prisma.$transaction(async (tx) => {
       const report = await tx.report.findUnique({
-        where: { id: props.id, reporterId: props.reporterId },
+        where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
         select: { id: true, sessionId: true, nominationFileId: true },
       });
       if (!report) return null;
@@ -76,6 +78,10 @@ export class ReportRepository {
         await this.persistReportFilesAttached(message);
       } else if (message instanceof ReportFilesDetached) {
         await this.persistReportFilesDetached(message);
+      } else if (message instanceof ReportUpdated) {
+        await this.persistReportUpdated(message);
+      } else if (message instanceof ReportRuleValidationUpdated) {
+        await this.persistReportRuleValidationUpdated(message);
       } else {
         assertNever(message);
       }
@@ -151,6 +157,29 @@ export class ReportRepository {
       });
 
       // #endregion LEGACY BEHAVIOR
+    });
+  }
+
+  private async persistReportUpdated(message: ReportUpdated) {
+    return this.prisma.report.update({
+      where: { id: message.id },
+      data: { state: message.data.status, comment: message.data.comment },
+    });
+  }
+
+  private async persistReportRuleValidationUpdated(
+    message: ReportRuleValidationUpdated,
+  ) {
+    return this.prisma.report.update({
+      where: { id: message.id },
+      data: {
+        reportRules: {
+          update: {
+            where: { id: message.ruleId },
+            data: { validated: message.isValidated },
+          },
+        },
+      },
     });
   }
 }

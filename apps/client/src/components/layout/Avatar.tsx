@@ -1,8 +1,8 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RoleLabels, type IdentityAndAccessRestContract } from 'shared-models';
-import { useValidateSessionFromCookie } from '../../react-query/queries/validate-session-from-cookie.query';
+import { useUser } from '../../react-query/queries/use-user.queries';
 import { apiFetch } from '../../utils/api-fetch.utils';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
@@ -19,16 +19,16 @@ const logoutUser = async () => {
 };
 
 export const Avatar: FC = () => {
-  const { user, isError, invalidateSession } = useValidateSessionFromCookie();
+  const queryClient = useQueryClient();
+  const { user, isError } = useUser();
   const firstLetters = user?.firstLetters as string;
 
   const navigate = useNavigate();
   const { mutateAsync } = useMutation({
     mutationFn: logoutUser,
-    onSuccess: () => {
-      // D'abord invalider le cache, puis rediriger
-      invalidateSession();
-      navigate(ROUTE_PATHS.LOGIN);
+    onSuccess: async () => {
+      queryClient.removeQueries({ queryKey: ['introspectSession'] });
+      await navigate(ROUTE_PATHS.LOGIN);
     }
   });
 

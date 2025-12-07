@@ -1,26 +1,46 @@
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import clsx from 'clsx';
-import type { EditTransparencyDto, TransparenceSnapshot } from 'shared-models';
-
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import clsx from 'clsx';
 import { useState } from 'react';
-import { useEditTransparency } from '../../../../../../react-query/mutations/sg/edit-transparency.mutation';
-import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
-import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 
-export type TableauDeBordResumeProps = TransparenceSnapshot;
-export const TableauDeBordResume = (transparence: TableauDeBordResumeProps) => {
+import type { Magistrat } from 'shared-models';
+
+import {
+  updateNominationSessionMutation,
+  type DetailedNominationSession
+} from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
+import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
+
+export const TableauDeBordResume = (transparence: DetailedNominationSession) => {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
   const toggleEdit = () => {
     setIsEditing((prev) => !prev);
   };
 
-  const { mutateAsync, isSuccess, isError } = useEditTransparency();
+  const {
+    isSuccess,
+    isError,
+    mutateAsync: updateNominationSessionAsync
+  } = useMutation({
+    mutationFn: updateNominationSessionMutation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['detail-nomination-session', transparence.id] })
+  });
 
-  const onSubmit = async (data: EditTransparencyDto) => {
-    await mutateAsync({ id: transparence.id, transparency: data });
+  const onSubmit = async (data: {
+    name: string;
+    formation: Magistrat.Formation;
+    date: string;
+    observationsClosingDate: string;
+    dueDate: string | null;
+    positionStartDate: string | null;
+  }) => {
+    await updateNominationSessionAsync({ sessionId: transparence.id, data });
     toggleEdit();
   };
 

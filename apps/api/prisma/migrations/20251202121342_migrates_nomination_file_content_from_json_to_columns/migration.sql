@@ -16,13 +16,11 @@ ADD COLUMN observers TEXT[] NOT NULL DEFAULT '{}'::TEXT[],
 ADD COLUMN career_information TEXT,
 ALTER COLUMN "content" SET DEFAULT '{}'::JSONB;
 
-CREATE FUNCTION DATE_ONLY_TO_SQL_DATE(date_only JSONB) RETURNS DATE AS $$
+CREATE OR REPLACE FUNCTION DATE_ONLY_TO_SQL_DATE(date_only JSONB) RETURNS DATE AS $$
     BEGIN
-        IF date_only = 'null'::JSONB THEN
-            RETURN NULL;
-        END IF;
-
-        RETURN (
+        /* check that date_only contains year, month AND day as top level key */
+        IF date_only ?& '{year,month,day}'::TEXT[] THEN
+          RETURN (
             ARRAY_TO_STRING(
                 ARRAY[
                     date_only->>'year',
@@ -31,7 +29,10 @@ CREATE FUNCTION DATE_ONLY_TO_SQL_DATE(date_only JSONB) RETURNS DATE AS $$
                 ],
                 '-'
             )
-        )::DATE;
+          )::DATE;
+        END IF;
+
+        RETURN NULL;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -62,7 +63,10 @@ UPDATE nominations_context.dossier_de_nomination SET
   birth_date = DATE_ONLY_TO_SQL_DATE("content" -> 'birthDate'),
   last_position_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePriseDeFonctionPosteActuel'),
   last_ranking_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePassageAuGrade')
-WHERE (NOT "content" ? 'version') OR "content" ->> 'version' = '1';
+WHERE (
+  "content" != '{}'::jsonb
+  AND ((NOT "content" ? 'version') OR "content" ->> 'version' = '1')
+);
 
 ALTER TABLE nominations_context.dossier_de_nomination
 ALTER COLUMN "name" SET NOT NULL;
@@ -92,6 +96,38 @@ WHERE "date" IS NULL OR observations_closing_date IS NULL;
 ALTER TABLE nominations_context."session"
 ALTER COLUMN "date" SET NOT NULL,
 ALTER COLUMN observations_closing_date SET NOT NULL;
+
+-- CreateTable
+CREATE TABLE "nominations_context"."session_attachment" (
+    "session_id" UUID NOT NULL,
+    "file_id" UUID NOT NULL,
+
+    CONSTRAINT "session_attachment_pkey" PRIMARY KEY ("session_id","file_id")
+);
+
+INSERT INTO nominations_context.session_attachment (session_id, file_id)
+SELECT s.id::UUID AS session_id, tf.file_id::UUID AS file_id
+FROM nominations_context.session s
+  INNER JOIN data_administration_context.transparence_files tf ON tf.transparence_id = s.session_import_id::UUID
+  INNER JOIN files_context.files f ON f.id = tf.file_id;
+
+-- AddForeignKey
+ALTER TABLE "nominations_context"."session_attachment"
+ADD CONSTRAINT "session_attachment_session_id_fkey"
+FOREIGN KEY ("session_id") REFERENCES "nominations_context"."session"("id")
+ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "nominations_context"."session_attachment" 
+ADD CONSTRAINT "session_attachment_file_id_fkey"
+FOREIGN KEY ("file_id") REFERENCES "files_context"."files"("id") 
+ON DELETE CASCADE ON UPDATE NO ACTION;
+
+ALTER TABLE reports_context.reports
+ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS reports_session_id_is_deleted_idx 
+ON reports_context.reports (session_id, is_deleted);
 
 DROP FUNCTION IF EXISTS date_only_to_sql_date(date_only JSONB);
 

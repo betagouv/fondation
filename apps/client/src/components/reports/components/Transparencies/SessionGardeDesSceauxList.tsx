@@ -49,7 +49,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                 <li key={session.label}>
                   <Tag
                     linkProps={{
-                      href: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
+                      to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
                     }}
                   >
                     {session.label}
@@ -70,7 +70,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                     {/* TODO: grey */}
                     <Tag
                       linkProps={{
-                        href: getDetailSessionGdsPath({ sessionId: session.id, focus: 'general' })
+                        to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'general' })
                       }}
                     >
                       {session.label}
