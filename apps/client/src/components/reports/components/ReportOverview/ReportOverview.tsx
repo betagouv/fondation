@@ -123,7 +123,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
 
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
   const onUpdateState = (status: NominationFile.ReportState) =>
-    updateReport({ reportId: id, data: { status } });
+    updateReport({ reportId: id, data: { status } }, onSuccess);
 
   const onUpdateReportRule =
     (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => {
@@ -197,12 +197,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             dureeDuPoste={retrievedReport.dureeDuPoste}
           />
           <Biography biography={formattedBiography} />
-          <ReportEditor
-            comment={retrievedReport.comment}
-            onUpdate={onUpdateContent}
-            reportId={id}
-            screenshotFileIds={retrievedReport.screenshots.map(({ fileId }) => fileId)}
-          />
+          <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
           <Observers observers={formattedObservers} />
           <ReportRules
             rulesChecked={rulesChecked}

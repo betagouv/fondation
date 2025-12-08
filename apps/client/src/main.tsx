@@ -1,7 +1,7 @@
 import './index.css';
 
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
-import { MutationCache, Query, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Link } from 'react-router-dom';
@@ -12,8 +12,8 @@ import { HttpException } from './utils/api-fetch.utils';
 startReactDsfr({ defaultColorScheme: 'light', Link });
 
 const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: (e, q) => clearQueryClient(e, q) }),
-  mutationCache: new MutationCache({ onError: (e) => clearQueryClient(e) }),
+  queryCache: new QueryCache({ onError: clearQueryClient }),
+  mutationCache: new MutationCache({ onError: clearQueryClient }),
   defaultOptions: {
     mutations: {
       retry: (failureCount, error) =>
@@ -29,19 +29,10 @@ const queryClient = new QueryClient({
   }
 });
 
-async function clearQueryClient(error: Error, query?: Query<unknown, unknown>): Promise<void> {
+async function clearQueryClient(error: Error): Promise<void> {
   console.error(error);
   if (error instanceof HttpException && error.statusCode === 401) {
-    // queryClient.removeQueries({
-    //   predicate: ({ queryKey }) => queryKey[0] !== 'introspectSession'
-    // });
-
-    if (query?.queryKey[0] != 'introspectSession') {
-      await queryClient.invalidateQueries({
-        stale: true,
-        queryKey: ['introspectSession']
-      });
-    }
+    queryClient.clear();
   }
 }
 
@@ -57,4 +48,9 @@ declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
     Link: typeof Link;
   }
+}
+
+if (import.meta.env.DEV) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).__TANSTACK_QUERY_CLIENT__ = queryClient;
 }

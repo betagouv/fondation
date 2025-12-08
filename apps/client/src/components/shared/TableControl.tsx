@@ -68,7 +68,11 @@ export const TableControl: FC<TableControlProps> = ({
         defaultPage={currentPage}
         // TODO REPLACE THIS LOGIC WITH LINK PROPS LOGIC
         getPageLinkProps={(pageNumber) => ({
-          onClick: () => setCurrentPage(pageNumber)
+          onClick: () => setCurrentPage(pageNumber),
+
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          to: undefined
         })}
         showFirstLast
       />

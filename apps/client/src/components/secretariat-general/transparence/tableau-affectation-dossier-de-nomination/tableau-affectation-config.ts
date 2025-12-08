@@ -2,7 +2,6 @@ import type { ReactNode, RefObject } from 'react';
 import React from 'react';
 import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
@@ -34,7 +33,7 @@ export const dataRowsDn = (options: {
   formation: Magistrat.Formation;
 }): ReactNode[][] => {
   return options.data.map((dossier) => {
-    const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
+    const content = dossier.content;
     const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
     const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
     const rapporteursNames = dossier.reporters

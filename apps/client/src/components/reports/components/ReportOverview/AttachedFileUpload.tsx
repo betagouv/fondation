@@ -42,7 +42,7 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
           multiple
         />
 
-        {attachments.length && (
+        {Boolean(attachments.length) && (
           <AttachedFilesList reportId={reportId} attachments={attachments} onDelete={onAttachedFileDeleted} />
         )}
       </div>

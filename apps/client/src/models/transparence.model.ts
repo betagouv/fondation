@@ -1,4 +1,4 @@
-import { Magistrat, type Month } from 'shared-models';
+import { Magistrat } from 'shared-models';
 import type { DateOnlyStoreModel } from './date-only.model';
 
 export const getTransparenceCompositeId = (
@@ -27,6 +27,6 @@ export const parseTransparenceCompositeId = (
   return {
     name,
     formation,
-    date: { year, month: month as Month, day }
+    date: { year, month, day }
   };
 };

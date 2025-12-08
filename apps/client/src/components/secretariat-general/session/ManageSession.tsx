@@ -65,7 +65,7 @@ export const ManageSession = () => {
     segments: [
       {
         label: 'Secretariat général',
-        href: ROUTE_PATHS.SG.DASHBOARD,
+        to: ROUTE_PATHS.SG.DASHBOARD,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(ROUTE_PATHS.SG.DASHBOARD);

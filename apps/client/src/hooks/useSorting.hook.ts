@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import type { Month } from 'shared-models';
 import { DateOnly } from '../models/date-only.model';
 
 export interface SortingConfig<T> {
@@ -59,7 +58,7 @@ export function useSorting<T>(data: T[], config: SortingConfig<T> = {}): Sorting
       ) {
         const dateOnly = new DateOnly(
           fieldValue.year as number,
-          fieldValue.month as Month,
+          fieldValue.month as number,
           fieldValue.day as number
         );
         return dateOnly.toFormattedString();
