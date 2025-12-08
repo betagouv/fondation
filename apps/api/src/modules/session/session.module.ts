@@ -6,7 +6,7 @@ import { AffectationVersionFinder } from './infrastructure/finders/affectation-v
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailSessionQuery } from './infrastructure/queries/detail-session.query';
-import { GetCommentAccessQuery } from './infrastructure/queries/get-comment-access.query';
+import { GetNominationFileWithCommentQuery } from './infrastructure/queries/get-nomination-file-with-comment.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
 import { ListSessionOfTypeGardeDesSceauxQuery } from './infrastructure/queries/list-sessions-of-type-garde-des-sceaux.query';
 import { NominationSessionRepository } from './infrastructure/repositories/nomination-session.repository';
@@ -21,7 +21,7 @@ import { SessionService } from './infrastructure/sessions.service';
     AffectationVersionFinder,
     DetailNominationSessionAffectationVersionQuery,
     DetailSessionQuery,
-    GetCommentAccessQuery,
+    GetNominationFileWithCommentQuery,
     ListNominationFilesQuery,
     ListSessionOfTypeGardeDesSceauxQuery,
     NominationSessionRepository,

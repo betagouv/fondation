@@ -165,7 +165,7 @@ describe('NominationSession', () => {
     const session = NominationSession.from({
       id: 'session-id',
       version: null,
-      formationMemberIds: new Set<string>(),
+      formationMemberIds: new Set(['user-1', 'user-2']),
     });
 
     session.grantCommentAccess({
@@ -203,5 +203,20 @@ describe('NominationSession', () => {
         [],
       ),
     ]);
+  });
+
+  it('should throw when trying to grant comment access to non formation members', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: null,
+      formationMemberIds: new Set(['user-1']),
+    });
+
+    expect(() =>
+      session.grantCommentAccess({
+        nominationFileId: 'nomination-file-id-1',
+        userIds: ['user-1', 'user-2'],
+      }),
+    ).toThrow(NonFormationMemberDefinedAsReporter);
   });
 });

@@ -7,7 +7,7 @@ import { type FoundAffectationVersion } from './finders/affectation-version.find
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import { DetailSessionQuery } from './queries/detail-session.query';
-import { GetCommentAccessQuery } from './queries/get-comment-access.query';
+import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
 import {
   ListNominationFilesQuery,
   type NominationFileAffectationItem,
@@ -22,7 +22,7 @@ export class SessionService {
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailSessionQuery: DetailSessionQuery,
-    private readonly getCommentAccessQuery: GetCommentAccessQuery,
+    private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listSessionsOfTypeGardeDesSceauxQuery: ListSessionOfTypeGardeDesSceauxQuery,
     private readonly nominationSessionRepository: NominationSessionRepository,
@@ -148,8 +148,8 @@ export class SessionService {
   getCommentAccess(query: {
     sessionId: string;
     nominationFileId: string;
-  }): Promise<{ userIds: string[] }> {
-    return this.getCommentAccessQuery.handle(query);
+  }): Promise<{ comment: string | null; userIds: string[] }> {
+    return this.getNominationFileWithCommentQuery.handle(query);
   }
 
   async updateCommentAccess(command: {
