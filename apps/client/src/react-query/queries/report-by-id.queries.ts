@@ -14,15 +14,14 @@ export const useReportById = (id: string) =>
 
       const updatedComment =
         report.comment && report.screenshots.length
-          ? updateCommentsScreenshot(report.comment, report.screenshots)
+          ? updateCommentScreenshots(report.comment, report.screenshots)
           : report.comment || null;
 
       return { ...report, comment: updatedComment } satisfies DetailedReportDto;
     }
   });
 
-/** more readable version of {@link refreshSignedUrlsInComment}  */
-function updateCommentsScreenshot(
+function updateCommentScreenshots(
   html: string,
   screenshots: readonly { fileId: string; name: string; url: string }[]
 ): string {
@@ -45,7 +44,7 @@ function updateCommentsScreenshot(
 
     if (file) {
       $img.dataset.fileId = file.fileId;
-      $img.dataset.fileName = file.fileId;
+      $img.dataset.fileName = file.name;
       $img.src = file.url;
       continue;
     }

@@ -33,6 +33,7 @@ async function clearQueryClient(error: Error): Promise<void> {
   console.error(error);
   if (error instanceof HttpException && error.statusCode === 401) {
     queryClient.clear();
+    await queryClient.invalidateQueries({ queryKey: ['introspectSession'] });
   }
 }
 
