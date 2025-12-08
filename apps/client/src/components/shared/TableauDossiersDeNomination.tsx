@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
 import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
-import { PrioriteEnum } from 'shared-models/models/priorite.enum';
+
 import {
   AffectationProvider,
   useAffectation,

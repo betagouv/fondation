@@ -145,7 +145,7 @@ export class SessionController {
   getCommentAccess(
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
-  ): Promise<{ userIds: string[] }> {
+  ): Promise<{ comment: string | null; userIds: string[] }> {
     return this.sessions.getCommentAccess({
       sessionId,
       nominationFileId,

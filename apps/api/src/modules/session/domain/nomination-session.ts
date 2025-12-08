@@ -158,6 +158,14 @@ export class NominationSession {
     nominationFileId: string;
     userIds: readonly string[];
   }) {
+    const allUsersAreFormationMembers = command.userIds.every((userId) =>
+      this.formationMemberIds.has(userId),
+    );
+
+    if (!allUsersAreFormationMembers) {
+      throw new NonFormationMemberDefinedAsReporter();
+    }
+
     this.#messages.push(
       new NominationSessionFileCommentAccessGranted(
         this.id,
