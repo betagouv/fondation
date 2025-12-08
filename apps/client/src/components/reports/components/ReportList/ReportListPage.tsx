@@ -57,10 +57,7 @@ export const ReportListPage: FC = () => {
       />
 
       {isVueGenerale ? (
-        <ReportsDnVueGenerale
-          sessionImportId={detailedGdsSession.data.session.sessionImportId}
-          formation={detailedGdsSession.data.session.formation}
-        >
+        <ReportsDnVueGenerale formation={detailedGdsSession.data.session.formation}>
           {VueGeneraleSwitch}
         </ReportsDnVueGenerale>
       ) : (

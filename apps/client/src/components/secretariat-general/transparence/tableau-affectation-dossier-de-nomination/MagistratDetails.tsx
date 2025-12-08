@@ -1,10 +1,4 @@
 import type { FC } from 'react';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { ReportVM } from '../../../../VM/ReportVM';
-import { AvatarInitials } from '../../../layout/AvatarInitials';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { ReportVM } from '../../../../VM/ReportVM';
-import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
   formatBiography,
   formatBirthDate,
@@ -15,6 +9,9 @@ import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { TextValue } from '../../../shared/TextValue';
 import { MagistratComment } from './MagistratComment';
 import type { Magistrat } from 'shared-models';
+import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import { AvatarInitials } from '../../../layout/AvatarInitials';
+import { ReportVM } from '../../../../VM/ReportVM';
 
 export type MagistratDetailsProps = {
   formation: Magistrat.Formation;

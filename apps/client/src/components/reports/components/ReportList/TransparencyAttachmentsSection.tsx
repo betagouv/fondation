@@ -1,25 +1,14 @@
-import { useGetTransparencyAttachmentsQuery } from '../../../../react-query/queries/get-transparency-attachments.query';
-import { TransparencyFilesList } from './TransparencyFilesList';
+import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
 
 type TransparencyAttachmentsSectionProps = {
-  sessionImportId: string;
+  sessionId: string;
 };
 
-export const TransparencyAttachmentsSection = ({ sessionImportId }: TransparencyAttachmentsSectionProps) => {
-  const {
-    data: attachments,
-    isLoading: isAttachmentsLoading,
-    isError: isAttachmentsError
-  } = useGetTransparencyAttachmentsQuery(sessionImportId);
-
-  if (isAttachmentsLoading || isAttachmentsError || !attachments || attachments.length === 0) {
-    return null;
-  }
-
+export const TransparencyAttachmentsSection = ({ sessionId }: TransparencyAttachmentsSectionProps) => {
   return (
     <div>
       <h2>Pièces jointes</h2>
-      <TransparencyFilesList files={attachments} />
+      <NominationSessionAttachmentList sessionId={sessionId} />
     </div>
   );
 };

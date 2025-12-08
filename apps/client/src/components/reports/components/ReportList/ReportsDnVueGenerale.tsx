@@ -6,11 +6,10 @@ import { useSessionNominationFilesQuery } from '../../../../react-query/mutation
 import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
 
 type ReportsDnVueGeneraleProps = React.PropsWithChildren<{
-  sessionImportId: string;
   formation: Magistrat.Formation;
 }>;
 
-export const ReportsDnVueGenerale = ({ sessionImportId, formation, children }: ReportsDnVueGeneraleProps) => {
+export const ReportsDnVueGenerale = ({ formation, children }: ReportsDnVueGeneraleProps) => {
   const { sessionId } = useParams();
   const {
     data,
@@ -33,7 +32,7 @@ export const ReportsDnVueGenerale = ({ sessionImportId, formation, children }: R
       <TableauDossiersDeNomination dossiersDeNomination={data?.items || []} formation={formation}>
         {children}
       </TableauDossiersDeNomination>
-      <TransparencyAttachmentsSection sessionImportId={sessionImportId} />
+      <TransparencyAttachmentsSection sessionId={sessionId as string} />
     </div>
   );
 };
