@@ -53,7 +53,9 @@ export const ReportListPage: FC = () => {
       />
 
       {isVueGenerale ? (
-        <ReportsDnVueGenerale>{VueGeneraleSwitch}</ReportsDnVueGenerale>
+        <ReportsDnVueGenerale sessionImportId={detailedGdsSession.data.session.sessionImportId}>
+          {VueGeneraleSwitch}
+        </ReportsDnVueGenerale>
       ) : (
         <ReportList
           reports={detailedGdsSession.data.reports}

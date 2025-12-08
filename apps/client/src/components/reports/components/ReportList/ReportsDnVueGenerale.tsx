@@ -2,8 +2,13 @@ import { useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { useSessionNominationFilesQuery } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
 
-export const ReportsDnVueGenerale = (props: React.PropsWithChildren) => {
+type ReportsDnVueGeneraleProps = React.PropsWithChildren<{
+  sessionImportId: string;
+}>;
+
+export const ReportsDnVueGenerale = ({ sessionImportId, children }: ReportsDnVueGeneraleProps) => {
   const { sessionId } = useParams();
   const {
     data,
@@ -24,8 +29,9 @@ export const ReportsDnVueGenerale = (props: React.PropsWithChildren) => {
   return (
     <div className="my-4 flex flex-col gap-4">
       <TableauDossiersDeNomination dossiersDeNomination={data?.items || []}>
-        {props.children}
+        {children}
       </TableauDossiersDeNomination>
+      <TransparencyAttachmentsSection sessionImportId={sessionImportId} />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
+import { PasswordInput } from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -58,12 +59,11 @@ export const Login = () => {
             spellCheck: false
           }}
         />
-        <Input
+        <PasswordInput
           label="Mot de passe"
-          id="password"
           nativeInputProps={{
+            id: 'password',
             name: 'password',
-            type: 'password',
             autoCorrect: 'off',
             autoCapitalize: 'off',
             autoComplete: 'current-password',
