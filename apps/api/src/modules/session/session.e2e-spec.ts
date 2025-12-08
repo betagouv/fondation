@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';

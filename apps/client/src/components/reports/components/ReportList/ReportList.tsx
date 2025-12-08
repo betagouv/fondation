@@ -4,7 +4,6 @@ import { useListNominationSessionAttachmentsQuery } from '../../../../react-quer
 
 import { ReportsTable } from './ReportsTable';
 import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
-import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
 
 export function ReportList(
   props: React.PropsWithChildren<{ sessionId: string; reports: DetailedSessionReport[] }>
