@@ -39,7 +39,12 @@ $$ LANGUAGE plpgsql;
 UPDATE nominations_context.dossier_de_nomination SET
   biography = ("content" ->> 'historique'),
   current_position = ("content" ->> 'posteActuel'),
-  observers = ARRAY(SELECT JSONB_ARRAY_ELEMENTS_TEXT("content" -> 'observants')),
+  observers = (
+    CASE WHEN jsonb_typeof("content" -> 'observants') = 'array'
+      THEN ARRAY(SELECT JSONB_ARRAY_ELEMENTS_TEXT("content" -> 'observants'))
+      ELSE '{}'::TEXT[]
+    END
+  ),
   grade = ("content" ->> 'grade'),
   "name" = ("content" ->> 'nomMagistrat'),
   number = ("content" ->> 'numeroDeDossier')::INT,
@@ -54,7 +59,12 @@ WHERE "content" ->> 'version' = '2';
 UPDATE nominations_context.dossier_de_nomination SET
   biography = ("content" ->> 'biography'),
   current_position = ("content" ->> 'currentPosition'),
-  observers = ARRAY(SELECT JSONB_ARRAY_ELEMENTS_TEXT("content" -> 'observers')),
+  observers = (
+    CASE WHEN jsonb_typeof("content" -> 'observers') = 'array'
+      THEN ARRAY(SELECT JSONB_ARRAY_ELEMENTS_TEXT("content" -> 'observants'))
+      ELSE '{}'::TEXT[]
+    END
+  ),
   grade = ("content" ->> 'grade'),
   "name" = ("content" ->> 'name'),
   number = ("content" ->> 'folderNumber')::INT,
