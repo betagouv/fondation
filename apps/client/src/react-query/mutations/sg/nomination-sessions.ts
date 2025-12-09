@@ -1,5 +1,5 @@
 import type { DateOnlyJson, Magistrat, TypeDeSaisine } from 'shared-models';
-import { apiFetch } from '../../../utils/api-fetch.utils';
+import { apiFetch, HttpException } from '../../../utils/api-fetch.utils';
 import { useQuery } from '@tanstack/react-query';
 
 export function createNominationSessionFromLodam(input: {
@@ -17,7 +17,16 @@ export function createNominationSessionFromLodam(input: {
   formData.set('file', file);
   formData.set('form', new Blob([JSON.stringify(form)], { type: 'application/json' }));
 
-  return apiFetch<{ id: string }>(`/sessions/v2/lodam`, { body: formData, method: 'POST' });
+  return apiFetch<{ id: string }>(`/sessions/v2/lodam`, { body: formData, method: 'POST' }).catch(
+    async (err) => {
+      if (err instanceof HttpException && err.statusCode === 400) {
+        const { validationErrors } = await err.response.json();
+        throw Object.assign(new Error(), { validationErrors });
+      }
+
+      throw err;
+    }
+  );
 }
 
 export function updateNominationSessionObserversFromLodam(input: { file: File; sessionId: string }) {
