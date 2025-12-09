@@ -136,15 +136,14 @@ export function MagistratDnModalLink(props: {
       </span>
 
       {isVisible &&
+        props.modalRef.current &&
         createPortal(
-          isVisible ? (
-            <MagistratDetails
-              key={props.nominationFile.id}
-              nominationFile={props.nominationFile}
-              formation={props.formation}
-            />
-          ) : null,
-          props.modalRef.current!
+          <MagistratDetails
+            key={props.nominationFile.id}
+            nominationFile={props.nominationFile}
+            formation={props.formation}
+          />,
+          props.modalRef.current
         )}
     </>
   );
