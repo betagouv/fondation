@@ -2,8 +2,8 @@ export class HttpException extends Error {
   readonly statusCode: number;
   readonly response: Response;
 
-  constructor(props: { response: Response; message: string | undefined }) {
-    super(props.message || `HTTP Request failed with status ${props.response.status}`);
+  constructor(props: { response: Response }) {
+    super(`HTTP Request failed with status ${props.response.status}`);
 
     this.statusCode = props.response.status;
     this.response = props.response;
@@ -20,15 +20,7 @@ export async function apiFetch<T = unknown>(url: string, options: RequestInit): 
   });
 
   if (!response.ok) {
-    const message = await response.json().then(
-      (x) =>
-        typeof x === 'object' && x !== null && 'message' in x && typeof x.message === 'string'
-          ? x.message
-          : undefined,
-      () => undefined
-    );
-
-    throw new HttpException({ response, message });
+    throw new HttpException({ response });
   }
 
   return response.json().catch(() => null);

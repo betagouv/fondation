@@ -243,8 +243,8 @@ describe('NominationSession', () => {
         formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
         // prettier-ignore
         files: [
-          { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
-          { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
+          { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
+          { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
         ],
       });
 
@@ -266,8 +266,8 @@ describe('NominationSession', () => {
           session.id,
           // prettier-ignore
           [
-            { id: expect.any(String), fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
-            { id: expect.any(String), fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
+            { id: expect.any(String), fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
+            { id: expect.any(String), fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.II, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
           ],
         ),
       );

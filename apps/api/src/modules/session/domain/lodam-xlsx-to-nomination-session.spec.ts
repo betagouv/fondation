@@ -34,7 +34,7 @@ describe('lodamXlsxToNominationSession', () => {
            "careerInformation": null,
            "currentPosition": "Procureur de la République TJ  NARBONNE",
            "fileNumber": 1,
-           "grade": "HH",
+           "grade": "III",
            "lastPositionDate": DateOnly {
              "value": 2020-09-01T00:00:00.000Z,
            },
@@ -47,6 +47,7 @@ describe('lodamXlsxToNominationSession', () => {
            "reporters": [
              "DURAND Côme",
            ],
+           "targetedGrade": "HH",
            "targetedPosition": "Procureur de la République TJ  GRASSE",
          },
          {
@@ -57,7 +58,7 @@ describe('lodamXlsxToNominationSession', () => {
            "careerInformation": null,
            "currentPosition": "Procureur de la République TJ  BEZIERS",
            "fileNumber": 2,
-           "grade": "HH",
+           "grade": "III",
            "lastPositionDate": DateOnly {
              "value": 2019-09-02T00:00:00.000Z,
            },
@@ -73,6 +74,7 @@ describe('lodamXlsxToNominationSession', () => {
              "ANDOCHE Charles",
              "DURAND Côme",
            ],
+           "targetedGrade": "HH",
            "targetedPosition": "Procureur de la République TJ  TOULON",
          },
        ]
@@ -103,6 +105,7 @@ describe('lodamXlsxToNominationSession', () => {
       observers: undefined,
       reporters: undefined,
       targetedPosition: 'TJ RENNES - II',
+      _eqav: 'E',
       ...props,
     });
 
@@ -111,9 +114,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should fail when the file number is not a number', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ fileNumber: 'not a number' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ fileNumber: 'not a number' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,
@@ -129,11 +133,14 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should fail when a fileNumber appears more than once', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ fileNumber: '1', name: 'ARENDT HANNAH' }),
-        lodamLine({ fileNumber: '2', name: 'GRAMSCI ANTONIO' }),
-        lodamLine({ fileNumber: '1', name: 'BOURDIEU PIERRE' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({ fileNumber: '1', name: 'ARENDT HANNAH' }),
+          lodamLine({ fileNumber: '2', name: 'GRAMSCI ANTONIO' }),
+          lodamLine({ fileNumber: '1', name: 'BOURDIEU PIERRE' }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,
@@ -149,7 +156,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should fail when the name is empty', async () => {
-      const result = await lodamToNominationFiles([lodamLine({ name: '' })]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ name: '' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,
@@ -163,9 +173,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should fail when the targeted position is empty', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ targetedPosition: '' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ targetedPosition: '' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,
@@ -179,22 +190,28 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should allow en empty reporters placeholder', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({
-          reporters: 'SANS AFFECTATION',
-          targetedPosition: 'TJ RENNES - II',
-        }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            reporters: 'SANS AFFECTATION',
+            targetedPosition: 'TJ RENNES - II',
+          }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toMatchObject({ success: true });
     });
 
     it('should parse a list of observers', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({
-          observers: 'BOURDIEU Pierre  \n  GRAMSCI Antonio  ',
-        }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            observers: 'BOURDIEU Pierre  \n  GRAMSCI Antonio  ',
+          }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.observers).toEqual([
@@ -204,11 +221,14 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should parse a list of reporters', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({
-          reporters: 'BOURDIEU Pierre  \n  GRAMSCI Antonio  ',
-        }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            reporters: 'BOURDIEU Pierre  \n  GRAMSCI Antonio  ',
+          }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.reporters).toEqual([
@@ -218,9 +238,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should parse the birth date from dd/mm/yyyy', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ birthDate: '01/08/1930' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ birthDate: '01/08/1930' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.birthDate?.toDate()).toEqual(
@@ -229,9 +250,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it("should fail when the date can't be parsed", async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ birthDate: 'unknown' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ birthDate: 'unknown' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,
@@ -245,9 +267,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should parse the last position date from dd/mm/yyyy', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ lastPositionDate: '01/01/2020' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ lastPositionDate: '01/01/2020' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.lastPositionDate?.toDate()).toEqual(
@@ -256,9 +279,10 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should parse the last ranking date from dd/mm/yyyy', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ lastRankingDate: '01/01/2019' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ lastRankingDate: '01/01/2019' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.lastRankingDate?.toDate()).toEqual(
@@ -267,18 +291,70 @@ describe('lodamXlsxToNominationSession', () => {
     });
 
     it('should parse the grade from the name', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ targetedPosition: 'TJ RENNES - HH' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ targetedPosition: 'TJ RENNES - HH' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       assert.ok(result.success);
       expect(result.files[0]?.grade).toEqual(Magistrat.Grade.HH);
     });
 
+    it('should parse the targeted position and the grade when the title contains a dash', async () => {
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            targetedPosition:
+              'Vice-président chargé des fonctions de juge des libertés et de la détention TJ  AUCH - I',
+          }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
+
+      assert.ok(result.success);
+      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.I);
+      expect(result.files[0]?.targetedPosition).toEqual(
+        'Vice-président chargé des fonctions de juge des libertés et de la détention TJ  AUCH',
+      );
+    });
+
+    it('should parse the current and target according to advancement column', async () => {
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            _eqav: 'A',
+            targetedPosition: 'TJ DE RENNES - HH',
+          }),
+        ],
+        new Date('2025-12-05T00:00:00Z'),
+      );
+
+      assert.ok(result.success);
+      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.III);
+      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.HH);
+    });
+
+    it('should parse the current and target according to advancement column and the old system', async () => {
+      const result = await lodamToNominationFiles(
+        [
+          lodamLine({
+            _eqav: 'A',
+            targetedPosition: 'TJ DE RENNES - HH',
+          }),
+        ],
+        new Date(Date.UTC(2025, 10, 23)),
+      );
+
+      assert.ok(result.success);
+      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.I);
+      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.HH);
+    });
+
     it('should fail when the grade is unknown', async () => {
-      const result = await lodamToNominationFiles([
-        lodamLine({ targetedPosition: 'TJ RENNES - ZZ' }),
-      ]);
+      const result = await lodamToNominationFiles(
+        [lodamLine({ targetedPosition: 'TJ RENNES - ZZ' })],
+        new Date('2025-12-05T00:00:00Z'),
+      );
 
       expect(result).toEqual({
         success: false,

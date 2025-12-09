@@ -2,16 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrioriteEnum, Role } from 'shared-models';
+import {
+  dateOnlyJsonSchema,
+  Magistrat,
+  PrioriteEnum,
+  Role,
+} from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { NominationFileContentSchema } from 'src/modules/session/infrastructure/nomination-file-content.schema';
 import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -23,14 +27,13 @@ export class ListNominationFilesQuery {
   // TODO: paginate, sort, filter...
   async handle(query: {
     sessionId: string;
-    userId: string;
-    userRole: Role;
+    user: { id: string; role: Role };
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
-    const isSG = query.userRole === Role.ADJOINT_SECRETAIRE_GENERAL;
+    const isSG = query.user.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
     const files = await this.prisma.$transaction(async (tx) => {
       const lastVersion = await this.versionFinder.last({
@@ -72,6 +75,8 @@ export class ListNominationFilesQuery {
           observers: true,
           rank: true,
           targetedPosition: true,
+          targetedGrade: true,
+          dueDate: true,
           commentAccess: {
             select: { userId: true },
           },
@@ -87,10 +92,10 @@ export class ListNominationFilesQuery {
       });
     });
 
-    const partialItems = files.map((x) => {
-      const commentAccessUserIds = x.commentAccess.map((a) => a.userId);
-      const hasCommentAccess =
-        isSG || commentAccessUserIds.includes(query.userId);
+    const items = files.map((x): NominationFileAffectationItem => {
+      const commentAccessUserIds = x.commentAccess.map(({ userId }) => userId);
+      const canReadComment =
+        isSG || commentAccessUserIds.includes(query.user.id);
 
       return {
         id: x.id,
@@ -98,28 +103,26 @@ export class ListNominationFilesQuery {
           version: 2,
           numeroDeDossier: x.number,
           nomMagistrat: x.name,
-          dateEchéance: null,
-          grade: x.grade,
+          grade: x.grade as Magistrat.Grade,
           posteActuel: x.currentPosition,
           posteCible: x.targetedPosition,
+          gradeCible: x.targetedGrade as Magistrat.Grade,
           rang: x.rank,
-          dateDeNaissance: x.birthDate
-            ? DateOnly.fromDate(x.birthDate).toJson()
-            : null,
           historique: x.biography,
           observants: x.observers,
-          datePassageAuGrade: x.lastRankingDate
-            ? DateOnly.fromDate(x.lastRankingDate).toJson()
-            : null,
-          datePriseDeFonctionPosteActuel: x.lastPositionDate
-            ? DateOnly.fromDate(x.lastPositionDate).toJson()
-            : null,
+          dateDeNaissance:
+            DateOnly.fromOptionalDate(x.birthDate)?.toJson() ?? null,
+          dateEchéance: DateOnly.fromOptionalDate(x.dueDate)?.toJson() ?? null,
+          datePassageAuGrade:
+            DateOnly.fromOptionalDate(x.lastRankingDate)?.toJson() ?? null,
+          datePriseDeFonctionPosteActuel:
+            DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
           informationCarrière: null,
         },
         priority: x.priorite
           ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
           : null,
-        comment: hasCommentAccess ? x.comment : null,
+        comment: canReadComment ? x.comment : null,
         commentAccessUserIds: isSG ? commentAccessUserIds : undefined,
         reporters: x.reporterIds.map(
           ({ user: { id, firstName, lastName } }) => ({
@@ -131,13 +134,27 @@ export class ListNominationFilesQuery {
       };
     });
 
-    const items = await z
-      .array(NominationFileAffectationItemSchema)
-      .parseAsync(partialItems);
-
     return { items };
   }
 }
+
+const NominationFileContentSchema = z.object({
+  version: z.literal(2),
+  nomMagistrat: z.string(),
+  numeroDeDossier: z.number().nullable(),
+  dateEchéance: dateOnlyJsonSchema.nullable(),
+  grade: z.enum(Magistrat.Grade).nullable(),
+  posteActuel: z.string().nullable(),
+  posteCible: z.string().nullable(),
+  gradeCible: z.enum(Magistrat.Grade),
+  rang: z.string().nullable(),
+  dateDeNaissance: dateOnlyJsonSchema.nullable(),
+  historique: z.string().nullable(),
+  observants: z.array(z.string()).nullable(),
+  datePassageAuGrade: dateOnlyJsonSchema.nullable(),
+  datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
+  informationCarrière: z.string().nullable(),
+});
 
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),

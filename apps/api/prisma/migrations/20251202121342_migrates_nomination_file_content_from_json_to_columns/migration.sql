@@ -11,9 +11,11 @@ ADD COLUMN last_ranking_date DATE,
 ADD COLUMN "name" TEXT,
 ADD COLUMN number INTEGER,
 ADD COLUMN rank TEXT,
+ADD COLUMN targeted_grade TEXT,
 ADD COLUMN targeted_position TEXT,
 ADD COLUMN observers TEXT[] NOT NULL DEFAULT '{}'::TEXT[],
 ADD COLUMN career_information TEXT,
+ADD COLUMN due_date DATE,
 ALTER COLUMN "content" SET DEFAULT '{}'::JSONB;
 
 CREATE OR REPLACE FUNCTION DATE_ONLY_TO_SQL_DATE(date_only JSONB) RETURNS DATE AS $$
@@ -46,14 +48,36 @@ UPDATE nominations_context.dossier_de_nomination SET
     END
   ),
   grade = ("content" ->> 'grade'),
+  targeted_grade = (
+    CASE
+      WHEN "content" ->> 'posteCible' ~ '(^|\W)I(\W|$)' THEN 'I'
+      WHEN "content" ->> 'posteCible' ~ '(^|\W)II(\W|$)' THEN 'II'
+      WHEN "content" ->> 'posteCible' ~ '(^|\W)III(\W|$)' THEN 'III'
+      WHEN "content" ->> 'posteCible' ~ '(^|\W)HH(\W|$)' THEN 'HH'
+      ELSE NULL
+    END
+  ),
+  targeted_position = (
+    CASE
+      WHEN "content" ->> 'posteCible' ~ '(^|\W)(I|II|III|HH)(\W|$)' THEN
+        TRIM(
+          REGEXP_REPLACE(
+            "content" ->> 'posteCible',
+            '(.*)-[^-]*$',
+            '\1'
+          )
+        )
+      ELSE "content" ->> 'posteCible'
+    END
+  ),
   "name" = ("content" ->> 'nomMagistrat'),
   number = ("content" ->> 'numeroDeDossier')::INT,
   rank = ("content" ->> 'rang'),
-  targeted_position = ("content" ->> 'posteCible'),
   birth_date = DATE_ONLY_TO_SQL_DATE("content" -> 'dateDeNaissance'),
   last_position_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePriseDeFonctionPosteActuel'),
   last_ranking_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePassageAuGrade'),
-  career_information = ("content" ->> 'informationCarrière')
+  career_information = ("content" ->> 'informationCarrière'),
+  due_date = DATE_ONLY_TO_SQL_DATE("content" -> 'dateEchéance')
 WHERE "content" ->> 'version' = '2';
 
 UPDATE nominations_context.dossier_de_nomination SET
@@ -69,10 +93,32 @@ UPDATE nominations_context.dossier_de_nomination SET
   "name" = ("content" ->> 'name'),
   number = ("content" ->> 'folderNumber')::INT,
   rank = ("content" ->> 'rank'),
-  targeted_position = ("content" ->> 'targettedPosition'),
+  targeted_grade = (
+    CASE
+      WHEN "content" ->> 'targettedPosition' ~ '(^|\W)I(\W|$)' THEN 'I'
+      WHEN "content" ->> 'targettedPosition' ~ '(^|\W)II(\W|$)' THEN 'II'
+      WHEN "content" ->> 'targettedPosition' ~ '(^|\W)III(\W|$)' THEN 'III'
+      WHEN "content" ->> 'targettedPosition' ~ '(^|\W)HH(\W|$)' THEN 'HH'
+      ELSE NULL
+    END
+  ),
+  targeted_position = (
+    CASE
+      WHEN "content" ->> 'targettedPosition' ~ '(^|\W)(I|II|III|HH)(\W|$)' THEN
+        TRIM(
+          REGEXP_REPLACE(
+            "content" ->> 'targettedPosition',
+            '(.*)-[^-]*$',
+            '\1'
+          )
+        )
+      ELSE "content" ->> 'targettedPosition'
+    END
+  ),
   birth_date = DATE_ONLY_TO_SQL_DATE("content" -> 'birthDate'),
   last_position_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePriseDeFonctionPosteActuel'),
-  last_ranking_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePassageAuGrade')
+  last_ranking_date = DATE_ONLY_TO_SQL_DATE("content" -> 'datePassageAuGrade'),
+  due_date = DATE_ONLY_TO_SQL_DATE("content" -> 'dueDate')
 WHERE (
   "content" != '{}'::jsonb
   AND ((NOT "content" ? 'version') OR "content" ->> 'version' = '1')

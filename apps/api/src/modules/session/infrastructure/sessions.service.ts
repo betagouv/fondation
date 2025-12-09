@@ -43,7 +43,6 @@ import {
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
 export class SessionService {
@@ -116,25 +115,13 @@ export class SessionService {
 
   async listNominationFiles(query: {
     sessionId: string;
-    userId: string;
+    user: { role: Role; id: string };
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
   }): Promise<{ items: NominationFileAffectationItem[] }> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: query.userId },
-      select: { role: true },
-    });
-
-    if (!user) {
-      throw new Error(`User with id ${query.userId} not found`);
-    }
-
-    return this.listNominationFilesQuery.handle({
-      ...query,
-      userRole: prismaRoleEnumToRoleEnum(user.role),
-    });
+    return this.listNominationFilesQuery.handle(query);
   }
 
   detailNominationSessionAffectationsVersion(query: {

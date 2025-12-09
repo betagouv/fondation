@@ -21,8 +21,7 @@ import {
   dataRowsDn,
   dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
-  HEADER_COLUMNS_AFFECTATIONS_DN_EDITION,
-  sortValueSpecificDnField
+  HEADER_COLUMNS_AFFECTATIONS_DN_EDITION
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
@@ -89,8 +88,7 @@ const TableauDossiersDeNominationContent = ({
     getSortIcon
   } = useTable<SessionNominationFile, FiltersState>(dossiersDeNomination, {
     filters,
-    applyFilters,
-    getSortValue: sortValueSpecificDnField
+    applyFilters
   });
 
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;

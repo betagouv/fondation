@@ -27,6 +27,8 @@ export const gradeToLabel = (grade: Magistrat.Grade) => {
       return 'II';
     case Magistrat.Grade.HH:
       return 'HH';
+    case Magistrat.Grade.III:
+      return 'III';
     default: {
       const _exhaustiveCheck: never = grade;
       console.info(_exhaustiveCheck);

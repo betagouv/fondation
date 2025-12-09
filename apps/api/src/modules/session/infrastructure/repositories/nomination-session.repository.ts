@@ -15,7 +15,7 @@ import { StatutAffectation } from 'src/modules/session/domain/statut-affectation
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 import { Logger } from 'testcontainers/build/common';
 import {
@@ -367,6 +367,10 @@ export class NominationSessionRepository {
     tx: Prisma.TransactionClient,
     message: NominationSessionFilesCreated,
   ) {
+    const session = await tx.session.findUnique({
+      where: { id: message.sessionId },
+      select: { dueDate: true },
+    });
     await tx.dossierDeNomination.createMany({
       data: message.files.map(
         (f) =>
@@ -384,7 +388,9 @@ export class NominationSessionRepository {
             observers: f.observers,
             rank: f.rank,
             targetedPosition: f.targetedPosition,
+            targetedGrade: f.targetedGrade,
             careerInformation: f.careerInformation,
+            dueDate: assertIsDefined(session).dueDate,
 
             /** @deprecated */
             dossierDeNominationImportId: randomUUID(),

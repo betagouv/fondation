@@ -21,7 +21,7 @@ import { Role, TypeDeSaisine } from 'shared-models';
 
 import { FILE_MIME_TYPES, isMimeType } from 'src/modules/framework/files';
 import { UseMultipartBody } from 'src/modules/framework/multipart';
-import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import { type NominationFile } from './domain/nomination-file';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
@@ -113,12 +113,12 @@ export class SessionController {
   @UsePipes(ZodValidationPipe)
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; role: Role },
     @Query() query: ListNominationFilesQueryDto,
   ): Promise<{ items: NominationFileAffectationItem[] }> {
     return this.sessions.listNominationFiles({
+      user,
       sessionId,
-      userId,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],

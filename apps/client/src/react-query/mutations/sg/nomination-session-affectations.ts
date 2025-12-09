@@ -30,6 +30,7 @@ export type SessionNominationFile = {
     grade: Magistrat.Grade;
     posteActuel: string;
     posteCible: string;
+    gradeCible: string | null;
     rang: string;
     dateDeNaissance: DateOnlyJson;
     historique: string | null;

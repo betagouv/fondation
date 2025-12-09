@@ -8,6 +8,7 @@ import { NominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');
 export function lodamXlsxToNominationFiles(input: {
+  form?: { date: DateOnly };
   file: Buffer;
 }): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
@@ -21,12 +22,13 @@ export function lodamXlsxToNominationFiles(input: {
   });
 
   const lines = result?.data ?? [];
-  return lodamToNominationFiles(lines);
+  return lodamToNominationFiles(lines, input.form?.date.toDate() ?? new Date());
 }
 
 /** @internal */
 export async function lodamToNominationFiles(
   rawLines: readonly RawLodamLine[],
+  date: Date,
 ): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
   | { success: true; files: NominationFile[] }
@@ -41,7 +43,7 @@ export async function lodamToNominationFiles(
     const chunkLineResults = linesChunk.map((line, index) => {
       const lineNumber = parsedLinesCount + index + 1;
       try {
-        return parseLodamXlsxLine(line, lineNumber, fileNumbers);
+        return parseLodamXlsxLine(date, line, lineNumber, fileNumbers);
       } catch (e) {
         logger.warn(`failed parsing LODAM line ${lineNumber}: ${e}`);
         return {
@@ -73,6 +75,7 @@ export async function lodamToNominationFiles(
 
 /** @internal exported for tests */
 export function parseLodamXlsxLine(
+  date: Date,
   line: RawLodamLine,
   lineNumber: number,
   fileNumbers: Map<number, number>,
@@ -92,7 +95,7 @@ export function parseLodamXlsxLine(
 
   const errors: string[] = [];
   const output = new Map<
-    FieldName | 'rank' | 'grade',
+    FieldName | 'rank' | 'grade' | 'targetedGrade',
     number | string[] | string | DateOnly | null
   >([['fileNumber', fileNumber]]);
 
@@ -152,19 +155,54 @@ export function parseLodamXlsxLine(
   const targetedPositionAndGrade = (line.targetedPosition ?? '').trim();
   if (targetedPositionAndGrade.length === 0) {
     errors.push(`Le poste cible est vide`);
-  } else {
-    const splitted = targetedPositionAndGrade.split(/\s+-\s+/);
-
-    const maybeGrade = splitted.at(-1)?.trim() ?? '';
-    const isGrade = Object.values(Magistrat.Grade).includes(maybeGrade as any);
-    if (!isGrade) {
-      errors.push(`Grade inconnu: "${maybeGrade}"`);
-    } else {
-      output.set('grade', maybeGrade);
-    }
-
-    output.set('targetedPosition', splitted.slice(0, -1).join(' - '));
   }
+
+  const splitted = targetedPositionAndGrade.split(/\s+-\s+/);
+  const targetedGrade = splitted.at(-1)?.trim() ?? '';
+  const isGrade = Object.values(Magistrat.Grade).includes(targetedGrade as any);
+  if (!isGrade) {
+    errors.push(`Grade inconnu: "${targetedGrade}"`);
+  }
+
+  output.set('targetedPosition', splitted.slice(0, -1).join(' - '));
+  output.set('targetedGrade', targetedGrade);
+
+  let grade: string | undefined = undefined;
+  if (line._eqav === 'E') {
+    grade = targetedGrade;
+  }
+
+  if (!grade) {
+    /** on 01/12/2025 the grading system changed I -> II -> III -> HH */
+    if (date.getTime() >= Date.UTC(2025, 11, 1)) {
+      grade = (() => {
+        switch (targetedGrade) {
+          case 'HH':
+            return Magistrat.Grade.III;
+          case 'III':
+            return Magistrat.Grade.II;
+          case 'II':
+          case 'I':
+          default:
+            return Magistrat.Grade.I;
+        }
+      })();
+    } else {
+      // It was II -> I -> HH in the past
+      grade = (() => {
+        switch (targetedGrade) {
+          case 'HH':
+            return Magistrat.Grade.I;
+          case 'I':
+          case 'II':
+          default:
+            return Magistrat.Grade.II;
+        }
+      })();
+    }
+  }
+
+  output.set('grade', grade);
 
   if (errors.length > 0) {
     return {
@@ -174,9 +212,9 @@ export function parseLodamXlsxLine(
   }
 
   const value = Object.fromEntries(
-    ([...RAW_LODAM_HEADERS, 'rank', 'grade'] as const)
+    ([...RAW_LODAM_HEADERS, 'rank', 'grade', 'targetedGrade'] as const)
       .filter(
-        (field): field is FieldName | 'rank' | 'grade' =>
+        (field): field is FieldName | 'rank' | 'grade' | 'targetedGrade' =>
           !field.startsWith('_'),
       )
       .map((field) => [field, output.get(field)] as const),
@@ -235,7 +273,7 @@ function toDateOnly(value: string | undefined | null): DateOnly | null {
 
 type LodamHeader = (typeof RAW_LODAM_HEADERS)[number];
 type FieldName = Exclude<LodamHeader, `_${string}`>;
-export type RawLodamLine = Record<FieldName, string | undefined>;
+export type RawLodamLine = Record<LodamHeader, string | undefined>;
 
 type LineResultSuccess = {
   success: true;

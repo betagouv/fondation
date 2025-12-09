@@ -53,6 +53,7 @@ model DossierDeNomination {
   number            Int?
   name              String
   rank              String?
+  targetedGrade     String?   @map("targeted_grade")
   grade             String?
   observers         String[]  @default([])
   biography         String?
@@ -62,6 +63,8 @@ model DossierDeNomination {
   lastRankingDate   DateTime? @map("last_ranking_date") @db.Date
   lastPositionDate  DateTime? @map("last_position_date") @db.Date
   careerInformation String?   @map("career_information")
+  /// @deprecated
+  dueDate           DateTime? @map("due_date") @db.Date
 
   reports       Report[]
   reporterIds   NominationFileToReporter[]

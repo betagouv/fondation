@@ -6,6 +6,7 @@ export type NominationFile = {
   name: string;
   rank: string | null;
   grade: Magistrat.Grade;
+  targetedGrade: Magistrat.Grade;
   targetedPosition: string;
   birthDate: DateOnly | null;
   currentPosition: string;
