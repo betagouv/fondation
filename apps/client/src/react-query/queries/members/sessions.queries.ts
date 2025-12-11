@@ -48,7 +48,7 @@ export type DetailedSessionReport = {
   name: string;
   grade: Magistrat.Grade;
   targettedPosition: string;
-  observersCount: number;
+  observers: string[];
 };
 export type DetailedSession = {
   session: {

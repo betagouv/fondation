@@ -36,6 +36,13 @@ export function updateNominationSessionObserversFromLodam(input: { file: File; s
   return apiFetch<void>(`/sessions/v2/lodam/${input.sessionId}/observers`, {
     method: 'POST',
     body: formData
+  }).catch(async (err) => {
+    if (err instanceof HttpException && err.statusCode === 400) {
+      const { validationErrors } = await err.response.json();
+      throw Object.assign(new Error(), { validationErrors });
+    }
+
+    throw err;
   });
 }
 

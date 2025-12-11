@@ -1,10 +1,10 @@
 import { useFiltering } from './useFiltering.hook';
-import { usePagination, type ItemsPerPage } from './usePagination.hook';
+import { usePagination } from './usePagination.hook';
 import { useSorting } from './useSorting.hook';
 
 export interface TableConfig<T, F = Record<string, unknown>> {
   // Pagination
-  itemsPerPage?: ItemsPerPage;
+  itemsPerPage?: number;
 
   // Sorting
   sortField?: string;
@@ -23,8 +23,8 @@ export interface TableResult<T> {
   displayedItems: number;
 
   // Pagination
-  itemsPerPage: ItemsPerPage;
-  setItemsPerPage: (value: ItemsPerPage) => void;
+  itemsPerPage: number;
+  setItemsPerPage: (value: number) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;

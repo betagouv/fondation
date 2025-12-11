@@ -3,9 +3,9 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
-import { type FC, useState } from 'react';
+import { type FC, useRef, useState } from 'react';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateNominationSessionObserversFromLodam } from '../../../../../../react-query/mutations/sg/nomination-sessions';
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
 import { UploadExcelFailedAlert } from '../../../nouvelle-transparence/UploadExcelFailedAlert';
@@ -15,16 +15,34 @@ export const modal = createModal({
   isOpenedByDefault: false
 });
 
-export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) => {
+export const ImportObservantsModal: FC<{
+  sessionId: string;
+  onSuccess: () => void;
+}> = ({ sessionId, onSuccess }) => {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [observantsFile, setObservantsFile] = useState<File | null>(null);
 
-  const { mutate: importObservants, isError: importObservantsFailed } = useMutation({
-    mutationFn: updateNominationSessionObserversFromLodam
+  const {
+    reset,
+    mutate: importObservants,
+    isError: importObservantsFailed,
+    error: importObservantsError
+  } = useMutation({
+    mutationFn: updateNominationSessionObserversFromLodam,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles', sessionId] });
+      onSuccess();
+    }
   });
 
   useIsModalOpen(modal, {
     onConceal: () => {
       setObservantsFile(null);
+      reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   });
 
@@ -61,15 +79,15 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
         }
       ]}
     >
+      {importObservantsFailed && (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <UploadExcelFailedAlert validationErrors={(importObservantsError as any).validationErrors} />
+      )}
       <div className={clsx('gap-8', cx('fr-grid-row'))}>
-        {importObservantsFailed && (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          <UploadExcelFailedAlert validationErrors={(importObservantsFailed as any).validationErrors} />
-        )}
-
         <Upload
           id="import-observations-transparence"
           nativeInputProps={{
+            ref: fileInputRef,
             onChange: (e) => {
               e.preventDefault();
               if (e.target.files && e.target.files.length === 1) {
@@ -81,7 +99,6 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
           hint={<HintImportXlsxFile />}
           label={null}
           multiple={false}
-          state={importObservantsFailed ? 'error' : 'default'}
         />
       </div>
     </modal.Component>

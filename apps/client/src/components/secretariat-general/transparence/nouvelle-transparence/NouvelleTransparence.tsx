@@ -54,14 +54,18 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
-  const { mutateAsync: addTransparencyAsync, error: transparenceUploadError } = useMutation({
+  const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE);
+  const {
+    mutateAsync: addTransparencyAsync,
+    error: transparenceUploadError,
+    reset: resetTransparencyMutation
+  } = useMutation({
     mutationFn: createNominationSessionFromLodam,
     onSuccess(_, data) {
       const name = data.name;
       navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: name ? { success: name } : undefined });
     }
   });
-  const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE, navigate);
 
   const {
     control,
@@ -73,8 +77,11 @@ const NouvelleTransparence: FC = () => {
   });
 
   const onSubmit: SubmitHandler<FormSchema> = useCallback(
-    (dto) => addTransparencyAsync(dto),
-    [addTransparencyAsync]
+    (dto) => {
+      resetTransparencyMutation();
+      return addTransparencyAsync(dto);
+    },
+    [resetTransparencyMutation, addTransparencyAsync]
   );
 
   return (

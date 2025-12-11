@@ -3,14 +3,17 @@ import { Tabs, type TabsProps } from '@codegouvfr/react-dsfr/Tabs';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 
-import { Magistrat } from 'shared-models';
+import { Magistrat, Role } from 'shared-models';
 
 import type { SessionOfTypeGardeDesSceaux } from '../../../../react-query/queries/members/sessions.queries';
 import { formationToLabel } from '../../labels/labels-mappers';
 import { SessionBlock } from './SessionBlock';
 import { getDetailSessionGdsPath } from '../../../../utils/route-path.utils';
+import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTypeGardeDesSceaux[] }) {
+  const { user } = useUser();
+
   const sessionsByFormation = sessions.reduce(
     (byFormation, session) => {
       if (session.isAffected) {
@@ -41,29 +44,31 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
     .map((formation): TabsProps.Uncontrolled['tabs'][number] => ({
       label: formationToLabel(formation),
       content: (
-        <>
-          <h3>Vos sessions</h3>
-          {sessionsByFormation[formation].affected.length > 0 ? (
-            <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
-              {sessionsByFormation[formation].affected.map((session) => (
-                <li key={session.label}>
-                  <Tag
-                    linkProps={{
-                      to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
-                    }}
-                  >
-                    {session.label}
-                  </Tag>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm">Aucune session en cours</p>
-          )}
+        <div className="flex flex-col gap-6">
+          <section>
+            <h3>Vos sessions</h3>
+            {sessionsByFormation[formation].affected.length > 0 ? (
+              <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
+                {sessionsByFormation[formation].affected.map((session) => (
+                  <li key={session.label}>
+                    <Tag
+                      linkProps={{
+                        to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
+                      }}
+                    >
+                      {session.label}
+                    </Tag>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-0 text-sm">Aucune session en cours</p>
+            )}
+          </section>
 
-          {sessionsByFormation[formation].nonAffected.length > 0 ? (
-            <>
-              <h3>Toutes les sessions</h3>
+          <section>
+            <h3>Toutes les sessions</h3>
+            {sessionsByFormation[formation].nonAffected.length > 0 ? (
               <ul className={clsx('list-none gap-2', cx('fr-grid-row'))}>
                 {sessionsByFormation[formation].nonAffected.map((session) => (
                   <li key={session.label}>
@@ -78,11 +83,11 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                   </li>
                 ))}
               </ul>
-            </>
-          ) : (
-            <p>Pas d'autre session disponible</p>
-          )}
-        </>
+            ) : (
+              <p>Pas d'autre session disponible</p>
+            )}
+          </section>
+        </div>
       )
     }));
 
@@ -92,7 +97,14 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
       title="Pouvoir de proposition du GDS"
       noTransparenciesText="Il n'y a pas de transparences actives."
     >
-      <Tabs tabs={tabs} style={{ height: 'auto' }} />
+      {user &&
+      (user.role === Role.ADJOINT_SECRETAIRE_GENERAL ||
+        user.role === Role.MEMBRE_COMMUN ||
+        tabs.length > 1) ? (
+        <Tabs tabs={tabs} style={{ height: 'auto' }} />
+      ) : (
+        tabs[0].content
+      )}
     </SessionBlock>
   );
 }

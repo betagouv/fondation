@@ -16,7 +16,6 @@ import {
   type Response as ExpressResponse,
 } from 'express';
 
-import * as time from 'src/utils/time';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
 import { LoginDto } from './infrastructure/dto/auth.dto';
@@ -78,7 +77,7 @@ export class SimpleAuthController {
   }): ExpressResponse {
     return props.res.cookie('sessionId', props.session.id, {
       ...SimpleAuthController.COOKIE_OPTIONS,
-      maxAge: props.session.durationMs / time.SECONDS,
+      expires: props.session.expiresAt,
     });
   }
 

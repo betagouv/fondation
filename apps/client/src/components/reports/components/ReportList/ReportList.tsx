@@ -1,4 +1,4 @@
-import { formatReportList } from '../../../../utils/format-report-list.utils';
+import { useFormattedReportList } from '../../../../utils/format-report-list.utils';
 import type { DetailedSessionReport } from '../../../../react-query/queries/members/sessions.queries';
 import { useListNominationSessionAttachmentsQuery } from '../../../../react-query/mutations/sg/nomination-sessions';
 
@@ -8,20 +8,16 @@ import { NominationSessionAttachmentList } from '../../../shared/NominationSessi
 export function ReportList(
   props: React.PropsWithChildren<{ sessionId: string; reports: DetailedSessionReport[] }>
 ) {
-  const { reports, headers } = formatReportList(props.reports);
+  const { reports, headers } = useFormattedReportList(props.reports);
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
     sessionId: props.sessionId
   });
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      {reports.length ? (
-        <ReportsTable headers={headers} reports={reports}>
-          {props.children}
-        </ReportsTable>
-      ) : (
-        <div>Aucun rapport.</div>
-      )}
+      <ReportsTable headers={headers} reports={reports}>
+        {props.children}
+      </ReportsTable>
 
       {Boolean(attachments?.items.length) && (
         <div>

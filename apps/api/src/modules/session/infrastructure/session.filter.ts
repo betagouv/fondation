@@ -45,7 +45,7 @@ export class SessionExceptionFilter implements NestInterceptor {
             throw new BadRequestException(
               {
                 validationErrors: err.unknownFileNumbers.map(
-                  (fileNumber) => `n°${fileNumber} inconnu`,
+                  (fileNumber) => `dossier n°${fileNumber} inconnu`,
                 ),
               },
               { cause: err },

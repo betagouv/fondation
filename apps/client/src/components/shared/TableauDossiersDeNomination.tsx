@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 
 import {
@@ -14,8 +14,10 @@ import {
 } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
 import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
+import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
+import { MagistratDnModale } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 import {
   applyFilters,
   dataRowsDn,
@@ -26,7 +28,6 @@ import {
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
-import { MagistratDnModale } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -51,9 +52,11 @@ const TableauDossiersDeNominationContent = ({
   children,
   formation
 }: TableauDossiersDeNominationProps) => {
+  const { pathname } = useLocation();
   const magistratModalRef = useRef<HTMLDivElement>(null);
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
 
   const handleEdit = () => {
     if (isEditing) {
@@ -166,17 +169,23 @@ const TableauDossiersDeNominationContent = ({
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
 
-        <Table
-          id="session-affectation-dossier-de-nomination-table"
-          bordered
-          fixed
-          headers={TABLE_HEADER}
-          data={dossierDataRows}
-        />
+        <div className="mb-6">
+          <Table
+            id="session-affectation-dossier-de-nomination-table"
+            className="mb-0"
+            bordered
+            fixed
+            headers={TABLE_HEADER}
+            data={dossierDataRows}
+          />
+          {paginatedData.length === 0 ? (
+            <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+              Aucun résultat ne correspond aux valeurs filtrées
+            </p>
+          ) : null}
+        </div>
 
         <div className={clsx('mb-10', cx('fr-container'))}>
-          {paginatedData.length === 0 ? <p className="mt-2 text-gray-600">Aucun résultat</p> : null}
-
           <TableControl
             onChange={setItemsPerPage}
             itemsPerPage={itemsPerPage}
@@ -185,7 +194,9 @@ const TableauDossiersDeNominationContent = ({
             totalPages={totalPages}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
-            label={{ one: 'proposition', other: 'propositions' }}
+            label={
+              isSg ? { one: 'proposition', other: 'propositions' } : { one: 'dossier', other: 'dossiers' }
+            }
           />
         </div>
       </div>

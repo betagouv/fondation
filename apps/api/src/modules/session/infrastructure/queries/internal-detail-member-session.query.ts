@@ -95,7 +95,7 @@ export class InternalDetailMemberSessionQuery {
             name: d.name ?? '',
             grade: d.grade ?? '',
             targettedPosition: d.targetedPosition ?? '',
-            observersCount: d.observers?.length ?? 0,
+            observers: d.observers,
           };
         }),
       },
@@ -121,7 +121,7 @@ export type DetailedMemberSessionDto = {
       name: string;
       grade: string;
       targettedPosition: string;
-      observersCount: number;
+      observers: string[];
     }[];
   };
 };
