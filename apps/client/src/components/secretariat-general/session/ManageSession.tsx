@@ -142,8 +142,13 @@ export const ManageSession = () => {
 
       <FiltresSessions filters={filters} onFiltersChange={setFilters} />
 
-      <div className="flex justify-center">
-        <Table id="all-sessions-table" bordered headers={headers} data={sessionRows} />
+      <div className="mb-4 flex justify-center">
+        <Table className="mb-0" id="all-sessions-table" bordered headers={headers} data={sessionRows} />
+        {sessionRows.length === 0 ? (
+          <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
+            Aucun résultat ne correspond aux valeurs filtrées
+          </p>
+        ) : null}
       </div>
       <TableControl
         onChange={setItemsPerPage}

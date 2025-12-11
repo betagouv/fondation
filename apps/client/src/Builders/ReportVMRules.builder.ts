@@ -35,7 +35,7 @@ export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean
         id: ruleValue.id,
         label: ruleLabels?.label || '',
         hint: ruleLabels?.hint || '',
-        checked: !ruleValue.validated,
+        checked: ruleValue.validated,
         highlighted: ruleValue.preValidated
       };
     }, rulesMap).build();

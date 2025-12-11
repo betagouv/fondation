@@ -3,6 +3,5 @@ export type BreadcrumbVM = {
   segments: {
     label: string;
     to: string;
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   }[];
 };

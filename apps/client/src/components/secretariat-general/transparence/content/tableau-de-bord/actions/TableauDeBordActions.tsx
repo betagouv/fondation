@@ -4,7 +4,6 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
-import { createSuccessModal } from '../../../../../shared/SuccessModal';
 import * as importAttachments from './ImportAttachmentModal';
 import * as importObservers from './ImportObservantsModal';
 
@@ -17,17 +16,15 @@ import {
 import { useListNominationSessionAttachmentsQuery } from '../../../../../../react-query/mutations/sg/nomination-sessions';
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
 
-const publishSuccessModal = createSuccessModal({
-  id: 'publish-success-modal-actions',
-  message: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
-});
-
-const autoAffectationSuccessModal = createSuccessModal({
-  id: 'auto-affectation-success-modal-actions',
-  message: "L'attribution automatique des rapports a été effectuée avec succès."
-});
-
-export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
+export const TableauDeBordActions = ({
+  sessionId,
+  onSuccess,
+  onFailure
+}: {
+  sessionId: string;
+  onSuccess: (message: string | boolean) => void;
+  onFailure: (message: string | boolean) => void;
+}) => {
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
@@ -41,10 +38,10 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
       { sessionId },
       {
         onSuccess: () => {
-          publishSuccessModal.open();
+          onSuccess('Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.');
         },
-        onError: (error) => {
-          console.error('Erreur lors de la publication des affectations:', error);
+        onError: () => {
+          onFailure('Erreur lors de la publication des affectations');
         }
       }
     );
@@ -63,10 +60,10 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
       { sessionId, nominationFileIds: dossiersWithoutReporters },
       {
         onSuccess: () => {
-          autoAffectationSuccessModal.open();
+          onSuccess("L'attribution automatique des rapports a été effectuée avec succès.");
         },
-        onError: (error) => {
-          console.error("Erreur lors de l'auto-affectation:", error);
+        onError: () => {
+          onFailure("Erreur lors de l'attribution automatique des rapports.");
         }
       }
     );
@@ -96,8 +93,8 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <importObservers.ImportObservantsModal sessionId={sessionId} />
-          <importAttachments.ImportAttachmentModal sessionId={sessionId} />
+          <importObservers.ImportObservantsModal onSuccess={() => onSuccess(true)} sessionId={sessionId} />
+          <importAttachments.ImportAttachmentModal onSuccess={() => onSuccess(true)} sessionId={sessionId} />
 
           <ButtonsGroup
             buttons={[
@@ -128,9 +125,6 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
           />
         </div>
       </div>
-
-      <publishSuccessModal.Component />
-      <autoAffectationSuccessModal.Component />
     </>
   );
 };

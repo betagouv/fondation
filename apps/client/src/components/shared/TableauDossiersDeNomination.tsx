@@ -166,17 +166,23 @@ const TableauDossiersDeNominationContent = ({
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
 
-        <Table
-          id="session-affectation-dossier-de-nomination-table"
-          bordered
-          fixed
-          headers={TABLE_HEADER}
-          data={dossierDataRows}
-        />
+        <div className="mb-6">
+          <Table
+            id="session-affectation-dossier-de-nomination-table"
+            className="mb-0"
+            bordered
+            fixed
+            headers={TABLE_HEADER}
+            data={dossierDataRows}
+          />
+          {paginatedData.length === 0 ? (
+            <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
+              Aucun résultat ne correspond aux valeurs filtrées
+            </p>
+          ) : null}
+        </div>
 
         <div className={clsx('mb-10', cx('fr-container'))}>
-          {paginatedData.length === 0 ? <p className="mt-2 text-gray-600">Aucun résultat</p> : null}
-
           <TableControl
             onChange={setItemsPerPage}
             itemsPerPage={itemsPerPage}

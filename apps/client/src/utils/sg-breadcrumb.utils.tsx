@@ -1,15 +1,11 @@
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
 import { ROUTE_PATHS, type RoutePathSecretariat } from './route-path.utils';
-import type { NavigateFunction } from 'react-router-dom';
 
-export const getSgBreadCrumb = (path: RoutePathSecretariat, navigate: NavigateFunction): BreadcrumbVM => {
+export const getSgBreadCrumb = (path: RoutePathSecretariat): BreadcrumbVM => {
   const SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES = {
-    to: ROUTE_PATHS.SG.DASHBOARD,
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault();
-      navigate(ROUTE_PATHS.SG.DASHBOARD);
-    }
+    to: ROUTE_PATHS.SG.DASHBOARD
   };
+
   switch (path) {
     case ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE: {
       const secretariatGeneralSegments = [

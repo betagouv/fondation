@@ -14,7 +14,8 @@ export default {
         'light-orange': '#D2BC8966',
         'light-blue': '#E8EDFF',
         'dark-blue': '#0063CB',
-        'blue-france-sun-113': '#000091'
+        'blue-france-sun-113': '#000091',
+        'fr-gray-bg': '#f6f6f6'
       }
     }
   },

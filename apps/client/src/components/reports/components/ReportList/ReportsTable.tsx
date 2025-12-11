@@ -72,24 +72,31 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
         {children}
       </div>
 
-      <Table
-        id="reports-table"
-        headers={headersWithSort}
-        bordered
-        data={paginatedData.map((report) => [
-          <div>{report.folderNumber}</div>,
-          <Link to={report.href} onClick={report.onClick}>
-            {report.name}
-          </Link>,
-          <div>{report.grade}</div>,
-          <div>{report.targettedPosition}</div>,
-          <div>{report.observersCount}</div>,
-          <ReportStateTag state={report.state} />,
-          <div>{report.dueDate}</div>
-        ])}
-      />
+      <div className="mb-6">
+        <Table
+          id="reports-table"
+          headers={headersWithSort}
+          bordered
+          className="mb-0"
+          data={paginatedData.map((report) => [
+            <div>{report.folderNumber}</div>,
+            <Link to={report.href} onClick={report.onClick}>
+              {report.name}
+            </Link>,
+            <div>{report.grade}</div>,
+            <div>{report.targettedPosition}</div>,
+            <div>{report.observersCount}</div>,
+            <ReportStateTag state={report.state} />,
+            <div>{report.dueDate}</div>
+          ])}
+        />
 
-      {paginatedData.length === 0 && <div className="text-xs">Aucun rapport.</div>}
+        {paginatedData.length === 0 ? (
+          <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
+            Aucun résultat ne correspond aux valeurs filtrées
+          </p>
+        ) : null}
+      </div>
 
       <TableControl
         onChange={setItemsPerPage}

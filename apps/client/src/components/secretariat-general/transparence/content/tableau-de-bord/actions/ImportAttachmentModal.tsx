@@ -10,7 +10,7 @@ export const modal = createModal({
   isOpenedByDefault: false
 });
 
-export const ImportAttachmentModal = (props: { sessionId: string }) => {
+export const ImportAttachmentModal = (props: { onSuccess: () => void; sessionId: string }) => {
   const queryClient = useQueryClient();
   const title = 'Importer une pièce jointe';
 
@@ -43,6 +43,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
       },
       {
         onSuccess: () => {
+          props.onSuccess();
           setAttachmentFile(null);
           modal.close();
         },
@@ -51,7 +52,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
         }
       }
     );
-  }, [attachmentFile, setAttachmentFile, props.sessionId, importAttachment]);
+  }, [attachmentFile, setAttachmentFile, props, importAttachment]);
 
   return (
     <modal.Component

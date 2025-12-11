@@ -14,7 +14,12 @@ import {
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
-export const TableauDeBordResume = (transparence: DetailedNominationSession) => {
+export const TableauDeBordResume = (
+  transparence: DetailedNominationSession & {
+    onSuccess: (message: string | boolean) => void;
+    onFailure: (message: string | boolean) => void;
+  }
+) => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -28,8 +33,9 @@ export const TableauDeBordResume = (transparence: DetailedNominationSession) => 
     mutateAsync: updateNominationSessionAsync
   } = useMutation({
     mutationFn: updateNominationSessionMutation,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['detail-nomination-session', transparence.id] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['detail-nomination-session', transparence.id] });
+    }
   });
 
   const onSubmit = async (data: {
