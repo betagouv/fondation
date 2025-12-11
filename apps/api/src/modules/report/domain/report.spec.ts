@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
 import { ReportFileUsage } from 'shared-models';
-import { FullName } from 'src/reports-context/business-logic/models/full-name';
 
 import { Report, ReportFilesAttached, ReportFilesDetached } from './report';
 
@@ -12,7 +11,7 @@ describe('Report', () => {
       id: reportId,
       sessionName: 'SESSION_NAME',
       nomAspirant: 'Jean MOULIN',
-      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
@@ -50,7 +49,7 @@ describe('Report', () => {
       id: randomUUID(),
       sessionName: 'SESSION_NAME',
       nomAspirant: 'Jean MOULIN',
-      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+      reporterFullName: 'ARENDT Hannah',
     });
 
     report.attachFiles({
@@ -67,7 +66,7 @@ describe('Report', () => {
       id: reportId,
       sessionName: 'SESSION_NAME',
       nomAspirant: 'Jean MOULIN',
-      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
@@ -88,7 +87,7 @@ describe('Report', () => {
       id: randomUUID(),
       sessionName: 'SESSION_NAME',
       nomAspirant: 'Jean MOULIN',
-      reporterFullName: new FullName('Hannah', 'Arendt').fullName(),
+      reporterFullName: 'ARENDT Hannah',
     });
 
     report.detachFiles({ reporterId: randomUUID(), fileNames: [] });

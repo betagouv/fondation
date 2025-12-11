@@ -1,33 +1,40 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
+import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+import { TypeDeSaisineLabels } from 'shared-models';
+
 import { useTable } from '../../../hooks/useTable.hook';
-import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
 import { DateOnly } from '../../../models/date-only.model';
-import { useGetSessions } from '../../../react-query/queries/sg/get-sessions.query';
-import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
+
+import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
+
 import { Breadcrumb } from '../../shared/Breadcrumb';
 import { SortButton } from '../../shared/SortButton';
 import { TableControl } from '../../shared/TableControl';
+
+import {
+  listGdsNominationSessionsQuery,
+  type ListedNominationSession
+} from '../../../react-query/mutations/sg/nomination-sessions';
+
+import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
 
-// Fonction de filtrage des sessions
-const applySessionFilters = (
-  sessions: NonNullable<ReturnType<typeof useGetSessions>['data']>,
+function applySessionFilters(
+  sessions: readonly ListedNominationSession[],
   filters: SessionFiltersState
-) => {
-  return sessions.filter((session) => {
-    // Filtre par formation
+): ListedNominationSession[] {
+  return sessions.filter((session: ListedNominationSession) => {
     if (filters.formations.length > 0) {
       if (!filters.formations.includes(session.formation)) {
         return false;
       }
     }
 
-    // Filtre par type de saisine
     if (filters.typeDeSaisine.length > 0) {
       if (!filters.typeDeSaisine.includes(session.typeDeSaisine)) {
         return false;
@@ -36,12 +43,15 @@ const applySessionFilters = (
 
     return true;
   });
-};
+}
 
 export const ManageSession = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: sessions } = useGetSessions();
+  const { data: sessions } = useQuery({
+    queryKey: ['listed-gds-nomination-sessions'],
+    queryFn: listGdsNominationSessionsQuery
+  });
 
   const successSessionImportTitle = location.state?.success ?? undefined;
 
@@ -55,7 +65,7 @@ export const ManageSession = () => {
     segments: [
       {
         label: 'Secretariat général',
-        href: ROUTE_PATHS.SG.DASHBOARD,
+        to: ROUTE_PATHS.SG.DASHBOARD,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(ROUTE_PATHS.SG.DASHBOARD);
@@ -75,7 +85,7 @@ export const ManageSession = () => {
     setItemsPerPage,
     handleSort,
     getSortIcon
-  } = useTable<NonNullable<typeof sessions>[0], SessionFiltersState>(sessions || [], {
+  } = useTable(sessions?.items ?? [], {
     filters,
     applyFilters: applySessionFilters,
     itemsPerPage: 50
@@ -102,16 +112,13 @@ export const ManageSession = () => {
   ));
 
   const sessionRows = (paginatedData || []).map((session) => {
-    const { name, formation, dateTransparence, dateEcheance, sessionImportId, typeDeSaisine, sessionId } =
-      session;
-    const href = getSgSessionPath(sessionId, sessionImportId);
-
+    const href = getSgSessionPath(session.id);
     return [
-      TypeDeSaisineLabels[typeDeSaisine as TypeDeSaisine],
-      <a href={href}>{name.toUpperCase()}</a>,
-      formation,
-      DateOnly.fromDateOnly(dateTransparence),
-      dateEcheance && DateOnly.fromDateOnly(dateEcheance),
+      TypeDeSaisineLabels[session.typeDeSaisine],
+      <Link to={href}>{session.name.toUpperCase()}</Link>,
+      session.formation,
+      DateOnly.fromDateOnly(session.date),
+      session.dueDate && DateOnly.fromDateOnly(session.dueDate),
       ''
     ];
   });

@@ -63,6 +63,8 @@ describe('Report E2E', () => {
           name: faker.lorem.words(3),
           sessionImportId: randomUUID(),
           typeDeSaisine: 'TRANSPARENCE_GDS',
+          date: new Date(),
+          observationsClosingDate: new Date(),
         },
       });
       const nominationFile = await tx.dossierDeNomination.create({
@@ -70,7 +72,8 @@ describe('Report E2E', () => {
         data: {
           sessionId: session.id,
           dossierDeNominationImportId: randomUUID(),
-          content: { version: 2, nomMagistrat: faker.person.fullName() },
+          name: faker.person.fullName(),
+          content: {},
         },
       });
       const createdReport = await tx.report.create({

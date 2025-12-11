@@ -6,10 +6,9 @@ model AffectationVersion {
   statut                               PrismaStatutAffectationEnum @default(BROUILLON)
   datePublication                      DateTime?                   @map("date_publication") @db.Timestamp(6)
   auteurPublicationId                  String?                     @map("auteur_publication") @db.Uuid
-  /**
-   * @deprecated
-   */
+  /// @deprecated
   formation                            PrismaFormationEnum         @default(SIEGE) @ignore // now in Session
+  /// @deprecated
   affectations_dossiers_de_nominations Json[]                      @default([]) @ignore // now in NominationFileToReporter
 
   affectations NominationFileToReporter[]
@@ -43,16 +42,36 @@ model DossierDeNomination {
   id                          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt                   DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
   sessionId                   String              @map("session_id") @db.Uuid
+  /// @deprecated
   dossierDeNominationImportId String              @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @map("dossier_de_nomination_import_id") @db.Uuid
-  content                     Json
   priorite                    PrismaPrioriteEnum?
   comment                     String?             @map("comment") @db.Text
 
-  reports        Report[]
-  reporterIds    NominationFileToReporter[]
-  session        Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  commentAccess  CommentAccess[]
+  /// @deprecated
+  content Json @default(dbgenerated("'{}'::JSONB")) @db.JsonB
 
+  number            Int?
+  name              String
+  rank              String?
+  targetedGrade     String?   @map("targeted_grade")
+  grade             String?
+  observers         String[]  @default([])
+  biography         String?
+  birthDate         DateTime? @map("birth_date") @db.Date
+  currentPosition   String?   @map("current_position")
+  targetedPosition  String?   @map("targeted_position")
+  lastRankingDate   DateTime? @map("last_ranking_date") @db.Date
+  lastPositionDate  DateTime? @map("last_position_date") @db.Date
+  careerInformation String?   @map("career_information")
+  /// @deprecated
+  dueDate           DateTime? @map("due_date") @db.Date
+
+  reports       Report[]
+  reporterIds   NominationFileToReporter[]
+  session       Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  commentAccess CommentAccess[]
+
+  @@unique([sessionId, number], name: "sessionFileNumber")
   @@map("dossier_de_nomination")
   @@schema("nominations_context")
 }
@@ -82,19 +101,37 @@ model PreAnalyse {
 }
 
 model Session {
-  id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
-  version         Int                     @default(1)
-  name            String
-  formation       PrismaFormationEnum
-  typeDeSaisine   PrismaTypeDeSaisineEnum @map("type_de_saisine")
-  sessionImportId String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
-  content         Json                    @default("{\"dateTransparence\": null, \"dateClôtureDélaiObservation\": null}")
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  version                 Int                     @default(1)
+  name                    String
+  formation               PrismaFormationEnum
+  typeDeSaisine           PrismaTypeDeSaisineEnum @map("type_de_saisine")
+  sessionImportId         String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
+  date                    DateTime                @db.Date
+  observationsClosingDate DateTime                @map("observations_closing_date") @db.Date
+  dueDate                 DateTime?               @map("due_date") @db.Date
+  positionStartDate       DateTime?               @map("position_start_date") @db.Date
+  /// @deprecated
+  content                 Json                    @default("{\"dateTransparence\": null, \"dateClôtureDélaiObservation\": null}") @ignore
 
   affectationVersions  AffectationVersion[]
   dossierDeNominations DossierDeNomination[]
+  attachments          SessionAttachment[]
 
   @@map("session")
+  @@schema("nominations_context")
+}
+
+model SessionAttachment {
+  sessionId String @map("session_id") @db.Uuid
+  fileId    String @map("file_id") @db.Uuid
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  file    File    @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([sessionId, fileId])
+  @@map("session_attachment")
   @@schema("nominations_context")
 }
 

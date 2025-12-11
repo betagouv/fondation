@@ -23,7 +23,7 @@ export class GetReportFileUrlsQuery {
     assert.ok(query.fileNames.length <= 30);
 
     const report = await this.prisma.report.findFirst({
-      where: { reporterId: query.userId, id: query.reportId },
+      where: { reporterId: query.userId, id: query.reportId, isDeleted: false },
       select: {
         files: {
           where: { file: { name: { in: query.fileNames as string[] } } },

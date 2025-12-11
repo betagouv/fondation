@@ -12,6 +12,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   InternalServerErrorException,
+  Logger,
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 
@@ -26,6 +27,7 @@ import * as time from 'src/utils/time';
 
 import { type FondationFile } from './files.types';
 import { makeId } from 'src/utils/id';
+import { inspect } from 'node:util';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -56,6 +58,8 @@ class RollbackDeleteFilesCommandError {
  *  - dual writes operations, if any fails we try to rollback the operations (in best effort)
  */
 export class Files implements OnApplicationBootstrap {
+  private readonly logger = new Logger(Files.name);
+
   private readonly originUrl: string;
   private readonly frontendOriginUrl: string;
   private readonly expiresInSeconds: number;
@@ -140,6 +144,11 @@ export class Files implements OnApplicationBootstrap {
       ).then(partitionSettled);
 
       if (rejected.length > 0) {
+        this.logger.warn(
+          `Failed uploading ${rejected.length} files
+          ${inspect(rejected.map((x) => x.reason))}`,
+        );
+
         throw new RollbackFilePathOperationError(
           fulfilled.map(({ value }) => value),
           new InternalServerErrorException(
@@ -182,6 +191,10 @@ export class Files implements OnApplicationBootstrap {
           }),
         ])
         .catch((err) => {
+          this.logger.warn(
+            `Failed uploading ${files.length} files: ${inspect(err)}`,
+          );
+
           throw new RollbackFilePathOperationError(
             files.map(({ path }) => path),
             new InternalServerErrorException(
@@ -220,6 +233,10 @@ export class Files implements OnApplicationBootstrap {
           .filter((d) => d.DeleteMarker)
           .map((d) => ({ Key: d.Key, VersionId: d.DeleteMarkerVersionId }));
 
+        this.logger.warn(
+          `Failed deleting ${response.Errors?.length ?? 0} files ${inspect(response.Errors)}`,
+        );
+
         throw new RollbackDeleteFilesCommandError(
           deletedPaths,
           new InternalServerErrorException(
@@ -254,6 +271,7 @@ export class Files implements OnApplicationBootstrap {
         !(err instanceof RollbackDeleteFilesCommandError) &&
         !(err instanceof RollbackFilePathOperationError)
       ) {
+        this.logger.error(`Unknown error ${inspect(err)}`);
         throw err;
       }
 

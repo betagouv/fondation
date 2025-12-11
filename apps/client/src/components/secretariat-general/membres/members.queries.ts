@@ -52,7 +52,7 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ jurisdictionIds })
       });
-      await queryClient.invalidateQueries({ queryKey: ['detailsMember', options.userId] });
-    }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['detailsMember', options.userId] })
   });
 }

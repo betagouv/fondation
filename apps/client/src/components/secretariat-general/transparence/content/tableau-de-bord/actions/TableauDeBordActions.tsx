@@ -5,25 +5,17 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
 import { createSuccessModal } from '../../../../../shared/SuccessModal';
-import { AttachedFilesList } from './AttachedFilesList';
 import * as importAttachments from './ImportAttachmentModal';
 import * as importObservers from './ImportObservantsModal';
 
-import { type TransparenceSnapshot } from 'shared-models';
-import { DateOnly } from '../../../../../../models/date-only.model';
-
-import { useDeleteFile } from '../../../../../../react-query/mutations/delete-file.mutation';
 import {
   useAutoAffectationMutation,
   useDetailedNominationSessionAffectationsVersionQuery,
   usePublishVersionMutation,
   useSessionNominationFilesQuery
 } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useGetTransparencyAttachmentsQuery } from '../../../../../../react-query/queries/get-transparency-attachments.query';
-
-type TableauDeBordActionsProps = TransparenceSnapshot & {
-  sessionId: string;
-};
+import { useListNominationSessionAttachmentsQuery } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
 
 const publishSuccessModal = createSuccessModal({
   id: 'publish-success-modal-actions',
@@ -35,34 +27,12 @@ const autoAffectationSuccessModal = createSuccessModal({
   message: "L'attribution automatique des rapports a été effectuée avec succès."
 });
 
-export const TableauDeBordActions = ({
-  name,
-  formation,
-  dateTransparence,
-  id,
-  sessionId
-}: TableauDeBordActionsProps) => {
-  const { data: attachments, refetch } = useGetTransparencyAttachmentsQuery(id);
+export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
-
-  const { mutate: deleteFile } = useDeleteFile();
+  const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
   const { mutate: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
-
-  const handleDeleteFile = (id: string) => {
-    deleteFile(id, {
-      onSuccess: () => {
-        refetch();
-      }
-    });
-  };
-
-  const dateTransparenceDateOnly = new DateOnly(
-    dateTransparence.year,
-    dateTransparence.month,
-    dateTransparence.day
-  );
 
   const isBrouillon = metadata?.status === 'BROUILLON';
 
@@ -110,16 +80,12 @@ export const TableauDeBordActions = ({
           <Accordion
             label={
               <span>
-                Pièces jointes <Badge>{attachments?.length ?? 0}</Badge>
+                Pièces jointes <Badge>{attachments?.items.length ?? 0}</Badge>
               </span>
             }
             titleAs="h2"
           >
-            {!attachments || attachments.length === 0 ? (
-              <div>Aucunes pièces jointes.</div>
-            ) : (
-              <AttachedFilesList attachedFiles={attachments} onAttachedFileDeleted={handleDeleteFile} />
-            )}
+            <NominationSessionAttachmentList sessionId={sessionId} />
           </Accordion>
           <Accordion label="Tableau initial" titleAs="h2">
             Tableau initial à venir.
@@ -130,17 +96,8 @@ export const TableauDeBordActions = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <importObservers.ImportObservantsModal
-            nomTransparence={name}
-            formation={formation}
-            dateTransparence={dateTransparenceDateOnly}
-          />
-          <importAttachments.ImportAttachmentModal
-            sessionImportId={id}
-            transparenceName={name}
-            transparenceFormation={formation}
-            transparenceDate={dateTransparenceDateOnly}
-          />
+          <importObservers.ImportObservantsModal sessionId={sessionId} />
+          <importAttachments.ImportAttachmentModal sessionId={sessionId} />
 
           <ButtonsGroup
             buttons={[

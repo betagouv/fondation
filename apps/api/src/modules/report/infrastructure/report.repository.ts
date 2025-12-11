@@ -3,12 +3,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
-import { FullName } from 'src/reports-context/business-logic/models/full-name';
 
 import {
   Report,
   ReportFilesAttached,
   ReportFilesDetached,
+  ReportRuleValidationUpdated,
+  ReportUpdated,
 } from '../domain/report';
 import z from 'zod';
 import { ReportFileUsage } from 'shared-models';
@@ -23,7 +24,7 @@ export class ReportRepository {
   async find(props: { id: string; reporterId: string }): Promise<Report> {
     const result = await this.prisma.$transaction(async (tx) => {
       const report = await tx.report.findUnique({
-        where: { id: props.id, reporterId: props.reporterId },
+        where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
         select: { id: true, sessionId: true, nominationFileId: true },
       });
       if (!report) return null;
@@ -41,10 +42,11 @@ export class ReportRepository {
       });
       if (!user) return null;
 
-      const reporterFullName = new FullName(
-        user?.firstName,
-        user?.lastName,
-      ).fullName();
+      const { firstName, lastName } = user;
+      const reporterFullName =
+        lastName.toUpperCase() +
+        ' ' +
+        (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
       const session = await tx.session.findUnique({
         select: { name: true },
@@ -55,29 +57,13 @@ export class ReportRepository {
       const dossier = await tx.dossierDeNomination.findUnique({
         where: { id: report.nominationFileId },
       });
-      if (!dossier) return null;
-
-      // FIXME:
-      //  We can't sprinkle the schema in the whole app.
-      //  The most elegant solution would be to remove the report files path
-      //  dependency on the session and nominationFile
-      const nomAspirantResult = await z
-        .discriminatedUnion('version', [
-          z.object({ version: z.literal(1).nullable(), name: z.string() }),
-          z.object({ version: z.literal(2), nomMagistrat: z.string() }),
-        ])
-        .transform((value) =>
-          value.version === 2 ? value.nomMagistrat : value.name,
-        )
-        .safeParseAsync(dossier.content);
-
-      if (!nomAspirantResult.success) return null;
+      if (!dossier || !dossier.name) return null;
 
       return {
         id: report.id,
         reporterFullName,
         sessionName: session.name,
-        nomAspirant: nomAspirantResult.data,
+        nomAspirant: dossier.name,
       };
     });
 
@@ -92,6 +78,10 @@ export class ReportRepository {
         await this.persistReportFilesAttached(message);
       } else if (message instanceof ReportFilesDetached) {
         await this.persistReportFilesDetached(message);
+      } else if (message instanceof ReportUpdated) {
+        await this.persistReportUpdated(message);
+      } else if (message instanceof ReportRuleValidationUpdated) {
+        await this.persistReportRuleValidationUpdated(message);
       } else {
         assertNever(message);
       }
@@ -167,6 +157,29 @@ export class ReportRepository {
       });
 
       // #endregion LEGACY BEHAVIOR
+    });
+  }
+
+  private async persistReportUpdated(message: ReportUpdated) {
+    return this.prisma.report.update({
+      where: { id: message.id },
+      data: { state: message.data.status, comment: message.data.comment },
+    });
+  }
+
+  private async persistReportRuleValidationUpdated(
+    message: ReportRuleValidationUpdated,
+  ) {
+    return this.prisma.report.update({
+      where: { id: message.id },
+      data: {
+        reportRules: {
+          update: {
+            where: { id: message.ruleId },
+            data: { validated: message.isValidated },
+          },
+        },
+      },
     });
   }
 }

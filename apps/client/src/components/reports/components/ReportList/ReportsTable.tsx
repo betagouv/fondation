@@ -8,6 +8,7 @@ import { SortButton } from '../../../shared/SortButton';
 import { useTable } from '../../../../hooks/useTable.hook';
 import { TableControl } from '../../../shared/TableControl';
 import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
+import { Link } from 'react-router-dom';
 
 // Fonction de filtrage des rapports
 const applyReportFilters = (reports: ReportListItemVM[], filters: ReportFiltersState) => {
@@ -77,9 +78,9 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
         bordered
         data={paginatedData.map((report) => [
           <div>{report.folderNumber}</div>,
-          <a href={report.href} onClick={report.onClick}>
+          <Link to={report.href} onClick={report.onClick}>
             {report.name}
-          </a>,
+          </Link>,
           <div>{report.grade}</div>,
           <div>{report.targettedPosition}</div>,
           <div>{report.observersCount}</div>,
@@ -87,6 +88,9 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
           <div>{report.dueDate}</div>
         ])}
       />
+
+      {paginatedData.length === 0 && <div className="text-xs">Aucun rapport.</div>}
+
       <TableControl
         onChange={setItemsPerPage}
         itemsPerPage={itemsPerPage}

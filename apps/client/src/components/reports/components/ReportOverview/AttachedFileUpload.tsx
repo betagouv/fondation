@@ -5,16 +5,17 @@ import { reportHtmlIds } from '../../dom/html-ids';
 import { summaryLabels } from '../../labels/summary-labels';
 import { AttachedFilesList } from './AttachedFilesList';
 import { Card } from './Card';
-import type { ReportVM } from '../../../../VM/ReportVM';
 
 export type AttachedFileUploadProps = {
-  attachedFiles: ReportVM['attachedFiles'];
+  reportId: string;
+  attachments: { fileId: string; name: string }[];
   onFilesAttached: (files: File[]) => void;
   onAttachedFileDeleted: (fileName: string) => void;
 };
 
 export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
-  attachedFiles,
+  reportId,
+  attachments,
   onFilesAttached,
   onAttachedFileDeleted
 }) => {
@@ -40,8 +41,9 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
           label={null}
           multiple
         />
-        {attachedFiles && (
-          <AttachedFilesList attachedFiles={attachedFiles} onAttachedFileDeleted={onAttachedFileDeleted} />
+
+        {Boolean(attachments.length) && (
+          <AttachedFilesList reportId={reportId} attachments={attachments} onDelete={onAttachedFileDeleted} />
         )}
       </div>
     </Card>

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -8,8 +8,11 @@ import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisd
 import { JurisdictionsController } from './jurisdictions.controller';
 import { MembersController } from './members.controller';
 import { InternalFindMembersQuery } from './infrastructure/queries/internal-find-members.query';
+import { InternalFindMembersByFullNameQuery } from './infrastructure/queries/internal-find-members-by-full-name.query';
+import { SessionModule } from '../session/session.module';
 
 @Module({
+  imports: [forwardRef(() => SessionModule)],
   controllers: [MembersController, JurisdictionsController],
   exports: [MembersService],
   providers: [
@@ -20,6 +23,7 @@ import { InternalFindMembersQuery } from './infrastructure/queries/internal-find
     MemberRepository,
     MembersService,
     SearchJurisdictionsQuery,
+    InternalFindMembersByFullNameQuery,
   ],
 })
 export class MembersModule {}

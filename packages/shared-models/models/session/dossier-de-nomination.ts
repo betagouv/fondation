@@ -1,23 +1,28 @@
-import type { PrioriteEnum } from "../priorite.enum";
-import { TypeDeSaisine } from "../type-de-saisine.enum";
-import type { ContenuInconnu, ContenuPropositionDeNominationTransparenceV1, ContenuPropositionDeNominationTransparenceV2 } from "./contenu-transparence-par-version/proposition-content";
+import { type DateOnlyJson } from '../date';
+import { Magistrat } from '../magistrat.namespace';
+import type { PrioriteEnum } from '../priorite.enum';
 
-export type DossierDeNominationContent<
-  S extends TypeDeSaisine | unknown = unknown,
-> = S extends TypeDeSaisine.TRANSPARENCE_GDS
-  ?
-      | ContenuPropositionDeNominationTransparenceV1
-      | ContenuPropositionDeNominationTransparenceV2
-  : ContenuInconnu;
+export type DossierDeNominationContent = {
+  folderNumber: number | null;
+  name: string;
+  formation: Magistrat.Formation | null;
+  dueDate: DateOnlyJson | null;
+  grade: Magistrat.Grade;
+  currentPosition: string;
+  targetedPosition: string;
+  rank: string;
+  birthDate: DateOnlyJson;
+  biography: string | null;
+  observers: string[];
+  lastRankingDate: DateOnlyJson | null;
+  lastPositionDate: DateOnlyJson | null;
+};
 
-export type DossierDeNominationSnapshot<
-  S extends TypeDeSaisine | unknown = unknown,
-  Content extends DossierDeNominationContent<S> = DossierDeNominationContent<S>,
-> = {
+export type DossierDeNominationSnapshot = {
   id: string;
   sessionId: string;
   nominationFileImportedId: string;
-  content: Content;
+  content: DossierDeNominationContent;
 };
 
 export type RapporteurInfo = {

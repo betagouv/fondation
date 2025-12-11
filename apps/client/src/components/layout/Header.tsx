@@ -7,41 +7,33 @@ import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 
 export const AppHeader = () => {
-  const { pathname } = useLocation();
-  const includeSg = pathname.includes(ROUTE_PATHS.SG.DASHBOARD);
+  const location = useLocation();
+  const includeSg = location.pathname.includes(ROUTE_PATHS.SG.DASHBOARD);
 
   const navigation: MainNavigationProps.Item[] = [
     {
+      text: 'Accueil',
+      linkProps: { href: '/' }
+    },
+    {
+      text: 'Créer une session',
+      linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE }
+    },
+    {
+      text: 'Gérer une session',
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION }
+    },
+    {
+      text: 'Gérer les membres',
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS }
+    },
+    {
+      text: 'Archives',
       linkProps: {
         href: '#',
-        target: '_self'
-      },
-      text: 'Accueil'
-    },
-    {
-      linkProps: {
-        href: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE
-      },
-      text: 'Créer une session'
-    },
-    {
-      linkProps: {
-        href: ROUTE_PATHS.SG.MANAGE_SESSION
-      },
-      text: 'Gérer une session'
-    },
-    {
-      linkProps: {
-        href: ROUTE_PATHS.SG.MANAGE_MEMBERS
-      },
-      text: 'Gérer les membres'
-    },
-    {
-      linkProps: {
-        href: '#',
-        target: '_self'
-      },
-      text: 'Archives'
+        target: '_self',
+        'aria-disabled': true
+      }
     }
   ];
 
@@ -54,10 +46,7 @@ export const AppHeader = () => {
         imgUrl: '/logo.png',
         alt: 'Conseil Supérieur de la Magistrature'
       }}
-      homeLinkProps={{
-        href: '/login',
-        title: 'Accueil'
-      }}
+      homeLinkProps={{ href: '/', title: 'Accueil' }}
       quickAccessItems={[<LolfiCsm />, <Avatar />]}
       navigation={includeSg ? navigation : []}
     />

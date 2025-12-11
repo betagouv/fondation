@@ -16,7 +16,7 @@ export const ROUTE_PATHS = {
   SG: {
     DASHBOARD: '/secretariat-general',
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
-    SESSION_ID: '/secretariat-general/session/:sessionId/:sessionImportId',
+    SESSION_ID: '/secretariat-general/session/:sessionId',
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId'
@@ -49,6 +49,6 @@ export const getGdsReportPath = (id: string) => {
   return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/${id}`;
 };
 
-export const getSgSessionPath = (sessionId: string, sessionImportId: string) => {
-  return `/secretariat-general/session/${sessionId}/${sessionImportId}`;
+export const getSgSessionPath = (sessionId: string) => {
+  return `/secretariat-general/session/${sessionId}`;
 };

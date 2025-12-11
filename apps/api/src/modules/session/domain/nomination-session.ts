@@ -1,7 +1,11 @@
-import { PrioriteEnum } from 'shared-models';
+import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
+import { NominationFile, NominationFileEntity } from './nomination-file';
+import { FileMimeType } from 'src/modules/framework/files';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -37,6 +41,26 @@ export class NominationSessionAffectationVersionCreated {
   ) {}
 }
 
+export class NominationSessionCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly name: string,
+    readonly typeDeSaisine: TypeDeSaisine,
+    readonly formation: Magistrat.Formation,
+    readonly date: DateOnly,
+    readonly observationClosingDate: DateOnly,
+    readonly dueDate: DateOnly | null,
+    readonly positionStartDate: DateOnly | null,
+  ) {}
+}
+
+export class NominationSessionFilesCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly files: readonly NominationFileEntity[],
+  ) {}
+}
+
 export class NominationSessionFileCommentAccessGranted {
   constructor(
     readonly sessionId: string,
@@ -45,12 +69,56 @@ export class NominationSessionFileCommentAccessGranted {
   ) {}
 }
 
+export class NominationSessionFilesObserversUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileObservers: readonly {
+      id: string;
+      observers: readonly string[];
+    }[],
+  ) {}
+}
+
+export class NominationSessionAttachmentAdded {
+  constructor(
+    readonly sessionId: string,
+    readonly file: { name: string; buffer: Buffer; type: FileMimeType },
+  ) {}
+}
+
+export class NominationSessionAttachmentRemoved {
+  constructor(
+    readonly sessionId: string,
+    readonly fileId: string,
+  ) {}
+}
+
+export class NominationSessionUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly data: {
+      name: string;
+      formation: Magistrat.Formation;
+      date: DateOnly;
+      observationsClosingDate: DateOnly;
+      dueDate: DateOnly | null;
+      positionStartDate: DateOnly | null;
+    },
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
   | NominationSessionFilePriorityUpdated
   | NominationSessionFileReportersAffected
-  | NominationSessionFileCommentAccessGranted;
+  | NominationSessionFileCommentAccessGranted
+  | NominationSessionCreated
+  | NominationSessionFilesCreated
+  | NominationSessionFilesObserversUpdated
+  | NominationSessionAttachmentAdded
+  | NominationSessionAttachmentRemoved
+  | NominationSessionUpdated;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -62,6 +130,25 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   constructor() {
     super(
       `Impossible d'affecter un membre d'une formation incompatible avec cette session`,
+    );
+  }
+}
+
+export class NominationSessionAffectationHasUnknownReporter extends Error {
+  constructor(
+    readonly errors: readonly {
+      fileNumber: number;
+      reporters: readonly string[];
+    }[],
+  ) {
+    super(`Impossible d'affecter un membre inconnu`);
+  }
+}
+
+export class UnknownNominationFiles extends Error {
+  constructor(readonly unknownFileNumbers: number[]) {
+    super(
+      unknownFileNumbers.length > 1 ? `Dossiers inconnus` : 'Dossier inconnu',
     );
   }
 }
@@ -83,6 +170,87 @@ export class NominationSession {
       props.version,
       props.formationMemberIds ?? new Set<string>(),
     );
+  }
+
+  static createNominationTreeAndAffectMembers(
+    command: CreateNominationSessionCommand,
+  ): NominationSession {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      version: null,
+      formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+    });
+
+    session.#messages.push(
+      new NominationSessionCreated(
+        session.id,
+        command.name,
+        command.typeDeSaisine,
+        command.formation,
+        command.date,
+        command.observationClosingDate,
+        command.dueDate,
+        command.positionStartDate,
+      ),
+    );
+
+    const memberPerFullName = new Map(
+      command.formationMembers.map(
+        (member) => [member.fullName.toLowerCase(), member] as const,
+      ),
+    );
+
+    const nominationFileEntities: NominationFileEntity[] = [];
+    const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
+    const affectations: {
+      nominationFileId: string;
+      reporterIds: readonly string[];
+    }[] = [];
+
+    for (const file of command.files) {
+      const reporterIds: string[] = [];
+      const fileUnknownReporters: string[] = [];
+
+      for (const reporter of file.reporters) {
+        const member = memberPerFullName.get(reporter.toLowerCase());
+
+        if (member) {
+          reporterIds.push(member.id);
+        } else {
+          fileUnknownReporters.push(reporter);
+        }
+      }
+
+      if (fileUnknownReporters.length) {
+        unknownReporters.push({
+          fileNumber: file.fileNumber,
+          reporters: fileUnknownReporters,
+        });
+      } else {
+        const nominationFileId = makeId('NominationFileId');
+        nominationFileEntities.push({ ...file, id: nominationFileId });
+
+        if (reporterIds.length > 0) {
+          affectations.push({ nominationFileId, reporterIds });
+        }
+      }
+    }
+
+    if (unknownReporters.length) {
+      throw new NominationSessionAffectationHasUnknownReporter(
+        unknownReporters,
+      );
+    }
+
+    session.#messages.push(
+      new NominationSessionFilesCreated(session.id, nominationFileEntities),
+    );
+
+    if (affectations.length > 0) {
+      session.affectNominationFileReporters(affectations);
+    }
+
+    return session;
   }
 
   setNominationFilePriority(props: {
@@ -175,8 +343,74 @@ export class NominationSession {
     );
   }
 
+  updateNominationFileObservers(command: {
+    existingNominationFiles: readonly { id: string; fileNumber: number }[];
+    nominationFiles: readonly { fileNumber: number; observers: string[] }[];
+  }): void {
+    const existingNominationFiles = new Map(
+      command.existingNominationFiles.map((x) => [x.fileNumber, x.id] as const),
+    );
+
+    const knownFiles: { id: string; observers: readonly string[] }[] = [];
+    const unknownFileNumbers: number[] = [];
+
+    for (const file of command.nominationFiles) {
+      const existingFileId = existingNominationFiles.get(file.fileNumber);
+      if (!isDefined(existingFileId)) {
+        unknownFileNumbers.push(file.fileNumber);
+      } else {
+        knownFiles.push({ id: existingFileId, observers: file.observers });
+      }
+    }
+
+    if (unknownFileNumbers.length > 0) {
+      throw new UnknownNominationFiles(unknownFileNumbers);
+    }
+
+    this.#messages.push(
+      new NominationSessionFilesObserversUpdated(this.id, knownFiles),
+    );
+  }
+
+  addAttachment(command: {
+    file: { name: string; type: FileMimeType; buffer: Buffer };
+  }) {
+    this.#messages.push(
+      new NominationSessionAttachmentAdded(this.id, command.file),
+    );
+  }
+
+  removeAttachment(command: { fileId: string }) {
+    this.#messages.push(
+      new NominationSessionAttachmentRemoved(this.id, command.fileId),
+    );
+  }
+
+  update(command: {
+    name: string;
+    formation: Magistrat.Formation;
+    date: DateOnly;
+    observationsClosingDate: DateOnly;
+    dueDate: DateOnly | null;
+    positionStartDate: DateOnly | null;
+  }): void {
+    this.#messages.push(new NominationSessionUpdated(this.id, command));
+  }
+
   #messages: NominationSessionEvent[] = [];
   get messages(): readonly NominationSessionEvent[] {
     return this.#messages;
   }
 }
+
+export type CreateNominationSessionCommand = {
+  typeDeSaisine: TypeDeSaisine;
+  files: readonly NominationFile[];
+  name: string;
+  date: DateOnly;
+  observationClosingDate: DateOnly;
+  dueDate: DateOnly | null;
+  positionStartDate: DateOnly | null;
+  formation: Magistrat.Formation;
+  formationMembers: readonly { id: string; fullName: string }[];
+};

@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import { Magistrat, Role } from 'shared-models';
-import { useValidateSessionFromCookie } from '../../../../react-query/queries/validate-session-from-cookie.query';
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';
+import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export type MagistratCommentProps = {
   nominationFileId: string;
@@ -19,7 +19,7 @@ export const MagistratComment: FC<MagistratCommentProps> = ({
   formation
 }) => {
   const { sessionId } = useParams<{ sessionId: string }>();
-  const { user } = useValidateSessionFromCookie();
+  const { user } = useUser();
   const isSG = user?.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
   const showComment = isSG || initialComment !== null;

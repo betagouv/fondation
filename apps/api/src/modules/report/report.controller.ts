@@ -1,11 +1,14 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
+  Put,
   Query,
   UploadedFiles,
   UseInterceptors,
@@ -14,21 +17,24 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
-import { ReportFileUsage } from 'shared-models';
+import { ReportFileUsage, Role } from 'shared-models';
 import { hasMimeType } from 'src/modules/framework/files';
-import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
   DetachReportFilesQueryDto,
   GetReportFileUrlsQueryDto,
+  UpdateReportDto,
+  UpdateReportRuleValidationDto,
 } from './infrastructure/dtos/report.dto';
+import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
 import { ReportService } from './report.service';
 
 @Controller('/api/reports/v2')
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
-  @Post(':reportId/files')
+  @Post('/:reportId/files')
   @HasRole()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseInterceptors(FilesInterceptor('files'))
@@ -50,7 +56,7 @@ export class ReportController {
     });
   }
 
-  @Delete(':reportId/files')
+  @Delete('/:reportId/files')
   @HasRole()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -66,7 +72,7 @@ export class ReportController {
     });
   }
 
-  @Get(':reportId/files/url')
+  @Get('/:reportId/files/url')
   @HasRole()
   @UsePipes(ZodValidationPipe)
   async getReportFilesUrl(
@@ -78,6 +84,49 @@ export class ReportController {
       userId,
       reportId,
       fileNames: query.fileNames,
+    });
+  }
+
+  @Get('/:reportId')
+  @HasRole()
+  async detailReport(
+    @Param('reportId') reportId: string,
+    @AuthedUser() user: { id: string; role: Role },
+  ): Promise<DetailedReportDto> {
+    return this.reports.detailReport({ user, reportId });
+  }
+
+  @Patch('/:reportId')
+  @HasRole()
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateReport(
+    @Param('reportId') reportId: string,
+    @AuthedUserId() reporterId: string,
+    @Body() { comment, status }: UpdateReportDto,
+  ) {
+    await this.reports.updateReport({
+      reportId,
+      reporterId,
+      data: { comment, status },
+    });
+  }
+
+  @Put('/:reportId/rules/:ruleId')
+  @HasRole()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateReportRuleValidation(
+    @AuthedUserId() reporterId: string,
+    @Param('reportId') reportId: string,
+    @Param('ruleId') ruleId: string,
+    @Body() { isValidated }: UpdateReportRuleValidationDto,
+  ) {
+    await this.reports.updateRuleValidation({
+      ruleId,
+      reportId,
+      reporterId,
+      isValidated,
     });
   }
 }

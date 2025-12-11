@@ -9,7 +9,7 @@ export function MemberListHeader() {
         segments={[
           {
             label: 'Secrétariat général',
-            linkProps: { href: ROUTE_PATHS.SG.DASHBOARD }
+            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD }
           }
         ]}
       />

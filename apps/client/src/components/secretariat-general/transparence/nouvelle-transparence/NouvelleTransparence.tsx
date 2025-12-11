@@ -3,13 +3,14 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FC } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useCallback, type FC } from 'react';
+import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { useAddTransparency } from '../../../../react-query/mutations/sg/add-transparency.mutation';
+import { createNominationSessionFromLodam } from '../../../../react-query/mutations/sg/nomination-sessions';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { formationToLabel } from '../../../reports/labels/labels-mappers';
@@ -22,20 +23,20 @@ const invalidDateFormat = 'Format de date invalide.';
 const optionalDate = z.string().date(invalidDateFormat).optional();
 
 const nouvelleTransparenceDtoSchema = z.object({
-  nomTransparence: z
+  name: z
     .string({
       message: mandatoryField
     })
     .trim()
     .min(1, mandatoryField),
-  dateTransparence: z.string({ message: mandatoryField }).date(invalidDateFormat),
+  date: z.string({ message: mandatoryField }).date(invalidDateFormat),
   formation: z.nativeEnum(Magistrat.Formation, {
     message: mandatoryField
   }),
-  dateEcheance: optionalDate,
-  datePriseDePosteCible: optionalDate,
-  dateClôtureDélaiObservation: z.string({ message: mandatoryField }).date(invalidDateFormat),
-  fichier: z
+  dueDate: optionalDate,
+  positionStartDate: optionalDate,
+  observationClosingDate: z.string({ message: mandatoryField }).date(invalidDateFormat),
+  file: z
     .instanceof(File, { message: mandatoryField })
     .refine((file) => file.size > 0, {
       message: mandatoryField
@@ -53,9 +54,10 @@ type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
   const navigate = useNavigate();
-  const { mutateAsync: addTransparencyAsync, error: transparenceUploadError } = useAddTransparency({
-    onSuccess(data) {
-      const name = data?.name;
+  const { mutateAsync: addTransparencyAsync, error: transparenceUploadError } = useMutation({
+    mutationFn: createNominationSessionFromLodam,
+    onSuccess(_, data) {
+      const name = data.name;
       navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: name ? { success: name } : undefined });
     }
   });
@@ -70,14 +72,10 @@ const NouvelleTransparence: FC = () => {
     resolver: zodResolver(nouvelleTransparenceDtoSchema)
   });
 
-  const onSubmit: SubmitHandler<FormSchema> = async (nouvelleTransparenceDto) => {
-    await addTransparencyAsync({
-      ...nouvelleTransparenceDto,
-      dateEcheance: nouvelleTransparenceDto.dateEcheance || null,
-      datePriseDePosteCible: nouvelleTransparenceDto.datePriseDePosteCible || null,
-      dateClotureDelaiObservation: nouvelleTransparenceDto.dateClôtureDélaiObservation
-    });
-  };
+  const onSubmit: SubmitHandler<FormSchema> = useCallback(
+    (dto) => addTransparencyAsync(dto),
+    [addTransparencyAsync]
+  );
 
   return (
     <PageContentLayout>
@@ -93,8 +91,8 @@ const NouvelleTransparence: FC = () => {
       ) : null}
 
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
-        <Controller<FormSchema, 'nomTransparence'>
-          name="nomTransparence"
+        <Controller<FormSchema, 'name'>
+          name="name"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -106,13 +104,13 @@ const NouvelleTransparence: FC = () => {
                 ...field,
                 placeholder: 'Nom de la transparence'
               }}
-              state={errors.nomTransparence ? 'error' : 'default'}
-              stateRelatedMessage={errors.nomTransparence?.message}
+              state={errors.name ? 'error' : 'default'}
+              stateRelatedMessage={errors.name?.message}
             />
           )}
         />
-        <Controller<FormSchema, 'dateTransparence'>
-          name="dateTransparence"
+        <Controller<FormSchema, 'date'>
+          name="date"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -124,8 +122,8 @@ const NouvelleTransparence: FC = () => {
                 onChange,
                 ...field
               }}
-              state={errors.dateTransparence ? 'error' : 'default'}
-              stateRelatedMessage={errors.dateTransparence?.message}
+              state={errors.date ? 'error' : 'default'}
+              stateRelatedMessage={errors.date?.message}
             />
           )}
         />
@@ -151,8 +149,8 @@ const NouvelleTransparence: FC = () => {
             </Select>
           )}
         />
-        <Controller<FormSchema, 'dateClôtureDélaiObservation'>
-          name="dateClôtureDélaiObservation"
+        <Controller<FormSchema, 'observationClosingDate'>
+          name="observationClosingDate"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -164,13 +162,13 @@ const NouvelleTransparence: FC = () => {
                 onChange,
                 ...field
               }}
-              state={errors.dateClôtureDélaiObservation ? 'error' : 'default'}
-              stateRelatedMessage={errors.dateClôtureDélaiObservation?.message}
+              state={errors.observationClosingDate ? 'error' : 'default'}
+              stateRelatedMessage={errors.observationClosingDate?.message}
             />
           )}
         />
-        <Controller<FormSchema, 'dateEcheance'>
-          name="dateEcheance"
+        <Controller<FormSchema, 'dueDate'>
+          name="dueDate"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -182,13 +180,13 @@ const NouvelleTransparence: FC = () => {
                 onChange,
                 ...field
               }}
-              state={errors.dateEcheance ? 'error' : 'default'}
-              stateRelatedMessage={errors.dateEcheance?.message}
+              state={errors.dueDate ? 'error' : 'default'}
+              stateRelatedMessage={errors.dueDate?.message}
             />
           )}
         />
-        <Controller<FormSchema, 'datePriseDePosteCible'>
-          name="datePriseDePosteCible"
+        <Controller<FormSchema, 'positionStartDate'>
+          name="positionStartDate"
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
@@ -200,13 +198,13 @@ const NouvelleTransparence: FC = () => {
                 onChange,
                 ...field
               }}
-              state={errors.datePriseDePosteCible ? 'error' : 'default'}
-              stateRelatedMessage={errors.datePriseDePosteCible?.message}
+              state={errors.positionStartDate ? 'error' : 'default'}
+              stateRelatedMessage={errors.positionStartDate?.message}
             />
           )}
         />
-        <Controller<FormSchema, 'fichier'>
-          name="fichier"
+        <Controller<FormSchema, 'file'>
+          name="file"
           control={control}
           render={({ field: { onChange } }) => (
             <Upload
@@ -223,8 +221,8 @@ const NouvelleTransparence: FC = () => {
               }}
               hint="Format supporté : xlsx."
               label="Fichier*"
-              state={errors.fichier ? 'error' : 'default'}
-              stateRelatedMessage={errors.fichier?.message}
+              state={errors.file ? 'error' : 'default'}
+              stateRelatedMessage={errors.file?.message}
             />
           )}
         />

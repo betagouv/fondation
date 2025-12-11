@@ -23,6 +23,13 @@ export const AuthedUserId = createParamDecorator((_, ctx: ExecutionContext) => {
   return user.id;
 });
 
+export const AuthedUser = createParamDecorator((_, ctx: ExecutionContext) => {
+  const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();
+  if (!user) throw new UnauthorizedException();
+
+  return user;
+});
+
 const META_ROLES = Symbol();
 
 @Injectable()

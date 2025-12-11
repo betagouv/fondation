@@ -2,7 +2,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import { Magistrat } from 'shared-models';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import type { ReportSM } from '../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../react-query/queries/list-reports.queries';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
 
 export enum TransparencesCurrentPage {
@@ -17,7 +17,7 @@ type TransparencesCurrentPageType =
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
-      report: ReportSM;
+      report: DetailedReportDto;
     };
 
 export const getTransparencesBreadCrumb = (
@@ -25,7 +25,7 @@ export const getTransparencesBreadCrumb = (
   navigate: NavigateFunction
 ): BreadcrumbVM => {
   const TRANSPARENCES_ANCHOR_ATTRIBUTES = {
-    href: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+    to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
@@ -64,7 +64,7 @@ export const getTransparencesBreadCrumb = (
       const path = getDetailSessionGdsPath({ sessionId: report.sessionId });
       const transparencySegment = {
         label: transparencyLabel,
-        href: path,
+        to: path,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(path);

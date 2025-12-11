@@ -3,34 +3,33 @@ import clsx from 'clsx';
 import { type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useGetTransparence } from '../../../../react-query/queries/sg/get-transparence.query';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { TableauAffectationDossierDeNomination } from '../tableau-affectation-dossier-de-nomination/TableauAffectationDossierDeNomination';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
+import { useQuery } from '@tanstack/react-query';
+import { detailNominationSessionQuery } from '../../../../react-query/mutations/sg/nomination-sessions';
 
 export const Transparence: FC = () => {
-  const { sessionImportId, sessionId } = useParams();
+  const { sessionId } = useParams();
   const navigate = useNavigate();
 
   const {
     data: transparence,
     isPending,
     isError
-  } = useGetTransparence({
-    args: {
-      sessionId: sessionImportId as string
-    },
-    enabled: !!sessionId
+  } = useQuery({
+    queryKey: [`detail-nomination-session`, sessionId],
+    queryFn: () => detailNominationSessionQuery({ sessionId })
   });
 
   if (isPending) {
     return null;
   }
 
-  if (!sessionImportId || !transparence || isError) {
+  if (!transparence || isError) {
     return <div>Session de type Transparence non trouvée.</div>;
   }
 
@@ -39,7 +38,7 @@ export const Transparence: FC = () => {
     segments: [
       {
         label: 'Secretariat général',
-        href: ROUTE_PATHS.SG.DASHBOARD,
+        to: ROUTE_PATHS.SG.DASHBOARD,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(ROUTE_PATHS.SG.DASHBOARD);
@@ -47,7 +46,7 @@ export const Transparence: FC = () => {
       },
       {
         label: 'Gérer une session',
-        href: ROUTE_PATHS.SG.MANAGE_SESSION,
+        to: ROUTE_PATHS.SG.MANAGE_SESSION,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(ROUTE_PATHS.SG.MANAGE_SESSION);

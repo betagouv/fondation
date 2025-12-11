@@ -1,35 +1,28 @@
 import { useMutation } from '@tanstack/react-query';
-import { reportUpdateDto, type ReportsContextRestContract } from 'shared-models';
+import { NominationFile } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
-import type { ReportSM } from '../../queries/list-reports.queries';
 
-export type UpdateReportParams = {
-  reportId: string;
-  data: {
-    comment?: string;
-    state?: ReportSM['state'];
-  };
-};
-
-const updateReport = (reportId: string, data: UpdateReportParams['data']) => {
-  reportUpdateDto.parse(data);
-
-  const { method }: Partial<ReportsContextRestContract['endpoints']['updateReport']> = {
-    method: 'PUT'
-  };
-
-  return apiFetch(`/reports/${reportId}`, {
-    method,
-    body: JSON.stringify(data),
-    headers: {
-      'Content-Type': 'application/json'
+export const useUpdateReport = () =>
+  useMutation({
+    mutationFn: async (props: {
+      reportId: string;
+      data: { comment?: string; status?: NominationFile.ReportState };
+    }): Promise<void> => {
+      await apiFetch(`/reports/v2/${props.reportId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(props.data),
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
   });
-};
 
-export const useUpdateReport = () => {
-  return useMutation({
-    mutationFn: ({ reportId, data }: { reportId: string; data: UpdateReportParams['data'] }) =>
-      updateReport(reportId, data)
+export const useUpdateReportRuleValidation = () =>
+  useMutation({
+    mutationFn: async (props: { reportId: string; ruleId: string; isValidated: boolean }): Promise<void> => {
+      await apiFetch<void>(`/reports/v2/${props.reportId}/rules/${props.ruleId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isValidated: props.isValidated }),
+        headers: { 'content-type': 'application/json' }
+      });
+    }
   });
-};

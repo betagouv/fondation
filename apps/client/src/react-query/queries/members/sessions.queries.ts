@@ -16,16 +16,17 @@ type RawListSessionOfTypeGardeDesSceauxResponse = {
   items: (Omit<SessionOfTypeGardeDesSceaux, 'createdAt'> & { createdAt: string })[];
 };
 
-export function useListSessionsOfTypeGardeDesSceaux() {
+export function useListSessionsOfTypeGardeDesSceaux(input: { userId: string | undefined }) {
   return useQuery({
-    queryKey: ['listSessionsOfTypeGardeDesSceaux'],
-    queryFn: async () => {
+    enabled: !!input.userId,
+    queryKey: ['listSessionsOfTypeGardeDesSceaux', input.userId],
+    queryFn: async (): Promise<{ items: SessionOfTypeGardeDesSceaux[] } | null> => {
       const response = await apiFetch<RawListSessionOfTypeGardeDesSceauxResponse>(
-        `/sessions/v2/garde-des-sceaux`,
+        `/members/v1/${input.userId}/sessions/transparence/garde-des-sceaux`,
         { method: 'GET' }
       );
 
-      if (!response) return response;
+      if (!response) return null;
 
       return {
         items: response.items.map((item) => ({
@@ -59,11 +60,18 @@ export type DetailedSession = {
   };
   reports: DetailedSessionReport[];
 };
-export function useDetailedGdsSession(sessionId: string | undefined) {
+
+export function useDetailedGdsSession(input: { userId: string | undefined; sessionId: string | undefined }) {
   return useQuery({
-    queryKey: ['detailedSession', sessionId],
-    enabled: !!sessionId,
-    queryFn: () =>
-      apiFetch<{ data: DetailedSession }>(`/sessions/v2/garde-des-sceaux/${sessionId}`, { method: 'GET' })
+    queryKey: ['memberDetailedSession', input],
+    enabled: Boolean(input.sessionId && input.userId),
+    queryFn: () => {
+      if (!input.sessionId) return;
+
+      return apiFetch<{ data: DetailedSession }>(
+        `/members/v1/${input.userId}/sessions/transparence/garde-des-sceaux/${input.sessionId}`,
+        { method: 'GET' }
+      );
+    }
   });
 }

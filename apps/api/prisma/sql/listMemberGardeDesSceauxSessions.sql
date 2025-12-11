@@ -25,7 +25,7 @@ last_published_affectation AS (
 SELECT
   s.id,
   s."name",
-  s."content",
+  s.date,
   s.created_at AS "createdAt",
   s.formation,
   s.type_de_saisine AS "typeDeSaisine",

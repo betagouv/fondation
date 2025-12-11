@@ -10,7 +10,6 @@ import {
 } from '../../../../../react-query/mutations/reports/screenshots/insert-images.mutation';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
-import { extractScreenshotFileIds } from '../../../../../utils/refresh-signed-urls.utils';
 import { TextareaCard } from '../TextareaCard';
 import { type InsertImages, type RedoImages } from '../TipTapEditor';
 
@@ -18,20 +17,11 @@ export type ReportEditorProps = {
   comment: string | null;
   onUpdate: (comment: string) => void;
   reportId: string;
-  contentScreenshots?: Array<{ fileId: string | null; name: string }> | null;
 };
 
-export const ReportEditor: React.FC<ReportEditorProps> = ({
-  comment,
-  onUpdate,
-  reportId,
-  contentScreenshots
-}) => {
+export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate, reportId }) => {
   const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
   const { mutateAsync: deleteFilesAsync } = useDetachReportFiles();
-
-  // Extraire les fileIds des screenshots pour le refresh des URLs signées
-  const screenshotFileIds = contentScreenshots ? extractScreenshotFileIds(contentScreenshots) : [];
 
   const insertImages: InsertImages = async (editor, files) => {
     const filesToUpload = await addTimestampToFiles(files, Date.now());
@@ -40,11 +30,6 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
         new RealFileProvider().assertMimeTypeFactory(EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES)
       )
     );
-
-    // const filesArg = filesToUpload.map((file) => ({
-    //   file,
-    //   fileId: new DeterministicUuidGenerator().genUuid()
-    // }));
 
     const images = await insertImagesWithSignedUrlsAsync({
       reportId,
@@ -87,7 +72,6 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({
       insertImages={insertImages}
       deleteImages={deleteImages}
       redoImages={redoImages}
-      screenshotFileIds={screenshotFileIds}
     />
   );
 };

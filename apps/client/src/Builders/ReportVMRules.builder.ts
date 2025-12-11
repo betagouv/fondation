@@ -3,12 +3,12 @@ import { NominationFile, RulesBuilder, type AllRulesMapV2 } from 'shared-models'
 import type { RulesLabelsMap } from '../components/reports/labels/rules-labels';
 
 import type { UnionToIntersection } from 'type-fest';
-import type { ReportSM } from '../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../react-query/queries/list-reports.queries';
 import type { ReportVM, VMReportRuleValue } from '../VM/ReportVM';
 
 export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean>> {
   static buildFromStoreModel(
-    rules: ReportSM['rules'],
+    rules: DetailedReportDto['rules'],
     rulesMap: AllRulesMapV2,
     rulesLabelsMap: RulesLabelsMap
   ): ReportVM['rulesChecked'] {

@@ -2,7 +2,7 @@ export type BreadcrumbVM = {
   currentPageLabel: string;
   segments: {
     label: string;
-    href: string;
+    to: string;
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   }[];
 };

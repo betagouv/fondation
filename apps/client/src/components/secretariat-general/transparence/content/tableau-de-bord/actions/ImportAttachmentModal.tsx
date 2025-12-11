@@ -1,52 +1,45 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { useState } from 'react';
-import type { Magistrat } from 'shared-models';
-import type { DateOnly } from '../../../../../../models/date-only.model';
-import { useImportAttachment } from '../../../../../../react-query/mutations/sg/import-attachment.mutation';
-
-type ImportAttachmentModalProps = {
-  sessionImportId: string;
-  transparenceName: string;
-  transparenceFormation: Magistrat.Formation;
-  transparenceDate: DateOnly;
-};
+import { useCallback, useState } from 'react';
+import { addNominationSessionAttachmentMutation } from '../../../../../../react-query/mutations/sg/nomination-sessions';
 
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
   isOpenedByDefault: false
 });
 
-export const ImportAttachmentModal = ({
-  sessionImportId,
-  transparenceName,
-  transparenceFormation,
-  transparenceDate
-}: ImportAttachmentModalProps) => {
+export const ImportAttachmentModal = (props: { sessionId: string }) => {
+  const queryClient = useQueryClient();
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const { mutate: importAttachment, isPending } = useImportAttachment();
+  const { mutate: importAttachment, isPending } = useMutation({
+    mutationFn: addNominationSessionAttachmentMutation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['list-nomination-session-attachments', props.sessionId] })
+  });
 
-  const onChangeAttachmentFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files.length === 1) {
-      setAttachmentFile(e.target.files[0]!);
-    }
-  };
+  const onChangeAttachmentFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      if (e.target.files && e.target.files.length === 1) {
+        setAttachmentFile(e.target.files[0]!);
+      }
+    },
+    [setAttachmentFile]
+  );
 
-  const handleImportAttachment = () => {
+  const handleImportAttachment = useCallback(() => {
     if (!attachmentFile) {
       return;
     }
+
     importAttachment(
       {
-        sessionImportId,
-        dateSession: transparenceDate,
-        formation: transparenceFormation,
-        name: transparenceName,
-        file: attachmentFile
+        file: attachmentFile,
+        sessionId: props.sessionId
       },
       {
         onSuccess: () => {
@@ -58,7 +51,7 @@ export const ImportAttachmentModal = ({
         }
       }
     );
-  };
+  }, [attachmentFile, setAttachmentFile, props.sessionId, importAttachment]);
 
   return (
     <modal.Component

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { ReportFileUsage } from 'shared-models';
 import { attachReportFiles } from '../attach-report-files.mutation';
-import { apiFetch } from '../../../../utils/api-fetch.utils';
+import { getReportFileUrlsMutation } from '../../../queries/reports.queries';
 
 export const addTimestampToFiles = async (files: File[], timestamp: number) => {
   return await Promise.all(
@@ -19,15 +19,11 @@ async function getReportImageUrls(props: {
   reportId: string;
   files: readonly File[];
 }): Promise<{ file: File; name: string; signedUrl: string; fileId: string }[]> {
-  const urlSearchParams = new URLSearchParams();
-  for (const file of props.files) {
-    urlSearchParams.append('fileNames', file.name);
-  }
+  const result = await getReportFileUrlsMutation({
+    reportId: props.reportId,
+    fileNames: props.files.map(({ name }) => name)
+  });
 
-  const result = await apiFetch<{ items: { id: string; name: string; url: string }[] }>(
-    `/reports/v2/${props.reportId}/files/url?${urlSearchParams}`,
-    { method: 'GET' }
-  );
   if (!result) return [];
 
   const fileByName = new Map(props.files.map((file) => [file.name, file]));

@@ -1,9 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { startOfYear } from 'date-fns';
 import { Magistrat } from 'shared-models';
-import z from 'zod';
-
-import { type DossierDeNomination } from 'src/generated/prisma/client';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
@@ -12,12 +9,12 @@ import {
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectations';
-import { NominationFileContentSchema } from 'src/modules/session/infrastructure/nomination-file-content.schema';
 
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isDefined } from 'src/utils/is-defined';
 
 import { Clock } from 'src/modules/framework/clock';
+import { AffectationVersionFinder } from './affectation-version.finder';
 
 @Injectable()
 export class AutoAffectationsFinder {
@@ -27,30 +24,41 @@ export class AutoAffectationsFinder {
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
     private readonly clock: Clock,
+    private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
   async find(predicate: {
     sessionId: string;
     nominationFileIds: readonly string[];
   }): Promise<AutoAffectations> {
-    const session = await this.prisma.session.findUnique({
-      where: { id: predicate.sessionId },
-      select: {
-        formation: true,
-        dossierDeNominations: {
-          where: {
-            id: { in: predicate.nominationFileIds as string[] },
-            reporterIds: { none: {} },
+    const session = await this.prisma.$transaction(async (tx) => {
+      const version = await this.affectationVersionFinder.last({
+        sessionId: predicate.sessionId,
+        tx,
+      });
+
+      return tx.session.findUnique({
+        where: { id: predicate.sessionId },
+        select: {
+          formation: true,
+          dossierDeNominations: {
+            select: { id: true, targetedPosition: true },
+            where: {
+              id: { in: predicate.nominationFileIds as string[] },
+              reporterIds: {
+                none: { versionId: version?.id },
+              },
+            },
           },
         },
-      },
+      });
     });
 
     if (!session) throw new NotFoundException();
 
     const formation = prismaFormationEnumToFormationEnum(session.formation);
     const members = await this.findMembers(formation);
-    const files = await this.findNominationFiles(
+    const files = await this.extractAutoAffectationNominationFiles(
       session.dossierDeNominations,
       formation,
     );
@@ -58,19 +66,13 @@ export class AutoAffectationsFinder {
     return AutoAffectations.from({ files, members });
   }
 
-  private async findNominationFiles(
-    dossierDeNominations: readonly DossierDeNomination[],
+  private async extractAutoAffectationNominationFiles(
+    nominationFiles: readonly { id: string; targetedPosition: string | null }[],
     formation: Magistrat.Formation,
   ): Promise<AutoAffectationNominationFile[]> {
-    const nominationFileContents = await z
-      .array(
-        z.looseObject({ id: z.string(), content: NominationFileContentSchema }),
-      )
-      .parseAsync(dossierDeNominations);
-
-    return nominationFileContents
-      .map(({ id, content }) => {
-        const jurisdiction = this.extractJurisdiction(content.posteCible);
+    return nominationFiles
+      .map(({ id, targetedPosition }) => {
+        const jurisdiction = this.extractJurisdiction(targetedPosition);
         if (!jurisdiction) return null;
 
         return {
@@ -152,20 +154,25 @@ export class AutoAffectationsFinder {
 
   // Cas 1 : Parsing manuel
   // TODO 2 : récupérer la juridiction du membre une fois la migration XML terminée
-  private extractJurisdiction(posteCible: string) {
+  private extractJurisdiction(targetedPosition: string | null): string | null {
+    if (!targetedPosition) return null;
+
     const keywords = ['TJ', 'CA'];
-    const keyword = keywords.find((k) => posteCible.includes(k));
+    const keyword = keywords.find((k) => targetedPosition.includes(k));
 
     if (!keyword) {
-      this.logger.debug(`No jurisdiction keyword found in: ${posteCible}`);
+      this.logger.debug(
+        `No jurisdiction keyword found in: ${targetedPosition}`,
+      );
+
       return null;
     }
 
-    const startIndex = posteCible.indexOf(keyword);
-    const dashIndex = posteCible.indexOf('-', startIndex);
+    const startIndex = targetedPosition.indexOf(keyword);
+    const dashIndex = targetedPosition.indexOf('-', startIndex);
 
     return dashIndex > -1
-      ? posteCible.substring(startIndex, dashIndex).trim()
-      : posteCible.substring(startIndex).trim();
+      ? targetedPosition.substring(startIndex, dashIndex).trim()
+      : targetedPosition.substring(startIndex).trim();
   }
 }

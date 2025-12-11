@@ -1,4 +1,4 @@
-import { ReportFileUsage } from 'shared-models';
+import { NominationFile, ReportFileUsage } from 'shared-models';
 import { FileMimeType, FondationFile } from 'src/modules/framework/files';
 import { Id, makeId } from 'src/utils/id';
 
@@ -19,7 +19,29 @@ export class ReportFilesDetached {
   ) {}
 }
 
-type ReportEvent = ReportFilesAttached | ReportFilesDetached;
+export class ReportUpdated {
+  constructor(
+    readonly id: string,
+    readonly data: {
+      status: NominationFile.ReportState | undefined;
+      comment: string | undefined;
+    },
+  ) {}
+}
+
+export class ReportRuleValidationUpdated {
+  constructor(
+    readonly id: string,
+    readonly ruleId: string,
+    readonly isValidated: boolean,
+  ) {}
+}
+
+type ReportEvent =
+  | ReportFilesAttached
+  | ReportFilesDetached
+  | ReportUpdated
+  | ReportRuleValidationUpdated;
 
 export class Report {
   private constructor(
@@ -75,6 +97,25 @@ export class Report {
 
     this.#messages.push(
       new ReportFilesDetached(this.id, command.reporterId, command.fileNames),
+    );
+  }
+
+  update(command: {
+    data: {
+      status: NominationFile.ReportState | undefined;
+      comment: string | undefined;
+    };
+  }) {
+    this.#messages.push(new ReportUpdated(this.id, command.data));
+  }
+
+  updateRuleValidation(command: { ruleId: string; isValidated: boolean }) {
+    this.#messages.push(
+      new ReportRuleValidationUpdated(
+        this.id,
+        command.ruleId,
+        command.isValidated,
+      ),
     );
   }
 

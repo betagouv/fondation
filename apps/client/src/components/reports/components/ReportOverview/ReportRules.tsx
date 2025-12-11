@@ -1,14 +1,14 @@
 import { NominationFile } from 'shared-models';
 
 import { ReportVM } from '../../../../VM/ReportVM';
-import type { ReportSM } from '../../../../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportRule } from './ReportRule';
 
 export type ReportRulesProps = {
   rulesChecked: ReportVM['rulesChecked'];
   onUpdateReportRule: (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => void;
-  rules: ReportSM['rules'];
+  rules: DetailedReportDto['rules'];
 };
 
 export const ReportRules: React.FC<ReportRulesProps> = ({ rulesChecked, onUpdateReportRule, rules }) => {

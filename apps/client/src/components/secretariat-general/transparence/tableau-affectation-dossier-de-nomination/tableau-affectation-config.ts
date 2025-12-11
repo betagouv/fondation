@@ -2,7 +2,6 @@ import type { ReactNode, RefObject } from 'react';
 import React from 'react';
 import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
-import type { ContenuPropositionDeNominationTransparenceV2 } from 'shared-models/models/session/contenu-transparence-par-version/proposition-content';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
@@ -33,32 +32,25 @@ export const dataRowsDn = (options: {
   magistratModalRef: RefObject<HTMLDivElement | null>;
   formation: Magistrat.Formation;
 }): ReactNode[][] => {
-  return options.data.map((dossier) => {
-    const content = dossier.content as ContenuPropositionDeNominationTransparenceV2;
-    const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
-    const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-    const rapporteursNames = dossier.reporters
-      .map((r) => r.firstName + ' ' + r.lastName)
-      .join('\n')
-      .toLocaleUpperCase();
-
-    return [
-      content.numeroDeDossier,
-      React.createElement(MagistratDnModalLink, {
-        nominationFile: dossier,
-        modalRef: options.magistratModalRef,
-        formation: options.formation
-      }),
-      // content.posteActuel,
-      content.grade,
-      posteCible,
-      gradeCible,
-      content.observants && content.observants.length > 0 ? content.observants : '-',
-      dossier.priority ? PrioriteLabels[dossier.priority] : '-',
-      React.createElement('span', { className: 'whitespace-pre-line' }, rapporteursNames),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
-    ];
-  });
+  return options.data.map((dossier) => [
+    dossier.content.numeroDeDossier,
+    React.createElement(MagistratDnModalLink, {
+      nominationFile: dossier,
+      modalRef: options.magistratModalRef,
+      formation: options.formation
+    }),
+    dossier.content.grade,
+    dossier.content.posteCible,
+    dossier.content.gradeCible,
+    dossier.content.observants && dossier.content.observants.length > 0 ? dossier.content.observants : '-',
+    dossier.priority ? PrioriteLabels[dossier.priority] : '-',
+    React.createElement(
+      'span',
+      { className: 'whitespace-pre-line' },
+      dossier.reporters.map(({ firstName, lastName }) => `${firstName} ${lastName}`.toUpperCase()).join('\n')
+    ),
+    dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
+  ]);
 };
 
 export const dataRowsDnEdition = (options: {
@@ -67,44 +59,36 @@ export const dataRowsDnEdition = (options: {
   magistratModalRef: RefObject<HTMLDivElement | null>;
   formation: Magistrat.Formation;
 }): ReactNode[][] => {
-  return options.data.map((dossier) => {
-    const content = dossier.content;
-    const gradeCible = content.posteCible.substring(content.posteCible.lastIndexOf('-') + 1);
-    const posteCible = content.posteCible.substring(0, content.posteCible.lastIndexOf('-'));
-    const initialRapporteurIds = dossier.reporters.map((r) => r.id);
-
-    return [
-      React.createElement('div', {
-        className: 'size-full items-center flex justify-center',
-        children: React.createElement(CheckboxDossier, { dossierId: dossier.id })
-      }),
-      content.numeroDeDossier,
-      React.createElement(MagistratDnModalLink, {
-        nominationFile: dossier,
-        modalRef: options.magistratModalRef,
-        formation: options.formation
-      }),
-      // content.posteActuel,
-      content.grade,
-      posteCible,
-      gradeCible,
-      content.observants,
-      React.createElement(DropdownPriorite, {
-        dossierId: dossier.id,
-        initialPriorite: dossier.priority ?? undefined
-      }),
-      React.createElement(DropdownRapporteurs, {
-        dossierId: dossier.id,
-        initialRapporteurs: initialRapporteurIds,
-        availableRapporteurs: options.availableRapporteurs
-      }),
-      content.dateEchéance && DateOnly.fromDateOnly(content.dateEchéance)
-    ];
-  });
+  return options.data.map((dossier) => [
+    React.createElement('div', {
+      className: 'size-full items-center flex justify-center',
+      children: React.createElement(CheckboxDossier, { dossierId: dossier.id })
+    }),
+    dossier.content.numeroDeDossier,
+    React.createElement(MagistratDnModalLink, {
+      nominationFile: dossier,
+      modalRef: options.magistratModalRef,
+      formation: options.formation
+    }),
+    dossier.content.grade,
+    dossier.content.posteCible,
+    dossier.content.gradeCible,
+    dossier.content.observants,
+    React.createElement(DropdownPriorite, {
+      dossierId: dossier.id,
+      initialPriorite: dossier.priority ?? undefined
+    }),
+    React.createElement(DropdownRapporteurs, {
+      dossierId: dossier.id,
+      initialRapporteurs: dossier.reporters.map(({ id }) => id),
+      availableRapporteurs: options.availableRapporteurs
+    }),
+    dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
+  ]);
 };
 
-export const applyFilters = (data: SessionNominationFile[], filters: FiltersState) => {
-  return data.filter((dossier) => {
+export const applyFilters = (data: SessionNominationFile[], filters: FiltersState) =>
+  data.filter((dossier) => {
     if (filters.priorite && filters.priorite.length > 0) {
       return false;
     }
@@ -119,12 +103,3 @@ export const applyFilters = (data: SessionNominationFile[], filters: FiltersStat
         : dossier.reporters.some((r) => r.firstName + ' ' + r.lastName === nom)
     );
   });
-};
-
-export const sortValueSpecificDnField = (item: SessionNominationFile, field: string) => {
-  if (field === 'content.gradeCible') {
-    const posteCible = item.content?.posteCible || '';
-    return posteCible.substring(posteCible.lastIndexOf('-') + 1);
-  }
-  return undefined;
-};

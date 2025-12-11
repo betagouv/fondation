@@ -10,11 +10,11 @@ export function DetailsMemberHeader(props: { member: { firstName: string; lastNa
         segments={[
           {
             label: 'Secrétariat général',
-            linkProps: { href: ROUTE_PATHS.SG.DASHBOARD }
+            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD }
           },
           {
             label: 'Gérer les membres',
-            linkProps: { href: ROUTE_PATHS.SG.MANAGE_MEMBERS }
+            linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS }
           }
         ]}
       />
