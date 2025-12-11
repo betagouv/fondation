@@ -1,24 +1,24 @@
+import type { ReactNode } from 'react';
 import { gradeToLabel } from '../components/reports/labels/labels-mappers';
 import {
   reportListTableLabels,
   type ReportListTableLabels
 } from '../components/reports/labels/report-list-table-labels';
-import { stateToLabel } from '../components/reports/labels/state-label.mapper';
 import { DateOnly } from '../models/date-only.model';
 import type { DetailedSessionReport } from '../react-query/queries/members/sessions.queries';
 import { getGdsReportPath } from './route-path.utils';
+import { NominationFile } from 'shared-models';
 
 export type ReportListItemVM = {
   id: string;
   folderNumber: number | 'Profilé';
-  state: ReturnType<typeof stateToLabel>;
+  state: NominationFile.ReportState;
   dueDate: string | null;
   name: string;
-  grade: ReturnType<typeof gradeToLabel>;
+  grade: string;
   targettedPosition: string;
-  observersCount: number;
+  observers: ReactNode;
   href: string;
-  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 export type ReportListVM = {
@@ -27,21 +27,33 @@ export type ReportListVM = {
   headers: ReportListTableLabels['headers'];
 };
 
-export const formatReportList = (reports: DetailedSessionReport[]): ReportListVM => {
-  const sortedReports = [...(reports || [])].sort((a, b) => {
-    if (b === null) return -1;
-    if (a === null) return 1;
-    if (a.folderNumber && b.folderNumber) {
-      if (a.folderNumber < b.folderNumber) return -1;
-      if (a.folderNumber > b.folderNumber) return 1;
-    }
-    return 0;
-  });
+function formatObserversList(observers: readonly string[]): ReactNode {
+  switch (observers.length) {
+    case 0:
+      return '-';
+    case 1:
+      return observers[0];
+    default:
+      return (
+        <ul className="list-none">
+          {observers.map((o) => (
+            <li key={`ReportListObservers_${o}`}>{o}</li>
+          ))}
+        </ul>
+      );
+  }
+}
 
-  const filteredReports = sortedReports.map(
-    ({ id, folderNumber, name, dueDate, state, grade, targettedPosition, observersCount }) => {
+export const useFormattedReportList = (reports: readonly DetailedSessionReport[]): ReportListVM => {
+  const filteredReports = [...reports]
+    .sort((a, b) =>
+      Number.isFinite(a.folderNumber) && Number.isFinite(b.folderNumber)
+        ? (a.folderNumber as number) - (b.folderNumber as number)
+        : 0
+    )
+    .map(({ id, folderNumber, name, dueDate, state, grade, targettedPosition, observers }) => {
       const href = getGdsReportPath(id);
-
+      const formattedObservers: ReactNode = formatObserversList(observers);
       const dueDateFormatted = dueDate
         ? new DateOnly(dueDate.year, dueDate.month, dueDate.day).toFormattedString()
         : null;
@@ -49,24 +61,19 @@ export const formatReportList = (reports: DetailedSessionReport[]): ReportListVM
       return {
         id,
         folderNumber: folderNumber ?? 'Profilé',
-        state: stateToLabel(state),
-        dueDate: dueDateFormatted,
         name,
+        href,
+        dueDate: dueDateFormatted,
         grade: gradeToLabel(grade),
         targettedPosition,
-        observersCount,
-        href,
-        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-          event.preventDefault();
-          window.location.href = href;
-        }
+        observers: formattedObservers,
+        state
       } as const;
-    }
-  );
+    });
 
   return {
     newReportsCount: filteredReports.reduce(
-      (count, report) => (report.state === 'Nouveau' ? count + 1 : count),
+      (count, report) => (report.state === NominationFile.ReportState.NEW ? count + 1 : count),
       0
     ),
     headers: reportListTableLabels.headers,

@@ -80,19 +80,17 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
           className="mb-0"
           data={paginatedData.map((report) => [
             <div>{report.folderNumber}</div>,
-            <Link to={report.href} onClick={report.onClick}>
-              {report.name}
-            </Link>,
+            <Link to={report.href}>{report.name}</Link>,
             <div>{report.grade}</div>,
             <div>{report.targettedPosition}</div>,
-            <div>{report.observersCount}</div>,
+            <div>{report.observers}</div>,
             <ReportStateTag state={report.state} />,
             <div>{report.dueDate}</div>
           ])}
         />
 
         {paginatedData.length === 0 ? (
-          <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+          <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
             Aucun résultat ne correspond aux valeurs filtrées
           </p>
         ) : null}

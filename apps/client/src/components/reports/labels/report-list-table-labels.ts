@@ -3,7 +3,7 @@ export const reportListTableLabels = {
     folderNumber: 'N° dossier',
     name: 'Magistrat',
     grade: 'Grade actuel',
-    targettedPosition: 'Poste proposé',
+    targettedPosition: 'Poste cible',
     observersCount: 'Observants',
     state: 'Statut',
     dueDate: 'Echéance'
