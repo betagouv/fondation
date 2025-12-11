@@ -3,7 +3,7 @@ import Table from '@codegouvfr/react-dsfr/Table';
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { TypeDeSaisineLabels } from 'shared-models';
 
@@ -47,7 +47,6 @@ function applySessionFilters(
 
 export const ManageSession = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { data: sessions } = useQuery({
     queryKey: ['listed-gds-nomination-sessions'],
     queryFn: listGdsNominationSessionsQuery
@@ -65,11 +64,7 @@ export const ManageSession = () => {
     segments: [
       {
         label: 'Secretariat général',
-        to: ROUTE_PATHS.SG.DASHBOARD,
-        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-          event.preventDefault();
-          navigate(ROUTE_PATHS.SG.DASHBOARD);
-        }
+        to: ROUTE_PATHS.SG.DASHBOARD
       }
     ]
   };
@@ -145,7 +140,7 @@ export const ManageSession = () => {
       <div className="mb-4 flex justify-center">
         <Table className="mb-0" id="all-sessions-table" bordered headers={headers} data={sessionRows} />
         {sessionRows.length === 0 ? (
-          <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
+          <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
             Aucun résultat ne correspond aux valeurs filtrées
           </p>
         ) : null}

@@ -4,6 +4,10 @@ import { DAYS } from 'src/utils/time';
 export class AuthSession {
   static readonly DEFAULT_DURATION = 30 * DAYS;
 
+  get expiresAt(): Date {
+    return new Date(this.startedAt.getTime() + this.durationMs);
+  }
+
   private constructor(
     readonly id: Id<'AuthSessionId'>,
     readonly startedAt: Date,

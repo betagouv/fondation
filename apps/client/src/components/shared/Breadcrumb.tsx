@@ -20,12 +20,9 @@ export const Breadcrumb: FC<BreadcrumbProps> = ({
     id={id}
     aria-label={ariaLabel}
     currentPageLabel={currentPageLabel}
-    segments={segments.map(({ label, to, onClick }) => ({
+    segments={segments.map(({ label, to }) => ({
       label,
-      linkProps: {
-        onClick,
-        to
-      }
+      linkProps: { to }
     }))}
   />
 );

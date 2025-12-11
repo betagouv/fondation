@@ -1,7 +1,7 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useCallback, useState, type FC } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { useQuery } from '@tanstack/react-query';
@@ -15,8 +15,6 @@ import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResum
 
 export const Transparence: FC = () => {
   const { sessionId } = useParams();
-  const navigate = useNavigate();
-
   const alertRef = useCallback((ref: HTMLDivElement | null) => {
     ref?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
