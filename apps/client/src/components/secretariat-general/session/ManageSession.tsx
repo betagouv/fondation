@@ -137,10 +137,17 @@ export const ManageSession = () => {
 
       <FiltresSessions filters={filters} onFiltersChange={setFilters} />
 
-      <div className="mb-4 flex justify-center">
-        <Table className="mb-0" id="all-sessions-table" bordered headers={headers} data={sessionRows} />
+      <div className="mb-4 flex flex-col justify-center">
+        <Table
+          bordered
+          fixed
+          className="mb-0 w-full"
+          id="all-sessions-table"
+          headers={headers}
+          data={sessionRows}
+        />
         {sessionRows.length === 0 ? (
-          <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+          <p className="bg-fr-gray-bg mb-0 border border-t-0 border-solid border-[#808080] py-4 text-center text-gray-600">
             Aucun résultat ne correspond aux valeurs filtrées
           </p>
         ) : null}
