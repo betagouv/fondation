@@ -50,10 +50,15 @@ export const AffectationProvider = ({
   const [selectedDossierIds, setSelectedDossierIds] = useState<Set<string>>(new Set());
 
   const updateAffectation = useCallback((dossierId: string, rapporteurIds: string[]) => {
-    setAffectations((prev) => ({
-      ...prev,
-      [dossierId]: rapporteurIds
-    }));
+    setAffectations((prev) => {
+      const existing = prev[dossierId] || [];
+      const combined = [...existing, ...rapporteurIds];
+      const unique = [...new Set(combined)];
+      return {
+        ...prev,
+        [dossierId]: unique
+      };
+    });
   }, []);
 
   const updatePriorite = useCallback((dossierId: string, priorite: PrioriteEnum) => {
