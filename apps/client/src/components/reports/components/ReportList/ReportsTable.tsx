@@ -1,5 +1,5 @@
 import { Table } from '@codegouvfr/react-dsfr/Table';
-import { useState } from 'react';
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 
 import type { ReportListItemVM, ReportListVM } from '../../../../utils/format-report-list.utils';
 import './ReportsTable.css';
@@ -34,8 +34,8 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
   reports,
   children
 }) => {
-  const [filters, setFilters] = useState<ReportFiltersState>({
-    statuts: []
+  const [filters, setFilters] = useQueryStates({
+    statuts: parseAsArrayOf(parseAsString).withDefault([])
   });
 
   const {

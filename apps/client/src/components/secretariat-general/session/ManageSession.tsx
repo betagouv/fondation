@@ -1,8 +1,8 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { useQuery } from '@tanstack/react-query';
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { TypeDeSaisineLabels } from 'shared-models';
@@ -54,9 +54,9 @@ export const ManageSession = () => {
 
   const successSessionImportTitle = location.state?.success ?? undefined;
 
-  const [filters, setFilters] = useState<SessionFiltersState>({
-    formations: [],
-    typeDeSaisine: []
+  const [filters, setFilters] = useQueryStates({
+    formations: parseAsArrayOf(parseAsString).withDefault([]),
+    typeDeSaisine: parseAsArrayOf(parseAsString).withDefault([])
   });
 
   const breadcrumb: BreadcrumbVM = {
