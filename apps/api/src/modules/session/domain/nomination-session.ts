@@ -5,7 +5,6 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { NominationFile, NominationFileEntity } from './nomination-file';
-import { FileMimeType } from 'src/modules/framework/files';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -82,7 +81,7 @@ export class NominationSessionFilesObserversUpdated {
 export class NominationSessionAttachmentAdded {
   constructor(
     readonly sessionId: string,
-    readonly file: { name: string; buffer: Buffer; type: FileMimeType },
+    readonly file: { id: string },
   ) {}
 }
 
@@ -372,9 +371,7 @@ export class NominationSession {
     );
   }
 
-  addAttachment(command: {
-    file: { name: string; type: FileMimeType; buffer: Buffer };
-  }) {
+  addAttachment(command: { file: { id: string } }) {
     this.#messages.push(
       new NominationSessionAttachmentAdded(this.id, command.file),
     );

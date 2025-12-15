@@ -54,3 +54,5 @@ export class UpdateNominationSessionDto extends createZodDto(
     positionStartDate: z.iso.date().nullable(),
   }),
 ) {}
+
+export const UploadSessionAttachmentDto = z.object({ file: z.file() });

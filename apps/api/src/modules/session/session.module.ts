@@ -2,7 +2,6 @@ import { Module, forwardRef } from '@nestjs/common';
 
 import { MembersModule } from '../members';
 
-import { FilesModule } from '../framework/files';
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
@@ -22,10 +21,7 @@ import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomin
 @Module({
   exports: [SessionService],
   controllers: [SessionController],
-  imports: [
-    forwardRef(() => MembersModule),
-    FilesModule.forFeature('nominations'),
-  ],
+  imports: [forwardRef(() => MembersModule)],
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,

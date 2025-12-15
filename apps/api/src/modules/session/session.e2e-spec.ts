@@ -151,6 +151,7 @@ describe('Session E2E', () => {
 
       expect(nominationFiles.body.items).toContainEqual({
         comment: null,
+        commentAccessUserIds: [],
         content: {
           dateDeNaissance: {
             day: 9,
@@ -168,7 +169,8 @@ describe('Session E2E', () => {
             month: 9,
             year: 2020,
           },
-          grade: 'HH',
+          grade: 'I',
+          gradeCible: 'HH',
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
@@ -193,6 +195,7 @@ describe('Session E2E', () => {
 
       expect(nominationFiles.body.items).toContainEqual({
         comment: null,
+        commentAccessUserIds: [],
         id: expect.any(String),
         content: {
           dateDeNaissance: {
@@ -211,7 +214,8 @@ describe('Session E2E', () => {
             month: 9,
             year: 2019,
           },
-          grade: 'HH',
+          grade: 'I',
+          gradeCible: 'HH',
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
@@ -239,7 +243,7 @@ describe('Session E2E', () => {
       });
     });
 
-    it.only('should update the observers of an existing session from a LODAM file', async () => {
+    it('should update the observers of an existing session from a LODAM file', async () => {
       const initialSessionBuffer = await fs.readFile(LODAM_FILE_PATH);
       const { body: session } = await http
         .post('/api/sessions/v2/lodam')

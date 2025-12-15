@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { ReportRepository } from './infrastructure/report.repository';
-import { type FileMimeType } from '../framework/files';
 import { type ReportFileUsage, Role, NominationFile } from 'shared-models';
 import {
   GetReportFileUrlsQuery,
@@ -24,7 +23,7 @@ export class ReportService {
     userId: string;
     fileUsage: ReportFileUsage;
     reportId: string;
-    files: readonly { name: string; type: FileMimeType; buffer: Buffer }[];
+    files: readonly { id: string }[];
   }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,

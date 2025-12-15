@@ -8,6 +8,6 @@ import { FilesModule } from './files';
 @Global()
 @Module({
   imports: [ConfigModule, DatabaseModule, ClockModule, FilesModule.forRoot()],
-  exports: [ConfigModule, DatabaseModule, ClockModule],
+  exports: [ConfigModule, DatabaseModule, ClockModule, FilesModule],
 })
 export class FrameworkModule {}

@@ -37,10 +37,7 @@ export class GetReportFileUrlsQuery {
     const files = new Map(
       report.files.map(
         ({ file }) =>
-          [
-            file.path.concat(file.name).join('/'),
-            { id: file.id, name: file.name },
-          ] as const,
+          [file.path.join('/'), { id: file.id, name: file.name }] as const,
       ),
     );
 
