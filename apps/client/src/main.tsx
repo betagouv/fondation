@@ -2,6 +2,7 @@ import './index.css';
 
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Link } from 'react-router-dom';
@@ -40,7 +41,9 @@ async function clearQueryClient(error: Error): Promise<void> {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AppRouter />
+      <NuqsAdapter>
+        <AppRouter />
+      </NuqsAdapter>
     </QueryClientProvider>
   </StrictMode>
 );

@@ -2,9 +2,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
 import clsx from 'clsx';
+import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
+import { PrioriteEnum, type Magistrat, type UserDescriptorSerialized } from 'shared-models';
 
 import {
   AffectationProvider,
@@ -73,9 +74,9 @@ const TableauDossiersDeNominationContent = ({
     }
   };
 
-  const [filters, setFilters] = useState<FiltersState>({
-    rapporteurs: [],
-    priorite: []
+  const [filters, setFilters] = useQueryStates({
+    rapporteurs: parseAsArrayOf(parseAsString).withDefault([]),
+    priorite: parseAsArrayOf(parseAsStringEnum(Object.values(PrioriteEnum))).withDefault([])
   });
 
   const {
