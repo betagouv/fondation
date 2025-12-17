@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { assertNever } from 'src/utils/assert-never';
@@ -12,7 +13,12 @@ export class AutoAffectations {
     files: readonly AutoAffectationNominationFile[];
     members: readonly AutoAffectationMember[];
   }): AutoAffectations {
-    return new AutoAffectations(props.files, props.members);
+    return new AutoAffectations(
+      [...props.files].sort(
+        /* desc */ (a, b) => AutoAffectationNominationFile.sort(b, a),
+      ),
+      props.members,
+    );
   }
 
   /** @see https://www.notion.so/26aa2ff25f158049a016f768e7bbb86f */
@@ -128,18 +134,8 @@ class NominationFileWorkload {
     sessionDate: DateOnly;
     grade: Magistrat.Grade;
   }): number {
-    if (file.sessionDate.toDate().getTime() < Date.UTC(2025, 11, 1)) {
-      switch (file.grade) {
-        case Magistrat.Grade.II:
-          return 1;
-        case Magistrat.Grade.I:
-        case Magistrat.Grade.III:
-          return 2;
-        case Magistrat.Grade.HH:
-          return 3;
-        default:
-          return assertNever(file.grade);
-      }
+    if (this.isDeprecatedGrading(file)) {
+      return this.getDeprecatedGrading(file);
     }
 
     switch (file.grade) {
@@ -151,6 +147,32 @@ class NominationFileWorkload {
         return 3;
       case Magistrat.Grade.HH:
         return 4;
+      default:
+        return assertNever(file.grade);
+    }
+  }
+
+  private static isDeprecatedGrading(file: { sessionDate: DateOnly }): boolean {
+    return file.sessionDate.toDate().getTime() < Date.UTC(2025, 11, 1);
+  }
+
+  private static getDeprecatedGrading(file: {
+    grade: Magistrat.Grade;
+  }): number {
+    switch (file.grade) {
+      case Magistrat.Grade.II:
+        return 1;
+      case Magistrat.Grade.I:
+        return 2;
+      case Magistrat.Grade.HH:
+        return 3;
+
+      case Magistrat.Grade.III: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session older than 2025-12-01`,
+        );
+        return 2;
+      }
       default:
         return assertNever(file.grade);
     }

@@ -9,7 +9,7 @@ import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 describe('automated affectation', () => {
   const session = {
     formation: Magistrat.Formation.PARQUET,
-    date: new DateOnly(2025, 11, 10),
+    date: new DateOnly(2025, 12, 10),
   };
 
   it('should exclude a nomination file, when targeting the same jurisdiction as the member', () => {
@@ -148,27 +148,35 @@ describe('automated affectation', () => {
     // prettier-ignore
     const files: AutoAffectationNominationFile[] = [
       AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.HH, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.HH, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.HH, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.II, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.II, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.I, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.II, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.II, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.HH, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.I, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.HH, targetJurisdiction: 'CA  RENNES', session }),
       AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.I, targetJurisdiction: 'CA  RENNES', session }),
     ];
 
-    const result = AutoAffectations.from({ members, files }).distribute();
+    const autoAffectations = AutoAffectations.from({ members, files });
+    const result = autoAffectations.distribute();
 
     // prettier-ignore
     {
       expect(result).toContainEqual({ nominationFileId: 'file-1', reporterIds: ['memberId1'] });
       expect(result).toContainEqual({ nominationFileId: 'file-2', reporterIds: ['memberId2'] });
 
-      expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId2'] });
 
-      expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId2'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId2'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId2'] });
     }
+
+    expect(members).toContainEqual(
+      expect.objectContaining({ id: 'memberId1', workload: { value: 9 } }),
+    );
+    expect(members).toContainEqual(
+      expect.objectContaining({ id: 'memberId2', workload: { value: 9 } }),
+    );
   });
 });
