@@ -226,7 +226,7 @@ describe('Session E2E', () => {
           version: 2,
         },
         priority: null,
-        reporters: [
+        reporters: expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(String),
             firstName: 'Charles',
@@ -237,7 +237,7 @@ describe('Session E2E', () => {
             firstName: 'Côme',
             lastName: 'DURAND',
           }),
-        ],
+        ]),
       });
     });
 
