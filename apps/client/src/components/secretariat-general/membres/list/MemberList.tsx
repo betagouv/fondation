@@ -1,17 +1,57 @@
 import './MemberList.css';
 
-import Table from '@codegouvfr/react-dsfr/Table';
-import { RoleLabels } from 'shared-models';
-import { useMemberListQuery } from '../members.queries';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { TableControl } from '../../../shared/TableControl';
+import Table from '@codegouvfr/react-dsfr/Table';
+import type { ReactNode } from 'react';
+import { RoleLabels } from 'shared-models';
+import { useServerPagination } from '../../../../hooks/useServerPagination.hook';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { capitalize } from '../../../../utils/string.utils';
-import { useState } from 'react';
+import { SortButton } from '../../../shared/SortButton';
+import { TableControl } from '../../../shared/TableControl';
+import { useMemberListQuery, type MemberSortField } from '../members.queries';
+
+type HeaderColumn = {
+  field: string;
+  label: string;
+  sortKey?: MemberSortField;
+};
+
+const HEADERS_COLUMNS: HeaderColumn[] = [
+  { field: 'role', label: 'Formation', sortKey: 'role' },
+  { field: 'lastName', label: 'Nom de famille', sortKey: 'lastName' },
+  { field: 'firstName', label: 'Prénom', sortKey: 'firstName' },
+  { field: 'actions', label: '' }
+];
 
 export function MemberList() {
-  const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 25 });
-  const { data, isLoading } = useMemberListQuery(pagination);
+  const { page, limit, sortField, sortDirection, setPage, setLimit, setSort, getPageUrl, getSortIcon } =
+    useServerPagination({ defaultLimit: 25 });
+
+  const { data, isLoading } = useMemberListQuery({
+    page,
+    limit,
+    sortField: sortField as MemberSortField | null,
+    sortDirection
+  });
+
+  const totalItems = data?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  const displayedItems = data?.items.length ?? 0;
+  const currentPage = data?.currentPageIndex ?? 1;
+
+  const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
+    <span key={header.field} className="flex items-center gap-1">
+      {header.label}
+      {header.sortKey && (
+        <SortButton
+          iconId={getSortIcon(header.sortKey)}
+          onClick={() => setSort(header.sortKey!)}
+          label={header.label}
+        />
+      )}
+    </span>
+  ));
 
   return (
     <div className="flex flex-col justify-center gap-4">
@@ -19,13 +59,14 @@ export function MemberList() {
         <Table
           bordered
           id="members-list"
-          headers={['Formation', 'Nom de famille', 'Prénom', '']}
+          headers={headers}
           data={
             data?.items.map((member) => [
-              <div>{RoleLabels[member.role]}</div>,
-              <div className="uppercase">{member.lastName}</div>,
-              <div className="capitalize">{member.firstName}</div>,
+              <div key={`role-${member.id}`}>{RoleLabels[member.role]}</div>,
+              <div key={`lastName-${member.id}`} className="uppercase">{member.lastName}</div>,
+              <div key={`firstName-${member.id}`} className="capitalize">{member.firstName}</div>,
               <Button
+                key={`edit-${member.id}`}
                 priority="tertiary no outline"
                 iconId="fr-icon-edit-line"
                 title={`Éditer ${capitalize(member.firstName)} ${member.lastName.toUpperCase()}`}
@@ -40,17 +81,14 @@ export function MemberList() {
 
       <TableControl
         label={{ one: 'membre', other: 'membres' }}
-        currentPage={data?.currentPageIndex ?? 1}
-        itemsPerPage={pagination.limit}
-        displayedItems={data?.items.length ?? 0}
-        totalItems={data?.totalCount ?? 0}
-        totalPages={data ? Math.ceil(data.totalCount / pagination.limit) : 1}
-        onChange={(limit) => {
-          setPagination({ limit, page: 1 });
-        }}
-        setCurrentPage={(page: number) => {
-          setPagination((p) => ({ ...p, page }));
-        }}
+        currentPage={currentPage}
+        itemsPerPage={limit}
+        displayedItems={displayedItems}
+        totalItems={totalItems}
+        totalPages={totalPages}
+        onChange={setLimit}
+        setCurrentPage={setPage}
+        getPageUrl={getPageUrl}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, ilike, inArray, or } from 'drizzle-orm';
+import { and, asc, desc, ilike, inArray, or } from 'drizzle-orm';
 import { Db } from 'src/modules/framework/drizzle';
 import { users } from 'src/modules/framework/drizzle/schemas';
 import {
@@ -8,6 +8,7 @@ import {
   Pagination,
 } from 'src/modules/framework/pagination';
 import { z } from 'zod';
+import type { MemberSortField } from '../member.dto';
 import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class ListMembersQuery {
   async handle(query: {
     pagination: Pagination;
     search: string | undefined;
+    sort: { field: MemberSortField | undefined; direction: 'asc' | 'desc' };
   }): Promise<Paginated<MemberListItemDto>> {
     const [totalCount, items] = await this.db.transaction(async (tx) => {
       const where = and(
@@ -30,9 +32,15 @@ export class ListMembersQuery {
           : undefined,
       );
       const totalCount = await tx.$count(users, where);
+
+      const sortFn = query.sort.direction === 'desc' ? desc : asc;
+      const sortColumn = query.sort.field
+        ? users[query.sort.field]
+        : users.lastName;
+
       const memberItems = await tx.query.users.findMany({
         where,
-        orderBy: (u, { asc }) => asc(u.createdAt),
+        orderBy: sortFn(sortColumn),
         limit: query.pagination.limit,
         offset: (query.pagination.page - 1) * query.pagination.limit,
         columns: {

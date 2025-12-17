@@ -4,21 +4,35 @@ import { apiFetch } from '../../../utils/api-fetch.utils';
 
 export type MemberListItem = { id: string; firstName: string; lastName: string; role: Role };
 
-export function useMemberListQuery(options: { page?: number; limit?: number } = {}) {
-  return useQuery({
-    queryKey: ['listMembers', options.page, options.limit],
-    queryFn: () => {
-      const searchParams = new URLSearchParams(
-        Object.entries(options).map(([k, v]) => [k, String(v)])
-      ).toString();
+export type MemberSortField = 'lastName' | 'firstName' | 'role';
 
+export type MemberListQueryOptions = {
+  page?: number;
+  limit?: number;
+  sortField?: MemberSortField | null;
+  sortDirection?: 'asc' | 'desc';
+};
+
+export function useMemberListQuery(options: MemberListQueryOptions = {}) {
+  const { page, limit, sortField, sortDirection } = options;
+
+  return useQuery({
+    queryKey: ['listMembers', { page, limit, sortField, sortDirection }],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (page) params.set('page', String(page));
+      if (limit) params.set('limit', String(limit));
+      if (sortField) params.set('sortField', sortField);
+      if (sortDirection) params.set('sortDirection', sortDirection);
+
+      const queryString = params.toString();
       return apiFetch<{
         items: MemberListItem[];
         totalCount: number;
         currentPageIndex: number;
         nextPageIndex?: number;
         previousPageIndex?: number;
-      }>(`/members/v1${searchParams ? `?${searchParams}` : ''}`, { method: 'GET' });
+      }>(`/members/v1${queryString ? `?${queryString}` : ''}`, { method: 'GET' });
     }
   });
 }

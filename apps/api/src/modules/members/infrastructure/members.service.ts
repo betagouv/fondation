@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 import { Paginated, Pagination } from 'src/modules/framework/pagination';
+import type { MemberSortField } from './member.dto';
 import { MemberRepository } from './member-repository';
 import {
   DetailedMemberDto,
@@ -26,6 +27,7 @@ export class MembersService {
   listMembers(query: {
     pagination: Pagination;
     search: string | undefined;
+    sort: { field: MemberSortField | undefined; direction: 'asc' | 'desc' };
   }): Promise<Paginated<MemberListItemDto>> {
     return this.listMembersQuery.handle(query);
   }

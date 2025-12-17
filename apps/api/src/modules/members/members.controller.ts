@@ -22,7 +22,10 @@ import { SessionService } from 'src/modules/session';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 import { MemberListItemDto } from './infrastructure/queries/list-members.query';
-import { ExcludeJurisdictionsDto } from './infrastructure/member.dto';
+import {
+  ExcludeJurisdictionsDto,
+  ListMembersQueryDto,
+} from './infrastructure/member.dto';
 
 @Controller('/api/members/v1')
 export class MembersController {
@@ -35,9 +38,16 @@ export class MembersController {
   @Get()
   listMembers(
     @QueryPagination() pagination: Pagination,
-    @Query('search') search: string | undefined,
+    @Query() query: ListMembersQueryDto,
   ): Promise<Paginated<MemberListItemDto>> {
-    return this.members.listMembers({ pagination, search });
+    return this.members.listMembers({
+      pagination,
+      search: query.search,
+      sort: {
+        field: query.sortField,
+        direction: query.sortDirection ?? 'asc',
+      },
+    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
