@@ -143,12 +143,12 @@ export class AutoAffectationsFinder {
             COUNT(r.id) AS "reportCount"
           FROM reports_context.reports r
             INNER JOIN nominations_context.dossier_de_nomination ddn ON r.nomination_file_id = ddn.id
-          GROUP BY r.reporter_id, ddn.targeted_grade
           WHERE (
             NOT r.is_deleted
             AND r.reporter_id = ANY(${memberIds}::UUID[])
             AND r.created_at >= ${startOfYear(this.clock.now())}::DATE
-          );
+          )
+          GROUP BY r.reporter_id, ddn.targeted_grade;
         `,
       ]);
 
@@ -210,12 +210,12 @@ export class AutoAffectationsFinder {
         SELECT
           (p.content ->> 'id')::UUID AS id,
           (p.content ->> 'targetedPosition') AS targeted_position
-        FROM UNNEST ${definedPositions}::jsonb[] AS p(content)
+        FROM UNNEST (${definedPositions}::jsonb[]) AS p(content)
       )
 
       SELECT queried_positions.id, codejur
       FROM queried_positions
-        INNER JOIN data_administration_context.jurisdiction j
+        INNER JOIN data_administration_context.jurisdictions j
           ON queried_positions.targeted_position ILIKE '%' || j.codejur || '%'
     `;
 

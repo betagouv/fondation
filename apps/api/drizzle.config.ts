@@ -27,7 +27,7 @@ function getDbCredentials() {
       port: defaultApiConfig.database.port,
       user: defaultApiConfig.database.user,
       password: defaultApiConfig.database.password,
-      database: defaultApiConfig.database.name,
+      database: defaultApiConfig.database.database,
       ssl: false,
     };
   }

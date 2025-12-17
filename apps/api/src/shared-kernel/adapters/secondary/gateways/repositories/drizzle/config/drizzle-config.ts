@@ -20,5 +20,5 @@ export const drizzleConfigForTest = getDrizzleConfig({
   port: 5435,
   user: defaultApiConfig.database.user,
   password: defaultApiConfig.database.password,
-  name: defaultApiConfig.database.name,
+  name: defaultApiConfig.database.database,
 });
