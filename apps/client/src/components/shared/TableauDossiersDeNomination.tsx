@@ -2,10 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
 import clsx from 'clsx';
-import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PrioriteEnum, type Magistrat, type UserDescriptorSerialized } from 'shared-models';
+import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 
 import {
   AffectationProvider,
@@ -13,14 +12,12 @@ import {
   type DossierAffectation,
   type PrioriteValue
 } from '../../contexts/AffectationDossiersContext';
-import { useTable } from '../../hooks/useTable.hook';
 import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 import { MagistratDnModale } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 import {
-  applyFilters,
   dataRowsDn,
   dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
@@ -29,6 +26,22 @@ import {
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+
+export interface ServerPaginationProps {
+  totalCount: number;
+  currentPage: number;
+  itemsPerPage: number;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  getPageUrl: (pageNumber: number) => string;
+}
+
+export interface ServerSortingProps {
+  sortField: string | undefined;
+  sortDirection: 'asc' | 'desc';
+  setSort: (field: string) => void;
+  getSortIcon: (field: string) => 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line';
+}
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -41,6 +54,10 @@ export interface TableauDossiersDeNominationProps {
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
   children?: React.ReactNode[] | React.ReactNode | undefined;
   formation: Magistrat.Formation;
+  serverPagination?: ServerPaginationProps;
+  serverSorting?: ServerSortingProps;
+  filters?: FiltersState;
+  onFiltersChange?: (filters: FiltersState) => void;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -51,7 +68,11 @@ const TableauDossiersDeNominationContent = ({
   canEdit = false,
   onSaveAffectations,
   children,
-  formation
+  formation,
+  serverPagination,
+  serverSorting,
+  filters,
+  onFiltersChange
 }: TableauDossiersDeNominationProps) => {
   const { pathname } = useLocation();
   const magistratModalRef = useRef<HTMLDivElement>(null);
@@ -74,26 +95,15 @@ const TableauDossiersDeNominationContent = ({
     }
   };
 
-  const [filters, setFilters] = useQueryStates({
-    rapporteurs: parseAsArrayOf(parseAsString).withDefault([]),
-    priorite: parseAsArrayOf(parseAsStringEnum(Object.values(PrioriteEnum))).withDefault([])
-  });
+  const paginatedData = dossiersDeNomination;
+  const totalItems = serverPagination?.totalCount ?? dossiersDeNomination.length;
+  const currentPage = serverPagination?.currentPage ?? 1;
+  const itemsPerPage = serverPagination?.itemsPerPage ?? 50;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const displayedItems = paginatedData.length;
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable<SessionNominationFile, FiltersState>(dossiersDeNomination, {
-    filters,
-    applyFilters
-  });
+  const handleSort = serverSorting?.setSort ?? (() => {});
+  const getSortIcon = serverSorting?.getSortIcon ?? (() => 'fr-icon-arrow-down-line' as const);
 
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
 
@@ -102,14 +112,18 @@ const TableauDossiersDeNominationContent = ({
       return <span key={header.field}>{header.label}</span>;
     }
 
+    const sortKey = header.sortKey;
+
     return (
       <span key={header.field} className="flex items-center gap-1">
         {header.label}
-        <SortButton
-          iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-          onClick={() => handleSort(header.field)}
-          label={header.label}
-        />
+        {sortKey && (
+          <SortButton
+            iconId={getSortIcon(sortKey)}
+            onClick={() => handleSort(sortKey)}
+            label={header.label}
+          />
+        )}
       </span>
     );
   });
@@ -123,18 +137,16 @@ const TableauDossiersDeNominationContent = ({
       })
     : dataRowsDn({ magistratModalRef, data: paginatedData, formation });
 
-  const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
-    dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)
-  );
-
   return (
     <div>
       <div className={clsx(cx('fr-container'), 'mb-4 flex items-center justify-between px-0')}>
-        <FiltresDossiersDeNomination
-          filters={filters}
-          onFiltersChange={setFilters}
-          rapporteurs={rapporteurNoms}
-        />
+        {filters && onFiltersChange && (
+          <FiltresDossiersDeNomination
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            rapporteurs={availableRapporteurs}
+          />
+        )}
         <div className="flex items-center gap-2">
           {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
           {canEdit && (
@@ -188,13 +200,14 @@ const TableauDossiersDeNominationContent = ({
 
         <div className={clsx('mb-10', cx('fr-container'))}>
           <TableControl
-            onChange={setItemsPerPage}
+            onChange={serverPagination?.setLimit ?? (() => {})}
             itemsPerPage={itemsPerPage}
             totalItems={totalItems}
             displayedItems={displayedItems}
             totalPages={totalPages}
             currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={serverPagination?.setPage ?? (() => {})}
+            getPageUrl={serverPagination?.getPageUrl}
             label={
               isSg ? { one: 'proposition', other: 'propositions' } : { one: 'dossier', other: 'dossiers' }
             }

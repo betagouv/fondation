@@ -1,11 +1,11 @@
 import { DropdownFilter } from '../../../shared/DropdownFilter';
 import type { FiltersState } from '../../../shared/filter-configurations';
-import { useFilterOptions } from '../../../../hooks/useFilterOptions.hook';
+import { useFilterOptions, type RapporteurOption } from '../../../../hooks/useFilterOptions.hook';
 
 interface FiltresDossiersDeNominationProps {
   filters: FiltersState;
   onFiltersChange: (filters: FiltersState) => void;
-  rapporteurs?: string[] | null;
+  rapporteurs?: RapporteurOption[] | null;
 }
 
 export const FiltresDossiersDeNomination = ({

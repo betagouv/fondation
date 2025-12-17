@@ -3,29 +3,38 @@ import React from 'react';
 import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import type {
+  NominationFileSortField,
+  SessionNominationFile
+} from '../../../../react-query/mutations/sg/nomination-session-affectations';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
 
-export const HEADER_COLUMNS_AFFECTATIONS_DN = [
-  { field: 'content.numeroDeDossier', label: 'N°' },
-  { field: 'content.nomMagistrat', label: 'Magistrat' },
-  { field: 'content.grade', label: 'Grade actuel' },
-  { field: 'content.posteCible', label: 'Poste cible' },
-  { field: 'content.gradeCible', label: 'Grade cible' },
-  { field: 'content.observants', label: 'Observant(s)' },
-  { field: 'content.priorite', label: 'Priorité' },
-  { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
-  { field: 'content.dateEchéance', label: "Date d'écheance" }
-] as const satisfies { field: string; label: string }[];
+export type HeaderColumn = {
+  field: string;
+  label: string;
+  sortKey?: NominationFileSortField;
+};
 
-export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
+export const HEADER_COLUMNS_AFFECTATIONS_DN: HeaderColumn[] = [
+  { field: 'content.numeroDeDossier', label: 'N°', sortKey: 'numeroDeDossier' },
+  { field: 'content.nomMagistrat', label: 'Magistrat', sortKey: 'nomMagistrat' },
+  { field: 'content.grade', label: 'Grade actuel', sortKey: 'grade' },
+  { field: 'content.posteCible', label: 'Poste cible' },
+  { field: 'content.gradeCible', label: 'Grade cible', sortKey: 'gradeCible' },
+  { field: 'content.observants', label: 'Observant(s)' },
+  { field: 'priority', label: 'Priorité', sortKey: 'priority' },
+  { field: 'reporters', label: 'Rapporteur(s)' },
+  { field: 'content.dateEchéance', label: "Date d'écheance", sortKey: 'dateEcheance' }
+];
+
+export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION: HeaderColumn[] = [
   { field: 'checkbox', label: '' },
   ...HEADER_COLUMNS_AFFECTATIONS_DN
-] as const satisfies { field: string; label: string }[];
+];
 
 export const dataRowsDn = (options: {
   data: SessionNominationFile[];

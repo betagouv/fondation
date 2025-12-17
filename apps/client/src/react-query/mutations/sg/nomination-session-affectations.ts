@@ -41,13 +41,56 @@ export type SessionNominationFile = {
   };
 };
 
-export function useSessionNominationFilesQuery(options: { sessionId: string }) {
+export type PaginatedSessionNominationFiles = {
+  items: SessionNominationFile[];
+  totalCount: number;
+  currentPageIndex: number;
+  nextPageIndex: number | undefined;
+  previousPageIndex: number | undefined;
+  links: { next?: string; previous?: string };
+};
+
+export type NominationFileSortField =
+  | 'nomMagistrat'
+  | 'numeroDeDossier'
+  | 'dateEcheance'
+  | 'priority'
+  | 'grade'
+  | 'gradeCible';
+
+export type SessionNominationFilesQueryOptions = {
+  sessionId: string;
+  page?: number;
+  limit?: number;
+  sortField?: NominationFileSortField | null;
+  sortDirection?: 'asc' | 'desc';
+  priorities?: PrioriteEnum[];
+  reporterIds?: string[];
+};
+
+export function useSessionNominationFilesQuery(options: SessionNominationFilesQueryOptions) {
+  const { sessionId, page, limit, sortField, sortDirection, priorities, reporterIds } = options;
+
   return useQuery({
-    queryKey: ['sessionNominationFiles', options.sessionId],
+    queryKey: ['sessionNominationFiles', sessionId, { page, limit, sortField, sortDirection, priorities, reporterIds }],
     queryFn: () => {
-      return apiFetch<{
-        items: SessionNominationFile[];
-      }>(`/sessions/v2/${options.sessionId}/files`, { method: 'GET' });
+      const params = new URLSearchParams();
+
+      if (page) params.set('page', String(page));
+      if (limit) params.set('limit', String(limit));
+      if (sortField) params.set('sortField', sortField);
+      if (sortDirection) params.set('sortDirection', sortDirection);
+      if (priorities?.length) {
+        priorities.forEach((p) => params.append('priorities', p));
+      }
+      if (reporterIds?.length) {
+        reporterIds.forEach((id) => params.append('reporterIds', id));
+      }
+
+      const queryString = params.toString();
+      const url = `/sessions/v2/${sessionId}/files${queryString ? `?${queryString}` : ''}`;
+
+      return apiFetch<PaginatedSessionNominationFiles>(url, { method: 'GET' });
     }
   });
 }

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
+import { Paginated, Pagination } from 'src/modules/framework/pagination';
+import type { NominationFileSortField } from './dtos/nomination-file.dto';
 
 import { FileMimeType } from 'src/modules/framework/files';
 import { MembersService } from 'src/modules/members';
@@ -116,11 +118,16 @@ export class SessionService {
   async listNominationFiles(query: {
     sessionId: string;
     user: { role: Role; id: string };
+    pagination: Pagination;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<{ items: NominationFileAffectationItem[] }> {
+    sort: {
+      field: NominationFileSortField | undefined;
+      direction: 'asc' | 'desc';
+    };
+  }): Promise<Paginated<NominationFileAffectationItem>> {
     return this.listNominationFilesQuery.handle(query);
   }
 

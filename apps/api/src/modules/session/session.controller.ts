@@ -21,6 +21,11 @@ import { Role, TypeDeSaisine } from 'shared-models';
 
 import { FILE_MIME_TYPES, isMimeType } from 'src/modules/framework/files';
 import { UseMultipartBody } from 'src/modules/framework/multipart';
+import {
+  Paginated,
+  Pagination,
+  QueryPagination,
+} from 'src/modules/framework/pagination';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import { type NominationFile } from './domain/nomination-file';
@@ -114,14 +119,20 @@ export class SessionController {
   listNominationFiles(
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { id: string; role: Role },
+    @QueryPagination() pagination: Pagination,
     @Query() query: ListNominationFilesQueryDto,
-  ): Promise<{ items: NominationFileAffectationItem[] }> {
+  ): Promise<Paginated<NominationFileAffectationItem>> {
     return this.sessions.listNominationFiles({
       user,
       sessionId,
+      pagination,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
+      },
+      sort: {
+        field: query.sortField,
+        direction: query.sortDirection ?? 'asc',
       },
     });
   }

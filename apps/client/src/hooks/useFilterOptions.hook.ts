@@ -14,20 +14,28 @@ interface FilterOptions {
   priorite: FilterOption[];
 }
 
-export const useFilterOptions = (rapporteurs: string[] | null | undefined): FilterOptions => {
-  return useMemo(() => {
-    const uniqueRapporteurs: { value: string; label: string }[] = [];
-    for (const value of new Set(rapporteurs)) {
-      if (!value) continue;
+export type RapporteurOption = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+};
 
-      const [firstName, lastName] = value.split(' ');
+export const useFilterOptions = (rapporteurs: RapporteurOption[] | null | undefined): FilterOptions => {
+  return useMemo(() => {
+    const seen = new Set<string>();
+    const uniqueRapporteurs: FilterOption[] = [];
+
+    for (const r of rapporteurs ?? []) {
+      if (seen.has(r.userId)) continue;
+      seen.add(r.userId);
+
       uniqueRapporteurs.push({
-        value,
-        label: firstName.toUpperCase() + ' ' + lastName.charAt(0).toUpperCase() + lastName.slice(1)
+        value: r.userId,
+        label: `${r.firstName.toUpperCase()} ${r.lastName.charAt(0).toUpperCase()}${r.lastName.slice(1)}`
       });
     }
 
-    uniqueRapporteurs.sort((a, b) => a.value.localeCompare(b.value));
+    uniqueRapporteurs.sort((a, b) => a.label.localeCompare(b.label));
 
     return {
       rapporteurs: [FILTER_RAPPORTEUR_NOBODY].concat(uniqueRapporteurs),

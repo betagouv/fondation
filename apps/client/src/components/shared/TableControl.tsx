@@ -1,6 +1,6 @@
+import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useMemo, useState, type FC } from 'react';
-import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import { ITEMS_PAR_PAGE } from '../../types/table.types';
 import { pluralize } from '../../utils/string.utils';
 
@@ -13,6 +13,7 @@ export type TableControlProps = {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   label?: string | { one: string; other: string };
+  getPageUrl?: (pageNumber: number) => string;
 };
 
 export const TableControl: FC<TableControlProps> = ({
@@ -23,7 +24,8 @@ export const TableControl: FC<TableControlProps> = ({
   totalPages,
   currentPage,
   label = 'sessions',
-  setCurrentPage
+  setCurrentPage,
+  getPageUrl
 }) => {
   const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
   const value = externalItemsPerPage ?? internalItemsPerPage;
@@ -65,14 +67,16 @@ export const TableControl: FC<TableControlProps> = ({
       <Pagination
         count={totalPages}
         defaultPage={currentPage}
-        // TODO REPLACE THIS LOGIC WITH LINK PROPS LOGIC
-        getPageLinkProps={(pageNumber) => ({
-          onClick: () => setCurrentPage(pageNumber),
-
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          to: undefined
-        })}
+        getPageLinkProps={(pageNumber) =>
+          getPageUrl
+            ? { to: getPageUrl(pageNumber) }
+            : {
+                onClick: () => setCurrentPage(pageNumber),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                to: undefined
+              }
+        }
         showFirstLast
       />
     </div>
