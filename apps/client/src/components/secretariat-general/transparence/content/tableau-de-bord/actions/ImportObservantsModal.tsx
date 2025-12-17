@@ -89,6 +89,8 @@ export const ImportObservantsModal: FC<{
           nativeInputProps={{
             ref: fileInputRef,
             onChange: (e) => {
+              reset();
+
               e.preventDefault();
               if (e.target.files && e.target.files.length === 1) {
                 setObservantsFile(e.target.files[0]!);

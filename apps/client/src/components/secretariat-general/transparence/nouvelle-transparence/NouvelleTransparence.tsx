@@ -222,6 +222,7 @@ const NouvelleTransparence: FC = () => {
                 onChange: (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    resetTransparencyMutation();
                     onChange(file);
                   }
                 }
