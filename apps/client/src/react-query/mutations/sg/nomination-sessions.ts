@@ -128,10 +128,42 @@ export type ListedNominationSession = {
   dueDate: DateOnlyJson | null;
   typeDeSaisine: TypeDeSaisine;
 };
-export function listGdsNominationSessionsQuery() {
-  return apiFetch<{ items: ListedNominationSession[] }>(`/sessions/v2/garde-des-sceaux`, {
-    method: 'GET'
-  });
+
+export type PaginatedNominationSessions = {
+  items: ListedNominationSession[];
+  totalCount: number;
+  currentPageIndex: number;
+  nextPageIndex: number | undefined;
+  previousPageIndex: number | undefined;
+  links: { next?: string; previous?: string };
+};
+
+export type SessionSortField = 'name' | 'formation' | 'date' | 'dueDate';
+
+export type ListGdsNominationSessionsQueryOptions = {
+  page?: number;
+  limit?: number;
+  sortField?: SessionSortField | null;
+  sortDirection?: 'asc' | 'desc';
+  formations?: Magistrat.Formation[];
+};
+
+export function listGdsNominationSessionsQuery(options: ListGdsNominationSessionsQueryOptions = {}) {
+  const { page, limit, sortField, sortDirection, formations } = options;
+  const params = new URLSearchParams();
+
+  if (page) params.set('page', String(page));
+  if (limit) params.set('limit', String(limit));
+  if (sortField) params.set('sortField', sortField);
+  if (sortDirection) params.set('sortDirection', sortDirection);
+  if (formations?.length) {
+    formations.forEach((f) => params.append('formations', f));
+  }
+
+  const queryString = params.toString();
+  const url = `/sessions/v2/garde-des-sceaux${queryString ? `?${queryString}` : ''}`;
+
+  return apiFetch<PaginatedNominationSessions>(url, { method: 'GET' });
 }
 
 export type DetailedNominationSession = {

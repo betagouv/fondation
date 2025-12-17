@@ -45,13 +45,14 @@ import {
   UpdateNominationSessionFilesObserversDto,
   ImportNominationSessionFromLodamXlsxDto,
   UpdateNominationSessionDto,
+  ListNominationSessionsQueryDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import { type FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
+import { ListedNominationSessionItem } from './infrastructure/queries/list-nomination-sessions.query';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 @UseInterceptors(SessionExceptionFilter)
@@ -61,9 +62,18 @@ export class SessionController {
 
   @HasRole()
   @Get('/garde-des-sceaux')
-  listSessionsOfTypeGardeDesSceaux(): Promise<ListedNominationSessionsDto> {
+  listSessionsOfTypeGardeDesSceaux(
+    @QueryPagination() pagination: Pagination,
+    @Query() query: ListNominationSessionsQueryDto,
+  ): Promise<Paginated<ListedNominationSessionItem>> {
     return this.sessions.listNominationSessions({
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      pagination,
+      filters: { formations: query.formations ?? [] },
+      sort: {
+        field: query.sortField,
+        direction: query.sortDirection ?? 'desc',
+      },
     });
   }
 

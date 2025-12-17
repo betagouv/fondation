@@ -54,3 +54,20 @@ export class UpdateNominationSessionDto extends createZodDto(
     positionStartDate: z.iso.date().nullable(),
   }),
 ) {}
+
+const SessionSortableFields = ['name', 'formation', 'date', 'dueDate'] as const;
+export type SessionSortField = (typeof SessionSortableFields)[number];
+
+const toArray = <T>(val: T | T[] | undefined): T[] | undefined =>
+  val === undefined ? undefined : Array.isArray(val) ? val : [val];
+
+export class ListNominationSessionsQueryDto extends createZodDto(
+  z.looseObject({
+    formations: z.preprocess(
+      toArray,
+      z.array(z.enum(Magistrat.Formation)).optional(),
+    ),
+    sortField: z.enum(SessionSortableFields).optional(),
+    sortDirection: z.enum(['asc', 'desc']).optional(),
+  }),
+) {}

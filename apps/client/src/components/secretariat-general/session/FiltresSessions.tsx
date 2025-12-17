@@ -1,9 +1,9 @@
+import type { Magistrat } from 'shared-models';
 import { DropdownFilter } from '../../shared/DropdownFilter';
-import { FORMATION_OPTIONS, SAISINE_OPTIONS } from '../../shared/filter-configurations';
+import { FORMATION_OPTIONS } from '../../shared/filter-configurations';
 
 export interface SessionFiltersState {
-  formations: string[];
-  typeDeSaisine: string[];
+  formations: Magistrat.Formation[];
 }
 
 interface FiltresSessionsProps {
@@ -12,13 +12,6 @@ interface FiltresSessionsProps {
 }
 
 export const FiltresSessions = ({ filters, onFiltersChange }: FiltresSessionsProps) => {
-  const handleFilterChange = (filterType: keyof SessionFiltersState, values: string[]) => {
-    onFiltersChange({
-      ...filters,
-      [filterType]: values
-    });
-  };
-
   return (
     <div id="filtre-sessions" className="mb-4 flex items-center gap-4">
       <span className="font-bold">Filtrer par :</span>
@@ -26,13 +19,7 @@ export const FiltresSessions = ({ filters, onFiltersChange }: FiltresSessionsPro
         tagName="Formation"
         options={FORMATION_OPTIONS}
         selectedValues={filters.formations}
-        onSelectionChange={(values) => handleFilterChange('formations', values)}
-      />
-      <DropdownFilter
-        tagName="Type de saisine"
-        options={SAISINE_OPTIONS}
-        selectedValues={filters.typeDeSaisine}
-        onSelectionChange={(values) => handleFilterChange('typeDeSaisine', values)}
+        onSelectionChange={(values) => onFiltersChange({ formations: values as Magistrat.Formation[] })}
       />
     </div>
   );

@@ -1,13 +1,13 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { useQuery } from '@tanstack/react-query';
-import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
+import { parseAsArrayOf, parseAsStringEnum, useQueryStates } from 'nuqs';
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import { TypeDeSaisineLabels } from 'shared-models';
+import { Magistrat, TypeDeSaisineLabels } from 'shared-models';
 
-import { useTable } from '../../../hooks/useTable.hook';
+import { useServerPagination } from '../../../hooks/useServerPagination.hook';
 import { DateOnly } from '../../../models/date-only.model';
 
 import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
@@ -18,45 +18,48 @@ import { TableControl } from '../../shared/TableControl';
 
 import {
   listGdsNominationSessionsQuery,
-  type ListedNominationSession
+  type SessionSortField
 } from '../../../react-query/mutations/sg/nomination-sessions';
 
 import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
-import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
+import { FiltresSessions } from './FiltresSessions';
 
-function applySessionFilters(
-  sessions: readonly ListedNominationSession[],
-  filters: SessionFiltersState
-): ListedNominationSession[] {
-  return sessions.filter((session: ListedNominationSession) => {
-    if (filters.formations.length > 0) {
-      if (!filters.formations.includes(session.formation)) {
-        return false;
-      }
-    }
+type HeaderColumn = {
+  field: string;
+  label: string;
+  sortKey?: SessionSortField;
+};
 
-    if (filters.typeDeSaisine.length > 0) {
-      if (!filters.typeDeSaisine.includes(session.typeDeSaisine)) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-}
+const HEADERS_COLUMNS: HeaderColumn[] = [
+  { field: 'typeDeSaisine', label: 'Type de session' },
+  { field: 'name', label: 'Intitulé de la session', sortKey: 'name' },
+  { field: 'formation', label: 'Formation', sortKey: 'formation' },
+  { field: 'dateTransparence', label: 'Date de publication', sortKey: 'date' },
+  { field: 'dateEcheance', label: "Date d'écheance", sortKey: 'dueDate' },
+  { field: 'status', label: 'Statut' }
+];
 
 export const ManageSession = () => {
   const location = useLocation();
-  const { data: sessions } = useQuery({
-    queryKey: ['listed-gds-nomination-sessions'],
-    queryFn: listGdsNominationSessionsQuery
-  });
-
   const successSessionImportTitle = location.state?.success ?? undefined;
 
+  const { page, limit, sortField, sortDirection, setPage, setLimit, setSort, getPageUrl, getSortIcon } =
+    useServerPagination({ defaultLimit: 50 });
+
   const [filters, setFilters] = useQueryStates({
-    formations: parseAsArrayOf(parseAsString).withDefault([]),
-    typeDeSaisine: parseAsArrayOf(parseAsString).withDefault([])
+    formations: parseAsArrayOf(parseAsStringEnum(Object.values(Magistrat.Formation))).withDefault([])
+  });
+
+  const { data: sessionsResponse } = useQuery({
+    queryKey: ['listed-gds-nomination-sessions', { page, limit, sortField, sortDirection, formations: filters.formations }],
+    queryFn: () =>
+      listGdsNominationSessionsQuery({
+        page,
+        limit,
+        sortField: sortField as SessionSortField | null,
+        sortDirection,
+        formations: filters.formations as Magistrat.Formation[]
+      })
   });
 
   const breadcrumb: BreadcrumbVM = {
@@ -69,48 +72,37 @@ export const ManageSession = () => {
     ]
   };
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable(sessions?.items ?? [], {
-    filters,
-    applyFilters: applySessionFilters,
-    itemsPerPage: 50
-  });
+  const paginatedData = sessionsResponse?.items ?? [];
+  const totalItems = sessionsResponse?.totalCount ?? 0;
+  const currentPage = sessionsResponse?.currentPageIndex ?? 1;
+  const totalPages = Math.ceil(totalItems / limit);
+  const displayedItems = paginatedData.length;
 
-  const HEADERS_COLUMNS = [
-    { field: 'typeDeSaisine', label: 'Type de session' },
-    { field: 'name', label: 'Intitulé de la session' },
-    { field: 'formation', label: 'Formation' },
-    { field: 'dateTransparence', label: 'Date de publication' },
-    { field: 'dateEcheance', label: "Date d'écheance" },
-    { field: 'status', label: 'Statut' }
-  ];
+  const handleSort = (field: string) => {
+    const column = HEADERS_COLUMNS.find((c) => c.field === field);
+    if (column?.sortKey) {
+      setSort(column.sortKey);
+    }
+  };
 
   const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
-    <span className="flex items-center gap-1">
+    <span key={header.field} className="flex items-center gap-1">
       {header.label}
-      <SortButton
-        iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(header.field)}
-        label={header.label}
-      />
+      {header.sortKey && (
+        <SortButton
+          iconId={getSortIcon(header.sortKey)}
+          onClick={() => handleSort(header.field)}
+          label={header.label}
+        />
+      )}
     </span>
   ));
 
-  const sessionRows = (paginatedData || []).map((session) => {
+  const sessionRows = paginatedData.map((session) => {
     const href = getSgSessionPath(session.id);
     return [
       TypeDeSaisineLabels[session.typeDeSaisine],
-      <Link to={href}>{session.name.toUpperCase()}</Link>,
+      <Link key={session.id} to={href}>{session.name.toUpperCase()}</Link>,
       session.formation,
       DateOnly.fromDateOnly(session.date),
       session.dueDate && DateOnly.fromDateOnly(session.dueDate),
@@ -153,13 +145,15 @@ export const ManageSession = () => {
         ) : null}
       </div>
       <TableControl
-        onChange={setItemsPerPage}
-        itemsPerPage={itemsPerPage}
+        onChange={setLimit}
+        itemsPerPage={limit}
         totalItems={totalItems}
         displayedItems={displayedItems}
         totalPages={totalPages}
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={setPage}
+        getPageUrl={getPageUrl}
+        label={{ one: 'session', other: 'sessions' }}
       />
     </>
   );

@@ -41,9 +41,10 @@ import {
   ListNominationSessionAttachmentsQuery,
 } from './queries/list-nomination-session-attachments.query';
 import {
-  ListedNominationSessionsDto,
+  ListedNominationSessionItem,
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
+import type { SessionSortField } from './dtos/nomination-session.dto';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
 
 @Injectable()
@@ -310,7 +311,10 @@ export class SessionService {
 
   listNominationSessions(query: {
     typeDeSaisine: TypeDeSaisine;
-  }): Promise<ListedNominationSessionsDto> {
+    pagination: Pagination;
+    filters: { formations: readonly Magistrat.Formation[] };
+    sort: { field: SessionSortField | undefined; direction: 'asc' | 'desc' };
+  }): Promise<Paginated<ListedNominationSessionItem>> {
     return this.listNominationSessionsQuery.handle(query);
   }
 }
