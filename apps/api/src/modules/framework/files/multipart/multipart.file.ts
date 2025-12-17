@@ -31,4 +31,19 @@ export class MultipartFile extends File {
     this.deleteOnFail = deleteOnFail;
     this.overrideFiles = overrideFiles;
   }
+
+  clone(buffers: Buffer[]): MultipartFile {
+    return new MultipartFile({
+      buffers,
+      filename: this.name,
+      options: {
+        id: this.id,
+        path: this.path,
+        overrideFiles: this.overrideFiles,
+        deleteOnFail: this.deleteOnFail,
+        type: this.mimeType,
+        lastModified: this.lastModified,
+      },
+    });
+  }
 }

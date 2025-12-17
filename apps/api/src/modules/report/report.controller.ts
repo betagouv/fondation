@@ -26,8 +26,11 @@ import {
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
 import { ReportService } from './report.service';
-import { Multipart, UseMultipartBody } from '../framework/files/multipart';
-import { FILE_EXTENSIONS } from '../framework/files/mime-type';
+import {
+  FILE_EXTENSIONS,
+  UseMultipartBody,
+  type Multipart,
+} from '../framework/files';
 
 @Controller('/api/reports/v2')
 export class ReportController {

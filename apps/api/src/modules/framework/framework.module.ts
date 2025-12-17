@@ -13,7 +13,7 @@ import { ObservabilityModule } from './observability';
     DatabaseModule,
     ClockModule,
     ObservabilityModule,
-    FilesModule.forRoot(),
+    FilesModule,
   ],
   exports: [
     ConfigModule,

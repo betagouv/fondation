@@ -2,7 +2,6 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
-  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
@@ -13,11 +12,14 @@ import { ignoreAsync } from 'src/utils/promises';
 import { Files } from '../files';
 import { MultipartFile } from './multipart.file';
 import { StoredFile } from './multipart.types';
+import { Sanitizer } from '../sanitizers';
 
 @Injectable()
 export class StoreFileInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(StoreFileInterceptor.name);
-  constructor(private readonly files: Files) {}
+  constructor(
+    private readonly files: Files,
+    private readonly sanitizer: Sanitizer,
+  ) {}
 
   async intercept(
     context: ExecutionContext,
@@ -65,12 +67,16 @@ export class StoreFileInterceptor implements NestInterceptor {
 
     await this.files.create(
       await Promise.all(
-        multipartFiles.map(async (f) => ({
-          path: f.path as string,
-          name: f.name,
-          meta: { id: f.id },
-          buffer: Buffer.from(await f.arrayBuffer()),
-        })),
+        multipartFiles.map(async (f) => {
+          const sanitized = await this.sanitizer.sanitize(f);
+
+          return {
+            path: f.path as string,
+            name: f.name,
+            meta: { id: f.id },
+            buffer: Buffer.from(await sanitized.arrayBuffer()),
+          };
+        }),
       ),
     );
 

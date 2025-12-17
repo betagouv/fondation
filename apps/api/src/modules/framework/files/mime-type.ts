@@ -5,6 +5,7 @@ export const FILE_MIME_TYPES = {
   png: 'image/png',
   jpg: 'image/jpeg',
   heic: 'image/heic',
+  webp: 'image/webp',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   odt: 'application/vnd.oasis.opendocument.text',
