@@ -180,20 +180,12 @@ class NominationFileWorkload {
 }
 
 export class AutoAffectationNominationFile {
-  readonly workload: NominationFileWorkload;
-
   constructor(
     readonly id: string,
     readonly targetJurisdiction: string,
     readonly formation: Magistrat.Formation,
-    readonly targetedGrade: Magistrat.Grade,
-    sessionDate: DateOnly,
-  ) {
-    this.workload = NominationFileWorkload.from({
-      sessionDate,
-      grade: targetedGrade,
-    });
-  }
+    readonly workload: NominationFileWorkload,
+  ) {}
 
   static from(props: {
     id: string;
@@ -205,8 +197,10 @@ export class AutoAffectationNominationFile {
       props.id,
       props.targetJurisdiction,
       props.session.formation,
-      props.targetedGrade,
-      props.session.date,
+      NominationFileWorkload.from({
+        sessionDate: props.session.date,
+        grade: props.targetedGrade,
+      }),
     );
   }
 

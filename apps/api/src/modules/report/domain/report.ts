@@ -1,5 +1,4 @@
 import { NominationFile, ReportFileUsage } from 'shared-models';
-import { FileMimeType, FondationFile } from 'src/modules/framework/files';
 import { Id, makeId } from 'src/utils/id';
 
 export class ReportFilesAttached {
@@ -7,7 +6,7 @@ export class ReportFilesAttached {
     readonly id: string,
     readonly reporterId: string,
     readonly usage: ReportFileUsage,
-    readonly files: readonly FondationFile[],
+    readonly files: readonly { id: string }[],
   ) {}
 }
 
@@ -68,7 +67,7 @@ export class Report {
   attachFiles(command: {
     reporterId: string;
     fileUsage: ReportFileUsage;
-    files: readonly { name: string; buffer: Buffer; type: FileMimeType }[];
+    files: readonly { id: string }[];
   }): void {
     if (command.files.length === 0) return;
 
@@ -77,17 +76,7 @@ export class Report {
         this.id,
         command.reporterId,
         command.fileUsage,
-        command.files.map((file) => ({
-          meta: { id: makeId('FileId'), fileUsage: command.fileUsage },
-          buffer: file.buffer,
-          mimeType: file.type,
-          path: [
-            this.sessionName,
-            this.nomAspirant,
-            this.reporterFullName,
-            file.name,
-          ].join('/'),
-        })),
+        command.files,
       ),
     );
   }

@@ -3,6 +3,7 @@ import { FileMimeType } from './mime-type';
 import { ReportFileUsage } from 'shared-models';
 
 export type FondationFile = {
+  name: string;
   path: string;
   buffer: Buffer;
   mimeType?: FileMimeType;

@@ -10,18 +10,15 @@ import {
   Post,
   Put,
   Query,
-  UploadedFiles,
-  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import { ReportFileUsage, Role } from 'shared-models';
-import { hasMimeType } from 'src/modules/framework/files';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
+  AttachReportFileDto,
   DetachReportFilesQueryDto,
   GetReportFileUrlsQueryDto,
   UpdateReportDto,
@@ -29,6 +26,8 @@ import {
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
 import { ReportService } from './report.service';
+import { Multipart, UseMultipartBody } from '../framework/files/multipart';
+import { FILE_EXTENSIONS } from '../framework/files/mime-type';
 
 @Controller('/api/reports/v2')
 export class ReportController {
@@ -37,22 +36,22 @@ export class ReportController {
   @Post('/:reportId/files')
   @HasRole()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseMultipartBody({
+    schema: AttachReportFileDto,
+    destination: ({ request, id, mimetype }) =>
+      `reports/${request.params.reportId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
   attachFiles(
     @Param('reportId') reportId: string,
     @Query('usage') fileUsage: ReportFileUsage,
-    @UploadedFiles() files: Express.Multer.File[],
+    @Body() { files }: Multipart<typeof AttachReportFileDto>,
     @AuthedUserId() userId: string,
   ): Promise<void> {
     return this.reports.attachFiles({
       reportId,
       userId,
       fileUsage,
-      files: files.filter(hasMimeType('mimetype')).map((file) => ({
-        buffer: file.buffer,
-        name: file.originalname,
-        type: file.mimetype,
-      })),
+      files,
     });
   }
 

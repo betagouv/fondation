@@ -147,7 +147,7 @@ export class AutoAffectationsFinder {
           WHERE (
             NOT r.is_deleted
             AND r.reporter_id = ANY(${memberIds}::UUID[])
-            AND r.created_at > ${startOfYear(this.clock.now())}::DATE
+            AND r.created_at >= ${startOfYear(this.clock.now())}::DATE
           );
         `,
       ]);

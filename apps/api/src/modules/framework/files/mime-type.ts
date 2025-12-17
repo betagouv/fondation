@@ -20,8 +20,14 @@ export const FILE_MIME_TYPES = {
 export type FileMimeType =
   (typeof FILE_MIME_TYPES)[keyof typeof FILE_MIME_TYPES];
 
+export const FILE_EXTENSIONS = Object.fromEntries(
+  Object.entries(FILE_MIME_TYPES).map(
+    ([key, value]) => [value as FileMimeType, key] as const,
+  ),
+) as Record<FileMimeType, string>;
+
 const MIME_TYPES = new Set(Object.values(FILE_MIME_TYPES));
-export function isMimeType(value: string): value is FileMimeType {
+export function isMimeType(value: unknown): value is FileMimeType {
   return MIME_TYPES.has(value as any);
 }
 

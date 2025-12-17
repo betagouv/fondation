@@ -18,9 +18,7 @@ describe('Report', () => {
     report.attachFiles({
       reporterId,
       fileUsage: ReportFileUsage.ATTACHMENT,
-      files: [
-        { buffer: Buffer.from([]), name: `image.png`, type: 'image/png' },
-      ],
+      files: [{ id: 'file-id' }],
     });
 
     const [filesAttached] = report.messages;
@@ -30,17 +28,7 @@ describe('Report', () => {
       id: reportId,
       reporterId,
       usage: ReportFileUsage.ATTACHMENT,
-      files: [
-        {
-          mimeType: 'image/png',
-          path: `SESSION_NAME/Jean MOULIN/ARENDT Hannah/image.png`,
-          buffer: expect.any(Buffer),
-          meta: {
-            id: expect.any(String),
-            fileUsage: ReportFileUsage.ATTACHMENT,
-          },
-        },
-      ],
+      files: [{ id: 'file-id' }],
     });
   });
 

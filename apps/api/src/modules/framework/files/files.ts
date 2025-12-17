@@ -20,14 +20,14 @@ import { PrismaStorageProviderEnum } from 'src/generated/prisma/enums';
 import { type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { isDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled, partitionSettled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
-import { type FondationFile } from './files.types';
-import { makeId } from 'src/utils/id';
 import { inspect } from 'node:util';
+import { makeId } from 'src/utils/id';
+import { type FondationFile } from './files.types';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -121,6 +121,8 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async create(files: readonly FondationFile[]): Promise<string[]> {
+    if (files.length === 0) return [];
+
     try {
       const { fulfilled, rejected } = await Promise.allSettled(
         files.map((file) =>
@@ -163,33 +165,20 @@ export class Files implements OnApplicationBootstrap {
         return file;
       });
 
-      await this.prisma
-        .$transaction([
-          this.prisma.file.createMany({
-            data: filesWithId.map((file) => {
-              const parts = file.path.split('/');
-              const path = parts.slice(0, -1);
-              const name = assertIsDefined(parts.at(-1));
+      await this.prisma.file
+        .createMany({
+          data: filesWithId.map((file) => {
+            const path = file.path.split('/');
 
-              return {
-                path,
-                name,
-                id: file.meta?.id,
-                bucket: this.bucketName,
-                storageProvider: PrismaStorageProviderEnum.SCALEWAY,
-              };
-            }),
+            return {
+              path,
+              name: file.name,
+              id: file.meta?.id,
+              bucket: this.bucketName,
+              storageProvider: PrismaStorageProviderEnum.SCALEWAY,
+            };
           }),
-          this.prisma.userFile.createMany({
-            data: filesWithId
-              .map(({ meta }) =>
-                meta?.fileType && meta?.id
-                  ? { type: meta.fileType, fileId: meta.id }
-                  : undefined,
-              )
-              .filter(isDefined),
-          }),
-        ])
+        })
         .catch((err) => {
           this.logger.warn(
             `Failed uploading ${files.length} files: ${inspect(err)}`,
@@ -216,6 +205,7 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async delete(filePaths: readonly string[]): Promise<void> {
+    if (filePaths.length === 0) return;
     try {
       const response = await this.client.send(
         new DeleteObjectsCommand({
@@ -248,12 +238,9 @@ export class Files implements OnApplicationBootstrap {
       await this.prisma
         .$transaction(
           filePaths.map((file) => {
-            const parts = file.split('/');
-            const path = parts.slice(0, -1);
-            const name = assertIsDefined(parts.at(-1));
-
+            const path = file.split('/');
             return this.prisma.file.deleteMany({
-              where: { name, bucket: this.bucketName, path: { equals: path } },
+              where: { bucket: this.bucketName, path: { equals: path } },
             });
           }),
         )

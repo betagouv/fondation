@@ -10,17 +10,13 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
-import { FILE_MIME_TYPES, isMimeType } from 'src/modules/framework/files';
-import { UseMultipartBody } from 'src/modules/framework/multipart';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import { type NominationFile } from './domain/nomination-file';
@@ -28,6 +24,9 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
 
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { FILE_EXTENSIONS } from '../framework/files/mime-type';
+import { Multipart, UseMultipartBody } from '../framework/files/multipart';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
@@ -36,10 +35,11 @@ import {
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
-  ImportNominationSessionFromLodamXlsxDtoSchema,
-  UpdateNominationSessionFilesObserversDto,
   ImportNominationSessionFromLodamXlsxDto,
+  ImportNominationSessionFromLodamXlsxDtoSchema,
   UpdateNominationSessionDto,
+  UpdateNominationSessionFilesObserversDto,
+  UploadSessionAttachmentDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import { type FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -47,7 +47,6 @@ import { DetailedNominationSessionDto } from './infrastructure/queries/detail-no
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
@@ -64,7 +63,13 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Post('/lodam')
-  @UseMultipartBody(ImportNominationSessionFromLodamXlsxDtoSchema)
+  @UseMultipartBody({
+    overrideFiles: false,
+    deleteOnFail: false,
+    schema: ImportNominationSessionFromLodamXlsxDtoSchema,
+    destination: ({ id, mimetype }) =>
+      `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
   async createSessionFromLodam(
     @Body(LodamXlsxPipe)
     files: NominationFile[],
@@ -81,7 +86,13 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Post('/lodam/:sessionId/observers')
-  @UseMultipartBody(UpdateNominationSessionFilesObserversDto.schema)
+  @UseMultipartBody({
+    overrideFiles: false,
+    deleteOnFail: false,
+    schema: UpdateNominationSessionFilesObserversDto.schema,
+    destination: ({ id, mimetype }) =>
+      `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateSessionObservers(
     @Param('sessionId') sessionId: string,
@@ -209,22 +220,18 @@ export class SessionController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/:sessionId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      limits: { files: 1, fileSize: 10 * 1024 * 1024 /* 10Mb */ },
-    }),
-  )
+  @UseMultipartBody({
+    schema: UploadSessionAttachmentDto,
+    destination: ({ request, id, mimetype }) =>
+      `/sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
   async uploadSessionAttachment(
     @Param('sessionId') sessionId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Body() { file }: Multipart<typeof UploadSessionAttachmentDto>,
   ) {
     await this.sessions.addNominationSessionAttachment({
       sessionId,
-      file: {
-        buffer: file.buffer,
-        type: isMimeType(file.mimetype) ? file.mimetype : FILE_MIME_TYPES.bin,
-        name: file.originalname,
-      },
+      file,
     });
   }
 

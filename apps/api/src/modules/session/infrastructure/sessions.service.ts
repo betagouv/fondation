@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
-import { FileMimeType } from 'src/modules/framework/files';
 import { MembersService } from 'src/modules/members';
 import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { inspect } from 'util';
@@ -243,7 +242,7 @@ export class SessionService {
 
   async addNominationSessionAttachment(command: {
     sessionId: string;
-    file: { buffer: Buffer; name: string; type: FileMimeType };
+    file: { id: string };
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,

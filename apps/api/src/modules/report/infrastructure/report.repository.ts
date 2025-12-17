@@ -100,16 +100,13 @@ export class ReportRepository {
     });
 
     const filePaths =
-      report?.files.map(({ file }) => file.path.concat(file.name).join('/')) ??
-      [];
+      report?.files.map(({ file }) => file.path.join('/')) ?? [];
 
     await this.files.delete(filePaths);
   }
 
   private async persistReportFilesAttached(message: ReportFilesAttached) {
-    /** @warning this works at the moment, because operations are done in 2 separate transactions */
-    const fileIds = await this.files.create(message.files);
-
+    const fileIds = message.files.map(({ id }) => id);
     await this.prisma.$transaction(async (tx) => {
       await tx.reportFile.createMany({
         data: fileIds.map((fileId) => ({

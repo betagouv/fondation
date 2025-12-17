@@ -122,8 +122,18 @@ export class DetailReportQuery {
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
 
-      attachments,
-      screenshots,
+      attachments: attachments.map((f) => ({
+        fileId: f.fileId,
+        name: f.name,
+        usage: f.usage,
+      })),
+
+      screenshots: screenshots.map((f) => ({
+        fileId: f.fileId,
+        name: f.name,
+        url: f.url,
+        usage: f.usage,
+      })),
 
       biography: report.nominationFile.biography,
       birthDate:
@@ -189,9 +199,8 @@ export class DetailReportQuery {
   ): Promise<(F & { url: string })[]> {
     const byPath = new Map(
       files.map((f) => {
-        const filePath = f.path.concat(f.name).join('/');
-
-        return [filePath, { ...f, path: filePath }];
+        const filePath = f.path.join('/');
+        return [filePath, f];
       }),
     );
 

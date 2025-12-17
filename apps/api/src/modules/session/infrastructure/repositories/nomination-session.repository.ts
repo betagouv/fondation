@@ -417,33 +417,8 @@ export class NominationSessionRepository {
     tx: Prisma.TransactionClient,
     message: NominationSessionAttachmentAdded,
   ) {
-    const session = await tx.session.findFirst({
-      where: { id: message.sessionId },
-      select: { formation: true, date: true, name: true },
-    });
-
-    if (!session) throw new NotFoundException();
-
-    const fileId = makeId('FileId');
-    const [dateSession] = session.date.toISOString().split('T');
-
-    /** @warning dangerous side-effect + keeping old path */
-    await this.files.create([
-      {
-        meta: { id: fileId },
-        buffer: message.file.buffer,
-        mimeType: message.file.type,
-        path: [
-          dateSession ?? '',
-          session.formation,
-          session.name,
-          message.file.name,
-        ].join('/'),
-      },
-    ]);
-
     await tx.sessionAttachment.create({
-      data: { sessionId: message.sessionId, fileId },
+      data: { sessionId: message.sessionId, fileId: message.file.id },
     });
   }
 
@@ -459,9 +434,7 @@ export class NominationSessionRepository {
     if (!attachment) return;
 
     /** @warning we rely on the cascade from the files table since we escape from the current transaction */
-    await this.files.delete([
-      attachment.file.path.concat(attachment.file.name).join('/'),
-    ]);
+    await this.files.delete([attachment.file.path.join('/')]);
   }
 
   private async persistNominationSessionUpdated(
