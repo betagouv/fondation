@@ -4,16 +4,19 @@ import { Magistrat } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
+
+import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
+import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { isDefined } from 'src/utils/is-defined';
+
 import {
   AutoAffectationMember,
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectations';
-
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { isDefined } from 'src/utils/is-defined';
-
-import { Clock } from 'src/modules/framework/clock';
 import { AffectationVersionFinder } from './affectation-version.finder';
 
 @Injectable()
@@ -21,9 +24,9 @@ export class AutoAffectationsFinder {
   readonly logger = new Logger(AutoAffectationsFinder.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
-    private readonly clock: Clock,
     private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
@@ -37,12 +40,13 @@ export class AutoAffectationsFinder {
         tx,
       });
 
-      return tx.session.findUnique({
+      const txSession = await tx.session.findUnique({
         where: { id: predicate.sessionId },
         select: {
+          date: true,
           formation: true,
           dossierDeNominations: {
-            select: { id: true, targetedPosition: true },
+            select: { id: true, targetedPosition: true, targetedGrade: true },
             where: {
               id: { in: predicate.nominationFileIds as string[] },
               reporterIds: {
@@ -52,52 +56,77 @@ export class AutoAffectationsFinder {
           },
         },
       });
+
+      if (!txSession) return null;
+
+      return {
+        ...txSession,
+        dossierDeNominations: await this.withJurisdiction(
+          tx,
+          txSession.dossierDeNominations,
+        ),
+      };
     });
 
     if (!session) throw new NotFoundException();
 
+    const date = DateOnly.fromDate(session.date);
     const formation = prismaFormationEnumToFormationEnum(session.formation);
-    const members = await this.findMembers(formation);
-    const files = await this.extractAutoAffectationNominationFiles(
+
+    const members = await this.findMembers({ date, formation });
+    const files = this.toAutoAffectationNominationFiles(
       session.dossierDeNominations,
-      formation,
+      { date, formation },
     );
 
-    return AutoAffectations.from({ files, members });
+    return AutoAffectations.from({
+      files,
+      members,
+    });
   }
 
-  private async extractAutoAffectationNominationFiles(
-    nominationFiles: readonly { id: string; targetedPosition: string | null }[],
-    formation: Magistrat.Formation,
-  ): Promise<AutoAffectationNominationFile[]> {
+  private toAutoAffectationNominationFiles(
+    nominationFiles: readonly {
+      id: string;
+      targetedPosition: string | null;
+      targetedGrade: string | null;
+      jurisdiction: string | null;
+    }[],
+    session: { formation: Magistrat.Formation; date: DateOnly },
+  ): AutoAffectationNominationFile[] {
     return nominationFiles
-      .map(({ id, targetedPosition }) => {
-        const jurisdiction = this.extractJurisdiction(targetedPosition);
-        if (!jurisdiction) return null;
+      .map(({ id, targetedGrade, jurisdiction }) => {
+        if (!jurisdiction || !isGrade(targetedGrade)) return null;
 
-        return {
+        return AutoAffectationNominationFile.from({
           id,
-          formation,
+          session,
+          targetedGrade: targetedGrade,
           targetJurisdiction: jurisdiction,
-        } satisfies AutoAffectationNominationFile;
+        });
       })
       .filter(isDefined);
   }
 
-  private async findMembers(
-    formation: Magistrat.Formation,
-  ): Promise<AutoAffectationMember[]> {
+  private async findMembers(session: {
+    date: DateOnly;
+    formation: Magistrat.Formation;
+  }): Promise<AutoAffectationMember[]> {
     const memberIds = await this.membersService.findMembers({
       ids: undefined,
-      formation,
+      formation: session.formation,
     });
 
     if (memberIds.length === 0) return [];
 
+    type ReportCount = {
+      reporterId: string;
+      targetedGrade: string | null;
+      reportCount: Prisma.Decimal;
+    };
     const [membersExcludedJurisdictions, reportCounts] =
-      // the simple array syntax returns a wrong type for the `groupBy` operation
-      await this.prisma.$transaction(async (tx) => {
-        const membersExcludedJurisdictions = await tx.user.findMany({
+      await this.prisma.$transaction([
+        this.prisma.user.findMany({
           where: { id: { in: memberIds } },
           select: {
             id: true,
@@ -105,24 +134,35 @@ export class AutoAffectationsFinder {
               select: { jurisdictionId: true },
             },
           },
-        });
+        }),
 
-        const reportCounts = await tx.report.groupBy({
-          by: ['reporterId'],
-          _count: { _all: true },
-          where: {
-            reporterId: { in: memberIds },
-            createdAt: { gte: startOfYear(this.clock.now()) },
-          },
-        });
+        this.prisma.$queryRaw<ReportCount[]>`
+          SELECT
+            r.reporter_id AS "reporterId",
+            ddn.targeted_grade AS "targetedGrade",
+            COUNT(r.id) AS "reportCount"
+          FROM reports_context.reports r
+            INNER JOIN nominations_context.dossier_de_nomination ddn ON r.nomination_file_id = ddn.id
+          GROUP BY r.reporter_id, ddn.targeted_grade
+          WHERE (
+            NOT r.is_deleted
+            AND r.reporter_id = ANY(${memberIds}::UUID[])
+            AND r.created_at > ${startOfYear(this.clock.now())}::DATE
+          );
+        `,
+      ]);
 
-        return [membersExcludedJurisdictions, reportCounts] as const;
-      });
+    const reportCountByMemberIdAndGrade = reportCounts.reduce(
+      (map, { targetedGrade, reportCount, reporterId }) => {
+        if (!isGrade(targetedGrade)) return map;
 
-    const reportCountByMemberId = new Map(
-      reportCounts.map(
-        ({ reporterId, _count }) => [reporterId, _count._all] as const,
-      ),
+        const byGrade = map.get(reporterId) ?? new Map();
+        byGrade.set(targetedGrade, Number(reportCount));
+
+        map.set(reporterId, byGrade);
+        return map;
+      },
+      new Map<string, Map<Magistrat.Grade, number>>(),
     );
 
     const excludedJurisdictionIdByMemberId = new Map(
@@ -141,38 +181,48 @@ export class AutoAffectationsFinder {
       const excludedJurisdictions = new Set<string>(
         excludedJurisdictionIdByMemberId.get(id) ?? [],
       );
-      const pastReportContributionsCount = reportCountByMemberId.get(id) ?? 0;
+      const pastReportCountPerGrade =
+        reportCountByMemberIdAndGrade.get(id) ??
+        new Map<Magistrat.Grade, number>();
 
       return AutoAffectationMember.from({
         id,
-        formation,
+        session,
         excludedJurisdictions,
-        pastReportContributionsCount,
+        pastReportCountPerGrade,
       });
     });
   }
 
-  // Cas 1 : Parsing manuel
-  // TODO 2 : récupérer la juridiction du membre une fois la migration XML terminée
-  private extractJurisdiction(targetedPosition: string | null): string | null {
-    if (!targetedPosition) return null;
+  private async withJurisdiction<
+    T extends { id: string; targetedPosition: string | null },
+  >(
+    tx: Prisma.TransactionClient,
+    positions: readonly T[],
+  ): Promise<(T & { jurisdiction: string | null })[]> {
+    const definedPositions = positions.filter(
+      (p): p is T & { targetedPosition: string } =>
+        isDefined(p.targetedPosition),
+    );
 
-    const keywords = ['TJ', 'CA'];
-    const keyword = keywords.find((k) => targetedPosition.includes(k));
+    const result = await tx.$queryRaw<{ id: string; codejur: string }[]>`
+      WITH queried_positions AS (
+        SELECT
+          (p.content ->> 'id')::UUID AS id,
+          (p.content ->> 'targetedPosition') AS targeted_position
+        FROM UNNEST ${definedPositions}::jsonb[] AS p(content)
+      )
 
-    if (!keyword) {
-      this.logger.debug(
-        `No jurisdiction keyword found in: ${targetedPosition}`,
-      );
+      SELECT queried_positions.id, codejur
+      FROM queried_positions
+        INNER JOIN data_administration_context.jurisdiction j
+          ON queried_positions.targeted_position ILIKE '%' || j.codejur || '%'
+    `;
 
-      return null;
-    }
-
-    const startIndex = targetedPosition.indexOf(keyword);
-    const dashIndex = targetedPosition.indexOf('-', startIndex);
-
-    return dashIndex > -1
-      ? targetedPosition.substring(startIndex, dashIndex).trim()
-      : targetedPosition.substring(startIndex).trim();
+    const byId = new Map(result.map((p) => [p.id, p.codejur]));
+    return positions.map((position) => ({
+      ...position,
+      jurisdiction: byId.get(position.id) || null,
+    }));
   }
 }
