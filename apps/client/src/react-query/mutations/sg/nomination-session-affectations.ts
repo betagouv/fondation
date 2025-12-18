@@ -106,8 +106,8 @@ export function useAutoAffectationMutation() {
         body: JSON.stringify({ nominationFileIds: mutation.nominationFileIds }),
         headers: { 'content-type': 'application/json' }
       }),
-    onSuccess: (_data, { sessionId }) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_data, { sessionId }) => {
+      await queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           (queryKey[0] === 'sessionNominationFiles' && queryKey[1] === sessionId) ||
           (queryKey[0] === 'detailedNominationSessionAffectationsVersion' && queryKey[1] === sessionId)

@@ -18,6 +18,7 @@ import {
 import { useListNominationSessionAttachmentsQuery } from '../../../../../../react-query/mutations/sg/nomination-sessions';
 import { ROUTE_PATHS } from '../../../../../../utils/route-path.utils';
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
+import { useCallback, useMemo } from 'react';
 
 export const TableauDeBordActions = ({
   sessionId,
@@ -35,6 +36,12 @@ export const TableauDeBordActions = ({
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
 
+  const nonAffectedFiles = useMemo(
+    () => (nominationFiles?.items ?? []).filter((f) => f.reporters.length === 0),
+    [nominationFiles]
+  );
+  const hasAnyNonAffectedFiles = useMemo(() => nonAffectedFiles.length > 0, [nonAffectedFiles]);
+
   const isBrouillon = metadata?.status === 'BROUILLON';
 
   const onPublierAffectations = () => {
@@ -51,12 +58,8 @@ export const TableauDeBordActions = ({
     );
   };
 
-  const onAutoAffectation = async () => {
-    const dossiersWithoutReporters = (nominationFiles?.items ?? [])
-      .filter((dossier) => dossier.reporters.length === 0)
-      .map(({ id }) => id);
-
-    if (dossiersWithoutReporters.length === 0) {
+  const onAutoAffectation = useCallback(async () => {
+    if (!hasAnyNonAffectedFiles) {
       return;
     }
 
@@ -67,12 +70,12 @@ export const TableauDeBordActions = ({
         <>
           <p>
             Vous allez affecter automatiquement{' '}
-            <strong className="font-bold">{dossiersWithoutReporters.length} dossiers</strong>, actuellement
-            sans affectation.
+            <strong className="font-bold">{nonAffectedFiles.length} dossiers</strong>, actuellement sans
+            affectation.
           </p>
           <p>
-            L'affectation automatique prend en compte un plan de charge globale sur l'année civile, ainsi que
-            les incompatibilités de juridictions configurées dans{' '}
+            L'affectation automatique prend en compte un plan de charge sur la session, ainsi que les
+            incompatibilités de juridictions configurées dans{' '}
             <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>&laquo;&nbsp;Gérer les membres&nbsp;&raquo;</Link>
           </p>
           <p>
@@ -86,7 +89,7 @@ export const TableauDeBordActions = ({
     if (!isConfirmed) return;
 
     await autoAffectation(
-      { sessionId, nominationFileIds: dossiersWithoutReporters },
+      { sessionId, nominationFileIds: nonAffectedFiles.map(({ id }) => id) },
       {
         onSuccess: () => {
           onSuccess("L'attribution automatique des rapports a été effectuée avec succès.");
@@ -96,7 +99,15 @@ export const TableauDeBordActions = ({
         }
       }
     );
-  };
+  }, [
+    confirmation,
+    hasAnyNonAffectedFiles,
+    autoAffectation,
+    nonAffectedFiles,
+    onFailure,
+    onSuccess,
+    sessionId
+  ]);
 
   return (
     <>
@@ -112,12 +123,6 @@ export const TableauDeBordActions = ({
             titleAs="h2"
           >
             <NominationSessionAttachmentList sessionId={sessionId} />
-          </Accordion>
-          <Accordion label="Tableau initial" titleAs="h2">
-            Tableau initial à venir.
-          </Accordion>
-          <Accordion label="Vérifier les règles automatisées" titleAs="h2">
-            Vérifier les règles automatisées à venir.
           </Accordion>
         </div>
 
@@ -137,11 +142,12 @@ export const TableauDeBordActions = ({
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {
-                nativeButtonProps: confirmation.buttonProps,
+                nativeButtonProps: { ...confirmation.buttonProps },
                 iconId: isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line',
                 priority: 'secondary',
+                title: hasAnyNonAffectedFiles ? undefined : 'Tous les rapports ont des rapporteurs affectés',
                 onClick: onAutoAffectation,
-                disabled: isAutoAffecting || isPublishing,
+                disabled: isAutoAffecting || isPublishing || !hasAnyNonAffectedFiles,
                 children: isAutoAffecting ? 'Attribution en cours...' : 'Attribuer les rapports'
               },
               {
