@@ -29,7 +29,10 @@ SELECT
   s.created_at AS "createdAt",
   s.formation,
   s.type_de_saisine AS "typeDeSaisine",
-  (ARRAY_AGG(nfr.user_id) FILTER (WHERE nfr.user_id IS NOT NULL))::UUID[] AS "reporterIds"
+  COALESCE(
+    ARRAY_AGG(DISTINCT nfr.user_id) FILTER (WHERE nfr.user_id = $1::UUID)::UUID[],
+    ARRAY[]::UUID[]
+  ) AS "reporterIds"
 
 FROM nominations_context."session" AS s
   INNER JOIN last_published_affectation AS lpa ON lpa.session_id = s.id
@@ -37,7 +40,6 @@ FROM nominations_context."session" AS s
 
 WHERE (
   s.type_de_saisine = 'TRANSPARENCE_GDS'::nominations_context.TYPE_DE_SAISINE
-  AND (nfr.user_id = $1::UUID OR nfr.user_id IS NULL)
   AND ($2::FORMATION IS NULL OR s.formation = $2::FORMATION)
 )
 
