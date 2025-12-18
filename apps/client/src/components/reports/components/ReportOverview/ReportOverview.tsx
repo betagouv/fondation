@@ -138,7 +138,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
         {
           reportId: id,
           ruleId: rule[ruleName].id,
-          isValidated: rule[ruleName].checked
+          isValidated: !rule[ruleName].checked
         },
         onSuccess
       );
