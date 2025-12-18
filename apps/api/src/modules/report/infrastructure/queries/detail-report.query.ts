@@ -160,7 +160,7 @@ export class DetailReportQuery {
         report.nominationFile.session.formation,
       ),
       transparency: report.nominationFile.session.name,
-      name: report.nominationFile.session.name,
+      name: report.nominationFile.name,
 
       rules: {
         [NominationFile.RuleGroup.MANAGEMENT]: Object.fromEntries(
