@@ -63,7 +63,7 @@ export const defaultApiConfig = {
     port: process.env.DATABASE_PORT ? Number(process.env.DATABASE_PORT) : 5441,
     user: 'fondation',
     password: 'secret',
-    name: 'fondation',
+    database: process.env.DATABASE_NAME || 'fondation',
   },
   contextServices: {
     filesContext: {

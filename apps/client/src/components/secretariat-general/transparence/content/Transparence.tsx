@@ -76,8 +76,8 @@ export const Transparence: FC = () => {
             closable
             ref={alertRef}
             className="mb-4"
-            severity="success"
-            title={hasFailureMessage || 'Données actualisées'}
+            severity="error"
+            title={hasFailureMessage || "Erreur dans l'actualisation des données"}
           />
         )}
       </div>

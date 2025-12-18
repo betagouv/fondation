@@ -70,7 +70,7 @@ export const DevApiConfigSchema = commonBaseSchema.extend(
       port: z.number(),
       user: z.string(),
       password: z.string(),
-      name: z.string(),
+      database: z.string(),
     }),
     s3: commonS3Schema.extend(
       z.object({

@@ -3,10 +3,12 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
+import { Link } from 'react-router-dom';
 
 import * as importAttachments from './ImportAttachmentModal';
 import * as importObservers from './ImportObservantsModal';
 
+import { useConfirmation } from '../../../../../../hooks/useConfirmation.hook';
 import {
   useAutoAffectationMutation,
   useDetailedNominationSessionAffectationsVersionQuery,
@@ -14,7 +16,9 @@ import {
   useSessionNominationFilesQuery
 } from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
 import { useListNominationSessionAttachmentsQuery } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import { ROUTE_PATHS } from '../../../../../../utils/route-path.utils';
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
+import { useCallback, useMemo } from 'react';
 
 export const TableauDeBordActions = ({
   sessionId,
@@ -25,11 +29,18 @@ export const TableauDeBordActions = ({
   onSuccess: (message: string | boolean) => void;
   onFailure: (message: string | boolean) => void;
 }) => {
+  const confirmation = useConfirmation();
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
-  const { mutate: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
+  const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
+
+  const nonAffectedFiles = useMemo(
+    () => (nominationFiles?.items ?? []).filter((f) => f.reporters.length === 0),
+    [nominationFiles]
+  );
+  const hasAnyNonAffectedFiles = useMemo(() => nonAffectedFiles.length > 0, [nonAffectedFiles]);
 
   const isBrouillon = metadata?.status === 'BROUILLON';
 
@@ -47,17 +58,38 @@ export const TableauDeBordActions = ({
     );
   };
 
-  const onAutoAffectation = () => {
-    const dossiersWithoutReporters = (nominationFiles?.items ?? [])
-      .filter((dossier) => dossier.reporters.length === 0)
-      .map(({ id }) => id);
-
-    if (dossiersWithoutReporters.length === 0) {
+  const onAutoAffectation = useCallback(async () => {
+    if (!hasAnyNonAffectedFiles) {
       return;
     }
 
-    autoAffectation(
-      { sessionId, nominationFileIds: dossiersWithoutReporters },
+    const { isConfirmed } = await confirmation.waitForConfirmation({
+      title: `Affectation automatique`,
+      i18n: { confirm: 'Affecter automatiquement' },
+      content: (
+        <>
+          <p>
+            Vous allez affecter automatiquement{' '}
+            <strong className="font-bold">{nonAffectedFiles.length} dossiers</strong>, actuellement sans
+            affectation.
+          </p>
+          <p>
+            L'affectation automatique prend en compte un plan de charge sur la session, ainsi que les
+            incompatibilités de juridictions configurées dans{' '}
+            <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>&laquo;&nbsp;Gérer les membres&nbsp;&raquo;</Link>
+          </p>
+          <p>
+            Une fois l'affectation faite, vous aurez toujours la possibilité de la modifier avant de la
+            publier aux membres.
+          </p>
+        </>
+      )
+    });
+
+    if (!isConfirmed) return;
+
+    await autoAffectation(
+      { sessionId, nominationFileIds: nonAffectedFiles.map(({ id }) => id) },
       {
         onSuccess: () => {
           onSuccess("L'attribution automatique des rapports a été effectuée avec succès.");
@@ -67,7 +99,15 @@ export const TableauDeBordActions = ({
         }
       }
     );
-  };
+  }, [
+    confirmation,
+    hasAnyNonAffectedFiles,
+    autoAffectation,
+    nonAffectedFiles,
+    onFailure,
+    onSuccess,
+    sessionId
+  ]);
 
   return (
     <>
@@ -83,12 +123,6 @@ export const TableauDeBordActions = ({
             titleAs="h2"
           >
             <NominationSessionAttachmentList sessionId={sessionId} />
-          </Accordion>
-          <Accordion label="Tableau initial" titleAs="h2">
-            Tableau initial à venir.
-          </Accordion>
-          <Accordion label="Vérifier les règles automatisées" titleAs="h2">
-            Vérifier les règles automatisées à venir.
           </Accordion>
         </div>
 
@@ -108,10 +142,12 @@ export const TableauDeBordActions = ({
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {
+                nativeButtonProps: { ...confirmation.buttonProps },
                 iconId: isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line',
                 priority: 'secondary',
+                title: hasAnyNonAffectedFiles ? undefined : 'Tous les rapports ont des rapporteurs affectés',
                 onClick: onAutoAffectation,
-                disabled: isAutoAffecting || isPublishing,
+                disabled: isAutoAffecting || isPublishing || !hasAnyNonAffectedFiles,
                 children: isAutoAffecting ? 'Attribution en cours...' : 'Attribuer les rapports'
               },
               {
