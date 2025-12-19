@@ -1,10 +1,8 @@
 import { Magistrat, Transparency } from 'shared-models';
 
 import * as schema from 'src/modules/framework/drizzle/schemas';
-import { DomainEventStatus } from 'src/shared-kernel/business-logic/models/domain-event';
 import { assertNever } from 'src/utils/assert-never';
 
-export const domainEventStatusEnum = schema.domainEventStatusEnum;
 export const formationEnum = schema.formationEnum;
 
 export const transparencyEnum = schema.transparencyEnum;
@@ -37,23 +35,6 @@ export function toTransparency(value: DrizzleTransparencyEnum): Transparency {
       return Transparency.DU_30_AVRIL_2025;
     case 'MARCH_2026':
       return Transparency.MARCH_2026;
-    default:
-      return assertNever(value);
-  }
-}
-
-type DrizzleDomainEventStatusEnum =
-  (typeof schema.domainEventStatusEnum)['enumValues'][number];
-export function toDomainEventStatus(
-  value: DrizzleDomainEventStatusEnum,
-): DomainEventStatus {
-  switch (value) {
-    case 'NEW':
-      return DomainEventStatus.NEW;
-    case 'PENDING':
-      return DomainEventStatus.PENDING;
-    case 'CONSUMED':
-      return DomainEventStatus.CONSUMED;
     default:
       return assertNever(value);
   }

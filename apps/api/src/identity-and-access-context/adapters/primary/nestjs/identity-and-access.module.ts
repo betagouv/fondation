@@ -58,6 +58,8 @@ import {
       TRANSACTION_PERFORMER,
       USER_REPOSITORY,
     ]),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     generateProvider(LoginUserUseCase, [
       SESSION_PROVIDER,
       TRANSACTION_PERFORMER,
