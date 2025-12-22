@@ -1,52 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { and, ilike, inArray, or } from 'drizzle-orm';
-import { Db } from 'src/modules/framework/drizzle';
-import { users } from 'src/modules/framework/drizzle/schemas';
+import { Magistrat } from 'shared-models';
+import { UserWhereInput } from 'src/generated/prisma/models';
+import { PrismaService } from 'src/modules/framework/database';
 import {
   paginate,
   Paginated,
   Pagination,
 } from 'src/modules/framework/pagination';
 import { z } from 'zod';
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { formationToMemberRole, isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
 export class ListMembersQuery {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
     pagination: Pagination;
+    formation: Magistrat.Formation | undefined;
     search: string | undefined;
   }): Promise<Paginated<MemberListItemDto>> {
-    const [totalCount, items] = await this.db.transaction(async (tx) => {
-      const where = and(
-        inArray(users.role, MEMBER_ROLES),
-        query.search
-          ? or(
-              ilike(users.email, `%${query.search}%`),
-              ilike(users.firstName, `%${query.search}%`),
-              ilike(users.lastName, `%${query.search}%`),
-            )
-          : undefined,
-      );
-      const totalCount = await tx.$count(users, where);
-      const memberItems = await tx.query.users.findMany({
+    const where = {
+      role: { in: formationToMemberRole(query.formation) },
+      OR: query.search
+        ? [
+            { email: { contains: query.search, mode: 'insensitive' } },
+            { firstName: { contains: query.search, mode: 'insensitive' } },
+            { lastName: { contains: query.search, mode: 'insensitive' } },
+          ]
+        : undefined,
+    } satisfies UserWhereInput;
+
+    const [totalCount, items] = await this.prisma.$transaction([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
         where,
-        orderBy: (u, { asc }) => asc(u.createdAt),
-        limit: query.pagination.limit,
-        offset: (query.pagination.page - 1) * query.pagination.limit,
-        columns: {
-          id: true,
-          role: true,
-          firstName: true,
-          lastName: true,
-        },
-      });
+        take: query.pagination.limit,
+        skip: (query.pagination.page - 1) * query.pagination.limit,
+        select: { id: true, role: true, firstName: true, lastName: true },
+      }),
+    ]);
 
-      return [totalCount, memberItems.filter(isMember)] as const;
+    return paginate({
+      totalCount,
+      items: items.filter(isMember),
+      pagination: query.pagination,
     });
-
-    return paginate({ items, totalCount, pagination: query.pagination });
   }
 }
 

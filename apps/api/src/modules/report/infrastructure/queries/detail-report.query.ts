@@ -21,7 +21,7 @@ import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { Files } from 'src/modules/framework/files';
 

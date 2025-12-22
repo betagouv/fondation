@@ -4,7 +4,7 @@ import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { MembersService } from 'src/modules/members';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { inspect } from 'util';
 import { NominationFile } from '../domain/nomination-file';
 import { NominationSession } from '../domain/nomination-session';

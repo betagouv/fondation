@@ -1,12 +1,12 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
-import { Db } from 'src/modules/framework/drizzle';
 import { RootModule } from 'src/modules/root.module';
 import { MaintenanceService } from './maintenance.service';
+import { PrismaService } from 'src/modules/framework/database';
 
 describe('IngestXmlJurisdiction', () => {
-  let db: Db;
+  let db: PrismaService;
   let app: INestApplication;
   let maintenance: MaintenanceService;
 
@@ -18,12 +18,12 @@ describe('IngestXmlJurisdiction', () => {
 
     await app.init();
 
-    db = app.get(Db);
+    db = app.get(PrismaService);
     maintenance = app.get(MaintenanceService);
   });
 
   afterAll(async () => {
-    await db.$client.end();
+    await db.$disconnect();
     await app.close();
   });
 
@@ -53,15 +53,15 @@ describe('IngestXmlJurisdiction', () => {
 
     await maintenance.ingestXmlJurisdictions(buffer);
 
-    const jurisdiction = await db.query.drizzleJurisdiction.findFirst({
-      where: (j, { eq }) => eq(j.codejur, codejur),
+    const jurisdiction = await db.jurisdiction.findFirst({
+      where: { codejur },
     });
 
     expect(jurisdiction).toMatchObject({
       codejur,
-      type_jur: 'TI',
+      typeJur: 'TI',
       libelle: 'Juridiction de Test 1',
-      date_suppression: new Date('2050-01-01'),
+      dateSuppression: new Date('2050-01-01'),
     });
   });
 });

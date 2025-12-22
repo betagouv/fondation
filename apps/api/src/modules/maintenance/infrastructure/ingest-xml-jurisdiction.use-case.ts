@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
-import { Db } from 'src/modules/framework/drizzle';
-import { drizzleJurisdiction } from 'src/modules/framework/drizzle/schemas';
-import { buildConflictUpdateColumns } from 'src/shared-kernel/adapters/secondary/gateways/repositories/drizzle/config/drizzle-sql-preparation';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
 import { z } from 'zod';
-import { chunk } from 'lodash';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class IngestXmlJurisdiction {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async execute(document: Buffer): Promise<{ updated: number }> {
     const parser = new XMLParser({
@@ -20,48 +16,45 @@ export class IngestXmlJurisdiction {
       lolfi: { juridictions },
     } = await LolfiJuridictionListSchema.parseAsync(xmlAsJson);
 
-    let updated = 0;
-    await this.db.transaction(async (tx) => {
-      // By default Pg only allows 32,767 parameters and we have 11 fields
-      for (const page of chunk(juridictions, 32_767 / 11)) {
-        const result = await tx
-          .insert(drizzleJurisdiction)
-          .values(
-            page.map((j) => ({
-              adr1: j.adr1,
-              adr2: j.adr2,
-              arrondissement: j.arrondissement,
-              codejur: j.codejur,
-              codepos: j.codepos,
-              date_suppression: DateOnly.fromString(
-                j.date_suppression,
-              ).toDate(),
-              libelle: j.libelle,
-              ressort: j.ressort,
-              type_jur: j.type_jur,
-              ville_jur: j.ville_jur,
-              ville: j.ville,
-            })),
-          )
-          .onConflictDoUpdate({
-            target: drizzleJurisdiction.codejur,
-            set: buildConflictUpdateColumns(drizzleJurisdiction, [
-              'adr1',
-              'adr2',
-              'arrondissement',
-              'codepos',
-              'date_suppression',
-              'libelle',
-              'ressort',
-              'type_jur',
-              'ville_jur',
-              'ville',
-            ]),
-          });
-
-        updated += result.rowCount ?? 0;
-      }
-    });
+    const updated = await this.prisma.$executeRaw`
+      INSERT INTO data_administration_context.jurisdictions (
+        adr1,
+        adr2,
+        arrondissement,
+        codejur,
+        codepos,
+        date_suppression,
+        libelle,
+        ressort,
+        type_jur,
+        ville_jur,
+        ville
+      )
+      SELECT
+        t.adr1,
+        t.adr2,
+        t.arrondissement,
+        t.codejur,
+        t.codepos,
+        TO_DATE(t.date_suppression, 'DD/MM/YYYY'),
+        t.libelle,
+        t.ressort,
+        t.type_jur,
+        t.ville_jur,
+        t.ville
+      FROM JSONB_TO_RECORDSET(${JSON.stringify(juridictions)}::jsonb) AS t(adr1 TEXT, adr2 TEXT, arrondissement TEXT, codejur TEXT, codepos TEXT, date_suppression TEXT, libelle TEXT, ressort TEXT, type_jur TEXT, ville_jur TEXT, ville TEXT)
+      ON CONFLICT (codejur) DO UPDATE SET
+          adr1 = EXCLUDED.adr1,
+          adr2 = EXCLUDED.adr2,
+          arrondissement = EXCLUDED.arrondissement,
+          codepos = EXCLUDED.codepos,
+          date_suppression = EXCLUDED.date_suppression,
+          libelle = EXCLUDED.libelle,
+          ressort = EXCLUDED.ressort,
+          type_jur = EXCLUDED.type_jur,
+          ville_jur = EXCLUDED.ville_jur,
+          ville = EXCLUDED.ville;
+    `;
 
     return { updated };
   }

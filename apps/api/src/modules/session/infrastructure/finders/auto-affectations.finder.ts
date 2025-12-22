@@ -9,7 +9,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
 import {

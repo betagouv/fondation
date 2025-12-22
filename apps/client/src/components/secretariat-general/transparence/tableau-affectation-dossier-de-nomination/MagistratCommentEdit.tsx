@@ -5,8 +5,8 @@ import { Magistrat } from 'shared-models';
 import { useDebounce } from 'use-debounce';
 import { useUpdateCommentAccessMutation } from '../../../../react-query/mutations/sg/comment-access.mutations';
 import { useUpdateNominationFileCommentMutation } from '../../../../react-query/mutations/sg/update-nomination-file-comment';
-import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { UserChipsSelect } from '../../../shared/UserChipsSelect';
+import { useMemberListQuery } from '../../membres/members.queries';
 
 export type MagistratCommentEditProps = {
   nominationFileId: string;
@@ -32,7 +32,7 @@ export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({
   );
   const { mutate: updateCommentAccess } = useUpdateCommentAccessMutation();
 
-  const { data: eligibleUsers } = useGetUsersByFormation(formation);
+  const { data: eligibleUsers } = useMemberListQuery({ formation, limit: 100 });
 
   useEffect(() => {
     if (debouncedComment !== initialComment) {
@@ -66,11 +66,14 @@ export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({
 
       <div className="mt-4">
         <UserChipsSelect
-          availableUsers={eligibleUsers || []}
           selectedUserIds={selectedAccessUserIds}
           onSelectionChange={handleAccessChange}
           placeholder="Rechercher un utilisateur..."
           label="Partager ce commentaire avec"
+          availableUsers={(eligibleUsers ?? { items: [] }).items.map(({ id, ...user }) => ({
+            ...user,
+            userId: id
+          }))}
         />
       </div>
     </div>

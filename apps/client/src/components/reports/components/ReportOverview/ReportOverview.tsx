@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
-import { type DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
+import { type DetailedReportDto } from '../../../../react-query/queries/report-by-id.queries';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage

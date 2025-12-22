@@ -1,22 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RoleLabels, type IdentityAndAccessRestContract } from 'shared-models';
+import { RoleLabels } from 'shared-models';
 import { useUser } from '../../react-query/queries/use-user.queries';
-import { apiFetch } from '../../utils/api-fetch.utils';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import { AvatarInitials } from './AvatarInitials';
-
-const logoutUser = async () => {
-  const { method, path }: Partial<IdentityAndAccessRestContract['endpoints']['logout']> = {
-    method: 'POST',
-    path: 'logout'
-  };
-  await apiFetch(`/auth/${path}`, {
-    method
-  });
-};
+import { apiFetch } from '../../utils/api-fetch.utils';
 
 export const Avatar: FC = () => {
   const queryClient = useQueryClient();
@@ -25,7 +15,7 @@ export const Avatar: FC = () => {
 
   const navigate = useNavigate();
   const { mutateAsync } = useMutation({
-    mutationFn: logoutUser,
+    mutationFn: () => apiFetch<void>(`/auth/v2/logout`, { method: 'POST' }),
     onSuccess: async () => {
       queryClient.removeQueries({ queryKey: ['introspectSession'] });
       await navigate(ROUTE_PATHS.LOGIN);

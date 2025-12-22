@@ -2,7 +2,7 @@ import { File } from 'node:buffer';
 
 import { BadRequestException, PipeTransform } from '@nestjs/common';
 
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { lodamXlsxToNominationFiles } from '../domain/lodam-xlsx-to-nomination-session';
 import { NominationFile } from '../domain/nomination-file';
 

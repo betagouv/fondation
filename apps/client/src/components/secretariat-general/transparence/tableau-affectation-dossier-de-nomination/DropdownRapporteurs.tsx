@@ -1,14 +1,13 @@
 import { useCallback, useMemo, type FC } from 'react';
-import type { UserDescriptorSerialized } from 'shared-models';
 import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
-import { RapporteursDropdownBase } from './RapporteursDropdownBase';
-import { AvatarInitials } from '../../../layout/AvatarInitials';
 import { getInitials } from '../../../../utils/get-initials';
+import { AvatarInitials } from '../../../layout/AvatarInitials';
+import { RapporteursDropdownBase } from './RapporteursDropdownBase';
 
 export type InputAffectationProps = {
   dossierId: string;
   initialRapporteurs: string[];
-  availableRapporteurs: UserDescriptorSerialized[];
+  availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
 };
 
 export const DropdownRapporteurs: FC<InputAffectationProps> = ({

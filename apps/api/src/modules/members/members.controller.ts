@@ -4,12 +4,13 @@ import {
   ForbiddenException,
   Get,
   Param,
+  ParseEnumPipe,
   ParseUUIDPipe,
   Put,
   Query,
 } from '@nestjs/common';
 
-import { Role, TypeDeSaisine } from 'shared-models';
+import { Magistrat, Role, TypeDeSaisine } from 'shared-models';
 
 import {
   Paginated,
@@ -36,8 +37,13 @@ export class MembersController {
   listMembers(
     @QueryPagination() pagination: Pagination,
     @Query('search') search: string | undefined,
+    @Query(
+      'formation',
+      new ParseEnumPipe(Magistrat.Formation, { optional: true }),
+    )
+    formation: Magistrat.Formation | undefined,
   ): Promise<Paginated<MemberListItemDto>> {
-    return this.members.listMembers({ pagination, search });
+    return this.members.listMembers({ pagination, formation, search });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

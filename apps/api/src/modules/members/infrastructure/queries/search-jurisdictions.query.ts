@@ -1,48 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import { Db } from 'src/modules/framework/drizzle';
+import { PrismaService } from 'src/modules/framework/database';
 import { z } from 'zod';
 
 @Injectable()
 export class SearchJurisdictionsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: PrismaService) {}
 
   async handle(query: {
     search: string | undefined;
     includeIds: string[] | undefined;
   }): Promise<{ items: FoundJurisdictionsItem[] }> {
-    const { items } = await this.db.transaction(async (tx) => {
-      const jurisdictions = await tx.query.drizzleJurisdiction.findMany({
-        where: (j, { and, or, notInArray, ilike }) =>
-          and(
-            query.includeIds
-              ? notInArray(j.codejur, query.includeIds)
-              : undefined,
-            query.search
-              ? or(
-                  ...[j.codejur, j.ville, j.libelle].map((field) =>
-                    ilike(field, `%${query.search}%`),
-                  ),
-                )
-              : undefined,
-          ),
-        columns: { codejur: true, libelle: true, type_jur: true, ville: true },
-        limit: 20,
-        orderBy: (j, { asc }) => asc(j.codejur),
+    const { items } = await this.db.$transaction(async (tx) => {
+      const jurisdictions = await tx.jurisdiction.findMany({
+        take: 20,
+        orderBy: [{ codejur: 'asc' }],
+        where: {
+          codejur: query.includeIds ? { notIn: query.includeIds } : undefined,
+          OR: query.search
+            ? [
+                { codejur: { contains: query.search, mode: 'insensitive' } },
+                { ville: { contains: query.search, mode: 'insensitive' } },
+                { libelle: { contains: query.search, mode: 'insensitive' } },
+              ]
+            : undefined,
+        },
+        select: { codejur: true, libelle: true, typeJur: true, ville: true },
       });
 
       if (query.includeIds) {
-        const includedJurisdictions =
-          await tx.query.drizzleJurisdiction.findMany({
-            where: (j, { inArray }) =>
-              inArray(j.codejur, query.includeIds as string[]),
-            columns: {
-              codejur: true,
-              libelle: true,
-              type_jur: true,
-              ville: true,
-            },
-            orderBy: (j, { asc }) => asc(j.codejur),
-          });
+        const includedJurisdictions = await tx.jurisdiction.findMany({
+          where: { codejur: { in: query.includeIds as string[] } },
+          select: { codejur: true, libelle: true, typeJur: true, ville: true },
+          orderBy: [{ codejur: 'asc' }],
+        });
 
         jurisdictions.unshift(...includedJurisdictions);
       }
@@ -53,7 +43,7 @@ export class SearchJurisdictionsQuery {
     const responseItems = items.map((j) => ({
       id: j.codejur,
       label: j.libelle,
-      type: j.type_jur,
+      type: j.typeJur,
       ville: j.ville,
     }));
 

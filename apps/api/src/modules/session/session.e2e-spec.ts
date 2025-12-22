@@ -10,7 +10,6 @@ import { agent } from 'supertest';
 import { Gender, Magistrat, Role } from 'shared-models';
 
 import { MainAppConfigurator } from 'src/main.configurator';
-import { Db } from '../framework/drizzle';
 import { FILE_MIME_TYPES } from '../framework/files';
 import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
@@ -38,7 +37,6 @@ describe('Session E2E', () => {
   let user: { id: string; email: string; password: string; cookie: string };
 
   afterAll(async () => {
-    await app.get(Db).$client.end();
     await app.close();
   });
 

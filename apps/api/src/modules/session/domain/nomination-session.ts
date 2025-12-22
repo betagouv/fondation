@@ -1,7 +1,7 @@
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { NominationFile, NominationFileEntity } from './nomination-file';

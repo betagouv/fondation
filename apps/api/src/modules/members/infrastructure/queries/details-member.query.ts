@@ -1,28 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { z } from 'zod';
 
-import { Db } from 'src/modules/framework/drizzle';
 import { isMember, MEMBER_ROLES } from '../member.utils';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsMemberQuery {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: PrismaService) {}
 
   async handle(query: { userId: string }): Promise<DetailedMemberDto> {
-    const rawUser = await this.db.query.users.findFirst({
-      where: (u, { and, inArray, eq }) =>
-        and(eq(u.id, query.userId), inArray(u.role, MEMBER_ROLES)),
-      columns: {
+    const rawUser = await this.db.user.findFirst({
+      where: { id: query.userId, role: { in: MEMBER_ROLES } },
+      select: {
         id: true,
         firstName: true,
         lastName: true,
         gender: true,
         role: true,
         email: true,
-      },
-      with: {
+
         excludedJurisdictionIds: {
-          with: { jurisdiction: { columns: { codejur: true, libelle: true } } },
+          select: {
+            jurisdiction: { select: { codejur: true, libelle: true } },
+          },
         },
       },
     });

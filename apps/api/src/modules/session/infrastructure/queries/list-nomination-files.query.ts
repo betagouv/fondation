@@ -14,7 +14,7 @@ import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()

@@ -4,10 +4,23 @@ import { ClockModule } from './clock';
 import { ConfigModule } from './config';
 import { DatabaseModule } from './database';
 import { FilesModule } from './files';
+import { ObservabilityModule } from './observability';
 
 @Global()
 @Module({
-  imports: [ConfigModule, DatabaseModule, ClockModule, FilesModule.forRoot()],
-  exports: [ConfigModule, DatabaseModule, ClockModule, FilesModule],
+  imports: [
+    ConfigModule,
+    DatabaseModule,
+    ClockModule,
+    ObservabilityModule,
+    FilesModule.forRoot(),
+  ],
+  exports: [
+    ConfigModule,
+    DatabaseModule,
+    ClockModule,
+    ObservabilityModule,
+    FilesModule,
+  ],
 })
 export class FrameworkModule {}

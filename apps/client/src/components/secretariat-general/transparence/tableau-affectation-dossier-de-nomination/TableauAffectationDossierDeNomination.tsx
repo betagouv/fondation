@@ -9,11 +9,11 @@ import {
   useAffectNominationFilesReportersMutation,
   useSessionNominationFilesQuery
 } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useGetUsersByFormation } from '../../../../react-query/queries/sg/get-users-by-formation.query';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
 import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
+import { useMemberListQuery } from '../../membres/members.queries';
 
 export type TableauAffectationDossierDeNominationProps = {
   formation: Magistrat.Formation;
@@ -35,7 +35,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     data: rapporteursData,
     isLoading: isLoadingRapporteurs,
     isError: isErrorRapporteurs
-  } = useGetUsersByFormation(formation);
+  } = useMemberListQuery({ formation, limit: 100 });
 
   const { mutate: saveAffectations, isSuccess: saveAffectationsIsSuccess } =
     useAffectNominationFilesReportersMutation();
@@ -82,7 +82,11 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
 
         <TableauDossiersDeNomination
           dossiersDeNomination={dossiersResponse?.items || []}
-          availableRapporteurs={rapporteursData || []}
+          availableRapporteurs={(rapporteursData?.items || []).map(({ id, firstName, lastName }) => ({
+            userId: id,
+            firstName,
+            lastName
+          }))}
           showExportButton={true}
           ExportComponent={ExcelExport}
           canEdit={true}

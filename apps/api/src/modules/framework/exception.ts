@@ -5,7 +5,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { SentryService } from 'src/shared-kernel/business-logic/gateways/services/sentry.service';
+import { SentryService } from './observability';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -17,7 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    if (this.sentryService?.canCapture && status >= 500) {
+    if (this.sentryService && status >= 500) {
       this.sentryService.captureException(exception, request, status);
     }
 
