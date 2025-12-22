@@ -1,10 +1,9 @@
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useState, type FC } from 'react';
-import type { UserDescriptorSerialized } from 'shared-models';
 
 export type SelectMultipleRapporteursProps = {
-  availableRapporteurs: UserDescriptorSerialized[];
+  availableRapporteurs: { userId: string; lastName: string; firstName: string }[];
   selectedRapporteurs: string[];
   onSelectionChange: (rapporteurIds: string[]) => void;
 };

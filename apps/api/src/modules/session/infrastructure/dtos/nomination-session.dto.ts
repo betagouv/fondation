@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import z from 'zod';
 
 const ImportNominationSessionFromLodamMetaSchema = z.object({

@@ -4,7 +4,7 @@ import {
   AutoAffectationNominationFile,
   AutoAffectationMember,
 } from './auto-affectations';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 
 describe('automated affectation', () => {
   const session = {

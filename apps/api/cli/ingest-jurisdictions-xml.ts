@@ -6,7 +6,6 @@ import { INestApplicationContext, Logger } from '@nestjs/common';
 
 import { RootModule } from '../src/modules/root.module';
 import { MaintenanceService } from '../src/modules/maintenance/infrastructure/maintenance.service';
-import { Db } from 'src/modules/framework/drizzle';
 
 const logger = new Logger(`IngestJurisdictionsCLI`);
 
@@ -19,7 +18,6 @@ Promise.race([
 ])
   .catch((err) => logger.error(err))
   .finally(async () => {
-    await app.get(Db).$client.end();
     await app.close();
     logger.debug('closed');
   });

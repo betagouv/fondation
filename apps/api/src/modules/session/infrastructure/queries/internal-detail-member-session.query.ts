@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DateOnlyJson, Role, TypeDeSaisine } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';

@@ -1,5 +1,5 @@
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { NominationFile } from './nomination-file';
 import {

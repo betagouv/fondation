@@ -1,7 +1,7 @@
 import { NominationFile } from 'shared-models';
 
 import { ReportVM } from '../../../../VM/ReportVM';
-import type { DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../../../../react-query/queries/report-by-id.queries';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportRule } from './ReportRule';
 

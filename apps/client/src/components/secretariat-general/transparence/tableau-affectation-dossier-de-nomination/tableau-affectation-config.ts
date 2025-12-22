@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from 'react';
 import React from 'react';
-import type { Magistrat, UserDescriptorSerialized } from 'shared-models';
+import type { Magistrat } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
@@ -55,7 +55,7 @@ export const dataRowsDn = (options: {
 
 export const dataRowsDnEdition = (options: {
   data: SessionNominationFile[];
-  availableRapporteurs: UserDescriptorSerialized[];
+  availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
   magistratModalRef: RefObject<HTMLDivElement | null>;
   formation: Magistrat.Formation;
 }): ReactNode[][] => {

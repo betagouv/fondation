@@ -7,7 +7,7 @@ import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class ListNominationSessionsQuery {

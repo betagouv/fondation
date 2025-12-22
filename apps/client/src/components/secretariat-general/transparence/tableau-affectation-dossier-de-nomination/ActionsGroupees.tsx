@@ -1,7 +1,6 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useState, type FC } from 'react';
-import type { UserDescriptorSerialized } from 'shared-models';
 import { useAffectation, type PrioriteValue } from '../../../../contexts/AffectationDossiersContext';
 import { SelectMultipleRapporteurs } from './SelectMultipleRapporteurs';
 import { SelectPriorite } from './SelectPriorite';
@@ -12,7 +11,7 @@ const actionsGroupeesModal = createModal({
 });
 
 export type ActionsGroupeesProps = {
-  availableRapporteurs: UserDescriptorSerialized[];
+  availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
 };
 
 export const ActionsGroupees: FC<ActionsGroupeesProps> = ({ availableRapporteurs }) => {

@@ -1,17 +1,7 @@
 import { Editor } from '@tiptap/react';
-import type { FileVM } from 'shared-models';
 import { dataFileNameKey, fileKey } from '../reports/components/ReportOverview/TipTapEditor/extensions';
 
-interface TextEditorProvider {
-  setImages: (images: { file: File; signedUrl: string }[]) => boolean;
-
-  replaceImageUrls(fileVMs: FileVM[]): void;
-
-  persistImages: () => Promise<void>;
-
-  isEmpty: () => boolean;
-}
-export class TipTapEditorProvider implements TextEditorProvider {
+export class TipTapEditorProvider {
   constructor(private readonly editor: Editor) {}
 
   setImages(images: { file: File; signedUrl: string }[]): boolean {
@@ -32,13 +22,6 @@ export class TipTapEditorProvider implements TextEditorProvider {
     return chained.run();
   }
 
-  replaceImageUrls(fileVMs: FileVM[]) {
-    // Le remplacement des src via l'API TipTap provoquait des bugs
-    // lors de l'undo-redo d'ajouts/suppressions d'images.
-    const imgs = document.querySelectorAll('.ProseMirror img') as NodeListOf<HTMLImageElement>;
-    imgs.forEach(replaceSrc(fileVMs));
-  }
-
   async persistImages() {
     for (const n of this.editor.state.doc.toJSON().content) {
       if (n.type === 'image') {
@@ -57,15 +40,4 @@ export class TipTapEditorProvider implements TextEditorProvider {
   isEmpty(): boolean {
     return this.editor.isEmpty;
   }
-}
-
-function replaceSrc(signedUrlsVM: FileVM[]): (value: HTMLImageElement) => void {
-  return (img) => {
-    const imgFileName = img.getAttribute(dataFileNameKey);
-    const signedUrlVM = signedUrlsVM.find((file) => file.name === imgFileName);
-
-    if (signedUrlVM) {
-      img.setAttribute('src', signedUrlVM.signedUrl);
-    }
-  };
 }

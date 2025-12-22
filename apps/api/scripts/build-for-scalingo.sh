@@ -20,9 +20,7 @@ cp -rv \
 mkdir -pv .tmp-build/apps/api
 cp -rv \
   apps/api/package.json \
-  apps/api/drizzle.config.ts \
   apps/api/prisma.config.ts \
-  apps/api/drizzle \
   apps/api/prisma \
   apps/api/dist \
   .tmp-build/apps/api/

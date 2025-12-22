@@ -2,7 +2,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import { Magistrat } from 'shared-models';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import type { DetailedReportDto } from '../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../react-query/queries/report-by-id.queries';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
 
 export enum TransparencesCurrentPage {

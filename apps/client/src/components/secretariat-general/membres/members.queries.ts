@@ -1,15 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Role } from 'shared-models';
+import type { Magistrat, Role } from 'shared-models';
 import { apiFetch } from '../../../utils/api-fetch.utils';
 
 export type MemberListItem = { id: string; firstName: string; lastName: string; role: Role };
 
-export function useMemberListQuery(options: { page?: number; limit?: number } = {}) {
+export function useMemberListQuery(
+  options: { page?: number; limit?: number; formation?: Magistrat.Formation } = {}
+) {
   return useQuery({
     queryKey: ['listMembers', options.page, options.limit],
     queryFn: () => {
       const searchParams = new URLSearchParams(
-        Object.entries(options).map(([k, v]) => [k, String(v)])
+        Object.entries(options)
+          .filter(([_k, v]) => !!v) // eslint-disable-line @typescript-eslint/no-unused-vars
+          .map(([k, v]) => [k, String(v)])
       ).toString();
 
       return apiFetch<{

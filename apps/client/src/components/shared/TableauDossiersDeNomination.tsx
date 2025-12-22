@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PrioriteEnum, type Magistrat, type UserDescriptorSerialized } from 'shared-models';
+import { PrioriteEnum, type Magistrat } from 'shared-models';
 
 import {
   AffectationProvider,
@@ -32,7 +32,7 @@ import { TableControl } from './TableControl';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
-  availableRapporteurs?: UserDescriptorSerialized[];
+  availableRapporteurs?: { userId: string; firstName: string; lastName: string }[];
   showExportButton?: boolean;
   ExportComponent?: React.ComponentType<{
     data: SessionNominationFile[];

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { assertNever } from 'src/utils/assert-never';
 
 export class AutoAffectations {

@@ -1,9 +1,9 @@
 services:
   postgres:
     container_name: postgres
-    image: 'postgres:13.2'
+    image: "postgres:13.2"
     ports:
-      - '5441:5432'
+      - "5441:5432"
     networks:
       - app_net
     environment:
@@ -15,11 +15,11 @@ services:
 
   minio:
     container_name: minio
-    image: 'minio/minio:latest'
+    image: "minio/minio:latest"
     entrypoint: sh -c "mkdir -p /data/sandbox-csm-fondation-reports-context && mkdir -p /data/sandbox-csm-fondation-transparences-context && minio server /data --console-address :9001"
     ports:
-      - '9000:9000' # API
-      - '9001:9001' # Web interface
+      - "9000:9000" # API
+      - "9001:9001" # Web interface
     networks:
       - app_net
     environment:
@@ -60,14 +60,6 @@ services:
 
       echo \"install dependencies\" &&
       pnpm --filter api... install --frozen-lockfile &&
-
-      echo \"Migration starting\" &&
-      npm run drizzle:migrate &&
-      echo \"Migration done\" &&
-
-      echo \"Running npm cli:seed\" &&
-      npm run cli:seed &&
-      echo \"Seeding done\"
       "
     working_dir: /usr/src/fondation/apps/api
 

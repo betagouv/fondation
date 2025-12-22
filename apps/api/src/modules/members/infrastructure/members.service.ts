@@ -25,6 +25,7 @@ export class MembersService {
 
   listMembers(query: {
     pagination: Pagination;
+    formation: Magistrat.Formation | undefined;
     search: string | undefined;
   }): Promise<Paginated<MemberListItemDto>> {
     return this.listMembersQuery.handle(query);

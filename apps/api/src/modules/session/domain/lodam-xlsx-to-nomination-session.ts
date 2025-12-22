@@ -3,7 +3,7 @@ import * as xlsx from 'node-xlsx';
 import { setTimeout } from 'node:timers/promises';
 
 import { Magistrat } from 'shared-models';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { NominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');

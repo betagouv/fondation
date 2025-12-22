@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { allRulesMapV2, NominationFile } from 'shared-models';
 
 import type { ReportVM, VMReportRuleValue } from '../../../../VM/ReportVM';
-import type { DetailedReportDto } from '../../../../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../../../../react-query/queries/report-by-id.queries';
 import { Card } from './Card';
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {

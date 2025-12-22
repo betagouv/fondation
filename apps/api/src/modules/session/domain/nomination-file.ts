@@ -1,5 +1,5 @@
 import { Magistrat } from 'shared-models';
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 
 export type NominationFile = {
   fileNumber: number;

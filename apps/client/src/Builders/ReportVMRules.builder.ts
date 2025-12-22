@@ -3,7 +3,7 @@ import { NominationFile, RulesBuilder, type AllRulesMapV2 } from 'shared-models'
 import type { RulesLabelsMap } from '../components/reports/labels/rules-labels';
 
 import type { UnionToIntersection } from 'type-fest';
-import type { DetailedReportDto } from '../react-query/queries/list-reports.queries';
+import type { DetailedReportDto } from '../react-query/queries/report-by-id.queries';
 import type { ReportVM, VMReportRuleValue } from '../VM/ReportVM';
 
 export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean>> {

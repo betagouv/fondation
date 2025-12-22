@@ -24,7 +24,7 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
 
-import { DateOnly } from 'src/shared-kernel/business-logic/models/date-only';
+import { DateOnly } from 'src/utils/date-only';
 import { FILE_EXTENSIONS } from '../framework/files/mime-type';
 import { Multipart, UseMultipartBody } from '../framework/files/multipart';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';

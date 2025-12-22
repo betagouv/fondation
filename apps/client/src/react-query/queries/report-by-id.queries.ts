@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../../utils/api-fetch.utils';
-import type { DetailedReportDto } from './list-reports.queries';
+import type { NominationFile, Magistrat } from 'shared-models';
+import type { DateOnlyStoreModel } from '../../models/date-only.model';
 
 export const useReportById = (id: string) =>
   useQuery({
@@ -51,4 +52,28 @@ function updateCommentScreenshots(
   }
 
   return $div.innerHTML;
+}
+
+export interface DetailedReportDto {
+  id: string;
+  sessionId: string;
+  folderNumber: number | null;
+  state: NominationFile.ReportState;
+  formation: Magistrat.Formation;
+  name: string;
+  biography: string | null;
+  dueDate: DateOnlyStoreModel | null;
+  birthDate: DateOnlyStoreModel;
+  transparency: string;
+  dateTransparence: DateOnlyStoreModel;
+  grade: Magistrat.Grade;
+  currentPosition: string;
+  targettedPosition: string;
+  comment: string | null;
+  rank: string;
+  observers: string[] | null;
+  rules: NominationFile.Rules;
+  attachments: { name: string; fileId: string }[];
+  screenshots: { fileId: string; name: string; url: string }[];
+  dureeDuPoste: string | null;
 }

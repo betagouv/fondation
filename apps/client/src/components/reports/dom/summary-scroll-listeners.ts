@@ -1,5 +1,5 @@
 export let isScrollingToSummarySection = false;
-let scrollTimeout: NodeJS.Timeout;
+let scrollTimeout: number;
 
 const userScrollEventTypes = ['wheel', 'keydown', 'mousedown', 'touchstart'];
 

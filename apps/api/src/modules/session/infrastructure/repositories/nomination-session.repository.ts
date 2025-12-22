@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -17,7 +18,6 @@ import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
-import { Logger } from 'testcontainers/build/common';
 import {
   NominationSession,
   NominationSessionAffectationVersionCreated,
