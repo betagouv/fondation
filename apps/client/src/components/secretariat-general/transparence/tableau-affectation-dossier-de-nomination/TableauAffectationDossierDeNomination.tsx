@@ -56,7 +56,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
   };
 
   if (isLoadingDossiersDeNomination || isLoadingRapporteurs) {
-    return <div>Chargement des dossiers de nomination...</div>;
+    return <div className="fr-container pb-8">Chargement des dossiers de nomination...</div>;
   }
 
   if (isErrorDossiersDeNomination || isErrorRapporteurs) {

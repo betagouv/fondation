@@ -1,8 +1,14 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { useCallback, useEffect, useMemo, type RefObject } from 'react';
-import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  type PropsWithChildren
+} from 'react';
+import { Link, useSearchParams, type Path } from 'react-router-dom';
 import type { Magistrat } from 'shared-models';
 
 import { type SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
@@ -13,14 +19,44 @@ const modalMagistratDnDetails = createModal({
   isOpenedByDefault: false
 });
 
-export function MagistratDnModale(props: {
-  nominationFiles: SessionNominationFile[];
-  ref: RefObject<HTMLDivElement | null>;
-}) {
+type MagistratModalContextType = {
+  useLinkProps: (id: string) => { to: Partial<Path> } & (typeof modalMagistratDnDetails)['buttonProps'];
+};
+
+const MagistratModalContext = createContext<MagistratModalContextType | null>(null);
+
+export function MagistratModaleProvider(
+  props: PropsWithChildren<{ formation: Magistrat.Formation; nominationFiles: SessionNominationFile[] }>
+) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentFileId = searchParams.get('active');
-  const isOpen = useIsModalOpen(modalMagistratDnDetails);
+  const isOpen = useIsModalOpen(modalMagistratDnDetails, {
+    onConceal() {
+      setSearchParams((s) => {
+        s.delete('active');
+        return s;
+      });
+    }
+  });
+
+  const nominationFile = useMemo(() => {
+    if (!currentFileId) return null;
+
+    const nominationFile = props.nominationFiles.find((f) => f.id === currentFileId);
+    if (!nominationFile) return null;
+
+    return nominationFile;
+  }, [currentFileId, props.nominationFiles]);
+
+  useLayoutEffect(() => {
+    if (!isOpen && nominationFile) {
+      setSearchParams((s) => {
+        s.delete('active');
+        return s;
+      });
+    }
+  }, [nominationFile, isOpen, setSearchParams]);
 
   const dataIndex = useMemo(
     () => (currentFileId ? props.nominationFiles.findIndex(({ id }) => id === currentFileId) : -1),
@@ -50,101 +86,69 @@ export function MagistratDnModale(props: {
     });
   }, [hasNext, setSearchParams, props.nominationFiles, dataIndex]);
 
-  useEffect(() => {
-    if (!isOpen && searchParams.has('active')) {
-      setSearchParams((s) => {
-        s.delete('active');
-        return s;
-      });
-    }
-  }, [isOpen, searchParams, setSearchParams]);
+  const useLinkProps = useCallback(
+    (id: string) => {
+      const search = new URLSearchParams(searchParams);
+      search.set('active', id);
 
-  return (
-    <modalMagistratDnDetails.Component
-      title={null}
-      buttons={[
-        {
-          priority: 'tertiary',
-          disabled: !hasPrevious,
-          children: 'Précédent',
-          iconId: 'fr-icon-arrow-left-s-line',
-          iconPosition: 'left',
-          onClick: onPreviousClicked,
-          doClosesModal: false
-        },
-        {
-          priority: 'tertiary',
-          disabled: !hasNext,
-          children: 'Suivant',
-          iconId: 'fr-icon-arrow-right-s-line',
-          iconPosition: 'right',
-          onClick: onNextClicked,
-          doClosesModal: false
-        }
-      ]}
-    >
-      <div ref={props.ref}></div>
-    </modalMagistratDnDetails.Component>
+      return { to: { search: `?${search.toString()}` }, ...modalMagistratDnDetails.buttonProps };
+    },
+    [searchParams]
   );
-}
-
-export function MagistratDnModalLink(props: {
-  nominationFile: SessionNominationFile;
-  modalRef: React.RefObject<HTMLDivElement | null>;
-  formation: Magistrat.Formation;
-}) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const isVisible = searchParams.get('active') === props.nominationFile.id;
-  const hasComment = !!props.nominationFile.comment;
 
   return (
     <>
-      <span>
-        <a
-          {...modalMagistratDnDetails.buttonProps}
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setSearchParams((s) => {
-              s.set('active', props.nominationFile.id);
-              return s;
-            });
-            modalMagistratDnDetails.open();
-          }}
-        >
-          {props.nominationFile.content.nomMagistrat}
-        </a>
-        {hasComment && (
-          <>
-            {' '}
-            <i
-              className="ri-message-3-line cursor-pointer"
-              style={{ fontSize: '10px' }}
-              title="Commentaire présent"
-              aria-label="Commentaire présent"
-              onClick={(e) => {
-                e.preventDefault();
-                setSearchParams((s) => {
-                  s.set('active', props.nominationFile.id);
-                  return s;
-                });
-                modalMagistratDnDetails.open();
-              }}
-            />
-          </>
-        )}
-      </span>
+      <modalMagistratDnDetails.Component
+        title={null}
+        buttons={[
+          {
+            priority: 'tertiary',
+            disabled: !hasPrevious,
+            children: 'Précédent',
+            iconId: 'fr-icon-arrow-left-s-line',
+            iconPosition: 'left',
+            onClick: onPreviousClicked,
+            doClosesModal: false
+          },
+          {
+            priority: 'tertiary',
+            disabled: !hasNext,
+            children: 'Suivant',
+            iconId: 'fr-icon-arrow-right-s-line',
+            iconPosition: 'right',
+            onClick: onNextClicked,
+            doClosesModal: false
+          }
+        ]}
+      >
+        {nominationFile ? (
+          <MagistratDetails nominationFile={nominationFile} formation={props.formation} />
+        ) : null}
+      </modalMagistratDnDetails.Component>
 
-      {isVisible &&
-        props.modalRef.current &&
-        createPortal(
-          <MagistratDetails
-            key={props.nominationFile.id}
-            nominationFile={props.nominationFile}
-            formation={props.formation}
-          />,
-          props.modalRef.current
-        )}
+      <MagistratModalContext value={{ useLinkProps }}>{props.children}</MagistratModalContext>
     </>
+  );
+}
+
+export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
+  const ctx = useContext(MagistratModalContext);
+  if (!ctx) return null;
+
+  const linkProps = ctx.useLinkProps(props.nominationFile.id);
+  const hasComment = !!props.nominationFile.comment;
+
+  return (
+    <Link {...linkProps}>
+      {props.nominationFile.content.nomMagistrat}
+      {hasComment && (
+        <i
+          className="ri-message-3-line ml-1 cursor-pointer"
+          style={{ fontSize: '10px' }}
+          title="Commentaire présent"
+          aria-label="Commentaire présent"
+        />
+      )}
+    </Link>
   );
 }
