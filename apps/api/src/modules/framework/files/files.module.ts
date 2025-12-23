@@ -55,7 +55,7 @@ export const SSE_CONFIG_TOKEN = Symbol();
       useFactory(config: ApiConfig) {
         return process.env.NODE_ENV === 'production'
           ? {
-              algorithm: 'AE256',
+              algorithm: 'AES256',
               base64Key: config.s3.scaleway.encryptionKeyBase64,
             }
           : undefined;
