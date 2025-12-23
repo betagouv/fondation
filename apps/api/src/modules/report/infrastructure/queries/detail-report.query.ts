@@ -98,7 +98,7 @@ export class DetailReportQuery {
     );
 
     const reportFiles = report.files.map(({ usage, file }) => ({
-      fileId: file.id,
+      id: file.id,
       name: file.name,
       path: file.path,
       usage: prismaReportFileUsageEnumToReportFileUsage(usage),
@@ -123,13 +123,13 @@ export class DetailReportQuery {
       state: prismaReportStateEnumToReportState(report.state),
 
       attachments: attachments.map((f) => ({
-        fileId: f.fileId,
+        fileId: f.id,
         name: f.name,
         usage: f.usage,
       })),
 
       screenshots: screenshots.map((f) => ({
-        fileId: f.fileId,
+        fileId: f.id,
         name: f.name,
         url: f.url,
         usage: f.usage,
@@ -194,26 +194,15 @@ export class DetailReportQuery {
     return formatDuration({ months, years }, { locale: fr, delimiter: ' et ' });
   }
 
-  private async withUrls<F extends { name: string; path: readonly string[] }>(
-    files: readonly F[],
-  ): Promise<(F & { url: string })[]> {
-    const byPath = new Map(
-      files.map((f) => {
-        const filePath = f.path.join('/');
-        return [filePath, f];
-      }),
-    );
-
-    const urls = await this.files.getPublicUrls(
-      Array.from(byPath.values()).map(({ name, path }) => ({
-        name,
-        path: path.join('/'),
-      })),
-    );
+  private async withUrls<
+    F extends { id: string; name: string; path: readonly string[] },
+  >(files: readonly F[]): Promise<(F & { url: string })[]> {
+    const byId = new Map(files.map((f) => [f.id, f]));
+    const urls = await this.files.getPublicUrls(Array.from(byId.keys()));
 
     return Object.entries(urls)
       .map(([path, url]) => {
-        const originalFile = byPath.get(path);
+        const originalFile = byId.get(path);
         if (!originalFile) return undefined;
 
         return { ...originalFile, url: url.toString() };

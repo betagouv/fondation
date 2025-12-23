@@ -7,12 +7,15 @@ import { PrismaService } from '../database';
 import { Files } from './files';
 import { StoreFileInterceptor } from './multipart/store-file.interceptor';
 import { Sanitizer } from './sanitizers';
+import { FilesController } from './files.controller';
+import { Clock } from '../clock';
 
 export const SSE_CONFIG_TOKEN = Symbol();
 
 @Global()
 @Module({
   exports: [Files, Sanitizer],
+  controllers: [FilesController],
   providers: [
     Sanitizer,
     StoreFileInterceptor,
@@ -60,15 +63,22 @@ export const SSE_CONFIG_TOKEN = Symbol();
     },
     {
       provide: Files,
-      inject: [S3Client, PrismaService, API_CONFIG_TOKEN, SSE_CONFIG_TOKEN],
+      inject: [
+        Clock,
+        S3Client,
+        PrismaService,
+        API_CONFIG_TOKEN,
+        SSE_CONFIG_TOKEN,
+      ],
       useFactory: (
+        clock: Clock,
         client: S3Client,
         prisma: PrismaService,
         config: ApiConfig,
         sseConfig: { base64Key: string; algorithm: 'AES256' } | undefined,
       ) => {
         const bucketName = config.s3.reportsContext.attachedFilesBucketName;
-        return new Files(client, prisma, bucketName, config, sseConfig);
+        return new Files(clock, client, prisma, bucketName, config, sseConfig);
       },
     },
   ],
