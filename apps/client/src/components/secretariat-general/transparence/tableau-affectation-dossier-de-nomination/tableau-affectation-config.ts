@@ -1,6 +1,5 @@
-import type { ReactNode, RefObject } from 'react';
+import type { ReactNode } from 'react';
 import React from 'react';
-import type { Magistrat } from 'shared-models';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
@@ -27,17 +26,11 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
   ...HEADER_COLUMNS_AFFECTATIONS_DN
 ] as const satisfies { field: string; label: string }[];
 
-export const dataRowsDn = (options: {
-  data: SessionNominationFile[];
-  magistratModalRef: RefObject<HTMLDivElement | null>;
-  formation: Magistrat.Formation;
-}): ReactNode[][] => {
+export const dataRowsDn = (options: { data: SessionNominationFile[] }): ReactNode[][] => {
   return options.data.map((dossier) => [
     dossier.content.numeroDeDossier,
     React.createElement(MagistratDnModalLink, {
-      nominationFile: dossier,
-      modalRef: options.magistratModalRef,
-      formation: options.formation
+      nominationFile: dossier
     }),
     dossier.content.grade,
     dossier.content.posteCible,
@@ -56,8 +49,6 @@ export const dataRowsDn = (options: {
 export const dataRowsDnEdition = (options: {
   data: SessionNominationFile[];
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
-  magistratModalRef: RefObject<HTMLDivElement | null>;
-  formation: Magistrat.Formation;
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     React.createElement('div', {
@@ -66,9 +57,7 @@ export const dataRowsDnEdition = (options: {
     }),
     dossier.content.numeroDeDossier,
     React.createElement(MagistratDnModalLink, {
-      nominationFile: dossier,
-      modalRef: options.magistratModalRef,
-      formation: options.formation
+      nominationFile: dossier
     }),
     dossier.content.grade,
     dossier.content.posteCible,

@@ -3,7 +3,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
 import clsx from 'clsx';
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PrioriteEnum, type Magistrat } from 'shared-models';
 
@@ -18,7 +18,7 @@ import type { SessionNominationFile } from '../../react-query/mutations/sg/nomin
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
-import { MagistratDnModale } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
+import { MagistratModaleProvider } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 import {
   applyFilters,
   dataRowsDn,
@@ -54,7 +54,6 @@ const TableauDossiersDeNominationContent = ({
   formation
 }: TableauDossiersDeNominationProps) => {
   const { pathname } = useLocation();
-  const magistratModalRef = useRef<HTMLDivElement>(null);
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
@@ -116,12 +115,10 @@ const TableauDossiersDeNominationContent = ({
 
   const dossierDataRows = isEditing
     ? dataRowsDnEdition({
-        magistratModalRef,
         data: paginatedData,
-        availableRapporteurs: availableRapporteurs || [],
-        formation
+        availableRapporteurs: availableRapporteurs || []
       })
-    : dataRowsDn({ magistratModalRef, data: paginatedData, formation });
+    : dataRowsDn({ data: paginatedData });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)
@@ -168,22 +165,22 @@ const TableauDossiersDeNominationContent = ({
       </div>
 
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
-        <MagistratDnModale ref={magistratModalRef} nominationFiles={paginatedData} />
-
         <div className="mb-6">
-          <Table
-            id="session-affectation-dossier-de-nomination-table"
-            className="mb-0"
-            bordered
-            fixed
-            headers={TABLE_HEADER}
-            data={dossierDataRows}
-          />
-          {paginatedData.length === 0 ? (
-            <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
-              Aucun résultat ne correspond aux valeurs filtrées
-            </p>
-          ) : null}
+          <MagistratModaleProvider nominationFiles={paginatedData} formation={formation}>
+            <Table
+              id="session-affectation-dossier-de-nomination-table"
+              className="mb-0"
+              bordered
+              fixed
+              headers={TABLE_HEADER}
+              data={dossierDataRows}
+            />
+            {paginatedData.length === 0 ? (
+              <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+                Aucun résultat ne correspond aux valeurs filtrées
+              </p>
+            ) : null}
+          </MagistratModaleProvider>
         </div>
 
         <div className={clsx('mb-10', cx('fr-container'))}>
