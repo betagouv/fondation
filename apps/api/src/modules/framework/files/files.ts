@@ -92,7 +92,7 @@ export class Files implements OnApplicationBootstrap {
       const { base64Key: SSECustomerKey, algorithm: SSECustomerAlgorithm } =
         sseConfig;
       const SSECustomerKeyMD5 = createHash('md5')
-        .update(SSECustomerKey)
+        .update(Buffer.from(SSECustomerKey, 'base64'))
         .digest('base64');
       this.sseHeaders = {
         SSECustomerKey,
