@@ -13,6 +13,8 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  StreamableFile,
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 
@@ -29,6 +31,8 @@ import { inspect } from 'node:util';
 import { makeId } from 'src/utils/id';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
+import axios from 'axios';
+import { Clock } from '../clock';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -73,6 +77,7 @@ export class Files implements OnApplicationBootstrap {
     | Record<string, never> = {};
 
   constructor(
+    private readonly clock: Clock,
     private readonly client: S3Client,
     private readonly prisma: PrismaService,
     private readonly bucketName: string,
@@ -98,29 +103,29 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async getPublicUrls(
-    files: readonly { path: string; name: string }[],
-  ): Promise<{ [filePath: string]: URL }> {
-    const entries = await Promise.allSettled(
-      files.map(
-        async (file) =>
-          [
-            file.path,
-            await getSignedUrl(
-              this.client,
-              new GetObjectCommand({
-                ...this.sseHeaders,
-                ResponseContentType: filenameToMimeType(file.name),
-                ResponseContentDisposition: `inline; filename="${file.name}"`,
-                Bucket: this.bucketName,
-                Key: encodeURI(file.path),
-              }),
-              { expiresIn: this.expiresInSeconds },
-            ).then((url) => new URL(url)),
-          ] as const,
-      ),
-    ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
+    fileIds: readonly string[],
+  ): Promise<{ [fileId: string]: URL }> {
+    return this.prisma.$transaction(async (tx) => {
+      const files = await tx.file.findMany({
+        where: { id: { in: fileIds as string[] } },
+        select: { id: true, name: true, path: true },
+      });
 
-    return Object.fromEntries(entries);
+      const publicUrls = await Promise.allSettled(
+        files.map((file) => this.generatePublicUrl(file)),
+      ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
+
+      await tx.filePublicUrl.createMany({
+        data: publicUrls.map((x) => ({
+          id: x.id,
+          url: x.url.toString(),
+          fileId: x.fileId,
+          expiresAt: x.expiresAt,
+        })),
+      });
+
+      return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
+    });
   }
 
   async create(files: readonly FondationFile[]): Promise<string[]> {
@@ -171,7 +176,7 @@ export class Files implements OnApplicationBootstrap {
       await this.prisma.file
         .createMany({
           data: filesWithId.map((file) => {
-            const path = file.path.split('/');
+            const path = file.path.split('/').filter((x) => !!x.trim());
 
             return {
               path,
@@ -313,6 +318,68 @@ export class Files implements OnApplicationBootstrap {
 
       throw err.cause;
     }
+  }
+
+  async getFileContent(fileUrlId: string): Promise<StreamableFile> {
+    const file = await this.prisma.filePublicUrl.findUnique({
+      where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
+      select: { url: true, file: { select: { name: true } } },
+    });
+
+    if (!file) throw new NotFoundException();
+
+    let headers: Record<string, string> = {};
+    const { sseHeaders } = this;
+    if (Object.keys(sseHeaders).length > 0) {
+      const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } =
+        sseHeaders;
+
+      headers = {
+        'x-amz-server-side-encryption-customer-key': SSECustomerKey,
+        'x-amz-server-side-encryption-customer-key-MD5': SSECustomerKeyMD5,
+        'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
+      };
+    }
+
+    const response = await axios.get(file.url, {
+      headers,
+      responseType: 'stream',
+    });
+
+    return new StreamableFile(response.data, {
+      type: filenameToMimeType(file.file.name),
+      disposition: `inline; filename="${file.file.name}"`,
+    });
+  }
+
+  private async generatePublicUrl(file: {
+    id: string;
+    path: readonly string[];
+  }): Promise<{
+    publicUrl: URL;
+    url: URL;
+    id: string;
+    expiresAt: Date;
+    fileId: string;
+  }> {
+    const id = makeId('FilePublicUrlId');
+    const publicUrl = new URL(`${process.env.ORIGIN_URL}/api/files/v1/${id}`);
+    const expiresAt = new Date(
+      this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS,
+    );
+    const url = new URL(
+      await getSignedUrl(
+        this.client,
+        new GetObjectCommand({
+          ...this.sseHeaders,
+          Bucket: this.bucketName,
+          Key: encodeURI(file.path.join('/')),
+        }),
+        { expiresIn: this.expiresInSeconds },
+      ),
+    );
+
+    return { fileId: file.id, id, url, expiresAt, publicUrl };
   }
 
   async onApplicationBootstrap(): Promise<void> {
