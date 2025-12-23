@@ -204,7 +204,12 @@ export class DetailReportQuery {
       }),
     );
 
-    const urls = await this.files.getPublicUrls(Array.from(byPath.keys()));
+    const urls = await this.files.getPublicUrls(
+      Array.from(byPath.values()).map(({ name, path }) => ({
+        name,
+        path: path.join('/'),
+      })),
+    );
 
     return Object.entries(urls)
       .map(([path, url]) => {

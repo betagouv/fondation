@@ -1,3 +1,5 @@
+import { isDefined } from 'src/utils/is-defined';
+
 export const FILE_MIME_TYPES = {
   txt: 'text/plain',
   json: 'application/json',
@@ -30,6 +32,14 @@ export const FILE_EXTENSIONS = Object.fromEntries(
 const MIME_TYPES = new Set(Object.values(FILE_MIME_TYPES));
 export function isMimeType(value: unknown): value is FileMimeType {
   return MIME_TYPES.has(value as any);
+}
+
+/** @param filename a UNIX filename like {filename}.{extension}. It eventually supports format like {filename}.{extension}-{suffix} */
+export function filenameToMimeType(filename: string): FileMimeType | undefined {
+  const extension = filename.split('.').at(-1)?.split('-').at(0);
+  return isDefined(extension) && extension in FILE_MIME_TYPES
+    ? (FILE_MIME_TYPES as any)[extension]
+    : undefined;
 }
 
 /**

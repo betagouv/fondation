@@ -37,11 +37,16 @@ export class GetReportFileUrlsQuery {
     const files = new Map(
       report.files.map(
         ({ file }) =>
-          [file.path.join('/'), { id: file.id, name: file.name }] as const,
+          [
+            file.path.join('/'),
+            { id: file.id, name: file.name, path: file.path.join('/') },
+          ] as const,
       ),
     );
 
-    const fileUrls = await this.files.getPublicUrls(Array.from(files.keys()));
+    const fileUrls = await this.files.getPublicUrls(
+      Array.from(files.values()).map((f) => ({ name: f.name, path: f.path })),
+    );
 
     return {
       items: Object.entries(fileUrls)
