@@ -28,6 +28,7 @@ import * as time from 'src/utils/time';
 import { inspect } from 'node:util';
 import { makeId } from 'src/utils/id';
 import { type FondationFile } from './files.types';
+import { filenameToMimeType } from './mime-type';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -97,19 +98,21 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async getPublicUrls(
-    filePaths: readonly string[],
+    files: readonly { path: string; name: string }[],
   ): Promise<{ [filePath: string]: URL }> {
     const entries = await Promise.allSettled(
-      filePaths.map(
-        async (path) =>
+      files.map(
+        async (file) =>
           [
-            path,
+            file.path,
             await getSignedUrl(
               this.client,
               new GetObjectCommand({
                 ...this.sseHeaders,
+                ResponseContentType: filenameToMimeType(file.name),
+                ResponseContentDisposition: `inline; filename="${file.name}"`,
                 Bucket: this.bucketName,
-                Key: encodeURI(path),
+                Key: encodeURI(file.path),
               }),
               { expiresIn: this.expiresInSeconds },
             ).then((url) => new URL(url)),

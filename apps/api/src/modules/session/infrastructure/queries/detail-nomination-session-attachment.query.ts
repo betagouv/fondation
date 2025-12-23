@@ -33,7 +33,9 @@ export class DetailNominationSessionAttachmentQuery {
     if (!attachment) throw new NotFoundException();
 
     const path = attachment.file.path.join('/');
-    const urlsRecord = await this.files.getPublicUrls([path]);
+    const urlsRecord = await this.files.getPublicUrls([
+      { path, name: attachment.file.name },
+    ]);
     const url = urlsRecord[path];
 
     if (!url) throw new NotFoundException();
