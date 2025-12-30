@@ -18,8 +18,8 @@
     "types:check": "tsc --noEmit",
     "test": "jest",
     "test:it": "dotenvx run -- jest --runInBand --config ./test/jest/jest-integration.config.ts",
-    "test:e2e": "dotenvx run -- jest --runInBand --config ./test/jest/jest-e2e.config.ts",
-    "test:all": "dotenvx run -- jest --runInBand --config ./test/jest/jest-all.config.ts",
+    "test:e2e": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-e2e.config.ts",
+    "test:all": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-all.config.ts",
     "cli": "dotenvx run -- ts-node -r tsconfig-paths/register src/cli.ts",
     "prisma": "prisma"
   },
