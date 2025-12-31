@@ -1,0 +1,45 @@
+/// Table des magistrats importée depuis le flux XML LOLFi
+/// Voir ADR: apps/api/docs/adr-lolfi/magistrat.md
+model Magistrat {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  externalId String @unique @map("external_id")
+
+  civilite      String 
+  lastName      String  @map("last_name")
+  firstName     String  @map("first_name")
+  marriedName   String? @map("married_name")
+  usedName      String  @map("used_name")
+  maritalStatus String? @map("marital_status")
+
+  professionalEmail String? @map("professional_email")
+
+  birthDate       DateTime? @map("birth_date") @db.Date
+  birthPlace      String?   @map("birth_place")
+  birthDepartment String?   @map("birth_department")
+
+  grade             String?
+  gradeDate         DateTime? @map("grade_date") @db.Date
+  currentPositionId String?   @map("current_position_id")
+  installationDate  DateTime? @map("installation_date") @db.Date
+  nominationDate    DateTime? @map("nomination_date") @db.Date
+  advancementYear   Int?      @map("advancement_year")
+  careerHistory     String?   @map("career_history") @db.Text
+
+  adminPosition          String?   @map("admin_position")
+  adminPositionPrev      String?   @map("admin_position_prev")
+  adminPositionPrevStart DateTime? @map("admin_position_prev_start") @db.Date
+  adminPositionPrevEnd   DateTime? @map("admin_position_prev_end") @db.Date
+  adminPositionPrev2     String?   @map("admin_position_prev2")
+  adminPositionPrev2Date DateTime? @map("admin_position_prev2_date") @db.Date
+
+  lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
+
+  @@index([lastName, firstName])
+  @@index([usedName])
+  @@index([professionalEmail])
+  @@map("magistrat")
+  @@schema("nominations_context")
+}
