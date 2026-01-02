@@ -3,8 +3,8 @@ import { Magistrat } from 'shared-models';
 import { UserWhereInput } from 'src/generated/prisma/models';
 import { PrismaService } from 'src/modules/framework/database';
 import {
+  createPaginatedZodDto,
   paginate,
-  Paginated,
   Pagination,
 } from 'src/modules/framework/pagination';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ export class ListMembersQuery {
     pagination: Pagination;
     formation: Magistrat.Formation | undefined;
     search: string | undefined;
-  }): Promise<Paginated<MemberListItemDto>> {
+  }): Promise<PaginatedMemberListItemDto> {
     const where = {
       role: { in: formationToMemberRole(query.formation) },
       OR: query.search
@@ -48,10 +48,13 @@ export class ListMembersQuery {
   }
 }
 
-export const MemberListItemDtoSchema = z.object({
+const MemberListItemDtoSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
 });
-export type MemberListItemDto = z.infer<typeof MemberListItemDtoSchema>;
+
+export class PaginatedMemberListItemDto extends createPaginatedZodDto(
+  MemberListItemDtoSchema,
+) {}

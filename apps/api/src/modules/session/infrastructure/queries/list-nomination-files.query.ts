@@ -32,7 +32,7 @@ export class ListNominationFilesQuery {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<{ items: NominationFileAffectationItem[] }> {
+  }): Promise<ListedNominationFileAffectationItem> {
     const isSG = query.user.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
     const files = await this.prisma.$transaction(async (tx) => {
@@ -171,6 +171,10 @@ const NominationFileAffectationItemSchema = z.object({
   ),
 });
 
-export class NominationFileAffectationItem extends createZodDto(
-  NominationFileAffectationItemSchema,
+type NominationFileAffectationItem = z.infer<
+  typeof NominationFileAffectationItemSchema
+>;
+
+export class ListedNominationFileAffectationItem extends createZodDto(
+  z.object({ items: z.array(NominationFileAffectationItemSchema) }),
 ) {}

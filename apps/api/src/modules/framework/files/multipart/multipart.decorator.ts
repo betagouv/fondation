@@ -1,5 +1,7 @@
 import { applyDecorators, UseInterceptors } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { MultipartBodyInterceptor } from './multipart.interceptor';
@@ -12,26 +14,31 @@ import { StoreFileInterceptor } from './store-file.interceptor';
  * @example
  * ```
  * const ImportMultipartDtoSchema = z.object({ file: z.file(), data: z.object({ hello: z.string() }) });
- * type ImportMultipartDto = z.infer<typeof ImportMultipartDtoSchema>
+ * class ImportMultipartDto extends createZodDto(ImportMultipartDtoSchema) {}
  *
- * @UseMultipartBody({ schema: ImportMultipartDtoSchema })
+ * @UseMultipartBody({ schema: ImportMultipartDto })
  * importFile(
- *   @Body() body: Multipart<ImportMultipartDto>,
+ *   @Body() body: Multipart<typeof ImportMultipartDto>,
  *  ) {
  *   // ...
  * }
  * ```
  */
-export function UseMultipartBody(options: {
-  schema: z.ZodObject;
+export function UseMultipartBody<Schema extends z.ZodObject>(options: {
+  schema: ZodDto<Schema>;
   destination?: MultipartDestinationFactory;
   overrideFiles?: false;
   deleteOnFail?: false;
 }): MethodDecorator {
   return applyDecorators(
+    ApiConsumes('multipart/form-data'),
+    ApiBody({ type: options.schema }),
     UseInterceptors(
       AnyFilesInterceptor(),
-      new MultipartBodyInterceptor(options),
+      new MultipartBodyInterceptor({
+        ...options,
+        schema: options.schema.schema,
+      }),
       StoreFileInterceptor,
     ),
   );

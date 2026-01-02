@@ -9,12 +9,15 @@ import {
   Req,
   Res,
   UseFilters,
+  UsePipes,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import {
   type CookieOptions,
   type Request as ExpressRequest,
   type Response as ExpressResponse,
 } from 'express';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
@@ -23,6 +26,7 @@ import { DetailedUserResponseDto } from './infrastructure/queries/details-user.q
 import { AuthedUserId, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
+@ApiTags('Auth')
 @UseFilters(AuthExceptionFilter)
 @Controller('/api/auth/v2')
 export class SimpleAuthController {
@@ -37,6 +41,7 @@ export class SimpleAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   async login(
     @Body() body: LoginDto,
     @Res() res: ExpressResponse,
@@ -47,6 +52,7 @@ export class SimpleAuthController {
 
   @Get('introspect')
   @HasRole()
+  @ZodResponse({ type: DetailedUserResponseDto, status: HttpStatus.OK })
   introspectSession(
     @AuthedUserId() userId: string,
   ): Promise<DetailedUserResponseDto> {
@@ -54,7 +60,7 @@ export class SimpleAuthController {
   }
 
   @Post('logout')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @HasRole()
   async logout(
     @AuthedUserId() userId: string,

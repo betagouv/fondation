@@ -12,26 +12,30 @@ import {
   Query,
   UsePipes,
 } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ApiTags } from '@nestjs/swagger';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { ReportFileUsage, Role } from 'shared-models';
+import { Role } from 'shared-models';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
+  FILE_EXTENSIONS,
+  UseMultipartBody,
+  type Multipart,
+} from '../framework/files';
+import {
   AttachReportFileDto,
+  AttachReportFileQueryDto,
   DetachReportFilesQueryDto,
   GetReportFileUrlsQueryDto,
   UpdateReportDto,
   UpdateReportRuleValidationDto,
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
+import { GetReportFileUrlsResponseDto } from './infrastructure/queries/get-report-file-urls.query';
 import { ReportService } from './report.service';
-import {
-  FILE_EXTENSIONS,
-  UseMultipartBody,
-  type Multipart,
-} from '../framework/files';
 
+@ApiTags('Reports')
 @Controller('/api/reports/v2')
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
@@ -46,14 +50,14 @@ export class ReportController {
   })
   attachFiles(
     @Param('reportId') reportId: string,
-    @Query('usage') fileUsage: ReportFileUsage,
+    @Query(ZodValidationPipe) query: AttachReportFileQueryDto,
     @Body() { files }: Multipart<typeof AttachReportFileDto>,
     @AuthedUserId() userId: string,
   ): Promise<void> {
     return this.reports.attachFiles({
       reportId,
       userId,
-      fileUsage,
+      fileUsage: query.usage,
       files,
     });
   }
@@ -77,6 +81,7 @@ export class ReportController {
   @Get('/:reportId/files/url')
   @HasRole()
   @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: GetReportFileUrlsResponseDto, status: HttpStatus.OK })
   async getReportFilesUrl(
     @AuthedUserId() userId: string,
     @Param('reportId') reportId: string,
@@ -91,6 +96,7 @@ export class ReportController {
 
   @Get('/:reportId')
   @HasRole()
+  @ZodResponse({ type: DetailedReportDto, status: HttpStatus.OK })
   async detailReport(
     @Param('reportId') reportId: string,
     @AuthedUser() user: { id: string; role: Role },

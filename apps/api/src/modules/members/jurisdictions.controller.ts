@@ -1,8 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { HasRole } from '../simple-auth';
+import { Controller, Get, HttpStatus, Query, UsePipes } from '@nestjs/common';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { Role } from 'shared-models';
+import { HasRole } from '../simple-auth';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
-import { FoundJurisdictionsItem } from './infrastructure/queries/search-jurisdictions.query';
+import { ListedJurisdictions } from './infrastructure/queries/search-jurisdictions.query';
+import { SearchJurisdictionQueryDto } from './infrastructure/dtos/jurisdictions.dto';
 
 @Controller('/api/jurisdictions/v1')
 export class JurisdictionsController {
@@ -10,18 +12,14 @@ export class JurisdictionsController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get()
+  @ZodResponse({ type: ListedJurisdictions, status: HttpStatus.OK })
+  @UsePipes(ZodValidationPipe)
   search(
-    @Query('search') searchQuery: string | undefined,
-    @Query('includeIds') includeIdsQuery: string | undefined,
-  ): Promise<{ items: FoundJurisdictionsItem[] }> {
-    // TODO: extract to pipes since native Nest use class-transformer?
-    const includeIds = includeIdsQuery?.split(',').map((x) => x.trim());
-    const trimmed = searchQuery?.trim();
-    const search = (trimmed?.length ?? 0) > 0 ? trimmed : undefined;
-
+    @Query() query: SearchJurisdictionQueryDto,
+  ): Promise<ListedJurisdictions> {
     return this.jurisdictions.search({
-      search,
-      includeIds,
+      search: query.search,
+      includeIds: query.includeIds,
     });
   }
 }

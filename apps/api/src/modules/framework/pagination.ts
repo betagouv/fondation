@@ -3,9 +3,24 @@ import {
   createParamDecorator,
   ExecutionContext,
 } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
+import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
 
 export type Pagination = { path: string; page: number; limit: number };
+
+class PaginationQueryDto extends createZodDto(
+  z.object({
+    page: z.number().int().gte(1).optional(),
+    limit: z.number().int().gte(1).optional(),
+  }),
+) {}
+
+/** exposes the right openapi schema for the query pagination */
+export function ApiPaginated(): MethodDecorator {
+  return ApiQuery({ type: PaginationQueryDto });
+}
 
 const DEFAULT_PAGINATION_LIMIT = 20;
 const DEFAULT_PAGINATION_LIMIT_MAX = 200;
@@ -47,7 +62,7 @@ export const QueryPagination = createParamDecorator(
   },
 );
 
-export type Paginated<T> = {
+type Paginated<T> = {
   items: T[];
   totalCount: number;
   currentPageIndex: number;
@@ -55,6 +70,24 @@ export type Paginated<T> = {
   previousPageIndex: number | undefined;
   links: { next?: string; previous?: string };
 };
+
+export function createPaginatedZodDto(schema: z.ZodObject) {
+  return createZodDto(
+    z.object({
+      items: z.array(schema),
+      totalCount: z.number().int().gte(0),
+      currentPageIndex: z.number().int().gte(1),
+      nextPageIndex: z.number().int().gte(2).optional(),
+      previousPageIndex: z.number().int().gte(1).optional(),
+      links: z
+        .object({
+          next: z.string().optional(),
+          previous: z.string().optional(),
+        })
+        .optional(),
+    }),
+  );
+}
 
 export function paginate<T>(input: {
   items: readonly T[];

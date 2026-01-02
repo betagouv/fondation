@@ -1,8 +1,14 @@
 import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { NominationFile } from 'shared-models';
+import { NominationFile, ReportFileUsage } from 'shared-models';
 
-export const AttachReportFileDto = z.object({ files: z.array(z.file()) });
+export class AttachReportFileDto extends createZodDto(
+  z.object({ files: z.array(z.file()) }),
+) {}
+
+export class AttachReportFileQueryDto extends createZodDto(
+  z.object({ usage: z.enum(ReportFileUsage) }),
+) {}
 
 export class DetachReportFilesQueryDto extends createZodDto(
   z.object({

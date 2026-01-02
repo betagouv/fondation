@@ -36,7 +36,7 @@ export class DetailsUserQuery {
   }
 }
 
-export const DetailedUserResponseDtoSchema = z.object({
+const DetailedUserResponseDtoSchema = z.object({
   userId: z.string(),
   firstName: z.string(),
   lastName: z.string(),

@@ -4,14 +4,12 @@ import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
-import { MainAppConfigurator } from 'src/main.configurator';
+import { AppModule } from 'src/app.module';
 import { FILE_MIME_TYPES } from '../framework/files';
-import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
 import { StatutAffectation } from './domain/statut-affectation.enum';
@@ -41,13 +39,7 @@ describe('Session E2E', () => {
   });
 
   beforeAll(async () => {
-    const testingModule = await Test.createTestingModule({
-      imports: [RootModule],
-    }).compile();
-
-    app = new MainAppConfigurator(testingModule.createNestApplication())
-      .withCookies()
-      .configure();
+    app = await AppModule.create();
     await app.init();
 
     auth = app.get(SimpleAuthService);

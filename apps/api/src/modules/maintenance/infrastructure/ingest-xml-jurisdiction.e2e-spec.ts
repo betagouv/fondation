@@ -1,9 +1,8 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
-import { RootModule } from 'src/modules/root.module';
-import { MaintenanceService } from './maintenance.service';
+import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/modules/framework/database';
+import { MaintenanceService } from './maintenance.service';
 
 describe('IngestXmlJurisdiction', () => {
   let db: PrismaService;
@@ -11,11 +10,7 @@ describe('IngestXmlJurisdiction', () => {
   let maintenance: MaintenanceService;
 
   beforeAll(async () => {
-    const container = await Test.createTestingModule({
-      imports: [RootModule],
-    }).compile();
-    app = container.createNestApplication();
-
+    app = await AppModule.create();
     await app.init();
 
     db = app.get(PrismaService);
@@ -23,7 +18,6 @@ describe('IngestXmlJurisdiction', () => {
   });
 
   afterAll(async () => {
-    await db.$disconnect();
     await app.close();
   });
 

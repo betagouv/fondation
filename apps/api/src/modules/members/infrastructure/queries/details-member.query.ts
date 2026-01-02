@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { isMember, MEMBER_ROLES } from '../member.utils';
 import { PrismaService } from 'src/modules/framework/database';
+import { createZodDto } from 'nestjs-zod';
 
 @Injectable()
 export class DetailsMemberQuery {
@@ -48,15 +49,18 @@ export class DetailsMemberQuery {
   }
 }
 
-export const DetailedMemberDtoSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.enum(MEMBER_ROLES),
+export const DetailedMemberDtoSchema = z
+  .object({
+    id: z.string(),
+    email: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    role: z.enum(MEMBER_ROLES),
 
-  excludedJurisdictions: z.array(
-    z.object({ id: z.string(), label: z.string().nullable() }),
-  ),
-});
-export type DetailedMemberDto = z.infer<typeof DetailedMemberDtoSchema>;
+    excludedJurisdictions: z.array(
+      z.object({ id: z.string(), label: z.string().nullable() }),
+    ),
+  })
+  .meta({ id: 'DetailedMemberDto' });
+
+export class DetailedMemberDto extends createZodDto(DetailedMemberDtoSchema) {}

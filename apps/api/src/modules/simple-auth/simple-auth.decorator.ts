@@ -11,6 +11,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ApiCookieAuth } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
 import { Role } from 'shared-models';
@@ -67,5 +68,6 @@ export function HasRole(...roles: readonly Role[]): MethodDecorator {
   return applyDecorators(
     SetMetadata(META_ROLES, roles),
     UseGuards(mixin(HasRoleGuard)),
+    ApiCookieAuth('sessionId'),
   );
 }
