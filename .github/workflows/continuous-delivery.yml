@@ -16,6 +16,7 @@ jobs:
     uses: ./.github/workflows/build-and-upload-api-artifact.yml
     with:
       tag: "v${{ github.run_number }}"
+
   build-and-upload-client-artifact:
     needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-client-artifact.yml

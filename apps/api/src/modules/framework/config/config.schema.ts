@@ -1,88 +1,80 @@
 import { z } from 'zod';
 
-export enum DeployEnvMode {
-  PRODUCTION = 'production',
-  STAGING = 'staging',
-}
+export const ConfigSchema = z.object({
+  isProduction: z.prefault(z.boolean(), process.env.NODE_ENV === 'production'),
 
-const commonBaseSchema = z.object({
-  port: z.number(),
-  cookieSecret: z.string().min(32),
-  cookieMaxAgeInMs: z.number().positive(),
-  sharedSecret: z.string().min(32),
-  contextServices: z.object({
-    filesContext: z.object({
-      baseUrl: z.string(),
+  port: z.prefault(z.number(), Number(process.env.PORT) || 3000),
+
+  cookieSecret: z.prefault(z.string().min(32), process.env.COOKIE_SECRET!),
+
+  originUrl: z.prefault(z.url().regex(/[^\/]$/), process.env.ORIGIN_URL!),
+
+  frontendOriginUrl: z.prefault(
+    z.url().regex(/[^\/]$/),
+    process.env.FRONTEND_ORIGIN_URL!,
+  ),
+
+  sentryDsn: z.prefault(z.url().optional(), process.env.SENTRY_DSN),
+
+  databaseUrl: z.prefault(
+    z.url().startsWith('postgresql://'),
+    process.env.DATABASE_URL!,
+  ),
+
+  s3: z.preprocess(
+    () => ({}),
+    z.object({
+      bucket: z.prefault(
+        z.string(),
+        process.env.S3_BUCKET ||
+          /** @deprecated */ process.env.S3_REPORTS_ATTACHED_FILES_BUCKET!,
+      ),
+
+      region: z.prefault(z.string(), process.env.S3_REGION || 'fr-par'),
+
+      signedUrlDurationSeconds: z.prefault(z.number(), 3_600),
+
+      credentials: z.preprocess(
+        () => ({}),
+        z.object({
+          accessKeyId: z.prefault(
+            z.string(),
+            process.env.S3_ACCESS_KEY ||
+              /** @deprecated */ process.env.SCW_ACCESS_KEY!,
+          ),
+          secretAccessKey: z.prefault(
+            z.string(),
+            process.env.S3_SECRET_KEY ||
+              /** @deprecated */ process.env.SCW_SECRET_KEY!,
+          ),
+        }),
+      ),
+
+      forcePathStyle: z.prefault(
+        z.boolean(),
+        process.env.S3_FORCE_PATH_STYLE === 'true',
+      ),
+
+      endpoint: z.prefault(
+        process.env.NODE_ENV === 'production'
+          ? z
+              .url()
+              .startsWith('https://')
+              .regex(/[^\/]$/)
+          : z.url().regex(/[^\/]$/),
+        process.env.S3_ENDPOINT || 'https://s3.fr-par.scw.cloud',
+      ),
+
+      encryptionKeyBase64:
+        process.env.NODE_ENV === 'production'
+          ? z.prefault(
+              z.string(),
+              process.env.S3_ENCRYPTION_KEY ||
+                /** @deprecated */ process.env.SCW_ENCRYPTION_KEY!,
+            )
+          : z.undefined(),
     }),
-    identityAndAccessContext: z.object({
-      baseUrl: z.string(),
-    }),
-  }),
-  maintenanceApiKey: z.string().optional(),
+  ),
 });
 
-const commonS3Schema = z.object({
-  reportsContext: z.object({
-    attachedFilesBucketName: z.string(),
-  }),
-  nominationsContext: z.object({
-    transparencesBucketName: z.string(),
-  }),
-  signedUrlExpiresIn: z.number(),
-});
-
-const S3ConfigSchema = z.object({
-  endpoint: z.object({
-    scheme: z.enum(['http', 'https']),
-    baseDomain: z.string(),
-  }),
-  region: z.string(),
-  encryptionKeyBase64: z.string(),
-  credentials: z.object({
-    accessKeyId: z.string(),
-    secretAccessKey: z.string(),
-  }),
-});
-
-export const ProdApiConfigSchema = commonBaseSchema.extend(
-  z.object({
-    originUrl: z.url().startsWith('https://'),
-    frontendOriginUrl: z.url().startsWith('https://'),
-    sentryDsn: z.url(),
-    deployEnv: z.enum(DeployEnvMode),
-    database: z.object({
-      connectionString: z.string(),
-    }),
-    s3: commonS3Schema.extend(
-      z.object({
-        scaleway: S3ConfigSchema,
-      }).shape,
-    ),
-  }).shape,
-);
-
-export const DevApiConfigSchema = commonBaseSchema.extend(
-  z.object({
-    originUrl: z.url().startsWith('http://'),
-    frontendOriginUrl: z.url().startsWith('http://'),
-    database: z.object({
-      host: z.string(),
-      port: z.number(),
-      user: z.string(),
-      password: z.string(),
-      database: z.string(),
-    }),
-    s3: commonS3Schema.extend(
-      z.object({
-        minio: S3ConfigSchema,
-        scaleway: S3ConfigSchema,
-      }).shape,
-    ),
-  }).shape,
-);
-
-export type S3Config = z.infer<typeof S3ConfigSchema>;
-
-export type ProdApiConfig = z.infer<typeof ProdApiConfigSchema>;
-export type DevApiConfig = z.infer<typeof DevApiConfigSchema>;
-export type ApiConfig = ProdApiConfig | DevApiConfig;
+export type ApiConfig = z.infer<typeof ConfigSchema>;
