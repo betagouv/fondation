@@ -3,12 +3,7 @@ name: Integration checks
 on:
   pull_request:
     types: [opened, synchronize]
-  workflow_call:
-    secrets:
-      SCW_SECRET_KEY:
-        required: true
-      SCW_ENCRYPTION_KEY:
-        required: true
+
 jobs:
   build:
     timeout-minutes: 5
@@ -17,6 +12,15 @@ jobs:
     env:
       TZ: Etc/UTC
       DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
+      COOKIE_SECRET: "secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e"
+      ORIGIN_URL: http://localhost:3000
+      FRONTEND_ORIGIN_URL: http://localhost:5173
+      S3_ACCESS_KEY: fondation
+      S3_SECRET_KEY: fondation-secret
+      S3_BUCKET: sandbox-csm-fondation-reports-context
+      S3_REGION: eu-west-2
+      S3_FORCE_PATH_STYLE: "true"
+      S3_ENDPOINT: http://localhost:9000
     services:
       postgres:
         image: postgres:13.2
@@ -35,8 +39,8 @@ jobs:
       minio:
         image: ghcr.io/betagouv/fondation-ci-minio:2025-11-11
         env:
-          MINIO_ROOT_USER: fondation
-          MINIO_ROOT_PASSWORD: fondation-secret
+          MINIO_ROOT_USER: ${{ env.S3_ACCESS_KEY }}
+          MINIO_ROOT_PASSWORD: ${{ env.S3_SECRET_KEY }}
         ports:
           - 9000:9000
 
@@ -76,12 +80,6 @@ jobs:
 
       - name: Test
         run: pnpm test:all
-        env:
-          DATABASE_PORT: 5435
-          COOKIE_SECRET: "secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e"
-          SCW_ACCESS_KEY: ${{ vars.SCW_ACCESS_KEY }}
-          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
-          SCW_ENCRYPTION_KEY: ${{ secrets.SCW_ENCRYPTION_KEY }}
 
       - name: Build
         run: pnpm build

@@ -12,7 +12,8 @@ import { PrismaService } from './prisma.service';
     {
       provide: PG_POOL_TOKEN,
       inject: [API_CONFIG_TOKEN],
-      useFactory: (config: ApiConfig) => new Pool(config.database),
+      useFactory: (config: ApiConfig) =>
+        new Pool({ connectionString: config.databaseUrl }),
     },
     PrismaService,
   ],

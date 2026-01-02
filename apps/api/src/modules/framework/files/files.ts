@@ -11,6 +11,8 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
+  Inject,
+  Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
@@ -19,7 +21,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaStorageProviderEnum } from 'src/generated/prisma/enums';
-import { type ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { isDefined } from 'src/utils/is-defined';
@@ -56,17 +58,18 @@ class RollbackDeleteFilesCommandError {
 
 /**
  * This is intended to be an abstraction over any S3 compatible client.
- * It synchronizes our database table "files_context"."files" and the bucket it wraps.
+ * It synchronizes our database table "files_context"."files".
  *
  * Design elements:
  *  - lean API, we limit the number of operations possible, always on a list of files
  *  - dual writes operations, if any fails we try to rollback the operations (in best effort)
  */
+@Injectable()
 export class Files implements OnApplicationBootstrap {
   private readonly logger = new Logger(Files.name);
 
-  private readonly originUrl: string;
-  private readonly frontendOriginUrl: string;
+  private readonly client: S3Client;
+  private readonly bucketName: string;
   private readonly expiresInSeconds: number;
   private readonly sseHeaders:
     | {
@@ -78,28 +81,32 @@ export class Files implements OnApplicationBootstrap {
 
   constructor(
     private readonly clock: Clock,
-    private readonly client: S3Client,
     private readonly prisma: PrismaService,
-    private readonly bucketName: string,
-    config: ApiConfig,
-    sseConfig: { base64Key: string; algorithm: 'AES256' } | undefined,
+    @Inject(API_CONFIG_TOKEN)
+    private readonly config: ApiConfig,
   ) {
-    this.originUrl = config.originUrl;
-    this.frontendOriginUrl = config.frontendOriginUrl;
-    this.expiresInSeconds = config.s3.signedUrlExpiresIn;
-
-    if (sseConfig) {
-      const { base64Key: SSECustomerKey, algorithm: SSECustomerAlgorithm } =
-        sseConfig;
+    const { encryptionKeyBase64: SSECustomerKey } = config.s3;
+    if (SSECustomerKey) {
       const SSECustomerKeyMD5 = createHash('md5')
         .update(Buffer.from(SSECustomerKey, 'base64'))
         .digest('base64');
+
       this.sseHeaders = {
         SSECustomerKey,
-        SSECustomerAlgorithm,
         SSECustomerKeyMD5,
+        SSECustomerAlgorithm: 'AES256',
       };
     }
+
+    this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
+    this.bucketName = config.s3.bucket;
+    this.client = new S3Client({
+      maxAttempts: 3,
+      region: config.s3.region,
+      credentials: config.s3.credentials,
+      endpoint: config.s3.endpoint,
+      forcePathStyle: config.s3.forcePathStyle,
+    });
   }
 
   async getPublicUrls(
@@ -383,7 +390,7 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap(): Promise<void> {
-    if (process.env.NODE_ENV === 'production') {
+    if (this.config.isProduction) {
       // TODO: shouldn't we create it to ease things?
       await this.ensureBucketExists();
       await this.putBucketCors();
@@ -401,14 +408,14 @@ export class Files implements OnApplicationBootstrap {
         CORSConfiguration: {
           CORSRules: [
             {
-              AllowedOrigins: [this.originUrl],
+              AllowedOrigins: [this.config.originUrl],
               AllowedHeaders: ['*'],
               ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
               MaxAgeSeconds: (12 * time.HOURS) / time.SECONDS,
             },
             {
-              AllowedOrigins: [this.frontendOriginUrl],
+              AllowedOrigins: [this.config.frontendOriginUrl],
               AllowedHeaders: ['*'],
               ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'HEAD'],
