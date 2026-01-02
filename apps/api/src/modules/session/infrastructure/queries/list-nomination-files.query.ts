@@ -42,6 +42,7 @@ export class ListNominationFilesQuery {
       });
 
       return tx.dossierDeNomination.findMany({
+        orderBy: { number: 'asc' },
         where: {
           sessionId: query.sessionId,
           priorite: {

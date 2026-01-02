@@ -31,6 +31,10 @@ export const MagistratComment: FC<MagistratCommentProps> = ({
   if (isSG && sessionId) {
     return (
       <MagistratCommentEdit
+        key={
+          // to unmount the component
+          `magistrat-comment-edit-${sessionId}-${nominationFileId}-${formation}`
+        }
         nominationFileId={nominationFileId}
         sessionId={sessionId}
         initialComment={initialComment}
