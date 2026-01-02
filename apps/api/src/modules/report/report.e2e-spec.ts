@@ -2,16 +2,12 @@ import { randomUUID } from 'node:crypto';
 
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { type Pool } from 'pg';
 import supertest from 'supertest';
 
 import { Gender, ReportFileUsage, Role } from 'shared-models';
-import { MainAppConfigurator } from 'src/main.configurator';
 
+import { AppModule } from 'src/app.module';
 import { PrismaService } from '../framework/database';
-import { PG_POOL_TOKEN } from '../framework/database/database.constants';
-import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 
 describe('Report E2E', () => {
@@ -23,19 +19,13 @@ describe('Report E2E', () => {
   let http: ReturnType<(typeof supertest)['agent']>;
 
   beforeAll(async () => {
-    const container = await Test.createTestingModule({
-      imports: [RootModule],
-    }).compile();
-
-    app = new MainAppConfigurator(container.createNestApplication())
-      .withCookies('secret')
-      .configure();
+    app = await AppModule.create();
 
     await app.init();
   });
 
   afterAll(async () => {
-    await app?.get<Pool>(PG_POOL_TOKEN).end();
+    await app.close();
   });
 
   beforeEach(async () => {

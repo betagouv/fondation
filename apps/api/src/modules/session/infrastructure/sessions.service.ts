@@ -30,8 +30,8 @@ import {
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
 import {
+  type ListedNominationFileAffectationItem,
   ListNominationFilesQuery,
-  type NominationFileAffectationItem,
 } from './queries/list-nomination-files.query';
 import {
   type ListedNominationSessionAttachmentDto,
@@ -119,7 +119,7 @@ export class SessionService {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<{ items: NominationFileAffectationItem[] }> {
+  }): Promise<ListedNominationFileAffectationItem> {
     return this.listNominationFilesQuery.handle(query);
   }
 

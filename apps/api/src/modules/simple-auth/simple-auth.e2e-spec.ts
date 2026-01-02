@@ -1,13 +1,9 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { agent } from 'supertest';
-import { RootModule } from '../root.module';
-import { SimpleAuthService } from './simple-auth.service';
 import { faker } from '@faker-js/faker';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Gender, Role } from 'shared-models';
-import { PG_POOL_TOKEN } from '../framework/database/database.constants';
-import { Pool } from 'pg';
-import { MainAppConfigurator } from 'src/main.configurator';
+import { AppModule } from 'src/app.module';
+import { agent } from 'supertest';
+import { SimpleAuthService } from './simple-auth.service';
 
 describe('Simple Auth E2E', () => {
   let app: INestApplication;
@@ -16,21 +12,14 @@ describe('Simple Auth E2E', () => {
   let user: { id: string; email: string; password: string };
 
   beforeAll(async () => {
-    const container = await Test.createTestingModule({
-      imports: [RootModule],
-    }).compile();
-
-    app = new MainAppConfigurator(container.createNestApplication())
-      .withCookies('secret')
-      .configure();
-
+    app = await AppModule.create();
     await app.init();
 
     http = agent(app.getHttpServer());
   });
 
   afterAll(async () => {
-    await app.get<Pool>(PG_POOL_TOKEN).end();
+    await app.close();
   });
 
   beforeEach(async () => {
@@ -79,7 +68,7 @@ describe('Simple Auth E2E', () => {
       const response = await http
         .set({ cookie })
         .post(`/api/auth/v2/logout`)
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
       const [setCookie] = ([] as (string | undefined)[]).concat(
         response.headers['set-cookie'],

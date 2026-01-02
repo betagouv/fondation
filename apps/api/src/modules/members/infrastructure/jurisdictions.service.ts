@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
-  FoundJurisdictionsItem,
+  ListedJurisdictions,
   SearchJurisdictionsQuery,
 } from './queries/search-jurisdictions.query';
 
@@ -13,7 +13,7 @@ export class JurisdictionsService {
   search(query: {
     search: string | undefined;
     includeIds: string[] | undefined;
-  }): Promise<{ items: FoundJurisdictionsItem[] }> {
+  }): Promise<ListedJurisdictions> {
     return this.searchJurisdictionsQuery.handle(query);
   }
 }

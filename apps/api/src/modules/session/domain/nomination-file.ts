@@ -1,21 +1,25 @@
+import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
+import z from 'zod';
 
-export type NominationFile = {
-  fileNumber: number;
-  name: string;
-  rank: string | null;
-  grade: Magistrat.Grade;
-  targetedGrade: Magistrat.Grade;
-  targetedPosition: string;
-  birthDate: DateOnly | null;
-  currentPosition: string;
-  lastPositionDate: DateOnly | null;
-  lastRankingDate: DateOnly | null;
-  observers: string[];
-  reporters: string[];
-  biography: string | null;
-  careerInformation: string | null;
-};
+export class NominationFile extends createZodDto(
+  z.object({
+    fileNumber: z.number(),
+    name: z.string(),
+    rank: z.string().nullable(),
+    grade: z.enum(Magistrat.Grade),
+    targetedGrade: z.enum(Magistrat.Grade),
+    targetedPosition: z.string(),
+    birthDate: z.instanceof(DateOnly).nullable(),
+    currentPosition: z.string(),
+    lastPositionDate: z.instanceof(DateOnly).nullable(),
+    lastRankingDate: z.instanceof(DateOnly).nullable(),
+    observers: z.array(z.string()),
+    reporters: z.array(z.string()),
+    biography: z.string().nullable(),
+    careerInformation: z.string().nullable(),
+  }),
+) {}
 
 export type NominationFileEntity = { id: string } & NominationFile;

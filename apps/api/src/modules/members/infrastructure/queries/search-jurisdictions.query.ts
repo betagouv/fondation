@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class SearchJurisdictionsQuery {
@@ -9,7 +11,7 @@ export class SearchJurisdictionsQuery {
   async handle(query: {
     search: string | undefined;
     includeIds: string[] | undefined;
-  }): Promise<{ items: FoundJurisdictionsItem[] }> {
+  }): Promise<ListedJurisdictions> {
     const { items } = await this.db.$transaction(async (tx) => {
       const jurisdictions = await tx.jurisdiction.findMany({
         take: 20,
@@ -61,3 +63,7 @@ export const FoundJurisdictionsItemSchema = z.object({
 export type FoundJurisdictionsItem = z.infer<
   typeof FoundJurisdictionsItemSchema
 >;
+
+export class ListedJurisdictions extends createZodDto(
+  z.object({ items: z.array(FoundJurisdictionsItemSchema) }),
+) {}

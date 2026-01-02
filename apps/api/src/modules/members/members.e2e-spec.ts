@@ -1,12 +1,10 @@
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import { Gender, Role } from 'shared-models';
-import { MainAppConfigurator } from 'src/main.configurator';
+import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { PrismaService } from '../framework/database';
-import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 
@@ -19,12 +17,7 @@ describe('Members E2E', () => {
   const jurisdictions: string[] = [];
 
   beforeAll(async () => {
-    const container = await Test.createTestingModule({
-      imports: [RootModule],
-    }).compile();
-    app = new MainAppConfigurator(container.createNestApplication())
-      .withCookies()
-      .configure();
+    app = await AppModule.create();
     await app.init();
 
     db = app.get(PrismaService);
@@ -49,7 +42,6 @@ describe('Members E2E', () => {
 
   afterAll(async () => {
     await app.close();
-    await db.$disconnect();
   });
 
   beforeEach(() => {
@@ -122,7 +114,7 @@ describe('Members E2E', () => {
         .set({ cookie })
         .put(`/api/members/v1/${member.id}/excluded-jurisdictions`)
         .send({ jurisdictionIds: jurisdictions })
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
       const { body: detailedMemberAfter } = await http
         .set({ cookie })

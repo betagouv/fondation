@@ -13,7 +13,7 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
@@ -24,6 +24,7 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
 
+import { ApiTags } from '@nestjs/swagger';
 import { DateOnly } from 'src/utils/date-only';
 import {
   FILE_EXTENSIONS,
@@ -38,19 +39,21 @@ import {
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
+  CreatedNominationSessionDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ImportNominationSessionFromLodamXlsxDtoSchema,
+  ListCommentAccessDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadSessionAttachmentDto,
 } from './infrastructure/dtos/nomination-session.dto';
-import { type FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
+import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
-import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
+import { ListedNominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 
+@ApiTags('Sessions')
 @UseInterceptors(SessionExceptionFilter)
 @Controller('/api/sessions/v2')
 export class SessionController {
@@ -58,6 +61,7 @@ export class SessionController {
 
   @HasRole()
   @Get('/garde-des-sceaux')
+  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
   listSessionsOfTypeGardeDesSceaux(): Promise<ListedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
@@ -69,16 +73,20 @@ export class SessionController {
   @UseMultipartBody({
     overrideFiles: false,
     deleteOnFail: false,
-    schema: ImportNominationSessionFromLodamXlsxDtoSchema,
+    schema: ImportNominationSessionFromLodamXlsxDto,
     destination: ({ id, mimetype }) =>
       `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  @ZodResponse({
+    type: CreatedNominationSessionDto,
+    status: HttpStatus.CREATED,
   })
   async createSessionFromLodam(
     @Body(LodamXlsxPipe)
     files: NominationFile[],
     @Body()
     { form }: ImportNominationSessionFromLodamXlsxDto,
-  ) {
+  ): Promise<CreatedNominationSessionDto> {
     return this.sessions.createNominationSessionFromLodam({
       ...form,
       files,
@@ -92,7 +100,7 @@ export class SessionController {
   @UseMultipartBody({
     overrideFiles: false,
     deleteOnFail: false,
-    schema: UpdateNominationSessionFilesObserversDto.schema,
+    schema: UpdateNominationSessionFilesObserversDto,
     destination: ({ id, mimetype }) =>
       `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
@@ -125,11 +133,15 @@ export class SessionController {
   @HasRole()
   @Get('/:sessionId/files')
   @UsePipes(ZodValidationPipe)
+  @ZodResponse({
+    type: ListedNominationFileAffectationItem,
+    status: HttpStatus.OK,
+  })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { id: string; role: Role },
     @Query() query: ListNominationFilesQueryDto,
-  ): Promise<{ items: NominationFileAffectationItem[] }> {
+  ): Promise<ListedNominationFileAffectationItem> {
     return this.sessions.listNominationFiles({
       user,
       sessionId,
@@ -142,6 +154,7 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/:sessionId/files/reporters/versions/last')
+  @ZodResponse({ type: FoundAffectationVersion, status: HttpStatus.OK })
   detailNominationSessionAffectationsVersion(
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAffectationVersion> {
@@ -152,6 +165,7 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Post('/:sessionId/files/reporters/versions')
+  @HttpCode(HttpStatus.NO_CONTENT)
   publishNominationSessionAffectationsVersion(
     @Param('sessionId') sessionId: string,
     @AuthedUserId() userId: string,
@@ -194,10 +208,11 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/:sessionId/files/:nominationFileId/comment-access')
+  @ZodResponse({ type: ListCommentAccessDto, status: HttpStatus.OK })
   getCommentAccess(
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
-  ): Promise<{ comment: string | null; userIds: string[] }> {
+  ): Promise<ListCommentAccessDto> {
     return this.sessions.getCommentAccess({
       sessionId,
       nominationFileId,
@@ -253,6 +268,10 @@ export class SessionController {
 
   @HasRole()
   @Get('/:sessionId/attachments')
+  @ZodResponse({
+    type: ListedNominationSessionAttachmentDto,
+    status: HttpStatus.OK,
+  })
   async listNominationSessionAttachments(
     @Param('sessionId') sessionId: string,
   ): Promise<ListedNominationSessionAttachmentDto> {
@@ -262,6 +281,10 @@ export class SessionController {
   /** @warning this is a mutation */
   @HasRole()
   @Get('/:sessionId/attachments/:fileId')
+  @ZodResponse({
+    type: DetailedNominationSessionAttachmentDto,
+    status: HttpStatus.OK,
+  })
   async createNominationSessionAttachmentUrl(
     @Param('sessionId') sessionId: string,
     @Param('fileId') fileId: string,
@@ -271,6 +294,7 @@ export class SessionController {
 
   @HasRole()
   @Get('/:sessionId')
+  @ZodResponse({ type: DetailedNominationSessionDto, status: HttpStatus.OK })
   async detailsNominationSession(
     @Param('sessionId') sessionId: string,
   ): Promise<DetailedNominationSessionDto> {

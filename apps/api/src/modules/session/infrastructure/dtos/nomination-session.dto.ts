@@ -4,7 +4,11 @@ import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import z from 'zod';
 
-const ImportNominationSessionFromLodamMetaSchema = z.object({
+const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
+  file: z
+    .file()
+    .mime(FILE_MIME_TYPES.xlsx)
+    .max(5 * 1_024 * 1_024 /* 5MB */),
   form: z.object({
     name: z.string().trim().nonempty(),
     formation: z.enum(Magistrat.Formation),
@@ -23,17 +27,13 @@ const ImportNominationSessionFromLodamMetaSchema = z.object({
   }),
 });
 
-export const ImportNominationSessionFromLodamXlsxDtoSchema =
-  ImportNominationSessionFromLodamMetaSchema.extend({
-    file: z
-      .file()
-      .mime(FILE_MIME_TYPES.xlsx)
-      .max(5 * 1_024 * 1_024 /* 5MB */),
-  });
+export class ImportNominationSessionFromLodamXlsxDto extends createZodDto(
+  ImportNominationSessionFromLodamXlsxDtoSchema,
+) {}
 
-export type ImportNominationSessionFromLodamXlsxDto = z.infer<
-  typeof ImportNominationSessionFromLodamXlsxDtoSchema
->;
+export class CreatedNominationSessionDto extends createZodDto(
+  z.object({ id: z.string() }),
+) {}
 
 export class UpdateNominationSessionFilesObserversDto extends createZodDto(
   z.object({
@@ -55,4 +55,10 @@ export class UpdateNominationSessionDto extends createZodDto(
   }),
 ) {}
 
-export const UploadSessionAttachmentDto = z.object({ file: z.file() });
+export class UploadSessionAttachmentDto extends createZodDto(
+  z.object({ file: z.file() }),
+) {}
+
+export class ListCommentAccessDto extends createZodDto(
+  z.object({ comment: z.string().nullable(), userIds: z.array(z.string()) }),
+) {}

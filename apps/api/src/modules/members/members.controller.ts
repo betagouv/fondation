@@ -3,27 +3,33 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
-  ParseEnumPipe,
   ParseUUIDPipe,
   Put,
   Query,
+  UsePipes,
 } from '@nestjs/common';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Magistrat, Role, TypeDeSaisine } from 'shared-models';
+import { Role, TypeDeSaisine } from 'shared-models';
 
 import {
-  Paginated,
+  ApiPaginated,
   Pagination,
   QueryPagination,
 } from 'src/modules/framework/pagination';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 import { SessionService } from 'src/modules/session';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
+import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
+import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
+import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
+import { ExcludeJurisdictionsDto } from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
-import { MemberListItemDto } from './infrastructure/queries/list-members.query';
-import { ExcludeJurisdictionsDto } from './infrastructure/member.dto';
+import { PaginatedMemberListItemDto } from './infrastructure/queries/list-members.query';
 
 @Controller('/api/members/v1')
 export class MembersController {
@@ -34,20 +40,24 @@ export class MembersController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get()
+  @ApiPaginated()
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: PaginatedMemberListItemDto, status: HttpStatus.OK })
   listMembers(
-    @QueryPagination() pagination: Pagination,
-    @Query('search') search: string | undefined,
-    @Query(
-      'formation',
-      new ParseEnumPipe(Magistrat.Formation, { optional: true }),
-    )
-    formation: Magistrat.Formation | undefined,
-  ): Promise<Paginated<MemberListItemDto>> {
-    return this.members.listMembers({ pagination, formation, search });
+    @QueryPagination()
+    pagination: Pagination,
+    @Query() query: ListMembersQueryDto,
+  ): Promise<PaginatedMemberListItemDto> {
+    return this.members.listMembers({
+      pagination,
+      formation: query.formation,
+      search: query.search,
+    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/:userId')
+  @ZodResponse({ type: DetailedMemberDto, status: HttpStatus.OK })
   detailsMember(
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<DetailedMemberDto> {
@@ -56,6 +66,8 @@ export class MembersController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/:userId/excluded-jurisdictions')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   excludeJurisdictions(
     @Param('userId') userId: string,
     @Body() { jurisdictionIds }: ExcludeJurisdictionsDto,
@@ -65,10 +77,11 @@ export class MembersController {
 
   @HasRole()
   @Get('/:userId/sessions/transparence/garde-des-sceaux')
+  @ZodResponse({ type: ListedMemberSessionsDto, status: HttpStatus.OK })
   listMemberSessions(
     @Param('userId') userId: string,
     @AuthedUser() authUser: { id: string; role: Role },
-  ) {
+  ): Promise<ListedMemberSessionsDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 
     return this.sessions.listMemberSessions({
@@ -79,11 +92,12 @@ export class MembersController {
 
   @HasRole()
   @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId')
+  @ZodResponse({ type: DetailedMemberSessionDto, status: HttpStatus.OK })
   detailsMemberSession(
     @Param('userId') userId: string,
     @Param('sessionId') sessionId: string,
     @AuthedUser() authUser: { id: string; role: Role },
-  ) {
+  ): Promise<DetailedMemberSessionDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 
     return this.sessions.detailMemberSession({

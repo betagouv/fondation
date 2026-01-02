@@ -1,6 +1,7 @@
 import z from 'zod';
 import { type Request as ExpressRequest } from 'express';
 import { FileMimeType } from '../mime-type';
+import { ZodDto } from 'nestjs-zod';
 
 export type StoredFile = {
   id: string;
@@ -17,7 +18,9 @@ type ZodMultipart<T> = {
       : T[K];
 };
 
-export type Multipart<T extends z.ZodObject> = ZodMultipart<z.infer<T>>;
+export type Multipart<T extends ZodDto<z.ZodType>> = ZodMultipart<
+  z.infer<T['schema']>
+>;
 export type MultipartDestinationFactory = (file: {
   id: string;
   mimetype: FileMimeType;

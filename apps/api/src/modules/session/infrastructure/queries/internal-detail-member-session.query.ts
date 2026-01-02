@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { DateOnlyJson, Role, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema, Role, TypeDeSaisine } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
+import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
 
 @Injectable()
 export class InternalDetailMemberSessionQuery {
@@ -103,25 +105,29 @@ export class InternalDetailMemberSessionQuery {
   }
 }
 
-export type DetailedMemberSessionDto = {
-  data: {
-    session: {
-      id: string;
-      sessionImportId: string;
-      formation: string;
-      transparency: string;
-      dateTransparence: DateOnlyJson;
-    };
-    reports: {
-      id: string;
-      state: string;
-      formation: string;
-      folderNumber: number | null;
-      dueDate: DateOnlyJson | null;
-      name: string;
-      grade: string;
-      targettedPosition: string;
-      observers: string[];
-    }[];
-  };
-};
+export class DetailedMemberSessionDto extends createZodDto(
+  z.object({
+    data: z.object({
+      session: z.object({
+        id: z.string(),
+        sessionImportId: z.string(),
+        formation: z.string(),
+        transparency: z.string(),
+        dateTransparence: dateOnlyJsonSchema,
+      }),
+      reports: z.array(
+        z.object({
+          id: z.string(),
+          state: z.string(),
+          formation: z.string(),
+          folderNumber: z.number().nullable(),
+          dueDate: dateOnlyJsonSchema.nullable(),
+          name: z.string(),
+          grade: z.string(),
+          targettedPosition: z.string(),
+          observers: z.array(z.string()),
+        }),
+      ),
+    }),
+  }),
+) {}
