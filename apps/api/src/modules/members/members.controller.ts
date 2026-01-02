@@ -26,6 +26,8 @@ import {
   ExcludeJurisdictionsDto,
   ListMembersQueryDto,
 } from './infrastructure/member.dto';
+import { ListMemberSessionReportsQueryDto } from 'src/modules/session/infrastructure/dtos/member-session-reports.dto';
+import type { MemberSessionReportDto } from 'src/modules/session/infrastructure/queries/list-member-session-reports.query';
 
 @Controller('/api/members/v1')
 export class MembersController {
@@ -94,6 +96,30 @@ export class MembersController {
       user: authUser,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       sessionId,
+    });
+  }
+
+  @HasRole()
+  @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/reports')
+  listMemberSessionReports(
+    @Param('userId') userId: string,
+    @Param('sessionId') sessionId: string,
+    @AuthedUser() authUser: { id: string; role: Role },
+    @QueryPagination() pagination: Pagination,
+    @Query() query: ListMemberSessionReportsQueryDto,
+  ): Promise<Paginated<MemberSessionReportDto>> {
+    if (userId !== authUser.id) throw new ForbiddenException();
+
+    return this.sessions.listMemberSessionReports({
+      user: authUser,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      sessionId,
+      pagination,
+      filters: { states: query.states ?? [] },
+      sort: {
+        field: query.sortField,
+        direction: query.sortDirection ?? 'asc',
+      },
     });
   }
 }

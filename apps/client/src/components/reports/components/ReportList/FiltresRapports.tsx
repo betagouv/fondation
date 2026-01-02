@@ -1,38 +1,27 @@
+import { NominationFile } from 'shared-models';
 import { DropdownFilter, type FilterOption } from '../../../shared/DropdownFilter';
 
-export interface ReportFiltersState {
-  statuts: string[];
-}
-
 interface FiltresRapportsProps {
-  filters: ReportFiltersState;
-  onFiltersChange: (filters: ReportFiltersState) => void;
+  states: NominationFile.ReportState[];
+  onStatesChange: (states: NominationFile.ReportState[]) => void;
 }
 
-// Options de statut (correspond aux états possibles d'un rapport)
 const STATUT_OPTIONS: FilterOption[] = [
-  { value: 'Nouveau', label: 'Nouveau' },
-  { value: 'En cours', label: 'En cours' },
-  { value: 'Prêt à soutenir', label: 'Prêt à soutenir' },
-  { value: 'Soutenu', label: 'Soutenu' }
+  { value: NominationFile.ReportState.NEW, label: 'Nouveau' },
+  { value: NominationFile.ReportState.IN_PROGRESS, label: 'En cours' },
+  { value: NominationFile.ReportState.READY_TO_SUPPORT, label: 'Prêt à soutenir' },
+  { value: NominationFile.ReportState.SUPPORTED, label: 'Soutenu' }
 ];
 
-export const FiltresRapports = ({ filters, onFiltersChange }: FiltresRapportsProps) => {
-  const handleFilterChange = (filterType: keyof ReportFiltersState, values: string[]) => {
-    onFiltersChange({
-      ...filters,
-      [filterType]: values
-    });
-  };
-
+export const FiltresRapports = ({ states, onStatesChange }: FiltresRapportsProps) => {
   return (
     <div id="filtre-rapports" className="flex items-center gap-4">
       <span className="font-bold">Filtrer par :</span>
       <DropdownFilter
         tagName="Statut"
         options={STATUT_OPTIONS}
-        selectedValues={filters.statuts}
-        onSelectionChange={(values) => handleFilterChange('statuts', values)}
+        selectedValues={states}
+        onSelectionChange={(values) => onStatesChange(values as NominationFile.ReportState[])}
       />
     </div>
   );

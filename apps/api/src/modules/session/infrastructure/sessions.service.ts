@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
+import {
+  Magistrat,
+  NominationFile as NominationFileTypes,
+  PrioriteEnum,
+  Role,
+  TypeDeSaisine,
+} from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 import { Paginated, Pagination } from 'src/modules/framework/pagination';
 import type { NominationFileSortField } from './dtos/nomination-file.dto';
@@ -44,7 +50,12 @@ import {
   ListedNominationSessionItem,
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
+import {
+  ListMemberSessionReportsQuery,
+  type MemberSessionReportDto,
+} from './queries/list-member-session-reports.query';
 import type { SessionSortField } from './dtos/nomination-session.dto';
+import type { ReportSortField } from './dtos/member-session-reports.dto';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
 
 @Injectable()
@@ -63,6 +74,7 @@ export class SessionService {
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
+    private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -81,6 +93,18 @@ export class SessionService {
     typeDeSaisine: TypeDeSaisine;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
+  }
+
+  /** @internal */
+  listMemberSessionReports(query: {
+    user: { id: string; role: Role };
+    sessionId: string;
+    typeDeSaisine: TypeDeSaisine;
+    pagination: Pagination;
+    filters: { states: readonly NominationFileTypes.ReportState[] };
+    sort: { field: ReportSortField | undefined; direction: 'asc' | 'desc' };
+  }): Promise<Paginated<MemberSessionReportDto>> {
+    return this.listMemberSessionReportsQuery.handle(query);
   }
 
   async affectReportersAndPriorities(command: {

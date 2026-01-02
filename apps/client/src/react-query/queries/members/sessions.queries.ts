@@ -75,3 +75,50 @@ export function useDetailedGdsSession(input: { userId: string | undefined; sessi
     }
   });
 }
+
+export type ReportSortField = 'folderNumber' | 'name' | 'grade' | 'targettedPosition' | 'state';
+
+export type PaginatedReportsResponse = {
+  items: DetailedSessionReport[];
+  totalCount: number;
+  currentPageIndex: number;
+  nextPageIndex?: number;
+  previousPageIndex?: number;
+};
+
+export type GdsSessionReportsQueryOptions = {
+  userId: string | undefined;
+  sessionId: string | undefined;
+  page?: number;
+  limit?: number;
+  sortField?: ReportSortField | null;
+  sortDirection?: 'asc' | 'desc';
+  states?: NominationFile.ReportState[];
+};
+
+export function useGdsSessionReports(options: GdsSessionReportsQueryOptions) {
+  const { userId, sessionId, page, limit, sortField, sortDirection, states } = options;
+
+  return useQuery({
+    queryKey: ['memberSessionReports', { userId, sessionId, page, limit, sortField, sortDirection, states }],
+    enabled: Boolean(sessionId && userId),
+    queryFn: () => {
+      if (!sessionId || !userId) return;
+
+      const params = new URLSearchParams();
+      if (page) params.set('page', String(page));
+      if (limit) params.set('limit', String(limit));
+      if (sortField) params.set('sortField', sortField);
+      if (sortDirection) params.set('sortDirection', sortDirection);
+      if (states && states.length > 0) {
+        states.forEach((state) => params.append('states', state));
+      }
+
+      const queryString = params.toString();
+      return apiFetch<PaginatedReportsResponse>(
+        `/members/v1/${userId}/sessions/transparence/garde-des-sceaux/${sessionId}/reports${queryString ? `?${queryString}` : ''}`,
+        { method: 'GET' }
+      );
+    }
+  });
+}

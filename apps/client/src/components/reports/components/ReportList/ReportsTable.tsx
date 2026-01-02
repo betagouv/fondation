@@ -1,74 +1,95 @@
 import { Table } from '@codegouvfr/react-dsfr/Table';
-import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
+import { Link } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import type { NominationFile } from 'shared-models';
 
-import type { ReportListItemVM, ReportListVM } from '../../../../utils/format-report-list.utils';
+import type { DetailedSessionReport } from '../../../../react-query/queries/members/sessions.queries';
+import type { ReportFiltersState, ReportListPaginationProps } from './ReportList';
+import { reportListTableLabels } from '../../labels/report-list-table-labels';
+import { gradeToLabel } from '../../labels/labels-mappers';
+import { getGdsReportPath } from '../../../../utils/route-path.utils';
+import { DateOnly } from '../../../../models/date-only.model';
 import './ReportsTable.css';
 import { ReportStateTag } from './ReportStateTag';
 import { SortButton } from '../../../shared/SortButton';
-import { useTable } from '../../../../hooks/useTable.hook';
 import { TableControl } from '../../../shared/TableControl';
-import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
-import { Link } from 'react-router-dom';
+import { FiltresRapports } from './FiltresRapports';
 
-// Fonction de filtrage des rapports
-const applyReportFilters = (reports: ReportListItemVM[], filters: ReportFiltersState) => {
-  return reports.filter((report) => {
-    // Filtre par statut
-    if (filters.statuts.length > 0) {
-      if (!filters.statuts.includes(report.state)) {
-        return false;
-      }
-    }
+type SortableField = 'folderNumber' | 'name' | 'grade' | 'targettedPosition' | 'state';
 
-    return true;
-  });
-};
+const HEADERS: { key: SortableField | 'observers' | 'dueDate'; label: string; sortable: boolean }[] = [
+  { key: 'folderNumber', label: reportListTableLabels.headers.folderNumber, sortable: true },
+  { key: 'name', label: reportListTableLabels.headers.name, sortable: true },
+  { key: 'grade', label: reportListTableLabels.headers.grade, sortable: true },
+  { key: 'targettedPosition', label: reportListTableLabels.headers.targettedPosition, sortable: true },
+  { key: 'observers', label: reportListTableLabels.headers.observersCount, sortable: false },
+  { key: 'state', label: reportListTableLabels.headers.state, sortable: true },
+  { key: 'dueDate', label: reportListTableLabels.headers.dueDate, sortable: false }
+];
 
-export type ReportsTableProps = {
-  headers: ReportListVM['headers'];
-  reports: ReportListItemVM[];
-};
+function formatObserversList(observers: readonly string[]): ReactNode {
+  switch (observers.length) {
+    case 0:
+      return '-';
+    case 1:
+      return observers[0];
+    default:
+      return (
+        <ul className="list-none">
+          {observers.map((o) => (
+            <li key={`ReportListObservers_${o}`}>{o}</li>
+          ))}
+        </ul>
+      );
+  }
+}
+
+function formatDueDate(dueDate: { year: number; month: number; day: number } | null): string | null {
+  if (!dueDate) return null;
+  return new DateOnly(dueDate.year, dueDate.month, dueDate.day).toFormattedString();
+}
+
+export interface ReportsTableProps {
+  reports: DetailedSessionReport[];
+  isLoading: boolean;
+  filters: ReportFiltersState;
+  setFilters: (filters: ReportFiltersState) => void;
+  setSort: (field: string) => void;
+  getSortIcon: (field: string) => 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line';
+  pagination: ReportListPaginationProps;
+}
 
 export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> = ({
-  headers,
   reports,
+  isLoading,
+  filters,
+  setFilters,
+  setSort,
+  getSortIcon,
+  pagination,
   children
 }) => {
-  const [filters, setFilters] = useQueryStates({
-    statuts: parseAsArrayOf(parseAsString).withDefault([])
-  });
+  const handleFilterChange = (states: NominationFile.ReportState[]) => {
+    setFilters({ ...filters, states });
+  };
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable<NonNullable<typeof reports>[0], ReportFiltersState>(reports || [], {
-    filters,
-    applyFilters: applyReportFilters
-  });
-
-  const headersWithSort = Object.entries(headers).map(([key, label]) => (
-    <span className="flex items-center gap-1">
-      {label}
-      <SortButton
-        iconId={getSortIcon(key) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(key)}
-        label={label}
-      />
+  const headersWithSort = HEADERS.map((header) => (
+    <span key={header.key} className="flex items-center gap-1">
+      {header.label}
+      {header.sortable && (
+        <SortButton
+          iconId={getSortIcon(header.key)}
+          onClick={() => setSort(header.key)}
+          label={header.label}
+        />
+      )}
     </span>
   ));
 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <FiltresRapports filters={filters} onFiltersChange={setFilters} />
+        <FiltresRapports states={filters.states} onStatesChange={handleFilterChange} />
         {children}
       </div>
 
@@ -78,18 +99,24 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
           headers={headersWithSort}
           bordered
           className="mb-0"
-          data={paginatedData.map((report) => [
-            <div>{report.folderNumber}</div>,
-            <Link to={report.href}>{report.name}</Link>,
-            <div>{report.grade}</div>,
-            <div>{report.targettedPosition}</div>,
-            <div>{report.observers}</div>,
-            <ReportStateTag state={report.state} />,
-            <div>{report.dueDate}</div>
+          data={reports.map((report) => [
+            <div key={`folder-${report.id}`}>{report.folderNumber ?? 'Profilé'}</div>,
+            <Link key={`name-${report.id}`} to={getGdsReportPath(report.id)}>
+              {report.name}
+            </Link>,
+            <div key={`grade-${report.id}`}>{gradeToLabel(report.grade)}</div>,
+            <div key={`target-${report.id}`}>{report.targettedPosition}</div>,
+            <div key={`observers-${report.id}`}>{formatObserversList(report.observers)}</div>,
+            <ReportStateTag key={`state-${report.id}`} state={report.state} />,
+            <div key={`due-${report.id}`}>{formatDueDate(report.dueDate)}</div>
           ])}
         />
 
-        {paginatedData.length === 0 ? (
+        {isLoading ? (
+          <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+            Chargement...
+          </p>
+        ) : reports.length === 0 ? (
           <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
             Aucun résultat ne correspond aux valeurs filtrées
           </p>
@@ -97,13 +124,14 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
       </div>
 
       <TableControl
-        onChange={setItemsPerPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalItems}
-        displayedItems={displayedItems}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        onChange={pagination.setLimit}
+        itemsPerPage={pagination.limit}
+        totalItems={pagination.totalItems}
+        displayedItems={pagination.displayedItems}
+        totalPages={pagination.totalPages}
+        currentPage={pagination.currentPage}
+        setCurrentPage={pagination.setPage}
+        getPageUrl={pagination.getPageUrl}
         label={{ one: 'rapport', other: 'rapports' }}
       />
     </div>

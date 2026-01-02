@@ -4,7 +4,14 @@ import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { ReportList } from './ReportList';
 
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useDetailedGdsSession } from '../../../../react-query/queries/members/sessions.queries';
+import { parseAsArrayOf, parseAsStringEnum, useQueryStates } from 'nuqs';
+import { NominationFile } from 'shared-models';
+import {
+  useDetailedGdsSession,
+  useGdsSessionReports,
+  type ReportSortField
+} from '../../../../react-query/queries/members/sessions.queries';
+import { useServerPagination } from '../../../../hooks/useServerPagination.hook';
 import { HeaderReportList } from './HeaderReportList';
 import { ReportsDnVueGenerale } from './ReportsDnVueGenerale';
 import { useUser } from '../../../../react-query/queries/use-user.queries';
@@ -13,9 +20,26 @@ export const ReportListPage: FC = () => {
   const routeParams = useParams();
   const { user } = useUser();
 
+  const { page, limit, sortField, sortDirection, setPage, setLimit, setSort, getPageUrl, getSortIcon } =
+    useServerPagination({ defaultLimit: 25 });
+
+  const [filters, setFilters] = useQueryStates({
+    states: parseAsArrayOf(parseAsStringEnum(Object.values(NominationFile.ReportState))).withDefault([])
+  });
+
   const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedGdsSession({
     sessionId: routeParams.sessionId,
     userId: user?.id
+  });
+
+  const { data: reportsData, isPending: isReportsPending } = useGdsSessionReports({
+    sessionId: routeParams.sessionId,
+    userId: user?.id,
+    page,
+    limit,
+    sortField: sortField as ReportSortField | null,
+    sortDirection,
+    states: filters.states
   });
 
   const [searchParams, setSearchParams] = useSearchParams({
@@ -48,6 +72,11 @@ export const ReportListPage: FC = () => {
 
   if (isGdsSessionPending || !detailedGdsSession) return null;
 
+  const totalItems = reportsData?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  const displayedItems = reportsData?.items.length ?? 0;
+  const currentPage = reportsData?.currentPageIndex ?? 1;
+
   return (
     <PageContentLayout>
       <HeaderReportList
@@ -61,7 +90,25 @@ export const ReportListPage: FC = () => {
           {VueGeneraleSwitch}
         </ReportsDnVueGenerale>
       ) : (
-        <ReportList reports={detailedGdsSession.data.reports} sessionId={detailedGdsSession.data.session.id}>
+        <ReportList
+          reports={reportsData?.items ?? []}
+          sessionId={detailedGdsSession.data.session.id}
+          isLoading={isReportsPending}
+          filters={filters}
+          setFilters={setFilters}
+          setSort={setSort}
+          getSortIcon={getSortIcon}
+          pagination={{
+            currentPage,
+            limit,
+            displayedItems,
+            totalItems,
+            totalPages,
+            setPage,
+            setLimit,
+            getPageUrl
+          }}
+        >
           {VueGeneraleSwitch}
         </ReportList>
       )}

@@ -18,6 +18,7 @@ import { NominationSessionRepository } from './infrastructure/repositories/nomin
 import { SessionService } from './infrastructure/sessions.service';
 import { SessionController } from './session.controller';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
+import { ListMemberSessionReportsQuery } from './infrastructure/queries/list-member-session-reports.query';
 
 @Module({
   exports: [SessionService],
@@ -38,6 +39,7 @@ import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomin
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,
     ListNominationSessionsQuery,
+    ListMemberSessionReportsQuery,
     NominationSessionFileFinder,
     NominationSessionRepository,
     SessionService,
