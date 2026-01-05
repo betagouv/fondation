@@ -10,13 +10,8 @@ const introspectSession = () =>
 
 export const useUser = () => {
   const { data, ...query } = useQuery({
-    retry: 0,
+    staleTime: 10 * 60 * 1_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    gcTime: 0,
-    staleTime: 10_000,
-    placeholderData: undefined,
-
     queryKey: ['introspectSession'],
     queryFn: () =>
       introspectSession()
