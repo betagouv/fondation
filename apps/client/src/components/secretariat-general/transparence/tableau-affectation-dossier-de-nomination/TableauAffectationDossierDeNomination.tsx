@@ -95,6 +95,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
           canEdit={true}
           onSaveAffectations={onSaveAffectations}
           formation={formation}
+          sessionId={sessionId!}
         />
       </div>
     </>

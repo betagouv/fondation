@@ -40,6 +40,7 @@ import {
 } from './infrastructure/dtos/nomination-file.dto';
 import {
   CreatedNominationSessionDto,
+  DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListCommentAccessDto,
   UpdateNominationSessionDto,
@@ -232,6 +233,23 @@ export class SessionController {
       sessionId,
       nominationFileId,
       userIds: body.userIds,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId/files/:nominationFileId/outcome')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async defineNominationFileOutcome(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: DefineNominationFileOutcomeDto,
+  ): Promise<void> {
+    await this.sessions.defineNominationFileOutcome({
+      sessionId,
+      nominationFileId,
+      comment: body.comment,
+      outcome: body.outcome,
     });
   }
 

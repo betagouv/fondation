@@ -107,6 +107,10 @@ export type ListedNominationFileAffectationItem = {
                 day: number;
             } | null;
             informationCarrière: string | null;
+            outcome: {
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+                comment: string | null;
+            } | null;
         };
         comment: string | null;
         commentAccessUserIds?: Array<string>;
@@ -145,6 +149,11 @@ export type ListCommentAccessDto = {
 
 export type UpdateCommentAccessDto = {
     userIds: Array<string>;
+};
+
+export type DefineNominationFileOutcomeDto = {
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+    comment: string | null;
 };
 
 export type UploadSessionAttachmentDto = {
@@ -599,6 +608,22 @@ export type UpdateCommentAccessResponses = {
 };
 
 export type UpdateCommentAccessResponse = UpdateCommentAccessResponses[keyof UpdateCommentAccessResponses];
+
+export type DefineNominationFileOutcomeData = {
+    body: DefineNominationFileOutcomeDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/outcome';
+};
+
+export type DefineNominationFileOutcomeResponses = {
+    204: void;
+};
+
+export type DefineNominationFileOutcomeResponse = DefineNominationFileOutcomeResponses[keyof DefineNominationFileOutcomeResponses];
 
 export type ListNominationSessionAttachmentsData = {
     body?: never;

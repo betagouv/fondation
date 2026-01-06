@@ -31,6 +31,7 @@ import {
   NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
   NominationSessionUpdated,
+  NominationFileOutcomeDefined,
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
@@ -54,7 +55,14 @@ export class NominationSessionRepository {
     return this.prisma.$transaction(async (tx) => {
       const session = await tx.session.findUnique({
         where: { id },
-        select: { id: true, formation: true },
+        select: {
+          id: true,
+          formation: true,
+          dossierDeNominations: {
+            select: { id: true },
+            where: { outcome: { not: null } },
+          },
+        },
       });
 
       if (!session) throw new NotFoundException();
@@ -74,6 +82,9 @@ export class NominationSessionRepository {
       return NominationSession.from({
         id,
         formationMemberIds,
+        nominationFileIdsWithOutcome: new Set(
+          session.dossierDeNominations.map(({ id }) => id),
+        ),
         version: version
           ? {
               id: version.id,
@@ -128,6 +139,8 @@ export class NominationSessionRepository {
           await this.persistNominationSessionAttachmentRemoved(tx, message);
         } else if (message instanceof NominationSessionUpdated) {
           await this.persistNominationSessionUpdated(tx, message);
+        } else if (message instanceof NominationFileOutcomeDefined) {
+          await this.persistNominationFileOutcomeDefined(tx, message);
         } else {
           assertNever(message);
         }
@@ -451,6 +464,16 @@ export class NominationSessionRepository {
         dueDate: message.data.dueDate?.toDate() ?? null,
         positionStartDate: message.data.positionStartDate?.toDate() ?? null,
       },
+    });
+  }
+
+  private async persistNominationFileOutcomeDefined(
+    tx: Prisma.TransactionClient,
+    message: NominationFileOutcomeDefined,
+  ) {
+    await tx.dossierDeNomination.update({
+      where: { id: message.nominationFileId },
+      data: { outcome: message.outcome, comment: message.comment },
     });
   }
 }

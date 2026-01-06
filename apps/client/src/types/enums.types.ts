@@ -2,7 +2,8 @@ import type {
   AffectReportersDto,
   DetailedNominationSessionDto,
   DetailedReportDto,
-  DetailedUserResponseDto
+  DetailedUserResponseDto,
+  ListedNominationFileAffectationItem
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
@@ -55,3 +56,70 @@ export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
   OUTRE_MER: 'Outre-mer',
   PROFILE: 'Profilé'
 };
+
+export type NominationFileOutcomeEnum = NonNullable<
+  ListedNominationFileAffectationItem['items'][number]['content']['outcome']
+>['value'];
+
+const NOMINATION_FILE_OUTCOME_LABELS = {
+  PARQUET: {
+    VALIDATED: 'avis favorable',
+    NON_VALIDATED: 'avis défavorable',
+    SUSPENDED: 'sursis à statuer',
+    REMOVED: 'retrait',
+    WITHDRAWN: 'retrait (désistement)'
+  },
+  SIEGE: {
+    VALIDATED: 'avis conforme',
+    NON_VALIDATED: 'avis non conforme',
+    SUSPENDED: 'sursis à statuer',
+    REMOVED: 'retrait',
+    WITHDRAWN: 'retrait (désistement)'
+  }
+} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
+
+const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
+  PARQUET: {
+    VALIDATED: 'favorable',
+    NON_VALIDATED: 'défavorable',
+    SUSPENDED: 'sursis',
+    REMOVED: 'retrait',
+    WITHDRAWN: 'désistement'
+  },
+  SIEGE: {
+    VALIDATED: 'conforme',
+    NON_VALIDATED: 'non conforme',
+    SUSPENDED: 'sursis',
+    REMOVED: 'retrait',
+    WITHDRAWN: 'désistement'
+  }
+} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
+
+const NOMINATION_FILE_OUTCOME_ACRONYM = {
+  PARQUET: {
+    VALIDATED: 'AF',
+    NON_VALIDATED: 'AD',
+    SUSPENDED: 'SAS',
+    REMOVED: 'R',
+    WITHDRAWN: 'RD'
+  },
+  SIEGE: {
+    VALIDATED: 'AC',
+    NON_VALIDATED: 'ANC',
+    SUSPENDED: 'SAS',
+    REMOVED: 'R',
+    WITHDRAWN: 'RD'
+  }
+} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
+
+export function outcomeLabels(outcome: { formation: FormationEnum; value: NominationFileOutcomeEnum }): {
+  label: string;
+  badge: string;
+  acronym: string;
+} {
+  return {
+    label: NOMINATION_FILE_OUTCOME_LABELS[outcome.formation][outcome.value],
+    acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.value],
+    badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.value]
+  };
+}

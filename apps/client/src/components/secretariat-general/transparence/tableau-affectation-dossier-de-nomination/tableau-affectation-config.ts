@@ -8,6 +8,9 @@ import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
+import { NominationFileOutcome } from './NominationFileOutcome';
+import { NominationFileOutcomeSelector } from './NominationFileOutcomeSelector';
+import type { FormationEnum } from '@/types/enums.types';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -18,6 +21,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
+  { field: 'content.outcome', label: 'Issue' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
 ] as const satisfies { field: string; label: string }[];
 
@@ -26,7 +30,10 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
   ...HEADER_COLUMNS_AFFECTATIONS_DN
 ] as const satisfies { field: string; label: string }[];
 
-export const dataRowsDn = (options: { data: SessionNominationFile[] }): ReactNode[][] => {
+export const dataRowsDn = (options: {
+  formation: FormationEnum;
+  data: SessionNominationFile[];
+}): ReactNode[][] => {
   return options.data.map((dossier) => [
     dossier.content.numeroDeDossier,
     React.createElement(MagistratDnModalLink, {
@@ -42,12 +49,18 @@ export const dataRowsDn = (options: { data: SessionNominationFile[] }): ReactNod
       { className: 'whitespace-pre-line' },
       dossier.reporters.map(({ firstName, lastName }) => `${firstName} ${lastName}`.toUpperCase()).join('\n')
     ),
+    React.createElement(NominationFileOutcome, {
+      outcome: dossier.content.outcome,
+      formation: options.formation
+    }),
     dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
   ]);
 };
 
 export const dataRowsDnEdition = (options: {
   data: SessionNominationFile[];
+  formation: FormationEnum;
+  sessionId: string;
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
@@ -71,6 +84,12 @@ export const dataRowsDnEdition = (options: {
       dossierId: dossier.id,
       initialRapporteurs: dossier.reporters.map(({ id }) => id),
       availableRapporteurs: options.availableRapporteurs
+    }),
+    React.createElement(NominationFileOutcomeSelector, {
+      sessionId: options.sessionId,
+      nominationFileId: dossier.id,
+      formation: options.formation,
+      value: dossier.content.outcome?.value ?? null
     }),
     dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
   ]);

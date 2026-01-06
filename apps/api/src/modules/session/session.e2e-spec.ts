@@ -171,6 +171,7 @@ describe('Session E2E', () => {
           posteCible: 'Procureur de la République TJ  GRASSE',
           rang: '(10 sur une liste de 12)',
           version: 2,
+          outcome: null,
         },
         id: expect.any(String),
         priority: null,
@@ -216,6 +217,7 @@ describe('Session E2E', () => {
           posteCible: 'Procureur de la République TJ  TOULON',
           rang: '(7 sur une liste de 14)',
           version: 2,
+          outcome: null,
         },
         priority: null,
         reporters: expect.arrayContaining([
