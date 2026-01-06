@@ -2,36 +2,17 @@ import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { PasswordInput } from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
-import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
-import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { apiFetch } from '../../utils/api-fetch.utils';
+import { useLogin } from '@queries/auth.queries';
 
-const loginUser = async (credentials: { email: string; password: string }) => {
-  return apiFetch(`/auth/v2/login`, {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-    headers: { 'content-type': 'application/json' }
-  });
-};
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
 
 export const Login = () => {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const {
-    isError,
-    isPending,
-    mutateAsync: authenticateAsync
-  } = useMutation({
-    mutationFn: loginUser,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['introspectSession'] });
-      await navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
-    }
-  });
+  const { isError, isPending, mutateAsync: authenticateAsync } = useLogin();
 
   const authenticateUser = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,7 +21,10 @@ export const Login = () => {
     const email = (form.elements.namedItem('email') as HTMLInputElement).value;
     const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
-    await authenticateAsync({ email, password });
+    await authenticateAsync(
+      { email, password },
+      { onSuccess: () => navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD) }
+    );
   };
 
   return (

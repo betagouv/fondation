@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
 import * as XLSX from 'xlsx';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export type ExcelExportProps = {
   data: SessionNominationFile[];

@@ -1,29 +1,24 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RoleLabels } from 'shared-models';
-import { useUser } from '../../react-query/queries/use-user.queries';
-import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { Badge } from '@codegouvfr/react-dsfr/Badge';
+
+import { useLogout, useUser } from '@queries/auth.queries';
+
+import { RoleEnumLabels } from '@/types/enums.types';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { AvatarInitials } from './AvatarInitials';
-import { apiFetch } from '../../utils/api-fetch.utils';
 
 export const Avatar: FC = () => {
-  const queryClient = useQueryClient();
   const { user, isError } = useUser();
   const firstLetters = user?.firstLetters as string;
 
   const navigate = useNavigate();
-  const { mutateAsync } = useMutation({
-    mutationFn: () => apiFetch<void>(`/auth/v2/logout`, { method: 'POST' }),
-    onSuccess: async () => {
-      queryClient.removeQueries({ queryKey: ['introspectSession'] });
-      await navigate(ROUTE_PATHS.LOGIN);
-    }
-  });
+  const { mutateAsync } = useLogout();
 
   const onClickLogout = async () => {
-    await mutateAsync();
+    await mutateAsync(undefined, {
+      onSuccess: () => navigate(ROUTE_PATHS.LOGIN)
+    });
   };
 
   if (!user || isError) {
@@ -32,7 +27,7 @@ export const Avatar: FC = () => {
 
   return (
     <div className="fr-btn flex items-center gap-8">
-      <Badge noIcon>{RoleLabels[user.role]}</Badge>
+      <Badge noIcon>{RoleEnumLabels[user.role]}</Badge>
       <div className="flex items-center gap-2">
         <AvatarInitials initials={firstLetters} />
         <div id="avatar-logout" onClick={onClickLogout} className="font-semibold hover:cursor-pointer">

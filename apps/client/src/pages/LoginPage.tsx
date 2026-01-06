@@ -1,9 +1,10 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import Login from '../components/login/Login';
-import { AUTHORIZED_ROLES } from '../constants/authorized-roles.constants';
-import { useUser } from '../react-query/queries/use-user.queries';
-import { ROUTE_PATHS } from '../utils/route-path.utils';
-import type { Role } from 'shared-models';
+
+import { useUser } from '@queries/auth.queries';
+
+import Login from '@/components/login/Login';
+import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export const LoginPage = () => {
   const location = useLocation();
@@ -21,7 +22,7 @@ export const LoginPage = () => {
     return <Login />;
   }
 
-  if (AUTHORIZED_ROLES.SG.includes(user?.role as Role)) {
+  if (AUTHORIZED_ROLES.SG.includes(user?.role)) {
     return <Navigate to={ROUTE_PATHS.SG.DASHBOARD} />;
   }
 

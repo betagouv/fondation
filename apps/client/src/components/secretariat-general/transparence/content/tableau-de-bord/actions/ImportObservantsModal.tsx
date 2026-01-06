@@ -5,8 +5,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { type FC, useRef, useState } from 'react';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateNominationSessionObserversFromLodam } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
 import { UploadExcelFailedAlert } from '../../../nouvelle-transparence/UploadExcelFailedAlert';
 
@@ -19,7 +18,6 @@ export const ImportObservantsModal: FC<{
   sessionId: string;
   onSuccess: () => void;
 }> = ({ sessionId, onSuccess }) => {
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [observantsFile, setObservantsFile] = useState<File | null>(null);
 
@@ -28,18 +26,14 @@ export const ImportObservantsModal: FC<{
     mutate: importObservants,
     isError: importObservantsFailed,
     error: importObservantsError
-  } = useMutation({
-    mutationFn: updateNominationSessionObserversFromLodam,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles', sessionId] });
-      onSuccess();
-    }
-  });
+  } = useUpdateNominationSessionObserversFromLodamMutation();
 
   useIsModalOpen(modal, {
     onConceal: () => {
       setObservantsFile(null);
       reset();
+      onSuccess();
+
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -58,7 +52,6 @@ export const ImportObservantsModal: FC<{
       {
         onSuccess: () => {
           modal.close();
-          setObservantsFile(null);
         }
       }
     );

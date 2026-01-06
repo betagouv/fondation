@@ -1,26 +1,22 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { useState } from 'react';
 
-import type { Magistrat } from 'shared-models';
+import type { DetailedNominationSessionDto } from '@api/types';
+import { useUpdateNominationSessionMutation } from '@queries/nomination-sessions.queries';
 
-import {
-  updateNominationSessionMutation,
-  type DetailedNominationSession
-} from '../../../../../../react-query/mutations/sg/nomination-sessions';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
+import type { FormationEnum } from '@/types/enums.types';
 
 export const TableauDeBordResume = (
-  transparence: DetailedNominationSession & {
+  transparence: DetailedNominationSessionDto & {
     onSuccess: (message: string | boolean) => void;
     onFailure: (message: string | boolean) => void;
   }
 ) => {
-  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
   const toggleEdit = () => {
@@ -31,16 +27,11 @@ export const TableauDeBordResume = (
     isSuccess,
     isError,
     mutateAsync: updateNominationSessionAsync
-  } = useMutation({
-    mutationFn: updateNominationSessionMutation,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['detail-nomination-session', transparence.id] });
-    }
-  });
+  } = useUpdateNominationSessionMutation();
 
   const onSubmit = async (data: {
     name: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     date: string;
     observationsClosingDate: string;
     dueDate: string | null;

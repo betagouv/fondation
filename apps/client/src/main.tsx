@@ -8,7 +8,8 @@ import { createRoot } from 'react-dom/client';
 import { Link } from 'react-router-dom';
 
 import { AppRouter } from './router/AppRouter.tsx';
-import { HttpException } from './utils/api-fetch.utils';
+import { HttpException } from './utils/http-exception.ts';
+import { authKeys } from '@queries/auth.queries.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
 
@@ -34,7 +35,7 @@ async function clearQueryClient(error: Error): Promise<void> {
   console.error(error);
   if (error instanceof HttpException && error.statusCode === 401) {
     queryClient.clear();
-    await queryClient.invalidateQueries({ queryKey: ['introspectSession'] });
+    await queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
   }
 }
 

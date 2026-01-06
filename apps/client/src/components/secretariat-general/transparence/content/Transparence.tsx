@@ -4,9 +4,8 @@ import { useCallback, useState, type FC } from 'react';
 import { useParams } from 'react-router-dom';
 
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { useQuery } from '@tanstack/react-query';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
-import { detailNominationSessionQuery } from '../../../../react-query/mutations/sg/nomination-sessions';
+import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { TableauAffectationDossierDeNomination } from '../tableau-affectation-dossier-de-nomination/TableauAffectationDossierDeNomination';
@@ -22,14 +21,7 @@ export const Transparence: FC = () => {
   const [hasSuccessMessage, setSuccessMessage] = useState<boolean | string>(false);
   const [hasFailureMessage, setFailureMessage] = useState<boolean | string>(false);
 
-  const {
-    data: transparence,
-    isPending,
-    isError
-  } = useQuery({
-    queryKey: [`detail-nomination-session`, sessionId],
-    queryFn: () => detailNominationSessionQuery({ sessionId })
-  });
+  const { data: transparence, isPending, isError } = useDetailedNominationSessionQuery({ sessionId });
 
   if (isPending) {
     return null;

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '../../../utils/api-fetch.utils';
+import * as $api from '@api/sdk';
 
 export type JurisdictionItem = {
   id: string;
@@ -8,30 +8,26 @@ export type JurisdictionItem = {
   label: string | null;
 };
 
-export function useFoundJurisdictionsQuery(
+export const jurisdictionKeys = {
+  searchJurisdiction: (props: { search?: string; includIds?: readonly string[] }) => [
+    'searchJurisdictions',
+    props
+  ]
+};
+
+export const useFoundJurisdictionsQuery = (
   options: {
     includeIds?: string[];
     search?: string;
   } = {}
-) {
-  return useQuery({
+) =>
+  useQuery({
     placeholderData: (prev) => prev,
-    queryKey: ['searchJurisdictions', options.search, options.includeIds],
-    queryFn: () => {
-      const encodeArray = (value: string[] | undefined) =>
-        (value?.length ?? 0) > 0 ? (value?.join(',') ?? undefined) : undefined;
-
-      const searchParams = new URLSearchParams(
-        Object.entries({
-          search: options.search?.trim() || undefined,
-          includeIds: encodeArray(options.includeIds)
-        }).filter((entry): entry is [string, string] => !!entry[1])
-      ).toString();
-
-      return apiFetch<{ items: JurisdictionItem[]; totalCount: number }>(
-        `/jurisdictions/v1${searchParams ? `?${searchParams}` : ''}`,
-        { method: 'GET' }
-      );
-    }
+    queryKey: jurisdictionKeys.searchJurisdiction(options),
+    queryFn: () =>
+      $api.jurisdictions
+        .search({
+          query: { search: options.search, includeIds: options.includeIds?.join(',') }
+        })
+        .then(({ data = null }) => data)
   });
-}

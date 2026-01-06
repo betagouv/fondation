@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';

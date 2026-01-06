@@ -1,4 +1,10 @@
 import type { FC } from 'react';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
+import type { FormationEnum } from '@/types/enums.types';
+import { ReportVM } from '../../../../VM/ReportVM';
+import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
   formatBiography,
   formatBirthDate,
@@ -8,13 +14,9 @@ import {
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { TextValue } from '../../../shared/TextValue';
 import { MagistratComment } from './MagistratComment';
-import type { Magistrat } from 'shared-models';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-import { AvatarInitials } from '../../../layout/AvatarInitials';
-import { ReportVM } from '../../../../VM/ReportVM';
 
 export type MagistratDetailsProps = {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   nominationFile: SessionNominationFile;
 };
 
@@ -31,8 +33,8 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ formation, nominat
     datePriseDeFonctionPosteActuel
   } = nominationFile.content;
 
-  const formattedBirthDate = formatBirthDate(dateDeNaissance, new Date());
-  const formattedObservers = formatObservers(observants);
+  const formattedBirthDate = dateDeNaissance ? formatBirthDate(dateDeNaissance, new Date()) : null;
+  const formattedObservers = observants ? formatObservers(observants) : null;
   const formattedBiography = formatBiography(historique);
 
   const dureeDuPoste = datePriseDeFonctionPosteActuel
@@ -69,9 +71,9 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ formation, nominat
         {dureeDuPoste && (
           <TextValue label={ReportVM.magistratIdentityLabels.dureeDuPoste} value={dureeDuPoste} />
         )}
-        <TextValue label={ReportVM.magistratIdentityLabels.targettedPosition} value={posteCible} />
-        <TextValue label={ReportVM.magistratIdentityLabels.rank} value={rang} />
-        <TextValue label={ReportVM.magistratIdentityLabels.birthDate} value={formattedBirthDate} />
+        <TextValue label={ReportVM.magistratIdentityLabels.targettedPosition} value={posteCible!} />
+        <TextValue label={ReportVM.magistratIdentityLabels.rank} value={rang!} />
+        <TextValue label={ReportVM.magistratIdentityLabels.birthDate} value={formattedBirthDate!} />
       </div>
       <div>
         <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>

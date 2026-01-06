@@ -1,14 +1,14 @@
-import { NominationFile } from 'shared-models';
+import type { ReportStatusEnum } from '@/types/enums.types';
 
-export const stateToLabel = <State extends NominationFile.ReportState>(state: State) => {
+export const stateToLabel = (state: ReportStatusEnum) => {
   switch (state) {
-    case NominationFile.ReportState.NEW:
+    case 'NEW':
       return 'Nouveau';
-    case NominationFile.ReportState.IN_PROGRESS:
+    case 'IN_PROGRESS':
       return 'En cours';
-    case NominationFile.ReportState.READY_TO_SUPPORT:
+    case 'READY_TO_SUPPORT':
       return 'Prêt à soutenir';
-    case NominationFile.ReportState.SUPPORTED:
+    case 'SUPPORTED':
       return 'Soutenu';
     default: {
       const _exhaustiveCheck: never = state;

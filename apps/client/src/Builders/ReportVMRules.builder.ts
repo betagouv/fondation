@@ -1,9 +1,9 @@
 import { NominationFile, RulesBuilder, type AllRulesMapV2 } from 'shared-models';
+import type { DetailedReportDto } from '@api/types';
 
-import type { RulesLabelsMap } from '../components/reports/labels/rules-labels';
+import type { RulesLabelsMap } from '@/components/reports/labels/rules-labels';
 
 import type { UnionToIntersection } from 'type-fest';
-import type { DetailedReportDto } from '../react-query/queries/report-by-id.queries';
 import type { ReportVM, VMReportRuleValue } from '../VM/ReportVM';
 
 export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean>> {
@@ -28,15 +28,15 @@ export class ReportVMRulesBuilder extends RulesBuilder<VMReportRuleValue<boolean
         };
 
       const rule = rules[ruleGroup];
-      const ruleValue = (rule as UnionToIntersection<typeof rule>)[ruleName];
-      const ruleLabels = rulesLabels[ruleName as keyof typeof rulesLabels];
+      const ruleValue = rule[ruleName];
+      const ruleLabels = rulesLabels[ruleName];
 
       return {
         id: ruleValue.id,
         label: ruleLabels?.label || '',
         hint: ruleLabels?.hint || '',
         checked: ruleValue.validated,
-        highlighted: ruleValue.preValidated
+        highlighted: false
       };
     }, rulesMap).build();
 

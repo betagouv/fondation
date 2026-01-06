@@ -4,9 +4,8 @@ import { useQueryState } from 'nuqs';
 import { useCallback, useLayoutEffect, useMemo, useRef, type PropsWithChildren } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import type { Magistrat } from 'shared-models';
-
-import { type SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import type { FormationEnum } from '@/types/enums.types';
+import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { MagistratRouteDetails } from './MagistratRouteDetails';
 
 const modalMagistratDnDetails = createModal({
@@ -15,7 +14,7 @@ const modalMagistratDnDetails = createModal({
 });
 
 export function MagistratModaleProvider(
-  props: PropsWithChildren<{ formation: Magistrat.Formation; nominationFiles: SessionNominationFile[] }>
+  props: PropsWithChildren<{ formation: FormationEnum; nominationFiles: SessionNominationFile[] }>
 ) {
   const [activeNominationFileId, setActiveNominationFileId] = useQueryState('active');
   const modalRef = useRef<HTMLDialogElement | null>(null);

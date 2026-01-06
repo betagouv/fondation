@@ -1,19 +1,20 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
-import { Magistrat } from 'shared-models';
 import { useDebounce } from 'use-debounce';
-import { useUpdateCommentAccessMutation } from '../../../../react-query/mutations/sg/comment-access.mutations';
-import { useUpdateNominationFileCommentMutation } from '../../../../react-query/mutations/sg/update-nomination-file-comment';
+
+import { useUpdateCommentAccessMutation } from '@queries/members.queries';
+import { useMemberListQuery, useUpdateNominationFileCommentMutation } from '@queries/members.queries';
+
+import type { FormationEnum } from '@/types/enums.types';
 import { UserChipsSelect } from '../../../shared/UserChipsSelect';
-import { useMemberListQuery } from '../../membres/members.queries';
 
 export type MagistratCommentEditProps = {
   nominationFileId: string;
   sessionId: string;
   initialComment?: string | null;
   initialCommentAccessUserIds?: string[];
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 };
 
 export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({

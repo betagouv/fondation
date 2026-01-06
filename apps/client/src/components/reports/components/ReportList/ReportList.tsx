@@ -1,12 +1,12 @@
 import { useFormattedReportList } from '../../../../utils/format-report-list.utils';
-import type { DetailedSessionReport } from '../../../../react-query/queries/members/sessions.queries';
-import { useListNominationSessionAttachmentsQuery } from '../../../../react-query/mutations/sg/nomination-sessions';
+import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
 import { ReportsTable } from './ReportsTable';
 import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
+import type { DetailedMemberSessionDto } from '@api/types';
 
 export function ReportList(
-  props: React.PropsWithChildren<{ sessionId: string; reports: DetailedSessionReport[] }>
+  props: React.PropsWithChildren<{ sessionId: string; reports: DetailedMemberSessionDto['data']['reports'] }>
 ) {
   const { reports, headers } = useFormattedReportList(props.reports);
   const { data: attachments } = useListNominationSessionAttachmentsQuery({

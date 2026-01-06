@@ -1,18 +1,19 @@
+import type { DateOnlyJson } from '@/types/date-only.types';
+import type { FormationEnum } from '@/types/enums.types';
+import { colors } from '@codegouvfr/react-dsfr';
+import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-import { DateOnly } from '../../../../models/date-only.model';
-import { colors } from '@codegouvfr/react-dsfr';
-import type { DateOnlyJson, Magistrat } from 'shared-models';
-import type { FC } from 'react';
 
 export type HeaderReportListProps = {
   dateTransparence: DateOnlyJson;
   transparency: string;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 };
 
 export const HeaderReportList: FC<HeaderReportListProps> = ({

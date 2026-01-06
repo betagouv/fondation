@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useState } from 'react';
-import type { PrioriteEnum } from 'shared-models/models/priorite.enum';
+import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import type { PrioriteEnum } from '@/types/enums.types';
 
 export type PrioriteValue = PrioriteEnum | null | undefined;
 

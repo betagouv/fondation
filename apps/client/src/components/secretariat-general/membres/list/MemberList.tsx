@@ -1,13 +1,15 @@
 import './MemberList.css';
 
-import Table from '@codegouvfr/react-dsfr/Table';
-import { RoleLabels } from 'shared-models';
-import { useMemberListQuery } from '../members.queries';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { TableControl } from '../../../shared/TableControl';
-import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
-import { capitalize } from '../../../../utils/string.utils';
+import Table from '@codegouvfr/react-dsfr/Table';
 import { useState } from 'react';
+
+import { useMemberListQuery } from '@queries/members.queries';
+
+import { RoleEnumLabels } from '@/types/enums.types';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
+import { TableControl } from '../../../shared/TableControl';
 
 export function MemberList() {
   const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 25 });
@@ -22,7 +24,7 @@ export function MemberList() {
           headers={['Formation', 'Nom de famille', 'Prénom', '']}
           data={
             data?.items.map((member) => [
-              <div>{RoleLabels[member.role]}</div>,
+              <div>{RoleEnumLabels[member.role]}</div>,
               <div className="uppercase">{member.lastName}</div>,
               <div className="capitalize">{member.firstName}</div>,
               <Button

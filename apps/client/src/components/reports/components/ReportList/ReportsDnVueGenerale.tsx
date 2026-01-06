@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
-import type { Magistrat } from 'shared-models';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
-import { useSessionNominationFilesQuery } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
+import type { FormationEnum } from '@/types/enums.types';
 
 type ReportsDnVueGeneraleProps = React.PropsWithChildren<{
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 }>;
 
 export const ReportsDnVueGenerale = ({ formation, children }: ReportsDnVueGeneraleProps) => {

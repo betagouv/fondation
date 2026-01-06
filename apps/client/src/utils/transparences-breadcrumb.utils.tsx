@@ -1,9 +1,9 @@
 import type { NavigateFunction } from 'react-router-dom';
-import { Magistrat } from 'shared-models';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import type { DetailedReportDto } from '../react-query/queries/report-by-id.queries';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
+import type { DetailedReportDto } from '@api/types';
+import type { FormationEnum } from '@/types/enums.types';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
@@ -13,7 +13,7 @@ export enum TransparencesCurrentPage {
 type TransparencesCurrentPageType =
   | {
       name: typeof TransparencesCurrentPage.perGdsTransparencyReports;
-      formation: Magistrat.Formation;
+      formation: FormationEnum;
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;

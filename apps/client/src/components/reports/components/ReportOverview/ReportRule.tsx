@@ -4,10 +4,10 @@ import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
+import type { DetailedReportDto } from '@api/types';
 import { allRulesMapV2, NominationFile } from 'shared-models';
 
 import type { ReportVM, VMReportRuleValue } from '../../../../VM/ReportVM';
-import type { DetailedReportDto } from '../../../../react-query/queries/report-by-id.queries';
 import { Card } from './Card';
 
 export type ReportRuleProps<R extends NominationFile.RuleName> = {

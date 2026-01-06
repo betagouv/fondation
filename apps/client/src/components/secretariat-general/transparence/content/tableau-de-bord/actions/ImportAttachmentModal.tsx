@@ -1,9 +1,8 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { useCallback, useState } from 'react';
-import { addNominationSessionAttachmentMutation } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
@@ -11,15 +10,10 @@ export const modal = createModal({
 });
 
 export const ImportAttachmentModal = (props: { onSuccess: () => void; sessionId: string }) => {
-  const queryClient = useQueryClient();
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const { mutate: importAttachment, isPending } = useMutation({
-    mutationFn: addNominationSessionAttachmentMutation,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['list-nomination-session-attachments', props.sessionId] })
-  });
+  const { mutate: importAttachment, isPending } = useAddNominationSessionAttachmentMutation();
 
   const onChangeAttachmentFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

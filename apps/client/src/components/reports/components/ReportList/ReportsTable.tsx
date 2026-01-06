@@ -1,7 +1,7 @@
 import { Table } from '@codegouvfr/react-dsfr/Table';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 
-import type { ReportListItemVM, ReportListVM } from '../../../../utils/format-report-list.utils';
+import type { FormattedReport, FormattedReportList } from '../../../../utils/format-report-list.utils';
 import './ReportsTable.css';
 import { ReportStateTag } from './ReportStateTag';
 import { SortButton } from '../../../shared/SortButton';
@@ -11,7 +11,7 @@ import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
 import { Link } from 'react-router-dom';
 
 // Fonction de filtrage des rapports
-const applyReportFilters = (reports: ReportListItemVM[], filters: ReportFiltersState) => {
+const applyReportFilters = (reports: FormattedReport[], filters: ReportFiltersState) => {
   return reports.filter((report) => {
     // Filtre par statut
     if (filters.statuts.length > 0) {
@@ -25,8 +25,8 @@ const applyReportFilters = (reports: ReportListItemVM[], filters: ReportFiltersS
 };
 
 export type ReportsTableProps = {
-  headers: ReportListVM['headers'];
-  reports: ReportListItemVM[];
+  headers: FormattedReportList['headers'];
+  reports: FormattedReport[];
 };
 
 export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> = ({

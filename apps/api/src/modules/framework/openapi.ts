@@ -16,6 +16,7 @@ export function openapi(app: INestApplication): void {
             .build(),
           { operationIdFactory: (_, methodKey) => methodKey },
         ),
+        { version: '3.0' },
       ),
     { jsonDocumentUrl: '/openapi/root.json' },
   );
