@@ -1,7 +1,8 @@
 import Header from '@codegouvfr/react-dsfr/Header';
-
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import { useLocation } from 'react-router-dom';
+
+import { HelpPageButton } from '@/pages/HelpPage';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
@@ -47,7 +48,7 @@ export const AppHeader = () => {
         alt: 'Conseil Supérieur de la Magistrature'
       }}
       homeLinkProps={{ href: '/', title: 'Accueil' }}
-      quickAccessItems={[<LolfiCsm />, <Avatar />]}
+      quickAccessItems={[<HelpPageButton />, <LolfiCsm />, <Avatar />]}
       navigation={includeSg ? navigation : []}
     />
   );
