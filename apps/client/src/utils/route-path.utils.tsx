@@ -5,6 +5,7 @@ import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
+  HELP: '/aide',
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,

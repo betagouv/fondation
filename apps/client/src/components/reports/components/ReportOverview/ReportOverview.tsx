@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { DetailedReportDto } from '@api/types';
 import { useReportById } from '@queries/reports.queries';
 
-import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
+import { NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,
@@ -20,17 +20,11 @@ import { MagistratIdentity } from './MagistratIdentity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
 
-import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
-import type { VMReportRuleValue } from '../../../../VM/ReportVM';
 import { useAttachReportFiles } from '@queries/reports.queries';
-import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportOverviewState } from './ReportOverviewState';
-import { ReportRules } from './ReportRules';
 import { Summary } from './Summary';
 
-import { useUpdateReportRuleValidation } from '@queries/reports.queries';
-import { useUpdateReport } from '@queries/reports.queries';
-import { useDetachReportFiles } from '@queries/reports.queries';
+import { useDetachReportFiles, useUpdateReport } from '@queries/reports.queries';
 
 export const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -88,7 +82,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const navigate = useNavigate();
 
   const { data: retrievedReport, isPending, error, refetch } = useReportById(id);
-  const { mutate: updateRule } = useUpdateReportRuleValidation();
   const { mutate: attachReportFiles } = useAttachReportFiles();
   const { mutate: detachReportFiles } = useDetachReportFiles();
   const { mutate: updateReport } = useUpdateReport();
@@ -111,11 +104,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     navigate
   );
 
-  const rulesChecked = ReportVMRulesBuilder.buildFromStoreModel(
-    retrievedReport.rules,
-    allRulesMapV2,
-    allRulesLabelsMap
-  );
   const formattedBirthDate = formatBirthDate(retrievedReport.birthDate!, new Date());
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
@@ -123,25 +111,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
   const onUpdateState = (status: NominationFile.ReportState) =>
     updateReport({ reportId: id, data: { status } }, onSuccess);
-
-  const onUpdateReportRule =
-    (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => {
-      if (!retrievedReport) return;
-
-      const rule = {
-        ...rulesChecked[ruleGroup].selected,
-        ...rulesChecked[ruleGroup].others
-      } as Record<NominationFile.RuleName, VMReportRuleValue>;
-
-      updateRule(
-        {
-          reportId: id,
-          ruleId: rule[ruleName].id,
-          isValidated: !rule[ruleName].checked
-        },
-        onSuccess
-      );
-    };
 
   const onFilesAttached = (files: File[]) => {
     attachReportFiles(
@@ -198,11 +167,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           <Biography biography={formattedBiography} />
           <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
           <Observers observers={formattedObservers} />
-          <ReportRules
-            rulesChecked={rulesChecked}
-            rules={retrievedReport?.rules}
-            onUpdateReportRule={onUpdateReportRule}
-          />
           <AttachedFileUpload
             reportId={id}
             attachments={retrievedReport.attachments}

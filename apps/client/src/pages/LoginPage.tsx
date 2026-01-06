@@ -8,9 +8,9 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export const LoginPage = () => {
   const location = useLocation();
-  const { user, isPending, isFetched, isError } = useUser();
+  const { user, isLoading, isFetched, isError } = useUser();
 
-  if (isPending) {
+  if (isLoading) {
     return null;
   }
 
