@@ -1,4 +1,10 @@
-import { Magistrat, PrioriteEnum, PrioriteLabels, TypeDeSaisine, TypeDeSaisineLabels } from 'shared-models';
+import {
+  PrioriteEnum,
+  PrioriteEnumLabels,
+  TypeDeSaisineEnum,
+  TypeDeSaisineEnumLabels
+} from '@/types/enums.types';
+import { Magistrat } from 'shared-models';
 
 export type FilterType = 'formation' | 'rapporteurs';
 
@@ -6,7 +12,7 @@ type FormationOptions = {
   value: Magistrat.Formation;
   label: string;
 };
-export const FORMATION_OPTIONS: Array<FormationOptions> = [
+export const FORMATION_OPTIONS: FormationOptions[] = [
   {
     value: Magistrat.Formation.PARQUET,
     label: 'Parquet'
@@ -20,47 +26,47 @@ export const FORMATION_OPTIONS: Array<FormationOptions> = [
 export const FILTER_RAPPORTEUR_NOBODY = { value: 'EMPTY', label: 'aucun' };
 
 type SessionTypeOptions = {
-  value: TypeDeSaisine;
-  label: (typeof TypeDeSaisineLabels)[TypeDeSaisine];
+  value: TypeDeSaisineEnum;
+  label: (typeof TypeDeSaisineEnumLabels)[TypeDeSaisineEnum];
 };
-export const SAISINE_OPTIONS: Array<SessionTypeOptions> = [
+export const SAISINE_OPTIONS: SessionTypeOptions[] = [
   {
-    value: TypeDeSaisine.TRANSPARENCE_GDS,
-    label: TypeDeSaisineLabels.TRANSPARENCE_GDS
+    value: TypeDeSaisineEnum.TRANSPARENCE_GDS,
+    label: TypeDeSaisineEnumLabels.TRANSPARENCE_GDS
   }
 ];
 
 type PrioriteOptions = {
   value: PrioriteEnum;
-  label: (typeof PrioriteLabels)[PrioriteEnum];
+  label: (typeof PrioriteEnumLabels)[PrioriteEnum];
 };
-export const PRIORITE_OPTIONS: Array<PrioriteOptions> = [
+export const PRIORITE_OPTIONS: PrioriteOptions[] = [
   {
     value: PrioriteEnum.ETOILE,
-    label: PrioriteLabels.ETOILE
+    label: PrioriteEnumLabels.ETOILE
   },
   {
     value: PrioriteEnum.OUTRE_MER,
-    label: PrioriteLabels.OUTRE_MER
+    label: PrioriteEnumLabels.OUTRE_MER
   },
   {
     value: PrioriteEnum.PROFILE,
-    label: PrioriteLabels.PROFILE
+    label: PrioriteEnumLabels.PROFILE
   }
 ];
 
 export type FilterConfigurations = {
   formation: {
     tagName: 'Formation';
-    options: Array<FormationOptions>;
+    options: FormationOptions[];
   };
   sessionType: {
     tagName: 'Type de session';
-    options: Array<SessionTypeOptions>;
+    options: SessionTypeOptions[];
   };
   priorite: {
     tagName: 'Priorité';
-    options: Array<PrioriteOptions>;
+    options: PrioriteOptions[];
   };
 };
 
@@ -81,5 +87,5 @@ export const filterConfigurations: FilterConfigurations = {
 
 export interface FiltersState {
   rapporteurs: string[];
-  priorite: Array<PrioriteOptions['value']>;
+  priorite: PrioriteOptions['value'][];
 }

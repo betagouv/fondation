@@ -5,11 +5,12 @@ import clsx from 'clsx';
 
 import { Magistrat, Role } from 'shared-models';
 
-import type { SessionOfTypeGardeDesSceaux } from '../../../../react-query/queries/members/sessions.queries';
+import { useUser } from '@queries/auth.queries';
+import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
+
+import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import { formationToLabel } from '../../labels/labels-mappers';
 import { SessionBlock } from './SessionBlock';
-import { getDetailSessionGdsPath } from '../../../../utils/route-path.utils';
-import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTypeGardeDesSceaux[] }) {
   const { user } = useUser();

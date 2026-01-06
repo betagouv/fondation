@@ -1,16 +1,16 @@
-import { type DateOnlyJson, Magistrat } from 'shared-models';
-import { DateOnly } from '../../../models/date-only.model';
-
-export type TransparencyLabel = string;
+import { DateOnly } from '@/models/date-only.model';
+import type { FormationEnum, GradeEnum } from '@/types/enums.types';
+import type { DateOnlyJson } from '@/types/date-only.types';
 
 export const transparencyToLabel = (transparency: string, dateTransparence: DateOnlyJson) => {
   return 'T ' + DateOnly.fromStoreModel(dateTransparence).toFormattedString() + ` (${transparency})`;
 };
-export const formationToLabel = (formation: Magistrat.Formation) => {
+
+export const formationToLabel = (formation: FormationEnum) => {
   switch (formation) {
-    case Magistrat.Formation.SIEGE:
+    case 'SIEGE':
       return 'Siège';
-    case Magistrat.Formation.PARQUET:
+    case 'PARQUET':
       return 'Parquet';
     default: {
       const _exhaustiveCheck: never = formation;
@@ -19,15 +19,16 @@ export const formationToLabel = (formation: Magistrat.Formation) => {
     }
   }
 };
-export const gradeToLabel = (grade: Magistrat.Grade) => {
+
+export const gradeToLabel = (grade: GradeEnum) => {
   switch (grade) {
-    case Magistrat.Grade.I:
+    case 'I':
       return 'I';
-    case Magistrat.Grade.II:
+    case 'II':
       return 'II';
-    case Magistrat.Grade.HH:
+    case 'HH':
       return 'HH';
-    case Magistrat.Grade.III:
+    case 'III':
       return 'III';
     default: {
       const _exhaustiveCheck: never = grade;

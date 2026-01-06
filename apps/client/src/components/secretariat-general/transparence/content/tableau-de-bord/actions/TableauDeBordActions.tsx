@@ -14,8 +14,8 @@ import {
   useDetailedNominationSessionAffectationsVersionQuery,
   usePublishVersionMutation,
   useSessionNominationFilesQuery
-} from '../../../../../../react-query/mutations/sg/nomination-session-affectations';
-import { useListNominationSessionAttachmentsQuery } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+} from '@queries/nomination-sessions.queries';
+import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 import { ROUTE_PATHS } from '../../../../../../utils/route-path.utils';
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
 import { useCallback, useMemo } from 'react';

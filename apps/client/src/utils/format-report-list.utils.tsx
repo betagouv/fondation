@@ -1,18 +1,20 @@
 import type { ReactNode } from 'react';
+
 import { gradeToLabel } from '../components/reports/labels/labels-mappers';
 import {
   reportListTableLabels,
   type ReportListTableLabels
 } from '../components/reports/labels/report-list-table-labels';
 import { DateOnly } from '../models/date-only.model';
-import type { DetailedSessionReport } from '../react-query/queries/members/sessions.queries';
 import { getGdsReportPath } from './route-path.utils';
-import { NominationFile } from 'shared-models';
 
-export type ReportListItemVM = {
+import type { DetailedMemberSessionDto } from '@api/types';
+import type { GradeEnum, ReportStatusEnum } from '@/types/enums.types';
+
+export type FormattedReport = {
   id: string;
   folderNumber: number | 'Profilé';
-  state: NominationFile.ReportState;
+  state: ReportStatusEnum;
   dueDate: string | null;
   name: string;
   grade: string;
@@ -21,9 +23,9 @@ export type ReportListItemVM = {
   href: string;
 };
 
-export type ReportListVM = {
+export type FormattedReportList = {
   newReportsCount: number;
-  reports: ReportListItemVM[];
+  reports: FormattedReport[];
   headers: ReportListTableLabels['headers'];
 };
 
@@ -44,7 +46,9 @@ function formatObserversList(observers: readonly string[]): ReactNode {
   }
 }
 
-export const useFormattedReportList = (reports: readonly DetailedSessionReport[]): ReportListVM => {
+export const useFormattedReportList = (
+  reports: DetailedMemberSessionDto['data']['reports']
+): FormattedReportList => {
   const filteredReports = [...reports]
     .sort((a, b) =>
       Number.isFinite(a.folderNumber) && Number.isFinite(b.folderNumber)
@@ -64,19 +68,16 @@ export const useFormattedReportList = (reports: readonly DetailedSessionReport[]
         name,
         href,
         dueDate: dueDateFormatted,
-        grade: gradeToLabel(grade),
+        grade: gradeToLabel(grade as GradeEnum),
         targettedPosition,
         observers: formattedObservers,
-        state
+        state: state as ReportStatusEnum
       } as const;
     });
 
   return {
-    newReportsCount: filteredReports.reduce(
-      (count, report) => (report.state === NominationFile.ReportState.NEW ? count + 1 : count),
-      0
-    ),
-    headers: reportListTableLabels.headers,
-    reports: filteredReports
+    reports: filteredReports,
+    newReportsCount: filteredReports.filter(({ state }) => state === 'NEW').length,
+    headers: reportListTableLabels.headers
   };
 };

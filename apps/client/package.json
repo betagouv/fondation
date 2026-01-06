@@ -19,7 +19,8 @@
     "predev": "pnpm run update-icons",
     "prebuild": "pnpm run update-icons",
     "test:ct": "playwright test -c playwright-ct.config.ts",
-    "test:ct:watch": "PWTEST_WATCH=1 playwright test -c playwright-ct.config.ts"
+    "test:ct:watch": "PWTEST_WATCH=1 playwright test -c playwright-ct.config.ts",
+    "openapi:generate": "openapi-ts"
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "^1.17.0",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@hey-api/openapi-ts": "^0.90.0",
     "@tanstack/eslint-plugin-query": "^5.81.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

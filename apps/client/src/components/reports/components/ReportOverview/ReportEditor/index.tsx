@@ -3,11 +3,8 @@ import { reportHtmlIds } from '../../../dom/html-ids';
 
 import { ReportVM } from '../../../../../VM/ReportVM';
 import { EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES } from '../../../../../constants/mimetypes.constants';
-import { useDetachReportFiles } from '../../../../../react-query/mutations/reports/detach-report-files.mutation';
-import {
-  addTimestampToFiles,
-  useInsertImagesWithSignedUrls
-} from '../../../../../react-query/mutations/reports/screenshots/insert-images.mutation';
+import { useDetachReportFiles } from '@queries/reports.queries';
+import { useInsertImagesWithSignedUrls } from '@queries/reports.queries';
 import { RealFileProvider } from '../../../../../utils/realFileProvider';
 import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
 import { TextareaCard } from '../TextareaCard';
@@ -19,12 +16,22 @@ export type ReportEditorProps = {
   reportId: string;
 };
 
+function addTimestampToFiles(files: readonly File[], timestamp: number): File[] {
+  return files.map((file) => {
+    const screenshotName = `${file.name}-${timestamp}`;
+
+    return new File([file], screenshotName, {
+      type: file.type
+    });
+  });
+}
+
 export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate, reportId }) => {
   const { mutateAsync: insertImagesWithSignedUrlsAsync } = useInsertImagesWithSignedUrls();
   const { mutateAsync: deleteFilesAsync } = useDetachReportFiles();
 
   const insertImages: InsertImages = async (editor, files) => {
-    const filesToUpload = await addTimestampToFiles(files, Date.now());
+    const filesToUpload = addTimestampToFiles(files, Date.now());
     await Promise.all(
       filesToUpload.map(
         new RealFileProvider().assertMimeTypeFactory(EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES)

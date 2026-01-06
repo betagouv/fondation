@@ -1,18 +1,17 @@
 import { useQueryState } from 'nuqs';
 import React from 'react';
 
-import { type Magistrat } from 'shared-models';
-import type { SessionNominationFile } from '../../../../react-query/mutations/sg/nomination-session-affectations';
-
 import { MagistratDetails } from './MagistratDetails';
+import type { FormationEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export type MagistratDetailsProps = {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   nominationFile: SessionNominationFile;
 };
 
 export function MagistratRouteDetails(props: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   nominationFiles: readonly SessionNominationFile[];
 }) {
   const [activeNominationFileId] = useQueryState('active');

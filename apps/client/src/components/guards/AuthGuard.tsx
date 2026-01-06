@@ -1,11 +1,12 @@
 import { Navigate } from 'react-router-dom';
-import type { Role } from 'shared-models';
-import { useUser } from '../../react-query/queries/use-user.queries';
+
+import { useUser } from '@queries/auth.queries';
+
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  authorizedRoles: Role[];
+  authorizedRoles: readonly unknown[];
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, authorizedRoles }) => {

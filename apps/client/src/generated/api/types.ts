@@ -1,0 +1,873 @@
+/* eslint-disable */
+// this file is auto-generated
+//
+// Licensed under the Apache License, Version 2.0
+//
+
+export type ClientOptions = {
+    baseUrl: string;
+};
+
+export type LoginDto = {
+    email: string;
+    password: string;
+};
+
+export type DetailedUserResponseDto = {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    gender: 'MALE' | 'FEMALE';
+};
+
+export type ListedNominationSessionsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        formation: 'PARQUET' | 'SIEGE';
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        dueDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+    }>;
+};
+
+export type ImportNominationSessionFromLodamXlsxDto = {
+    file: Blob | File;
+    form: {
+        name: string;
+        formation: 'PARQUET' | 'SIEGE';
+        date: string;
+        observationClosingDate: string;
+        dueDate?: string | null;
+        positionStartDate?: string | null;
+    };
+};
+
+export type CreatedNominationSessionDto = {
+    id: string;
+};
+
+export type UpdateNominationSessionFilesObserversDto = {
+    file: Blob | File;
+};
+
+export type AffectReportersDto = {
+    items: Array<{
+        nominationFileId: string;
+        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        reporterIds: Array<string>;
+    }>;
+};
+
+export type ListedNominationFileAffectationItem = {
+    items: Array<{
+        id: string;
+        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        content: {
+            /**
+             * always 2
+             */
+            version: number;
+            nomMagistrat: string;
+            numeroDeDossier: number | null;
+            dateEchéance: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            grade: 'I' | 'II' | 'III' | 'HH';
+            posteActuel: string | null;
+            posteCible: string | null;
+            gradeCible: 'I' | 'II' | 'III' | 'HH';
+            rang: string | null;
+            dateDeNaissance: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            historique: string | null;
+            observants: Array<string> | null;
+            datePassageAuGrade: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            datePriseDeFonctionPosteActuel: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            informationCarrière: string | null;
+        };
+        comment: string | null;
+        commentAccessUserIds?: Array<string>;
+        reporters: Array<{
+            id: string;
+            firstName: string;
+            lastName: string;
+        }>;
+    }>;
+};
+
+export type FoundAffectationVersion = {
+    id: string;
+    status: 'BROUILLON' | 'PUBLIEE';
+    version: number;
+    publicationDate: string | null;
+    author: {
+        id: string;
+        firstName: string;
+        lastName: string;
+    } | null;
+};
+
+export type AutoAffectationDto = {
+    nominationFileIds: Array<string>;
+};
+
+export type UpdateCommentDto = {
+    comment: string | null;
+};
+
+export type ListCommentAccessDto = {
+    comment: string | null;
+    userIds: Array<string>;
+};
+
+export type UpdateCommentAccessDto = {
+    userIds: Array<string>;
+};
+
+export type UploadSessionAttachmentDto = {
+    file: Blob | File;
+};
+
+export type ListedNominationSessionAttachmentDto = {
+    items: Array<{
+        name: string;
+        id: string;
+    }>;
+};
+
+export type DetailedNominationSessionAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+};
+
+export type DetailedNominationSessionDto = {
+    id: string;
+    name: string;
+    formation: 'PARQUET' | 'SIEGE';
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    observationsClosingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    dueDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    positionStartDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    typeDeSaisine: 'TRANSPARENCE_GDS';
+};
+
+export type UpdateNominationSessionDto = {
+    name: string;
+    formation: 'PARQUET' | 'SIEGE';
+    date: string;
+    observationsClosingDate: string;
+    dueDate: string | null;
+    positionStartDate: string | null;
+};
+
+export type PaginatedMemberListItemDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type DetailedMemberDto = {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    excludedJurisdictions: Array<{
+        id: string;
+        label: string | null;
+    }>;
+};
+
+export type ExcludeJurisdictionsDto = {
+    jurisdictionIds: Array<string>;
+};
+
+export type ListedMemberSessionsDto = {
+    items: Array<{
+        id: string;
+        label: string;
+        createdAt: string;
+        isAffected: boolean;
+        formation: 'PARQUET' | 'SIEGE';
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+    }>;
+};
+
+export type DetailedMemberSessionDto = {
+    data: {
+        session: {
+            id: string;
+            sessionImportId: string;
+            formation: string;
+            transparency: string;
+            dateTransparence: {
+                year: number;
+                month: number;
+                day: number;
+            };
+        };
+        reports: Array<{
+            id: string;
+            state: string;
+            formation: string;
+            folderNumber: number | null;
+            dueDate: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            name: string;
+            grade: string;
+            targettedPosition: string;
+            observers: Array<string>;
+        }>;
+    };
+};
+
+export type ListedJurisdictions = {
+    items: Array<{
+        id: string;
+        label: string | null;
+        type: string;
+        ville: string | null;
+    }>;
+};
+
+export type AttachReportFileDto = {
+    files: Array<Blob | File>;
+};
+
+export type GetReportFileUrlsResponseDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type DetailedReportDto = {
+    id: string;
+    sessionId: string;
+    name: string;
+    comment: string | null;
+    formation: 'PARQUET' | 'SIEGE';
+    state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+    folderNumber: number | null;
+    biography: string | null;
+    dueDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    birthDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    transparency: string;
+    dateTransparence: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    grade: 'I' | 'II' | 'III' | 'HH';
+    currentPosition: string | null;
+    targettedPosition: string | null;
+    rank: string | null;
+    observers: Array<string>;
+    dureeDuPoste: string | null;
+    screenshots: Array<{
+        usage: 'EMBEDDED_SCREENSHOT';
+        name: string;
+        fileId: string;
+        url: string;
+    }>;
+    attachments: Array<{
+        usage: 'ATTACHMENT';
+        name: string;
+        fileId: string;
+    }>;
+    rules: {
+        management: {
+            [key: string]: {
+                id: string;
+                validated: boolean;
+            };
+        };
+        qualitative: {
+            [key: string]: {
+                id: string;
+                validated: boolean;
+            };
+        };
+        statutory: {
+            [key: string]: {
+                id: string;
+                validated: boolean;
+            };
+        };
+    };
+};
+
+export type UpdateReportDto = {
+    comment?: string;
+    status?: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+};
+
+export type UpdateReportRuleValidationDto = {
+    isValidated: boolean;
+};
+
+export type GetFileByFileUrlData = {
+    body?: never;
+    path: {
+        fileUrlId: string;
+    };
+    query?: never;
+    url: '/api/files/v1/{fileUrlId}';
+};
+
+export type GetFileByFileUrlResponses = {
+    200: unknown;
+};
+
+export type LoginData = {
+    body: LoginDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/login';
+};
+
+export type LoginResponses = {
+    204: void;
+};
+
+export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type IntrospectSessionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/introspect';
+};
+
+export type IntrospectSessionResponses = {
+    200: DetailedUserResponseDto;
+};
+
+export type IntrospectSessionResponse = IntrospectSessionResponses[keyof IntrospectSessionResponses];
+
+export type LogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/logout';
+};
+
+export type LogoutResponses = {
+    204: void;
+};
+
+export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
+
+export type ListSessionsOfTypeGardeDesSceauxData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sessions/v2/garde-des-sceaux';
+};
+
+export type ListSessionsOfTypeGardeDesSceauxResponses = {
+    200: ListedNominationSessionsDto;
+};
+
+export type ListSessionsOfTypeGardeDesSceauxResponse = ListSessionsOfTypeGardeDesSceauxResponses[keyof ListSessionsOfTypeGardeDesSceauxResponses];
+
+export type CreateSessionFromLodamData = {
+    body: ImportNominationSessionFromLodamXlsxDto;
+    path?: never;
+    query?: never;
+    url: '/api/sessions/v2/lodam';
+};
+
+export type CreateSessionFromLodamResponses = {
+    201: CreatedNominationSessionDto;
+};
+
+export type CreateSessionFromLodamResponse = CreateSessionFromLodamResponses[keyof CreateSessionFromLodamResponses];
+
+export type UpdateSessionObserversData = {
+    body: UpdateNominationSessionFilesObserversDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/lodam/{sessionId}/observers';
+};
+
+export type UpdateSessionObserversResponses = {
+    204: void;
+};
+
+export type UpdateSessionObserversResponse = UpdateSessionObserversResponses[keyof UpdateSessionObserversResponses];
+
+export type AffectReportersData = {
+    body: AffectReportersDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/reporters';
+};
+
+export type AffectReportersResponses = {
+    204: void;
+};
+
+export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
+
+export type ListNominationFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+        reporterIds?: Array<string>;
+    };
+    url: '/api/sessions/v2/{sessionId}/files';
+};
+
+export type ListNominationFilesResponses = {
+    200: ListedNominationFileAffectationItem;
+};
+
+export type ListNominationFilesResponse = ListNominationFilesResponses[keyof ListNominationFilesResponses];
+
+export type DetailNominationSessionAffectationsVersionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/reporters/versions/last';
+};
+
+export type DetailNominationSessionAffectationsVersionResponses = {
+    200: FoundAffectationVersion;
+};
+
+export type DetailNominationSessionAffectationsVersionResponse = DetailNominationSessionAffectationsVersionResponses[keyof DetailNominationSessionAffectationsVersionResponses];
+
+export type PublishNominationSessionAffectationsVersionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/reporters/versions';
+};
+
+export type PublishNominationSessionAffectationsVersionResponses = {
+    204: void;
+};
+
+export type PublishNominationSessionAffectationsVersionResponse = PublishNominationSessionAffectationsVersionResponses[keyof PublishNominationSessionAffectationsVersionResponses];
+
+export type AutoAffectationData = {
+    body: AutoAffectationDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/auto-affectation';
+};
+
+export type AutoAffectationResponses = {
+    204: void;
+};
+
+export type AutoAffectationResponse = AutoAffectationResponses[keyof AutoAffectationResponses];
+
+export type UpdateNominationFileCommentData = {
+    body: UpdateCommentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment';
+};
+
+export type UpdateNominationFileCommentResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileCommentResponse = UpdateNominationFileCommentResponses[keyof UpdateNominationFileCommentResponses];
+
+export type GetCommentAccessData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access';
+};
+
+export type GetCommentAccessResponses = {
+    200: ListCommentAccessDto;
+};
+
+export type GetCommentAccessResponse = GetCommentAccessResponses[keyof GetCommentAccessResponses];
+
+export type UpdateCommentAccessData = {
+    body: UpdateCommentAccessDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access';
+};
+
+export type UpdateCommentAccessResponses = {
+    204: void;
+};
+
+export type UpdateCommentAccessResponse = UpdateCommentAccessResponses[keyof UpdateCommentAccessResponses];
+
+export type ListNominationSessionAttachmentsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments';
+};
+
+export type ListNominationSessionAttachmentsResponses = {
+    200: ListedNominationSessionAttachmentDto;
+};
+
+export type ListNominationSessionAttachmentsResponse = ListNominationSessionAttachmentsResponses[keyof ListNominationSessionAttachmentsResponses];
+
+export type UploadSessionAttachmentData = {
+    body: UploadSessionAttachmentDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments';
+};
+
+export type UploadSessionAttachmentResponses = {
+    204: void;
+};
+
+export type UploadSessionAttachmentResponse = UploadSessionAttachmentResponses[keyof UploadSessionAttachmentResponses];
+
+export type RemoveSessionAttachmentData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments/{fileId}';
+};
+
+export type RemoveSessionAttachmentResponses = {
+    204: void;
+};
+
+export type RemoveSessionAttachmentResponse = RemoveSessionAttachmentResponses[keyof RemoveSessionAttachmentResponses];
+
+export type CreateNominationSessionAttachmentUrlData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments/{fileId}';
+};
+
+export type CreateNominationSessionAttachmentUrlResponses = {
+    200: DetailedNominationSessionAttachmentDto;
+};
+
+export type CreateNominationSessionAttachmentUrlResponse = CreateNominationSessionAttachmentUrlResponses[keyof CreateNominationSessionAttachmentUrlResponses];
+
+export type DetailsNominationSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}';
+};
+
+export type DetailsNominationSessionResponses = {
+    200: DetailedNominationSessionDto;
+};
+
+export type DetailsNominationSessionResponse = DetailsNominationSessionResponses[keyof DetailsNominationSessionResponses];
+
+export type UpdateNominationSessionData = {
+    body: UpdateNominationSessionDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}';
+};
+
+export type UpdateNominationSessionResponses = {
+    204: void;
+};
+
+export type UpdateNominationSessionResponse = UpdateNominationSessionResponses[keyof UpdateNominationSessionResponses];
+
+export type ListMembersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        formation?: 'PARQUET' | 'SIEGE';
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/members/v1';
+};
+
+export type ListMembersResponses = {
+    200: PaginatedMemberListItemDto;
+};
+
+export type ListMembersResponse = ListMembersResponses[keyof ListMembersResponses];
+
+export type DetailsMemberData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}';
+};
+
+export type DetailsMemberResponses = {
+    200: DetailedMemberDto;
+};
+
+export type DetailsMemberResponse = DetailsMemberResponses[keyof DetailsMemberResponses];
+
+export type ExcludeJurisdictionsData = {
+    body: ExcludeJurisdictionsDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/excluded-jurisdictions';
+};
+
+export type ExcludeJurisdictionsResponses = {
+    204: void;
+};
+
+export type ExcludeJurisdictionsResponse = ExcludeJurisdictionsResponses[keyof ExcludeJurisdictionsResponses];
+
+export type ListMemberSessionsData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux';
+};
+
+export type ListMemberSessionsResponses = {
+    200: ListedMemberSessionsDto;
+};
+
+export type ListMemberSessionsResponse = ListMemberSessionsResponses[keyof ListMemberSessionsResponses];
+
+export type DetailsMemberSessionData = {
+    body?: never;
+    path: {
+        userId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}';
+};
+
+export type DetailsMemberSessionResponses = {
+    200: DetailedMemberSessionDto;
+};
+
+export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+
+export type SearchData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        includeIds?: string;
+    };
+    url: '/api/jurisdictions/v1';
+};
+
+export type SearchResponses = {
+    200: ListedJurisdictions;
+};
+
+export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type DetachFilesData = {
+    body?: never;
+    path: {
+        reportId: string;
+    };
+    query: {
+        fileNames: string | Array<string>;
+    };
+    url: '/api/reports/v2/{reportId}/files';
+};
+
+export type DetachFilesResponses = {
+    204: void;
+};
+
+export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
+
+export type AttachFilesData = {
+    body: AttachReportFileDto;
+    path: {
+        reportId: string;
+    };
+    query: {
+        usage: 'ATTACHMENT' | 'EMBEDDED_SCREENSHOT';
+    };
+    url: '/api/reports/v2/{reportId}/files';
+};
+
+export type AttachFilesResponses = {
+    204: void;
+};
+
+export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
+
+export type GetReportFilesUrlData = {
+    body?: never;
+    path: {
+        reportId: string;
+    };
+    query: {
+        fileNames: string | Array<string>;
+    };
+    url: '/api/reports/v2/{reportId}/files/url';
+};
+
+export type GetReportFilesUrlResponses = {
+    200: GetReportFileUrlsResponseDto;
+};
+
+export type GetReportFilesUrlResponse = GetReportFilesUrlResponses[keyof GetReportFilesUrlResponses];
+
+export type DetailReportData = {
+    body?: never;
+    path: {
+        reportId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/{reportId}';
+};
+
+export type DetailReportResponses = {
+    200: DetailedReportDto;
+};
+
+export type DetailReportResponse = DetailReportResponses[keyof DetailReportResponses];
+
+export type UpdateReportData = {
+    body: UpdateReportDto;
+    path: {
+        reportId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/{reportId}';
+};
+
+export type UpdateReportResponses = {
+    204: void;
+};
+
+export type UpdateReportResponse = UpdateReportResponses[keyof UpdateReportResponses];
+
+export type UpdateReportRuleValidationData = {
+    body: UpdateReportRuleValidationDto;
+    path: {
+        reportId: string;
+        ruleId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/{reportId}/rules/{ruleId}';
+};
+
+export type UpdateReportRuleValidationResponses = {
+    204: void;
+};
+
+export type UpdateReportRuleValidationResponse = UpdateReportRuleValidationResponses[keyof UpdateReportRuleValidationResponses];

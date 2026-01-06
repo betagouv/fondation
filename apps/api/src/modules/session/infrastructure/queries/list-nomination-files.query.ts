@@ -140,7 +140,12 @@ export class ListNominationFilesQuery {
 }
 
 const NominationFileContentSchema = z.object({
-  version: z.literal(2),
+  // open api generator does not support z.literal (json schema const)
+  version: z
+    .number()
+    .min(2)
+    .max(2)
+    .meta({ example: 2, description: 'always 2' }),
   nomMagistrat: z.string(),
   numeroDeDossier: z.number().nullable(),
   dateEchéance: dateOnlyJsonSchema.nullable(),

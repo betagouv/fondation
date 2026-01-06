@@ -1,5 +1,6 @@
 import type { FC } from 'react';
-import { PrioriteEnum, PrioriteLabels } from 'shared-models/models/priorite.enum';
+
+import { PrioriteEnumLabels, PrioriteEnum } from '@/types/enums.types';
 import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
 import { DropdownSelect } from '../../../shared/DropdownSelect';
 
@@ -18,7 +19,7 @@ export const DropdownPriorite: FC<DropdownPrioriteProps> = ({ dossierId, initial
     { value: EMPTY_VALUE, label: 'Aucune' },
     ...Object.values(PrioriteEnum).map((priorite) => ({
       value: priorite,
-      label: PrioriteLabels[priorite]
+      label: PrioriteEnumLabels[priorite]
     }))
   ];
 

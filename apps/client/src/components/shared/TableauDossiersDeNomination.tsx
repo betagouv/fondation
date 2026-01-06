@@ -5,7 +5,6 @@ import clsx from 'clsx';
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PrioriteEnum, type Magistrat } from 'shared-models';
 
 import {
   AffectationProvider,
@@ -14,7 +13,7 @@ import {
   type PrioriteValue
 } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
-import type { SessionNominationFile } from '../../react-query/mutations/sg/nomination-session-affectations';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
@@ -29,6 +28,7 @@ import {
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import { PrioriteEnum, type FormationEnum } from '@/types/enums.types';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -40,7 +40,7 @@ export interface TableauDossiersDeNominationProps {
   canEdit?: boolean;
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
   children?: React.ReactNode[] | React.ReactNode | undefined;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 }
 
 const TableauDossiersDeNominationContent = ({

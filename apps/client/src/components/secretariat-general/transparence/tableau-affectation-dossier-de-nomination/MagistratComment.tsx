@@ -1,15 +1,17 @@
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
-import { Magistrat, Role } from 'shared-models';
+
+import { useUser } from '@queries/auth.queries';
+
+import type { FormationEnum } from '@/types/enums.types';
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';
-import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export type MagistratCommentProps = {
   nominationFileId: string;
   initialComment?: string | null;
   initialCommentAccessUserIds?: string[];
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 };
 
 export const MagistratComment: FC<MagistratCommentProps> = ({
@@ -20,7 +22,7 @@ export const MagistratComment: FC<MagistratCommentProps> = ({
 }) => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { user } = useUser();
-  const isSG = user?.role === Role.ADJOINT_SECRETAIRE_GENERAL;
+  const isSG = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
 
   const showComment = isSG || initialComment !== null;
 

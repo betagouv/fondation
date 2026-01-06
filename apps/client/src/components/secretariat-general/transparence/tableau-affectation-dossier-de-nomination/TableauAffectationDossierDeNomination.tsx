@@ -3,20 +3,23 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
-import type { Magistrat } from 'shared-models';
-import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
+
 import {
   useAffectNominationFilesReportersMutation,
   useSessionNominationFilesQuery
-} from '../../../../react-query/mutations/sg/nomination-session-affectations';
+} from '@queries/nomination-sessions.queries';
+import { useMemberListQuery } from '@/queries/members.queries';
+
+import type { FormationEnum, PrioriteEnum } from '@/types/enums.types';
+
+import type { DossierAffectation } from '../../../../contexts/AffectationDossiersContext';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
 import { ExcelExport } from './ExcelExport';
 import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
-import { useMemberListQuery } from '../../membres/members.queries';
 
 export type TableauAffectationDossierDeNominationProps = {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 };
 
 export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossierDeNominationProps> = ({
@@ -49,7 +52,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
         ({ dossierId: nominationFileId, rapporteurIds: reporterIds, priorite }) => ({
           nominationFileId,
           reporterIds,
-          priority: priorite ?? null
+          priority: (priorite ?? null) as PrioriteEnum // issue with the code generation
         })
       )
     });

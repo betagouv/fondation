@@ -5,12 +5,12 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, type FC } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { createNominationSessionFromLodam } from '../../../../react-query/mutations/sg/nomination-sessions';
+import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
+
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { formationToLabel } from '../../../reports/labels/labels-mappers';
@@ -59,13 +59,7 @@ const NouvelleTransparence: FC = () => {
     mutateAsync: addTransparencyAsync,
     error: transparenceUploadError,
     reset: resetTransparencyMutation
-  } = useMutation({
-    mutationFn: createNominationSessionFromLodam,
-    onSuccess(_, data) {
-      const name = data.name;
-      navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: name ? { success: name } : undefined });
-    }
-  });
+  } = useCreateNominationSessionFromLodamMutation();
 
   const {
     control,
@@ -79,9 +73,11 @@ const NouvelleTransparence: FC = () => {
   const onSubmit: SubmitHandler<FormSchema> = useCallback(
     (dto) => {
       resetTransparencyMutation();
-      return addTransparencyAsync(dto);
+      return addTransparencyAsync(dto, {
+        onSuccess: (_, { name }) => navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } })
+      });
     },
-    [resetTransparencyMutation, addTransparencyAsync]
+    [resetTransparencyMutation, addTransparencyAsync, navigate]
   );
 
   return (

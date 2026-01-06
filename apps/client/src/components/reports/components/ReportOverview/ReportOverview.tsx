@@ -2,9 +2,11 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
+import type { DetailedReportDto } from '@api/types';
+import { useReportById } from '@queries/reports.queries';
+
 import { allRulesMapV2, NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
 import { DateOnly } from '../../../../models/date-only.model';
-import { type DetailedReportDto } from '../../../../react-query/queries/report-by-id.queries';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
@@ -20,18 +22,15 @@ import { ReportEditor } from './ReportEditor';
 
 import { ReportVMRulesBuilder } from '../../../../Builders/ReportVMRules.builder';
 import type { VMReportRuleValue } from '../../../../VM/ReportVM';
-import { useAttachReportFiles } from '../../../../react-query/mutations/reports/attach-report-files.mutation';
-import { useReportById } from '../../../../react-query/queries/report-by-id.queries';
+import { useAttachReportFiles } from '@queries/reports.queries';
 import { allRulesLabelsMap } from '../../labels/rules-labels';
 import { ReportOverviewState } from './ReportOverviewState';
 import { ReportRules } from './ReportRules';
 import { Summary } from './Summary';
 
-import {
-  useUpdateReport,
-  useUpdateReportRuleValidation
-} from '../../../../react-query/mutations/reports/update-report.mutation';
-import { useDetachReportFiles } from '../../../../react-query/mutations/reports/detach-report-files.mutation';
+import { useUpdateReportRuleValidation } from '@queries/reports.queries';
+import { useUpdateReport } from '@queries/reports.queries';
+import { useDetachReportFiles } from '@queries/reports.queries';
 
 export const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -117,7 +116,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     allRulesMapV2,
     allRulesLabelsMap
   );
-  const formattedBirthDate = formatBirthDate(retrievedReport.birthDate, new Date());
+  const formattedBirthDate = formatBirthDate(retrievedReport.birthDate!, new Date());
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
@@ -191,9 +190,9 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             name={retrievedReport.name}
             birthDate={formattedBirthDate}
             grade={retrievedReport.grade}
-            currentPosition={retrievedReport.currentPosition}
-            targettedPosition={retrievedReport.targettedPosition}
-            rank={retrievedReport.rank}
+            currentPosition={retrievedReport.currentPosition!}
+            targettedPosition={retrievedReport.targettedPosition!}
+            rank={retrievedReport.rank!}
             dureeDuPoste={retrievedReport.dureeDuPoste}
           />
           <Biography biography={formattedBiography} />

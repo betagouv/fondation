@@ -234,7 +234,7 @@ export class DetailedReportDto extends createZodDto(
 
     screenshots: z.array(
       z.object({
-        usage: z.literal(ReportFileUsage.EMBEDDED_SCREENSHOT),
+        usage: z.enum([ReportFileUsage.EMBEDDED_SCREENSHOT]),
         name: z.string(),
         fileId: z.string(),
         url: z.url(),
@@ -243,7 +243,7 @@ export class DetailedReportDto extends createZodDto(
 
     attachments: z.array(
       z.object({
-        usage: z.literal(ReportFileUsage.ATTACHMENT),
+        usage: z.enum([ReportFileUsage.ATTACHMENT]),
         name: z.string(),
         fileId: z.string(),
       }),

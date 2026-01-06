@@ -1,4 +1,5 @@
-import { Magistrat, NominationFile, Transparency, type AllRulesMapV2 } from 'shared-models';
+import type { DetailedReportDto } from '@api/types';
+import { NominationFile, type AllRulesMapV2 } from 'shared-models';
 import type { Simplify } from 'type-fest';
 import { stateToLabel } from '../components/reports/labels/state-label.mapper';
 
@@ -65,10 +66,10 @@ export class ReportVM<
     public readonly biography: string | null,
     public readonly dueDate: string | null,
     public birthDate: string,
-    public readonly state: NominationFile.ReportState,
-    public readonly formation: Magistrat.Formation,
-    public readonly transparency: Transparency,
-    public readonly grade: Magistrat.Grade,
+    public readonly state: DetailedReportDto['state'],
+    public readonly formation: DetailedReportDto['formation'],
+    public readonly transparency: string,
+    public readonly grade: DetailedReportDto['grade'],
     public readonly currentPosition: string,
     public readonly targettedPosition: string,
     public readonly comment: string | null,

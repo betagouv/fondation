@@ -1,8 +1,10 @@
-import { capitalize } from '../../../../utils/string.utils';
-import { useExcludedJurisdictionsMutation, type DetailedMember } from '../members.queries';
+import { capitalize } from '@/utils/string.utils';
+import type { DetailedMemberDto } from '@api/types';
+import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
+
 import { JurisdictionSelector } from './JurisdictionSelector';
 
-export function DetailsMember(props: { member: DetailedMember }) {
+export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({
     userId: props.member.id
   });

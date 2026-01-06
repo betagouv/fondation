@@ -4,9 +4,10 @@ import { NominationFile } from 'shared-models';
 
 import { Card } from './Card';
 import { ReportVM } from '../../../../VM/ReportVM';
+import type { DetailedReportDto } from '@api/types';
 
 export type ReportOverviewStateProps = {
-  state: NominationFile.ReportState;
+  state: DetailedReportDto['state'];
   onUpdateState: (state: NominationFile.ReportState) => void;
 };
 

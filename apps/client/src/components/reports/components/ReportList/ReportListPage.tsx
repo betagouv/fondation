@@ -1,19 +1,21 @@
 import { ToggleSwitch } from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useMemo, type FC } from 'react';
-import { PageContentLayout } from '../../../shared/PageContentLayout';
-import { ReportList } from './ReportList';
-
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useDetailedGdsSession } from '../../../../react-query/queries/members/sessions.queries';
+
+import { useUser } from '@queries/auth.queries';
+import { useDetailedMemberGdsSession } from '@queries/members.queries';
+
+import type { FormationEnum } from '@/types/enums.types';
+import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { HeaderReportList } from './HeaderReportList';
+import { ReportList } from './ReportList';
 import { ReportsDnVueGenerale } from './ReportsDnVueGenerale';
-import { useUser } from '../../../../react-query/queries/use-user.queries';
 
 export const ReportListPage: FC = () => {
   const routeParams = useParams();
   const { user } = useUser();
 
-  const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedGdsSession({
+  const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedMemberGdsSession({
     sessionId: routeParams.sessionId,
     userId: user?.id
   });
@@ -51,13 +53,13 @@ export const ReportListPage: FC = () => {
   return (
     <PageContentLayout>
       <HeaderReportList
-        formation={detailedGdsSession.data.session.formation}
+        formation={detailedGdsSession.data.session.formation as FormationEnum}
         transparency={detailedGdsSession.data.session.transparency}
         dateTransparence={detailedGdsSession.data.session.dateTransparence}
       />
 
       {isVueGenerale ? (
-        <ReportsDnVueGenerale formation={detailedGdsSession.data.session.formation}>
+        <ReportsDnVueGenerale formation={detailedGdsSession.data.session.formation as FormationEnum}>
           {VueGeneraleSwitch}
         </ReportsDnVueGenerale>
       ) : (

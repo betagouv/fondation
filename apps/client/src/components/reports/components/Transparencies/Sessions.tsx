@@ -2,15 +2,15 @@ import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
-import { useUser } from '../../../../react-query/queries/use-user.queries';
-import { useListSessionsOfTypeGardeDesSceaux } from '../../../../react-query/queries/members/sessions.queries';
+import { useUser } from '@queries/auth.queries';
+import { useListMemberGdsSessions } from '@queries/members.queries';
 
 import { SessionCsmList } from './SessionCsmList';
 import { SessionGardeDesSceauxList } from './SessionGardeDesSceauxList';
 
 const Sessions = () => {
   const { user } = useUser();
-  const { data: sessionsList, isPending: areSessionsPending } = useListSessionsOfTypeGardeDesSceaux({
+  const { data: sessionsList, isPending: areSessionsPending } = useListMemberGdsSessions({
     userId: user?.id
   });
 

@@ -4,19 +4,21 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-
-import { Magistrat } from 'shared-models';
-import { DateOnly } from '../../../../../../models/date-only.model';
-import type { DetailedNominationSession } from '../../../../../../react-query/mutations/sg/nomination-sessions';
-import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
 import { z } from 'zod';
 
+import type { DetailedNominationSessionDto } from '@api/types';
+import { Magistrat } from 'shared-models';
+
+import { DateOnly } from '../../../../../../models/date-only.model';
+import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
+import { FormationEnum } from '@/types/enums.types';
+
 export type TableauDeBordEditTransparenceProps = {
-  transparence: DetailedNominationSession;
+  transparence: DetailedNominationSessionDto;
   onCancel: () => unknown;
   onSubmit: (data: {
     name: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     date: string;
     observationsClosingDate: string;
     dueDate: string | null;
@@ -40,7 +42,7 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
     resolver: zodResolver(
       z.object({
         name: z.string().nonempty(),
-        formation: z.nativeEnum(Magistrat.Formation),
+        formation: z.enum(Object.values(FormationEnum) as [FormationEnum, ...FormationEnum[]]),
         date: z.string().date('Format de date invalide'),
         observationsClosingDate: z.string().date('Format de date invalide'),
         dueDate: z.string().date('Format de date invalide').nullable(),

@@ -2,13 +2,13 @@ import { colors } from '@codegouvfr/react-dsfr';
 import clsx from 'clsx';
 
 import { DateOnly } from '../../../../../../models/date-only.model';
-import type { DetailedNominationSession } from '../../../../../../react-query/mutations/sg/nomination-sessions';
+import type { DetailedNominationSessionDto } from '@api/types';
 
 const Label = ({ nom }: { nom: string }) => (
   <div style={{ color: colors.options.grey._625_425.default }}>{nom}</div>
 );
 
-export const TableauDeBordResumeDetails = (transparence: DetailedNominationSession) => {
+export const TableauDeBordResumeDetails = (transparence: DetailedNominationSessionDto) => {
   const { name, formation, date, dueDate, observationsClosingDate, positionStartDate } = transparence;
 
   return (

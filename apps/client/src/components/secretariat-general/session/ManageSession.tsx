@@ -1,6 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
-import { useQuery } from '@tanstack/react-query';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -16,19 +15,17 @@ import { Breadcrumb } from '../../shared/Breadcrumb';
 import { SortButton } from '../../shared/SortButton';
 import { TableControl } from '../../shared/TableControl';
 
-import {
-  listGdsNominationSessionsQuery,
-  type ListedNominationSession
-} from '../../../react-query/mutations/sg/nomination-sessions';
+import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
 
 import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
+import type { ListedNominationSessionsDto } from '@api/types';
 
 function applySessionFilters(
-  sessions: readonly ListedNominationSession[],
+  sessions: ListedNominationSessionsDto['items'],
   filters: SessionFiltersState
-): ListedNominationSession[] {
-  return sessions.filter((session: ListedNominationSession) => {
+): ListedNominationSessionsDto['items'] {
+  return sessions.filter((session) => {
     if (filters.formations.length > 0) {
       if (!filters.formations.includes(session.formation)) {
         return false;
@@ -47,10 +44,7 @@ function applySessionFilters(
 
 export const ManageSession = () => {
   const location = useLocation();
-  const { data: sessions } = useQuery({
-    queryKey: ['listed-gds-nomination-sessions'],
-    queryFn: listGdsNominationSessionsQuery
-  });
+  const { data: sessions } = useListedGdsNominationSessionsQuery();
 
   const successSessionImportTitle = location.state?.success ?? undefined;
 

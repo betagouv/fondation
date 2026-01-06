@@ -1,5 +1,5 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import { useDetailedNominationSessionAffectationsVersionQuery } from '../../../../react-query/mutations/sg/nomination-session-affectations';
+import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
 
 export function TableauAffectationDossierDeNominationStatus(props: { sessionId: string }) {
   const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(props.sessionId);
