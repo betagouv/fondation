@@ -1,12 +1,13 @@
-import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import { type PropsWithChildren, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { PrioriteEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export type PrioriteValue = PrioriteEnum | null | undefined;
 
 export interface DossierAffectation {
   dossierId: string;
   rapporteurIds: string[];
-  priorite?: PrioriteEnum;
+  priorite: PrioriteEnum | null;
 }
 
 export type AffectationsState = {
@@ -33,93 +34,117 @@ interface AffectationContextType {
 
 const AffectationContext = createContext<AffectationContextType | undefined>(undefined);
 
-interface AffectationProviderProps {
-  children: ReactNode;
-  initialAffectations?: AffectationsState;
-  initialPriorites?: PrioritesState;
-}
-
 export const AffectationProvider = ({
   children,
-  initialAffectations = {},
-  initialPriorites = {}
-}: AffectationProviderProps) => {
-  const [affectations, setAffectations] = useState<AffectationsState>(initialAffectations);
-  const [priorites, setPriorites] = useState<PrioritesState>(initialPriorites);
-  const [selectedDossierIds, setSelectedDossierIds] = useState<Set<string>>(new Set());
+  nominationFiles
+}: PropsWithChildren<{ nominationFiles: readonly SessionNominationFile[] }>) => {
+  const fileById = useMemo(
+    () =>
+      new Map(
+        nominationFiles.map((f) => [
+          f.id,
+          {
+            isSelected: false,
+            priority: f.priority,
+            reporterIds: f.reporters.map(({ id }) => id) as readonly string[]
+          }
+        ])
+      ),
+    [nominationFiles]
+  );
 
-  const updateAffectation = useCallback((dossierId: string, rapporteurIds: string[]) => {
-    setAffectations((prev) => {
-      const existing = prev[dossierId] || [];
-      const combined = [...existing, ...rapporteurIds];
-      const unique = [...new Set(combined)];
-      return {
-        ...prev,
-        [dossierId]: unique
-      };
-    });
-  }, []);
+  const [state, setState] = useState<
+    Record<string, { reporterIds: Set<string>; priority: PrioriteEnum | null; isSelected?: boolean }>
+  >({});
 
-  const updatePriorite = useCallback((dossierId: string, priorite: PrioriteEnum) => {
-    setPriorites((prev) => ({
-      ...prev,
-      [dossierId]: priorite
-    }));
-  }, []);
+  const updateFile = useCallback(
+    (
+      fileId: string,
+      newState: {
+        reporterIds?: readonly string[];
+        priority?: PrioriteEnum | null;
+        isSelected?: (value: boolean) => boolean;
+      }
+    ) => {
+      setState((map) => {
+        const {
+          reporterIds: existingReporterIds = [],
+          priority: existingPriority = null,
+          isSelected: existingSelected = false
+        } = map[fileId] ?? fileById.get(fileId) ?? {};
 
-  const clearPriorite = useCallback((dossierId: string) => {
-    setPriorites((prev) => ({
-      ...prev,
-      [dossierId]: null
-    }));
-  }, []);
+        return {
+          ...map,
+          [fileId]: {
+            isSelected: newState.isSelected?.(existingSelected) ?? existingSelected,
+            priority: newState.priority === undefined ? existingPriority : newState.priority,
+            reporterIds: new Set(newState.reporterIds ?? existingReporterIds)
+          }
+        };
+      });
+    },
+    [fileById]
+  );
 
-  const applyPrioriteValue = useCallback((dossierId: string, priorite: PrioriteValue) => {
-    if (priorite === undefined) {
-      return;
-    }
-    setPriorites((prev) => ({
-      ...prev,
-      [dossierId]: priorite
-    }));
-  }, []);
+  const updateAffectation = useCallback(
+    (fileId: string, reporterIds: readonly string[]) => updateFile(fileId, { reporterIds }),
+    [updateFile]
+  );
+
+  const updatePriorite = useCallback(
+    (fileId: string, priority: PrioriteEnum | null) => updateFile(fileId, { priority }),
+    [updateFile]
+  );
+
+  const clearPriorite = useCallback((fileId: string) => updateFile(fileId, { priority: null }), [updateFile]);
+
+  const applyPrioriteValue = useCallback(
+    (fileId: string, priority: PrioriteValue) =>
+      priority !== undefined ? updateFile(fileId, { priority }) : undefined,
+    [updateFile]
+  );
 
   const resetAffectations = useCallback(() => {
-    setAffectations(initialAffectations);
-    setPriorites(initialPriorites);
-    setSelectedDossierIds(new Set());
-  }, [initialAffectations, initialPriorites]);
-
-  const toggleDossierSelection = useCallback((dossierId: string) => {
-    setSelectedDossierIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(dossierId)) {
-        next.delete(dossierId);
-      } else {
-        next.add(dossierId);
-      }
-      return next;
-    });
+    setState({});
   }, []);
 
-  const getAllAffectations = useCallback((): DossierAffectation[] => {
-    const dossierIds = new Set([...Object.keys(affectations), ...Object.keys(priorites)]);
-    return Array.from(dossierIds).map((dossierId) => {
-      const priorite = priorites[dossierId];
-      return {
-        dossierId,
-        rapporteurIds: affectations[dossierId] || [],
-        ...(priorite !== null && priorite !== undefined && { priorite })
-      };
-    });
-  }, [affectations, priorites]);
+  const toggleDossierSelection = useCallback(
+    (fileId: string) => updateFile(fileId, { isSelected: (value) => !value }),
+    [updateFile]
+  );
 
-  const hasChanges = useCallback(() => {
-    return (
-      JSON.stringify(affectations) !== JSON.stringify(initialAffectations) ||
-      JSON.stringify(priorites) !== JSON.stringify(initialPriorites)
-    );
-  }, [affectations, priorites, initialAffectations, initialPriorites])();
+  const getAllAffectations = useCallback(
+    (): DossierAffectation[] =>
+      Object.entries(state).map(([dossierId, { reporterIds, priority }]) => ({
+        dossierId,
+        priorite: priority,
+        rapporteurIds: Array.from(reporterIds)
+      })),
+    [state]
+  );
+
+  const hasChanges = useMemo(() => Object.keys(state).length > 0, [state]);
+  const affectations = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(state).map(([fileId, { reporterIds }]) => [fileId, Array.from(reporterIds)])
+      ),
+    [state]
+  );
+  const priorites = useMemo(
+    () =>
+      Object.fromEntries(Object.entries(state).map(([fileId, { priority }]) => [fileId, priority] as const)),
+    [state]
+  );
+  const selectedDossierIds = useMemo(
+    () =>
+      new Set(
+        Object.entries(state)
+          .filter(([_id, { isSelected }]) => isSelected) // eslint-disable-line @typescript-eslint/no-unused-vars
+          .map(([id]) => id)
+      ),
+    [state]
+  );
 
   return (
     <AffectationContext.Provider

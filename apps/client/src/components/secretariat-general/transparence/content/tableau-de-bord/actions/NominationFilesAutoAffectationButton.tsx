@@ -9,18 +9,23 @@ import {
   useSessionNominationFilesQuery
 } from '@queries/nomination-sessions.queries';
 import { Link } from 'react-router-dom';
+import { useAffectation } from '@/contexts/AffectationDossiersContext';
 
 export function NominationFilesAutoAffectationButton(props: { sessionId: string }) {
   const alerts = useAlerts();
   const confirmation = useConfirmation();
+  const { affectations } = useAffectation();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId: props.sessionId });
 
-  const nonAffectedFiles = useMemo(
-    () => (nominationFiles?.items ?? []).filter((item) => item.reporters.length === 0),
-    [nominationFiles]
+  const nonAffectedFileIds = useMemo(
+    () =>
+      (nominationFiles?.items ?? [])
+        .filter((item) => (affectations[item.id] ?? item.reporters).length === 0)
+        .map(({ id }) => id),
+    [nominationFiles, affectations]
   );
-  const hasAnyNonAffectedFile = useMemo(() => nonAffectedFiles.length > 0, [nonAffectedFiles]);
+  const hasAnyNonAffectedFile = useMemo(() => nonAffectedFileIds.length > 0, [nonAffectedFileIds]);
 
   const onAutoAffectation = useCallback(async () => {
     if (!hasAnyNonAffectedFile) {
@@ -34,7 +39,7 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
         <>
           <p>
             Vous allez affecter automatiquement{' '}
-            <strong className="font-bold">{nonAffectedFiles.length} dossiers</strong>, actuellement sans
+            <strong className="font-bold">{nonAffectedFileIds.length} dossiers</strong>, actuellement sans
             affectation.
           </p>
           <p>
@@ -53,7 +58,7 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
     if (!isConfirmed) return;
 
     await autoAffectation(
-      { sessionId: props.sessionId, nominationFileIds: nonAffectedFiles.map(({ id }) => id) },
+      { sessionId: props.sessionId, nominationFileIds: nonAffectedFileIds },
       {
         onSuccess: () => {
           alerts.pushAlert({
@@ -69,7 +74,7 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
         }
       }
     );
-  }, [confirmation, hasAnyNonAffectedFile, autoAffectation, nonAffectedFiles, props.sessionId, alerts]);
+  }, [confirmation, hasAnyNonAffectedFile, autoAffectation, nonAffectedFileIds, props.sessionId, alerts]);
 
   return (
     <Button
