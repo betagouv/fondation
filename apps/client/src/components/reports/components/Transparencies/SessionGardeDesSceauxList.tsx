@@ -57,7 +57,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                         to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
                       }}
                     >
-                      {session.label}
+                      {session.label} - {session.fileCount}
                     </Tag>
                   </li>
                 ))}
