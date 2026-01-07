@@ -3,44 +3,26 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { Link } from 'react-router-dom';
 
 import * as importAttachments from './ImportAttachmentModal';
 import * as importObservers from './ImportObservantsModal';
 
-import { useConfirmation } from '../../../../../../hooks/useConfirmation.hook';
 import {
-  useAutoAffectationMutation,
   useDetailedNominationSessionAffectationsVersionQuery,
+  useListNominationSessionAttachmentsQuery,
   usePublishVersionMutation,
   useSessionNominationFilesQuery
 } from '@queries/nomination-sessions.queries';
-import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
-import { ROUTE_PATHS } from '../../../../../../utils/route-path.utils';
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
-import { useCallback, useMemo } from 'react';
+import { exportNominationFilesToExcel } from '../../../tableau-affectation-dossier-de-nomination/export-nomination-files-to-excel';
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
 
-export const TableauDeBordActions = ({
-  sessionId,
-  onSuccess,
-  onFailure
-}: {
-  sessionId: string;
-  onSuccess: (message: string | boolean) => void;
-  onFailure: (message: string | boolean) => void;
-}) => {
-  const confirmation = useConfirmation();
+export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
+  const alerts = useAlerts();
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
-  const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
-
-  const nonAffectedFiles = useMemo(
-    () => (nominationFiles?.items ?? []).filter((f) => f.reporters.length === 0),
-    [nominationFiles]
-  );
-  const hasAnyNonAffectedFiles = useMemo(() => nonAffectedFiles.length > 0, [nonAffectedFiles]);
 
   const isBrouillon = metadata?.status === 'BROUILLON';
 
@@ -49,65 +31,20 @@ export const TableauDeBordActions = ({
       { sessionId },
       {
         onSuccess: () => {
-          onSuccess('Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.');
+          alerts.pushAlert({
+            severity: 'success',
+            title: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
+          });
         },
         onError: () => {
-          onFailure('Erreur lors de la publication des affectations');
+          alerts.pushAlert({
+            severity: 'error',
+            title: 'Erreur lors de la publication des affectations'
+          });
         }
       }
     );
   };
-
-  const onAutoAffectation = useCallback(async () => {
-    if (!hasAnyNonAffectedFiles) {
-      return;
-    }
-
-    const { isConfirmed } = await confirmation.waitForConfirmation({
-      title: `Affectation automatique`,
-      i18n: { confirm: 'Affecter automatiquement' },
-      content: (
-        <>
-          <p>
-            Vous allez affecter automatiquement{' '}
-            <strong className="font-bold">{nonAffectedFiles.length} dossiers</strong>, actuellement sans
-            affectation.
-          </p>
-          <p>
-            L'affectation automatique prend en compte un plan de charge sur la session, ainsi que les
-            incompatibilités de juridictions configurées dans{' '}
-            <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>&laquo;&nbsp;Gérer les membres&nbsp;&raquo;</Link>
-          </p>
-          <p>
-            Une fois l'affectation faite, vous aurez toujours la possibilité de la modifier avant de la
-            publier aux membres.
-          </p>
-        </>
-      )
-    });
-
-    if (!isConfirmed) return;
-
-    await autoAffectation(
-      { sessionId, nominationFileIds: nonAffectedFiles.map(({ id }) => id) },
-      {
-        onSuccess: () => {
-          onSuccess("L'attribution automatique des rapports a été effectuée avec succès.");
-        },
-        onError: () => {
-          onFailure("Erreur lors de l'attribution automatique des rapports.");
-        }
-      }
-    );
-  }, [
-    confirmation,
-    hasAnyNonAffectedFiles,
-    autoAffectation,
-    nonAffectedFiles,
-    onFailure,
-    onSuccess,
-    sessionId
-  ]);
 
   return (
     <>
@@ -127,8 +64,8 @@ export const TableauDeBordActions = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <importObservers.ImportObservantsModal onSuccess={() => onSuccess(true)} sessionId={sessionId} />
-          <importAttachments.ImportAttachmentModal onSuccess={() => onSuccess(true)} sessionId={sessionId} />
+          <importObservers.ImportObservantsModal sessionId={sessionId} />
+          <importAttachments.ImportAttachmentModal sessionId={sessionId} />
 
           <ButtonsGroup
             buttons={[
@@ -142,18 +79,16 @@ export const TableauDeBordActions = ({
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {
-                nativeButtonProps: { ...confirmation.buttonProps },
-                iconId: isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line',
                 priority: 'secondary',
-                title: hasAnyNonAffectedFiles ? undefined : 'Tous les rapports ont des rapporteurs affectés',
-                onClick: onAutoAffectation,
-                disabled: isAutoAffecting || isPublishing || !hasAnyNonAffectedFiles,
-                children: isAutoAffecting ? 'Attribution en cours...' : 'Attribuer les rapports'
+                iconId: 'fr-icon-download-line',
+                disabled: !nominationFiles || nominationFiles.items.length === 0,
+                children: 'Exporter en Excel',
+                onClick: () => exportNominationFilesToExcel(nominationFiles?.items ?? [])
               },
               {
                 priority: 'primary',
                 onClick: onPublierAffectations,
-                disabled: isPublishing || isAutoAffecting,
+                disabled: isPublishing,
                 children: isPublishing ? 'Publication en cours...' : 'Publier aux membres',
                 className: isBrouillon ? 'block' : 'hidden'
               }

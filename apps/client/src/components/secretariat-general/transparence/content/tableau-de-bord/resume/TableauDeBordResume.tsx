@@ -1,4 +1,3 @@
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
@@ -7,27 +6,20 @@ import { useState } from 'react';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useUpdateNominationSessionMutation } from '@queries/nomination-sessions.queries';
 
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import type { FormationEnum } from '@/types/enums.types';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
-import type { FormationEnum } from '@/types/enums.types';
 
-export const TableauDeBordResume = (
-  transparence: DetailedNominationSessionDto & {
-    onSuccess: (message: string | boolean) => void;
-    onFailure: (message: string | boolean) => void;
-  }
-) => {
+export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
+  const alerts = useAlerts();
   const [isEditing, setIsEditing] = useState(false);
 
   const toggleEdit = () => {
     setIsEditing((prev) => !prev);
   };
 
-  const {
-    isSuccess,
-    isError,
-    mutateAsync: updateNominationSessionAsync
-  } = useUpdateNominationSessionMutation();
+  const { mutateAsync: updateNominationSessionAsync } = useUpdateNominationSessionMutation();
 
   const onSubmit = async (data: {
     name: string;
@@ -37,23 +29,19 @@ export const TableauDeBordResume = (
     dueDate: string | null;
     positionStartDate: string | null;
   }) => {
-    await updateNominationSessionAsync({ sessionId: transparence.id, data });
+    await updateNominationSessionAsync(
+      { sessionId: transparence.id, data },
+      {
+        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Données actualisées' }),
+        onError: () =>
+          alerts.pushAlert({ severity: 'error', title: 'Erreur lors de la modification de la transparence' })
+      }
+    );
     toggleEdit();
   };
 
   return (
     <div className="fr-col flex flex-col gap-3">
-      {isSuccess && (
-        <Alert id="edit-transparence-success" closable severity="success" title="Données actualisées" />
-      )}
-      {isError && (
-        <Alert
-          id="edit-transparence-error"
-          closable
-          severity="error"
-          title="Erreur lors de la modification de la transparence"
-        />
-      )}
       <div className={clsx('relative border-2 border-solid', cx('fr-px-12v', 'fr-py-4v'))}>
         <Button
           className={'absolute right-3 top-3'}
