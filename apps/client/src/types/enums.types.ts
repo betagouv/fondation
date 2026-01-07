@@ -14,12 +14,19 @@ export const RoleEnumLabels: Record<RoleEnum, string> = {
 };
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
-export type GradeEnum = NonNullable<DetailedReportDto['grade']>;
 export type ReportStatusEnum = NonNullable<DetailedReportDto['state']>;
 // TODO: remove?
 export type ReportFileUsageEnum = NonNullable<
   DetailedReportDto['attachments'][number]['usage'] | DetailedReportDto['screenshots'][number]['usage']
 >;
+
+export type GradeEnum = NonNullable<DetailedReportDto['grade']>;
+export const GradeEnum: Record<GradeEnum, GradeEnum> = {
+  I: 'I',
+  II: 'II',
+  III: 'III',
+  HH: 'HH'
+};
 
 export type FormationEnum = NonNullable<DetailedReportDto['formation']>;
 export const FormationEnum: Record<FormationEnum, FormationEnum> = {

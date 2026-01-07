@@ -206,6 +206,11 @@ export type PaginatedMemberListItemDto = {
         firstName: string;
         lastName: string;
         role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+        stats: Array<{
+            year: number;
+            count: number;
+            targetedGrade: 'I' | 'II' | 'III' | 'HH';
+        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -223,9 +228,15 @@ export type DetailedMemberDto = {
     firstName: string;
     lastName: string;
     role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    gender: string;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
+    }>;
+    stats: Array<{
+        count: number;
+        year: number;
+        targetedGrade: 'I' | 'II' | 'III' | 'HH';
     }>;
 };
 

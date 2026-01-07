@@ -1,66 +1,71 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { Magistrat } from 'shared-models';
+
+import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { createZodDto } from 'nestjs-zod';
+import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
 export class DetailsMemberQuery {
   constructor(private readonly db: PrismaService) {}
 
   async handle(query: { userId: string }): Promise<DetailedMemberDto> {
-    const rawUser = await this.db.user.findFirst({
-      where: { id: query.userId, role: { in: MEMBER_ROLES } },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        gender: true,
-        role: true,
-        email: true,
+    const [user] = await this.db.$queryRawTyped(
+      detailsMemberRawQuery(query.userId),
+    );
 
-        excludedJurisdictionIds: {
-          select: {
-            jurisdiction: { select: { codejur: true, libelle: true } },
-          },
-        },
-      },
-    });
-
-    if (!rawUser || !isMember(rawUser)) {
-      throw new NotFoundException();
-    }
+    if (!user || !isMember(user)) throw new NotFoundException();
 
     return {
-      id: rawUser.id,
-      firstName: rawUser.firstName,
-      lastName: rawUser.lastName,
-      role: rawUser.role,
-      email: rawUser.email,
-
-      excludedJurisdictions: rawUser.excludedJurisdictionIds.map(
-        ({ jurisdiction }) => ({
-          id: jurisdiction.codejur,
-          label: jurisdiction.libelle,
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      gender: user.gender,
+      excludedJurisdictions: (user.excludedJurisdictions ?? []).map(
+        (j: { id: string; label: string }) => ({
+          id: j.id,
+          label: j.label,
+        }),
+      ),
+      stats: (user.stats ?? []).map(
+        (stat: {
+          year: number;
+          count: number;
+          targetedGrade: Magistrat.Grade;
+        }) => ({
+          year: stat.year,
+          count: stat.count,
+          targetedGrade: stat.targetedGrade,
         }),
       ),
     };
   }
 }
 
-export const DetailedMemberDtoSchema = z
-  .object({
-    id: z.string(),
-    email: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    role: z.enum(MEMBER_ROLES),
+export const DetailedMemberDtoSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  role: z.enum(MEMBER_ROLES),
+  gender: z.string(),
 
-    excludedJurisdictions: z.array(
-      z.object({ id: z.string(), label: z.string().nullable() }),
-    ),
-  })
-  .meta({ id: 'DetailedMemberDto' });
+  excludedJurisdictions: z.array(
+    z.object({ id: z.string(), label: z.string().nullable() }),
+  ),
+
+  stats: z.array(
+    z.object({
+      count: z.number().int().gte(0),
+      year: z.number().int().gte(1900),
+      targetedGrade: z.enum(Magistrat.Grade),
+    }),
+  ),
+});
 
 export class DetailedMemberDto extends createZodDto(DetailedMemberDtoSchema) {}
