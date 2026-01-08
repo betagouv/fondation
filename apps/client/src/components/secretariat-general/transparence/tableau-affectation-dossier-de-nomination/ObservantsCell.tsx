@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { type FC, useState, useMemo, useMemo as useMemoModal } from 'react';
-import { ObservationsList } from '../observations/ObservationsList';
-import { ObservationForm } from '../observations/ObservationForm';
 import { useObservationsQuery } from '@queries/observations.queries';
+import { type FC, useMemo, useMemo as useMemoModal, useState } from 'react';
+import { ObservationForm } from '../observations/ObservationForm';
+import { ObservationsList } from '../observations/ObservationsList';
 
 export const ObservantsCell: FC<{
   nominationFileId: string;

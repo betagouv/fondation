@@ -1,36 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as $api from '@api/sdk';
+import type { ListObservationsResponseDto, SearchMagistratsResponseDto } from '@api/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export type MagistratSearchResult = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  usedName: string;
-  grade: string | null;
-  professionalEmail: string | null;
-};
-
-export type Observation = {
-  id: string;
-  dateReception: string;
-  createdAt: string;
-  magistrat: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    usedName: string;
-  } | null;
-  createdBy: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  } | null;
-  files: {
-    id: string;
-    name: string;
-    signedUrl: string | null;
-  }[];
-};
+export type Observation = ListObservationsResponseDto['observations'][number];
+export type MagistratSearchResult = SearchMagistratsResponseDto['magistrats'][number];
 
 export function useSearchMagistratsQuery(search: string) {
   return useQuery({
@@ -40,7 +13,7 @@ export function useSearchMagistratsQuery(search: string) {
       const { data } = await $api.observations.searchMagistrats({
         query: { search }
       });
-      return data ?? { magistrats: [] };
+      return data ?? { magistrats: [] as MagistratSearchResult[] };
     },
     enabled: search.length >= 2
   });
@@ -54,7 +27,7 @@ export function useObservationsQuery(nominationFileId: string | undefined) {
       const { data } = await $api.observations.listObservations({
         query: { nominationFileId }
       });
-      return data ?? { observations: [] };
+      return data ?? { observations: [] as Observation[] };
     },
     enabled: !!nominationFileId
   });
