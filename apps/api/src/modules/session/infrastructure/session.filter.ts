@@ -78,10 +78,11 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof NominationFilesHaveOutcome) {
             throw new BadRequestException(
               {
-                validationErrors:
+                validationErrors: [
                   err.nominationFileIds.length === 1
                     ? `Le dossier a déjà une issue de renseignée et ne peut pas être modifié`
                     : `${err.nominationFileIds.length} dossiers ont déjà une issue de renseignée et ne peuvent pas être modifiés`,
+                ],
               },
               { cause: err },
             );

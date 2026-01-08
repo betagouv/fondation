@@ -47,7 +47,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     <>
       <div id="session-affectation-dossier-de-nomination">
         <AlertsProvider>
-          <div className={clsx(`flex h-16 items-end justify-between px-0`, cx('fr-container'))}>
+          <div className={clsx(`flex items-end justify-between px-0`, cx('fr-container'))}>
             <TableauAffectationDossierDeNominationStatus sessionId={sessionId as string} />
 
             <AlertsProvider.Alerts small className="my-3 flex-shrink-0" />

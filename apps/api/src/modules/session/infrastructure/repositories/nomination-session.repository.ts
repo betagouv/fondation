@@ -154,12 +154,30 @@ export class NominationSessionRepository {
   ) {
     const { versionId } = message;
     if (versionId) {
-      await tx.nominationFileToReporter.deleteMany({
-        where: { versionId },
-      });
-    }
+      const nominationFileIds = Array.from(
+        new Set(
+          message.affectations.map(({ nominationFileId }) => nominationFileId),
+        ),
+      );
 
-    if (!versionId) {
+      await tx.nominationFileToReporter.deleteMany({
+        where: {
+          versionId,
+          nominationFileId: { in: nominationFileIds },
+        },
+      });
+
+      await tx.nominationFileToReporter.createMany({
+        data: message.affectations.flatMap(
+          ({ reporterIds, nominationFileId }) =>
+            reporterIds.map((userId) => ({
+              userId,
+              versionId,
+              nominationFileId,
+            })),
+        ),
+      });
+    } else {
       await tx.affectationVersion.create({
         data: {
           sessionId: message.sessionId,
@@ -175,17 +193,6 @@ export class NominationSessionRepository {
             },
           },
         },
-      });
-    } else {
-      await tx.nominationFileToReporter.createMany({
-        data: message.affectations.flatMap(
-          ({ reporterIds, nominationFileId }) =>
-            reporterIds.map((userId) => ({
-              userId,
-              versionId,
-              nominationFileId,
-            })),
-        ),
       });
     }
   }

@@ -11,11 +11,7 @@ import {
   useAffectNominationFilesReportersMutation,
   type SessionNominationFile
 } from '@queries/nomination-sessions.queries';
-import {
-  AffectationProvider,
-  useAffectation,
-  type PrioriteValue
-} from '../../contexts/AffectationDossiersContext';
+import { AffectationProvider, useAffectation } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { NominationFilesAutoAffectationButton } from '../secretariat-general/transparence/content/tableau-de-bord/actions/NominationFilesAutoAffectationButton';
@@ -33,6 +29,7 @@ import { useAlerts } from './alerts/alerts.context';
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
+import { HttpException } from '@/utils/http-exception';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -77,8 +74,34 @@ const TableauDossiersDeNominationContent = ({
           priority: (affectation.priorite ?? null) as PrioriteEnum
         }))
       },
-      { onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées' }) }
+      {
+        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées' }),
+        onError: async (err) => {
+          let description: React.ReactNode | undefined;
+          if (err instanceof HttpException) {
+            const { validationErrors } = (await err.response.json()) as { validationErrors: string[] };
+
+            description =
+              validationErrors.length > 1 ? (
+                <ul>
+                  {validationErrors.map((e, i) => (
+                    <li key={`key_${i}`}>{e}</li>
+                  ))}
+                </ul>
+              ) : (
+                validationErrors[0]
+              );
+          }
+
+          alerts.pushAlert({
+            severity: 'error',
+            title: `Erreur pendant la mise à jour des affectation`,
+            description
+          });
+        }
+      }
     );
+    resetAffectations();
     setIsEditing(false);
   };
 
@@ -214,30 +237,8 @@ const TableauDossiersDeNominationContent = ({
 };
 
 export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationProps) => {
-  const initialAffectations = useMemo(() => {
-    return props.dossiersDeNomination.reduce(
-      (acc, dossier) => {
-        acc[dossier.id] = dossier.reporters.map((r) => r.id);
-        return acc;
-      },
-      {} as Record<string, string[]>
-    );
-  }, [props.dossiersDeNomination]);
-
-  const initialPriorites = useMemo(() => {
-    return props.dossiersDeNomination.reduce(
-      (acc, dossier) => {
-        if (dossier.priority) {
-          acc[dossier.id] = dossier.priority;
-        }
-        return acc;
-      },
-      {} as Record<string, PrioriteValue>
-    );
-  }, [props.dossiersDeNomination]);
-
   return (
-    <AffectationProvider initialAffectations={initialAffectations} initialPriorites={initialPriorites}>
+    <AffectationProvider nominationFiles={props.dossiersDeNomination}>
       <TableauDossiersDeNominationContent {...props} />
     </AffectationProvider>
   );
