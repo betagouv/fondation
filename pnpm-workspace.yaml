@@ -6,6 +6,9 @@ onlyBuiltDependencies:
   - '@swc/core'
   - bcrypt
 
+catalog:
+  zod: 4.1.12
+
 preferFrozenLockfile: true
 ignoreDepScripts: true
 minimumReleaseAge: 10080 # 7 days

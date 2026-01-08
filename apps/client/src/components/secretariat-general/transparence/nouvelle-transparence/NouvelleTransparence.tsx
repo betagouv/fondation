@@ -20,7 +20,7 @@ import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 const mandatoryField = 'Champ obligatoire.';
 const invalidDateFormat = 'Format de date invalide.';
-const optionalDate = z.string().date(invalidDateFormat).optional();
+const optionalDate = z.iso.date(invalidDateFormat).optional();
 
 const nouvelleTransparenceDtoSchema = z.object({
   name: z
@@ -29,13 +29,13 @@ const nouvelleTransparenceDtoSchema = z.object({
     })
     .trim()
     .min(1, mandatoryField),
-  date: z.string({ message: mandatoryField }).date(invalidDateFormat),
-  formation: z.nativeEnum(Magistrat.Formation, {
+  date: z.iso.date(invalidDateFormat),
+  formation: z.enum(Magistrat.Formation, {
     message: mandatoryField
   }),
   dueDate: optionalDate,
   positionStartDate: optionalDate,
-  observationClosingDate: z.string({ message: mandatoryField }).date(invalidDateFormat),
+  observationClosingDate: z.iso.date(invalidDateFormat),
   file: z
     .instanceof(File, { message: mandatoryField })
     .refine((file) => file.size > 0, {
@@ -46,7 +46,7 @@ const nouvelleTransparenceDtoSchema = z.object({
         const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
         return validTypes.includes(file.type);
       },
-      { message: 'Veuillez importer un fichier au bon format.' }
+      { error: 'Veuillez importer un fichier au bon format.' }
     )
 });
 

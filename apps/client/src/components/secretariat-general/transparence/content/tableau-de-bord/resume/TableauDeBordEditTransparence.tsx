@@ -43,10 +43,10 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
       z.object({
         name: z.string().nonempty(),
         formation: z.enum(Object.values(FormationEnum) as [FormationEnum, ...FormationEnum[]]),
-        date: z.string().date('Format de date invalide'),
-        observationsClosingDate: z.string().date('Format de date invalide'),
-        dueDate: z.string().date('Format de date invalide').nullable(),
-        positionStartDate: z.string().date('Format de date invalide').nullable()
+        date: z.iso.date('Format de date invalide'),
+        observationsClosingDate: z.iso.date('Format de date invalide'),
+        dueDate: z.iso.date('Format de date invalide').nullable(),
+        positionStartDate: z.iso.date('Format de date invalide').nullable()
       })
     ),
     defaultValues: {
