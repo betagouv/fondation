@@ -61,7 +61,9 @@ export class ObservationController {
       nominationFileId,
       magistratId: query.magistratId,
       dateReception: new Date(query.dateReception),
-      files: (body.files ?? []).map((file) => ({ id: file.id })),
+      files: (body.files ?? []).map((file) => ({
+        id: file.id,
+      })),
     });
   }
 
