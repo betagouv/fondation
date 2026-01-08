@@ -31,6 +31,7 @@ export class InternalListMemberSessionsQuery {
         id: session.id,
         isAffected: (session.reporterIds ?? []).length > 0,
         createdAt: session.createdAt.toISOString(),
+        fileCount: Number(session.fileCount ?? 0),
         formation: prismaFormationEnumToFormationEnum(session.formation),
         typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(
           session.typeDeSaisine,
@@ -67,6 +68,7 @@ export class ListedMemberSessionsDto extends createZodDto(
         label: z.string(),
         createdAt: z.iso.datetime(),
         isAffected: z.boolean(),
+        fileCount: z.number(),
         formation: z.enum(Magistrat.Formation),
         typeDeSaisine: z.enum(TypeDeSaisine),
       }),

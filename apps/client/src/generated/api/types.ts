@@ -250,6 +250,7 @@ export type ListedMemberSessionsDto = {
         label: string;
         createdAt: string;
         isAffected: boolean;
+        fileCount: number;
         formation: 'PARQUET' | 'SIEGE';
         typeDeSaisine: 'TRANSPARENCE_GDS';
     }>;

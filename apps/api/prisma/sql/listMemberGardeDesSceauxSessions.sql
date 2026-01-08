@@ -29,6 +29,7 @@ SELECT
   s.created_at AS "createdAt",
   s.formation,
   s.type_de_saisine AS "typeDeSaisine",
+  COUNT(nfr.user_id) FILTER (WHERE nfr.user_id = $1::UUID) AS "fileCount",
   COALESCE(
     ARRAY_AGG(DISTINCT nfr.user_id) FILTER (WHERE nfr.user_id = $1::UUID)::UUID[],
     ARRAY[]::UUID[]
