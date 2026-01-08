@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import { DropdownSelect } from '@/components/shared/DropdownSelect';
 import type { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { useDefineNominationFileOutcomeMutation } from '@queries/nomination-sessions.queries';
-import { DropdownSelect } from '@/components/shared/DropdownSelect';
+import React, { useMemo } from 'react';
 import { NominationFileOutcomeBadge, NominationFileOutcomeShortBadge } from './NominationFileOutcomeBadge';
 
 const nominationFileOutcomeCommentModal = createModal({

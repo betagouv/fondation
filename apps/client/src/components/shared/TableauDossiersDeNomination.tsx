@@ -6,15 +6,19 @@ import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from
 import { useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { PrioriteEnum, type FormationEnum } from '@/types/enums.types';
+import {
+  useAffectNominationFilesReportersMutation,
+  type SessionNominationFile
+} from '@queries/nomination-sessions.queries';
 import {
   AffectationProvider,
   useAffectation,
-  type DossierAffectation,
   type PrioriteValue
 } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { NominationFilesAutoAffectationButton } from '../secretariat-general/transparence/content/tableau-de-bord/actions/NominationFilesAutoAffectationButton';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 import { MagistratModaleProvider } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
@@ -25,20 +29,15 @@ import {
   HEADER_COLUMNS_AFFECTATIONS_DN,
   HEADER_COLUMNS_AFFECTATIONS_DN_EDITION
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
+import { useAlerts } from './alerts/alerts.context';
 import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
-import { PrioriteEnum, type FormationEnum } from '@/types/enums.types';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
   availableRapporteurs?: { userId: string; firstName: string; lastName: string }[];
-  showExportButton?: boolean;
-  ExportComponent?: React.ComponentType<{
-    data: SessionNominationFile[];
-  }>;
   canEdit?: boolean;
-  onSaveAffectations?: (affectations: DossierAffectation[]) => void;
   children?: React.ReactNode[] | React.ReactNode | undefined;
   formation: FormationEnum;
   sessionId: string;
@@ -46,16 +45,15 @@ export interface TableauDossiersDeNominationProps {
 
 const TableauDossiersDeNominationContent = ({
   dossiersDeNomination,
-  showExportButton = false,
   availableRapporteurs,
-  ExportComponent,
   canEdit = false,
-  onSaveAffectations,
   children,
   formation,
   sessionId
 }: TableauDossiersDeNominationProps) => {
+  const alerts = useAlerts();
   const { pathname } = useLocation();
+  const { mutateAsync: saveAffectations } = useAffectNominationFilesReportersMutation();
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
@@ -67,12 +65,21 @@ const TableauDossiersDeNominationContent = ({
     setIsEditing((prev) => !prev);
   };
 
-  const handleSave = () => {
-    if (onSaveAffectations) {
-      const affectations = getAllAffectations();
-      onSaveAffectations(affectations);
-      setIsEditing(false);
-    }
+  const handleSave = async () => {
+    const affectations = getAllAffectations();
+    await saveAffectations(
+      {
+        sessionId,
+        affectations: affectations.map((affectation) => ({
+          reporterIds: affectation.rapporteurIds,
+          nominationFileId: affectation.dossierId,
+          // FIXME: issue with code generation
+          priority: (affectation.priorite ?? null) as PrioriteEnum
+        }))
+      },
+      { onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées' }) }
+    );
+    setIsEditing(false);
   };
 
   const [filters, setFilters] = useQueryStates({
@@ -137,9 +144,9 @@ const TableauDossiersDeNominationContent = ({
           rapporteurs={rapporteurNoms}
         />
         <div className="flex items-center gap-2">
-          {showExportButton && ExportComponent && <ExportComponent data={paginatedData} />}
           {canEdit && (
             <>
+              {isEditing && <NominationFilesAutoAffectationButton sessionId={sessionId} />}
               {isEditing && availableRapporteurs && (
                 <ActionsGroupees availableRapporteurs={availableRapporteurs} />
               )}

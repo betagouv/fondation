@@ -3,13 +3,15 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useCallback, useState } from 'react';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
 
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
   isOpenedByDefault: false
 });
 
-export const ImportAttachmentModal = (props: { onSuccess: () => void; sessionId: string }) => {
+export const ImportAttachmentModal = (props: { sessionId: string }) => {
+  const alerts = useAlerts();
   const title = 'Importer une pièce jointe';
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
@@ -37,7 +39,7 @@ export const ImportAttachmentModal = (props: { onSuccess: () => void; sessionId:
       },
       {
         onSuccess: () => {
-          props.onSuccess();
+          alerts.pushAlert({ severity: 'success', title: 'Données actualisées' });
           setAttachmentFile(null);
           modal.close();
         },
@@ -46,7 +48,7 @@ export const ImportAttachmentModal = (props: { onSuccess: () => void; sessionId:
         }
       }
     );
-  }, [attachmentFile, setAttachmentFile, props, importAttachment]);
+  }, [attachmentFile, setAttachmentFile, props, importAttachment, alerts]);
 
   return (
     <modal.Component
