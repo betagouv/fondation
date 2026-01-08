@@ -6,7 +6,7 @@
 
 import { client } from './client.ts';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.ts';
-import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DetachFilesData, DetachFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses } from './types.ts';
+import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFilesData, DetachFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses } from './types.ts';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -269,5 +269,31 @@ export class reports {
                 ...options.headers
             }
         });
+    }
+}
+
+export class observations {
+    public static createObservation<ThrowOnError extends boolean = false>(options: Options<CreateObservationData, ThrowOnError>) {
+        return (options.client ?? client).post<CreateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/observations/v1/{nominationFileId}',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static listObservations<ThrowOnError extends boolean = false>(options?: Options<ListObservationsData, ThrowOnError>) {
+        return (options?.client ?? client).get<ListObservationsResponses, unknown, ThrowOnError>({ url: '/api/observations/v1', ...options });
+    }
+    
+    public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
+        return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/{observationId}', ...options });
+    }
+    
+    public static searchMagistrats<ThrowOnError extends boolean = false>(options: Options<SearchMagistratsData, ThrowOnError>) {
+        return (options.client ?? client).get<SearchMagistratsResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/magistrats/search', ...options });
     }
 }

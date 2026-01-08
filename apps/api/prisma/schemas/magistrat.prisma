@@ -1,5 +1,3 @@
-/// Table des magistrats importée depuis le flux XML LOLFi
-/// Voir ADR: apps/api/docs/adr-lolfi/magistrat.md
 model Magistrat {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
@@ -7,7 +5,7 @@ model Magistrat {
 
   externalId String @unique @map("external_id")
 
-  civilite      String 
+  civilite      String
   lastName      String  @map("last_name")
   firstName     String  @map("first_name")
   marriedName   String? @map("married_name")
@@ -36,6 +34,8 @@ model Magistrat {
   adminPositionPrev2Date DateTime? @map("admin_position_prev2_date") @db.Date
 
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
+
+  observations Observation[]
 
   @@index([lastName, firstName])
   @@index([usedName])

@@ -95,6 +95,9 @@ export class ListNominationFilesQuery {
               },
             },
           },
+          _count: {
+            select: { observations: true },
+          },
         },
       });
     });
@@ -144,6 +147,7 @@ export class ListNominationFilesQuery {
             lastName,
           }),
         ),
+        observationCount: x._count.observations,
       };
     });
 
@@ -193,6 +197,7 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
+  observationCount: z.number(),
 });
 
 type NominationFileAffectationItem = z.infer<

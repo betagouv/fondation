@@ -119,6 +119,7 @@ export type ListedNominationFileAffectationItem = {
             firstName: string;
             lastName: string;
         }>;
+        observationCount: number;
     }>;
 };
 
@@ -388,6 +389,49 @@ export type UpdateReportDto = {
 
 export type UpdateReportRuleValidationDto = {
     isValidated: boolean;
+};
+
+export type CreateObservationDto = {
+    files?: Array<Blob | File>;
+};
+
+export type CreateObservationResponseDto = {
+    id: string;
+};
+
+export type ListObservationsResponseDto = {
+    observations: Array<{
+        id: string;
+        dateReception: string;
+        magistrat: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            usedName: string;
+        } | null;
+        createdBy: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+        files: Array<{
+            id: string;
+            name: string;
+            signedUrl: string | null;
+        }>;
+        createdAt: string;
+    }>;
+};
+
+export type SearchMagistratsResponseDto = {
+    magistrats: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string;
+        grade: string | null;
+        professionalEmail: string | null;
+    }>;
 };
 
 export type GetFileByFileUrlData = {
@@ -908,3 +952,67 @@ export type UpdateReportRuleValidationResponses = {
 };
 
 export type UpdateReportRuleValidationResponse = UpdateReportRuleValidationResponses[keyof UpdateReportRuleValidationResponses];
+
+export type CreateObservationData = {
+    body: CreateObservationDto;
+    path: {
+        nominationFileId: string;
+    };
+    query: {
+        magistratId: string;
+        dateReception: string;
+    };
+    url: '/api/observations/v1/{nominationFileId}';
+};
+
+export type CreateObservationResponses = {
+    201: CreateObservationResponseDto;
+};
+
+export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
+
+export type ListObservationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        nominationFileId?: string;
+    };
+    url: '/api/observations/v1';
+};
+
+export type ListObservationsResponses = {
+    200: ListObservationsResponseDto;
+};
+
+export type ListObservationsResponse = ListObservationsResponses[keyof ListObservationsResponses];
+
+export type DeleteObservationData = {
+    body?: never;
+    path: {
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/observations/v1/{observationId}';
+};
+
+export type DeleteObservationResponses = {
+    204: void;
+};
+
+export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
+
+export type SearchMagistratsData = {
+    body?: never;
+    path?: never;
+    query: {
+        search: string;
+        limit?: number;
+    };
+    url: '/api/observations/v1/magistrats/search';
+};
+
+export type SearchMagistratsResponses = {
+    200: SearchMagistratsResponseDto;
+};
+
+export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];

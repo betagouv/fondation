@@ -5,6 +5,10 @@ import clsx from 'clsx';
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import {
+  ObservationModalProvider,
+  useObservationModal
+} from '../secretariat-general/transparence/observations/ObservationModalProvider';
 
 import { PrioriteEnum, type FormationEnum } from '@/types/enums.types';
 import {
@@ -54,6 +58,7 @@ const TableauDossiersDeNominationContent = ({
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
+  const { openObservation } = useObservationModal();
 
   const handleEdit = () => {
     if (isEditing) {
@@ -150,7 +155,8 @@ const TableauDossiersDeNominationContent = ({
         formation,
         sessionId,
         data: paginatedData,
-        availableRapporteurs: availableRapporteurs || []
+        availableRapporteurs: availableRapporteurs || [],
+        onAddObservation: openObservation
       })
     : dataRowsDn({ data: paginatedData, formation });
 
@@ -239,7 +245,9 @@ const TableauDossiersDeNominationContent = ({
 export const TableauDossiersDeNomination = (props: TableauDossiersDeNominationProps) => {
   return (
     <AffectationProvider nominationFiles={props.dossiersDeNomination}>
-      <TableauDossiersDeNominationContent {...props} />
+      <ObservationModalProvider>
+        <TableauDossiersDeNominationContent {...props} />
+      </ObservationModalProvider>
     </AffectationProvider>
   );
 };

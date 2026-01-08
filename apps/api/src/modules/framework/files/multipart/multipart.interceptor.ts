@@ -10,14 +10,13 @@ import { Observable } from 'rxjs';
 import z from 'zod';
 
 import { makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
 import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
+import { MultipartFile } from './multipart.file';
 import {
   MulterFile,
   MulterFileSchema,
   MultipartDestinationFactory,
 } from './multipart.types';
-import { MultipartFile } from './multipart.file';
 
 export class MultipartBodyInterceptor implements NestInterceptor {
   private readonly logger = new Logger(MultipartBodyInterceptor.name);
@@ -102,8 +101,22 @@ export async function parseMultipartBody(
 
   const output: any = {};
   for (const key of Object.keys(schema.shape)) {
-    const value = assertIsDefined(multipartShape[key], `Missing "${key}"`);
-    const keySchema = schema.shape[key];
+    let keySchema = schema.shape[key];
+    const value = multipartShape[key];
+
+    const isOptional = keySchema instanceof z.ZodOptional;
+    if (isOptional && value === undefined) {
+      output[key] = undefined;
+      continue;
+    }
+
+    if (isOptional) {
+      keySchema = keySchema.unwrap();
+    }
+
+    if (value === undefined) {
+      throw new Error(`Missing "${key}"`);
+    }
 
     if (isFileArraySchema(keySchema)) {
       output[key] = await toMultipartFileList({
