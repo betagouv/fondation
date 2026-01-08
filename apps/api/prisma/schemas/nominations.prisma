@@ -38,14 +38,27 @@ model NominationFileToReporter {
   @@schema("nominations_context")
 }
 
+enum PrismaNominationFileOutcomeEnum {
+  VALIDATED
+  NON_VALIDATED
+  SUSPENDED
+  REMOVED
+  WITHDRAWN
+
+  @@map("nomination_file_outcome_enum")
+  @@schema("nominations_context")
+}
+
 model DossierDeNomination {
-  id                          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt                   DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
-  sessionId                   String              @map("session_id") @db.Uuid
+  id                          String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt                   DateTime                         @default(now()) @map("created_at") @db.Timestamp(6)
+  sessionId                   String                           @map("session_id") @db.Uuid
   /// @deprecated
-  dossierDeNominationImportId String              @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @map("dossier_de_nomination_import_id") @db.Uuid
+  dossierDeNominationImportId String                           @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @map("dossier_de_nomination_import_id") @db.Uuid
   priorite                    PrismaPrioriteEnum?
-  comment                     String?             @map("comment") @db.Text
+  comment                     String?                          @map("comment") @db.Text
+  outcome                     PrismaNominationFileOutcomeEnum?
+  outcomeComment              String?                          @map("outcome_comment")
 
   /// @deprecated
   content Json @default(dbgenerated("'{}'::JSONB")) @db.JsonB

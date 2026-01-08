@@ -7,6 +7,11 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
+  UnknownNominationFileOutcome,
+  NominationFileOutcomeRequiresComment,
+} from '../domain/nomination-file-outcome';
+import {
+  NominationFilesHaveOutcome,
   NominationSessionAffectationHasUnknownReporter,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
@@ -47,6 +52,36 @@ export class SessionExceptionFilter implements NestInterceptor {
                 validationErrors: err.unknownFileNumbers.map(
                   (fileNumber) => `dossier n°${fileNumber} inconnu`,
                 ),
+              },
+              { cause: err },
+            );
+          }
+
+          if (err instanceof UnknownNominationFileOutcome) {
+            throw new BadRequestException(
+              { validationErrors: [`l'issue fournie n'existe pas`] },
+              { cause: err },
+            );
+          }
+
+          if (err instanceof NominationFileOutcomeRequiresComment) {
+            throw new BadRequestException(
+              {
+                validationErrors: [
+                  `l'issue définie doit obligatoirement être accompagnée d'un commentaire`,
+                ],
+              },
+              { cause: err },
+            );
+          }
+
+          if (err instanceof NominationFilesHaveOutcome) {
+            throw new BadRequestException(
+              {
+                validationErrors:
+                  err.nominationFileIds.length === 1
+                    ? `Le dossier a déjà une issue de renseignée et ne peut pas être modifié`
+                    : `${err.nominationFileIds.length} dossiers ont déjà une issue de renseignée et ne peuvent pas être modifiés`,
               },
               { cause: err },
             );

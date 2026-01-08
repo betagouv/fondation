@@ -42,6 +42,11 @@ import {
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from '../domain/nomination-file-outcome';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class SessionService {
@@ -304,5 +309,30 @@ export class SessionService {
     typeDeSaisine: TypeDeSaisine;
   }): Promise<ListedNominationSessionsDto> {
     return this.listNominationSessionsQuery.handle(query);
+  }
+
+  async defineNominationFileOutcome(command: {
+    sessionId: string;
+    nominationFileId: string;
+    outcome: NominationFileOutcomeEnum | null;
+    comment: string | null;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+
+    const outcome = isDefined(command.outcome)
+      ? NominationFileOutcome.from({
+          outcome: command.outcome,
+          comment: command.comment,
+        })
+      : null;
+
+    session.defineNominationFileOutcome({
+      outcome,
+      nominationFileId: command.nominationFileId,
+    });
+
+    await this.nominationSessionRepository.persist(session);
   }
 }

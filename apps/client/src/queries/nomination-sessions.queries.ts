@@ -7,7 +7,7 @@ import type {
   ListedNominationFileAffectationItem
 } from '@api/types';
 
-import type { FormationEnum, PrioriteEnum } from '@/types/enums.types';
+import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import type { Override } from '@/types/utils.types';
 import { HttpException } from '@/utils/http-exception';
 
@@ -273,3 +273,45 @@ export const useListedGdsNominationSessionsQuery = () =>
     queryKey: sessionKeys.listGdsSessions(),
     queryFn: () => $api.sessions.listSessionsOfTypeGardeDesSceaux().then(({ data = null }) => data)
   });
+
+export function useDefineNominationFileOutcomeMutation(input: {
+  sessionId: string;
+  nominationFileId: string;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ['defineNominationFileOutcomeMutation', input],
+    mutationFn: (props: { outcome: NominationFileOutcomeEnum | null; comment: string | null }) =>
+      $api.sessions.defineNominationFileOutcome({
+        path: { sessionId: input.sessionId, nominationFileId: input.nominationFileId },
+        body: {
+          comment: props.comment,
+          // FIXME: issue with nullable in code generation
+          outcome: props.outcome as NominationFileOutcomeEnum
+        }
+      }),
+
+    onSuccess: (_, { outcome, comment }) =>
+      queryClient.setQueryData(
+        sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+        (old: ListedNominationFileAffectationItem | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old?.items.map((item) =>
+              item.id === input.nominationFileId
+                ? {
+                    ...item,
+                    content: {
+                      ...item.content,
+                      outcome: { value: outcome, comment }
+                    }
+                  }
+                : item
+            )
+          };
+        }
+      )
+  });
+}

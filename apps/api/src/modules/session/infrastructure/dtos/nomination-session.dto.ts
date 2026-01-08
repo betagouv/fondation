@@ -3,6 +3,7 @@ import { Magistrat } from 'shared-models';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import z from 'zod';
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
 const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
   file: z
@@ -61,4 +62,11 @@ export class UploadSessionAttachmentDto extends createZodDto(
 
 export class ListCommentAccessDto extends createZodDto(
   z.object({ comment: z.string().nullable(), userIds: z.array(z.string()) }),
+) {}
+
+export class DefineNominationFileOutcomeDto extends createZodDto(
+  z.object({
+    outcome: z.enum(NominationFileOutcome.enum).nullable(),
+    comment: z.string().trim().nonempty().nullable(),
+  }),
 ) {}

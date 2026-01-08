@@ -3,19 +3,25 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { NominationFile } from './nomination-file';
 import {
+  NominationFileOutcomeDefined,
+  NominationFilesHaveOutcome,
   NominationSession,
   NominationSessionAffectationHasUnknownReporter,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
   NominationSessionCreated,
-  NominationSessionFilePriorityUpdated,
   NominationSessionFileCommentAccessGranted,
+  NominationSessionFilePriorityUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
 } from './nomination-session';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from './nomination-file-outcome';
 
 describe('NominationSession', () => {
   it('should affect reporters to nomination files', () => {
@@ -23,6 +29,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: true },
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.affectNominationFileReporters([
@@ -43,11 +50,30 @@ describe('NominationSession', () => {
     ]);
   });
 
+  it('should throw when trying to affect on files with outcome', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: { id: 'version-id', version: 3, isDraft: true },
+      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+    });
+
+    expect(() =>
+      session.affectNominationFileReporters([
+        {
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: ['reporter-1', 'reporter-2'],
+        },
+      ]),
+    ).toThrow(NominationFilesHaveOutcome);
+  });
+
   it('should create a new version when the version is already published', () => {
     const session = NominationSession.from({
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: false },
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.affectNominationFileReporters([
@@ -81,6 +107,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: true },
       formationMemberIds: new Set(['reporter-1']),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     expect(() =>
@@ -98,6 +125,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: true },
       formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.setNominationFilePriority({
@@ -115,11 +143,28 @@ describe('NominationSession', () => {
     ]);
   });
 
+  it('should throw when defining a priority on a file with outcome', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: { id: 'version-id', version: 3, isDraft: true },
+      formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+    });
+
+    expect(() =>
+      session.setNominationFilePriority({
+        nominationFileId: 'nomination-file-id-1',
+        priority: PrioriteEnum.OUTRE_MER,
+      }),
+    ).toThrow(NominationFilesHaveOutcome);
+  });
+
   it('should unset a nomination file priority', () => {
     const session = NominationSession.from({
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: true },
       formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.setNominationFilePriority({
@@ -142,6 +187,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: true },
       formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -161,6 +207,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: { id: 'version-id', version: 3, isDraft: false },
       formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -174,6 +221,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: null,
       formationMemberIds: new Set(['user-1', 'user-2']),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.grantCommentAccess({
@@ -196,6 +244,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: null,
       formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.grantCommentAccess({
@@ -218,6 +267,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       version: null,
       formationMemberIds: new Set(['user-1']),
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     expect(() =>
@@ -322,6 +372,7 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formationMemberIds: new Set(),
       version: null,
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     session.updateNominationFileObservers({
@@ -342,6 +393,7 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formationMemberIds: new Set(),
       version: null,
+      nominationFileIdsWithOutcome: new Set(),
     });
 
     expect(() =>
@@ -350,5 +402,94 @@ describe('NominationSession', () => {
         nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
       }),
     ).toThrow(new UnknownNominationFiles([1]));
+  });
+
+  it('should throw when updating observers on files with outcome', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+    });
+
+    expect(() =>
+      session.updateNominationFileObservers({
+        nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
+        existingNominationFiles: [
+          { id: 'nomination-file-id-1', fileNumber: 1 },
+        ],
+      }),
+    ).toThrow(NominationFilesHaveOutcome);
+  });
+
+  it('should define the nomination file outcome', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+      nominationFileIdsWithOutcome: new Set(),
+    });
+
+    session.defineNominationFileOutcome({
+      nominationFileId: 'nomination-file-id-1',
+      outcome: NominationFileOutcome.from({
+        outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
+        comment: null,
+      }),
+    });
+
+    const messages = session.messages;
+    expect(messages).toEqual([
+      new NominationFileOutcomeDefined(
+        'nomination-file-id-1',
+        'VALIDATED',
+        null,
+      ),
+    ]);
+  });
+
+  it('should define another nomination file outcome', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+    });
+
+    session.defineNominationFileOutcome({
+      nominationFileId: 'nomination-file-id-1',
+      outcome: NominationFileOutcome.from({
+        outcome: 'WITHDRAWN' satisfies NominationFileOutcomeEnum,
+        comment: null,
+      }),
+    });
+
+    const messages = session.messages;
+    expect(messages).toEqual([
+      new NominationFileOutcomeDefined(
+        'nomination-file-id-1',
+        'WITHDRAWN',
+        null,
+      ),
+    ]);
+  });
+
+  it('should reset the nomination file outcome', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formationMemberIds: new Set(),
+      version: null,
+      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+    });
+
+    session.defineNominationFileOutcome({
+      nominationFileId: 'nomination-file-id-1',
+      outcome: null,
+    });
+
+    const messages = session.messages;
+    expect(messages).toEqual([
+      new NominationFileOutcomeDefined('nomination-file-id-1', null, null),
+    ]);
   });
 });

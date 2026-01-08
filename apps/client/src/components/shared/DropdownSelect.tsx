@@ -1,10 +1,11 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
-import { useState, type FC } from 'react';
+import React, { useState, type FC } from 'react';
 import { DropdownMenu } from './DropdownMenu';
 
 export interface DropdownSelectOption<T extends string = string> {
   value: T;
-  label: string;
+  label: React.ReactNode;
+  selected?: React.ReactNode;
 }
 
 export interface DropdownSelectProps<T extends string = string> {
@@ -15,6 +16,7 @@ export interface DropdownSelectProps<T extends string = string> {
   buttonPriority?: 'primary' | 'secondary' | 'tertiary' | 'tertiary no outline';
   buttonSize?: 'small' | 'medium' | 'large';
   className?: string;
+  disabled?: boolean;
 }
 
 export const DropdownSelect = <T extends string = string>({
@@ -24,7 +26,8 @@ export const DropdownSelect = <T extends string = string>({
   placeholder = 'Sélectionner',
   buttonPriority = 'tertiary no outline',
   buttonSize = 'small',
-  className
+  className,
+  disabled
 }: DropdownSelectProps<T>): ReturnType<FC> => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -38,13 +41,14 @@ export const DropdownSelect = <T extends string = string>({
   const trigger = (
     <div className={className}>
       <Button
+        disabled={disabled}
         priority={buttonPriority}
         size={buttonSize}
         iconId={isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
         iconPosition="right"
         title={placeholder}
       >
-        {selectedOption ? selectedOption.label : placeholder}
+        {selectedOption ? (selectedOption.selected ?? selectedOption.label) : placeholder}
       </Button>
     </div>
   );

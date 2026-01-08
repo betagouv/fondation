@@ -16,6 +16,10 @@ import {
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from '../../domain/nomination-file-outcome';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -78,6 +82,8 @@ export class ListNominationFilesQuery {
           targetedPosition: true,
           targetedGrade: true,
           dueDate: true,
+          outcome: true,
+          outcomeComment: true,
           commentAccess: {
             select: { userId: true },
           },
@@ -119,6 +125,12 @@ export class ListNominationFilesQuery {
           datePriseDeFonctionPosteActuel:
             DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
           informationCarrière: null,
+          outcome: x.outcome
+            ? {
+                comment: x.outcomeComment,
+                value: x.outcome as NominationFileOutcomeEnum,
+              }
+            : null,
         },
         priority: x.priorite
           ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
@@ -160,6 +172,12 @@ const NominationFileContentSchema = z.object({
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
+  outcome: z
+    .object({
+      value: z.enum(NominationFileOutcome.enum),
+      comment: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 const NominationFileAffectationItemSchema = z.object({

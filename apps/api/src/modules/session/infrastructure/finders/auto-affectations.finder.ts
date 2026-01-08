@@ -48,6 +48,7 @@ export class AutoAffectationsFinder {
           dossierDeNominations: {
             select: { id: true, targetedPosition: true, targetedGrade: true },
             where: {
+              outcome: null,
               id: { in: predicate.nominationFileIds as string[] },
               reporterIds: {
                 none: { versionId: version?.id },

@@ -41,6 +41,7 @@ export interface TableauDossiersDeNominationProps {
   onSaveAffectations?: (affectations: DossierAffectation[]) => void;
   children?: React.ReactNode[] | React.ReactNode | undefined;
   formation: FormationEnum;
+  sessionId: string;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -51,7 +52,8 @@ const TableauDossiersDeNominationContent = ({
   canEdit = false,
   onSaveAffectations,
   children,
-  formation
+  formation,
+  sessionId
 }: TableauDossiersDeNominationProps) => {
   const { pathname } = useLocation();
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
@@ -97,7 +99,7 @@ const TableauDossiersDeNominationContent = ({
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
 
   const TABLE_HEADER: ReactNode[] = headerColumns.map((header) => {
-    if (header.field === 'checkbox') {
+    if (header.field === 'checkbox' || header.field === 'content.outcome') {
       return <span key={header.field}>{header.label}</span>;
     }
 
@@ -115,10 +117,12 @@ const TableauDossiersDeNominationContent = ({
 
   const dossierDataRows = isEditing
     ? dataRowsDnEdition({
+        formation,
+        sessionId,
         data: paginatedData,
         availableRapporteurs: availableRapporteurs || []
       })
-    : dataRowsDn({ data: paginatedData });
+    : dataRowsDn({ data: paginatedData, formation });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)

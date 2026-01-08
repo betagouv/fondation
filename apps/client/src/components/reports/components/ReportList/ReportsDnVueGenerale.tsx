@@ -29,7 +29,11 @@ export const ReportsDnVueGenerale = ({ formation, children }: ReportsDnVueGenera
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <TableauDossiersDeNomination dossiersDeNomination={data?.items || []} formation={formation}>
+      <TableauDossiersDeNomination
+        dossiersDeNomination={data?.items || []}
+        formation={formation}
+        sessionId={sessionId!}
+      >
         {children}
       </TableauDossiersDeNomination>
       <TransparencyAttachmentsSection sessionId={sessionId as string} />

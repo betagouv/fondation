@@ -4,7 +4,12 @@ import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
+import { partition } from 'src/utils/iterables';
 import { NominationFile, NominationFileEntity } from './nomination-file';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from './nomination-file-outcome';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -106,6 +111,14 @@ export class NominationSessionUpdated {
   ) {}
 }
 
+export class NominationFileOutcomeDefined {
+  constructor(
+    readonly nominationFileId: string,
+    readonly outcome: NominationFileOutcomeEnum | null,
+    readonly comment: string | null,
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
@@ -117,7 +130,8 @@ type NominationSessionEvent =
   | NominationSessionFilesObserversUpdated
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
-  | NominationSessionUpdated;
+  | NominationSessionUpdated
+  | NominationFileOutcomeDefined;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -152,22 +166,31 @@ export class UnknownNominationFiles extends Error {
   }
 }
 
+export class NominationFilesHaveOutcome extends Error {
+  constructor(readonly nominationFileIds: readonly string[]) {
+    super();
+  }
+}
+
 export class NominationSession {
   private constructor(
     readonly id: string,
     private readonly version: NominationSessionAffectationVersion | null,
     private readonly formationMemberIds: Set<string>,
+    private readonly nominationFileIdsWithOutcome: Set<string>,
   ) {}
 
   static from(props: {
     id: string;
     version: NominationSessionAffectationVersion | null;
     formationMemberIds: Set<string> | null;
+    nominationFileIdsWithOutcome: Set<string> | null;
   }) {
     return new NominationSession(
       props.id,
       props.version,
       props.formationMemberIds ?? new Set<string>(),
+      props.nominationFileIdsWithOutcome ?? new Set<string>(),
     );
   }
 
@@ -178,6 +201,7 @@ export class NominationSession {
       id: makeId('NominationSessionId'),
       version: null,
       formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+      nominationFileIdsWithOutcome: null,
     });
 
     session.#messages.push(
@@ -256,6 +280,10 @@ export class NominationSession {
     nominationFileId: string;
     priority: PrioriteEnum | null;
   }) {
+    if (this.nominationFileHasOutcome(props.nominationFileId)) {
+      throw new NominationFilesHaveOutcome([props.nominationFileId]);
+    }
+
     this.#messages.push(
       new NominationSessionFilePriorityUpdated(
         this.id,
@@ -271,6 +299,18 @@ export class NominationSession {
       reporterIds: readonly string[];
     }[],
   ) {
+    const nominationFileIdsWithOutcome = affectations.filter(
+      ({ nominationFileId }) => this.nominationFileHasOutcome(nominationFileId),
+    );
+
+    if (nominationFileIdsWithOutcome.length > 0) {
+      throw new NominationFilesHaveOutcome(
+        nominationFileIdsWithOutcome.map(
+          ({ nominationFileId }) => nominationFileId,
+        ),
+      );
+    }
+
     let versionId = this.version?.id;
 
     if (this.version && !this.version.isDraft) {
@@ -350,24 +390,37 @@ export class NominationSession {
       command.existingNominationFiles.map((x) => [x.fileNumber, x.id] as const),
     );
 
-    const knownFiles: { id: string; observers: readonly string[] }[] = [];
-    const unknownFileNumbers: number[] = [];
+    const files = command.nominationFiles.map((file) => {
+      const existingId = existingNominationFiles.get(file.fileNumber);
+      return existingId ? { id: existingId, observers: file.observers } : file;
+    });
 
-    for (const file of command.nominationFiles) {
-      const existingFileId = existingNominationFiles.get(file.fileNumber);
-      if (!isDefined(existingFileId)) {
-        unknownFileNumbers.push(file.fileNumber);
-      } else {
-        knownFiles.push({ id: existingFileId, observers: file.observers });
-      }
+    const [knownFiles, unknownFiles] = partition(
+      files,
+      (file): file is { id: string; observers: string[] } =>
+        'id' in file && isDefined(file.id),
+    );
+
+    if (unknownFiles.length > 0) {
+      throw new UnknownNominationFiles(
+        unknownFiles.map(({ fileNumber }) => fileNumber),
+      );
     }
 
-    if (unknownFileNumbers.length > 0) {
-      throw new UnknownNominationFiles(unknownFileNumbers);
+    const [withOutcome, knownFilesWithoutOutcome] = partition(
+      knownFiles,
+      ({ id }) => this.nominationFileHasOutcome(id),
+    );
+
+    if (withOutcome.length > 0) {
+      throw new NominationFilesHaveOutcome(withOutcome.map(({ id }) => id));
     }
 
     this.#messages.push(
-      new NominationSessionFilesObserversUpdated(this.id, knownFiles),
+      new NominationSessionFilesObserversUpdated(
+        this.id,
+        knownFilesWithoutOutcome,
+      ),
     );
   }
 
@@ -392,6 +445,23 @@ export class NominationSession {
     positionStartDate: DateOnly | null;
   }): void {
     this.#messages.push(new NominationSessionUpdated(this.id, command));
+  }
+
+  defineNominationFileOutcome(command: {
+    nominationFileId: string;
+    outcome: NominationFileOutcome | null;
+  }) {
+    this.#messages.push(
+      new NominationFileOutcomeDefined(
+        command.nominationFileId,
+        command.outcome?.outcome ?? null,
+        command.outcome?.comment ?? null,
+      ),
+    );
+  }
+
+  private nominationFileHasOutcome(nominationFileId: string): boolean {
+    return this.nominationFileIdsWithOutcome.has(nominationFileId);
   }
 
   #messages: NominationSessionEvent[] = [];
