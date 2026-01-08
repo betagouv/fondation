@@ -5,6 +5,10 @@ import { PrismaService } from 'src/modules/framework/database';
 import { Observation } from './domain/observation';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 import {
+  GetObservationFileUrlQuery,
+  GetObservationFileUrlResponseDto,
+} from './infrastructure/queries/get-observation-file-url.query';
+import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
@@ -18,6 +22,7 @@ export class ObservationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly observationRepository: ObservationRepository,
+    private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly searchMagistratsQuery: SearchMagistratsQuery,
   ) {}
@@ -76,5 +81,12 @@ export class ObservationService {
     limit?: number;
   }): Promise<SearchMagistratsResponseDto> {
     return this.searchMagistratsQuery.handle(query);
+  }
+
+  getObservationFileUrl(query: {
+    observationId: string;
+    fileId: string;
+  }): Promise<GetObservationFileUrlResponseDto> {
+    return this.getObservationFileUrlQuery.handle(query);
   }
 }

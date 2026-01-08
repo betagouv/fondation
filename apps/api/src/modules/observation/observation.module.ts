@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { ObservationRepository } from './infrastructure/repositories/observation.repository';
+import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
 import { SearchMagistratsQuery } from './infrastructure/queries/search-magistrats.query';
+import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
@@ -12,6 +13,7 @@ import { ObservationService } from './observation.service';
   providers: [
     ObservationRepository,
     ObservationService,
+    GetObservationFileUrlQuery,
     ListObservationsQuery,
     SearchMagistratsQuery,
   ],

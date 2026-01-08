@@ -5,6 +5,7 @@ import { useConfirmation } from '../../../../hooks/useConfirmation.hook';
 import {
   useObservationsQuery,
   useDeleteObservationMutation,
+  useGetObservationFileUrlMutation,
   type Observation
 } from '@queries/observations.queries';
 
@@ -22,7 +23,8 @@ const ObservationCard: FC<{
   nominationFileId: string;
   onDelete: () => void;
 }> = ({ observation, nominationFileId, onDelete }) => {
-  const { mutate: deleteObservation, isPending } = useDeleteObservationMutation();
+  const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
+  const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
   const { waitForConfirmation } = useConfirmation();
 
   const handleDelete = async () => {
@@ -45,6 +47,10 @@ const ObservationCard: FC<{
     deleteObservation({ observationId: observation.id, nominationFileId }, { onSuccess: onDelete });
   };
 
+  const handleFileClick = (fileId: string) => {
+    getFileUrl({ observationId: observation.id, fileId }, { onSuccess: (url) => window.open(url, '_blank') });
+  };
+
   return (
     <div className="rounded border bg-white p-4 shadow-sm">
       <div className="mb-2 flex items-start justify-between">
@@ -61,7 +67,7 @@ const ObservationCard: FC<{
           priority="tertiary no outline"
           size="small"
           title="Supprimer"
-          disabled={isPending}
+          disabled={isDeleting}
           onClick={handleDelete}
         />
       </div>
@@ -71,18 +77,16 @@ const ObservationCard: FC<{
           <div className="mb-2 text-sm font-medium">Pièces jointes:</div>
           <div className="flex flex-wrap gap-2">
             {observation.files.map((file) => (
-              <a
+              <button
                 key={file.id}
-                href={file.signedUrl ?? '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200 ${
-                  !file.signedUrl ? 'pointer-events-none opacity-50' : ''
-                }`}
+                type="button"
+                disabled={isLoadingFile}
+                onClick={() => handleFileClick(file.id)}
+                className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200 disabled:opacity-50"
               >
                 <i className="ri-file-line" />
                 {file.name}
-              </a>
+              </button>
             ))}
           </div>
         </div>

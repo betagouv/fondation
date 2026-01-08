@@ -28,6 +28,7 @@ import {
   ListObservationsQueryDto,
   SearchMagistratsQueryDto,
 } from './infrastructure/dtos/observation.dto';
+import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
 import { SearchMagistratsResponseDto } from './infrastructure/queries/search-magistrats.query';
 import { ObservationService } from './observation.service';
@@ -82,6 +83,22 @@ export class ObservationController {
     }
     return this.observations.listObservations({
       nominationFileId: query.nominationFileId,
+    });
+  }
+
+  @Get('/:observationId/files/:fileId/url')
+  @HasRole()
+  @ZodResponse({
+    type: GetObservationFileUrlResponseDto,
+    status: HttpStatus.OK,
+  })
+  async getObservationFileUrl(
+    @Param('observationId') observationId: string,
+    @Param('fileId') fileId: string,
+  ): Promise<GetObservationFileUrlResponseDto> {
+    return this.observations.getObservationFileUrl({
+      observationId,
+      fileId,
     });
   }
 

@@ -417,10 +417,15 @@ export type ListObservationsResponseDto = {
         files: Array<{
             id: string;
             name: string;
-            signedUrl: string | null;
         }>;
         createdAt: string;
     }>;
+};
+
+export type GetObservationFileUrlResponseDto = {
+    id: string;
+    name: string;
+    url: string;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -985,6 +990,22 @@ export type ListObservationsResponses = {
 };
 
 export type ListObservationsResponse = ListObservationsResponses[keyof ListObservationsResponses];
+
+export type GetObservationFileUrlData = {
+    body?: never;
+    path: {
+        observationId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/observations/v1/{observationId}/files/{fileId}/url';
+};
+
+export type GetObservationFileUrlResponses = {
+    200: GetObservationFileUrlResponseDto;
+};
+
+export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
 
 export type DeleteObservationData = {
     body?: never;

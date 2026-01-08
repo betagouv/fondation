@@ -77,3 +77,15 @@ export function useDeleteObservationMutation() {
     }
   });
 }
+
+export function useGetObservationFileUrlMutation() {
+  return useMutation({
+    mutationFn: async (params: { observationId: string; fileId: string }): Promise<string> => {
+      const { data } = await $api.observations.getObservationFileUrl({
+        path: { observationId: params.observationId, fileId: params.fileId }
+      });
+      if (!data?.url) throw new Error('URL not found');
+      return data.url;
+    }
+  });
+}

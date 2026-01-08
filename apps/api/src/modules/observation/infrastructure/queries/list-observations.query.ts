@@ -3,12 +3,10 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
-  signedUrl: z.string().nullable(),
 });
 
 const ObservationSchema = z.object({
@@ -43,10 +41,7 @@ export class ListObservationsResponseDto extends createZodDto(
 
 @Injectable()
 export class ListObservationsQuery {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly files: Files,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
     nominationFileId: string;
@@ -86,13 +81,6 @@ export class ListObservationsQuery {
       },
     });
 
-    const allFileIds = observations.flatMap((obs) =>
-      obs.files.map(({ file }) => file.id),
-    );
-
-    const fileUrls =
-      allFileIds.length > 0 ? await this.files.getPublicUrls(allFileIds) : {};
-
     return {
       observations: observations.map((obs) => ({
         id: obs.id,
@@ -103,7 +91,6 @@ export class ListObservationsQuery {
         files: obs.files.map(({ file }) => ({
           id: file.id,
           name: file.name,
-          signedUrl: fileUrls[file.id]?.toString() ?? null,
         })),
       })),
     };
