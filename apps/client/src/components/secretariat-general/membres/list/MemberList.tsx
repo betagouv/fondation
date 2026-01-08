@@ -10,9 +10,11 @@ import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import { TableControl } from '../../../shared/TableControl';
+import { MemberListStatCell } from './MemberListStateCell';
 
+const CURRENT_YEAR = new Date().getFullYear();
 export function MemberList() {
-  const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 25 });
+  const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 50 });
   const { data, isLoading } = useMemberListQuery(pagination);
 
   return (
@@ -21,12 +23,13 @@ export function MemberList() {
         <Table
           bordered
           id="members-list"
-          headers={['Formation', 'Nom de famille', 'Prénom', '']}
+          headers={['Formation', 'Nom de famille', 'Prénom', `Stats ${CURRENT_YEAR}`, '']}
           data={
             data?.items.map((member) => [
               <div>{RoleEnumLabels[member.role]}</div>,
               <div className="uppercase">{member.lastName}</div>,
               <div className="capitalize">{member.firstName}</div>,
+              <MemberListStatCell stats={member.stats} />,
               <Button
                 priority="tertiary no outline"
                 iconId="fr-icon-edit-line"

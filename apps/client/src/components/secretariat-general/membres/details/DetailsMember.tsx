@@ -3,6 +3,7 @@ import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
 import { JurisdictionSelector } from './JurisdictionSelector';
+import { DetailsMemberStats } from './DetailsMemberStats';
 
 export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({
@@ -73,6 +74,10 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
               <dd className="text-right font-bold text-gray-300">n/a</dd>
             </div>
           </dl>
+        </section>
+        <section>
+          <h3>Statistiques d'attributions</h3>
+          <DetailsMemberStats stats={props.member.stats} />
         </section>
       </article>
     </div>

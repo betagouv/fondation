@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
-import { UserWhereInput } from 'src/generated/prisma/models';
+import { z } from 'zod';
+
+import { listMembersRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   createPaginatedZodDto,
   paginate,
   Pagination,
 } from 'src/modules/framework/pagination';
-import { z } from 'zod';
 import { formationToMemberRole, isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
@@ -19,25 +20,29 @@ export class ListMembersQuery {
     formation: Magistrat.Formation | undefined;
     search: string | undefined;
   }): Promise<PaginatedMemberListItemDto> {
-    const where = {
-      role: { in: formationToMemberRole(query.formation) },
-      OR: query.search
-        ? [
-            { email: { contains: query.search, mode: 'insensitive' } },
-            { firstName: { contains: query.search, mode: 'insensitive' } },
-            { lastName: { contains: query.search, mode: 'insensitive' } },
-          ]
-        : undefined,
-    } satisfies UserWhereInput;
+    const roles = formationToMemberRole(query.formation);
 
     const [totalCount, items] = await this.prisma.$transaction([
-      this.prisma.user.count({ where }),
-      this.prisma.user.findMany({
-        where,
-        take: query.pagination.limit,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
-        select: { id: true, role: true, firstName: true, lastName: true },
+      this.prisma.user.count({
+        where: {
+          role: { in: roles },
+          OR: query.search
+            ? [
+                { email: { contains: query.search, mode: 'insensitive' } },
+                { firstName: { contains: query.search, mode: 'insensitive' } },
+                { lastName: { contains: query.search, mode: 'insensitive' } },
+              ]
+            : undefined,
+        },
       }),
+      this.prisma.$queryRawTyped(
+        listMembersRawQuery(
+          roles,
+          query.search || null,
+          query.pagination.limit,
+          (query.pagination.page - 1) * query.pagination.limit,
+        ),
+      ),
     ]);
 
     return paginate({
@@ -53,6 +58,13 @@ const MemberListItemDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
+  stats: z.array(
+    z.object({
+      year: z.number().int().gt(1),
+      count: z.number().int().gte(0),
+      targetedGrade: z.enum(Magistrat.Grade),
+    }),
+  ),
 });
 
 export class PaginatedMemberListItemDto extends createPaginatedZodDto(
