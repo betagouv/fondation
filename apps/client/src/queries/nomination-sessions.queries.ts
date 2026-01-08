@@ -134,9 +134,9 @@ export const useCreateNominationSessionFromLodamMutation = () =>
         const { data = null } = await $api.sessions.createSessionFromLodam({
           body: {
             file,
-            form: new Blob([
-              JSON.stringify(form satisfies ImportNominationSessionFromLodamXlsxDto['form'])
-            ]) as any // eslint-disable-line
+            form: new Blob([JSON.stringify(form satisfies ImportNominationSessionFromLodamXlsxDto['form'])], {
+              type: 'application/json'
+            }) as any // eslint-disable-line
           }
         });
         return data;
