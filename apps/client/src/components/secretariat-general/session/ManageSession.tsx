@@ -57,7 +57,7 @@ export const ManageSession = () => {
     currentPageLabel: 'Gérer une session',
     segments: [
       {
-        label: 'Secretariat général',
+        label: 'Secrétariat général',
         to: ROUTE_PATHS.SG.DASHBOARD
       }
     ]

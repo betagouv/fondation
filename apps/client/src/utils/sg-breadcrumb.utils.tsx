@@ -10,7 +10,7 @@ export const getSgBreadCrumb = (path: RoutePathSecretariat): BreadcrumbVM => {
     case ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE: {
       const secretariatGeneralSegments = [
         {
-          label: 'Secretariat général',
+          label: 'Secrétariat général',
           ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
         },
         {
@@ -26,7 +26,7 @@ export const getSgBreadCrumb = (path: RoutePathSecretariat): BreadcrumbVM => {
     case ROUTE_PATHS.SG.DASHBOARD: {
       const secretariatGeneralSegments = [
         {
-          label: 'Secretariat général',
+          label: 'Secrétariat général',
           ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
         }
       ];
