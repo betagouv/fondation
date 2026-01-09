@@ -5,10 +5,7 @@ import clsx from 'clsx';
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import {
-  ObservationModalProvider,
-  useObservationModal
-} from '../secretariat-general/transparence/observations/ObservationModalProvider';
+import { ObservationModalProvider } from '../secretariat-general/transparence/observations/ObservationModalProvider';
 
 import { PrioriteEnum, type FormationEnum } from '@/types/enums.types';
 import {
@@ -16,24 +13,34 @@ import {
   type SessionNominationFile
 } from '@queries/nomination-sessions.queries';
 import { AffectationProvider, useAffectation } from '../../contexts/AffectationDossiersContext';
-import { useTable } from '../../hooks/useTable.hook';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { NominationFilesAutoAffectationButton } from '../secretariat-general/transparence/content/tableau-de-bord/actions/NominationFilesAutoAffectationButton';
 import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 import { MagistratModaleProvider } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 import {
-  applyFilters,
   dataRowsDn,
   dataRowsDnEdition,
   HEADER_COLUMNS_AFFECTATIONS_DN,
   HEADER_COLUMNS_AFFECTATIONS_DN_EDITION
 } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/tableau-affectation-config';
 import { useAlerts } from './alerts/alerts.context';
-import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
 import { HttpException } from '@/utils/http-exception';
+
+export interface ServerPaginationProps {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  sortField: string | null;
+  sortDirection: 'asc' | 'desc';
+  setSort: (field: string) => void;
+  getSortIcon: (field: string) => 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line';
+}
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -42,6 +49,7 @@ export interface TableauDossiersDeNominationProps {
   children?: React.ReactNode[] | React.ReactNode | undefined;
   formation: FormationEnum;
   sessionId: string;
+  serverPagination: ServerPaginationProps;
 }
 
 const TableauDossiersDeNominationContent = ({
@@ -50,7 +58,8 @@ const TableauDossiersDeNominationContent = ({
   canEdit = false,
   children,
   formation,
-  sessionId
+  sessionId,
+  serverPagination
 }: TableauDossiersDeNominationProps) => {
   const alerts = useAlerts();
   const { pathname } = useLocation();
@@ -58,7 +67,6 @@ const TableauDossiersDeNominationContent = ({
   const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
-  const { openObservation } = useObservationModal();
 
   const handleEdit = () => {
     if (isEditing) {
@@ -115,21 +123,7 @@ const TableauDossiersDeNominationContent = ({
     priorite: parseAsArrayOf(parseAsStringEnum(Object.values(PrioriteEnum))).withDefault([])
   });
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable<SessionNominationFile, FiltersState>(dossiersDeNomination, {
-    filters,
-    applyFilters
-  });
+  const { page, limit, totalCount, totalPages, setPage, setLimit, setSort, getSortIcon } = serverPagination;
 
   const headerColumns = isEditing ? HEADER_COLUMNS_AFFECTATIONS_DN_EDITION : HEADER_COLUMNS_AFFECTATIONS_DN;
 
@@ -143,7 +137,7 @@ const TableauDossiersDeNominationContent = ({
         {header.label}
         <SortButton
           iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-          onClick={() => handleSort(header.field)}
+          onClick={() => setSort(header.field)}
           label={header.label}
         />
       </span>
@@ -154,11 +148,10 @@ const TableauDossiersDeNominationContent = ({
     ? dataRowsDnEdition({
         formation,
         sessionId,
-        data: paginatedData,
+        data: dossiersDeNomination,
         availableRapporteurs: availableRapporteurs || [],
-        onAddObservation: openObservation
       })
-    : dataRowsDn({ data: paginatedData, formation });
+    : dataRowsDn({ data: dossiersDeNomination, formation });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)
@@ -206,7 +199,7 @@ const TableauDossiersDeNominationContent = ({
 
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <div className="mb-6">
-          <MagistratModaleProvider nominationFiles={paginatedData} formation={formation}>
+          <MagistratModaleProvider nominationFiles={dossiersDeNomination} formation={formation}>
             <Table
               id="session-affectation-dossier-de-nomination-table"
               className="mb-0"
@@ -215,7 +208,7 @@ const TableauDossiersDeNominationContent = ({
               headers={TABLE_HEADER}
               data={dossierDataRows}
             />
-            {paginatedData.length === 0 ? (
+            {dossiersDeNomination.length === 0 ? (
               <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
                 Aucun résultat ne correspond aux valeurs filtrées
               </p>
@@ -225,13 +218,13 @@ const TableauDossiersDeNominationContent = ({
 
         <div className={clsx('mb-10', cx('fr-container'))}>
           <TableControl
-            onChange={setItemsPerPage}
-            itemsPerPage={itemsPerPage}
-            totalItems={totalItems}
-            displayedItems={displayedItems}
+            onChange={setLimit}
+            itemsPerPage={limit}
+            totalItems={totalCount}
+            displayedItems={dossiersDeNomination.length}
             totalPages={totalPages}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
+            currentPage={page}
+            setCurrentPage={setPage}
             label={
               isSg ? { one: 'proposition', other: 'propositions' } : { one: 'dossier', other: 'dossiers' }
             }

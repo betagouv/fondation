@@ -2,8 +2,8 @@ import './MemberList.css';
 
 import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
-import { useState } from 'react';
 
+import { useServerPagination } from '@/hooks/useServerPagination.hook';
 import { useMemberListQuery } from '@queries/members.queries';
 
 import { RoleEnumLabels } from '@/types/enums.types';
@@ -13,9 +13,14 @@ import { TableControl } from '../../../shared/TableControl';
 import { MemberListStatCell } from './MemberListStateCell';
 
 const CURRENT_YEAR = new Date().getFullYear();
+
 export function MemberList() {
-  const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 50 });
-  const { data, isLoading } = useMemberListQuery(pagination);
+  const { page, limit, setPage, setLimit } = useServerPagination({ defaultLimit: 50 });
+
+  const { data, isLoading } = useMemberListQuery({ page, limit });
+
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / limit);
 
   return (
     <div className="flex flex-col justify-center gap-4">
@@ -45,17 +50,13 @@ export function MemberList() {
 
       <TableControl
         label={{ one: 'membre', other: 'membres' }}
-        currentPage={data?.currentPageIndex ?? 1}
-        itemsPerPage={pagination.limit}
+        currentPage={page}
+        itemsPerPage={limit}
         displayedItems={data?.items.length ?? 0}
-        totalItems={data?.totalCount ?? 0}
-        totalPages={data ? Math.ceil(data.totalCount / pagination.limit) : 1}
-        onChange={(limit) => {
-          setPagination({ limit, page: 1 });
-        }}
-        setCurrentPage={(page: number) => {
-          setPagination((p) => ({ ...p, page }));
-        }}
+        totalItems={totalCount}
+        totalPages={totalPages}
+        onChange={setLimit}
+        setCurrentPage={setPage}
       />
     </div>
   );

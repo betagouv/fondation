@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
+import { Pagination } from 'src/modules/framework/pagination';
 
 import { MembersService } from 'src/modules/members';
 import { DateOnly } from 'src/utils/date-only';
@@ -30,15 +31,16 @@ import {
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
 import {
-  type ListedNominationFileAffectationItem,
+  type PaginatedNominationFileAffectationItem,
   ListNominationFilesQuery,
 } from './queries/list-nomination-files.query';
+import type { NominationFileSortField } from './dtos/nomination-file.dto';
 import {
   type ListedNominationSessionAttachmentDto,
   ListNominationSessionAttachmentsQuery,
 } from './queries/list-nomination-session-attachments.query';
 import {
-  ListedNominationSessionsDto,
+  PaginatedNominationSessionsDto,
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
@@ -120,11 +122,16 @@ export class SessionService {
   async listNominationFiles(query: {
     sessionId: string;
     user: { role: Role; id: string };
+    pagination: Pagination;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<ListedNominationFileAffectationItem> {
+    sort: {
+      field: NominationFileSortField | undefined;
+      direction: 'asc' | 'desc';
+    };
+  }): Promise<PaginatedNominationFileAffectationItem> {
     return this.listNominationFilesQuery.handle(query);
   }
 
@@ -307,7 +314,8 @@ export class SessionService {
 
   listNominationSessions(query: {
     typeDeSaisine: TypeDeSaisine;
-  }): Promise<ListedNominationSessionsDto> {
+    pagination: Pagination;
+  }): Promise<PaginatedNominationSessionsDto> {
     return this.listNominationSessionsQuery.handle(query);
   }
 

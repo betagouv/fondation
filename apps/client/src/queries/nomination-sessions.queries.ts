@@ -4,32 +4,60 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListedNominationFileAffectationItem
+  PaginatedNominationFileAffectationItem
 } from '@api/types';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import type { Override } from '@/types/utils.types';
 import { HttpException } from '@/utils/http-exception';
 
+export type NominationFileSortField =
+  | 'nomMagistrat'
+  | 'numeroDeDossier'
+  | 'dateEcheance'
+  | 'priority'
+  | 'grade'
+  | 'gradeCible';
+
+export interface NominationFilesQueryOptions {
+  sessionId: string;
+  page?: number;
+  limit?: number;
+  sortField?: NominationFileSortField;
+  sortDirection?: 'asc' | 'desc';
+  priorities?: string[];
+  reporterIds?: string[];
+}
+
+export interface SessionsQueryOptions {
+  page?: number;
+  limit?: number;
+}
+
 export const sessionKeys = {
   detailSessionAffectationVersion: (props: { sessionId: string }) =>
     ['sessions', 'detailSessionAffectationVersion', props.sessionId] as const,
-  listSessionNominationFiles: (props: { sessionId: string }) =>
-    ['sessions', 'listSessionNominationFiles', props.sessionId] as const,
+  listSessionNominationFiles: (props: NominationFilesQueryOptions) =>
+    ['sessions', 'listSessionNominationFiles', props] as const,
   detailSession: (props: { sessionId: string | undefined }) =>
     ['sessions', 'detailSession', props.sessionId] as const,
-  listGdsSessions: () => ['sessions', 'listGdsSessions'] as const,
+  listGdsSessions: (props?: SessionsQueryOptions) => ['sessions', 'listGdsSessions', props] as const,
   listSessionAttachments: (props: { sessionId: string }) =>
     ['sessions', 'listSessionAttachments', props.sessionId] as const
 };
 
-type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
-
 const doesQueryKey = {
   matchesAny:
-    (...keys: readonly NominationSessionQueryKey[]) =>
+    (...prefixes: readonly string[][]) =>
     ({ queryKey }: { queryKey: readonly unknown[] }) =>
-      keys.some((key) => queryKey.length === key.length && queryKey.every((x, index) => x === key[index]))
+      prefixes.some((prefix) => prefix.every((segment, index) => queryKey[index] === segment)),
+  matchesSessionNominationFiles:
+    (sessionId: string) =>
+    ({ queryKey }: { queryKey: readonly unknown[] }) =>
+      queryKey[0] === 'sessions' &&
+      queryKey[1] === 'listSessionNominationFiles' &&
+      typeof queryKey[2] === 'object' &&
+      (queryKey[2] as NominationFilesQueryOptions)?.sessionId === sessionId
 } as const;
 
 export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: string) =>
@@ -41,14 +69,22 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
         .then(({ data = null }) => data)
   });
 
-export type SessionNominationFile = ListedNominationFileAffectationItem['items'][number];
-export const useSessionNominationFilesQuery = (options: { sessionId: string }) =>
+export type SessionNominationFile = PaginatedNominationFileAffectationItem['items'][number];
+export const useSessionNominationFilesQuery = (options: NominationFilesQueryOptions) =>
   useQuery({
-    queryKey: sessionKeys.listSessionNominationFiles({ sessionId: options.sessionId }),
+    queryKey: sessionKeys.listSessionNominationFiles(options),
     queryFn: () =>
       $api.sessions
         .listNominationFiles({
-          path: { sessionId: options.sessionId }
+          path: { sessionId: options.sessionId },
+          query: {
+            page: options.page,
+            limit: options.limit,
+            sortField: options.sortField,
+            sortDirection: options.sortDirection,
+            priorities: (options.priorities ?? []) as PrioriteEnum[],
+            reporterIds: options.reporterIds ?? []
+          }
         })
         .then(({ data = null }) => data)
   });
@@ -69,13 +105,14 @@ export function useAffectNominationFilesReportersMutation() {
         body: { items: mutation.affectations as AffectReportersDto['items'] }
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({
-        predicate: doesQueryKey.matchesAny(
-          sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId })
-        )
-      })
+        predicate: doesQueryKey.matchesSessionNominationFiles(sessionId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionAffectationVersion({ sessionId })
+      });
+    }
   });
 }
 
@@ -88,13 +125,14 @@ export function usePublishVersionMutation() {
         path: { sessionId: mutation.sessionId }
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({
-        predicate: doesQueryKey.matchesAny(
-          sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId })
-        )
-      })
+        predicate: doesQueryKey.matchesSessionNominationFiles(sessionId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionAffectationVersion({ sessionId })
+      });
+    }
   });
 }
 
@@ -108,13 +146,14 @@ export function useAutoAffectationMutation() {
         body: { nominationFileIds: mutation.nominationFileIds as string[] }
       }),
 
-    onSuccess: (_data, { sessionId }) =>
+    onSuccess: (_data, { sessionId }) => {
       queryClient.invalidateQueries({
-        predicate: doesQueryKey.matchesAny(
-          sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId })
-        )
-      })
+        predicate: doesQueryKey.matchesSessionNominationFiles(sessionId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionAffectationVersion({ sessionId })
+      });
+    }
   });
 }
 
@@ -172,7 +211,7 @@ export function useUpdateNominationSessionObserversFromLodamMutation() {
     },
     onSuccess: (_data, { sessionId }) =>
       queryClient.invalidateQueries({
-        queryKey: sessionKeys.listSessionNominationFiles({ sessionId })
+        predicate: doesQueryKey.matchesSessionNominationFiles(sessionId)
       })
   });
 }
@@ -268,10 +307,15 @@ export const useDetailedNominationSessionQuery = (input: { sessionId: string | u
         .then(({ data = null }) => data)
   });
 
-export const useListedGdsNominationSessionsQuery = () =>
+export const useListedGdsNominationSessionsQuery = (options?: SessionsQueryOptions) =>
   useQuery({
-    queryKey: sessionKeys.listGdsSessions(),
-    queryFn: () => $api.sessions.listSessionsOfTypeGardeDesSceaux().then(({ data = null }) => data)
+    queryKey: sessionKeys.listGdsSessions(options),
+    queryFn: () =>
+      $api.sessions
+        .listSessionsOfTypeGardeDesSceaux({
+          query: { page: options?.page, limit: options?.limit }
+        })
+        .then(({ data = null }) => data)
   });
 
 export function useDefineNominationFileOutcomeMutation(input: {
@@ -291,27 +335,9 @@ export function useDefineNominationFileOutcomeMutation(input: {
         }
       }),
 
-    onSuccess: (_, { outcome, comment }) =>
-      queryClient.setQueryData(
-        sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
-        (old: ListedNominationFileAffectationItem | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old?.items.map((item) =>
-              item.id === input.nominationFileId
-                ? {
-                    ...item,
-                    content: {
-                      ...item.content,
-                      outcome: { value: outcome, comment }
-                    }
-                  }
-                : item
-            )
-          };
-        }
-      )
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesSessionNominationFiles(input.sessionId)
+      })
   });
 }

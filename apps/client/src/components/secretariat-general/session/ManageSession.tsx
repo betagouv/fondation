@@ -1,12 +1,12 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { TypeDeSaisineLabels } from 'shared-models';
 
-import { useTable } from '../../../hooks/useTable.hook';
+import { useServerPagination } from '@/hooks/useServerPagination.hook';
 import { DateOnly } from '../../../models/date-only.model';
 
 import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
@@ -19,12 +19,12 @@ import { useListedGdsNominationSessionsQuery } from '@queries/nomination-session
 
 import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
-import type { ListedNominationSessionsDto } from '@api/types';
+import type { PaginatedNominationSessionsDto } from '@api/types';
 
 function applySessionFilters(
-  sessions: ListedNominationSessionsDto['items'],
+  sessions: PaginatedNominationSessionsDto['items'],
   filters: SessionFiltersState
-): ListedNominationSessionsDto['items'] {
+): PaginatedNominationSessionsDto['items'] {
   return sessions.filter((session) => {
     if (filters.formations.length > 0) {
       if (!filters.formations.includes(session.formation)) {
@@ -44,7 +44,12 @@ function applySessionFilters(
 
 export const ManageSession = () => {
   const location = useLocation();
-  const { data: sessions } = useListedGdsNominationSessionsQuery();
+
+  const { page, limit, setPage, setLimit, setSort, getSortIcon } = useServerPagination({
+    defaultLimit: 50
+  });
+
+  const { data: sessionsResponse } = useListedGdsNominationSessionsQuery({ page, limit });
 
   const successSessionImportTitle = location.state?.success ?? undefined;
 
@@ -63,22 +68,13 @@ export const ManageSession = () => {
     ]
   };
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable(sessions?.items ?? [], {
-    filters,
-    applyFilters: applySessionFilters,
-    itemsPerPage: 50
-  });
+  const filteredData = useMemo(
+    () => applySessionFilters(sessionsResponse?.items ?? [], filters),
+    [sessionsResponse?.items, filters]
+  );
+
+  const totalCount = sessionsResponse?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / limit);
 
   const HEADERS_COLUMNS = [
     { field: 'typeDeSaisine', label: 'Type de session' },
@@ -90,17 +86,17 @@ export const ManageSession = () => {
   ];
 
   const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
-    <span className="flex items-center gap-1">
+    <span key={header.field} className="flex items-center gap-1">
       {header.label}
       <SortButton
         iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(header.field)}
+        onClick={() => setSort(header.field)}
         label={header.label}
       />
     </span>
   ));
 
-  const sessionRows = (paginatedData || []).map((session) => {
+  const sessionRows = (filteredData || []).map((session) => {
     const href = getSgSessionPath(session.id);
     return [
       TypeDeSaisineLabels[session.typeDeSaisine],
@@ -147,13 +143,13 @@ export const ManageSession = () => {
         ) : null}
       </div>
       <TableControl
-        onChange={setItemsPerPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalItems}
-        displayedItems={displayedItems}
+        onChange={setLimit}
+        itemsPerPage={limit}
+        totalItems={totalCount}
+        displayedItems={filteredData.length}
         totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        currentPage={page}
+        setCurrentPage={setPage}
       />
     </>
   );

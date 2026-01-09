@@ -1,8 +1,9 @@
+import type { FormationEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import type { ReactNode } from 'react';
 import React from 'react';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
 import { DateOnly } from '../../../../models/date-only.model';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
@@ -11,7 +12,6 @@ import { MagistratDnModalLink } from './MagistratDnModale';
 import { NominationFileOutcome } from './NominationFileOutcome';
 import { NominationFileOutcomeSelector } from './NominationFileOutcomeSelector';
 import { ObservantsCell } from './ObservantsCell';
-import type { FormationEnum } from '@/types/enums.types';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.numeroDeDossier', label: 'N°' },
@@ -48,7 +48,6 @@ export const dataRowsDn = (options: {
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
-      onAddObservation: () => {},
       readOnly: true
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
@@ -70,7 +69,6 @@ export const dataRowsDnEdition = (options: {
   formation: FormationEnum;
   sessionId: string;
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
-  onAddObservation: (nominationFileId: string, nominationFileName: string) => void;
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     React.createElement('div', {
@@ -89,7 +87,6 @@ export const dataRowsDnEdition = (options: {
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
-      onAddObservation: options.onAddObservation
     }),
     React.createElement(DropdownPriorite, {
       dossierId: dossier.id,

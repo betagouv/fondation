@@ -21,7 +21,7 @@ export type DetailedUserResponseDto = {
     gender: 'MALE' | 'FEMALE';
 };
 
-export type ListedNominationSessionsDto = {
+export type PaginatedNominationSessionsDto = {
     items: Array<{
         id: string;
         name: string;
@@ -38,6 +38,14 @@ export type ListedNominationSessionsDto = {
         } | null;
         typeDeSaisine: 'TRANSPARENCE_GDS';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
 };
 
 export type ImportNominationSessionFromLodamXlsxDto = {
@@ -68,7 +76,7 @@ export type AffectReportersDto = {
     }>;
 };
 
-export type ListedNominationFileAffectationItem = {
+export type PaginatedNominationFileAffectationItem = {
     items: Array<{
         id: string;
         priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
@@ -121,6 +129,14 @@ export type ListedNominationFileAffectationItem = {
         }>;
         observationCount: number;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
 };
 
 export type FoundAffectationVersion = {
@@ -494,12 +510,15 @@ export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
 export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
     url: '/api/sessions/v2/garde-des-sceaux';
 };
 
 export type ListSessionsOfTypeGardeDesSceauxResponses = {
-    200: ListedNominationSessionsDto;
+    200: PaginatedNominationSessionsDto;
 };
 
 export type ListSessionsOfTypeGardeDesSceauxResponse = ListSessionsOfTypeGardeDesSceauxResponses[keyof ListSessionsOfTypeGardeDesSceauxResponses];
@@ -552,15 +571,19 @@ export type ListNominationFilesData = {
     path: {
         sessionId: string;
     };
-    query?: {
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        reporterIds?: Array<string>;
+    query: {
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+        reporterIds: Array<string>;
+        sortField?: 'nomMagistrat' | 'numeroDeDossier' | 'dateEcheance' | 'priority' | 'grade' | 'gradeCible';
+        sortDirection?: 'asc' | 'desc';
+        page?: number;
+        limit?: number;
     };
     url: '/api/sessions/v2/{sessionId}/files';
 };
 
 export type ListNominationFilesResponses = {
-    200: ListedNominationFileAffectationItem;
+    200: PaginatedNominationFileAffectationItem;
 };
 
 export type ListNominationFilesResponse = ListNominationFilesResponses[keyof ListNominationFilesResponses];

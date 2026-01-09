@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import {
@@ -11,15 +10,21 @@ import {
 
 import { PrismaService } from 'src/modules/framework/database';
 import {
+  createPaginatedZodDto,
+  paginate,
+  Pagination,
+} from 'src/modules/framework/pagination';
+import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from '../../domain/nomination-file-outcome';
+import type { NominationFileSortField } from '../dtos/nomination-file.dto';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -28,43 +33,54 @@ export class ListNominationFilesQuery {
     private readonly versionFinder: AffectationVersionFinder,
   ) {}
 
-  // TODO: paginate, sort, filter...
   async handle(query: {
     sessionId: string;
     user: { id: string; role: Role };
+    pagination: Pagination;
     filters: {
       reporterIds: readonly string[];
       priorities: readonly PrioriteEnum[];
     };
-  }): Promise<ListedNominationFileAffectationItem> {
+    sort: {
+      field: NominationFileSortField | undefined;
+      direction: 'asc' | 'desc';
+    };
+  }): Promise<PaginatedNominationFileAffectationItem> {
     const isSG = query.user.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
-    const files = await this.prisma.$transaction(async (tx) => {
+    const { files, totalCount } = await this.prisma.$transaction(async (tx) => {
       const lastVersion = await this.versionFinder.last({
         tx,
         sessionId: query.sessionId,
       });
 
-      return tx.dossierDeNomination.findMany({
-        orderBy: { number: 'asc' },
-        where: {
-          sessionId: query.sessionId,
-          priorite: {
-            in:
-              query.filters.priorities.length > 0
-                ? query.filters.priorities.map(prioriteEnumToPrismaPrioriteEnum)
-                : undefined,
-          },
-          reporterIds:
-            query.filters.reporterIds.length > 0
-              ? {
-                  some: {
-                    versionId: lastVersion?.id,
-                    userId: { in: query.filters.reporterIds as string[] },
-                  },
-                }
+      const where = {
+        sessionId: query.sessionId,
+        priorite: {
+          in:
+            query.filters.priorities.length > 0
+              ? query.filters.priorities.map(prioriteEnumToPrismaPrioriteEnum)
               : undefined,
         },
+        reporterIds:
+          query.filters.reporterIds.length > 0
+            ? {
+                some: {
+                  versionId: lastVersion?.id,
+                  userId: { in: query.filters.reporterIds as string[] },
+                },
+              }
+            : undefined,
+      };
+
+      const totalCount = await tx.dossierDeNomination.count({ where });
+      const orderBy = this.buildOrderBy(query.sort.field, query.sort.direction);
+
+      const files = await tx.dossierDeNomination.findMany({
+        where,
+        orderBy,
+        take: query.pagination.limit,
+        skip: (query.pagination.page - 1) * query.pagination.limit,
         select: {
           id: true,
           priorite: true,
@@ -100,6 +116,8 @@ export class ListNominationFilesQuery {
           },
         },
       });
+
+      return { files, totalCount };
     });
 
     const items = files.map((x): NominationFileAffectationItem => {
@@ -151,7 +169,26 @@ export class ListNominationFilesQuery {
       };
     });
 
-    return { items };
+    return paginate({ items, totalCount, pagination: query.pagination });
+  }
+
+  private buildOrderBy(
+    field: NominationFileSortField | undefined,
+    direction: 'asc' | 'desc',
+  ): Record<string, 'asc' | 'desc'> {
+    if (!field) return { number: 'asc' };
+
+    const fieldMapping: Record<NominationFileSortField, string> = {
+      nomMagistrat: 'name',
+      numeroDeDossier: 'number',
+      dateEcheance: 'dueDate',
+      priority: 'priorite',
+      grade: 'grade',
+      gradeCible: 'targetedGrade',
+    };
+
+    const dbField = fieldMapping[field];
+    return dbField ? { [dbField]: direction } : { number: 'asc' };
   }
 }
 
@@ -204,6 +241,6 @@ type NominationFileAffectationItem = z.infer<
   typeof NominationFileAffectationItemSchema
 >;
 
-export class ListedNominationFileAffectationItem extends createZodDto(
-  z.object({ items: z.array(NominationFileAffectationItemSchema) }),
+export class PaginatedNominationFileAffectationItem extends createPaginatedZodDto(
+  NominationFileAffectationItemSchema,
 ) {}

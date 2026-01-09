@@ -48,11 +48,16 @@ import {
   UploadSessionAttachmentDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
+import {
+  ApiPaginated,
+  Pagination,
+  QueryPagination,
+} from '../framework/pagination';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
-import { ListedNominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
+import { PaginatedNominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
+import { PaginatedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 
 @ApiTags('Sessions')
 @UseInterceptors(SessionExceptionFilter)
@@ -62,10 +67,14 @@ export class SessionController {
 
   @HasRole()
   @Get('/garde-des-sceaux')
-  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
-  listSessionsOfTypeGardeDesSceaux(): Promise<ListedNominationSessionsDto> {
+  @ApiPaginated()
+  @ZodResponse({ type: PaginatedNominationSessionsDto, status: HttpStatus.OK })
+  listSessionsOfTypeGardeDesSceaux(
+    @QueryPagination() pagination: Pagination,
+  ): Promise<PaginatedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      pagination,
     });
   }
 
@@ -133,22 +142,29 @@ export class SessionController {
 
   @HasRole()
   @Get('/:sessionId/files')
+  @ApiPaginated()
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
-    type: ListedNominationFileAffectationItem,
+    type: PaginatedNominationFileAffectationItem,
     status: HttpStatus.OK,
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { id: string; role: Role },
+    @QueryPagination() pagination: Pagination,
     @Query() query: ListNominationFilesQueryDto,
-  ): Promise<ListedNominationFileAffectationItem> {
+  ): Promise<PaginatedNominationFileAffectationItem> {
     return this.sessions.listNominationFiles({
       user,
       sessionId,
+      pagination,
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
+      },
+      sort: {
+        field: query.sortField,
+        direction: query.sortDirection ?? 'asc',
       },
     });
   }

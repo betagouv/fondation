@@ -14,10 +14,27 @@ export class AffectReportersDto extends createZodDto(
   }),
 ) {}
 
+const SortableNominationFileFields = [
+  'nomMagistrat',
+  'numeroDeDossier',
+  'dateEcheance',
+  'priority',
+  'grade',
+  'gradeCible',
+] as const;
+
+export type NominationFileSortField =
+  (typeof SortableNominationFileFields)[number];
+
+const toArray = <T>(val: T | T[] | undefined): T[] | undefined =>
+  val === undefined ? undefined : Array.isArray(val) ? val : [val];
+
 export class ListNominationFilesQueryDto extends createZodDto(
   z.looseObject({
-    priorities: z.array(z.enum(PrioriteEnum)).optional(),
-    reporterIds: z.array(z.uuid()).optional(),
+    priorities: z.preprocess(toArray, z.array(z.enum(PrioriteEnum)).optional()),
+    reporterIds: z.preprocess(toArray, z.array(z.uuid()).optional()),
+    sortField: z.enum(SortableNominationFileFields).optional(),
+    sortDirection: z.enum(['asc', 'desc']).optional(),
   }),
 ) {}
 
