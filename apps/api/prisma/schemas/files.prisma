@@ -6,10 +6,11 @@ model File {
   storageProvider PrismaStorageProviderEnum @map("storage_provider")
   bucket          String                    @db.VarChar
 
-  transparenceFiles  TransparenceFile[]
-  attachedToReports  ReportFile[]
-  attachedToSessions SessionAttachment[]
-  filePublicUrls     FilePublicUrl[]
+  transparenceFiles      TransparenceFile[]
+  attachedToReports      ReportFile[]
+  attachedToSessions     SessionAttachment[]
+  filePublicUrls         FilePublicUrl[]
+  attachedToObservations ObservationFile[]
 
   @@map("files")
   @@schema("files_context")

@@ -34,6 +34,7 @@ model User {
   reporterOnNominationFileIds NominationFileToReporter[]
   publishedVersions           AffectationVersion[]
   commentAccess               CommentAccess[]
+  createdObservations         Observation[]
 
   @@map("users")
   @@schema("identity_and_access_context")

@@ -1,6 +1,6 @@
 import { DateOnly } from '@/models/date-only.model';
-import type { FormationEnum, GradeEnum } from '@/types/enums.types';
 import type { DateOnlyJson } from '@/types/date-only.types';
+import type { FormationEnum, GradeEnum } from '@/types/enums.types';
 
 export const transparencyToLabel = (transparency: string, dateTransparence: DateOnlyJson) => {
   return 'T ' + DateOnly.fromStoreModel(dateTransparence).toFormattedString() + ` (${transparency})`;

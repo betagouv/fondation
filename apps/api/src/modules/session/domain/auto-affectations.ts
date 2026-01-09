@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
-import { DateOnly } from 'src/utils/date-only';
 import { assertNever } from 'src/utils/assert-never';
+import { DateOnly } from 'src/utils/date-only';
 
 export class AutoAffectations {
   private constructor(
@@ -166,7 +166,6 @@ class NominationFileWorkload {
         return 2;
       case Magistrat.Grade.HH:
         return 3;
-
       case Magistrat.Grade.III: {
         new Logger(AutoAffectations.name).warn(
           `Received grade ${file.grade} for nomination session older than 2025-12-01`,

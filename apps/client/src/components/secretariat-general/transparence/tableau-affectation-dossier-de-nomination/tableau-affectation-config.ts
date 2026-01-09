@@ -10,6 +10,7 @@ import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
 import { NominationFileOutcome } from './NominationFileOutcome';
 import { NominationFileOutcomeSelector } from './NominationFileOutcomeSelector';
+import { ObservantsCell } from './ObservantsCell';
 import type { FormationEnum } from '@/types/enums.types';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN = [
@@ -42,7 +43,14 @@ export const dataRowsDn = (options: {
     dossier.content.grade,
     dossier.content.posteCible,
     dossier.content.gradeCible,
-    dossier.content.observants && dossier.content.observants.length > 0 ? dossier.content.observants : '-',
+    React.createElement(ObservantsCell, {
+      nominationFileId: dossier.id,
+      nominationFileName: dossier.content.nomMagistrat,
+      observants: dossier.content.observants,
+      observationCount: dossier.observationCount,
+      onAddObservation: () => {},
+      readOnly: true
+    }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
     React.createElement(
       'span',
@@ -62,6 +70,7 @@ export const dataRowsDnEdition = (options: {
   formation: FormationEnum;
   sessionId: string;
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
+  onAddObservation: (nominationFileId: string, nominationFileName: string) => void;
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     React.createElement('div', {
@@ -75,7 +84,13 @@ export const dataRowsDnEdition = (options: {
     dossier.content.grade,
     dossier.content.posteCible,
     dossier.content.gradeCible,
-    dossier.content.observants,
+    React.createElement(ObservantsCell, {
+      nominationFileId: dossier.id,
+      nominationFileName: dossier.content.nomMagistrat,
+      observants: dossier.content.observants,
+      observationCount: dossier.observationCount,
+      onAddObservation: options.onAddObservation
+    }),
     React.createElement(DropdownPriorite, {
       dossierId: dossier.id,
       initialPriorite: dossier.priority ?? undefined
