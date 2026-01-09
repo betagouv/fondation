@@ -2,18 +2,15 @@ import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
 export class CreateObservationDto extends createZodDto(
-  z.object({ files: z.array(z.file()).optional() }),
+  z.object({
+    files: z.array(z.file()).optional(),
+    magistratId: z.uuid(),
+    dateReception: z.iso.date(),
+  }),
 ) {}
 
 export class CreateObservationResponseDto extends createZodDto(
   z.object({ id: z.string() }),
-) {}
-
-export class CreateObservationQueryDto extends createZodDto(
-  z.object({
-    magistratId: z.uuid(),
-    dateReception: z.string(),
-  }),
 ) {}
 
 export class ListObservationsQueryDto extends createZodDto(

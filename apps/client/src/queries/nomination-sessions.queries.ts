@@ -14,7 +14,7 @@ import { HttpException } from '@/utils/http-exception';
 export const sessionKeys = {
   detailSessionAffectationVersion: (props: { sessionId: string }) =>
     ['sessions', 'detailSessionAffectationVersion', props.sessionId] as const,
-  listSessionNominationFiles: (props: { sessionId: string }) =>
+  listSessionNominationFiles: (props: { sessionId: string | undefined }) =>
     ['sessions', 'listSessionNominationFiles', props.sessionId] as const,
   detailSession: (props: { sessionId: string | undefined }) =>
     ['sessions', 'detailSession', props.sessionId] as const,

@@ -10,19 +10,18 @@ export type StoredFile = {
   type: FileMimeType;
 };
 
-type FileToStored<T> = T extends z.core.File[]
-  ? StoredFile[]
-  : T extends File
-    ? StoredFile
-    : T;
-
 type ZodMultipart<T> = {
-  [K in keyof T]: FileToStored<T[K]>;
+  [K in keyof T]: NonNullable<T[K]> extends z.core.File[]
+    ? StoredFile[] | Extract<T[K], null | undefined>
+    : NonNullable<T[K]> extends z.core.File
+      ? StoredFile | Extract<T[K], null | undefined>
+      : T[K];
 };
 
 export type Multipart<T extends ZodDto<z.ZodType>> = ZodMultipart<
   z.infer<T['schema']>
 >;
+
 export type MultipartDestinationFactory = (file: {
   id: string;
   mimetype: FileMimeType;

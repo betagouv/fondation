@@ -393,6 +393,8 @@ export type UpdateReportRuleValidationDto = {
 
 export type CreateObservationDto = {
     files?: Array<Blob | File>;
+    magistratId: string;
+    dateReception: string;
 };
 
 export type CreateObservationResponseDto = {
@@ -965,10 +967,7 @@ export type CreateObservationData = {
     path: {
         nominationFileId: string;
     };
-    query: {
-        magistratId: string;
-        dateReception: string;
-    };
+    query?: never;
     url: '/api/observations/v1/{nominationFileId}';
 };
 
