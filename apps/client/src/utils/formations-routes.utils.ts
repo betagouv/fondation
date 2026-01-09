@@ -12,6 +12,6 @@ export class FormationsRoutesMapper {
   }
 
   static toFormation(pathSegment: string): Magistrat.Formation {
-    return z.nativeEnum(Magistrat.Formation).parse(z.string().parse(pathSegment).toUpperCase());
+    return z.enum(Magistrat.Formation).parse(pathSegment.toUpperCase());
   }
 }
