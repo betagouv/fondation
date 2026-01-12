@@ -120,6 +120,11 @@ export type ListedNominationFileAffectationItem = {
             lastName: string;
         }>;
         observationCount: number;
+        observationMagistrats: Array<{
+            id: string;
+            firstName: string;
+            lastName: string;
+        }>;
     }>;
 };
 

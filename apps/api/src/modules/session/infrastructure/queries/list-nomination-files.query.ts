@@ -98,6 +98,13 @@ export class ListNominationFilesQuery {
           _count: {
             select: { observations: true },
           },
+          observations: {
+            select: {
+              magistrat: {
+                select: { id: true, firstName: true, lastName: true },
+              },
+            },
+          },
         },
       });
     });
@@ -148,6 +155,20 @@ export class ListNominationFilesQuery {
           }),
         ),
         observationCount: x._count.observations,
+        observationMagistrats: [
+          ...new Map(
+            x.observations
+              .filter((obs) => obs.magistrat)
+              .map((obs) => [
+                obs.magistrat!.id,
+                {
+                  id: obs.magistrat!.id,
+                  firstName: obs.magistrat!.firstName,
+                  lastName: obs.magistrat!.lastName,
+                },
+              ]),
+          ).values(),
+        ],
       };
     });
 
@@ -198,6 +219,13 @@ const NominationFileAffectationItemSchema = z.object({
     }),
   ),
   observationCount: z.number(),
+  observationMagistrats: z.array(
+    z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+    }),
+  ),
 });
 
 type NominationFileAffectationItem = z.infer<

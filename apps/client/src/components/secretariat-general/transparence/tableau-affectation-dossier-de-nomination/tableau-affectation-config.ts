@@ -44,10 +44,11 @@ export const dataRowsDn = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
-      nominationFileId: dossier.id,
+      id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
+      observationMagistrats: dossier.observationMagistrats,
       readOnly: true
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
@@ -83,10 +84,11 @@ export const dataRowsDnEdition = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
-      nominationFileId: dossier.id,
+      id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
-      observationCount: dossier.observationCount
+      observationCount: dossier.observationCount,
+      observationMagistrats: dossier.observationMagistrats
     }),
     React.createElement(DropdownPriorite, {
       dossierId: dossier.id,

@@ -59,8 +59,8 @@ export function useCreateObservationMutation() {
       return data ?? null;
     },
     onSuccess: (_, { nominationFileId }) => {
-      queryClient.invalidateQueries({ queryKey: observationKeys.observations({ nominationFileId }) });
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
+      queryClient.invalidateQueries({ queryKey: ['observations', nominationFileId] });
+      queryClient.invalidateQueries({ queryKey: ['sessions', 'listSessionNominationFiles'] });
     }
   });
 }
@@ -75,8 +75,8 @@ export function useDeleteObservationMutation() {
       });
     },
     onSuccess: (_, { nominationFileId }) => {
-      queryClient.invalidateQueries({ queryKey: observationKeys.observations({ nominationFileId }) });
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
+      queryClient.invalidateQueries({ queryKey: ['observations', nominationFileId] });
+      queryClient.invalidateQueries({ queryKey: ['sessions', 'listSessionNominationFiles'] });
     }
   });
 }
@@ -105,32 +105,21 @@ export function useUpdateObservationMutation() {
       files?: File[];
       detachFileIds?: string[];
     }): Promise<void> => {
-      const queryParams = new URLSearchParams();
-      queryParams.append('magistratId', mutation.magistratId);
-      queryParams.append('dateReception', mutation.dateReception);
-      if (mutation.detachFileIds) {
-        mutation.detachFileIds.forEach((id) => queryParams.append('detachFileIds', id));
-      }
-
-      const formData = new FormData();
-      if (mutation.files) {
-        mutation.files.forEach((file) => formData.append('files', file));
-      }
-
-      const url = `/api/observations/v1/${mutation.observationId}?${queryParams.toString()}`;
-      const response = await fetch(url, {
-        method: 'PATCH',
-        body: formData,
-        credentials: 'include'
+      await $api.observations.updateObservation({
+        path: { observationId: mutation.observationId },
+        query: {
+          magistratId: mutation.magistratId,
+          dateReception: mutation.dateReception,
+          detachFileIds: mutation.detachFileIds
+        },
+        body: {
+          files: mutation.files
+        }
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update observation: ${response.statusText}`);
-      }
     },
     onSuccess: (_, { nominationFileId }) => {
       queryClient.invalidateQueries({ queryKey: ['observations', nominationFileId] });
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
+      queryClient.invalidateQueries({ queryKey: ['sessions', 'listSessionNominationFiles'] });
     }
   });
 }
