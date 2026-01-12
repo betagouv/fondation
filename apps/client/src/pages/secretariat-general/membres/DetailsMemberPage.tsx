@@ -13,7 +13,13 @@ export function DetailsMemberPage() {
 
   const { data: member, isLoading, isError } = useDetailedMember({ userId });
 
-  if (isLoading) return <p>Chargement...</p>;
+  if (isLoading)
+    return (
+      <PageContentLayout>
+        <p>Chargement...</p>
+      </PageContentLayout>
+    );
+
   if (!userId || isError || !member) {
     return <Navigate replace={true} to={ROUTE_PATHS.SG.MANAGE_MEMBERS} />;
   }

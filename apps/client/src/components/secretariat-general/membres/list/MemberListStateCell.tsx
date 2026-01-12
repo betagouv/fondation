@@ -11,7 +11,7 @@ export function MemberListStatCell({ stats }: { stats: StatArray }) {
     (a, b) => GRADES.indexOf(b.targetedGrade) - GRADES.indexOf(a.targetedGrade) /* desc by grade */
   );
 
-  return stats ? (
+  return (stats?.length ?? 0) > 0 ? (
     <ul className="content m-0 flex list-none flex-row items-center justify-start gap-2 p-0">
       {sortedStats.map((stat) => (
         <li key={`member_list_stats_${stat.targetedGrade}`}>
@@ -23,6 +23,6 @@ export function MemberListStatCell({ stats }: { stats: StatArray }) {
       ))}
     </ul>
   ) : (
-    <span className="text-center">-</span>
+    <span className="pl-3">-</span>
   );
 }

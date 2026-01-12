@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
-import type { FormationEnum } from '@/types/enums.types';
 import { sessionKeys } from './nomination-sessions.queries';
-import type { ListedMemberSessionsDto } from '@api/types';
+import type { ListedMemberSessionsDto, ListMembersData } from '@api/types';
 
 export const memberKeys = {
-  listMembers: (props: { page?: number; limit?: number; formation?: FormationEnum }) =>
+  listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
     ['listMembers', props] as const,
 
   detailsMember: (props: { userId: string | undefined }) => ['detailsMember', props.userId] as const,
@@ -19,16 +18,43 @@ export const memberKeys = {
 };
 
 export const useMemberListQuery = (
-  options: { page?: number; limit?: number; formation?: FormationEnum } = {}
+  options: {
+    search?: string;
+    formations?: NonNullable<ListMembersData['query']>['formations'];
+    sorting?: { id: string; desc: boolean }[];
+    pagination?: { pageIndex: number; pageSize: number };
+  } = {}
 ) =>
   useQuery({
+    placeholderData: (prev) => prev,
     queryKey: memberKeys.listMembers(options),
-    queryFn: () =>
-      $api.members
+    queryFn: () => {
+      let page, limit;
+      if (options.pagination) {
+        page = options.pagination.pageIndex + 1;
+        limit = options.pagination.pageSize;
+      }
+
+      let sortBy: 'firstName' | 'lastName' | undefined, sortDirection: 'desc' | undefined;
+      if (options.sorting) {
+        const [{ id = undefined, desc = undefined } = {}] = options.sorting;
+        sortBy = id === 'lastName' ? 'lastName' : id === 'firstName' ? 'firstName' : undefined;
+        sortDirection = desc ? 'desc' : undefined;
+      }
+
+      return $api.members
         .listMembers({
-          query: { formation: options.formation, page: options.page, limit: options.limit }
+          query: {
+            page,
+            limit,
+            sortBy,
+            sortDirection,
+            formations: options.formations,
+            search: options.search?.trim() || undefined
+          }
         })
-        .then(({ data }) => data ?? null)
+        .then(({ data }) => data ?? null);
+    }
   });
 
 export const useDetailedMember = (options: { userId: string | undefined }) =>

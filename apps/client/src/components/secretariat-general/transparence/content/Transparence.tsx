@@ -32,7 +32,7 @@ export const Transparence: FC = () => {
     currentPageLabel: transparence.name,
     segments: [
       {
-        label: 'Secretariat général',
+        label: 'Secrétariat général',
         to: ROUTE_PATHS.SG.DASHBOARD
       },
       {

@@ -50,8 +50,10 @@ export class MembersController {
   ): Promise<PaginatedMemberListItemDto> {
     return this.members.listMembers({
       pagination,
-      formation: query.formation,
+      formations: query.formations,
       search: query.search,
+      sortBy: query.sortBy,
+      sortDirection: query.sortDirection,
     });
   }
 

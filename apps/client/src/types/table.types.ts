@@ -1,11 +1,6 @@
 export type SortDirection = 'asc' | 'desc' | null;
 
-export type Items = {
-  value: number;
-  label: string;
-};
-
-export const ITEMS_PAR_PAGE: Items[] = [
+export const ITEMS_PAR_PAGE = [
   {
     value: 50,
     label: '50 lignes par page'
@@ -22,4 +17,4 @@ export const ITEMS_PAR_PAGE: Items[] = [
     value: 200,
     label: '200 lignes par page'
   }
-];
+] as const;
