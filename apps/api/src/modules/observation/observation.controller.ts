@@ -23,7 +23,6 @@ import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreateObservationDto,
-  CreateObservationQueryDto,
   CreateObservationResponseDto,
   ListObservationsQueryDto,
   SearchMagistratsQueryDto,
@@ -51,17 +50,15 @@ export class ObservationController {
     status: HttpStatus.CREATED,
   })
   async createObservation(
-    @Param('nominationFileId') nominationFileId: string,
-    @Query() query: CreateObservationQueryDto,
-    @Body()
-    body: Multipart<typeof CreateObservationDto>,
     @AuthedUserId() userId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
       userId,
       nominationFileId,
-      magistratId: query.magistratId,
-      dateReception: new Date(query.dateReception),
+      magistratId: body.magistratId,
+      dateReception: new Date(body.dateReception),
       files: (body.files ?? []).map((file) => ({
         id: file.id,
       })),

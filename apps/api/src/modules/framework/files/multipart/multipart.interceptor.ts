@@ -8,6 +8,7 @@ import {
 import type { Request as ExpressRequest } from 'express';
 import { Observable } from 'rxjs';
 import z from 'zod';
+import type { $ZodType } from 'zod/v4/core';
 
 import { makeId } from 'src/utils/id';
 import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
@@ -17,6 +18,7 @@ import {
   MulterFileSchema,
   MultipartDestinationFactory,
 } from './multipart.types';
+import { isDefined } from 'src/utils/is-defined';
 
 export class MultipartBodyInterceptor implements NestInterceptor {
   private readonly logger = new Logger(MultipartBodyInterceptor.name);
@@ -94,29 +96,15 @@ export async function parseMultipartBody(
       }
       return output;
     },
-    {} as Record<string, MulterFile | MulterFile[]>,
+    { ...request.body } as Record<string, MulterFile | MulterFile[]>,
   );
 
   if (!schema) return multipartShape;
 
   const output: any = {};
   for (const key of Object.keys(schema.shape)) {
-    let keySchema = schema.shape[key];
+    const keySchema = schema.shape[key];
     const value = multipartShape[key];
-
-    const isOptional = keySchema instanceof z.ZodOptional;
-    if (isOptional && value === undefined) {
-      output[key] = undefined;
-      continue;
-    }
-
-    if (isOptional) {
-      keySchema = keySchema.unwrap();
-    }
-
-    if (value === undefined) {
-      throw new Error(`Missing "${key}"`);
-    }
 
     if (isFileArraySchema(keySchema)) {
       output[key] = await toMultipartFileList({
@@ -133,19 +121,48 @@ export async function parseMultipartBody(
         schema: keySchema,
       });
     } else {
-      output[key] = await keySchema.parseAsync(parseTextualData(value));
+      output[key] = await keySchema.parseAsync(
+        isMulterFile(value) ? parseTextualData(value) : value,
+      );
     }
   }
 
   return output;
 }
 
-function isFileSchema(schema: z.ZodType): schema is z.ZodFile {
+type ZodOptionalSchema<T extends z.ZodType> =
+  | T
+  | z.ZodOptional<T>
+  | z.ZodNullable<T>
+  | z.ZodOptional<z.ZodNullable<T>>;
+
+type FileSchema = ZodOptionalSchema<z.ZodFile>;
+function isFileSchema(schema: z.ZodType | $ZodType): schema is FileSchema {
+  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
+    return isFileSchema(schema.unwrap());
+  }
+
   return schema instanceof z.ZodFile;
 }
 
-function isFileArraySchema(schema: z.ZodType): schema is z.ZodArray<z.ZodFile> {
+type FileListSchema = ZodOptionalSchema<z.ZodArray<z.ZodFile>>;
+function isFileArraySchema(
+  schema: z.ZodType | $ZodType,
+): schema is FileListSchema {
+  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
+    return isFileArraySchema(schema.unwrap());
+  }
+
   return schema instanceof z.ZodArray && schema.element instanceof z.ZodFile;
+}
+
+function isMulterFile(file: unknown): file is MulterFile | MulterFile[] {
+  const isSingleFile = (x: unknown): x is MulterFile =>
+    typeof x === 'object' && x !== null && 'buffer' in x;
+
+  return Array.isArray(file)
+    ? file.length === 0 || isSingleFile(file[0])
+    : isSingleFile(file);
 }
 
 function parseTextualData(file: MulterFile | MulterFile[]): unknown {
@@ -170,13 +187,18 @@ function parseTextualData(file: MulterFile | MulterFile[]): unknown {
 }
 
 async function toMultipartFile(props: {
-  file: MulterFile | MulterFile[];
-  schema: z.ZodFile;
+  file: MulterFile | MulterFile[] | undefined | null;
+  schema: FileSchema;
   request: ExpressRequest;
   destination: MultipartDestinationFactory;
   deleteOnFail: boolean;
   overrideFiles: boolean;
-}): Promise<MultipartFile> {
+}): Promise<MultipartFile | null | undefined> {
+  if (!isDefined(props.file)) {
+    await props.schema.parseAsync(props.file);
+    return props.file;
+  }
+
   if (Array.isArray(props.file)) throw new BadRequestException();
 
   const id = makeId('FileId');
@@ -206,15 +228,24 @@ async function toMultipartFile(props: {
 }
 
 async function toMultipartFileList(props: {
-  files: MulterFile[] | MulterFile;
-  schema: z.ZodArray<z.ZodFile>;
+  files: MulterFile[] | MulterFile | null | undefined;
+  schema: FileListSchema;
   request: ExpressRequest;
   destination: MultipartDestinationFactory;
   deleteOnFail: boolean;
   overrideFiles: boolean;
-}): Promise<MultipartFile[]> {
-  const { destination, deleteOnFail, overrideFiles } = props;
+}): Promise<MultipartFile[] | null | undefined> {
+  if (!isDefined(props.files)) {
+    await props.schema.parseAsync(props.files);
+    return props.files;
+  }
 
+  let schema = props.schema;
+  while (!(schema instanceof z.ZodArray)) {
+    schema = schema.unwrap();
+  }
+
+  const { destination, deleteOnFail, overrideFiles } = props;
   const multipartFiles = await Promise.all(
     ([] as MulterFile[]).concat(props.files).map((file) =>
       toMultipartFile({
@@ -223,11 +254,11 @@ async function toMultipartFileList(props: {
         destination,
         overrideFiles,
         request: props.request,
-        schema: props.schema.element,
+        schema: schema.element,
       }),
     ),
   );
-  await props.schema.parseAsync(multipartFiles);
 
-  return multipartFiles;
+  await props.schema.parseAsync(multipartFiles);
+  return multipartFiles.filter(isDefined);
 }
