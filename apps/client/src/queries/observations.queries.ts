@@ -107,12 +107,10 @@ export function useUpdateObservationMutation() {
     }): Promise<void> => {
       await $api.observations.updateObservation({
         path: { observationId: mutation.observationId },
-        query: {
+        body: {
           magistratId: mutation.magistratId,
           dateReception: mutation.dateReception,
-          detachFileIds: mutation.detachFileIds
-        },
-        body: {
+          detachFileIds: mutation.detachFileIds,
           files: mutation.files
         }
       });

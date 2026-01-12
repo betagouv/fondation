@@ -28,7 +28,6 @@ import {
   ListObservationsQueryDto,
   SearchMagistratsQueryDto,
   UpdateObservationDto,
-  UpdateObservationQueryDto,
 } from './infrastructure/dtos/observation.dto';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
@@ -126,15 +125,14 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
     @Param('observationId') observationId: string,
-    @Query() query: UpdateObservationQueryDto,
     @Body() body: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
     await this.observations.updateObservation({
       observationId,
-      dateReception: new Date(query.dateReception),
-      magistratId: query.magistratId,
+      dateReception: new Date(body.dateReception),
+      magistratId: body.magistratId,
       filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
-      fileIdsToDetach: query.detachFileIds ?? [],
+      fileIdsToDetach: body.detachFileIds ?? [],
     });
   }
 

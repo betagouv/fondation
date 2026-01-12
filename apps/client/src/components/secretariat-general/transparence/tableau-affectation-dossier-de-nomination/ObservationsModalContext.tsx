@@ -198,7 +198,11 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
       >
         {activeFile &&
           (modalMode === 'view' ? (
-            <ObservationsList nominationFileId={activeFile.id} onEdit={handleEdit} onRequestDelete={requestDelete} />
+            <ObservationsList
+              nominationFileId={activeFile.id}
+              onEdit={handleEdit}
+              onRequestDelete={requestDelete}
+            />
           ) : modalMode === 'confirm-delete' && deletingObservation ? (
             <p>
               Êtes-vous sûr de vouloir supprimer cette observation du{' '}

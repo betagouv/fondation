@@ -39,20 +39,20 @@ const ObservationCard: FC<{
           )}
         </div>
         <div className="flex gap-1">
-            <Button
-              iconId="ri-edit-line"
-              priority="tertiary no outline"
-              size="small"
-              title="Éditer"
-              onClick={() => onEdit(observation)}
-            />
-            <Button
-              iconId="ri-delete-bin-line"
-              priority="tertiary no outline"
-              size="small"
-              title="Supprimer"
-              onClick={() => onRequestDelete(observation)}
-            />
+          <Button
+            iconId="ri-edit-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Éditer"
+            onClick={() => onEdit(observation)}
+          />
+          <Button
+            iconId="ri-delete-bin-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Supprimer"
+            onClick={() => onRequestDelete(observation)}
+          />
         </div>
       </div>
 

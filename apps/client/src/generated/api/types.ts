@@ -437,6 +437,9 @@ export type GetObservationFileUrlResponseDto = {
 
 export type UpdateObservationDto = {
     files?: Array<Blob | File>;
+    magistratId: string;
+    dateReception: string;
+    detachFileIds?: Array<string>;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -1037,11 +1040,7 @@ export type UpdateObservationData = {
     path: {
         observationId: string;
     };
-    query: {
-        magistratId: string;
-        dateReception: string;
-        detachFileIds?: string | Array<string>;
-    };
+    query?: never;
     url: '/api/observations/v1/{observationId}';
 };
 

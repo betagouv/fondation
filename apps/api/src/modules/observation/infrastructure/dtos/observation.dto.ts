@@ -27,16 +27,10 @@ export class SearchMagistratsQueryDto extends createZodDto(
 ) {}
 
 export class UpdateObservationDto extends createZodDto(
-  z.object({ files: z.array(z.file()).optional() }),
-) {}
-
-export class UpdateObservationQueryDto extends createZodDto(
   z.object({
+    files: z.array(z.file()).optional(),
     magistratId: z.uuid(),
-    dateReception: z.string(),
-    detachFileIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((x) => ([] as string[]).concat(x))
-      .optional(),
+    dateReception: z.iso.date(),
+    detachFileIds: z.array(z.string()).optional(),
   }),
 ) {}
