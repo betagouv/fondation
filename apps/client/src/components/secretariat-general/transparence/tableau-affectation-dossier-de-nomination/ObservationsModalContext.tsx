@@ -1,6 +1,6 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { type Observation } from '@queries/observations.queries';
+import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
 import {
   createContext,
   useContext,
@@ -15,10 +15,11 @@ import { ObservationForm } from '../observations/ObservationForm';
 import { ObservationsList } from '../observations/ObservationsList';
 
 type ActiveFile = { id: string; name: string } | null;
-type ModalMode = 'view' | 'create' | 'edit';
+type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
 
 type ObservationsModalContextType = {
   open: (file: { id: string; name: string }, mode?: ModalMode) => void;
+  requestDelete: (observation: Observation) => void;
 };
 
 const ObservationsModalContext = createContext<ObservationsModalContextType | null>(null);
@@ -28,16 +29,28 @@ const modalObservations = createModal({
   isOpenedByDefault: false
 });
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
 export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) => {
   const [activeFile, setActiveFile] = useState<ActiveFile>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('view');
   const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
+  const [deletingObservation, setDeletingObservation] = useState<Observation | null>(null);
   const modalRef = useRef<HTMLDialogElement | null>(null);
+  const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
 
   const isOpen = useIsModalOpen(modalObservations, {
     onConceal() {
       setModalMode('view');
       setEditingObservation(null);
+      setDeletingObservation(null);
       setActiveFile(null);
     }
   });
@@ -73,17 +86,41 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
     setEditingObservation(null);
   };
 
+  const requestDelete = (observation: Observation) => {
+    setDeletingObservation(observation);
+    setModalMode('confirm-delete');
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingObservation || !activeFile) return;
+    deleteObservation(
+      { observationId: deletingObservation.id, nominationFileId: activeFile.id },
+      {
+        onSuccess: () => {
+          setDeletingObservation(null);
+          setModalMode('view');
+        }
+      }
+    );
+  };
+
+  const handleCancelDelete = () => {
+    setDeletingObservation(null);
+    setModalMode('view');
+  };
+
   const title = useMemo(() => {
     if (!activeFile) return '';
     if (modalMode === 'view') return `Observations - ${activeFile.name}`;
     if (modalMode === 'create') return `Nouvelle observation - ${activeFile.name}`;
+    if (modalMode === 'confirm-delete') return "Supprimer l'observation";
     return `Éditer l'observation - ${activeFile.name}`;
   }, [modalMode, activeFile]);
 
   const modalProps = { ref: modalRef };
 
   return (
-    <ObservationsModalContext.Provider value={{ open }}>
+    <ObservationsModalContext.Provider value={{ open, requestDelete }}>
       {children}
 
       <modalObservations.Component
@@ -122,28 +159,51 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                     }
                   }
                 ]
-              : [
-                  {
-                    doClosesModal: false,
-                    priority: 'secondary' as const,
-                    children: 'Retour',
-                    onClick: handleBackToView
-                  },
-                  {
-                    doClosesModal: false,
-                    priority: 'primary' as const,
-                    children: 'Enregistrer',
-                    nativeButtonProps: {
-                      type: 'submit',
-                      form: 'observation-form'
+              : modalMode === 'confirm-delete'
+                ? [
+                    {
+                      doClosesModal: false,
+                      priority: 'secondary' as const,
+                      children: 'Annuler',
+                      onClick: handleCancelDelete
+                    },
+                    {
+                      doClosesModal: false,
+                      priority: 'primary' as const,
+                      children: 'Supprimer',
+                      onClick: handleConfirmDelete,
+                      nativeButtonProps: {
+                        disabled: isDeleting
+                      }
                     }
-                  }
-                ]
+                  ]
+                : [
+                    {
+                      doClosesModal: false,
+                      priority: 'secondary' as const,
+                      children: 'Retour',
+                      onClick: handleBackToView
+                    },
+                    {
+                      doClosesModal: false,
+                      priority: 'primary' as const,
+                      children: 'Enregistrer',
+                      nativeButtonProps: {
+                        type: 'submit',
+                        form: 'observation-form'
+                      }
+                    }
+                  ]
         }
       >
         {activeFile &&
           (modalMode === 'view' ? (
-            <ObservationsList nominationFileId={activeFile.id} onEdit={handleEdit} />
+            <ObservationsList nominationFileId={activeFile.id} onEdit={handleEdit} onRequestDelete={requestDelete} />
+          ) : modalMode === 'confirm-delete' && deletingObservation ? (
+            <p>
+              Êtes-vous sûr de vouloir supprimer cette observation du{' '}
+              <strong>{formatDate(deletingObservation.dateReception)}</strong> ?
+            </p>
           ) : (
             <ObservationForm
               nominationFileId={activeFile.id}
