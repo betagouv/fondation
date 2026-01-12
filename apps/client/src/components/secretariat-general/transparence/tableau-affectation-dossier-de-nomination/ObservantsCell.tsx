@@ -10,7 +10,6 @@ export const ObservantsCell: FC<{
   nominationFileName: string;
   observants: string[] | null;
   observationCount: number;
-  onAddObservation: (nominationFileId: string, nominationFileName: string) => void;
   readOnly?: boolean;
 }> = ({ nominationFileId, nominationFileName, observants, observationCount, readOnly = false }) => {
   const observationsModal = useMemoModal(

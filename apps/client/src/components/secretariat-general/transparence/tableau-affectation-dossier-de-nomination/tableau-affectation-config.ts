@@ -48,7 +48,6 @@ export const dataRowsDn = (options: {
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
-      onAddObservation: () => {},
       readOnly: true
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
@@ -70,7 +69,6 @@ export const dataRowsDnEdition = (options: {
   formation: FormationEnum;
   sessionId: string;
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
-  onAddObservation: (nominationFileId: string, nominationFileName: string) => void;
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     React.createElement('div', {
@@ -88,8 +86,7 @@ export const dataRowsDnEdition = (options: {
       nominationFileId: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
-      observationCount: dossier.observationCount,
-      onAddObservation: options.onAddObservation
+      observationCount: dossier.observationCount
     }),
     React.createElement(DropdownPriorite, {
       dossierId: dossier.id,
