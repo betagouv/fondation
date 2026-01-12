@@ -771,7 +771,9 @@ export type ListMembersData = {
     path?: never;
     query?: {
         search?: string;
-        formation?: 'PARQUET' | 'SIEGE';
+        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        sortBy?: 'firstName' | 'lastName';
+        sortDirection?: 'asc' | 'desc';
         page?: number;
         limit?: number;
     };

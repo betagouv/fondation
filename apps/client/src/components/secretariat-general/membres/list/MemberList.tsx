@@ -1,62 +1,118 @@
-import './MemberList.css';
-
 import Button from '@codegouvfr/react-dsfr/Button';
-import Table from '@codegouvfr/react-dsfr/Table';
-import { useState } from 'react';
+import { createColumnHelper } from '@tanstack/react-table';
 
 import { useMemberListQuery } from '@queries/members.queries';
+import type { PaginatedMemberListItemDto } from '@api/types';
 
+import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import { TableControl } from '../../../shared/TableControl';
 import { MemberListStatCell } from './MemberListStateCell';
 
-const CURRENT_YEAR = new Date().getFullYear();
+const h = createColumnHelper<PaginatedMemberListItemDto['items'][number]>();
+const columns = [
+  h.accessor('role', {
+    id: 'formation',
+    enableSorting: false,
+    header: 'Formation',
+    cell: ({ cell }) => RoleEnumLabels[cell.getValue()],
+    meta: {
+      filters: {
+        type: 'enum',
+        filterId: 'formation',
+        label: 'Formation',
+        values: [
+          { id: 'COMMUN', label: 'Commun' },
+          { id: 'PARQUET', label: 'Parquet' },
+          { id: 'SIEGE', label: 'Siège' }
+        ]
+      }
+    }
+  }),
+
+  h.accessor('lastName', {
+    id: 'lastName',
+    enableSorting: true,
+    enableHiding: false,
+    header: 'Nom de famille',
+    cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
+  }),
+
+  h.accessor('firstName', {
+    id: 'firstName',
+    enableSorting: true,
+    enableHiding: false,
+    header: 'Prénom',
+    cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>
+  }),
+
+  h.accessor('stats', {
+    id: 'stats',
+    enableSorting: false,
+    header: () => {
+      const currentYear = new Date().getFullYear();
+      return `Stats ${currentYear}`;
+    },
+    cell: ({ cell }) => <MemberListStatCell stats={cell.getValue()} />
+  }),
+
+  h.display({
+    id: 'edit',
+    enableSorting: false,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <Button
+        priority="tertiary no outline"
+        iconId="fr-icon-edit-line"
+        title={`Éditer ${capitalize(row.original.firstName)} ${row.original.lastName.toUpperCase()}`}
+        linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', row.original.id) }}
+      />
+    )
+  })
+];
+
 export function MemberList() {
-  const [pagination, setPagination] = useState<{ limit: number; page: number }>({ page: 1, limit: 50 });
-  const { data, isLoading } = useMemberListQuery(pagination);
+  const [tableState, setTableState] = useQueryDataTableState({
+    pagination: { pageIndex: 0, pageSize: 50 },
+    columnFilters: [] as { id: 'formation'; value: ('COMMUN' | 'PARQUET' | 'SIEGE')[] }[],
+    sorting: [] as [{ id: 'lastName' | 'firstName'; desc: boolean }] | [],
+    globalFilter: ''
+  });
+
+  const formations = (tableState.columnFilters ?? []).find(({ id }) => id === 'formation')?.value;
+
+  const { data, isLoading } = useMemberListQuery({
+    formations,
+    sorting: tableState.sorting,
+    pagination: tableState.pagination,
+    search: tableState.globalFilter ?? ''
+  });
+
+  const table = useDataTable({
+    columns,
+    data: data?.items,
+    getRowId: (row) => row.id,
+    rowCount: data?.totalCount,
+    meta: { paginationItemLabel: { one: 'membre', other: 'membres' } },
+    state: tableState,
+    onStateChange: setTableState,
+
+    enableGlobalFilter: true
+  });
 
   return (
     <div className="flex flex-col justify-center gap-4">
       <div className="flex flex-col gap-4 lg:mx-auto lg:w-[80%]">
-        <Table
-          bordered
-          id="members-list"
-          headers={['Formation', 'Nom de famille', 'Prénom', `Stats ${CURRENT_YEAR}`, '']}
-          data={
-            data?.items.map((member) => [
-              <div>{RoleEnumLabels[member.role]}</div>,
-              <div className="uppercase">{member.lastName}</div>,
-              <div className="capitalize">{member.firstName}</div>,
-              <MemberListStatCell stats={member.stats} />,
-              <Button
-                priority="tertiary no outline"
-                iconId="fr-icon-edit-line"
-                title={`Éditer ${capitalize(member.firstName)} ${member.lastName.toUpperCase()}`}
-                linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', member.id) }}
-              />
-            ]) ?? []
-          }
+        <h1 className="fr-container">Membres</h1>
+
+        <DataTable
+          table={table}
+          classNames={{ content: 'fr-container' }}
+          placeholder={isLoading ? 'Chargement...' : 'Aucune données ne correspond aux filtres fournis'}
+          caption={'Liste des membres'}
         />
-
-        {isLoading ? <p>Chargement...</p> : null}
       </div>
-
-      <TableControl
-        label={{ one: 'membre', other: 'membres' }}
-        currentPage={data?.currentPageIndex ?? 1}
-        itemsPerPage={pagination.limit}
-        displayedItems={data?.items.length ?? 0}
-        totalItems={data?.totalCount ?? 0}
-        totalPages={data ? Math.ceil(data.totalCount / pagination.limit) : 1}
-        onChange={(limit) => {
-          setPagination({ limit, page: 1 });
-        }}
-        setCurrentPage={(page: number) => {
-          setPagination((p) => ({ ...p, page }));
-        }}
-      />
     </div>
   );
 }

@@ -9,7 +9,7 @@ function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }
   const totalItemsCount = props.table.getRowCount();
   const displayedItemsCount = props.table.getPaginationRowModel().rows.length;
 
-  const template = props.table.options.meta?.pagination?.itemLabel;
+  const template = props.table.options.meta?.paginationItemLabel;
   const itemLabel =
     template !== undefined && template !== null
       ? typeof template === 'string'
@@ -62,6 +62,8 @@ function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Da
   const pageCount = props.table.getPageCount();
   const { pageIndex } = props.table.getState().pagination;
 
+  if (pageCount <= 1) return null;
+
   return (
     <Pagination
       showFirstLast
@@ -81,7 +83,7 @@ function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Da
 }
 
 export function ReactTablePagination<Data extends RowData>(props: { table: Table<Data> }) {
-  if (props.table.options.meta?.pagination?.enabled === false) return null;
+  if (props.table.options.meta?.paginationEnabled === false) return null;
 
   return (
     <div className="flex items-center justify-between gap-16">

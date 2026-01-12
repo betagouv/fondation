@@ -21,9 +21,11 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
   const onSelectionChange = React.useCallback(
     (selection: string[]) => {
       props.table.setColumnFilters((filters) =>
-        filters
-          .filter((filter) => filter.id !== props.filter.filterId)
-          .concat({ id: props.filter.filterId, value: selection })
+        props.filter.multiple !== false
+          ? filters
+              .filter((filter) => filter.id !== props.filter.filterId)
+              .concat({ id: props.filter.filterId, value: selection })
+          : [{ id: props.filter.filterId, value: selection }]
       );
     },
     [props.table, props.filter]

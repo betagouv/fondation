@@ -1,9 +1,9 @@
 import React from 'react';
+import { createColumnHelper } from '@tanstack/react-table';
 
-import { DataTable } from '@/components/shared/data-table';
+import { DataTable, useDataTable } from '@/components/shared/data-table';
 import { GradeEnum } from '@/types/enums.types';
 import type { DetailedMemberDto } from '@api/types';
-import { createColumnHelper } from '@tanstack/react-table';
 
 const h = createColumnHelper<{ count: number; grade: GradeEnum }>();
 const columns = [
@@ -24,6 +24,18 @@ const columns = [
 
 const GRADES = Object.values(GradeEnum);
 
+function DetailMemberYearStat(props: { year: number; stats: { grade: GradeEnum; count: number }[] }) {
+  const table = useDataTable({
+    columns,
+    data: props.stats,
+    enableSorting: false,
+    enablePagination: false,
+    enableColumnFilters: false
+  });
+
+  return <DataTable table={table} caption={<h4>Année {props.year}</h4>} />;
+}
+
 export function DetailsMemberStats({ stats }: { stats: DetailedMemberDto['stats'] }) {
   const map = React.useMemo(
     () =>
@@ -42,15 +54,7 @@ export function DetailsMemberStats({ stats }: { stats: DetailedMemberDto['stats'
       {[...map.entries()]
         .sort(([yearA], [yearB]) => yearB - yearA /* desc by year */)
         .map(([year, stats]) => (
-          <DataTable
-            key={year}
-            data={stats}
-            columns={columns}
-            enableSorting={false}
-            enablePagination={false}
-            enableColumnFilters={false}
-            caption={() => <h4>Année {year}</h4>}
-          />
+          <DetailMemberYearStat key={year} year={year} stats={stats} />
         ))}
     </>
   );

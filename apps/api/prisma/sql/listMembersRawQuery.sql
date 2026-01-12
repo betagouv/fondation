@@ -1,6 +1,8 @@
 -- @param {String} $2:search?
--- @param {Int} $3:limit
--- @param {Int} $4:offset
+-- @param {String} $3:sortBy?
+-- @param {String} $4:sortDirection?
+-- @param {Int} $5:limit
+-- @param {Int} $6:offset
 
 WITH stats_for_current_year AS (
   SELECT
@@ -44,6 +46,19 @@ WHERE (
 )
 
 GROUP BY m.id
-ORDER BY m.last_name ASC
+ORDER BY (
+  CASE
+    WHEN $3::TEXT IS NOT NULL AND $4::TEXT = 'desc' THEN
+      CASE
+        WHEN $3::TEXT = 'firstName' THEN "first_name"
+        ELSE "last_name"
+      END
+  END
+) DESC, (
+  CASE
+    WHEN $3::TEXT = 'firstName' THEN "first_name"
+    ELSE "last_name"
+  END
+) ASC
 
-LIMIT $3::INT OFFSET $4::INT;
+LIMIT $5::INT OFFSET $6::INT;

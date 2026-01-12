@@ -1,22 +1,47 @@
 import { flexRender, type RowData, type Table } from '@tanstack/react-table';
+import clsx from 'clsx';
+import type { PropsWithChildren } from 'react';
 
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+
+function ReactTableBodyPlaceholder<Data extends RowData>(props: PropsWithChildren<{ table: Table<Data> }>) {
+  const rowCount = props.table.getFilteredRowModel().rows.length;
+  const canSelectRow = props.table.options.enableRowSelection;
+  const { length: columnsCount } = props.table.getVisibleLeafColumns();
+
+  if (!props.children || rowCount > 0) return null;
+
+  return (
+    <tr>
+      <td
+        colSpan={columnsCount + (canSelectRow ? 1 : 0)}
+        className={clsx({ 'text-gray-600': typeof props.children === 'string' })}
+        style={{ textAlign: typeof props.children === 'string' ? 'center' : undefined }}
+      >
+        {props.children}
+      </td>
+    </tr>
+  );
+}
 
 /** @internal */
-export function ReactTableBody<Data extends RowData>(props: { table: Table<Data> }) {
-  const canSelectRow = props.table.options.enableRowSelection !== false;
+export function ReactTableBody<Data extends RowData>(props: {
+  table: Table<Data>;
+  placeholder?: React.ReactNode;
+}) {
+  const canSelectRow = props.table.options.enableRowSelection;
   return (
     <tbody>
-      {props.table.getRowModel().rows.map((row) => (
+      {props.table.getRowModel().rows.map((row, index) => (
         <tr key={row.id} aria-selected={canSelectRow ? row.getIsSelected() : undefined}>
           {canSelectRow ? (
-            <td>
+            <td className={cx('fr-cell--fixed')}>
               <Checkbox
                 small
                 options={[
                   {
-                    label: '',
+                    label: `Sélectionner la ligne ${index}`,
                     nativeInputProps: {
                       checked: row.getIsSelected(),
                       disabled: !row.getCanSelect(),
@@ -41,6 +66,8 @@ export function ReactTableBody<Data extends RowData>(props: { table: Table<Data>
           })}
         </tr>
       ))}
+
+      <ReactTableBodyPlaceholder table={props.table}>{props.placeholder}</ReactTableBodyPlaceholder>
     </tbody>
   );
 }

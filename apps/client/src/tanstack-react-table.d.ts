@@ -19,11 +19,9 @@ declare module '@tanstack/react-table' {
   }
 
   interface TableMeta {
-    columnSelection?: { allRowSelectionEnabled?: boolean };
-    pagination?: { enabled?: false; itemLabel?: { one: string; other: string } | string };
-  }
-
-  interface GlobalFilterTableState {
-    globalFilter: string;
+    allRowsSelectionEnabled?: boolean;
+    columnVisibilityEnabled?: boolean;
+    paginationEnabled?: boolean;
+    paginationItemLabel?: { one: string; other: string } | string;
   }
 }

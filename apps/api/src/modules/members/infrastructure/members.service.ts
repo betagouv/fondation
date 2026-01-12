@@ -25,8 +25,10 @@ export class MembersService {
 
   listMembers(query: {
     pagination: Pagination;
-    formation: Magistrat.Formation | undefined;
+    formations: ('SIEGE' | 'PARQUET' | 'COMMUN')[] | undefined;
     search: string | undefined;
+    sortBy: 'firstName' | 'lastName' | undefined;
+    sortDirection: 'asc' | 'desc' | undefined;
   }): Promise<PaginatedMemberListItemDto> {
     return this.listMembersQuery.handle(query);
   }

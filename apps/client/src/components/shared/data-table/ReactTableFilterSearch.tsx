@@ -6,13 +6,15 @@ import { useDebouncedCallback } from 'use-debounce';
 export function ReactTableFilterSearch<Data extends RowData>(props: { table: Table<Data> }) {
   const [search, setSearch] = React.useState(props.table.getState().globalFilter);
   const updateGlobalFilter = useDebouncedCallback((globalFilter: string) => {
+    if (globalFilter.length <= 3) props.table.setGlobalFilter(undefined);
+
     props.table.setGlobalFilter(globalFilter);
   }, 600);
 
   if (!props.table.options.enableGlobalFilter) return null;
 
   return (
-    <div style={{ width: '20%' }}>
+    <div style={{ width: '20%', minWidth: '200px' }}>
       <SearchBar
         renderInput={(inputProps) => (
           <input

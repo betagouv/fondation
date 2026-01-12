@@ -33,7 +33,10 @@ export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({
   );
   const { mutate: updateCommentAccess } = useUpdateCommentAccessMutation();
 
-  const { data: eligibleUsers } = useMemberListQuery({ formation, limit: 100 });
+  const { data: eligibleUsers } = useMemberListQuery({
+    formations: [formation],
+    pagination: { pageSize: 100, pageIndex: 0 }
+  });
 
   useEffect(() => {
     if (debouncedComment !== initialComment) {

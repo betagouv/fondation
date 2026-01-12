@@ -33,7 +33,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
     data: rapporteursData,
     isLoading: isLoadingRapporteurs,
     isError: isErrorRapporteurs
-  } = useMemberListQuery({ formation, limit: 100 });
+  } = useMemberListQuery({ formations: [formation], pagination: { pageIndex: 0, pageSize: 100 } });
 
   if (isLoadingDossiersDeNomination || isLoadingRapporteurs) {
     return <div className="fr-container pb-8">Chargement des dossiers de nomination...</div>;
