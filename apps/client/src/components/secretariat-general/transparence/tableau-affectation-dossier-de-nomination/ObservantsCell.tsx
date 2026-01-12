@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useObservationsQuery } from '@queries/observations.queries';
+import { useObservationsQuery, type Observation } from '@queries/observations.queries';
 import { type FC, useMemo, useMemo as useMemoModal, useState } from 'react';
 import { ObservationForm } from '../observations/ObservationForm';
 import { ObservationsList } from '../observations/ObservationsList';
@@ -21,17 +21,25 @@ export const ObservantsCell: FC<{
     [nominationFileId]
   );
 
-  const [modalMode, setModalMode] = useState<'view' | 'create'>('view');
+  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('view');
+  const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
 
   const { data } = useObservationsQuery(nominationFileId);
 
   const openModal = (mode: 'view' | 'create') => {
     setModalMode(mode);
+    setEditingObservation(null);
     observationsModal.open();
+  };
+
+  const handleEdit = (observation: Observation) => {
+    setEditingObservation(observation);
+    setModalMode('edit');
   };
 
   const handleModalClose = () => {
     setModalMode('view');
+    setEditingObservation(null);
   };
 
   const observationMagistrats = useMemo(() => {
@@ -98,7 +106,9 @@ export const ObservantsCell: FC<{
           title={
             modalMode === 'view'
               ? `Observations - ${nominationFileName}`
-              : `Nouvelle observation - ${nominationFileName}`
+              : modalMode === 'create'
+                ? `Nouvelle observation - ${nominationFileName}`
+                : `Éditer l'observation - ${nominationFileName}`
           }
           size="large"
           buttons={
@@ -116,33 +126,56 @@ export const ObservantsCell: FC<{
                     onClick: handleModalClose
                   }
                 ]
-              : [
-                  {
-                    doClosesModal: true,
-                    priority: 'secondary' as const,
-                    children: 'Annuler',
-                    onClick: handleModalClose
-                  },
-                  {
-                    doClosesModal: false,
-                    priority: 'primary' as const,
-                    children: 'Créer',
-                    nativeButtonProps: {
-                      type: 'submit',
-                      form: 'observation-form'
+              : modalMode === 'create'
+                ? [
+                    {
+                      doClosesModal: true,
+                      priority: 'secondary' as const,
+                      children: 'Annuler',
+                      onClick: handleModalClose
+                    },
+                    {
+                      doClosesModal: false,
+                      priority: 'primary' as const,
+                      children: 'Créer',
+                      nativeButtonProps: {
+                        type: 'submit',
+                        form: 'observation-form'
+                      }
                     }
-                  }
-                ]
+                  ]
+                : [
+                    {
+                      doClosesModal: false,
+                      priority: 'secondary' as const,
+                      children: 'Retour',
+                      onClick: () => {
+                        setModalMode('view');
+                        setEditingObservation(null);
+                      }
+                    },
+                    {
+                      doClosesModal: false,
+                      priority: 'primary' as const,
+                      children: 'Enregistrer',
+                      nativeButtonProps: {
+                        type: 'submit',
+                        form: 'observation-form'
+                      }
+                    }
+                  ]
           }
         >
           {modalMode === 'view' ? (
-            <ObservationsList nominationFileId={nominationFileId} />
+            <ObservationsList nominationFileId={nominationFileId} onEdit={handleEdit} />
           ) : (
             <ObservationForm
               nominationFileId={nominationFileId}
               nominationFileName={nominationFileName}
+              observation={editingObservation ?? undefined}
               onSuccess={() => {
                 setModalMode('view');
+                setEditingObservation(null);
               }}
             />
           )}

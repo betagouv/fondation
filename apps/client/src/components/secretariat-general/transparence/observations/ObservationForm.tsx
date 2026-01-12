@@ -2,15 +2,17 @@ import { Input } from '@codegouvfr/react-dsfr/Input';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type FC, useRef, useState, useMemo } from 'react';
+import { type FC, useRef, useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
 import {
   useCreateObservationMutation,
+  useUpdateObservationMutation,
   useSearchMagistratsQuery,
-  type MagistratSearchResult
+  type MagistratSearchResult,
+  type Observation
 } from '@queries/observations.queries';
 
 const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
@@ -26,9 +28,11 @@ type FormSchema = z.infer<typeof observationFormSchema>;
 export const ObservationForm: FC<{
   nominationFileId: string;
   nominationFileName: string;
+  observation?: Observation;
   onSuccess?: () => void;
-}> = ({ nominationFileId, onSuccess }) => {
+}> = ({ nominationFileId, observation, onSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEditing = !!observation;
 
   const {
     control,
@@ -40,8 +44,8 @@ export const ObservationForm: FC<{
   } = useForm<FormSchema>({
     resolver: zodResolver(observationFormSchema),
     defaultValues: {
-      magistratId: '',
-      dateReception: '',
+      magistratId: observation?.magistrat?.id ?? '',
+      dateReception: observation?.dateReception?.split('T')[0] ?? '',
       files: []
     },
     mode: 'onChange'
@@ -51,38 +55,82 @@ export const ObservationForm: FC<{
   const [debouncedSearch] = useDebounce(searchTerm, 400);
   const [selectedMagistrat, setSelectedMagistrat] = useState<MagistratSearchResult | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [existingFiles, setExistingFiles] = useState<Observation['files']>(observation?.files ?? []);
+  const [filesToDetach, setFilesToDetach] = useState<string[]>([]);
 
   const { data: searchResults, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
-  const { mutate: createObservation, reset: resetMutation } = useCreateObservationMutation();
+  const { mutate: createObservation, reset: resetCreateMutation } = useCreateObservationMutation();
+  const { mutate: updateObservation, reset: resetUpdateMutation } = useUpdateObservationMutation();
 
   const files = watch('files') ?? [];
+
+  useEffect(() => {
+    if (observation?.magistrat) {
+      setSelectedMagistrat({
+        id: observation.magistrat.id,
+        firstName: observation.magistrat.firstName,
+        lastName: observation.magistrat.lastName,
+        usedName: '',
+        grade: null,
+        professionalEmail: null
+      });
+      setSearchTerm(`${observation.magistrat.lastName} ${observation.magistrat.firstName}`);
+    }
+  }, [observation]);
+
+  const handleRemoveExistingFile = (fileId: string) => {
+    setExistingFiles((prev) => prev.filter((f) => f.id !== fileId));
+    setFilesToDetach((prev) => [...prev, fileId]);
+  };
 
   const resetForm = () => {
     reset();
     setSearchTerm('');
     setSelectedMagistrat(null);
     setShowResults(false);
-    resetMutation();
+    setExistingFiles([]);
+    setFilesToDetach([]);
+    resetCreateMutation();
+    resetUpdateMutation();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const onSubmit = (data: FormSchema) => {
-    createObservation(
-      {
-        nominationFileId,
-        magistratId: data.magistratId,
-        dateReception: data.dateReception,
-        files: data.files ?? []
-      },
-      {
-        onSuccess: () => {
-          resetForm();
-          onSuccess?.();
+    if (isEditing) {
+      updateObservation(
+        {
+          observationId: observation.id,
+          nominationFileId,
+          magistratId: data.magistratId,
+          dateReception: data.dateReception,
+          files: data.files,
+          detachFileIds: filesToDetach
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            onSuccess?.();
+          }
         }
-      }
-    );
+      );
+    } else {
+      createObservation(
+        {
+          nominationFileId,
+          magistratId: data.magistratId,
+          dateReception: data.dateReception,
+          files: data.files ?? []
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            onSuccess?.();
+          }
+        }
+      );
+    }
   };
 
   const handleMagistratSelect = (magistrat: MagistratSearchResult) => {
@@ -200,12 +248,40 @@ export const ObservationForm: FC<{
         )}
       </div>
 
+      {isEditing && existingFiles.length > 0 && (
+        <div>
+          <label className="fr-label mb-2 block">Fichiers existants</label>
+          <div className="flex flex-wrap gap-2">
+            {existingFiles.map((file) => (
+              <div key={file.id} className="flex items-center gap-2 rounded bg-gray-100 px-3 py-2">
+                <i className="ri-file-line" />
+                <span className="text-sm">{file.name}</span>
+                <button
+                  type="button"
+                  className="ml-2 text-red-600 hover:text-red-800"
+                  onClick={() => handleRemoveExistingFile(file.id)}
+                  title="Supprimer ce fichier"
+                >
+                  <i className="ri-close-line" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {filesToDetach.length > 0 && (
+            <div className="mt-2 text-sm text-orange-600">
+              {filesToDetach.length} fichier{filesToDetach.length > 1 ? 's' : ''} sera
+              {filesToDetach.length > 1 ? 'ont' : ''} supprimé{filesToDetach.length > 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
+      )}
+
       <Controller
         name="files"
         control={control}
         render={({ field }) => (
           <Upload
-            label="Pièces jointes (optionnel)"
+            label={isEditing ? 'Ajouter des fichiers (optionnel)' : 'Pièces jointes (optionnel)'}
             hint="Formats acceptés: JPEG, PNG, PDF, Word"
             nativeInputProps={{
               ref: fileInputRef,
@@ -222,7 +298,8 @@ export const ObservationForm: FC<{
       />
       {files.length > 0 && (
         <div className="text-sm text-gray-600">
-          {files.length} fichier{files.length > 1 ? 's' : ''} sélectionné{files.length > 1 ? 's' : ''}
+          {files.length} nouveau{files.length > 1 ? 'x' : ''} fichier{files.length > 1 ? 's' : ''} sélectionné
+          {files.length > 1 ? 's' : ''}
         </div>
       )}
     </form>

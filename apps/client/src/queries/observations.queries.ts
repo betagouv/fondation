@@ -92,3 +92,45 @@ export function useGetObservationFileUrlMutation() {
     }
   });
 }
+
+export function useUpdateObservationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      observationId: string;
+      nominationFileId: string;
+      dateReception: string;
+      magistratId: string;
+      files?: File[];
+      detachFileIds?: string[];
+    }): Promise<void> => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('magistratId', mutation.magistratId);
+      queryParams.append('dateReception', mutation.dateReception);
+      if (mutation.detachFileIds) {
+        mutation.detachFileIds.forEach((id) => queryParams.append('detachFileIds', id));
+      }
+
+      const formData = new FormData();
+      if (mutation.files) {
+        mutation.files.forEach((file) => formData.append('files', file));
+      }
+
+      const url = `/api/observations/v1/${mutation.observationId}?${queryParams.toString()}`;
+      const response = await fetch(url, {
+        method: 'PATCH',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update observation: ${response.statusText}`);
+      }
+    },
+    onSuccess: (_, { nominationFileId }) => {
+      queryClient.invalidateQueries({ queryKey: ['observations', nominationFileId] });
+      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
+    }
+  });
+}

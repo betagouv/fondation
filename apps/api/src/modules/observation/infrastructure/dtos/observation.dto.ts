@@ -25,3 +25,18 @@ export class SearchMagistratsQueryDto extends createZodDto(
     limit: z.coerce.number().min(1).max(50).optional(),
   }),
 ) {}
+
+export class UpdateObservationDto extends createZodDto(
+  z.object({ files: z.array(z.file()).optional() }),
+) {}
+
+export class UpdateObservationQueryDto extends createZodDto(
+  z.object({
+    magistratId: z.uuid(),
+    dateReception: z.string(),
+    detachFileIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((x) => ([] as string[]).concat(x))
+      .optional(),
+  }),
+) {}

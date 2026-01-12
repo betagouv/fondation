@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UsePipes,
@@ -26,6 +27,8 @@ import {
   CreateObservationResponseDto,
   ListObservationsQueryDto,
   SearchMagistratsQueryDto,
+  UpdateObservationDto,
+  UpdateObservationQueryDto,
 } from './infrastructure/dtos/observation.dto';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
@@ -109,6 +112,29 @@ export class ObservationController {
     await this.observations.deleteObservation({
       userId,
       observationId,
+    });
+  }
+
+  @Patch('/:observationId')
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @UseMultipartBody({
+    schema: UpdateObservationDto,
+    destination: ({ request, id, mimetype }) =>
+      `observations/${request.params.observationId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateObservation(
+    @Param('observationId') observationId: string,
+    @Query() query: UpdateObservationQueryDto,
+    @Body() body: Multipart<typeof UpdateObservationDto>,
+  ): Promise<void> {
+    await this.observations.updateObservation({
+      observationId,
+      dateReception: new Date(query.dateReception),
+      magistratId: query.magistratId,
+      filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
+      fileIdsToDetach: query.detachFileIds ?? [],
     });
   }
 

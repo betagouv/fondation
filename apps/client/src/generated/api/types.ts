@@ -430,6 +430,10 @@ export type GetObservationFileUrlResponseDto = {
     url: string;
 };
 
+export type UpdateObservationDto = {
+    files?: Array<Blob | File>;
+};
+
 export type SearchMagistratsResponseDto = {
     magistrats: Array<{
         id: string;
@@ -771,11 +775,11 @@ export type UpdateNominationSessionResponse = UpdateNominationSessionResponses[k
 export type ListMembersData = {
     body?: never;
     path?: never;
-    query?: {
-        search?: string;
-        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+    query: {
         sortBy?: 'firstName' | 'lastName';
         sortDirection?: 'asc' | 'desc';
+        search?: string;
+        formations: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
         page?: number;
         limit?: number;
     };
@@ -1022,6 +1026,25 @@ export type DeleteObservationResponses = {
 };
 
 export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
+
+export type UpdateObservationData = {
+    body: UpdateObservationDto;
+    path: {
+        observationId: string;
+    };
+    query: {
+        magistratId: string;
+        dateReception: string;
+        detachFileIds?: string | Array<string>;
+    };
+    url: '/api/observations/v1/{observationId}';
+};
+
+export type UpdateObservationResponses = {
+    204: void;
+};
+
+export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
 
 export type SearchMagistratsData = {
     body?: never;

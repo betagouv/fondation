@@ -22,7 +22,8 @@ const ObservationCard: FC<{
   observation: Observation;
   nominationFileId: string;
   onDelete: () => void;
-}> = ({ observation, nominationFileId, onDelete }) => {
+  onEdit?: (observation: Observation) => void;
+}> = ({ observation, nominationFileId, onDelete, onEdit }) => {
   const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
   const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
   const { waitForConfirmation } = useConfirmation();
@@ -62,14 +63,25 @@ const ObservationCard: FC<{
             </div>
           )}
         </div>
-        <Button
-          iconId="ri-delete-bin-line"
-          priority="tertiary no outline"
-          size="small"
-          title="Supprimer"
-          disabled={isDeleting}
-          onClick={handleDelete}
-        />
+        <div className="flex gap-1">
+          {onEdit && (
+            <Button
+              iconId="ri-edit-line"
+              priority="tertiary no outline"
+              size="small"
+              title="Éditer"
+              onClick={() => onEdit(observation)}
+            />
+          )}
+          <Button
+            iconId="ri-delete-bin-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Supprimer"
+            disabled={isDeleting}
+            onClick={handleDelete}
+          />
+        </div>
       </div>
 
       {observation.files.length > 0 && (
@@ -104,7 +116,8 @@ const ObservationCard: FC<{
 
 export const ObservationsList: FC<{
   nominationFileId: string;
-}> = ({ nominationFileId }) => {
+  onEdit?: (observation: Observation) => void;
+}> = ({ nominationFileId, onEdit }) => {
   const { data, isLoading, refetch } = useObservationsQuery(nominationFileId);
 
   const observations = data?.observations ?? [];
@@ -129,6 +142,7 @@ export const ObservationsList: FC<{
               observation={observation}
               nominationFileId={nominationFileId}
               onDelete={() => refetch()}
+              onEdit={onEdit}
             />
           ))}
         </div>

@@ -70,6 +70,33 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  async updateObservation(command: {
+    observationId: string;
+    dateReception: Date;
+    magistratId: string;
+    filesToAttach: readonly { id: string }[];
+    fileIdsToDetach: readonly string[];
+  }): Promise<void> {
+    const observation = await this.observationRepository.findById(
+      command.observationId,
+    );
+
+    observation.update({
+      dateReception: command.dateReception,
+      magistratId: command.magistratId,
+    });
+
+    if (command.filesToAttach.length > 0) {
+      observation.attachFiles({ files: command.filesToAttach });
+    }
+
+    if (command.fileIdsToDetach.length > 0) {
+      observation.detachFiles({ fileIds: command.fileIdsToDetach });
+    }
+
+    await this.observationRepository.persist(observation);
+  }
+
   listObservations(query: {
     nominationFileId: string;
   }): Promise<ListObservationsResponseDto> {

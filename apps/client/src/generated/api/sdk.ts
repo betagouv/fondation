@@ -6,7 +6,7 @@
 
 import { client } from './client.ts';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.ts';
-import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFilesData, DetachFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses } from './types.ts';
+import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFilesData, DetachFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses } from './types.ts';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -190,8 +190,8 @@ export class sessions {
 }
 
 export class members {
-    public static listMembers<ThrowOnError extends boolean = false>(options?: Options<ListMembersData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListMembersResponses, unknown, ThrowOnError>({ url: '/api/members/v1', ...options });
+    public static listMembers<ThrowOnError extends boolean = false>(options: Options<ListMembersData, ThrowOnError>) {
+        return (options.client ?? client).get<ListMembersResponses, unknown, ThrowOnError>({ url: '/api/members/v1', ...options });
     }
     
     public static detailsMember<ThrowOnError extends boolean = false>(options: Options<DetailsMemberData, ThrowOnError>) {
@@ -295,6 +295,18 @@ export class observations {
     
     public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
         return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/{observationId}', ...options });
+    }
+    
+    public static updateObservation<ThrowOnError extends boolean = false>(options: Options<UpdateObservationData, ThrowOnError>) {
+        return (options.client ?? client).patch<UpdateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/observations/v1/{observationId}',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
     }
     
     public static searchMagistrats<ThrowOnError extends boolean = false>(options: Options<SearchMagistratsData, ThrowOnError>) {
