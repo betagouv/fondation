@@ -34,6 +34,7 @@ import type { FiltersState } from './filter-configurations';
 import { SortButton } from './SortButton';
 import { TableControl } from './TableControl';
 import { HttpException } from '@/utils/http-exception';
+import { NominationFileOutcomeCommentModalProvider } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 
 export interface TableauDossiersDeNominationProps {
   dossiersDeNomination: SessionNominationFile[];
@@ -207,19 +208,21 @@ const TableauDossiersDeNominationContent = ({
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <div className="mb-6">
           <MagistratModaleProvider nominationFiles={paginatedData} formation={formation}>
-            <Table
-              id="session-affectation-dossier-de-nomination-table"
-              className="mb-0"
-              bordered
-              fixed
-              headers={TABLE_HEADER}
-              data={dossierDataRows}
-            />
-            {paginatedData.length === 0 ? (
-              <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
-                Aucun résultat ne correspond aux valeurs filtrées
-              </p>
-            ) : null}
+            <NominationFileOutcomeCommentModalProvider formation={formation}>
+              <Table
+                id="session-affectation-dossier-de-nomination-table"
+                className="mb-0"
+                bordered
+                fixed
+                headers={TABLE_HEADER}
+                data={dossierDataRows}
+              />
+              {paginatedData.length === 0 ? (
+                <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
+                  Aucun résultat ne correspond aux valeurs filtrées
+                </p>
+              ) : null}
+            </NominationFileOutcomeCommentModalProvider>
           </MagistratModaleProvider>
         </div>
 

@@ -8,8 +8,8 @@ import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
 import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
-import { NominationFileOutcome } from './NominationFileOutcome';
-import { NominationFileOutcomeSelector } from './NominationFileOutcomeSelector';
+import { NominationFileOutcome } from './nomination-file-outcome/NominationFileOutcome';
+import { NominationFileOutcomeSelector } from './nomination-file-outcome/NominationFileOutcomeSelector';
 import { ObservantsCell } from './ObservantsCell';
 import type { FormationEnum } from '@/types/enums.types';
 
