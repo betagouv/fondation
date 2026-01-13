@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { PrioriteLabels } from 'shared-models/models/priorite.enum';
-import { DateOnly } from '../../../../models/date-only.model';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
@@ -22,8 +21,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
   { field: 'content.rapporteurs', label: 'Rapporteur(s)', sortable: true },
-  { field: 'content.outcome', label: 'Issue' },
-  { field: 'content.dateEchéance', label: "Date d'écheance" }
+  { field: 'content.outcome', label: 'Issue' }
 ] as const satisfies { field: string; label: string; sortable?: boolean }[];
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
@@ -62,8 +60,7 @@ export const dataRowsDn = (options: {
     React.createElement(NominationFileOutcome, {
       outcome: dossier.content.outcome,
       formation: options.formation
-    }),
-    dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
+    })
   ]);
 };
 
@@ -107,8 +104,7 @@ export const dataRowsDnEdition = (options: {
       nominationFileId: dossier.id,
       formation: options.formation,
       value: dossier.content.outcome?.value ?? null
-    }),
-    dossier.content.dateEchéance && DateOnly.fromDateOnly(dossier.content.dateEchéance)
+    })
   ]);
 };
 

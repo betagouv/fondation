@@ -4,6 +4,7 @@ import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNo
 import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
 import type { FormationEnum } from '@/types/enums.types';
+import { ObservationsModalProvider } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ObservationsModalContext';
 
 type ReportsDnVueGeneraleProps = React.PropsWithChildren<{
   formation: FormationEnum;
@@ -29,13 +30,15 @@ export const ReportsDnVueGenerale = ({ formation, children }: ReportsDnVueGenera
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <TableauDossiersDeNomination
-        dossiersDeNomination={data?.items || []}
-        formation={formation}
-        sessionId={sessionId!}
-      >
-        {children}
-      </TableauDossiersDeNomination>
+      <ObservationsModalProvider>
+        <TableauDossiersDeNomination
+          dossiersDeNomination={data?.items || []}
+          formation={formation}
+          sessionId={sessionId!}
+        >
+          {children}
+        </TableauDossiersDeNomination>
+      </ObservationsModalProvider>
       <TransparencyAttachmentsSection sessionId={sessionId as string} />
     </div>
   );
