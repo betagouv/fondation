@@ -1,12 +1,14 @@
 import * as $api from '@api/sdk';
 import type { ListObservationsResponseDto, SearchMagistratsResponseDto } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
-export type MagistratSearchResult = SearchMagistratsResponseDto['magistrats'][number];
+export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
 
 export const observationKeys = {
-  observations: (props?: { nominationFileId: string | undefined }) => ['observations', props] as const,
+  observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
+    ['observations', props] as const,
   searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props] as const
 };
 
@@ -15,23 +17,24 @@ export function useSearchMagistratsQuery(search: string) {
     enabled: search.length >= 2,
     queryKey: observationKeys.searchMagistrats({ search }),
     queryFn: async () => {
-      if (search.length < 2) return { magistrats: [] as MagistratSearchResult[] };
-      const { data } = await $api.observations.searchMagistrats({
+      if (search.length < 2) return [];
+      const { data } = await $api.magistrats.searchMagistrats({
         query: { search }
       });
-      return data ?? { magistrats: [] as MagistratSearchResult[] };
+
+      return data?.items ?? [];
     }
   });
 }
 
-export function useObservationsQuery(nominationFileId: string | undefined) {
+export function useObservationsQuery(props: { sessionId: string; nominationFileId: string | undefined }) {
   return useQuery({
-    enabled: !!nominationFileId,
-    queryKey: observationKeys.observations({ nominationFileId }),
+    enabled: !!props.nominationFileId,
+    queryKey: observationKeys.observations(props),
     queryFn: async () => {
-      if (!nominationFileId) return { observations: [] as Observation[] };
-      const { data } = await $api.observations.listObservations({
-        query: { nominationFileId }
+      if (!props.nominationFileId) return { observations: [] as Observation[] };
+      const { data } = await $api.sessions.listObservations({
+        path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId }
       });
       return data ?? { observations: [] as Observation[] };
     }
@@ -43,13 +46,14 @@ export function useCreateObservationMutation() {
 
   return useMutation({
     mutationFn: async (mutation: {
+      sessionId: string;
       nominationFileId: string;
       magistratId: string;
       dateReception: string;
       files: File[];
     }): Promise<{ id: string } | null> => {
-      const { data } = await $api.observations.createObservation({
-        path: { nominationFileId: mutation.nominationFileId },
+      const { data } = await $api.sessions.createObservation({
+        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: {
           files: mutation.files,
           magistratId: mutation.magistratId,
@@ -58,10 +62,13 @@ export function useCreateObservationMutation() {
       });
       return data ?? null;
     },
-    onSuccess: (_, { nominationFileId }) => {
-      queryClient.invalidateQueries({ queryKey: observationKeys.observations({ nominationFileId }) });
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
-    }
+    onSuccess: (_, { sessionId, nominationFileId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+        }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
+      ])
   });
 }
 
@@ -69,26 +76,84 @@ export function useDeleteObservationMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (mutation: { observationId: string; nominationFileId: string }): Promise<void> => {
-      await $api.observations.deleteObservation({
-        path: { observationId: mutation.observationId }
+    mutationFn: async (mutation: {
+      sessionId: string;
+      observationId: string;
+      nominationFileId: string;
+    }): Promise<void> => {
+      await $api.sessions.deleteObservation({
+        path: {
+          sessionId: mutation.nominationFileId,
+          nominationFileId: mutation.nominationFileId,
+          observationId: mutation.observationId
+        }
       });
     },
-    onSuccess: (_, { nominationFileId }) => {
-      queryClient.invalidateQueries({ queryKey: observationKeys.observations({ nominationFileId }) });
-      queryClient.invalidateQueries({ queryKey: ['sessionNominationFiles'] });
-    }
+    onSuccess: (_, { sessionId, nominationFileId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+        }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
+      ])
   });
 }
 
 export function useGetObservationFileUrlMutation() {
   return useMutation({
-    mutationFn: async (params: { observationId: string; fileId: string }): Promise<string> => {
-      const { data } = await $api.observations.getObservationFileUrl({
-        path: { observationId: params.observationId, fileId: params.fileId }
+    mutationFn: async (params: {
+      sessionId: string;
+      nominationFileId: string;
+      observationId: string;
+      fileId: string;
+    }): Promise<string> => {
+      const { data } = await $api.sessions.getObservationFileUrl({
+        path: {
+          sessionId: params.sessionId,
+          nominationFileId: params.nominationFileId,
+          observationId: params.observationId,
+          fileId: params.fileId
+        }
       });
       if (!data?.url) throw new Error('URL not found');
       return data.url;
     }
+  });
+}
+
+export function useUpdateObservationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      sessionId: string;
+      observationId: string;
+      nominationFileId: string;
+      dateReception: string;
+      magistratId: string;
+      files?: File[];
+      detachFileIds?: string[];
+    }): Promise<void> => {
+      await $api.sessions.updateObservation({
+        path: {
+          sessionId: mutation.sessionId,
+          nominationFileId: mutation.nominationFileId,
+          observationId: mutation.observationId
+        },
+        body: {
+          magistratId: mutation.magistratId,
+          dateReception: mutation.dateReception,
+          detachFileIds: mutation.detachFileIds,
+          files: mutation.files
+        }
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId }) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+        }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
+      ])
   });
 }

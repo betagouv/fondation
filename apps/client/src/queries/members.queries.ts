@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
-import { sessionKeys } from './nomination-sessions.queries';
 import type { ListedMemberSessionsDto, ListMembersData } from '@api/types';
+import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
   listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
@@ -49,7 +49,7 @@ export const useMemberListQuery = (
             limit,
             sortBy,
             sortDirection,
-            formations: options.formations,
+            formations: options.formations ?? [],
             search: options.search?.trim() || undefined
           }
         })

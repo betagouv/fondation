@@ -21,10 +21,26 @@ export class ObservationDeleted {
   constructor(readonly id: string) {}
 }
 
+export class ObservationUpdated {
+  constructor(
+    readonly id: string,
+    readonly data: { dateReception: Date; magistratId: string },
+  ) {}
+}
+
+export class ObservationFilesDetached {
+  constructor(
+    readonly observationId: string,
+    readonly fileIds: readonly string[],
+  ) {}
+}
+
 type ObservationEvent =
   | ObservationCreated
   | ObservationFilesAttached
-  | ObservationDeleted;
+  | ObservationDeleted
+  | ObservationUpdated
+  | ObservationFilesDetached;
 
 export class Observation {
   private constructor(
@@ -88,6 +104,16 @@ export class Observation {
 
   delete(): void {
     this.#messages.push(new ObservationDeleted(this.id));
+  }
+
+  update(command: { dateReception: Date; magistratId: string }): void {
+    this.#messages.push(new ObservationUpdated(this.id, command));
+  }
+
+  detachFiles(command: { fileIds: readonly string[] }): void {
+    if (command.fileIds.length === 0) return;
+
+    this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
   }
 
   readonly #messages: ObservationEvent[] = [];

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files/files';
 import { assertNever } from 'src/utils/assert-never';
 
 import {
@@ -8,11 +9,16 @@ import {
   ObservationCreated,
   ObservationDeleted,
   ObservationFilesAttached,
+  ObservationFilesDetached,
+  ObservationUpdated,
 } from '../../domain/observation';
 
 @Injectable()
 export class ObservationRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly files: Files,
+  ) {}
 
   async findById(id: string): Promise<Observation> {
     const result = await this.prisma.observation.findUnique({
@@ -43,6 +49,10 @@ export class ObservationRepository {
         await this.persistObservationFilesAttached(message);
       } else if (message instanceof ObservationDeleted) {
         await this.persistObservationDeleted(message);
+      } else if (message instanceof ObservationUpdated) {
+        await this.persistObservationUpdated(message);
+      } else if (message instanceof ObservationFilesDetached) {
+        await this.persistObservationFilesDetached(message);
       } else {
         assertNever(message);
       }
@@ -76,5 +86,26 @@ export class ObservationRepository {
     await this.prisma.observation.delete({
       where: { id: message.id },
     });
+  }
+
+  private async persistObservationUpdated(message: ObservationUpdated) {
+    await this.prisma.observation.update({
+      where: { id: message.id },
+      data: {
+        dateReception: message.data.dateReception,
+        magistratId: message.data.magistratId,
+      },
+    });
+  }
+
+  private async persistObservationFilesDetached(
+    message: ObservationFilesDetached,
+  ) {
+    const files = await this.prisma.file.findMany({
+      where: { id: { in: message.fileIds as string[] } },
+      select: { path: true },
+    });
+
+    await this.files.delete(files.map((f) => f.path.join('/')));
   }
 }

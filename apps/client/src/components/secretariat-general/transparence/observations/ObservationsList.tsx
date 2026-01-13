@@ -1,10 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { type FC } from 'react';
 
-import { useConfirmation } from '../../../../hooks/useConfirmation.hook';
 import {
   useObservationsQuery,
-  useDeleteObservationMutation,
   useGetObservationFileUrlMutation,
   type Observation
 } from '@queries/observations.queries';
@@ -19,36 +17,19 @@ const formatDate = (dateString: string) => {
 };
 
 const ObservationCard: FC<{
-  observation: Observation;
+  sessionId: string;
   nominationFileId: string;
-  onDelete: () => void;
-}> = ({ observation, nominationFileId, onDelete }) => {
-  const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
+  observation: Observation;
+  onEdit: (observation: Observation) => void;
+  onRequestDelete: (observation: Observation) => void;
+}> = ({ sessionId, nominationFileId, observation, onEdit, onRequestDelete }) => {
   const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
-  const { waitForConfirmation } = useConfirmation();
-
-  const handleDelete = async () => {
-    const { isConfirmed } = await waitForConfirmation({
-      title: "Supprimer l'observation",
-      content: (
-        <p>
-          Êtes-vous sûr de vouloir supprimer cette observation du{' '}
-          <strong>{formatDate(observation.dateReception)}</strong> ?
-        </p>
-      ),
-      i18n: {
-        confirm: 'Supprimer',
-        cancel: 'Annuler'
-      }
-    });
-
-    if (!isConfirmed) return;
-
-    deleteObservation({ observationId: observation.id, nominationFileId }, { onSuccess: onDelete });
-  };
 
   const handleFileClick = (fileId: string) => {
-    getFileUrl({ observationId: observation.id, fileId }, { onSuccess: (url) => window.open(url, '_blank') });
+    getFileUrl(
+      { sessionId, nominationFileId, observationId: observation.id, fileId },
+      { onSuccess: (url) => window.open(url, '_blank') }
+    );
   };
 
   return (
@@ -62,14 +43,22 @@ const ObservationCard: FC<{
             </div>
           )}
         </div>
-        <Button
-          iconId="ri-delete-bin-line"
-          priority="tertiary no outline"
-          size="small"
-          title="Supprimer"
-          disabled={isDeleting}
-          onClick={handleDelete}
-        />
+        <div className="flex gap-1">
+          <Button
+            iconId="ri-edit-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Éditer"
+            onClick={() => onEdit(observation)}
+          />
+          <Button
+            iconId="ri-delete-bin-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Supprimer"
+            onClick={() => onRequestDelete(observation)}
+          />
+        </div>
       </div>
 
       {observation.files.length > 0 && (
@@ -103,9 +92,12 @@ const ObservationCard: FC<{
 };
 
 export const ObservationsList: FC<{
+  sessionId: string;
   nominationFileId: string;
-}> = ({ nominationFileId }) => {
-  const { data, isLoading, refetch } = useObservationsQuery(nominationFileId);
+  onEdit: (observation: Observation) => void;
+  onRequestDelete: (observation: Observation) => void;
+}> = ({ sessionId, nominationFileId, onEdit, onRequestDelete }) => {
+  const { data, isLoading } = useObservationsQuery({ sessionId, nominationFileId });
 
   const observations = data?.observations ?? [];
 
@@ -125,10 +117,12 @@ export const ObservationsList: FC<{
         <div className="flex flex-col gap-3">
           {observations.map((observation) => (
             <ObservationCard
+              sessionId={sessionId}
+              nominationFileId={nominationFileId}
               key={observation.id}
               observation={observation}
-              nominationFileId={nominationFileId}
-              onDelete={() => refetch()}
+              onEdit={onEdit}
+              onRequestDelete={onRequestDelete}
             />
           ))}
         </div>

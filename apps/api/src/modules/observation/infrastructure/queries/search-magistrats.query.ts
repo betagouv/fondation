@@ -1,25 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import {
+  createPaginatedZodDto,
+  paginate,
+  Pagination,
+} from 'src/modules/framework/pagination';
 
-const MagistratSearchResultSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  usedName: z.string(),
-  grade: z.string().nullable(),
-  professionalEmail: z.string().nullable(),
-});
-
-export class MagistratSearchResultDto extends createZodDto(
-  MagistratSearchResultSchema,
-) {}
-
-export class SearchMagistratsResponseDto extends createZodDto(
+export class SearchMagistratsResponseDto extends createPaginatedZodDto(
   z.object({
-    magistrats: z.array(MagistratSearchResultSchema),
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    usedName: z.string(),
+    grade: z.string().nullable(),
+    professionalEmail: z.string().nullable(),
   }),
 ) {}
 
@@ -28,37 +25,43 @@ export class SearchMagistratsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    search: string;
-    limit?: number;
+    search: string | undefined;
+    pagination: Pagination;
   }): Promise<SearchMagistratsResponseDto> {
-    const searchTerm = query.search.trim();
-    const limit = query.limit ?? 10;
+    let searchTerm = query.search?.trim();
+    searchTerm = (searchTerm?.length ?? 0) <= 2 ? undefined : searchTerm;
 
-    if (searchTerm.length < 2) {
-      return { magistrats: [] };
-    }
+    const where: Prisma.MagistratWhereInput | undefined = searchTerm
+      ? {
+          OR: [
+            { lastName: { contains: searchTerm, mode: 'insensitive' } },
+            { firstName: { contains: searchTerm, mode: 'insensitive' } },
+            { usedName: { contains: searchTerm, mode: 'insensitive' } },
+            {
+              professionalEmail: { contains: searchTerm, mode: 'insensitive' },
+            },
+          ],
+        }
+      : undefined;
 
-    const magistrats = await this.prisma.magistrat.findMany({
-      where: {
-        OR: [
-          { lastName: { contains: searchTerm, mode: 'insensitive' } },
-          { firstName: { contains: searchTerm, mode: 'insensitive' } },
-          { usedName: { contains: searchTerm, mode: 'insensitive' } },
-          { professionalEmail: { contains: searchTerm, mode: 'insensitive' } },
-        ],
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        usedName: true,
-        grade: true,
-        professionalEmail: true,
-      },
-      take: limit,
-      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-    });
+    const [totalCount, items] = await this.prisma.$transaction([
+      this.prisma.magistrat.count({ where }),
+      this.prisma.magistrat.findMany({
+        where,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          usedName: true,
+          grade: true,
+          professionalEmail: true,
+        },
+        take: query.pagination.limit,
+        skip: (query.pagination.page - 1) * query.pagination.limit,
+        orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+      }),
+    ]);
 
-    return { magistrats };
+    return paginate({ totalCount, items, pagination: query.pagination });
   }
 }

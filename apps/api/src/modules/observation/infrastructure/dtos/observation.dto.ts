@@ -20,8 +20,14 @@ export class ListObservationsQueryDto extends createZodDto(
 ) {}
 
 export class SearchMagistratsQueryDto extends createZodDto(
+  z.object({ search: z.string().min(2).optional() }),
+) {}
+
+export class UpdateObservationDto extends createZodDto(
   z.object({
-    search: z.string().min(2),
-    limit: z.coerce.number().min(1).max(50).optional(),
+    files: z.array(z.file()).optional(),
+    magistratId: z.uuid(),
+    dateReception: z.iso.date(),
+    detachFileIds: z.array(z.string()).optional(),
   }),
 ) {}

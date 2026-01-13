@@ -33,6 +33,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
 
 export const dataRowsDn = (options: {
   formation: FormationEnum;
+  sessionId: string;
   data: SessionNominationFile[];
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
@@ -44,11 +45,12 @@ export const dataRowsDn = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
-      nominationFileId: dossier.id,
+      sessionId: options.sessionId,
+      id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
-      onAddObservation: () => {},
+      observationMagistrats: dossier.observationMagistrats,
       readOnly: true
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
@@ -70,7 +72,6 @@ export const dataRowsDnEdition = (options: {
   formation: FormationEnum;
   sessionId: string;
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
-  onAddObservation: (nominationFileId: string, nominationFileName: string) => void;
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     React.createElement('div', {
@@ -85,11 +86,12 @@ export const dataRowsDnEdition = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
-      nominationFileId: dossier.id,
+      sessionId: options.sessionId,
+      id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
-      onAddObservation: options.onAddObservation
+      observationMagistrats: dossier.observationMagistrats
     }),
     React.createElement(DropdownPriorite, {
       dossierId: dossier.id,

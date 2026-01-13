@@ -6,11 +6,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UsePipes,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
@@ -25,24 +26,25 @@ import {
   CreateObservationDto,
   CreateObservationResponseDto,
   ListObservationsQueryDto,
-  SearchMagistratsQueryDto,
+  UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
-import { SearchMagistratsResponseDto } from './infrastructure/queries/search-magistrats.query';
 import { ObservationService } from './observation.service';
 
-@ApiTags('observations')
-@Controller('/api/observations/v1')
+@ApiTags('Sessions')
+@ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
+@ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
+@Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/observations')
 export class ObservationController {
   constructor(private readonly observations: ObservationService) {}
 
-  @Post('/:nominationFileId')
+  @Post()
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @UseMultipartBody({
     schema: CreateObservationDto,
     destination: ({ request, id, mimetype }) =>
-      `observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+      `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
@@ -51,11 +53,13 @@ export class ObservationController {
   })
   async createObservation(
     @AuthedUserId() userId: string,
+    @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
       userId,
+      sessionId,
       nominationFileId,
       magistratId: body.magistratId,
       dateReception: new Date(body.dateReception),
@@ -112,19 +116,25 @@ export class ObservationController {
     });
   }
 
-  @Get('/magistrats/search')
+  @Patch('/:observationId')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @UsePipes(ZodValidationPipe)
-  @ZodResponse({
-    type: SearchMagistratsResponseDto,
-    status: HttpStatus.OK,
+  @UseMultipartBody({
+    schema: UpdateObservationDto,
+    destination: ({ request, id, mimetype }) =>
+      `observations/${request.params.observationId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
-  async searchMagistrats(
-    @Query() query: SearchMagistratsQueryDto,
-  ): Promise<SearchMagistratsResponseDto> {
-    return this.observations.searchMagistrats({
-      search: query.search,
-      limit: query.limit,
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateObservation(
+    @Param('observationId') observationId: string,
+    @Body() body: Multipart<typeof UpdateObservationDto>,
+  ): Promise<void> {
+    await this.observations.updateObservation({
+      observationId,
+      dateReception: new Date(body.dateReception),
+      magistratId: body.magistratId,
+      filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
+      fileIdsToDetach: body.detachFileIds ?? [],
     });
   }
 }

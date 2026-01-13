@@ -11,6 +11,7 @@ import type { FormationEnum } from '@/types/enums.types';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { ErrorMessage } from '../../../shared/ErrorMessage';
 import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
+import { ObservationsModalProvider } from './ObservationsModalContext';
 import { TableauAffectationDossierDeNominationStatus } from './TableauAffectationDossiersDeNominationStatus';
 
 export type TableauAffectationDossierDeNominationProps = {
@@ -44,7 +45,7 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
   }
 
   return (
-    <>
+    <ObservationsModalProvider>
       <div id="session-affectation-dossier-de-nomination">
         <AlertsProvider>
           <div className={clsx(`flex items-end justify-between px-0`, cx('fr-container'))}>
@@ -66,6 +67,6 @@ export const TableauAffectationDossierDeNomination: FC<TableauAffectationDossier
           />
         </AlertsProvider>
       </div>
-    </>
+    </ObservationsModalProvider>
   );
 };

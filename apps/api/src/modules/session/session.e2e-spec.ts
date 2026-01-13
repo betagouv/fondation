@@ -175,6 +175,7 @@ describe('Session E2E', () => {
         },
         id: expect.any(String),
         observationCount: 0,
+        observationMagistrats: [],
         priority: null,
         reporters: [
           expect.objectContaining({
@@ -190,6 +191,7 @@ describe('Session E2E', () => {
         commentAccessUserIds: [],
         id: expect.any(String),
         observationCount: 0,
+        observationMagistrats: [],
         content: {
           dateDeNaissance: {
             day: 20,
