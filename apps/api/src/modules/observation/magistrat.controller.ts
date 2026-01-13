@@ -17,7 +17,7 @@ import {
 export class MagistratController {
   constructor(private readonly magistrats: MagistratService) {}
 
-  @Get('/magistrats/search')
+  @Get()
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()

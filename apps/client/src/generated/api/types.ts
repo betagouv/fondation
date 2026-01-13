@@ -1073,7 +1073,7 @@ export type SearchMagistratsData = {
         page?: number;
         limit?: number;
     };
-    url: '/api/magistrats/v1/magistrats/search';
+    url: '/api/magistrats/v1';
 };
 
 export type SearchMagistratsResponses = {
