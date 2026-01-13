@@ -15,18 +15,6 @@ export const SUMMARY_SECTIONS: SummarySection[] = [
     label: summaryLabels.observers
   },
   {
-    anchorId: reportHtmlIds.overview.statutorySection,
-    label: summaryLabels.rules.statutory
-  },
-  {
-    anchorId: reportHtmlIds.overview.managementSection,
-    label: summaryLabels.rules.management
-  },
-  {
-    anchorId: reportHtmlIds.overview.qualitativeSection,
-    label: summaryLabels.rules.qualitative
-  },
-  {
     anchorId: reportHtmlIds.overview.attachedFilesSection,
     label: summaryLabels.attachedFiles
   }
