@@ -102,7 +102,6 @@ export class NominationSessionUpdated {
     readonly sessionId: string,
     readonly data: {
       name: string;
-      formation: Magistrat.Formation;
       date: DateOnly;
       observationsClosingDate: DateOnly;
       dueDate: DateOnly | null;
@@ -438,7 +437,6 @@ export class NominationSession {
 
   update(command: {
     name: string;
-    formation: Magistrat.Formation;
     date: DateOnly;
     observationsClosingDate: DateOnly;
     dueDate: DateOnly | null;

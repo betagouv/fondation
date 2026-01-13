@@ -290,7 +290,6 @@ export class SessionService {
     sessionId: string;
     data: {
       name: string;
-      formation: Magistrat.Formation;
       date: DateOnly;
       observationsClosingDate: DateOnly;
       dueDate: DateOnly | null;

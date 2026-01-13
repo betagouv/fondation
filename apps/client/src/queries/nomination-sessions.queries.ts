@@ -237,7 +237,6 @@ export const useUpdateNominationSessionMutation = () => {
       sessionId: string;
       data: {
         name: string;
-        formation: FormationEnum;
         date: string;
         observationsClosingDate: string;
         dueDate: string | null;

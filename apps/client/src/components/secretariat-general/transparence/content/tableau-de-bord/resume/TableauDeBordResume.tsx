@@ -7,7 +7,6 @@ import type { DetailedNominationSessionDto } from '@api/types';
 import { useUpdateNominationSessionMutation } from '@queries/nomination-sessions.queries';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import type { FormationEnum } from '@/types/enums.types';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
@@ -23,7 +22,6 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
 
   const onSubmit = async (data: {
     name: string;
-    formation: FormationEnum;
     date: string;
     observationsClosingDate: string;
     dueDate: string | null;

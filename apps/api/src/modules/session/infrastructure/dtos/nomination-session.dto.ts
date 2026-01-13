@@ -48,7 +48,6 @@ export class UpdateNominationSessionFilesObserversDto extends createZodDto(
 export class UpdateNominationSessionDto extends createZodDto(
   z.object({
     name: z.string(),
-    formation: z.enum(Magistrat.Formation),
     date: z.iso.date(),
     observationsClosingDate: z.iso.date(),
     dueDate: z.iso.date().nullable(),

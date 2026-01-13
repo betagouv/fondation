@@ -1,24 +1,20 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
-import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import type { DetailedNominationSessionDto } from '@api/types';
-import { Magistrat } from 'shared-models';
 
 import { DateOnly } from '../../../../../../models/date-only.model';
 import { formationToLabel } from '../../../../../reports/labels/labels-mappers';
-import { FormationEnum } from '@/types/enums.types';
 
 export type TableauDeBordEditTransparenceProps = {
   transparence: DetailedNominationSessionDto;
   onCancel: () => unknown;
   onSubmit: (data: {
     name: string;
-    formation: FormationEnum;
     date: string;
     observationsClosingDate: string;
     dueDate: string | null;
@@ -31,7 +27,7 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
   onSubmit,
   onCancel
 }) => {
-  const { name, formation, date, observationsClosingDate, dueDate, positionStartDate } = transparence;
+  const { name, date, observationsClosingDate, dueDate, positionStartDate } = transparence;
 
   const {
     control,
@@ -42,7 +38,6 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
     resolver: zodResolver(
       z.object({
         name: z.string().nonempty(),
-        formation: z.enum(Object.values(FormationEnum) as [FormationEnum, ...FormationEnum[]]),
         date: z.iso.date('Format de date invalide'),
         observationsClosingDate: z.iso.date('Format de date invalide'),
         dueDate: z.iso.date('Format de date invalide').nullable(),
@@ -51,7 +46,6 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
     ),
     defaultValues: {
       name,
-      formation,
       date: DateOnly.fromDateOnly(date, 'yyyy-MM-dd'),
       observationsClosingDate: DateOnly.fromDateOnly(observationsClosingDate, 'yyyy-MM-dd'),
       dueDate: dueDate ? DateOnly.fromDateOnly(dueDate, 'yyyy-MM-dd') : null,
@@ -99,28 +93,20 @@ export const TableauDeBordEditTransparence: FC<TableauDeBordEditTransparenceProp
           />
         )}
       />
-      <Controller
-        name="formation"
-        control={control}
-        render={({ field: { value, onChange } }) => (
-          <Select
-            className="w-full"
-            label="Formation*"
-            nativeSelectProps={{
-              value,
-              onChange
-            }}
-            state={errors.formation ? 'error' : 'default'}
-            stateRelatedMessage={errors.formation?.message}
-          >
-            <option disabled></option>
-            <option value={Magistrat.Formation.SIEGE}>{formationToLabel(Magistrat.Formation.SIEGE)}</option>
-            <option value={Magistrat.Formation.PARQUET}>
-              {formationToLabel(Magistrat.Formation.PARQUET)}
-            </option>
-          </Select>
-        )}
-      />
+
+      <div className="mb-6">
+        <div className="fr-label" id="edit-formation-label">
+          Formation:
+        </div>
+        <div
+          aria-labelledby="edit-formation-label"
+          id="edit-formation"
+          className="mt-2 cursor-default rounded-t border-0 border-b-2 border-solid border-[color:var(--border-plain-grey)] bg-[var(--background-contrast-grey)] px-4 py-2"
+        >
+          {formationToLabel(transparence.formation).toUpperCase()}
+        </div>
+      </div>
+
       <Controller
         name="observationsClosingDate"
         control={control}

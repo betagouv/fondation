@@ -465,7 +465,6 @@ export class NominationSessionRepository {
       where: { id: message.sessionId },
       data: {
         name: message.data.name,
-        formation: message.data.formation,
         date: message.data.date.toDate(),
         observationsClosingDate: message.data.observationsClosingDate.toDate(),
         dueDate: message.data.dueDate?.toDate() ?? null,
