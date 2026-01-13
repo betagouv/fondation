@@ -118,6 +118,15 @@ export class NominationFileOutcomeDefined {
   ) {}
 }
 
+export class NominationFileMemberMemoWritten {
+  constructor(
+    readonly userId: string,
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly memo: string,
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
@@ -130,7 +139,8 @@ type NominationSessionEvent =
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
   | NominationSessionUpdated
-  | NominationFileOutcomeDefined;
+  | NominationFileOutcomeDefined
+  | NominationFileMemberMemoWritten;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -454,6 +464,24 @@ export class NominationSession {
         command.nominationFileId,
         command.outcome?.outcome ?? null,
         command.outcome?.comment ?? null,
+      ),
+    );
+  }
+
+  writeNominationFileMemberMemo(command: {
+    userId: string;
+    nominationFileId: string;
+    memo: string;
+  }) {
+    const trimmed = command.memo.trim();
+    if (trimmed.length === 0) return;
+
+    this.#messages.push(
+      new NominationFileMemberMemoWritten(
+        command.userId,
+        this.id,
+        command.nominationFileId,
+        trimmed,
       ),
     );
   }

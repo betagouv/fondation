@@ -19,19 +19,20 @@ import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 import {
+  NominationFileMemberMemoWritten,
+  NominationFileOutcomeDefined,
   NominationSession,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
   NominationSessionAttachmentAdded,
   NominationSessionAttachmentRemoved,
   NominationSessionCreated,
+  NominationSessionFileCommentAccessGranted,
   NominationSessionFilePriorityUpdated,
   NominationSessionFileReportersAffected,
-  NominationSessionFileCommentAccessGranted,
   NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
   NominationSessionUpdated,
-  NominationFileOutcomeDefined,
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
@@ -141,6 +142,8 @@ export class NominationSessionRepository {
           await this.persistNominationSessionUpdated(tx, message);
         } else if (message instanceof NominationFileOutcomeDefined) {
           await this.persistNominationFileOutcomeDefined(tx, message);
+        } else if (message instanceof NominationFileMemberMemoWritten) {
+          await this.persistNominationFileMemberMemoWritten(tx, message);
         } else {
           assertNever(message);
         }
@@ -480,6 +483,28 @@ export class NominationSessionRepository {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
       data: { outcome: message.outcome, comment: message.comment },
+    });
+  }
+
+  private async persistNominationFileMemberMemoWritten(
+    tx: Prisma.TransactionClient,
+    message: NominationFileMemberMemoWritten,
+  ) {
+    await tx.memberMemo.upsert({
+      where: {
+        primaryKey: {
+          userId: message.userId,
+          nominationFileId: message.nominationFileId,
+        },
+      },
+
+      update: { memo: message.memo },
+
+      create: {
+        userId: message.userId,
+        nominationFileId: message.nominationFileId,
+        memo: message.memo,
+      },
     });
   }
 }

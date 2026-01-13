@@ -11,6 +11,7 @@ export type MagistratDetailsProps = {
 };
 
 export function MagistratRouteDetails(props: {
+  sessionId: string;
   formation: FormationEnum;
   nominationFiles: readonly SessionNominationFile[];
 }) {
@@ -23,5 +24,11 @@ export function MagistratRouteDetails(props: {
 
   if (!activeNominationFile) return null;
 
-  return <MagistratDetails formation={props.formation} nominationFile={activeNominationFile} />;
+  return (
+    <MagistratDetails
+      sessionId={props.sessionId}
+      formation={props.formation}
+      nominationFile={activeNominationFile}
+    />
+  );
 }

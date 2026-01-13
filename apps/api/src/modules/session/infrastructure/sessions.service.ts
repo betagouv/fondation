@@ -334,4 +334,21 @@ export class SessionService {
 
     await this.nominationSessionRepository.persist(session);
   }
+
+  async writeNominationFileMemberMemo(command: {
+    userId: string;
+    sessionId: string;
+    nominationFileId: string;
+    memo: string;
+  }) {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+      { memberIds: [command.userId] },
+    );
+
+    const { userId, nominationFileId, memo } = command;
+    session.writeNominationFileMemberMemo({ userId, nominationFileId, memo });
+
+    return this.nominationSessionRepository.persist(session);
+  }
 }

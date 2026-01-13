@@ -25,7 +25,10 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
-import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
+import {
+  ListMembersQueryDto,
+  WriteNominationFileMemberMemoDto,
+} from './infrastructure/dtos/members.dto';
 import { ExcludeJurisdictionsDto } from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
@@ -106,6 +109,28 @@ export class MembersController {
       user: authUser,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       sessionId,
+    });
+  }
+
+  @HasRole()
+  @Put(
+    '/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo',
+  )
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async writeNominationFileMemberMemo(
+    @AuthedUser() authedUser: { id: string },
+    @Param('userId') userId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() { memo }: WriteNominationFileMemberMemoDto,
+  ) {
+    if (authedUser.id !== userId) throw new ForbiddenException();
+
+    await this.sessions.writeNominationFileMemberMemo({
+      userId,
+      sessionId,
+      nominationFileId,
+      memo,
     });
   }
 }

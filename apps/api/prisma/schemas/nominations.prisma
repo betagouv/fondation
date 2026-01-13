@@ -84,6 +84,7 @@ model DossierDeNomination {
   session       Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   commentAccess CommentAccess[]
   observations  Observation[]
+  memberMemos   MemberMemo[]
 
   @@unique([sessionId, number], name: "sessionFileNumber")
   @@map("dossier_de_nomination")
@@ -146,6 +147,21 @@ model SessionAttachment {
 
   @@id([sessionId, fileId])
   @@map("session_attachment")
+  @@schema("nominations_context")
+}
+
+model MemberMemo {
+  userId           String    @map("user_id") @db.Uuid
+  nominationFileId String    @map("nomination_file_id") @db.Uuid
+  memo             String
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime? @updatedAt @map("updated_at")
+
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, nominationFileId], name: "primaryKey")
+  @@map("member_memo")
   @@schema("nominations_context")
 }
 

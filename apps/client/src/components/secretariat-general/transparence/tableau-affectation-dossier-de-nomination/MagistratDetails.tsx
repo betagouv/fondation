@@ -14,13 +14,15 @@ import {
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { TextValue } from '../../../shared/TextValue';
 import { MagistratComment } from './MagistratComment';
+import { MemberMemo } from './MemberMemo';
 
 export type MagistratDetailsProps = {
+  sessionId: string;
   formation: FormationEnum;
   nominationFile: SessionNominationFile;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({ formation, nominationFile }) => {
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, formation, nominationFile }) => {
   const {
     dateDeNaissance,
     observants,
@@ -98,6 +100,8 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ formation, nominat
           {formattedBiography}
         </div>
       </div>
+
+      <MemberMemo sessionId={sessionId} nominationFileId={nominationFile.id} memo={nominationFile.memo} />
 
       <MagistratComment
         nominationFileId={nominationFile.id}

@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
-import type { ListedMemberSessionsDto, ListMembersData } from '@api/types';
+import type {
+  ListedMemberSessionsDto,
+  ListedNominationFileAffectationItem,
+  ListMembersData
+} from '@api/types';
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
@@ -148,6 +152,7 @@ export function useUpdateNominationFileCommentMutation() {
     }
   });
 }
+
 export function useUpdateCommentAccessMutation() {
   const queryClient = useQueryClient();
 
@@ -174,5 +179,32 @@ export function useUpdateCommentAccessMutation() {
         }
       );
     }
+  });
+}
+
+export function useWriteNominationFileMemberMemoMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { userId: string; sessionId: string; nominationFileId: string; memo: string }) =>
+      $api.members.writeNominationFileMemberMemo({
+        path: {
+          userId: mutation.userId,
+          sessionId: mutation.sessionId,
+          nominationFileId: mutation.nominationFileId
+        },
+        body: { memo: mutation.memo }
+      }),
+    onSuccess: (_, { nominationFileId, sessionId, memo }) =>
+      queryClient.setQueryData(
+        sessionKeys.listSessionNominationFiles({ sessionId }),
+        (old: ListedNominationFileAffectationItem | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) => (item.id === nominationFileId ? { ...item, memo } : item))
+          };
+        }
+      )
   });
 }
