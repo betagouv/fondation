@@ -34,7 +34,7 @@ export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({
   const { mutate: updateCommentAccess } = useUpdateCommentAccessMutation();
 
   const { data: eligibleUsers } = useMemberListQuery({
-    formations: [formation],
+    formations: [formation, 'COMMUN'],
     pagination: { pageSize: 100, pageIndex: 0 }
   });
 
