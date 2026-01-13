@@ -105,6 +105,10 @@ export class ListNominationFilesQuery {
               },
             },
           },
+          memberMemos: {
+            where: { userId: query.user.id },
+            select: { memo: true },
+          },
         },
       });
     });
@@ -169,6 +173,7 @@ export class ListNominationFilesQuery {
               ]),
           ).values(),
         ],
+        memo: x.memberMemos.at(0)?.memo || null,
       };
     });
 
@@ -226,6 +231,7 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
+  memo: z.string().nullable(),
 });
 
 type NominationFileAffectationItem = z.infer<

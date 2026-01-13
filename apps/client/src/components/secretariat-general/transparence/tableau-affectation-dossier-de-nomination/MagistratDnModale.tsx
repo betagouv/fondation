@@ -14,7 +14,11 @@ const modalMagistratDnDetails = createModal({
 });
 
 export function MagistratModaleProvider(
-  props: PropsWithChildren<{ formation: FormationEnum; nominationFiles: SessionNominationFile[] }>
+  props: PropsWithChildren<{
+    sessionId: string;
+    formation: FormationEnum;
+    nominationFiles: SessionNominationFile[];
+  }>
 ) {
   const [activeNominationFileId, setActiveNominationFileId] = useQueryState('active');
   const modalRef = useRef<HTMLDialogElement | null>(null);
@@ -89,7 +93,11 @@ export function MagistratModaleProvider(
           }
         ]}
       >
-        <MagistratRouteDetails nominationFiles={props.nominationFiles} formation={props.formation} />
+        <MagistratRouteDetails
+          sessionId={props.sessionId}
+          nominationFiles={props.nominationFiles}
+          formation={props.formation}
+        />
       </modalMagistratDnDetails.Component>
 
       {props.children}
@@ -100,7 +108,7 @@ export function MagistratModaleProvider(
 export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
   const location = useLocation();
 
-  const hasComment = !!props.nominationFile.comment;
+  const hasComment = !!props.nominationFile.memo || props.nominationFile.comment;
 
   const search = new URLSearchParams(location.search);
   search.set('active', props.nominationFile.id);

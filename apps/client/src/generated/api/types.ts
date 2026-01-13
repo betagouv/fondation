@@ -125,6 +125,7 @@ export type ListedNominationFileAffectationItem = {
             firstName: string;
             lastName: string;
         }>;
+        memo: string | null;
     }>;
 };
 
@@ -299,6 +300,10 @@ export type DetailedMemberSessionDto = {
             observers: Array<string>;
         }>;
     };
+};
+
+export type WriteNominationFileMemberMemoDto = {
+    memo: string;
 };
 
 export type ListedJurisdictions = {
@@ -867,6 +872,23 @@ export type DetailsMemberSessionResponses = {
 };
 
 export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+
+export type WriteNominationFileMemberMemoData = {
+    body: WriteNominationFileMemberMemoDto;
+    path: {
+        userId: string;
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/memo';
+};
+
+export type WriteNominationFileMemberMemoResponses = {
+    204: void;
+};
+
+export type WriteNominationFileMemberMemoResponse = WriteNominationFileMemberMemoResponses[keyof WriteNominationFileMemberMemoResponses];
 
 export type SearchData = {
     body?: never;

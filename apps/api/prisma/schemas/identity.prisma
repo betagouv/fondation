@@ -35,6 +35,7 @@ model User {
   publishedVersions           AffectationVersion[]
   commentAccess               CommentAccess[]
   createdObservations         Observation[]
+  memos                       MemberMemo[]
 
   @@map("users")
   @@schema("identity_and_access_context")
