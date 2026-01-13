@@ -14,22 +14,22 @@ import { ObservantsCell } from './ObservantsCell';
 import type { FormationEnum } from '@/types/enums.types';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN = [
-  { field: 'content.numeroDeDossier', label: 'N°' },
-  { field: 'content.nomMagistrat', label: 'Magistrat' },
+  { field: 'content.numeroDeDossier', label: 'N°', sortable: true },
+  { field: 'content.nomMagistrat', label: 'Magistrat', sortable: true },
   { field: 'content.grade', label: 'Grade actuel' },
-  { field: 'content.posteCible', label: 'Poste cible' },
-  { field: 'content.gradeCible', label: 'Grade cible' },
+  { field: 'content.posteCible', label: 'Poste cible', sortable: true },
+  { field: 'content.gradeCible', label: 'Grade cible', sortable: true },
   { field: 'content.observants', label: 'Observant(s)' },
   { field: 'content.priorite', label: 'Priorité' },
-  { field: 'content.rapporteurs', label: 'Rapporteur(s)' },
+  { field: 'content.rapporteurs', label: 'Rapporteur(s)', sortable: true },
   { field: 'content.outcome', label: 'Issue' },
   { field: 'content.dateEchéance', label: "Date d'écheance" }
-] as const satisfies { field: string; label: string }[];
+] as const satisfies { field: string; label: string; sortable?: boolean }[];
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
   { field: 'checkbox', label: '' },
   ...HEADER_COLUMNS_AFFECTATIONS_DN
-] as const satisfies { field: string; label: string }[];
+] as const satisfies { field: string; label: string; sortable?: boolean }[];
 
 export const dataRowsDn = (options: {
   formation: FormationEnum;
