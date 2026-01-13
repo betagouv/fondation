@@ -208,7 +208,6 @@ export type DetailedNominationSessionDto = {
 
 export type UpdateNominationSessionDto = {
     name: string;
-    formation: 'PARQUET' | 'SIEGE';
     date: string;
     observationsClosingDate: string;
     dueDate: string | null;
