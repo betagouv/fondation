@@ -188,10 +188,16 @@ const TableauDossiersDeNominationContent = ({
               <Button
                 priority="secondary"
                 iconId={isEditing ? 'fr-icon-close-line' : 'fr-icon-edit-fill'}
-                title={isEditing ? 'Annuler les modifications' : 'Éditer les dossiers'}
+                title={
+                  isEditing
+                    ? hasChanges
+                      ? 'Annuler les modifications'
+                      : 'Revenir au mode lecture'
+                    : 'Éditer les dossiers'
+                }
                 onClick={handleEdit}
               >
-                {isEditing ? 'Annuler' : undefined}
+                {isEditing ? (hasChanges ? 'Annuler' : 'Fermer') : undefined}
               </Button>
             </>
           )}
