@@ -3,7 +3,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { Observation } from './domain/observation';
-import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
@@ -12,10 +11,7 @@ import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
-import {
-  SearchMagistratsQuery,
-  SearchMagistratsResponseDto,
-} from './infrastructure/queries/search-magistrats.query';
+import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
 export class ObservationService {
@@ -24,18 +20,18 @@ export class ObservationService {
     private readonly observationRepository: ObservationRepository,
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
-    private readonly searchMagistratsQuery: SearchMagistratsQuery,
   ) {}
 
   async createObservation(command: {
     userId: string;
+    sessionId: string;
     nominationFileId: string;
     magistratId: string;
     dateReception: Date;
     files: readonly { id: string }[];
   }): Promise<{ id: string }> {
     const nominationFile = await this.prisma.dossierDeNomination.findUnique({
-      where: { id: command.nominationFileId },
+      where: { id: command.nominationFileId, sessionId: command.sessionId },
       select: { id: true },
     });
 
@@ -101,13 +97,6 @@ export class ObservationService {
     nominationFileId: string;
   }): Promise<ListObservationsResponseDto> {
     return this.listObservationsQuery.handle(query);
-  }
-
-  searchMagistrats(query: {
-    search: string;
-    limit?: number;
-  }): Promise<SearchMagistratsResponseDto> {
-    return this.searchMagistratsQuery.handle(query);
   }
 
   getObservationFileUrl(query: {

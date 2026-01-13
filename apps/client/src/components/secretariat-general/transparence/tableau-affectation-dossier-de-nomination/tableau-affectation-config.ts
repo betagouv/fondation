@@ -33,6 +33,7 @@ export const HEADER_COLUMNS_AFFECTATIONS_DN_EDITION = [
 
 export const dataRowsDn = (options: {
   formation: FormationEnum;
+  sessionId: string;
   data: SessionNominationFile[];
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
@@ -44,6 +45,7 @@ export const dataRowsDn = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
+      sessionId: options.sessionId,
       id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,
@@ -84,6 +86,7 @@ export const dataRowsDnEdition = (options: {
     dossier.content.posteCible,
     dossier.content.gradeCible,
     React.createElement(ObservantsCell, {
+      sessionId: options.sessionId,
       id: dossier.id,
       nominationFileName: dossier.content.nomMagistrat,
       observants: dossier.content.observants,

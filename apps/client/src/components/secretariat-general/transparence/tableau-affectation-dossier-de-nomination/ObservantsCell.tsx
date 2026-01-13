@@ -1,19 +1,20 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { type FC } from 'react';
 import { useObservationsModal } from './ObservationsModalContext';
 
-type ObservantsCellProps = Pick<
-  SessionNominationFile,
-  'id' | 'observationCount' | 'observationMagistrats'
-> & {
+type ObservantsCellProps = {
+  id: string;
+  sessionId: string;
   nominationFileName: string;
   observants: string[] | null;
   readOnly?: boolean;
+  observationMagistrats: { id: string; firstName: string; lastName: string }[];
+  observationCount: number;
 };
 
 export const ObservantsCell: FC<ObservantsCellProps> = ({
   id,
+  sessionId,
   observants,
   observationCount,
   observationMagistrats,
@@ -22,8 +23,8 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
 }) => {
   const { open } = useObservationsModal();
 
-  const handleAdd = () => open({ id, name: nominationFileName }, 'create');
-  const handleView = () => open({ id, name: nominationFileName }, 'view');
+  const handleAdd = () => open({ id, sessionId, name: nominationFileName }, 'create');
+  const handleView = () => open({ id, sessionId, name: nominationFileName }, 'view');
 
   return (
     <div className="flex flex-col gap-2">

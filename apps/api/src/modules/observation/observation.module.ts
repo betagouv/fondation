@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 
+import { MagistratService } from './infrastructure/magistrat.service';
 import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
 import { SearchMagistratsQuery } from './infrastructure/queries/search-magistrats.query';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
+import { MagistratController } from './magistrat.controller';
 import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
 @Module({
-  controllers: [ObservationController],
-  exports: [ObservationService],
+  controllers: [ObservationController, MagistratController],
+  exports: [ObservationService, MagistratService],
   providers: [
-    ObservationRepository,
-    ObservationService,
     GetObservationFileUrlQuery,
     ListObservationsQuery,
+    MagistratService,
+    ObservationRepository,
+    ObservationService,
     SearchMagistratsQuery,
   ],
 })

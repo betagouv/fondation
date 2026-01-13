@@ -2,7 +2,7 @@ import { Input } from '@codegouvfr/react-dsfr/Input';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type FC, useRef, useState, useMemo, useEffect } from 'react';
+import { type FC, useRef, useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
@@ -26,11 +26,12 @@ const observationFormSchema = z.object({
 type FormSchema = z.infer<typeof observationFormSchema>;
 
 export const ObservationForm: FC<{
+  sessionId: string;
   nominationFileId: string;
   nominationFileName: string;
   observation?: Observation;
   onSuccess?: () => void;
-}> = ({ nominationFileId, observation, onSuccess }) => {
+}> = ({ sessionId, nominationFileId, observation, onSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!observation;
 
@@ -58,7 +59,7 @@ export const ObservationForm: FC<{
   const [existingFiles, setExistingFiles] = useState<Observation['files']>(observation?.files ?? []);
   const [filesToDetach, setFilesToDetach] = useState<string[]>([]);
 
-  const { data: searchResults, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
+  const { data: displayedMagistrats, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
   const { mutate: createObservation, reset: resetCreateMutation } = useCreateObservationMutation();
   const { mutate: updateObservation, reset: resetUpdateMutation } = useUpdateObservationMutation();
 
@@ -101,6 +102,7 @@ export const ObservationForm: FC<{
     if (isEditing) {
       updateObservation(
         {
+          sessionId,
           observationId: observation.id,
           nominationFileId,
           magistratId: data.magistratId,
@@ -118,6 +120,7 @@ export const ObservationForm: FC<{
     } else {
       createObservation(
         {
+          sessionId,
           nominationFileId,
           magistratId: data.magistratId,
           dateReception: data.dateReception,
@@ -145,10 +148,6 @@ export const ObservationForm: FC<{
     setValue('magistratId', '');
     setSearchTerm('');
   };
-
-  const displayedMagistrats = useMemo(() => {
-    return searchResults?.magistrats ?? [];
-  }, [searchResults]);
 
   return (
     <form id="observation-form" onSubmit={handleFormSubmit(onSubmit)} className="flex flex-col gap-6">
@@ -206,10 +205,10 @@ export const ObservationForm: FC<{
           >
             {isSearching ? (
               <div className="p-3 text-sm text-gray-500">Recherche...</div>
-            ) : displayedMagistrats.length === 0 ? (
+            ) : (displayedMagistrats ?? []).length === 0 ? (
               <div className="p-3 text-sm text-gray-500">Aucun résultat</div>
             ) : (
-              displayedMagistrats.map((magistrat) => (
+              (displayedMagistrats ?? []).map((magistrat) => (
                 <button
                   key={magistrat.id}
                   type="button"
@@ -269,8 +268,9 @@ export const ObservationForm: FC<{
           </div>
           {filesToDetach.length > 0 && (
             <div className="mt-2 text-sm text-orange-600">
-              {filesToDetach.length} fichier{filesToDetach.length > 1 ? 's' : ''} sera
-              {filesToDetach.length > 1 ? 'ont' : ''} supprimé{filesToDetach.length > 1 ? 's' : ''}
+              {filesToDetach.length > 1
+                ? `${filesToDetach.length} fichiers seront supprimés`
+                : `1 fichier sera supprimé`}
             </div>
           )}
         </div>

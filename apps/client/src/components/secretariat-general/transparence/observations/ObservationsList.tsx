@@ -17,14 +17,19 @@ const formatDate = (dateString: string) => {
 };
 
 const ObservationCard: FC<{
+  sessionId: string;
+  nominationFileId: string;
   observation: Observation;
   onEdit: (observation: Observation) => void;
   onRequestDelete: (observation: Observation) => void;
-}> = ({ observation, onEdit, onRequestDelete }) => {
+}> = ({ sessionId, nominationFileId, observation, onEdit, onRequestDelete }) => {
   const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
 
   const handleFileClick = (fileId: string) => {
-    getFileUrl({ observationId: observation.id, fileId }, { onSuccess: (url) => window.open(url, '_blank') });
+    getFileUrl(
+      { sessionId, nominationFileId, observationId: observation.id, fileId },
+      { onSuccess: (url) => window.open(url, '_blank') }
+    );
   };
 
   return (
@@ -87,11 +92,12 @@ const ObservationCard: FC<{
 };
 
 export const ObservationsList: FC<{
+  sessionId: string;
   nominationFileId: string;
   onEdit: (observation: Observation) => void;
   onRequestDelete: (observation: Observation) => void;
-}> = ({ nominationFileId, onEdit, onRequestDelete }) => {
-  const { data, isLoading } = useObservationsQuery(nominationFileId);
+}> = ({ sessionId, nominationFileId, onEdit, onRequestDelete }) => {
+  const { data, isLoading } = useObservationsQuery({ sessionId, nominationFileId });
 
   const observations = data?.observations ?? [];
 
@@ -111,6 +117,8 @@ export const ObservationsList: FC<{
         <div className="flex flex-col gap-3">
           {observations.map((observation) => (
             <ObservationCard
+              sessionId={sessionId}
+              nominationFileId={nominationFileId}
               key={observation.id}
               observation={observation}
               onEdit={onEdit}

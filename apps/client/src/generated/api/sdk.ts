@@ -187,6 +187,42 @@ export class sessions {
             }
         });
     }
+    
+    public static listObservations<ThrowOnError extends boolean = false>(options: Options<ListObservationsData, ThrowOnError>) {
+        return (options.client ?? client).get<ListObservationsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations', ...options });
+    }
+    
+    public static createObservation<ThrowOnError extends boolean = false>(options: Options<CreateObservationData, ThrowOnError>) {
+        return (options.client ?? client).post<CreateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static getObservationFileUrl<ThrowOnError extends boolean = false>(options: Options<GetObservationFileUrlData, ThrowOnError>) {
+        return (options.client ?? client).get<GetObservationFileUrlResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url', ...options });
+    }
+    
+    public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
+        return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}', ...options });
+    }
+    
+    public static updateObservation<ThrowOnError extends boolean = false>(options: Options<UpdateObservationData, ThrowOnError>) {
+        return (options.client ?? client).patch<UpdateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
 }
 
 export class members {
@@ -272,44 +308,8 @@ export class reports {
     }
 }
 
-export class observations {
-    public static createObservation<ThrowOnError extends boolean = false>(options: Options<CreateObservationData, ThrowOnError>) {
-        return (options.client ?? client).post<CreateObservationResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/observations/v1/{nominationFileId}',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static listObservations<ThrowOnError extends boolean = false>(options?: Options<ListObservationsData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListObservationsResponses, unknown, ThrowOnError>({ url: '/api/observations/v1', ...options });
-    }
-    
-    public static getObservationFileUrl<ThrowOnError extends boolean = false>(options: Options<GetObservationFileUrlData, ThrowOnError>) {
-        return (options.client ?? client).get<GetObservationFileUrlResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/{observationId}/files/{fileId}/url', ...options });
-    }
-    
-    public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
-        return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/{observationId}', ...options });
-    }
-    
-    public static updateObservation<ThrowOnError extends boolean = false>(options: Options<UpdateObservationData, ThrowOnError>) {
-        return (options.client ?? client).patch<UpdateObservationResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/observations/v1/{observationId}',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static searchMagistrats<ThrowOnError extends boolean = false>(options: Options<SearchMagistratsData, ThrowOnError>) {
-        return (options.client ?? client).get<SearchMagistratsResponses, unknown, ThrowOnError>({ url: '/api/observations/v1/magistrats/search', ...options });
+export class magistrats {
+    public static searchMagistrats<ThrowOnError extends boolean = false>(options?: Options<SearchMagistratsData, ThrowOnError>) {
+        return (options?.client ?? client).get<SearchMagistratsResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1/magistrats/search', ...options });
     }
 }

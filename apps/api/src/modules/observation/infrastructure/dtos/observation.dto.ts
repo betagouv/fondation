@@ -20,10 +20,7 @@ export class ListObservationsQueryDto extends createZodDto(
 ) {}
 
 export class SearchMagistratsQueryDto extends createZodDto(
-  z.object({
-    search: z.string().min(2),
-    limit: z.coerce.number().min(1).max(50).optional(),
-  }),
+  z.object({ search: z.string().min(2).optional() }),
 ) {}
 
 export class UpdateObservationDto extends createZodDto(

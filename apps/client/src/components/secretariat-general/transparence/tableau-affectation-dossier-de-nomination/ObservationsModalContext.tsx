@@ -14,11 +14,11 @@ import {
 import { ObservationForm } from '../observations/ObservationForm';
 import { ObservationsList } from '../observations/ObservationsList';
 
-type ActiveFile = { id: string; name: string } | null;
+type ActiveFile = { sessionId: string; id: string; name: string };
 type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
 
 type ObservationsModalContextType = {
-  open: (file: { id: string; name: string }, mode?: ModalMode) => void;
+  open: (file: ActiveFile, mode?: ModalMode) => void;
   requestDelete: (observation: Observation) => void;
 };
 
@@ -39,7 +39,7 @@ const formatDate = (dateString: string) => {
 };
 
 export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [activeFile, setActiveFile] = useState<ActiveFile>(null);
+  const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('view');
   const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
   const [deletingObservation, setDeletingObservation] = useState<Observation | null>(null);
@@ -66,7 +66,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
     }
   }, [activeFile, isOpen]);
 
-  const open = (file: { id: string; name: string }, mode: ModalMode = 'view') => {
+  const open = (file: { sessionId: string; id: string; name: string }, mode: ModalMode = 'view') => {
     setModalMode(mode);
     setActiveFile(file);
   };
@@ -94,7 +94,11 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
   const handleConfirmDelete = () => {
     if (!deletingObservation || !activeFile) return;
     deleteObservation(
-      { observationId: deletingObservation.id, nominationFileId: activeFile.id },
+      {
+        sessionId: activeFile.sessionId,
+        nominationFileId: activeFile.id,
+        observationId: deletingObservation.id
+      },
       {
         onSuccess: () => {
           setDeletingObservation(null);
@@ -120,7 +124,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
   const modalProps = { ref: modalRef };
 
   return (
-    <ObservationsModalContext.Provider value={{ open, requestDelete }}>
+    <ObservationsModalContext value={{ open, requestDelete }}>
       {children}
 
       <modalObservations.Component
@@ -199,6 +203,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
         {activeFile &&
           (modalMode === 'view' ? (
             <ObservationsList
+              sessionId={activeFile.sessionId}
               nominationFileId={activeFile.id}
               onEdit={handleEdit}
               onRequestDelete={requestDelete}
@@ -210,6 +215,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
             </p>
           ) : (
             <ObservationForm
+              sessionId={activeFile.sessionId}
               nominationFileId={activeFile.id}
               nominationFileName={activeFile.name}
               observation={editingObservation ?? undefined}
@@ -217,7 +223,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
             />
           ))}
       </modalObservations.Component>
-    </ObservationsModalContext.Provider>
+    </ObservationsModalContext>
   );
 };
 
