@@ -16,8 +16,15 @@ import {
 import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
 import { exportNominationFilesToExcel } from '../../../tableau-affectation-dossier-de-nomination/export-nomination-files-to-excel';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import type { FormationEnum } from '@/types/enums.types';
 
-export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
+export const TableauDeBordActions = ({
+  sessionId,
+  formation
+}: {
+  sessionId: string;
+  formation: FormationEnum;
+}) => {
   const alerts = useAlerts();
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
@@ -83,7 +90,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
                 iconId: 'fr-icon-download-line',
                 disabled: !nominationFiles || nominationFiles.items.length === 0,
                 children: 'Exporter en Excel',
-                onClick: () => exportNominationFilesToExcel(nominationFiles?.items ?? [])
+                onClick: () => exportNominationFilesToExcel(nominationFiles?.items ?? [], formation)
               },
               {
                 priority: 'primary',

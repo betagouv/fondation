@@ -56,7 +56,7 @@ export const Transparence: FC = () => {
 
       <div className={'flex flex-col gap-8'}>
         <div className={clsx('gap-8', cx('fr-grid-row', 'fr-container'))}>
-          <TableauDeBordActions {...transparence} sessionId={sessionId!} />
+          <TableauDeBordActions sessionId={sessionId!} formation={transparence.formation} />
           <TableauDeBordResume {...transparence} />
         </div>
         <TableauAffectationDossierDeNomination formation={transparence.formation} />

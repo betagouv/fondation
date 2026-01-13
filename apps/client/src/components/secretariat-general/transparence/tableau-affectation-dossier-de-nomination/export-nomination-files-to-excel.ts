@@ -1,12 +1,19 @@
 import * as XLSX from 'xlsx';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { FormationEnum, outcomeLabels, PrioriteEnumLabels } from '@/types/enums.types';
+import { capitalize } from '@/utils/string.utils';
 
-export function exportNominationFilesToExcel(data: readonly SessionNominationFile[]) {
+export function exportNominationFilesToExcel(
+  data: readonly SessionNominationFile[],
+  formation: FormationEnum
+) {
   if (data.length === 0) return;
 
   const exportData = data.map((dossier) => {
     const content = dossier.content;
-    const rapporteursNames = dossier.reporters.map((r) => r.lastName + ' ' + r.firstName).join(', ');
+    const rapporteursNames = dossier.reporters
+      .map((r) => r.lastName.toUpperCase() + ' ' + capitalize(r.firstName))
+      .join(', ');
 
     return {
       'N°': content.numeroDeDossier,
@@ -14,9 +21,11 @@ export function exportNominationFilesToExcel(data: readonly SessionNominationFil
       'Poste actuel': content.posteActuel,
       'Grade actuel': content.grade,
       'Poste cible': content.posteCible,
-      Observants: Array.isArray(content.observants) ? content.observants.join(', ') : content.observants,
-      Priorité: 'priorité',
-      Issue: content.outcome?.value ?? '',
+      Observants: exportObservationsToExcel(dossier.observationMagistrats, content.observants),
+      Priorité: PrioriteEnumLabels[dossier.priority],
+      Issue: content.outcome?.value
+        ? capitalize(outcomeLabels({ formation, value: content.outcome.value }).label)
+        : '',
       'Commentaire Issue': content.outcome?.comment ?? '',
       'Rapporteur(s)': rapporteursNames
     };
@@ -47,4 +56,14 @@ export function exportNominationFilesToExcel(data: readonly SessionNominationFil
   const fileName = `dossiers-nomination-${dateStr}.xlsx`;
 
   XLSX.writeFile(wb, fileName);
+}
+
+function exportObservationsToExcel(
+  observationMagistrats: SessionNominationFile['observationMagistrats'],
+  legacyObservations: readonly string[] | null
+) {
+  return observationMagistrats
+    .map(({ lastName, firstName }) => `${lastName.toUpperCase()} ${capitalize(firstName)}`)
+    .concat(legacyObservations ?? [])
+    .join(',');
 }
