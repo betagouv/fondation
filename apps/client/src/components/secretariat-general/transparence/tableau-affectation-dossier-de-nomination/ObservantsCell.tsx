@@ -9,7 +9,7 @@ type ObservantsCellProps = {
   nominationFileName: string;
   observants: string[] | null;
   readOnly?: boolean;
-  observationMagistrats: { id: string; firstName: string; lastName: string; observationId?: string }[];
+  observationMagistrats: { id: string; firstName: string; lastName: string; observationId: string }[];
   observationCount: number;
 };
 
@@ -52,20 +52,11 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
     );
   }
 
-  const observationsWithId = observationMagistrats
-    .filter((m): m is typeof m & { observationId: string } => !!m.observationId)
-    .map((m) => ({
-      id: m.id,
-      firstName: m.firstName,
-      lastName: m.lastName,
-      observationId: m.observationId
-    }));
-
   return (
     <ObservationLinks
       sessionId={sessionId}
       nominationFileId={id}
-      observations={observationsWithId}
+      observations={observationMagistrats}
       lodamObservants={observants}
     />
   );

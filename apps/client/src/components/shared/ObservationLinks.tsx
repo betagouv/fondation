@@ -38,7 +38,7 @@ export function ObservationLinks({
                 {index > 0 && ', '}
                 <Link
                   to={`/secretariat-general/session/${sessionId}/dossiers/${nominationFileId}/observations/${obs.observationId}`}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600"
                 >
                   {obs.lastName} {obs.firstName}
                 </Link>

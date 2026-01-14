@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UsePipes,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
@@ -25,7 +24,6 @@ import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import {
   CreateObservationDto,
   CreateObservationResponseDto,
-  ListObservationsQueryDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
 import { GetObservationDetailsResponseDto } from './infrastructure/queries/get-observation-details.query';
@@ -72,19 +70,15 @@ export class ObservationController {
 
   @Get()
   @HasRole()
-  @UsePipes(ZodValidationPipe)
   @ZodResponse({
     type: ListObservationsResponseDto,
     status: HttpStatus.OK,
   })
   async listObservations(
-    @Query() query: ListObservationsQueryDto,
+    @Param('nominationFileId') nominationFileId: string,
   ): Promise<ListObservationsResponseDto> {
-    if (!query.nominationFileId) {
-      return { observations: [] };
-    }
     return this.observations.listObservations({
-      nominationFileId: query.nominationFileId,
+      nominationFileId,
     });
   }
 
