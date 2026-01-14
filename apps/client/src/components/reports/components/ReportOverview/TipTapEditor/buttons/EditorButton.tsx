@@ -1,8 +1,8 @@
 import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
-import type { HeadingLevel } from '../constant';
-import { useIsBlurred } from '../useIsBlurred';
-import { useMarkPriority } from '../useMarkPriority';
+import type { HeadingLevel } from '../extensions/constant';
+import { useIsBlurred } from '../hooks/useIsBlurred';
+import { useMarkPriority } from '../hooks/useMarkPriority';
 
 export type EditorButtonProps = {
   mark?: string;
@@ -10,6 +10,7 @@ export type EditorButtonProps = {
   title: string;
   onClick: () => void;
   disabled: boolean;
+  style?: React.CSSProperties;
 } & Required<Pick<ButtonProps.WithIcon, 'iconId' | 'title'>>;
 
 export const EditorButton: FC<EditorButtonProps> = (props) => {

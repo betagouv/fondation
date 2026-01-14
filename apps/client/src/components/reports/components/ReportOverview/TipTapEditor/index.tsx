@@ -1,59 +1,36 @@
-import { Editor, EditorProvider } from '@tiptap/react';
-import { MenuBar } from './MenuBar';
-import { createExtensions } from './extensions';
-import { useOnDeletedImage } from './useOnDeletedImage';
-import { useOnRedoImage } from './useOnRedoImage';
-import { TipTapEditorProvider } from '../../../../shared/TipTapEditorProvider';
+import { EditorContent, EditorContext, useEditor, type EditorContextValue } from '@tiptap/react';
+import React from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
-export type InsertImages = (editor: Editor, files: File[]) => void;
-export type RedoImages = (editor: Editor, files: File[]) => Promise<void>;
-export type DeleteImages = (editor: Editor, deletedImagesFileNames: string[]) => Promise<void>;
+import type { FilesUploader } from './extensions/editor-file-uploader';
+import { useTipTapExtensions } from './extensions/useTipTapExtensions';
+import { MenuBar } from './MenuBar';
 
 type TipTapEditorProps = {
   value: string | undefined;
   onChange: (value: string) => void;
   ariaLabelledby: string;
-  insertImages: InsertImages;
-  deleteImages: DeleteImages;
-  redoImages: RedoImages;
+  uploadFiles?: FilesUploader;
 };
 
-export const TipTapEditor = ({
-  value,
-  onChange,
-  ariaLabelledby,
-  insertImages,
-  deleteImages,
-  redoImages
-}: TipTapEditorProps) => {
-  const { onCreate: initializeImageDeletionTracking, onUpdate: onDeletedImageUpdate } =
-    useOnDeletedImage(deleteImages);
-  const { onCreate: initializeImageRedoTracking, onUpdate: onRedoImageUpdate } = useOnRedoImage(redoImages);
+export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps) => {
+  const extensions = useTipTapExtensions({ uploadFiles });
 
-  const extensions = createExtensions();
+  const onChangeDebounced = useDebouncedCallback(onChange, 600);
+  const editor = useEditor({
+    content: value,
+    extensions,
+    onUpdate: ({ editor }) => {
+      onChangeDebounced(editor.getHTML());
+    }
+  });
+
+  const providerValue = React.useMemo((): EditorContextValue => ({ editor }), [editor]);
 
   return (
-    <EditorProvider
-      slotBefore={<MenuBar insertImages={insertImages} />}
-      extensions={extensions}
-      content={value}
-      editable
-      editorProps={{
-        attributes: {
-          'aria-labelledby': ariaLabelledby
-        }
-      }}
-      onCreate={({ editor }) => {
-        const provider = new TipTapEditorProvider(editor);
-        provider.persistImages();
-        initializeImageDeletionTracking(editor);
-        initializeImageRedoTracking(editor);
-      }}
-      onUpdate={async ({ editor, transaction }) => {
-        onChange(editor.getHTML());
-        await onDeletedImageUpdate(editor);
-        onRedoImageUpdate(editor, transaction);
-      }}
-    />
+    <EditorContext.Provider value={providerValue}>
+      <MenuBar />
+      <EditorContent editor={editor} />
+    </EditorContext.Provider>
   );
 };

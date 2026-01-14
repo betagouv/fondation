@@ -1,42 +1,36 @@
-import Button from '@codegouvfr/react-dsfr/Button';
+import React from 'react';
+
+import { EditorButton } from './EditorButton';
 import { useCurrentEditor } from '@tiptap/react';
-import type { ChangeEvent, FC } from 'react';
-import { useRef } from 'react';
-import { useIsBlurred } from '../useIsBlurred';
-import type { InsertImages } from '..';
 
-type ImageUploadButtonProps = {
-  insertImages: InsertImages;
-};
-
-export const ImageUploadButton: FC<ImageUploadButtonProps> = ({ insertImages }) => {
+export const ImageUploadButton: React.FC = () => {
   const { editor } = useCurrentEditor();
-  const isBlurred = useIsBlurred();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  if (!editor) return null;
-
-  const handleClick = () => {
+  const handleClick = React.useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, [fileInputRef]);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handleFileChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      editor?.commands.uploadFiles({ files: e.target.files });
 
-    insertImages(editor, [...files]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    },
+    [editor, fileInputRef]
+  );
+
+  if (!editor || !editor.can().uploadFiles?.()) {
+    return null;
+  }
 
   return (
     <>
-      <Button
+      <EditorButton
         onClick={handleClick}
-        size="medium"
-        iconId="fr-icon-image-add-line"
-        priority="tertiary"
         title="Ajouter une capture d'écran"
-        disabled={isBlurred}
+        iconId="fr-icon-image-add-line"
+        disabled={false}
       />
       <input
         ref={fileInputRef}
