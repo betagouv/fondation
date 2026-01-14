@@ -68,6 +68,14 @@ export class InternalDetailMemberSessionQuery {
                 select: { id: true, state: true },
                 where: { reporterId: query.user.id },
               },
+              observations: {
+                select: {
+                  id: true,
+                  magistrat: {
+                    select: { id: true, firstName: true, lastName: true },
+                  },
+                },
+              },
             },
           },
         },
@@ -90,6 +98,7 @@ export class InternalDetailMemberSessionQuery {
 
           return {
             id,
+            nominationFileId: d.id,
             state,
             formation: session.formation,
             folderNumber: d.number,
@@ -98,6 +107,14 @@ export class InternalDetailMemberSessionQuery {
             grade: d.grade ?? '',
             targettedPosition: d.targetedPosition ?? '',
             observers: d.observers,
+            observationMagistrats: d.observations
+              .filter((obs) => obs.magistrat)
+              .map((obs) => ({
+                id: obs.magistrat!.id,
+                firstName: obs.magistrat!.firstName,
+                lastName: obs.magistrat!.lastName,
+                observationId: obs.id,
+              })),
           };
         }),
       },
@@ -118,6 +135,7 @@ export class DetailedMemberSessionDto extends createZodDto(
       reports: z.array(
         z.object({
           id: z.string(),
+          nominationFileId: z.string(),
           state: z.string(),
           formation: z.string(),
           folderNumber: z.number().nullable(),
@@ -126,6 +144,14 @@ export class DetailedMemberSessionDto extends createZodDto(
           grade: z.string(),
           targettedPosition: z.string(),
           observers: z.array(z.string()),
+          observationMagistrats: z.array(
+            z.object({
+              id: z.string(),
+              firstName: z.string(),
+              lastName: z.string(),
+              observationId: z.string(),
+            }),
+          ),
         }),
       ),
     }),

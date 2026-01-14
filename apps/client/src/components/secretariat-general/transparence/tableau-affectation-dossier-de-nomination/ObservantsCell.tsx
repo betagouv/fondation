@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { type FC } from 'react';
-import { Link } from 'react-router-dom';
 import { useObservationsModal } from './ObservationsModalContext';
+import { ObservationLinks } from '../../../shared/ObservationLinks';
 
 type ObservantsCellProps = {
   id: string;
@@ -52,41 +52,21 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
     );
   }
 
+  const observationsWithId = observationMagistrats
+    .filter((m): m is typeof m & { observationId: string } => !!m.observationId)
+    .map((m) => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      observationId: m.observationId
+    }));
+
   return (
-    <div className="flex flex-col gap-1">
-      {observants && observants.length > 0 && (
-        <div className="text-sm">
-          <span className="font-medium text-gray-600">LODAM: </span>
-          <span>{observants.join(', ')}</span>
-        </div>
-      )}
-
-      {observationMagistrats.length > 0 && (
-        <div className="text-sm">
-          <span className="font-medium text-gray-600">Observations: </span>
-          <span>
-            {observationMagistrats.map((m, index) => (
-              <span key={m.observationId ?? m.id}>
-                {index > 0 && ', '}
-                {m.observationId ? (
-                  <Link
-                    to={`/secretariat-general/session/${sessionId}/dossiers/${id}/observations/${m.observationId}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {m.lastName} {m.firstName}
-                  </Link>
-                ) : (
-                  <span>{m.lastName} {m.firstName}</span>
-                )}
-              </span>
-            ))}
-          </span>
-        </div>
-      )}
-
-      {(!observants || observants.length === 0) && observationMagistrats.length === 0 && (
-        <div className="text-sm text-gray-500">-</div>
-      )}
-    </div>
+    <ObservationLinks
+      sessionId={sessionId}
+      nominationFileId={id}
+      observations={observationsWithId}
+      lodamObservants={observants}
+    />
   );
 };

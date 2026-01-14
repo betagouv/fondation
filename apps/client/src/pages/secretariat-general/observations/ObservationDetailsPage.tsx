@@ -70,9 +70,7 @@ export function ObservationDetailsPage() {
               </div>
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Poste observé :</dt>
-                <dd className="fr-col-8 fr-m-0">
-                  {observation.magistratObserve.postePropose ?? '-'}
-                </dd>
+                <dd className="fr-col-8 fr-m-0">{observation.magistratObserve.postePropose ?? '-'}</dd>
               </div>
             </dl>
           </section>

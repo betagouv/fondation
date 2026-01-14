@@ -292,6 +292,7 @@ export type DetailedMemberSessionDto = {
         };
         reports: Array<{
             id: string;
+            nominationFileId: string;
             state: string;
             formation: string;
             folderNumber: number | null;
@@ -304,6 +305,12 @@ export type DetailedMemberSessionDto = {
             grade: string;
             targettedPosition: string;
             observers: Array<string>;
+            observationMagistrats: Array<{
+                id: string;
+                firstName: string;
+                lastName: string;
+                observationId: string;
+            }>;
         }>;
     };
 };
@@ -1357,8 +1364,8 @@ export type CreateObservationResponse = CreateObservationResponses[keyof CreateO
 export type GetObservationDetailsData = {
     body?: never;
     path: {
-        observationId: string;
         nominationFileId: string;
+        observationId: string;
         sessionId: string;
     };
     query?: never;
