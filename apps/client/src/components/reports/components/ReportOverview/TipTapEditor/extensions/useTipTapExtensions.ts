@@ -52,7 +52,8 @@ export function useTipTapExtensions(opts?: {
       Dropcursor,
       Image.configure({
         resize: {
-          enabled: true
+          enabled: true,
+          alwaysPreserveAspectRatio: true
         }
       }),
       ...(opts?.uploadFiles ? [ImageUploadPreview(opts.uploadFiles), FileHandler(opts.uploadFiles)] : [])
