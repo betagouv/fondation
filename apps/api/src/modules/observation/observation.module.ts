@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { MagistratService } from './infrastructure/magistrat.service';
+import { GetObservationDetailsQuery } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
 import { SearchMagistratsQuery } from './infrastructure/queries/search-magistrats.query';
@@ -13,6 +14,7 @@ import { ObservationService } from './observation.service';
   controllers: [ObservationController, MagistratController],
   exports: [ObservationService, MagistratService],
   providers: [
+    GetObservationDetailsQuery,
     GetObservationFileUrlQuery,
     ListObservationsQuery,
     MagistratService,

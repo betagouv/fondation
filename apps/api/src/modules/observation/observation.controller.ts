@@ -28,6 +28,7 @@ import {
   ListObservationsQueryDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
+import { GetObservationDetailsResponseDto } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
 import { ObservationService } from './observation.service';
@@ -84,6 +85,22 @@ export class ObservationController {
     }
     return this.observations.listObservations({
       nominationFileId: query.nominationFileId,
+    });
+  }
+
+  @Get('/:observationId/details')
+  @HasRole()
+  @ZodResponse({
+    type: GetObservationDetailsResponseDto,
+    status: HttpStatus.OK,
+  })
+  async getObservationDetails(
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('observationId') observationId: string,
+  ): Promise<GetObservationDetailsResponseDto> {
+    return this.observations.getObservationDetails({
+      nominationFileId,
+      observationId,
     });
   }
 

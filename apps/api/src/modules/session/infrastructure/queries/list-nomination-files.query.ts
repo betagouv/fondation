@@ -100,6 +100,7 @@ export class ListNominationFilesQuery {
           },
           observations: {
             select: {
+              id: true,
               magistrat: {
                 select: { id: true, firstName: true, lastName: true },
               },
@@ -166,20 +167,14 @@ export class ListNominationFilesQuery {
           }),
         ),
         observationCount: x._count.observations,
-        observationMagistrats: [
-          ...new Map(
-            x.observations
-              .filter((obs) => obs.magistrat)
-              .map((obs) => [
-                obs.magistrat!.id,
-                {
-                  id: obs.magistrat!.id,
-                  firstName: obs.magistrat!.firstName,
-                  lastName: obs.magistrat!.lastName,
-                },
-              ]),
-          ).values(),
-        ],
+        observationMagistrats: x.observations
+          .filter((obs) => obs.magistrat)
+          .map((obs) => ({
+            id: obs.magistrat!.id,
+            firstName: obs.magistrat!.firstName,
+            lastName: obs.magistrat!.lastName,
+            observationId: obs.id,
+          })),
         memo: x.memberMemos.at(0)?.memo || null,
         summary: x.summary
           ? {
@@ -247,6 +242,7 @@ const NominationFileAffectationItemSchema = z.object({
       id: z.string(),
       firstName: z.string(),
       lastName: z.string(),
+      observationId: z.string(),
     }),
   ),
   memo: z.string().nullable(),

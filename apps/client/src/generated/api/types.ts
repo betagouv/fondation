@@ -124,6 +124,7 @@ export type ListedNominationFileAffectationItem = {
             id: string;
             firstName: string;
             lastName: string;
+            observationId: string;
         }>;
         memo: string | null;
         summary: {
@@ -561,6 +562,28 @@ export type ListObservationsResponseDto = {
             name: string;
         }>;
         createdAt: string;
+    }>;
+};
+
+export type GetObservationDetailsResponseDto = {
+    id: string;
+    /**
+     * Date de réception au format JJ/MM/AAAA
+     */
+    dateReception: string;
+    observant: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string;
+    };
+    magistratObserve: {
+        nom: string;
+        postePropose: string | null;
+    };
+    files: Array<{
+        id: string;
+        name: string;
     }>;
 };
 
@@ -1330,6 +1353,23 @@ export type CreateObservationResponses = {
 };
 
 export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
+
+export type GetObservationDetailsData = {
+    body?: never;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/details';
+};
+
+export type GetObservationDetailsResponses = {
+    200: GetObservationDetailsResponseDto;
+};
+
+export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof GetObservationDetailsResponses];
 
 export type GetObservationFileUrlData = {
     body?: never;
