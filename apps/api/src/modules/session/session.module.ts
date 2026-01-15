@@ -17,11 +17,12 @@ import { NominationSessionRepository } from './infrastructure/repositories/nomin
 import { SessionService } from './infrastructure/sessions.service';
 import { SessionController } from './session.controller';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
+import { SummaryModule } from './summary.module';
 
 @Module({
-  exports: [SessionService],
+  exports: [SessionService, SummaryModule],
   controllers: [SessionController],
-  imports: [forwardRef(() => MembersModule)],
+  imports: [forwardRef(() => MembersModule), SummaryModule],
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,
