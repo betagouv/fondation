@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
 export type ObservationLinkItem = {
   id: string;
@@ -12,13 +13,15 @@ type ObservationLinksProps = {
   nominationFileId: string;
   observations: ObservationLinkItem[];
   lodamObservants?: string[] | null;
+  context?: 'sg' | 'membre';
 };
 
 export function ObservationLinks({
   sessionId,
   nominationFileId,
   observations,
-  lodamObservants
+  lodamObservants,
+  context = 'sg'
 }: ObservationLinksProps) {
   return (
     <div className="flex flex-col gap-1">
@@ -37,7 +40,10 @@ export function ObservationLinks({
               <span key={obs.observationId}>
                 {index > 0 && ', '}
                 <Link
-                  to={`/secretariat-general/session/${sessionId}/dossiers/${nominationFileId}/observations/${obs.observationId}`}
+                  to={getObservationDetailsPath(
+                    { sessionId, nominationFileId, observationId: obs.observationId },
+                    context
+                  )}
                   className="text-blue-600"
                 >
                   {obs.lastName} {obs.firstName}

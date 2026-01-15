@@ -112,6 +112,7 @@ export class ObservationService {
   }
 
   getObservationDetails(query: {
+    sessionId: string;
     nominationFileId: string;
     observationId: string;
   }): Promise<GetObservationDetailsResponseDto> {

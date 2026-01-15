@@ -95,6 +95,7 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
               nominationFileId={report.nominationFileId}
               observations={report.observationMagistrats}
               lodamObservants={report.lodamObservants}
+              context="membre"
             />,
             <ReportStateTag state={report.state} />,
             <div>{report.dueDate}</div>

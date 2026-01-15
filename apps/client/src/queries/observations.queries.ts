@@ -28,7 +28,7 @@ export function useObservationDetailsQuery(props: {
   return useQuery({
     enabled: !!props.sessionId && !!props.nominationFileId && !!props.observationId,
     queryKey: observationKeys.observationDetails(props),
-    queryFn: async () => {
+    queryFn: async (): Promise<ObservationDetails> => {
       const { data } = await $api.sessions.getObservationDetails({
         path: {
           sessionId: props.sessionId,
@@ -37,7 +37,7 @@ export function useObservationDetailsQuery(props: {
         }
       });
       if (!data) throw new Error('Failed to fetch observation details');
-      return data;
+      return data as ObservationDetails;
     }
   });
 }

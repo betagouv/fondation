@@ -89,10 +89,12 @@ export class ObservationController {
     status: HttpStatus.OK,
   })
   async getObservationDetails(
+    @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('observationId') observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
+      sessionId,
       nominationFileId,
       observationId,
     });

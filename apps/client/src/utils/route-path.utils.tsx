@@ -12,7 +12,9 @@ export const ROUTE_PATHS = {
     /** @deprecated */
     DETAILS_GDS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:sessionId',
-    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id'
+    DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
+    OBSERVATION_DETAILS:
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId'
   },
   SG: {
     DASHBOARD: '/secretariat-general',
@@ -56,4 +58,18 @@ export const getGdsReportPath = (id: string) => {
 
 export const getSgSessionPath = (sessionId: string) => {
   return `/secretariat-general/session/${sessionId}`;
+};
+
+export const getObservationDetailsPath = (
+  props: {
+    sessionId: string;
+    nominationFileId: string;
+    observationId: string;
+  },
+  context: 'sg' | 'membre' = 'sg'
+) => {
+  if (context === 'membre') {
+    return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/${props.sessionId}/dossiers/${props.nominationFileId}/observations/${props.observationId}`;
+  }
+  return `/secretariat-general/session/${props.sessionId}/dossiers/${props.nominationFileId}/observations/${props.observationId}`;
 };

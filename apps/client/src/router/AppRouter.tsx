@@ -56,6 +56,10 @@ const router = createBrowserRouter([
             element: <ReportOverviewPage />
           },
           {
+            path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
+            element: <ObservationDetailsPage />
+          },
+          {
             // Useful in case of bookmarks or history
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
             action: ({ params }) => redirect(getDetailSessionGdsPath({ sessionId: params.sessionId! }))

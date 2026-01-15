@@ -575,22 +575,36 @@ export type ListObservationsResponseDto = {
 export type GetObservationDetailsResponseDto = {
     id: string;
     /**
-     * Date de réception au format JJ/MM/AAAA
+     * Reception date formatted as DD/MM/YYYY
      */
-    dateReception: string;
+    receptionDate: string;
     observant: {
         id: string;
         firstName: string;
         lastName: string;
         usedName: string;
+        biography: string | null;
+        candidacy: {
+            nominationFileId: string;
+            desiredPosition: string | null;
+            rank: string | null;
+        } | null;
     };
-    magistratObserve: {
-        nom: string;
-        postePropose: string | null;
+    observedMagistrat: {
+        name: string;
+        proposedPosition: string | null;
     };
     files: Array<{
         id: string;
         name: string;
+    }>;
+    relatedPropositions: Array<{
+        observationId: string;
+        nominationFileId: string;
+        number: number | null;
+        magistratName: string;
+        proposedPosition: string | null;
+        observationDate: string;
     }>;
 };
 
@@ -1364,9 +1378,9 @@ export type CreateObservationResponse = CreateObservationResponses[keyof CreateO
 export type GetObservationDetailsData = {
     body?: never;
     path: {
+        sessionId: string;
         nominationFileId: string;
         observationId: string;
-        sessionId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/details';
