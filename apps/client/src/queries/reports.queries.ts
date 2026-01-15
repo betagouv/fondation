@@ -156,3 +156,15 @@ export const useInsertImagesWithSignedUrls = () =>
       return getReportImageUrls({ reportId, files });
     }
   });
+
+export const useAttachScreenshotMutation = () =>
+  useMutation({
+    mutationFn: async (mutation: { reportId: string; files: readonly File[] }) => {
+      const { data } = await $api.reports.attachScreenshots({
+        path: { reportId: mutation.reportId },
+        body: { files: mutation.files as File[] }
+      });
+
+      return data ?? null;
+    }
+  });

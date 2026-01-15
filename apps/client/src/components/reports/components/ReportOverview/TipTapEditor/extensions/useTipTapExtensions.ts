@@ -16,7 +16,7 @@ import Underline from '@tiptap/extension-underline';
 import { Dropcursor, UndoRedo } from '@tiptap/extensions';
 import React from 'react';
 
-import { headingLevels } from './constant';
+import { dataFileIdKey, dataFileNameKey, headingLevels } from './constant';
 import type { FilesUploader } from './editor-file-uploader';
 import { FileHandler } from './file-handler-extension';
 import { ImageUploadPreview } from './ImageUploadPreview';
@@ -50,7 +50,17 @@ export function useTipTapExtensions(opts?: {
         newGroupDelay: opts?.history?.newGroupDelay ?? 300
       }),
       Dropcursor,
-      Image.configure({
+      Image.extend({
+        addAttributes: () => ({
+          src: null,
+          alt: null,
+          title: null,
+          width: null,
+          height: null,
+          [dataFileIdKey]: null,
+          [dataFileNameKey]: null
+        })
+      }).configure({
         resize: {
           enabled: true,
           alwaysPreserveAspectRatio: true

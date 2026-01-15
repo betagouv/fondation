@@ -13,22 +13,34 @@ declare module '@tiptap/core' {
 function ImageUploadNodeView(props: ReactNodeViewProps<HTMLImageElement>) {
   const { src, width, height } = props.node.attrs;
 
+  if (!src) return null;
+
   return (
     <NodeViewWrapper>
       <div
         style={{
-          position: 'relative',
-          backgroundImage: `url(${src})`,
-          maxWidth: '400px',
-          maxHeight: '400px',
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          zIndex: 0,
-
-          width,
-          height
+          width: '100%',
+          margin: '8px 0',
+          display: 'flex',
+          justifyContent: 'center',
+          position: 'relative'
         }}
       >
+        <div
+          style={{
+            flexGrow: 0,
+            flexShrink: 0,
+            backgroundImage: `url(${src})`,
+            maxWidth: '400px',
+            maxHeight: (height / width) * 400 + 'px',
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            zIndex: 0,
+            filter: 'blur(1px)',
+            width,
+            height
+          }}
+        />
         <div
           style={{
             inset: '0',
@@ -57,7 +69,7 @@ export const ImageUploadPreview = (filesUploader: FilesUploader) =>
     selectable: false,
 
     addAttributes() {
-      return { src: null, width: null, height: null, dataFileId: null };
+      return { src: null, width: null, height: null, dataFileName: null };
     },
 
     renderHTML() {

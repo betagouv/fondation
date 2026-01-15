@@ -2,6 +2,9 @@ import { reportHtmlIds } from '../../dom/html-ids';
 
 import { ReportVM } from '../../../../VM/ReportVM';
 import { TextareaCard } from './TextareaCard';
+import { useAttachScreenshotMutation } from '@queries/reports.queries';
+import React from 'react';
+import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
 
 export type ReportEditorProps = {
   comment: string | null;
@@ -9,7 +12,17 @@ export type ReportEditorProps = {
   reportId: string;
 };
 
-export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate }) => {
+export const ReportEditor: React.FC<ReportEditorProps> = ({ reportId, comment, onUpdate }) => {
+  const { mutateAsync } = useAttachScreenshotMutation();
+
+  const uploadFiles = React.useCallback<FilesUploader>(
+    async (files: readonly File[]) => {
+      const result = await mutateAsync({ files: files as File[], reportId });
+      return (result?.items ?? []).map(({ id, name, url }) => ({ id, name, url: new URL(url) }));
+    },
+    [mutateAsync, reportId]
+  );
+
   return (
     <TextareaCard
       cardId={reportHtmlIds.overview.commentSection}
@@ -17,24 +30,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({ comment, onUpdate })
       label={ReportVM.commentLabel}
       content={comment}
       onContentChange={onUpdate}
-      uploadFiles={
-        // TODO: adds report specific FilesUploader
-        (files) =>
-          new Promise((resolve) => {
-            setTimeout(
-              () =>
-                resolve(
-                  files.map(({ id }) => ({
-                    id,
-                    fileId: crypto.randomUUID(),
-                    name: `name-${crypto.randomUUID()}.png`,
-                    url: new URL('https://placehold.co/100x100')
-                  }))
-                ),
-              3_000
-            );
-          })
-      }
+      uploadFiles={uploadFiles}
     />
   );
 };

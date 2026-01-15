@@ -32,6 +32,10 @@ html {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.ProseMirror img {
+  max-width: 100%;
+}
+
 .ProseMirror > div > div {
   min-width: var(--fondation-editor-min-width);
   max-width: 100%;

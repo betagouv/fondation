@@ -1,16 +1,20 @@
 import type { Editor } from '@tiptap/core';
 import { dataFileIdKey, dataFileNameKey } from './constant';
 
-export type FilesUploader = (
-  files: readonly { id: string; file: File }[]
-) => Promise<{ id: string; fileId: string; url: URL; name: string }[]>;
+export type FilesUploader = (files: readonly File[]) => Promise<{ id: string; url: URL; name: string }[]>;
 
 export function makeEditorImageUploader(uploader: FilesUploader) {
   return function (options: { editor: Editor; files: readonly File[]; pos?: number }) {
-    const filesWithId = options.files.map((file) => ({ file, id: crypto.randomUUID() }));
     let uploadDone = false;
+    const files = options.files.map((file) => {
+      const ext = file.name.split('.').at(-1);
+      if (!ext) return file;
 
-    for (const { id, file } of filesWithId) {
+      const fileName = [crypto.randomUUID(), ext].join('.');
+      return new File([file], fileName, { type: file.type });
+    });
+
+    for (const file of files) {
       readAsImage(file)
         .then(($img) => {
           if (uploadDone) return;
@@ -22,7 +26,7 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
               src: $img.src,
               width: $img.width,
               height: $img.height,
-              dataFileId: id
+              dataFileName: file.name
             }
           };
 
@@ -35,9 +39,9 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
         .catch(() => {});
     }
 
-    uploader(filesWithId).then((uploadedFiles) => {
+    uploader(files).then((uploadedFiles) => {
       uploadDone = true;
-      for (const { id, fileId, name, url } of uploadedFiles) {
+      for (const { id: fileId, name, url } of uploadedFiles) {
         const content = {
           type: 'image',
           attrs: { src: url.toString(), [dataFileIdKey]: fileId, [dataFileNameKey]: name }
@@ -46,7 +50,7 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
         let found = false;
         const $nodes = options.editor.$nodes(`imagePreview`) ?? [];
         for (const $node of $nodes) {
-          if ($node.attributes['dataFileId'] === id) {
+          if ($node.attributes['dataFileName'] === name) {
             found = true;
             const pos = $node.pos;
 
