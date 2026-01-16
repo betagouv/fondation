@@ -21,7 +21,9 @@ export const ROUTE_PATHS = {
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId'
-  }
+  },
+
+  SUMMARY: '/session/:sessionId/dossier/:fileId/synthese'
 } as const;
 
 export type RoutePath = typeof ROUTE_PATHS;

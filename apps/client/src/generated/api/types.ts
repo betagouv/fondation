@@ -126,6 +126,11 @@ export type ListedNominationFileAffectationItem = {
             lastName: string;
         }>;
         memo: string | null;
+        summary: {
+            id: string;
+            canRead: boolean;
+            canWrite: boolean;
+        } | null;
     }>;
 };
 
@@ -313,6 +318,96 @@ export type ListedJurisdictions = {
         type: string;
         ville: string | null;
     }>;
+};
+
+export type CreatedSummaryDto = {
+    id: string;
+};
+
+export type AttachSummaryFilesDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludeFilesInSummaryContentDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludedFilesInSummaryContentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteSummaryContentDto = {
+    content: string;
+};
+
+export type UpdateSummaryReadersListDto = {
+    readerIds: Array<string>;
+};
+
+export type DetailedSummaryDto = {
+    id: string;
+    sessionId: string;
+    formation: 'PARQUET' | 'SIEGE';
+    number: number | null;
+    birthDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    grade: 'I' | 'II' | 'III' | 'HH';
+    position: string | null;
+    targetedGrade: 'I' | 'II' | 'III' | 'HH';
+    targetedPosition: string | null;
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+    biography: string;
+    lastRankingDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    lastPositionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    observers: Array<string>;
+    observations: Array<{
+        id: string;
+        magistrat: {
+            id: string;
+            firstName: string;
+            usedName: string;
+            lastName: string;
+        };
+    }>;
+    outcome: {
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+        comment: string | null;
+    } | null;
+    summary: {
+        content: string;
+        updatedAt: string;
+        attachments: Array<{
+            id: string;
+            name: string;
+            type: string;
+        }>;
+        screenshots: Array<{
+            id: string;
+            name: string;
+            type: string;
+            url: string;
+        }>;
+        readers: Array<{
+            id: string;
+            firstName: string;
+            lastName: string;
+        }>;
+    };
 };
 
 export type AttachReportFileDto = {
@@ -918,7 +1013,121 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
+export type DetailSummaryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary';
+};
+
+export type DetailSummaryResponses = {
+    200: DetailedSummaryDto;
+};
+
+export type DetailSummaryResponse = DetailSummaryResponses[keyof DetailSummaryResponses];
+
+export type CreateSummaryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary';
+};
+
+export type CreateSummaryResponses = {
+    201: CreatedSummaryDto;
+};
+
+export type CreateSummaryResponse = CreateSummaryResponses[keyof CreateSummaryResponses];
+
 export type DetachFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query: {
+        fileIds: Array<string>;
+    };
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
+};
+
+export type DetachFilesResponses = {
+    204: void;
+};
+
+export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
+
+export type AttachFilesData = {
+    body: AttachSummaryFilesDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
+};
+
+export type AttachFilesResponses = {
+    204: void;
+};
+
+export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
+
+export type IncludeFilesInContentData = {
+    body: IncludeFilesInSummaryContentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/screenshots';
+};
+
+export type IncludeFilesInContentResponses = {
+    200: IncludedFilesInSummaryContentDto;
+};
+
+export type IncludeFilesInContentResponse = IncludeFilesInContentResponses[keyof IncludeFilesInContentResponses];
+
+export type WriteSummaryData = {
+    body: WriteSummaryContentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/content';
+};
+
+export type WriteSummaryResponses = {
+    204: void;
+};
+
+export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
+
+export type UpdateReadersListData = {
+    body: UpdateSummaryReadersListDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
+};
+
+export type UpdateReadersListResponses = {
+    204: void;
+};
+
+export type UpdateReadersListResponse = UpdateReadersListResponses[keyof UpdateReadersListResponses];
+
+export type DetachFiles2Data = {
     body?: never;
     path: {
         reportId: string;
@@ -929,13 +1138,13 @@ export type DetachFilesData = {
     url: '/api/reports/v2/{reportId}/files';
 };
 
-export type DetachFilesResponses = {
+export type DetachFiles2Responses = {
     204: void;
 };
 
-export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
+export type DetachFiles2Response = DetachFiles2Responses[keyof DetachFiles2Responses];
 
-export type AttachFilesData = {
+export type AttachFiles2Data = {
     body: AttachReportFileDto;
     path: {
         reportId: string;
@@ -946,11 +1155,11 @@ export type AttachFilesData = {
     url: '/api/reports/v2/{reportId}/files';
 };
 
-export type AttachFilesResponses = {
+export type AttachFiles2Responses = {
     204: void;
 };
 
-export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
+export type AttachFiles2Response = AttachFiles2Responses[keyof AttachFiles2Responses];
 
 export type AttachScreenshotsData = {
     body: AttachScreenshotsDto;
