@@ -11,9 +11,10 @@ import {
   Put,
   Query,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
-import { ZodResponse } from 'nestjs-zod';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
 import {
@@ -35,6 +36,7 @@ import {
 import { DetailedSummaryDto } from './infrastructure/queries/detail-summary.query';
 import { SummaryFilter } from './infrastructure/summary.filter';
 import { SummaryService } from './infrastructure/summary.service';
+import { GeneratedSummaryAttachmentPublicUrlDto } from './infrastructure/queries/get-summary-attachment-url.query';
 
 @ApiTags('Summaries')
 @ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
@@ -67,7 +69,6 @@ export class SummaryController {
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/summary/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async attachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
@@ -86,7 +87,7 @@ export class SummaryController {
   async detachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
-    @Query() { fileIds }: DetachSummaryFilesQueryDto,
+    @Query(ZodValidationPipe) { fileIds }: DetachSummaryFilesQueryDto,
   ): Promise<void> {
     await this.summaries.detachFiles({
       sessionId,
@@ -121,6 +122,7 @@ export class SummaryController {
   @Put('/content')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   async writeSummary(
     @AuthedUser() user: { id: string },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -138,6 +140,7 @@ export class SummaryController {
   @Put('/readers')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   async updateSummaryReadersList(
     @AuthedUser() user: { id: string },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -149,6 +152,26 @@ export class SummaryController {
       sessionId,
       nominationFileId,
       readerIds,
+    });
+  }
+
+  @Get('/attachments/:fileId/url')
+  @HasRole()
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: GeneratedSummaryAttachmentPublicUrlDto,
+  })
+  generateAttachmentPublicUrl(
+    @AuthedUser() user: { id: string },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+  ): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
+    return this.summaries.generateSummaryAttachmentPublicUrl({
+      userId: user.id,
+      sessionId,
+      nominationFileId,
+      fileId,
     });
   }
 

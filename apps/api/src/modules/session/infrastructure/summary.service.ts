@@ -11,6 +11,10 @@ import {
   DetailedSummaryDto,
   DetailSummaryQuery,
 } from './queries/detail-summary.query';
+import {
+  GeneratedSummaryAttachmentPublicUrlDto,
+  GetSummaryAttachmentUrlQuery,
+} from './queries/get-summary-attachment-url.query';
 
 @Injectable()
 export class SummaryService {
@@ -20,6 +24,7 @@ export class SummaryService {
     private readonly prisma: PrismaService,
     private readonly users: SimpleAuthService,
     private readonly detailSummaryQuery: DetailSummaryQuery,
+    private readonly generateAttachmentPublicUrlQuery: GetSummaryAttachmentUrlQuery,
   ) {}
 
   async create(command: {
@@ -129,5 +134,14 @@ export class SummaryService {
     nominationFileId: string;
   }): Promise<DetailedSummaryDto> {
     return this.detailSummaryQuery.handle(query);
+  }
+
+  generateSummaryAttachmentPublicUrl(query: {
+    sessionId: string;
+    nominationFileId: string;
+    fileId: string;
+    userId: string;
+  }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
+    return this.generateAttachmentPublicUrlQuery.handle(query);
   }
 }

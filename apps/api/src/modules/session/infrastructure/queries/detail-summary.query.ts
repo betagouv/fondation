@@ -71,7 +71,9 @@ export class DetailSummaryQuery {
             },
             summary: {
               select: {
-                authorId: true,
+                author: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
                 content: true,
                 updatedAt: true,
                 readers: {
@@ -119,9 +121,10 @@ export class DetailSummaryQuery {
     if (!summary) throw new NotFoundException();
 
     const allAllowedReaders = new Set(
-      [summary.authorId, ...summary.readers.map(({ user }) => user.id)].filter(
-        isDefined,
-      ),
+      [
+        summary.author?.id,
+        ...summary.readers.map(({ user }) => user.id),
+      ].filter(isDefined),
     );
 
     if (!allAllowedReaders.has(query.userId)) {
@@ -135,8 +138,10 @@ export class DetailSummaryQuery {
     return {
       id: nominationFile.id,
       sessionId: session.id,
+      name: nominationFile.name,
       number: nominationFile.number,
       position: nominationFile.currentPosition,
+      rank: nominationFile.rank,
       targetedPosition: nominationFile.targetedPosition,
       biography: nominationFile.biography ?? '',
       formation: prismaFormationEnumToFormationEnum(session.formation),
@@ -176,6 +181,13 @@ export class DetailSummaryQuery {
 
       summary: {
         content: summary.content,
+        author: summary.author
+          ? {
+              id: summary.author.id,
+              firstName: summary.author.firstName,
+              lastName: summary.author.lastName,
+            }
+          : null,
         updatedAt: summary.updatedAt.toISOString(),
         readers: summary.readers.map(({ user }) => ({
           id: user.id,
@@ -218,6 +230,8 @@ export class DetailedSummaryDto extends createZodDto(
   z.object({
     id: z.string(),
     sessionId: z.string(),
+    name: z.string().nullable(),
+    rank: z.string().nullable(),
     formation: z.enum(Magistrat.Formation),
     number: z.number().int().gte(1).nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
@@ -253,6 +267,9 @@ export class DetailedSummaryDto extends createZodDto(
     summary: z.object({
       content: z.string(),
       updatedAt: z.iso.datetime(),
+      author: z
+        .object({ id: z.string(), firstName: z.string(), lastName: z.string() })
+        .nullable(),
       attachments: z.array(
         z.object({
           id: z.string(),

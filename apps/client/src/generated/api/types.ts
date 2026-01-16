@@ -348,9 +348,18 @@ export type UpdateSummaryReadersListDto = {
     readerIds: Array<string>;
 };
 
+export type GeneratedSummaryAttachmentPublicUrlDto = {
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+};
+
 export type DetailedSummaryDto = {
     id: string;
     sessionId: string;
+    name: string | null;
+    rank: string | null;
     formation: 'PARQUET' | 'SIEGE';
     number: number | null;
     birthDate: {
@@ -391,6 +400,11 @@ export type DetailedSummaryDto = {
     summary: {
         content: string;
         updatedAt: string;
+        author: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
         attachments: Array<{
             id: string;
             name: string;
@@ -1126,6 +1140,23 @@ export type UpdateSummaryReadersListResponses = {
 };
 
 export type UpdateSummaryReadersListResponse = UpdateSummaryReadersListResponses[keyof UpdateSummaryReadersListResponses];
+
+export type GenerateAttachmentPublicUrlData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments/{fileId}/url';
+};
+
+export type GenerateAttachmentPublicUrlResponses = {
+    200: GeneratedSummaryAttachmentPublicUrlDto;
+};
+
+export type GenerateAttachmentPublicUrlResponse = GenerateAttachmentPublicUrlResponses[keyof GenerateAttachmentPublicUrlResponses];
 
 export type DetachFilesData = {
     body?: never;
