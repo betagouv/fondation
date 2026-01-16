@@ -7,6 +7,10 @@ import { ignoreAsync } from 'src/utils/promises';
 import { Summary } from '../domain/summary';
 import { IncludedFilesInSummaryContentDto } from './dtos/summary.dto';
 import { SummaryRepository } from './repositories/summary.repository';
+import {
+  DetailedSummaryDto,
+  DetailSummaryQuery,
+} from './queries/detail-summary.query';
 
 @Injectable()
 export class SummaryService {
@@ -15,6 +19,7 @@ export class SummaryService {
     private readonly files: Files,
     private readonly prisma: PrismaService,
     private readonly users: SimpleAuthService,
+    private readonly detailSummaryQuery: DetailSummaryQuery,
   ) {}
 
   async create(command: {
@@ -116,5 +121,13 @@ export class SummaryService {
     });
 
     await this.summaryRepository.persist(summary);
+  }
+
+  detailSummary(query: {
+    userId: string;
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<DetailedSummaryDto> {
+    return this.detailSummaryQuery.handle(query);
   }
 }

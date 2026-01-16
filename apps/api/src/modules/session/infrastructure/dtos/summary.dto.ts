@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { isDefined } from 'src/utils/is-defined';
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 
 export class CreatedSummaryDto extends createZodDto(
   z.object({
@@ -24,7 +25,21 @@ export class DetachSummaryFilesQueryDto extends createZodDto(
 ) {}
 
 export class IncludeFilesInSummaryContentDto extends createZodDto(
-  z.object({ files: z.array(z.file().max(5 * 1_024 * 1_024)).nonempty() }),
+  z.object({
+    files: z
+      .array(
+        z
+          .file()
+          .max(5 * 1_024 * 1_024)
+          .mime([
+            FILE_MIME_TYPES.jpg,
+            FILE_MIME_TYPES.png,
+            FILE_MIME_TYPES.heic,
+            FILE_MIME_TYPES.webp,
+          ]),
+      )
+      .nonempty(),
+  }),
 ) {}
 
 export class IncludedFilesInSummaryContentDto extends createZodDto(

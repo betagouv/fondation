@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -30,12 +31,7 @@ import {
   UpdateSummaryReadersListDto,
   WriteSummaryContentDto,
 } from './infrastructure/dtos/summary.dto';
-import {
-  FILE_EXTENSIONS,
-  Multipart,
-  UseMultipartBody,
-} from '../framework/files';
-import { Role } from 'shared-models';
+import { DetailedSummaryDto } from './infrastructure/queries/detail-summary.query';
 import { SummaryFilter } from './infrastructure/summary.filter';
 import { SummaryService } from './infrastructure/summary.service';
 
@@ -152,6 +148,21 @@ export class SummaryController {
       sessionId,
       nominationFileId,
       readerIds,
+    });
+  }
+
+  @Get()
+  @HasRole()
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedSummaryDto })
+  detailSummary(
+    @AuthedUser() user: { id: string },
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<DetailedSummaryDto> {
+    return this.summaries.detailSummary({
+      userId: user.id,
+      sessionId,
+      nominationFileId,
     });
   }
 }
