@@ -1045,7 +1045,7 @@ export type CreateSummaryResponses = {
 
 export type CreateSummaryResponse = CreateSummaryResponses[keyof CreateSummaryResponses];
 
-export type DetachFilesData = {
+export type DetachSummaryFilesData = {
     body?: never;
     path: {
         sessionId: string;
@@ -1057,13 +1057,13 @@ export type DetachFilesData = {
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
 };
 
-export type DetachFilesResponses = {
+export type DetachSummaryFilesResponses = {
     204: void;
 };
 
-export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
+export type DetachSummaryFilesResponse = DetachSummaryFilesResponses[keyof DetachSummaryFilesResponses];
 
-export type AttachFilesData = {
+export type AttachSummaryFilesData = {
     body: AttachSummaryFilesDto;
     path: {
         sessionId: string;
@@ -1073,11 +1073,11 @@ export type AttachFilesData = {
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
 };
 
-export type AttachFilesResponses = {
+export type AttachSummaryFilesResponses = {
     204: void;
 };
 
-export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
+export type AttachSummaryFilesResponse = AttachSummaryFilesResponses[keyof AttachSummaryFilesResponses];
 
 export type IncludeFilesInContentData = {
     body: IncludeFilesInSummaryContentDto;
@@ -1111,7 +1111,7 @@ export type WriteSummaryResponses = {
 
 export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
 
-export type UpdateReadersListData = {
+export type UpdateSummaryReadersListData = {
     body: UpdateSummaryReadersListDto;
     path: {
         sessionId: string;
@@ -1121,13 +1121,13 @@ export type UpdateReadersListData = {
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
 };
 
-export type UpdateReadersListResponses = {
+export type UpdateSummaryReadersListResponses = {
     204: void;
 };
 
-export type UpdateReadersListResponse = UpdateReadersListResponses[keyof UpdateReadersListResponses];
+export type UpdateSummaryReadersListResponse = UpdateSummaryReadersListResponses[keyof UpdateSummaryReadersListResponses];
 
-export type DetachFiles2Data = {
+export type DetachFilesData = {
     body?: never;
     path: {
         reportId: string;
@@ -1138,13 +1138,13 @@ export type DetachFiles2Data = {
     url: '/api/reports/v2/{reportId}/files';
 };
 
-export type DetachFiles2Responses = {
+export type DetachFilesResponses = {
     204: void;
 };
 
-export type DetachFiles2Response = DetachFiles2Responses[keyof DetachFiles2Responses];
+export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
 
-export type AttachFiles2Data = {
+export type AttachFilesData = {
     body: AttachReportFileDto;
     path: {
         reportId: string;
@@ -1155,11 +1155,11 @@ export type AttachFiles2Data = {
     url: '/api/reports/v2/{reportId}/files';
 };
 
-export type AttachFiles2Responses = {
+export type AttachFilesResponses = {
     204: void;
 };
 
-export type AttachFiles2Response = AttachFiles2Responses[keyof AttachFiles2Responses];
+export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
 
 export type AttachScreenshotsData = {
     body: AttachScreenshotsDto;

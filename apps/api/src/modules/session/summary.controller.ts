@@ -68,7 +68,7 @@ export class SummaryController {
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/summary/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async attachFiles(
+  async attachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: Multipart<typeof AttachSummaryFilesDto>,
@@ -83,7 +83,7 @@ export class SummaryController {
   @Delete('/attachments')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async detachFiles(
+  async detachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Query() { fileIds }: DetachSummaryFilesQueryDto,
@@ -138,7 +138,7 @@ export class SummaryController {
   @Put('/readers')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updateReadersList(
+  async updateSummaryReadersList(
     @AuthedUser() user: { id: string },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,

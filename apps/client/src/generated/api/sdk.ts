@@ -6,7 +6,7 @@
 
 import { client } from './client.ts';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.ts';
-import type { AffectReportersData, AffectReportersResponses, AttachFiles2Data, AttachFiles2Responses, AttachFilesData, AttachFilesResponses, AttachScreenshotsData, AttachScreenshotsResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFiles2Data, DetachFiles2Responses, DetachFilesData, DetachFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailSummaryData, DetailSummaryResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdateReadersListData, UpdateReadersListResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
+import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AttachScreenshotsData, AttachScreenshotsResponses, AttachSummaryFilesData, AttachSummaryFilesResponses, AutoAffectationData, AutoAffectationResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFilesData, DetachFilesResponses, DetachSummaryFilesData, DetachSummaryFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailSummaryData, DetailSummaryResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IntrospectSessionData, IntrospectSessionResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchData, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UpdateSummaryReadersListData, UpdateSummaryReadersListResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -280,12 +280,12 @@ export class summaries {
         return (options.client ?? client).post<CreateSummaryResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary', ...options });
     }
     
-    public static detachFiles<ThrowOnError extends boolean = false>(options: Options<DetachFilesData, ThrowOnError>) {
-        return (options.client ?? client).delete<DetachFilesResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments', ...options });
+    public static detachSummaryFiles<ThrowOnError extends boolean = false>(options: Options<DetachSummaryFilesData, ThrowOnError>) {
+        return (options.client ?? client).delete<DetachSummaryFilesResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments', ...options });
     }
     
-    public static attachFiles<ThrowOnError extends boolean = false>(options: Options<AttachFilesData, ThrowOnError>) {
-        return (options.client ?? client).post<AttachFilesResponses, unknown, ThrowOnError>({
+    public static attachSummaryFiles<ThrowOnError extends boolean = false>(options: Options<AttachSummaryFilesData, ThrowOnError>) {
+        return (options.client ?? client).post<AttachSummaryFilesResponses, unknown, ThrowOnError>({
             ...formDataBodySerializer,
             url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments',
             ...options,
@@ -319,8 +319,8 @@ export class summaries {
         });
     }
     
-    public static updateReadersList<ThrowOnError extends boolean = false>(options: Options<UpdateReadersListData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateReadersListResponses, unknown, ThrowOnError>({
+    public static updateSummaryReadersList<ThrowOnError extends boolean = false>(options: Options<UpdateSummaryReadersListData, ThrowOnError>) {
+        return (options.client ?? client).put<UpdateSummaryReadersListResponses, unknown, ThrowOnError>({
             url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers',
             ...options,
             headers: {
@@ -332,12 +332,12 @@ export class summaries {
 }
 
 export class reports {
-    public static detachFiles<ThrowOnError extends boolean = false>(options: Options<DetachFiles2Data, ThrowOnError>) {
-        return (options.client ?? client).delete<DetachFiles2Responses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files', ...options });
+    public static detachFiles<ThrowOnError extends boolean = false>(options: Options<DetachFilesData, ThrowOnError>) {
+        return (options.client ?? client).delete<DetachFilesResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files', ...options });
     }
     
-    public static attachFiles<ThrowOnError extends boolean = false>(options: Options<AttachFiles2Data, ThrowOnError>) {
-        return (options.client ?? client).post<AttachFiles2Responses, unknown, ThrowOnError>({
+    public static attachFiles<ThrowOnError extends boolean = false>(options: Options<AttachFilesData, ThrowOnError>) {
+        return (options.client ?? client).post<AttachFilesResponses, unknown, ThrowOnError>({
             ...formDataBodySerializer,
             url: '/api/reports/v2/{reportId}/files',
             ...options,
