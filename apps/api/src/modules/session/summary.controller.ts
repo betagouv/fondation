@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -48,8 +49,8 @@ export class SummaryController {
   @ZodResponse({ status: HttpStatus.CREATED, type: CreatedSummaryDto })
   createSummary(
     @AuthedUser() user: { id: string },
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<CreatedSummaryDto> {
     return this.summaries.create({
       userId: user.id,
@@ -68,8 +69,8 @@ export class SummaryController {
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   async attachFiles(
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: Multipart<typeof AttachSummaryFilesDto>,
   ): Promise<void> {
     await this.summaries.attachFiles({
@@ -83,8 +84,8 @@ export class SummaryController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @HttpCode(HttpStatus.NO_CONTENT)
   async detachFiles(
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Query() { fileIds }: DetachSummaryFilesQueryDto,
   ): Promise<void> {
     await this.summaries.detachFiles({
@@ -106,8 +107,8 @@ export class SummaryController {
     type: IncludedFilesInSummaryContentDto,
   })
   async includeFilesInContent(
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { files }: Multipart<typeof IncludeFilesInSummaryContentDto>,
   ): Promise<IncludedFilesInSummaryContentDto> {
     return this.summaries.includeFilesIntoContent({
@@ -122,8 +123,8 @@ export class SummaryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeSummary(
     @AuthedUser() user: { id: string },
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: WriteSummaryContentDto,
   ): Promise<void> {
     await this.summaries.writeContent({
@@ -139,8 +140,8 @@ export class SummaryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateReadersList(
     @AuthedUser() user: { id: string },
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { readerIds }: UpdateSummaryReadersListDto,
   ): Promise<void> {
     await this.summaries.updateReadersList({
@@ -156,8 +157,8 @@ export class SummaryController {
   @ZodResponse({ status: HttpStatus.OK, type: DetailedSummaryDto })
   detailSummary(
     @AuthedUser() user: { id: string },
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<DetailedSummaryDto> {
     return this.summaries.detailSummary({
       userId: user.id,
