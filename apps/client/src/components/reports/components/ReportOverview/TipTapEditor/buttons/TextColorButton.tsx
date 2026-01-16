@@ -1,24 +1,19 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { colors } from '@codegouvfr/react-dsfr/fr/colors';
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import type { ChangeEvent } from 'react';
-import { useRef } from 'react';
-import { useIsBlurred } from '../useIsBlurred';
+import React, { useRef } from 'react';
+import { EditorButton } from './EditorButton';
 
 export const TextColorButton = () => {
-  const inputRef = useRef<HTMLInputElement>(null);
   const { editor } = useCurrentEditor();
-  const isBlurred = useIsBlurred();
+  const inputRef = useRef<HTMLInputElement>(null);
   const textColors = colors.getHex({ isDark: false }).decisions.text;
-  const currentTextColor = useEditorState({
+  const editorTextColor = useEditorState({
     editor,
-    selector: (ctx) =>
-      isBlurred ? textColors.disabled.grey.default : ctx.editor?.getAttributes('textStyle').color
+    selector: (ctx) => ctx.editor?.getAttributes('textStyle').color
   });
 
-  if (!editor) {
-    return null;
-  }
+  const [textColor, setTextColor] = React.useState(editorTextColor ?? textColors.default.grey.default);
 
   const predefinedColors = [
     textColors.default.grey.default,
@@ -26,23 +21,27 @@ export const TextColorButton = () => {
     textColors.default.error.default
   ];
 
-  const setColor = (event: ChangeEvent<HTMLInputElement>) =>
-    editor.chain().focus().setColor(event.target.value).run();
+  const setColor = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextTextColor = event.target.value;
 
-  const disabled = isBlurred || !editor.can().chain().focus().setColor('#000000').run();
+    setTextColor(nextTextColor);
+    editor?.chain().focus().setColor(nextTextColor).run();
+  };
+
+  const isDisabled = !editor?.can().chain().focus().setColor('#000000').run();
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <div className="relative">
-      <Button
+      <EditorButton
         onClick={() => inputRef.current?.click()}
-        disabled={disabled}
-        size="medium"
-        iconId="ri-font-color"
-        priority="tertiary"
+        disabled={isDisabled}
         title="Couleur du texte"
-        style={{
-          color: currentTextColor
-        }}
+        style={{ color: textColor }}
+        iconId="ri-font-color"
       />
       <input
         ref={inputRef}
@@ -52,7 +51,7 @@ export const TextColorButton = () => {
         type="color"
         list="presetColors"
         onInput={setColor}
-        value={currentTextColor}
+        value={textColor}
         id="input-color"
       />
       <datalist id="presetColors">

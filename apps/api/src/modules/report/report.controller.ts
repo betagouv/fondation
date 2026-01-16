@@ -24,8 +24,10 @@ import {
   type Multipart,
 } from '../framework/files';
 import {
+  AttachedScreenshotsDto,
   AttachReportFileDto,
   AttachReportFileQueryDto,
+  AttachScreenshotsDto,
   DetachReportFilesQueryDto,
   GetReportFileUrlsQueryDto,
   UpdateReportDto,
@@ -75,6 +77,26 @@ export class ReportController {
       userId,
       reportId,
       fileNames: query.fileNames,
+    });
+  }
+
+  @Post('/:reportId/screenshots')
+  @HasRole()
+  @UseMultipartBody({
+    schema: AttachScreenshotsDto,
+    destination: ({ id, mimetype, request }) =>
+      `reports/${request.params.reportId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  @ZodResponse({ status: HttpStatus.OK, type: AttachedScreenshotsDto })
+  async attachScreenshots(
+    @Param('reportId') reportId: string,
+    @Body() { files }: Multipart<typeof AttachScreenshotsDto>,
+    @AuthedUser() user: { id: string },
+  ): Promise<AttachedScreenshotsDto> {
+    return this.reports.attachScreenshots({
+      files,
+      reportId,
+      userId: user.id,
     });
   }
 

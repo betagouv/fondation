@@ -10,19 +10,20 @@ export const useIsBlurred = () => {
       return;
     }
 
-    const handleBlur = (event: FocusEvent) => {
+    const handleBlur = ({ event }: { event: FocusEvent }) => {
       if (event.relatedTarget) return;
       setIsBlurred(true);
     };
+
     const handleFocus = () => {
       setIsBlurred(false);
     };
 
-    editor.on('blur', ({ event }) => handleBlur(event));
+    editor.on('blur', handleBlur);
     editor.on('focus', handleFocus);
 
     return () => {
-      editor.off('blur', ({ event }) => handleBlur(event));
+      editor.off('blur', handleBlur);
       editor.off('focus', handleFocus);
     };
   }, [editor]);

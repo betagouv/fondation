@@ -1,0 +1,35 @@
+.loader.pulse {
+  position: relative;
+  width: var(--loader-size);
+  height: var(--loader-size);
+
+  & > div {
+    position: absolute;
+    border: calc(0.0625 * var(--loader-size)) solid var(--background-contrast-blue-france-active);
+    border-radius: 50%;
+
+    animation: loader-pulse 1s ease-out infinite;
+  }
+
+  & > div:nth-child(2) {
+    animation-delay: -500ms;
+  }
+}
+
+@keyframes loader-pulse {
+  0% {
+    top: 32px;
+    left: 32px;
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+
+  100% {
+    top: 0;
+    left: 0;
+    width: 64px;
+    height: 64px;
+    opacity: 0;
+  }
+}

@@ -1,6 +1,9 @@
-import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { NominationFile, ReportFileUsage } from 'shared-models';
+
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 
 export class AttachReportFileDto extends createZodDto(
   z.object({ files: z.array(z.file()) }),
@@ -41,5 +44,29 @@ export class UpdateReportDto extends createZodDto(
 export class UpdateReportRuleValidationDto extends createZodDto(
   z.object({
     isValidated: z.boolean(),
+  }),
+) {}
+
+export class AttachScreenshotsDto extends createZodDto(
+  z.object({
+    files: z.array(
+      z
+        .file()
+        .mime([
+          FILE_MIME_TYPES.jpg,
+          FILE_MIME_TYPES.png,
+          FILE_MIME_TYPES.gif,
+          FILE_MIME_TYPES.webp,
+          FILE_MIME_TYPES.heic,
+        ]),
+    ),
+  }),
+) {}
+
+export class AttachedScreenshotsDto extends createZodDto(
+  z.object({
+    items: z.array(
+      z.object({ id: z.string(), name: z.string(), url: z.string() }),
+    ),
   }),
 ) {}

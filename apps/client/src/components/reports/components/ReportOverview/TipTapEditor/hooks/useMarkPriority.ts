@@ -1,6 +1,6 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { HeadingLevel } from './constant';
-import { markPriorityFactory } from './markPriorityFactory';
+import type { HeadingLevel } from '../extensions/constant';
+import { markPriorityFactory } from '../markPriorityFactory';
 
 export const useMarkPriority = (mark?: string, options?: { level: HeadingLevel }) => {
   const { editor } = useCurrentEditor();

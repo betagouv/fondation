@@ -319,6 +319,18 @@ export type AttachReportFileDto = {
     files: Array<Blob | File>;
 };
 
+export type AttachScreenshotsDto = {
+    files: Array<Blob | File>;
+};
+
+export type AttachedScreenshotsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
 export type GetReportFileUrlsResponseDto = {
     items: Array<{
         id: string;
@@ -939,6 +951,21 @@ export type AttachFilesResponses = {
 };
 
 export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
+
+export type AttachScreenshotsData = {
+    body: AttachScreenshotsDto;
+    path: {
+        reportId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/{reportId}/screenshots';
+};
+
+export type AttachScreenshotsResponses = {
+    200: AttachedScreenshotsDto;
+};
+
+export type AttachScreenshotsResponse = AttachScreenshotsResponses[keyof AttachScreenshotsResponses];
 
 export type GetReportFilesUrlData = {
     body?: never;

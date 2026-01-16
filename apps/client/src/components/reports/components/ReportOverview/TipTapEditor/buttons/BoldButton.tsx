@@ -1,6 +1,6 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import type { FC } from 'react';
-import { headingLevels } from '../constant';
+import { headingLevels } from '../extensions/constant';
 import { EditorButton } from './EditorButton';
 
 export const BoldButton: FC = () => {

@@ -7,6 +7,7 @@ export const FILE_MIME_TYPES = {
   png: 'image/png',
   jpg: 'image/jpeg',
   heic: 'image/heic',
+  gif: 'image/gif',
   webp: 'image/webp',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

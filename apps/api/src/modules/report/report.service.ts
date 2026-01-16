@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { ReportRepository } from './infrastructure/report.repository';
-import { type ReportFileUsage, Role, NominationFile } from 'shared-models';
+import { ReportFileUsage, Role, NominationFile } from 'shared-models';
 import {
   GetReportFileUrlsQuery,
   type GetReportFileUrlsResponseDto,
@@ -10,6 +10,10 @@ import {
   type DetailedReportDto,
   DetailReportQuery,
 } from './infrastructure/queries/detail-report.query';
+import { StoredFile } from '../framework/files/multipart/multipart.types';
+import { Files } from '../framework/files';
+import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ReportService {
@@ -17,11 +21,12 @@ export class ReportService {
     private readonly reportRepository: ReportRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
+    private readonly files: Files,
   ) {}
 
   async attachFiles(command: {
     userId: string;
-    fileUsage: ReportFileUsage;
+    fileUsage: ReportFileUsage | undefined;
     reportId: string;
     files: readonly { id: string }[];
   }): Promise<void> {
@@ -31,7 +36,7 @@ export class ReportService {
     });
     report.attachFiles({
       reporterId: command.userId,
-      fileUsage: command.fileUsage,
+      fileUsage: command.fileUsage ?? ReportFileUsage.ATTACHMENT,
       files: command.files,
     });
     await this.reportRepository.persist(report);
@@ -51,6 +56,38 @@ export class ReportService {
       reporterId: command.userId,
     });
     await this.reportRepository.persist(report);
+  }
+
+  async attachScreenshots(command: {
+    files: readonly StoredFile[];
+    reportId: string;
+    userId: string;
+  }): Promise<AttachedScreenshotsDto> {
+    await this.attachFiles({
+      userId: command.userId,
+      reportId: command.reportId,
+      files: command.files,
+      fileUsage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+    });
+
+    const urls = await this.files.getPublicUrls(
+      command.files.map((file) => file.id),
+    );
+
+    return {
+      items: command.files
+        .map((file) => {
+          const url = urls[file.id]?.toString();
+          if (!url) return undefined;
+
+          return {
+            url,
+            id: file.id,
+            name: file.name,
+          };
+        })
+        .filter(isDefined),
+    };
   }
 
   getReportFileUrls(query: {
