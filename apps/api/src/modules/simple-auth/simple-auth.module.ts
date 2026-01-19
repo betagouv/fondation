@@ -5,14 +5,16 @@ import { SimpleAuthController } from './simple-auth.controller';
 import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { ListUsersQuery } from './infrastructure/queries/list-users.query';
 
 @Module({
   controllers: [SimpleAuthController],
   providers: [
-    SimpleAuthService,
-    DetailsUserQuery,
-    DetailsUserFromSessionIdQuery,
     AuthUserRepository,
+    DetailsUserFromSessionIdQuery,
+    DetailsUserQuery,
+    ListUsersQuery,
+    SimpleAuthService,
   ],
   exports: [SimpleAuthService],
 })

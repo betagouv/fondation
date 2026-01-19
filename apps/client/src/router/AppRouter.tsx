@@ -14,6 +14,7 @@ import { getDetailSessionGdsPath, ROUTE_PATHS } from '../utils/route-path.utils'
 import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
 import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
 import { HelpPage } from '@/pages/HelpPage';
+import { SummaryPage } from '@/pages/summary/SummaryPage';
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: ROUTE_PATHS.HELP,
         element: <HelpPage />
+      },
+      {
+        path: ROUTE_PATHS.SUMMARY,
+        element: <SummaryPage />
       },
       {
         path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,

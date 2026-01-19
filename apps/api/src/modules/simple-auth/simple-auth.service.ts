@@ -2,21 +2,26 @@ import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
 
+import { Gender, Role } from 'shared-models';
 import { AuthSession } from './domain/auth-session';
+import { AuthUser } from './domain/auth-user';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import {
   DetailedUserResponseDto,
   DetailsUserQuery,
 } from './infrastructure/queries/details-user.query';
+import {
+  ListedUsersDto,
+  ListUsersQuery,
+} from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
-import { AuthUser } from './domain/auth-user';
-import { Gender, Role } from 'shared-models';
 
 @Injectable()
 export class SimpleAuthService {
   constructor(
     private readonly detailsUserQuery: DetailsUserQuery,
     private readonly detailsUserFromSessionQuery: DetailsUserFromSessionIdQuery,
+    private readonly listUsersQuery: ListUsersQuery,
     private readonly userRepository: AuthUserRepository,
     private readonly clock: Clock,
   ) {}
@@ -42,6 +47,17 @@ export class SimpleAuthService {
 
   detailsUser(query: { userId: string }): Promise<DetailedUserResponseDto> {
     return this.detailsUserQuery.handle(query);
+  }
+
+  listUsers(query: {
+    search?: string;
+    roles?: readonly Role[];
+    includeIds?: readonly string[];
+    excludeIds?: readonly string[];
+    includeIdsOnly?: true;
+    limit?: number;
+  }): Promise<ListedUsersDto> {
+    return this.listUsersQuery.handle(query);
   }
 
   async unAuthenticate(command: {

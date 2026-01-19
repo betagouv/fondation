@@ -207,11 +207,7 @@ const TableauDossiersDeNominationContent = ({
 
       <div className="max-w-screen-full mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl">
         <div className="mb-6">
-          <MagistratModaleProvider
-            nominationFiles={paginatedData}
-            formation={formation}
-            sessionId={sessionId}
-          >
+          <MagistratModaleProvider nominationFiles={paginatedData} sessionId={sessionId}>
             <NominationFileOutcomeCommentModalProvider formation={formation}>
               <Table
                 id="session-affectation-dossier-de-nomination-table"

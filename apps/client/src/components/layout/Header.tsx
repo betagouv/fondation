@@ -1,15 +1,15 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
-import { useLocation } from 'react-router-dom';
 
 import { HelpPageButton } from '@/pages/HelpPage';
+import { useUser } from '@queries/auth.queries';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 
 export const AppHeader = () => {
-  const location = useLocation();
-  const includeSg = location.pathname.includes(ROUTE_PATHS.SG.DASHBOARD);
+  const { user } = useUser();
+  const includeSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
 
   const navigation: MainNavigationProps.Item[] = [
     {
@@ -47,7 +47,7 @@ export const AppHeader = () => {
         imgUrl: '/logo.png',
         alt: 'Conseil Supérieur de la Magistrature'
       }}
-      homeLinkProps={{ href: '/', title: 'Accueil' }}
+      homeLinkProps={{ to: '/', title: 'Accueil' }}
       quickAccessItems={[<HelpPageButton />, <LolfiCsm />, <Avatar />]}
       navigation={includeSg ? navigation : []}
     />

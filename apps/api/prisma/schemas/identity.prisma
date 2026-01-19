@@ -36,6 +36,8 @@ model User {
   commentAccess               CommentAccess[]
   createdObservations         Observation[]
   memos                       MemberMemo[]
+  authorOfSummaries           Summary[]
+  readerOfSummaries           SummaryReader[]
 
   @@map("users")
   @@schema("identity_and_access_context")

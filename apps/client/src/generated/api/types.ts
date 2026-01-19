@@ -126,6 +126,11 @@ export type ListedNominationFileAffectationItem = {
             lastName: string;
         }>;
         memo: string | null;
+        summary: {
+            id: string;
+            canRead: boolean;
+            canWrite: boolean;
+        } | null;
     }>;
 };
 
@@ -312,6 +317,120 @@ export type ListedJurisdictions = {
         label: string | null;
         type: string;
         ville: string | null;
+    }>;
+};
+
+export type CreatedSummaryDto = {
+    id: string;
+};
+
+export type AttachSummaryFilesDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludeFilesInSummaryContentDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludedFilesInSummaryContentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+        type: string;
+    }>;
+};
+
+export type WriteSummaryContentDto = {
+    content: string;
+};
+
+export type UpdateSummaryReadersListDto = {
+    readerIds: Array<string>;
+};
+
+export type GeneratedSummaryAttachmentPublicUrlDto = {
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+};
+
+export type DetailedSummaryDto = {
+    id: string;
+    sessionId: string;
+    name: string | null;
+    rank: string | null;
+    formation: 'PARQUET' | 'SIEGE';
+    number: number | null;
+    birthDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    grade: 'I' | 'II' | 'III' | 'HH';
+    position: string | null;
+    targetedGrade: 'I' | 'II' | 'III' | 'HH';
+    targetedPosition: string | null;
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+    biography: string;
+    lastRankingDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    lastPositionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    observers: Array<string>;
+    observations: Array<{
+        id: string;
+        magistrat: {
+            id: string;
+            firstName: string;
+            usedName: string;
+            lastName: string;
+        };
+    }>;
+    outcome: {
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+        comment: string | null;
+    } | null;
+    summary: {
+        content: string;
+        updatedAt: string;
+        author: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+        attachments: Array<{
+            id: string;
+            name: string;
+            type: string;
+        }>;
+        screenshots: Array<{
+            id: string;
+            name: string;
+            type: string;
+            url: string;
+        }>;
+        readers: Array<{
+            id: string;
+            firstName: string;
+            lastName: string;
+        }>;
+    };
+};
+
+export type FoundSummaryReadersDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     }>;
 };
 
@@ -917,6 +1036,156 @@ export type SearchResponses = {
 };
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type DetailSummaryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary';
+};
+
+export type DetailSummaryResponses = {
+    200: DetailedSummaryDto;
+};
+
+export type DetailSummaryResponse = DetailSummaryResponses[keyof DetailSummaryResponses];
+
+export type CreateSummaryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary';
+};
+
+export type CreateSummaryResponses = {
+    201: CreatedSummaryDto;
+};
+
+export type CreateSummaryResponse = CreateSummaryResponses[keyof CreateSummaryResponses];
+
+export type DetachSummaryFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query: {
+        fileIds: Array<string>;
+    };
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
+};
+
+export type DetachSummaryFilesResponses = {
+    204: void;
+};
+
+export type DetachSummaryFilesResponse = DetachSummaryFilesResponses[keyof DetachSummaryFilesResponses];
+
+export type AttachSummaryFilesData = {
+    body: AttachSummaryFilesDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
+};
+
+export type AttachSummaryFilesResponses = {
+    204: void;
+};
+
+export type AttachSummaryFilesResponse = AttachSummaryFilesResponses[keyof AttachSummaryFilesResponses];
+
+export type IncludeFilesInContentData = {
+    body: IncludeFilesInSummaryContentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/screenshots';
+};
+
+export type IncludeFilesInContentResponses = {
+    200: IncludedFilesInSummaryContentDto;
+};
+
+export type IncludeFilesInContentResponse = IncludeFilesInContentResponses[keyof IncludeFilesInContentResponses];
+
+export type WriteSummaryData = {
+    body: WriteSummaryContentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/content';
+};
+
+export type WriteSummaryResponses = {
+    204: void;
+};
+
+export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
+
+export type SearchSummaryReadersData = {
+    body?: never;
+    path: {
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: {
+        search?: string;
+        includeIds?: Array<string>;
+    };
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
+};
+
+export type SearchSummaryReadersResponses = {
+    200: FoundSummaryReadersDto;
+};
+
+export type SearchSummaryReadersResponse = SearchSummaryReadersResponses[keyof SearchSummaryReadersResponses];
+
+export type UpdateSummaryReadersListData = {
+    body: UpdateSummaryReadersListDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
+};
+
+export type UpdateSummaryReadersListResponses = {
+    204: void;
+};
+
+export type UpdateSummaryReadersListResponse = UpdateSummaryReadersListResponses[keyof UpdateSummaryReadersListResponses];
+
+export type GenerateAttachmentPublicUrlData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments/{fileId}/url';
+};
+
+export type GenerateAttachmentPublicUrlResponses = {
+    200: GeneratedSummaryAttachmentPublicUrlDto;
+};
+
+export type GenerateAttachmentPublicUrlResponse = GenerateAttachmentPublicUrlResponses[keyof GenerateAttachmentPublicUrlResponses];
 
 export type DetachFilesData = {
     body?: never;

@@ -2,7 +2,6 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import type { FormationEnum } from '@/types/enums.types';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
@@ -13,16 +12,15 @@ import {
 } from '../../../reports/components/ReportOverview/ReportOverview';
 import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { TextValue } from '../../../shared/TextValue';
-import { MagistratComment } from './MagistratComment';
+import { HandleMagistratSummaryButton } from './HandleMagistratSummaryButton';
 import { MemberMemo } from './MemberMemo';
 
 export type MagistratDetailsProps = {
   sessionId: string;
-  formation: FormationEnum;
   nominationFile: SessionNominationFile;
 };
 
-export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, formation, nominationFile }) => {
+export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominationFile }) => {
   const {
     dateDeNaissance,
     observants,
@@ -55,15 +53,18 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, formati
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
-        <label className="text-xl font-semibold">{nomMagistrat}</label>
-        {reportersInitials && reportersInitials.length > 0 && (
-          <div className="flex items-center gap-2">
-            {reportersInitials.map((initials, index) => (
-              <AvatarInitials key={index} initials={initials} size="md" />
-            ))}
-          </div>
-        )}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <label className="text-xl font-semibold">{nomMagistrat}</label>
+          {reportersInitials && reportersInitials.length > 0 && (
+            <div className="flex items-center gap-2">
+              {reportersInitials.map((initials, index) => (
+                <AvatarInitials key={index} initials={initials} size="md" />
+              ))}
+            </div>
+          )}
+        </div>
+        <HandleMagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
       </div>
       <div>
         <TextValue
@@ -102,13 +103,6 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, formati
       </div>
 
       <MemberMemo sessionId={sessionId} nominationFileId={nominationFile.id} memo={nominationFile.memo} />
-
-      <MagistratComment
-        nominationFileId={nominationFile.id}
-        initialComment={nominationFile.comment}
-        initialCommentAccessUserIds={nominationFile.commentAccessUserIds}
-        formation={formation}
-      />
     </div>
   );
 };

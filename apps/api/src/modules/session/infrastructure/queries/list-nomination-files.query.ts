@@ -109,6 +109,13 @@ export class ListNominationFilesQuery {
             where: { userId: query.user.id },
             select: { memo: true },
           },
+          summary: {
+            select: {
+              nominationFileId: true,
+              authorId: true,
+              readers: { select: { userId: true } },
+            },
+          },
         },
       });
     });
@@ -174,6 +181,17 @@ export class ListNominationFilesQuery {
           ).values(),
         ],
         memo: x.memberMemos.at(0)?.memo || null,
+        summary: x.summary
+          ? {
+              id: x.summary.nominationFileId,
+              canWrite: x.summary.authorId === query.user.id,
+              canRead:
+                x.summary.authorId === query.user.id ||
+                x.summary.readers.some(
+                  ({ userId }) => userId === query.user.id,
+                ),
+            }
+          : null,
       };
     });
 
@@ -232,6 +250,9 @@ const NominationFileAffectationItemSchema = z.object({
     }),
   ),
   memo: z.string().nullable(),
+  summary: z
+    .object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() })
+    .nullable(),
 });
 
 type NominationFileAffectationItem = z.infer<

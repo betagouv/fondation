@@ -178,6 +178,7 @@ describe('Session E2E', () => {
         observationMagistrats: [],
         priority: null,
         memo: null,
+        summary: null,
         reporters: [
           expect.objectContaining({
             firstName: 'Côme',
@@ -226,6 +227,7 @@ describe('Session E2E', () => {
         },
         priority: null,
         memo: null,
+        summary: null,
         reporters: expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(String),
