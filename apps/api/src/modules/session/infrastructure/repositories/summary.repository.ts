@@ -25,6 +25,7 @@ export class SummaryRepository {
       select: {
         dossierDeNominations: {
           take: 1,
+          where: { id: query.nominationFileId },
           select: { summary: { select: { nominationFileId: true } } },
         },
       },
@@ -80,8 +81,10 @@ export class SummaryRepository {
 
   private persistSummaryCreated(message: SummaryCreated) {
     return this.prisma.dossierDeNomination.update({
-      where: { id: message.nominationFileId },
-      data: { summary: { create: { content: '' } } },
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
+      data: {
+        summary: { create: { content: '', authorId: message.authorId } },
+      },
     });
   }
 

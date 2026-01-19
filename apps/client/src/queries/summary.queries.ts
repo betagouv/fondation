@@ -19,6 +19,34 @@ export const useSummaryQuery = (options: { sessionId: string; nominationFileId: 
     queryKey: summaryKeys.detailsSummary(options),
     queryFn: async () => {
       const { data } = await $api.summaries.detailSummary({ path: options });
+
+      if (data) {
+        const byId = new Map(data.summary.screenshots.map((s) => [s.id, s.url]));
+        const byName = new Map(data.summary.screenshots.map((s) => [s.name, s.url]));
+
+        const $div = document.createElement('div');
+        $div.innerHTML = data.summary.content;
+        for (const $img of $div.querySelectorAll('img')) {
+          if ($img.dataset.fileId) {
+            const url = byId.get($img.dataset.fileId);
+            if (url) {
+              $img.src = url;
+              continue;
+            }
+          }
+
+          if ($img.dataset.fileName) {
+            const url = byName.get($img.dataset.fileName);
+            if (url) {
+              $img.src = url;
+              continue;
+            }
+          }
+        }
+
+        data.summary.content = $div.innerHTML;
+      }
+
       return data ?? null;
     }
   });

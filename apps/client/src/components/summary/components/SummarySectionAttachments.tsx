@@ -25,8 +25,8 @@ export function SummarySectionAttachments() {
       <div className="mt-4">
         {attachmentsCount ? (
           <ul>
-            {summary.summary.attachments.map(({ id, name }) => (
-              <SummaryAttachment key={id} fileId={id} name={name} />
+            {summary.summary.attachments.map(({ id, name, type }) => (
+              <SummaryAttachment key={id} fileId={id} name={name} type={type} />
             ))}
           </ul>
         ) : canWriteSummary ? null : (
@@ -74,8 +74,8 @@ function SummaryAttachmentInput() {
   );
 }
 
-function SummaryAttachment(props: { fileId: string; name: string }) {
-  const { sessionId, nominationFileId } = useSummary();
+function SummaryAttachment(props: { fileId: string; name: string; type: string }) {
+  const { canWriteSummary, sessionId, nominationFileId } = useSummary();
 
   const { mutate: openAttachment, isPending: isGenerating } = useGenerateSummaryAttachmentPublicUrlMutation();
   const onOpenAttachment = React.useCallback(() => {
@@ -106,17 +106,26 @@ function SummaryAttachment(props: { fileId: string; name: string }) {
         className="text-ellipsis"
         disabled={isGenerating}
         onClick={onOpenAttachment}
+        iconId={
+          props.type === 'application/pdf'
+            ? 'ri-file-pdf-2-line'
+            : props.type.startsWith('image/')
+              ? 'ri-file-image-line'
+              : 'ri-file-line'
+        }
       >
         {props.name}
       </Button>
-      <Button
-        disabled={detachingIsPending}
-        title="Supprimer le fichier"
-        priority="tertiary no outline"
-        iconId="fr-icon-delete-bin-fill"
-        nativeButtonProps={buttonProps}
-        onClick={onDeleteAttachment}
-      />
+      {canWriteSummary ? (
+        <Button
+          disabled={detachingIsPending}
+          title="Supprimer le fichier"
+          priority="tertiary no outline"
+          iconId="fr-icon-delete-bin-fill"
+          nativeButtonProps={buttonProps}
+          onClick={onDeleteAttachment}
+        />
+      ) : null}
     </li>
   );
 }
