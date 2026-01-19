@@ -30,6 +30,14 @@ export const gradeToLabel = (grade: GradeEnum) => {
       return 'HH';
     case 'III':
       return 'III';
+    case 'G1':
+      return 'G1';
+    case 'G2':
+      return 'G2';
+    case 'G3':
+      return 'G3';
+    case 'G3sup':
+      return 'G3sup';
     default: {
       const _exhaustiveCheck: never = grade;
       console.info(_exhaustiveCheck);

@@ -173,18 +173,19 @@ export function parseLodamXlsxLine(
   }
 
   if (!grade) {
-    /** on 01/12/2025 the grading system changed I -> II -> III -> HH */
+    /** on 01/12/2025 the grading system changed G1 -> G2 -> G3 -> G3sup */
     if (date.getTime() >= Date.UTC(2025, 11, 1)) {
       grade = (() => {
         switch (targetedGrade) {
-          case 'HH':
-            return Magistrat.Grade.III;
-          case 'III':
-            return Magistrat.Grade.II;
-          case 'II':
-          case 'I':
+          case 'G3sup':
+            return Magistrat.Grade.G3;
+          case 'G3':
+            return Magistrat.Grade.G2;
+          case 'G2':
+            return Magistrat.Grade.G1;
+          case 'G1':
           default:
-            return Magistrat.Grade.I;
+            return Magistrat.Grade.G1;
         }
       })();
     } else {

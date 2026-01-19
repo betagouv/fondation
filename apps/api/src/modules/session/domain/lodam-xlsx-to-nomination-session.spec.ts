@@ -34,7 +34,7 @@ describe('lodamXlsxToNominationSession', () => {
            "careerInformation": null,
            "currentPosition": "Procureur de la République TJ  NARBONNE",
            "fileNumber": 1,
-           "grade": "III",
+           "grade": "G1",
            "lastPositionDate": DateOnly {
              "value": 2020-09-01T00:00:00.000Z,
            },
@@ -58,7 +58,7 @@ describe('lodamXlsxToNominationSession', () => {
            "careerInformation": null,
            "currentPosition": "Procureur de la République TJ  BEZIERS",
            "fileNumber": 2,
-           "grade": "III",
+           "grade": "G1",
            "lastPositionDate": DateOnly {
              "value": 2019-09-02T00:00:00.000Z,
            },
@@ -323,15 +323,15 @@ describe('lodamXlsxToNominationSession', () => {
         [
           lodamLine({
             _eqav: 'A',
-            targetedPosition: 'TJ DE RENNES - HH',
+            targetedPosition: 'TJ DE RENNES - G3',
           }),
         ],
         new Date('2025-12-05T00:00:00Z'),
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.III);
-      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.HH);
+      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.G2);
+      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.G3);
     });
 
     it('should parse the current and target according to advancement column and the old system', async () => {
