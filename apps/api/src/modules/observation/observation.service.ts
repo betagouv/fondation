@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -46,6 +50,22 @@ export class ObservationService {
       );
     }
 
+    const existingObservation = await this.prisma.observation.findUnique({
+      where: {
+        nominationFileId_magistratId: {
+          nominationFileId: command.nominationFileId,
+          magistratId: command.magistratId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingObservation) {
+      throw new ConflictException(
+        'Une observation de ce magistrat existe déjà pour ce dossier de nomination',
+      );
+    }
+
     const observation = Observation.create({
       nominationFileId: command.nominationFileId,
       magistratId: command.magistratId,
@@ -81,6 +101,24 @@ export class ObservationService {
     const observation = await this.observationRepository.findById(
       command.observationId,
     );
+
+    if (command.magistratId !== observation.magistratId) {
+      const existingObservation = await this.prisma.observation.findUnique({
+        where: {
+          nominationFileId_magistratId: {
+            nominationFileId: observation.nominationFileId,
+            magistratId: command.magistratId,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (existingObservation) {
+        throw new ConflictException(
+          'Une observation de ce magistrat existe déjà pour ce dossier de nomination',
+        );
+      }
+    }
 
     observation.update({
       dateReception: command.dateReception,

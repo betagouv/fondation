@@ -82,7 +82,7 @@ export class ObservationController {
     });
   }
 
-  @Get('/:observationId/details')
+  @Get('/:observationId')
   @HasRole()
   @ZodResponse({
     type: GetObservationDetailsResponseDto,

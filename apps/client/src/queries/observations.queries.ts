@@ -36,7 +36,6 @@ export function useObservationDetailsQuery(props: {
           observationId: props.observationId
         }
       });
-      if (!data) throw new Error('Failed to fetch observation details');
       return data as ObservationDetails;
     }
   });

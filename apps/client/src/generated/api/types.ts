@@ -574,10 +574,11 @@ export type ListObservationsResponseDto = {
 
 export type GetObservationDetailsResponseDto = {
     id: string;
-    /**
-     * Reception date formatted as DD/MM/YYYY
-     */
-    receptionDate: string;
+    receptionDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
     observant: {
         id: string;
         firstName: string;
@@ -604,7 +605,11 @@ export type GetObservationDetailsResponseDto = {
         number: number | null;
         magistratName: string;
         proposedPosition: string | null;
-        observationDate: string;
+        observationDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
     }>;
 };
 
@@ -1375,6 +1380,23 @@ export type CreateObservationResponses = {
 
 export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
 
+export type DeleteObservationData = {
+    body?: never;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type DeleteObservationResponses = {
+    204: void;
+};
+
+export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
+
 export type GetObservationDetailsData = {
     body?: never;
     path: {
@@ -1383,7 +1405,7 @@ export type GetObservationDetailsData = {
         observationId: string;
     };
     query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/details';
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
 };
 
 export type GetObservationDetailsResponses = {
@@ -1391,6 +1413,23 @@ export type GetObservationDetailsResponses = {
 };
 
 export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof GetObservationDetailsResponses];
+
+export type UpdateObservationData = {
+    body: UpdateObservationDto;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type UpdateObservationResponses = {
+    204: void;
+};
+
+export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
 
 export type GetObservationFileUrlData = {
     body?: never;
@@ -1409,40 +1448,6 @@ export type GetObservationFileUrlResponses = {
 };
 
 export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
-
-export type DeleteObservationData = {
-    body?: never;
-    path: {
-        observationId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
-};
-
-export type DeleteObservationResponses = {
-    204: void;
-};
-
-export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
-
-export type UpdateObservationData = {
-    body: UpdateObservationDto;
-    path: {
-        observationId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
-};
-
-export type UpdateObservationResponses = {
-    204: void;
-};
-
-export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
 
 export type SearchMagistratsData = {
     body?: never;

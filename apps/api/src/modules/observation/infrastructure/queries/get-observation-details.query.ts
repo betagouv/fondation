@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { format } from 'date-fns';
 import { createZodDto } from 'nestjs-zod';
+import { DateOnlyJson, dateOnlyJsonSchema } from 'shared-models';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { DateOnly } from 'src/utils/date-only';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -22,12 +23,12 @@ const RelatedPropositionSchema = z.object({
   number: z.number().nullable(),
   magistratName: z.string(),
   proposedPosition: z.string().nullable(),
-  observationDate: z.string(),
+  observationDate: dateOnlyJsonSchema,
 });
 
 const ObservationDetailsSchema = z.object({
   id: z.string(),
-  receptionDate: z.string().describe('Reception date formatted as DD/MM/YYYY'),
+  receptionDate: dateOnlyJsonSchema,
   observant: z.object({
     id: z.string(),
     firstName: z.string(),
@@ -57,94 +58,126 @@ export class GetObservationDetailsQuery {
     nominationFileId: string;
     observationId: string;
   }): Promise<GetObservationDetailsResponseDto> {
-    const observation = await this.prisma.observation.findUnique({
-      where: {
-        id: query.observationId,
-        nominationFileId: query.nominationFileId,
-      },
-      select: {
-        id: true,
-        dateReception: true,
-        magistrat: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            usedName: true,
-            careerHistory: true,
-          },
+    return this.prisma.$transaction(async (tx) => {
+      const observation = await tx.observation.findUnique({
+        where: {
+          id: query.observationId,
+          nominationFileId: query.nominationFileId,
         },
-        nominationFile: {
-          select: {
-            name: true,
-            targetedPosition: true,
-            sessionId: true,
+        select: {
+          id: true,
+          dateReception: true,
+          magistrat: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              usedName: true,
+              careerHistory: true,
+              observations: {
+                where: {
+                  id: { not: query.observationId },
+                  nominationFile: { sessionId: query.sessionId },
+                },
+                select: {
+                  id: true,
+                  dateReception: true,
+                  nominationFile: {
+                    select: {
+                      id: true,
+                      number: true,
+                      name: true,
+                      targetedPosition: true,
+                    },
+                  },
+                },
+                orderBy: { dateReception: 'desc' },
+              },
+            },
           },
-        },
-        files: {
-          select: {
-            file: {
-              select: {
-                id: true,
-                name: true,
+          nominationFile: {
+            select: {
+              name: true,
+              targetedPosition: true,
+            },
+          },
+          files: {
+            select: {
+              file: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
+      });
+
+      if (!observation) {
+        throw new NotFoundException(
+          `Observation with id ${query.observationId} not found`,
+        );
+      }
+
+      if (!observation.magistrat) {
+        throw new NotFoundException(
+          `Magistrat for observation ${query.observationId} not found`,
+        );
+      }
+
+      const magistrat = observation.magistrat;
+
+      const candidacy = await this.findCandidacy(
+        tx,
+        query.sessionId,
+        magistrat.firstName,
+        magistrat.lastName,
+        magistrat.usedName,
+      );
+
+      const relatedPropositions: {
+        observationId: string;
+        nominationFileId: string;
+        number: number | null;
+        magistratName: string;
+        proposedPosition: string | null;
+        observationDate: DateOnlyJson;
+      }[] = magistrat.observations.map((obs) => ({
+        observationId: obs.id,
+        nominationFileId: obs.nominationFile.id,
+        number: obs.nominationFile.number,
+        magistratName: obs.nominationFile.name,
+        proposedPosition: obs.nominationFile.targetedPosition,
+        observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
+      }));
+
+      return {
+        id: observation.id,
+        receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
+        observant: {
+          id: magistrat.id,
+          firstName: magistrat.firstName,
+          lastName: magistrat.lastName,
+          usedName: magistrat.usedName,
+          biography: magistrat.careerHistory,
+          candidacy,
+        },
+        observedMagistrat: {
+          name: observation.nominationFile.name,
+          proposedPosition: observation.nominationFile.targetedPosition,
+        },
+        files: observation.files.map(({ file }) => ({
+          id: file.id,
+          name: file.name,
+        })),
+        relatedPropositions,
+      };
     });
-
-    if (!observation) {
-      throw new NotFoundException(
-        `Observation with id ${query.observationId} not found`,
-      );
-    }
-
-    if (!observation.magistrat) {
-      throw new NotFoundException(
-        `Magistrat for observation ${query.observationId} not found`,
-      );
-    }
-
-    const magistrat = observation.magistrat;
-
-    const candidacy = await this.findCandidacy(
-      query.sessionId,
-      magistrat.firstName,
-      magistrat.lastName,
-      magistrat.usedName,
-    );
-
-    const relatedPropositions = await this.findRelatedPropositions(
-      query.sessionId,
-      magistrat.id,
-      query.observationId,
-    );
-
-    return {
-      id: observation.id,
-      receptionDate: format(observation.dateReception, 'dd/MM/yyyy'),
-      observant: {
-        id: magistrat.id,
-        firstName: magistrat.firstName,
-        lastName: magistrat.lastName,
-        usedName: magistrat.usedName,
-        biography: magistrat.careerHistory,
-        candidacy,
-      },
-      observedMagistrat: {
-        name: observation.nominationFile.name,
-        proposedPosition: observation.nominationFile.targetedPosition,
-      },
-      files: observation.files.map(({ file }) => ({
-        id: file.id,
-        name: file.name,
-      })),
-      relatedPropositions,
-    };
   }
 
   private async findCandidacy(
+    tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0],
     sessionId: string,
     firstName: string,
     lastName: string,
@@ -154,88 +187,41 @@ export class GetObservationDetailsQuery {
     desiredPosition: string | null;
     rank: string | null;
   } | null> {
-    const searchPatterns: string[] = [`${lastName.toUpperCase()} ${firstName}`];
+    const searchPatterns = [
+      {
+        contains: `${lastName.toUpperCase()} ${firstName}`,
+        mode: 'insensitive' as const,
+      },
+    ];
+
     if (usedName && usedName !== lastName) {
-      searchPatterns.push(`${usedName.toUpperCase()} ${firstName}`);
-      searchPatterns.push(usedName);
+      searchPatterns.push(
+        {
+          contains: `${usedName.toUpperCase()} ${firstName}`,
+          mode: 'insensitive' as const,
+        },
+        { contains: usedName, mode: 'insensitive' as const },
+      );
     }
 
-    for (const pattern of searchPatterns) {
-      const dossier = await this.prisma.dossierDeNomination.findFirst({
-        where: {
-          sessionId,
-          name: {
-            contains: pattern,
-            mode: 'insensitive',
-          },
-        },
-        select: {
-          id: true,
-          targetedPosition: true,
-          rank: true,
-        },
-      });
-
-      if (dossier) {
-        return {
-          nominationFileId: dossier.id,
-          desiredPosition: dossier.targetedPosition,
-          rank: dossier.rank,
-        };
-      }
-    }
-
-    return null;
-  }
-
-  private async findRelatedPropositions(
-    sessionId: string,
-    magistratId: string,
-    currentObservationId: string,
-  ): Promise<
-    {
-      observationId: string;
-      nominationFileId: string;
-      number: number | null;
-      magistratName: string;
-      proposedPosition: string | null;
-      observationDate: string;
-    }[]
-  > {
-    const otherObservations = await this.prisma.observation.findMany({
+    const dossier = await tx.dossierDeNomination.findFirst({
       where: {
-        magistratId,
-        nominationFile: {
-          sessionId,
-        },
-        id: {
-          not: currentObservationId,
-        },
+        sessionId,
+        OR: searchPatterns.map((pattern) => ({ name: pattern })),
       },
       select: {
         id: true,
-        dateReception: true,
-        nominationFile: {
-          select: {
-            id: true,
-            number: true,
-            name: true,
-            targetedPosition: true,
-          },
-        },
-      },
-      orderBy: {
-        dateReception: 'desc',
+        targetedPosition: true,
+        rank: true,
       },
     });
 
-    return otherObservations.map((obs) => ({
-      observationId: obs.id,
-      nominationFileId: obs.nominationFile.id,
-      number: obs.nominationFile.number,
-      magistratName: obs.nominationFile.name,
-      proposedPosition: obs.nominationFile.targetedPosition,
-      observationDate: format(obs.dateReception, 'dd/MM/yyyy'),
-    }));
+    if (!dossier) return null;
+
+    return {
+      nominationFileId: dossier.id,
+      desiredPosition: dossier.targetedPosition,
+      rank: dossier.rank,
+    };
   }
 }

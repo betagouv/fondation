@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 
+import { DateOnly } from '@/models/date-only.model';
 import type { ObservationDetails } from '@queries/observations.queries';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
@@ -46,7 +47,7 @@ export function ObservationDetailsContent({
             <dl className="fr-mb-0">
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Date de réception :</dt>
-                <dd className="fr-col-8 fr-m-0">{observation.receptionDate}</dd>
+                <dd className="fr-col-8 fr-m-0">{DateOnly.fromDateOnly(observation.receptionDate)}</dd>
               </div>
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>
@@ -130,7 +131,7 @@ export function ObservationDetailsContent({
                           {proposition.number && <p className="fr-mb-1v">N° {proposition.number}</p>}
                           <p className="fr-mb-1v">{proposition.proposedPosition ?? '-'}</p>
                           <p className="fr-mb-0 fr-text--light">
-                            Observation du {proposition.observationDate}
+                            Observation du {DateOnly.fromDateOnly(proposition.observationDate)}
                           </p>
                         </div>
                       }

@@ -12,6 +12,7 @@ model Observation {
   createdByUser  User?               @relation(fields: [createdByUserId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   files          ObservationFile[]
 
+  @@unique([nominationFileId, magistratId])
   @@index([nominationFileId])
   @@index([magistratId])
   @@map("observation")

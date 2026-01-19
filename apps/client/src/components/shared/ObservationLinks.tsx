@@ -34,7 +34,6 @@ export function ObservationLinks({
 
       {observations.length > 0 && (
         <div className="text-sm">
-          <span className="font-medium text-gray-600">Observations: </span>
           <span>
             {observations.map((obs, index) => (
               <span key={obs.observationId}>
