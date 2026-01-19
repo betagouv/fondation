@@ -1,3 +1,5 @@
+import './SummarySectionContent.css';
+
 import clsx from 'clsx';
 import React from 'react';
 
@@ -23,7 +25,7 @@ function SummaryContent(props: { content: string }) {
   const html = React.useMemo(() => convertTitleNodes(props.content), [props.content]);
 
   // FIXME: sanitize content
-  return <article dangerouslySetInnerHTML={{ __html: html }} />;
+  return <article id="summary_content" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /**
