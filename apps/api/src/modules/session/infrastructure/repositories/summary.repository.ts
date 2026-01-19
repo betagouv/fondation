@@ -16,6 +16,23 @@ import { isDefined } from 'src/utils/is-defined';
 export class SummaryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async exists(query: {
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<boolean> {
+    const session = await this.prisma.session.findUnique({
+      where: { id: query.sessionId },
+      select: {
+        dossierDeNominations: {
+          take: 1,
+          select: { summary: { select: { nominationFileId: true } } },
+        },
+      },
+    });
+
+    return !!session?.dossierDeNominations[0]?.summary;
+  }
+
   // TODO: should we rehydrate files with outcomes?
   async find(query: { sessionId: string; nominationFileId: string }) {
     const session = await this.prisma.session.findUnique({
@@ -117,10 +134,8 @@ export class SummaryRepository {
       where: { nominationFileId: message.id },
       data: {
         readers: {
-          updateMany: {
-            where: {},
-            data: message.readerIds.map((userId) => ({ userId })),
-          },
+          deleteMany: {},
+          createMany: { data: message.readerIds.map((userId) => ({ userId })) },
         },
       },
     });

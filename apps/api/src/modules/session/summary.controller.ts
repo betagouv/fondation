@@ -22,14 +22,20 @@ import {
   Multipart,
   UseMultipartBody,
 } from 'src/modules/framework/files';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import {
+  AuthedUser,
+  HasRole,
+  SimpleAuthService,
+} from 'src/modules/simple-auth';
 
 import {
   AttachSummaryFilesDto,
   CreatedSummaryDto,
   DetachSummaryFilesQueryDto,
+  FoundSummaryReadersDto,
   IncludedFilesInSummaryContentDto,
   IncludeFilesInSummaryContentDto,
+  SearchSummaryReaderDto,
   UpdateSummaryReadersListDto,
   WriteSummaryContentDto,
 } from './infrastructure/dtos/summary.dto';
@@ -44,7 +50,10 @@ import { GeneratedSummaryAttachmentPublicUrlDto } from './infrastructure/queries
 @UseInterceptors(SummaryFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/summary')
 export class SummaryController {
-  constructor(private readonly summaries: SummaryService) {}
+  constructor(
+    private readonly summaries: SummaryService,
+    private readonly users: SimpleAuthService,
+  ) {}
 
   @Post()
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -187,6 +196,21 @@ export class SummaryController {
       userId: user.id,
       sessionId,
       nominationFileId,
+    });
+  }
+
+  @Get('/readers')
+  @ZodResponse({ status: HttpStatus.OK, type: FoundSummaryReadersDto })
+  @UsePipes(ZodValidationPipe)
+  searchSummaryReaders(
+    @AuthedUser() user: { id: string },
+    @Query() query: SearchSummaryReaderDto,
+  ): Promise<FoundSummaryReadersDto> {
+    return this.users.listUsers({
+      excludeIds: [user.id],
+      includeIds: query.includeIds,
+      search: query.search,
+      limit: 20,
     });
   }
 }

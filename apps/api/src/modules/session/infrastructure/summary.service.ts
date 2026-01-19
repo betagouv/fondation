@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import {
+  FILE_MIME_TYPES,
+  filenameToMimeType,
+} from 'src/modules/framework/files/mime-type';
 import { SimpleAuthService } from 'src/modules/simple-auth';
 import { isDefined } from 'src/utils/is-defined';
 import { ignoreAsync } from 'src/utils/promises';
 import { Summary } from '../domain/summary';
 import { IncludedFilesInSummaryContentDto } from './dtos/summary.dto';
-import { SummaryRepository } from './repositories/summary.repository';
 import {
   DetailedSummaryDto,
   DetailSummaryQuery,
@@ -15,6 +18,7 @@ import {
   GeneratedSummaryAttachmentPublicUrlDto,
   GetSummaryAttachmentUrlQuery,
 } from './queries/get-summary-attachment-url.query';
+import { SummaryRepository } from './repositories/summary.repository';
 
 @Injectable()
 export class SummaryService {
@@ -47,6 +51,9 @@ export class SummaryService {
     nominationFileId: string;
     fileIds: readonly string[];
   }): Promise<void> {
+    const summaryAlreadyExists = await this.summaryRepository.exists(command);
+    if (summaryAlreadyExists) throw new ConflictException();
+
     const summary = await this.summaryRepository.find(command);
     summary.attachFiles(command);
     await this.summaryRepository.persist(summary);
@@ -90,7 +97,12 @@ export class SummaryService {
         const existingFile = command.files.find((f) => f.id === id);
         if (!existingFile) return undefined;
 
-        return { id, url: url.toString(), name: existingFile.name };
+        return {
+          id,
+          url: url.toString(),
+          name: existingFile.name,
+          type: filenameToMimeType(existingFile.name) ?? FILE_MIME_TYPES.bin,
+        };
       })
       .filter(isDefined);
 

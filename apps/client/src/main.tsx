@@ -7,9 +7,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Link } from 'react-router-dom';
 
+import { authKeys } from '@queries/auth.queries.ts';
 import { AppRouter } from './router/AppRouter.tsx';
 import { HttpException } from './utils/http-exception.ts';
-import { authKeys } from '@queries/auth.queries.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
 

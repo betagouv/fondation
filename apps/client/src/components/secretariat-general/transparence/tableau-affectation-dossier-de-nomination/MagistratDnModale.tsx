@@ -4,7 +4,6 @@ import { useQueryState } from 'nuqs';
 import { useCallback, useLayoutEffect, useMemo, useRef, type PropsWithChildren } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import type { FormationEnum } from '@/types/enums.types';
 import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { MagistratRouteDetails } from './MagistratRouteDetails';
 
@@ -16,7 +15,6 @@ const modalMagistratDnDetails = createModal({
 export function MagistratModaleProvider(
   props: PropsWithChildren<{
     sessionId: string;
-    formation: FormationEnum;
     nominationFiles: SessionNominationFile[];
   }>
 ) {
@@ -93,11 +91,7 @@ export function MagistratModaleProvider(
           }
         ]}
       >
-        <MagistratRouteDetails
-          sessionId={props.sessionId}
-          nominationFiles={props.nominationFiles}
-          formation={props.formation}
-        />
+        <MagistratRouteDetails sessionId={props.sessionId} nominationFiles={props.nominationFiles} />
       </modalMagistratDnDetails.Component>
 
       {props.children}
@@ -108,7 +102,11 @@ export function MagistratModaleProvider(
 export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
   const location = useLocation();
 
-  const hasComment = !!props.nominationFile.memo || props.nominationFile.comment;
+  const hasComment =
+    !!props.nominationFile.memo ||
+    !!props.nominationFile.comment || // FIXME: deprecated?
+    !!props.nominationFile.summary?.canWrite ||
+    !!props.nominationFile.summary?.canRead;
 
   const search = new URLSearchParams(location.search);
   search.set('active', props.nominationFile.id);

@@ -55,6 +55,7 @@ export class SimpleAuthService {
     includeIds?: readonly string[];
     excludeIds?: readonly string[];
     includeIdsOnly?: true;
+    limit?: number;
   }): Promise<ListedUsersDto> {
     return this.listUsersQuery.handle(query);
   }

@@ -9,11 +9,8 @@ export const IndentDecreaseButton: FC = () => {
     selector: (ctx) => {
       if (!ctx.editor) return true;
 
-      const cannotToggleList =
-        !ctx.editor.can().chain().focus().toggleBulletList().run() &&
-        !ctx.editor.can().chain().focus().toggleOrderedList().run();
-
-      return cannotToggleList || !ctx.editor.can().chain().focus().liftListItem('listItem').run();
+      const cannotToggleList = !ctx.editor.can().toggleBulletList() && !ctx.editor.can().toggleOrderedList();
+      return cannotToggleList || !ctx.editor.can().liftListItem('listItem');
     }
   });
 

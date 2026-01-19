@@ -337,6 +337,7 @@ export type IncludedFilesInSummaryContentDto = {
         id: string;
         name: string;
         url: string;
+        type: string;
     }>;
 };
 
@@ -422,6 +423,15 @@ export type DetailedSummaryDto = {
             lastName: string;
         }>;
     };
+};
+
+export type FoundSummaryReadersDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    }>;
 };
 
 export type AttachReportFileDto = {
@@ -1124,6 +1134,25 @@ export type WriteSummaryResponses = {
 };
 
 export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
+
+export type SearchSummaryReadersData = {
+    body?: never;
+    path: {
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: {
+        search?: string;
+        includeIds?: Array<string>;
+    };
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
+};
+
+export type SearchSummaryReadersResponses = {
+    200: FoundSummaryReadersDto;
+};
+
+export type SearchSummaryReadersResponse = SearchSummaryReadersResponses[keyof SearchSummaryReadersResponses];
 
 export type UpdateSummaryReadersListData = {
     body: UpdateSummaryReadersListDto;
