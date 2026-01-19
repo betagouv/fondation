@@ -26,7 +26,11 @@ export const GradeEnum: Record<GradeEnum, GradeEnum> = {
   I: 'I',
   II: 'II',
   III: 'III',
-  HH: 'HH'
+  HH: 'HH',
+  G1: 'G1',
+  G2: 'G2',
+  G3: 'G3',
+  G3sup: 'G3sup'
 };
 
 export type FormationEnum = NonNullable<DetailedReportDto['formation']>;

@@ -139,14 +139,24 @@ class NominationFileWorkload {
     }
 
     switch (file.grade) {
-      case Magistrat.Grade.I:
+      case Magistrat.Grade.G1:
         return 1;
-      case Magistrat.Grade.II:
+      case Magistrat.Grade.G2:
         return 2;
-      case Magistrat.Grade.III:
+      case Magistrat.Grade.G3:
         return 3;
-      case Magistrat.Grade.HH:
+      case Magistrat.Grade.G3SUP:
         return 4;
+
+      case Magistrat.Grade.I:
+      case Magistrat.Grade.II:
+      case Magistrat.Grade.III:
+      case Magistrat.Grade.HH: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session newer than 2025-12-01`,
+        );
+        return 2;
+      }
       default:
         return assertNever(file.grade);
     }
@@ -166,6 +176,11 @@ class NominationFileWorkload {
         return 2;
       case Magistrat.Grade.HH:
         return 3;
+
+      case Magistrat.Grade.G1:
+      case Magistrat.Grade.G2:
+      case Magistrat.Grade.G3:
+      case Magistrat.Grade.G3SUP:
       case Magistrat.Grade.III: {
         new Logger(AutoAffectations.name).warn(
           `Received grade ${file.grade} for nomination session older than 2025-12-01`,

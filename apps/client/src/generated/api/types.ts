@@ -84,10 +84,10 @@ export type ListedNominationFileAffectationItem = {
                 month: number;
                 day: number;
             } | null;
-            grade: 'I' | 'II' | 'III' | 'HH';
+            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
             posteActuel: string | null;
             posteCible: string | null;
-            gradeCible: 'I' | 'II' | 'III' | 'HH';
+            gradeCible: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
             rang: string | null;
             dateDeNaissance: {
                 year: number;
@@ -229,7 +229,7 @@ export type PaginatedMemberListItemDto = {
         stats: Array<{
             year: number;
             count: number;
-            targetedGrade: 'I' | 'II' | 'III' | 'HH';
+            targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
         }>;
     }>;
     totalCount: number;
@@ -256,7 +256,7 @@ export type DetailedMemberDto = {
     stats: Array<{
         count: number;
         year: number;
-        targetedGrade: 'I' | 'II' | 'III' | 'HH';
+        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     }>;
 };
 
@@ -368,9 +368,9 @@ export type DetailedSummaryDto = {
         month: number;
         day: number;
     } | null;
-    grade: 'I' | 'II' | 'III' | 'HH';
+    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     position: string | null;
-    targetedGrade: 'I' | 'II' | 'III' | 'HH';
+    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     targetedPosition: string | null;
     priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
     biography: string;
@@ -483,7 +483,7 @@ export type DetailedReportDto = {
         month: number;
         day: number;
     };
-    grade: 'I' | 'II' | 'III' | 'HH';
+    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     currentPosition: string | null;
     targettedPosition: string | null;
     rank: string | null;
