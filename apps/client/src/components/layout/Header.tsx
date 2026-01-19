@@ -6,10 +6,12 @@ import { useUser } from '@queries/auth.queries';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
+import { useLocation } from 'react-router-dom';
 
 export const AppHeader = () => {
+  const { pathname } = useLocation();
   const { user } = useUser();
-  const includeSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
+  const includeSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL' && pathname !== 'login';
 
   const navigation: MainNavigationProps.Item[] = [
     {

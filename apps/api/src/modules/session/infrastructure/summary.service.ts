@@ -36,6 +36,9 @@ export class SummaryService {
     sessionId: string;
     nominationFileId: string;
   }): Promise<{ id: string }> {
+    const summaryAlreadyExists = await this.summaryRepository.exists(command);
+    if (summaryAlreadyExists) throw new ConflictException();
+
     const summary = Summary.create({
       authorId: command.userId,
       sessionId: command.sessionId,
@@ -51,9 +54,6 @@ export class SummaryService {
     nominationFileId: string;
     fileIds: readonly string[];
   }): Promise<void> {
-    const summaryAlreadyExists = await this.summaryRepository.exists(command);
-    if (summaryAlreadyExists) throw new ConflictException();
-
     const summary = await this.summaryRepository.find(command);
     summary.attachFiles(command);
     await this.summaryRepository.persist(summary);

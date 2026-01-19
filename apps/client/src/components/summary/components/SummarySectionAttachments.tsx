@@ -12,7 +12,7 @@ import {
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionAttachments() {
-  const { summary } = useSummary();
+  const { summary, canWriteSummary } = useSummary();
 
   const attachmentsCount = summary.summary.attachments.length;
 
@@ -22,24 +22,30 @@ export function SummarySectionAttachments() {
 
       <SummaryAttachmentInput />
 
-      {attachmentsCount ? (
-        <ul>
-          {summary.summary.attachments.map(({ id, name }) => (
-            <SummaryAttachment key={id} fileId={id} name={name} />
-          ))}
-        </ul>
-      ) : null}
+      <div className="mt-4">
+        {attachmentsCount ? (
+          <ul>
+            {summary.summary.attachments.map(({ id, name }) => (
+              <SummaryAttachment key={id} fileId={id} name={name} />
+            ))}
+          </ul>
+        ) : canWriteSummary ? null : (
+          <p className="text-sm text-gray-600">Aucune pièce jointe pour le moment</p>
+        )}
+      </div>
     </SummarySectionCard>
   );
 }
 
 function SummaryAttachmentInput() {
-  const { sessionId, nominationFileId } = useSummary();
+  const { sessionId, nominationFileId, canWriteSummary } = useSummary();
   const { mutate, isPending } = useAttachSummaryFilesMutation();
   const ref = React.useRef<HTMLInputElement | null>(null);
 
   const onChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
@@ -47,13 +53,15 @@ function SummaryAttachmentInput() {
         { files: [...files], sessionId, nominationFileId },
         {
           onSettled() {
-            if (ref.current) ref.current.files = null;
+            if (ref.current) ref.current.value = null as unknown as string;
           }
         }
       );
     },
     [mutate, sessionId, nominationFileId, ref]
   );
+
+  if (!canWriteSummary) return null;
 
   return (
     <Upload
