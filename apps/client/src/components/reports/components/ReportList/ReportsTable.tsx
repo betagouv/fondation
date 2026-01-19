@@ -54,16 +54,20 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
     applyFilters: applyReportFilters
   });
 
-  const headersWithSort = Object.entries(headers).map(([key, label]) => (
-    <span className="flex items-center gap-1">
-      {label}
-      <SortButton
-        iconId={getSortIcon(key) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(key)}
-        label={label}
-      />
-    </span>
-  ));
+  const headersWithSort = Object.entries(headers).map(([key, label]) =>
+    ['grade', 'observersCount', 'dueDate'].includes(key) ? (
+      label
+    ) : (
+      <span className="flex items-center gap-1">
+        {label}
+        <SortButton
+          iconId={getSortIcon(key) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
+          onClick={() => handleSort(key)}
+          label={label}
+        />
+      </span>
+    )
+  );
 
   return (
     <div>
