@@ -1,17 +1,16 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 import { useLogout, useUser } from '@queries/auth.queries';
 
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { AvatarInitials } from './AvatarInitials';
-import Button from '@codegouvfr/react-dsfr/Button';
+import { UserAvatar } from '@/components/shared/user-avatar';
 
 export const Avatar: FC = () => {
   const { user, isError } = useUser();
-  const firstLetters = user?.firstLetters as string;
 
   const navigate = useNavigate();
   const { mutateAsync } = useLogout();
@@ -34,7 +33,7 @@ export const Avatar: FC = () => {
       <Button className="mb-0!">
         <div className="flex items-center gap-8 rounded py-2">
           <div className="flex items-center gap-2">
-            <AvatarInitials initials={firstLetters} />
+            <UserAvatar user={user} />
             <div id="avatar-logout" onClick={onClickLogout} className="font-semibold hover:cursor-pointer">
               Se déconnecter
             </div>
