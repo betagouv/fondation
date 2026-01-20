@@ -8,7 +8,7 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   ...config,
   baseUrl,
   credentials: 'include',
-  throwOnError: false,
+  throwOnError: true,
   fetch: async (init) => {
     const response = await globalThis.fetch(init);
     if (!response.ok) throw new HttpException({ response });

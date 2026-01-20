@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -53,6 +54,7 @@ import { DetailedNominationSessionDto } from './infrastructure/queries/detail-no
 import { ListedNominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
+import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 
 @ApiTags('Sessions')
 @UseInterceptors(SessionExceptionFilter)
@@ -345,5 +347,15 @@ export class SessionController {
           : null,
       },
     });
+  }
+
+  @Get('/:sessionId/files/:nominationFileId/lolfi-url')
+  @HasRole()
+  @ZodResponse({ status: HttpStatus.OK, type: LolfiMagistratUrlDto })
+  async getLolfiMagistratUrl(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+  ): Promise<LolfiMagistratUrlDto> {
+    return this.sessions.getLolfiMagistratUrl({ sessionId, nominationFileId });
   }
 }

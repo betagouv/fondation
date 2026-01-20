@@ -16,6 +16,7 @@ import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsM
 import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
+import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: ROUTE_PATHS.SUMMARY,
         element: <SummaryPage />
+      },
+      {
+        path: ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI,
+        element: <LolfiRedirectMagistrat />
       },
       {
         path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
