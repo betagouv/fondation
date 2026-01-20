@@ -3,6 +3,7 @@ import { differenceInCalendarYears, differenceInMonths } from 'date-fns';
 import { DateOnly } from '@/models/date-only.model';
 
 import { useSummary } from '@/pages/summary/SummaryContext';
+import { PrioriteEnumLabels } from '@/types/enums.types';
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionMagistrat() {
@@ -10,7 +11,7 @@ export function SummarySectionMagistrat() {
 
   return (
     <SummarySectionCard id="magistrat">
-      <h1>{summary.name}</h1>
+      <h1>{summary.priority ? `${summary.name} (${PrioriteEnumLabels[summary.priority]})` : summary.name}</h1>
 
       <List>
         <List.Item isVisible={!!summary.birthDate}>

@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { dateOnlyJsonSchema, Role, TypeDeSaisine } from 'shared-models';
+import {
+  dateOnlyJsonSchema,
+  PrioriteEnum,
+  Role,
+  TypeDeSaisine,
+} from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { DateOnly } from 'src/utils/date-only';
@@ -9,6 +14,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
+import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 
 @Injectable()
 export class InternalDetailMemberSessionQuery {
@@ -63,6 +69,7 @@ export class InternalDetailMemberSessionQuery {
               observers: true,
               rank: true,
               targetedPosition: true,
+              priorite: true,
               reports: {
                 take: 1,
                 select: { id: true, state: true },
@@ -106,6 +113,9 @@ export class InternalDetailMemberSessionQuery {
             name: d.name ?? '',
             grade: d.grade ?? '',
             targettedPosition: d.targetedPosition ?? '',
+            filePriority: d.priorite
+              ? prismaPrioriteEnumToPrioriteEnum(d.priorite)
+              : null,
             observers: d.observers,
             observationMagistrats: d.observations
               .filter((obs) => obs.magistrat)
@@ -139,6 +149,7 @@ export class DetailedMemberSessionDto extends createZodDto(
           state: z.string(),
           formation: z.string(),
           folderNumber: z.number().nullable(),
+          filePriority: z.enum(PrioriteEnum).nullable(),
           dueDate: dateOnlyJsonSchema.nullable(),
           name: z.string(),
           grade: z.string(),
