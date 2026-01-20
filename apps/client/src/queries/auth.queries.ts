@@ -21,7 +21,8 @@ export const useUser = () => {
             ? {
                 id: data.userId,
                 role: data.role,
-                firstLetters: `${data.lastName.charAt(0).toUpperCase()}${data.firstName.charAt(0).toUpperCase()}`,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`
               }
             : null
