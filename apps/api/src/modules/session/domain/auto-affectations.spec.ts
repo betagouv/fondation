@@ -23,9 +23,11 @@ describe('automated affectation', () => {
     const file: AutoAffectationNominationFile =
       AutoAffectationNominationFile.from({
         id: 'nominationSessionFileId',
-        targetJurisdiction: 'CA  RENNES',
+        targetedJurisdiction: 'CA  RENNES',
         targetedGrade: Magistrat.Grade.G2,
         session,
+        currentJurisdiction: 'CA RENNES',
+        number: 1,
       });
 
     expect(member.canReportOn(file)).toBe(false);
@@ -42,8 +44,10 @@ describe('automated affectation', () => {
     const file = AutoAffectationNominationFile.from({
       session,
       id: 'nominationSessionFileId',
-      targetJurisdiction: 'CA RENNES',
-      targetedGrade: Magistrat.Grade.II,
+      targetedJurisdiction: 'CA RENNES',
+      targetedGrade: Magistrat.Grade.G2,
+      currentJurisdiction: 'CA RENNES',
+      number: 1,
     });
 
     expect(member.canReportOn(file)).toBe(true);
@@ -60,8 +64,10 @@ describe('automated affectation', () => {
     const file = AutoAffectationNominationFile.from({
       session,
       id: 'nominationSessionFileId',
-      targetJurisdiction: 'TGI RENNES',
-      targetedGrade: Magistrat.Grade.II,
+      targetedJurisdiction: 'TGI RENNES',
+      targetedGrade: Magistrat.Grade.G2,
+      currentJurisdiction: 'TGI RENNES',
+      number: 1,
     });
 
     expect(member.canReportOn(file)).toBe(true);
@@ -78,8 +84,10 @@ describe('automated affectation', () => {
     const file = AutoAffectationNominationFile.from({
       session,
       id: 'nominationSessionFileId',
-      targetJurisdiction: 'TGI RENNES',
+      targetedJurisdiction: 'TGI RENNES',
       targetedGrade: Magistrat.Grade.G2,
+      currentJurisdiction: 'TGI RENNES',
+      number: 1,
     });
 
     expect(member.canReportOn(file)).toBe(false);
@@ -110,8 +118,10 @@ describe('automated affectation', () => {
     const file = AutoAffectationNominationFile.from({
       session,
       id: 'nominationSessionFileId',
-      targetJurisdiction: 'TGI  NANTES',
+      targetedJurisdiction: 'TGI  NANTES',
       targetedGrade: Magistrat.Grade.G2,
+      currentJurisdiction: 'TGI NANTES',
+      number: 1,
     });
 
     const result = AutoAffectations.from({
@@ -147,13 +157,13 @@ describe('automated affectation', () => {
 
     // prettier-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3SUP, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G2, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G2, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3SUP, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G1, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.G3, targetJurisdiction: 'CA  RENNES', session }),
-      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.I, targetJurisdiction: 'CA  RENNES', session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3SUP, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3SUP, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
+      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 6, session }),
+      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -162,21 +172,21 @@ describe('automated affectation', () => {
     // prettier-ignore
     {
       expect(result).toContainEqual({ nominationFileId: 'file-1', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-2', reporterIds: ['memberId2'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-2', reporterIds: ['memberId1'] });
 
       expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId2'] });
 
-      expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId2'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId1'] });
       expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId2'] });
     }
 
     expect(members).toContainEqual(
-      expect.objectContaining({ id: 'memberId1', workload: { value: 9 } }),
+      expect.objectContaining({ id: 'memberId1', workload: { value: 10 } }),
     );
     expect(members).toContainEqual(
-      expect.objectContaining({ id: 'memberId2', workload: { value: 9 } }),
+      expect.objectContaining({ id: 'memberId2', workload: { value: 8 } }),
     );
   });
 });

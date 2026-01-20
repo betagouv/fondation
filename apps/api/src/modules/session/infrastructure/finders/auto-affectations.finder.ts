@@ -46,7 +46,13 @@ export class AutoAffectationsFinder {
           date: true,
           formation: true,
           dossierDeNominations: {
-            select: { id: true, targetedPosition: true, targetedGrade: true },
+            select: {
+              id: true,
+              targetedPosition: true,
+              targetedGrade: true,
+              number: true,
+              currentPosition: true,
+            },
             where: {
               outcome: null,
               id: { in: predicate.nominationFileIds as string[] },
@@ -91,21 +97,39 @@ export class AutoAffectationsFinder {
       id: string;
       targetedPosition: string | null;
       targetedGrade: string | null;
-      jurisdiction: string | null;
+      currentJurisdiction: string | null;
+      targetedJurisdiction: string | null;
+      number: number | null;
     }[],
     session: { formation: Magistrat.Formation; date: DateOnly },
   ): AutoAffectationNominationFile[] {
     return nominationFiles
-      .map(({ id, targetedGrade, jurisdiction }) => {
-        if (!jurisdiction || !isGrade(targetedGrade)) return null;
-
-        return AutoAffectationNominationFile.from({
+      .map(
+        ({
           id,
-          session,
-          targetedGrade: targetedGrade,
-          targetJurisdiction: jurisdiction,
-        });
-      })
+          number,
+          targetedGrade,
+          targetedJurisdiction,
+          currentJurisdiction,
+        }) => {
+          if (
+            !isDefined(number) ||
+            !isGrade(targetedGrade) ||
+            (!currentJurisdiction && !targetedJurisdiction)
+          ) {
+            return null;
+          }
+
+          return AutoAffectationNominationFile.from({
+            id,
+            session,
+            targetedGrade,
+            number,
+            currentJurisdiction,
+            targetedJurisdiction,
+          });
+        },
+      )
       .filter(isDefined);
   }
 
@@ -196,34 +220,58 @@ export class AutoAffectationsFinder {
   }
 
   private async withJurisdiction<
-    T extends { id: string; targetedPosition: string | null },
+    T extends {
+      id: string;
+      currentPosition: string | null;
+      targetedPosition: string | null;
+    },
   >(
     tx: Prisma.TransactionClient,
     positions: readonly T[],
-  ): Promise<(T & { jurisdiction: string | null })[]> {
+  ): Promise<
+    (T & {
+      targetedJurisdiction: string | null;
+      currentJurisdiction: string | null;
+    })[]
+  > {
     const definedPositions = positions.filter(
       (p): p is T & { targetedPosition: string } =>
         isDefined(p.targetedPosition),
     );
 
-    const result = await tx.$queryRaw<{ id: string; codejur: string }[]>`
+    const result = await tx.$queryRaw<
+      { id: string; current: string | null; target: string | null }[]
+    >`
       WITH queried_positions AS (
         SELECT
           (p.content ->> 'id')::UUID AS id,
+          (p.content ->> 'currentPosition') AS current_position,
           (p.content ->> 'targetedPosition') AS targeted_position
         FROM UNNEST (${definedPositions}::jsonb[]) AS p(content)
       )
 
-      SELECT queried_positions.id, codejur
+      SELECT queried_positions.id, current_j.codejur AS "current", target_j.codejur AS "target"
       FROM queried_positions
-        INNER JOIN data_administration_context.jurisdictions j
-          ON queried_positions.targeted_position ILIKE '%' || j.codejur || '%'
+        LEFT JOIN data_administration_context.jurisdictions current_j
+          ON (
+            queried_positions.current_position IS NOT NULL
+            AND queried_positions.current_position ILIKE '%' || current_j.codejur || '%'
+          )
+        LEFT JOIN data_administration_context.jurisdictions target_j
+          ON (
+            queried_positions.targeted_position IS NOT NULL
+            AND queried_positions.targeted_position ILIKE '%' || target_j.codejur || '%'
+          )
     `;
 
-    const byId = new Map(result.map((p) => [p.id, p.codejur]));
-    return positions.map((position) => ({
-      ...position,
-      jurisdiction: byId.get(position.id) || null,
-    }));
+    const byId = new Map(result.map((p) => [p.id, p]));
+    return positions.map((position) => {
+      const { current = null, target = null } = byId.get(position.id) ?? {};
+      return {
+        ...position,
+        currentJurisdiction: current,
+        targetedJurisdiction: target,
+      };
+    });
   }
 }
