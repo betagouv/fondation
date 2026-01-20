@@ -5,6 +5,7 @@ export const reportListTableLabels = {
     grade: 'Grade actuel',
     targettedPosition: 'Poste cible',
     observersCount: 'Observants',
+    priority: 'Priorité',
     state: 'Statut',
     dueDate: 'Echéance'
   }
