@@ -1,3 +1,5 @@
+import './TableauDossiersDeNomination.css';
+
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Table from '@codegouvfr/react-dsfr/Table';
