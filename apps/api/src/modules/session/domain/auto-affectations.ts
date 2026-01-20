@@ -5,8 +5,10 @@ import { DateOnly } from 'src/utils/date-only';
 
 export class AutoAffectations {
   private constructor(
-    private readonly nominationFiles: readonly AutoAffectationNominationFile[],
     private readonly members: readonly AutoAffectationMember[],
+    private readonly nominationFiles: IteratorObject<
+      readonly AutoAffectationNominationFile[]
+    >,
   ) {}
 
   static from(props: {
@@ -14,32 +16,54 @@ export class AutoAffectations {
     members: readonly AutoAffectationMember[];
   }): AutoAffectations {
     return new AutoAffectations(
-      [...props.files].sort(
-        /* desc */ (a, b) => AutoAffectationNominationFile.sort(b, a),
-      ),
       props.members,
+      AutoAffectationNominationFile.group(props.files),
     );
   }
 
   /** @see https://www.notion.so/26aa2ff25f158049a016f768e7bbb86f */
-  distribute(): { nominationFileId: string; reporterIds: readonly string[] }[] {
-    return this.nominationFiles.map((nominationFile) => {
-      const reporterIds = AutoAffectations.sort(this.members)
-        .filter((member) => member.canReportOn(nominationFile))
-        .slice(0, 1)
-        .map((member) => member.affect(nominationFile).id);
+  distribute(): {
+    nominationFileId: string;
+    reporterIds: readonly string[];
+  }[] {
+    return this.nominationFiles
+      .flatMap((gradedFiles) => {
+        const take = Math.ceil(gradedFiles.length / this.members.length);
 
-      return {
-        reporterIds,
-        nominationFileId: nominationFile.id,
-      };
-    });
+        return this.members.flatMap((_member, i) => {
+          const files =
+            i === this.members.length - 1
+              ? gradedFiles.slice(i * take) // in the last iteration we take all remaining files
+              : gradedFiles.slice(i * take, i + 1 * take);
+
+          const reporterIds = this.findNextReporters(files);
+          if (!reporterIds.length) {
+            return [];
+          }
+
+          return files.map(({ id: nominationFileId }) => ({
+            reporterIds,
+            nominationFileId,
+          }));
+        });
+      })
+      .toArray();
   }
 
-  private static sort(
-    members: readonly AutoAffectationMember[],
-  ): readonly AutoAffectationMember[] {
-    return [...members].sort(AutoAffectationMember.compareByWorkloadAsc);
+  private findNextReporters(
+    files: readonly AutoAffectationNominationFile[],
+  ): string[] {
+    const sortedMembers = this.members.toSorted(
+      AutoAffectationMember.compareByWorkloadAsc,
+    );
+
+    for (const member of sortedMembers) {
+      if (files.every((file) => member.canReportOn(file))) {
+        return [member.affect(...files).id];
+      }
+    }
+
+    return [];
   }
 }
 
@@ -79,8 +103,10 @@ export class AutoAffectationMember {
     );
   }
 
-  affect(file: AutoAffectationNominationFile): this {
-    this.workload = this.workload.add(file.workload);
+  affect(...files: AutoAffectationNominationFile[]): this {
+    for (const file of files) {
+      this.workload = this.workload.add(file.workload);
+    }
 
     return this;
   }
@@ -88,7 +114,8 @@ export class AutoAffectationMember {
   canReportOn(candidate: AutoAffectationNominationFile): boolean {
     return (
       candidate.formation === this.formation &&
-      !this.excludedJurisdictions?.has(candidate.targetJurisdiction)
+      !this.excludedJurisdictions?.has(candidate.targetedJurisdiction!) &&
+      !this.excludedJurisdictions?.has(candidate.currentJurisdiction!)
     );
   }
 
@@ -143,20 +170,33 @@ class NominationFileWorkload {
         return 1;
       case Magistrat.Grade.G2:
         return 2;
-      case Magistrat.Grade.G3:
-        return 3;
-      case Magistrat.Grade.G3SUP:
-        return 4;
 
-      case Magistrat.Grade.I:
-      case Magistrat.Grade.II:
-      case Magistrat.Grade.III:
-      case Magistrat.Grade.HH: {
+      case Magistrat.Grade.G3:
+      case Magistrat.Grade.G3SUP:
+        return 3;
+
+      case Magistrat.Grade.I: {
         new Logger(AutoAffectations.name).warn(
           `Received grade ${file.grade} for nomination session newer than 2025-12-01`,
         );
         return 2;
       }
+
+      case Magistrat.Grade.II: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session newer than 2025-12-01`,
+        );
+        return 1;
+      }
+
+      case Magistrat.Grade.III:
+      case Magistrat.Grade.HH: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session newer than 2025-12-01`,
+        );
+        return 3;
+      }
+
       default:
         return assertNever(file.grade);
     }
@@ -177,15 +217,25 @@ class NominationFileWorkload {
       case Magistrat.Grade.HH:
         return 3;
 
-      case Magistrat.Grade.G1:
-      case Magistrat.Grade.G2:
+      case Magistrat.Grade.G1: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session older than 2025-12-01`,
+        );
+        return 1;
+      }
+      case Magistrat.Grade.G2: {
+        new Logger(AutoAffectations.name).warn(
+          `Received grade ${file.grade} for nomination session older than 2025-12-01`,
+        );
+        return 2;
+      }
       case Magistrat.Grade.G3:
       case Magistrat.Grade.G3SUP:
       case Magistrat.Grade.III: {
         new Logger(AutoAffectations.name).warn(
           `Received grade ${file.grade} for nomination session older than 2025-12-01`,
         );
-        return 2;
+        return 3;
       }
       default:
         return assertNever(file.grade);
@@ -196,21 +246,29 @@ class NominationFileWorkload {
 export class AutoAffectationNominationFile {
   constructor(
     readonly id: string,
-    readonly targetJurisdiction: string,
+    readonly number: number,
+    readonly currentJurisdiction: string | null,
+    readonly targetedJurisdiction: string | null,
     readonly formation: Magistrat.Formation,
+    readonly targetedGrade: Magistrat.Grade,
     readonly workload: NominationFileWorkload,
   ) {}
 
   static from(props: {
     id: string;
-    targetJurisdiction: string;
+    number: number;
+    currentJurisdiction: string | null;
+    targetedJurisdiction: string | null;
     targetedGrade: Magistrat.Grade;
     session: { formation: Magistrat.Formation; date: DateOnly };
   }): AutoAffectationNominationFile {
     return new AutoAffectationNominationFile(
       props.id,
-      props.targetJurisdiction,
+      props.number,
+      props.currentJurisdiction,
+      props.targetedJurisdiction,
       props.session.formation,
+      props.targetedGrade,
       NominationFileWorkload.from({
         sessionDate: props.session.date,
         grade: props.targetedGrade,
@@ -218,10 +276,24 @@ export class AutoAffectationNominationFile {
     );
   }
 
-  static sort(
-    fileA: AutoAffectationNominationFile,
-    fileB: AutoAffectationNominationFile,
-  ): number {
-    return fileA.workload.toNumber() - fileB.workload.toNumber();
+  static group(
+    iterable: Iterable<AutoAffectationNominationFile>,
+  ): IteratorObject<AutoAffectationNominationFile[]> {
+    const map = new Map<Magistrat.Grade, AutoAffectationNominationFile[]>();
+    for (const file of iterable) {
+      const key =
+        file.targetedGrade === Magistrat.Grade.G3 ||
+        file.targetedGrade === Magistrat.Grade.G3SUP
+          ? Magistrat.Grade.G3
+          : file.targetedGrade;
+
+      const list = map.get(key);
+      if (list) list.push(file);
+      else map.set(key, [file]);
+    }
+
+    map.forEach((list) => list.sort((a, b) => a.number - b.number));
+
+    return map.values();
   }
 }
