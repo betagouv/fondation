@@ -11,12 +11,50 @@ Donner au CSM (Conseil Supérieur de la Magistrature) les moyens d'un travail ef
 | nestjs  | >=11 |
 | reactjs | >=19 |
 
-## Procédure d'installation de l'application
+## Bonnes pratiques
+
+PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml):
+
+```
+preferFrozenLockfile: true  # N'installe que les dépendances du lockfile
+ignoreDepScripts: true     # N'exécute pas les scripts hooked des dépendances (postinstall)
+minimumReleaseAge: 10080   # Attends au moins 7 jours avant de proposer une dépendance à l'installation
+```
+
+Ces options visent à protéger l'installation de dépendances d'attaques par supply chain
+(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/))
+
+> [!WARNING]
+> Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
+> Chaque installation de dépendance doit être justifiée.
+
+## Contribution
+
+Les projets front et back utilisent des conventions légèrement différentes. Pour les expliciter
+eslint et prettier ont chacun une configuration définie dans chaque projet.
+
+Pour chaque pull request, on vérifie que le code proposé respecte ces conventions. Pour éviter des cycles de CI
+inutiles, on peut utiliser le hook [husky](https://typicode.github.io/husky) `prepush` dans l'application en
+utilisant `npx husky` pour l'installer.
+
+Autrement à la racine du projet:
+
+```ts
+$ pnpm run prepush
+$ pnpm run types:check; pnpm run lint:check; pnpm run format:check;
+```
+
+Globalement, configurer son IDE pour utiliser ces configuration est le mieux, mais le workspace PNPM
+peut provoquer des conflits parfois.
+
+## Procédure d'installation de l'application Back
+
+Toutes les instructions ci-dessous se déroulent dans le dossier `apps/api`.
 
 1. Installation des dépendances
 
 ```bash
-pnpm install --frozen-lockfile
+pnpm install
 ```
 
 2. Copier le fichier `.env.example` vers `.env`
@@ -26,7 +64,6 @@ Le fichier .env.example contient toutes les variables nécessaires pour démarre
 3. Installation des bases de données
 
 ```
-$ cd apps/api
 $ docker compose --file ./test/docker-compose-test.yaml up -d
 $ pnpm run prisma migrate deploy
 ```
@@ -42,8 +79,6 @@ $ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 > est d'utiliser le script dans le fichier package.json.
 
 4. Lancement de l'application
-
-Se placer respectivement dans les dossiers `apps/api` et `apps/client` et jouer les commandes suivantes :
 
 ```bash
 pnpm dev
