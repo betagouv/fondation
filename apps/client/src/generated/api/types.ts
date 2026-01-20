@@ -124,6 +124,7 @@ export type ListedNominationFileAffectationItem = {
             id: string;
             firstName: string;
             lastName: string;
+            observationId: string;
         }>;
         memo: string | null;
         summary: {
@@ -291,6 +292,7 @@ export type DetailedMemberSessionDto = {
         };
         reports: Array<{
             id: string;
+            nominationFileId: string;
             state: string;
             formation: string;
             folderNumber: number | null;
@@ -303,6 +305,12 @@ export type DetailedMemberSessionDto = {
             grade: string;
             targettedPosition: string;
             observers: Array<string>;
+            observationMagistrats: Array<{
+                id: string;
+                firstName: string;
+                lastName: string;
+                observationId: string;
+            }>;
         }>;
     };
 };
@@ -561,6 +569,47 @@ export type ListObservationsResponseDto = {
             name: string;
         }>;
         createdAt: string;
+    }>;
+};
+
+export type GetObservationDetailsResponseDto = {
+    id: string;
+    receptionDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    observant: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string;
+        biography: string | null;
+        candidacy: {
+            nominationFileId: string;
+            desiredPosition: string | null;
+            rank: string | null;
+        } | null;
+    };
+    observedMagistrat: {
+        name: string;
+        proposedPosition: string | null;
+    };
+    files: Array<{
+        id: string;
+        name: string;
+    }>;
+    relatedPropositions: Array<{
+        observationId: string;
+        nominationFileId: string;
+        number: number | null;
+        magistratName: string;
+        proposedPosition: string | null;
+        observationDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
     }>;
 };
 
@@ -1331,24 +1380,6 @@ export type CreateObservationResponses = {
 
 export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
 
-export type GetObservationFileUrlData = {
-    body?: never;
-    path: {
-        observationId: string;
-        fileId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
-};
-
-export type GetObservationFileUrlResponses = {
-    200: GetObservationFileUrlResponseDto;
-};
-
-export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
-
 export type DeleteObservationData = {
     body?: never;
     path: {
@@ -1366,6 +1397,23 @@ export type DeleteObservationResponses = {
 
 export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
 
+export type GetObservationDetailsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type GetObservationDetailsResponses = {
+    200: GetObservationDetailsResponseDto;
+};
+
+export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof GetObservationDetailsResponses];
+
 export type UpdateObservationData = {
     body: UpdateObservationDto;
     path: {
@@ -1382,6 +1430,24 @@ export type UpdateObservationResponses = {
 };
 
 export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
+
+export type GetObservationFileUrlData = {
+    body?: never;
+    path: {
+        observationId: string;
+        fileId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
+};
+
+export type GetObservationFileUrlResponses = {
+    200: GetObservationFileUrlResponseDto;
+};
+
+export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
 
 export type SearchMagistratsData = {
     body?: never;

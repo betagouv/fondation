@@ -9,6 +9,7 @@ import { useTable } from '../../../../hooks/useTable.hook';
 import { TableControl } from '../../../shared/TableControl';
 import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
 import { Link } from 'react-router-dom';
+import { ObservationLinks } from '../../../shared/ObservationLinks';
 
 // Fonction de filtrage des rapports
 const applyReportFilters = (reports: FormattedReport[], filters: ReportFiltersState) => {
@@ -27,11 +28,13 @@ const applyReportFilters = (reports: FormattedReport[], filters: ReportFiltersSt
 export type ReportsTableProps = {
   headers: FormattedReportList['headers'];
   reports: FormattedReport[];
+  sessionId: string;
 };
 
 export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> = ({
   headers,
   reports,
+  sessionId,
   children
 }) => {
   const [filters, setFilters] = useQueryStates({
@@ -87,7 +90,13 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
             <Link to={report.href}>{report.name}</Link>,
             <div>{report.grade}</div>,
             <div>{report.targettedPosition}</div>,
-            <div>{report.observers}</div>,
+            <ObservationLinks
+              sessionId={sessionId}
+              nominationFileId={report.nominationFileId}
+              observations={report.observationMagistrats}
+              lodamObservants={report.lodamObservants}
+              context="membre"
+            />,
             <ReportStateTag state={report.state} />,
             <div>{report.dueDate}</div>
           ])}

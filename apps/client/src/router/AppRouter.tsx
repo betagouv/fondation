@@ -13,6 +13,7 @@ import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '../utils/route-path.utils';
 import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
 import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
+import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
 
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
             element: <ReportOverviewPage />
           },
           {
+            path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
+            element: <ObservationDetailsPage />
+          },
+          {
             // Useful in case of bookmarks or history
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
             action: ({ params }) => redirect(getDetailSessionGdsPath({ sessionId: params.sessionId! }))
@@ -76,6 +81,10 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.SG.SESSION_ID,
             element: <TransparencePage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
+            element: <ObservationDetailsPage />
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_SESSION,

@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { type FC } from 'react';
 import { useObservationsModal } from './ObservationsModalContext';
+import { ObservationLinks } from '../../../shared/ObservationLinks';
 
 type ObservantsCellProps = {
   id: string;
@@ -8,7 +9,7 @@ type ObservantsCellProps = {
   nominationFileName: string;
   observants: string[] | null;
   readOnly?: boolean;
-  observationMagistrats: { id: string; firstName: string; lastName: string }[];
+  observationMagistrats: { id: string; firstName: string; lastName: string; observationId: string }[];
   observationCount: number;
 };
 
@@ -26,9 +27,9 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
   const handleAdd = () => open({ id, sessionId, name: nominationFileName }, 'create');
   const handleView = () => open({ id, sessionId, name: nominationFileName }, 'view');
 
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
+  if (!readOnly) {
+    return (
+      <div className="flex flex-col gap-2">
         {observants && observants.length > 0 && (
           <div className="text-sm">
             <span className="font-medium text-gray-600">LODAM: </span>
@@ -36,19 +37,6 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
           </div>
         )}
 
-        {observationMagistrats.length > 0 && (
-          <div className="text-sm">
-            <span className="font-medium text-gray-600">Observations: </span>
-            <span>{observationMagistrats.map((m) => `${m.lastName} ${m.firstName}`).join(', ')}</span>
-          </div>
-        )}
-
-        {(!observants || observants.length === 0) && observationMagistrats.length === 0 && (
-          <div className="text-sm text-gray-500">-</div>
-        )}
-      </div>
-
-      {!readOnly && (
         <div className="flex flex-wrap gap-2">
           {observationCount === 0 ? (
             <Button size="small" priority="secondary" iconId="ri-add-line" onClick={handleAdd}>
@@ -60,7 +48,16 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
             </Button>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <ObservationLinks
+      sessionId={sessionId}
+      nominationFileId={id}
+      observations={observationMagistrats}
+      lodamObservants={observants}
+    />
   );
 };

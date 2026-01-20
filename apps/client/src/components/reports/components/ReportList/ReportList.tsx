@@ -15,7 +15,7 @@ export function ReportList(
 
   return (
     <div className="my-4 flex flex-col gap-4">
-      <ReportsTable headers={headers} reports={reports}>
+      <ReportsTable headers={headers} reports={reports} sessionId={props.sessionId}>
         {props.children}
       </ReportsTable>
 

@@ -1,5 +1,9 @@
 import * as $api from '@api/sdk';
-import type { ListObservationsResponseDto, SearchMagistratsResponseDto } from '@api/types';
+import type {
+  GetObservationDetailsResponseDto,
+  ListObservationsResponseDto,
+  SearchMagistratsResponseDto
+} from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionKeys } from './nomination-sessions.queries';
 
@@ -9,8 +13,33 @@ export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number]
 export const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
+  observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
+    ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props] as const
 };
+
+export type ObservationDetails = GetObservationDetailsResponseDto;
+
+export function useObservationDetailsQuery(props: {
+  sessionId: string;
+  nominationFileId: string;
+  observationId: string;
+}) {
+  return useQuery({
+    enabled: !!props.sessionId && !!props.nominationFileId && !!props.observationId,
+    queryKey: observationKeys.observationDetails(props),
+    queryFn: async (): Promise<ObservationDetails> => {
+      const { data } = await $api.sessions.getObservationDetails({
+        path: {
+          sessionId: props.sessionId,
+          nominationFileId: props.nominationFileId,
+          observationId: props.observationId
+        }
+      });
+      return data as ObservationDetails;
+    }
+  });
+}
 
 export function useSearchMagistratsQuery(search: string) {
   return useQuery({

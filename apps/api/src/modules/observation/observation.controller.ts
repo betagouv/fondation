@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UsePipes,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
@@ -25,9 +24,9 @@ import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import {
   CreateObservationDto,
   CreateObservationResponseDto,
-  ListObservationsQueryDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
+import { GetObservationDetailsResponseDto } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
 import { ObservationService } from './observation.service';
@@ -71,19 +70,33 @@ export class ObservationController {
 
   @Get()
   @HasRole()
-  @UsePipes(ZodValidationPipe)
   @ZodResponse({
     type: ListObservationsResponseDto,
     status: HttpStatus.OK,
   })
   async listObservations(
-    @Query() query: ListObservationsQueryDto,
+    @Param('nominationFileId') nominationFileId: string,
   ): Promise<ListObservationsResponseDto> {
-    if (!query.nominationFileId) {
-      return { observations: [] };
-    }
     return this.observations.listObservations({
-      nominationFileId: query.nominationFileId,
+      nominationFileId,
+    });
+  }
+
+  @Get('/:observationId')
+  @HasRole()
+  @ZodResponse({
+    type: GetObservationDetailsResponseDto,
+    status: HttpStatus.OK,
+  })
+  async getObservationDetails(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('observationId') observationId: string,
+  ): Promise<GetObservationDetailsResponseDto> {
+    return this.observations.getObservationDetails({
+      sessionId,
+      nominationFileId,
+      observationId,
     });
   }
 

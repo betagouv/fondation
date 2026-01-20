@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/framework/database';
 
 import { Observation } from './domain/observation';
+import {
+  GetObservationDetailsQuery,
+  GetObservationDetailsResponseDto,
+} from './infrastructure/queries/get-observation-details.query';
 import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
@@ -18,6 +26,7 @@ export class ObservationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly observationRepository: ObservationRepository,
+    private readonly getObservationDetailsQuery: GetObservationDetailsQuery,
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
   ) {}
@@ -38,6 +47,22 @@ export class ObservationService {
     if (!nominationFile) {
       throw new NotFoundException(
         `Nomination file with id ${command.nominationFileId} not found`,
+      );
+    }
+
+    const existingObservation = await this.prisma.observation.findUnique({
+      where: {
+        nominationFileId_magistratId: {
+          nominationFileId: command.nominationFileId,
+          magistratId: command.magistratId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingObservation) {
+      throw new ConflictException(
+        'Une observation de ce magistrat existe déjà pour ce dossier de nomination',
       );
     }
 
@@ -77,6 +102,24 @@ export class ObservationService {
       command.observationId,
     );
 
+    if (command.magistratId !== observation.magistratId) {
+      const existingObservation = await this.prisma.observation.findUnique({
+        where: {
+          nominationFileId_magistratId: {
+            nominationFileId: observation.nominationFileId,
+            magistratId: command.magistratId,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (existingObservation) {
+        throw new ConflictException(
+          'Une observation de ce magistrat existe déjà pour ce dossier de nomination',
+        );
+      }
+    }
+
     observation.update({
       dateReception: command.dateReception,
       magistratId: command.magistratId,
@@ -104,5 +147,13 @@ export class ObservationService {
     fileId: string;
   }): Promise<GetObservationFileUrlResponseDto> {
     return this.getObservationFileUrlQuery.handle(query);
+  }
+
+  getObservationDetails(query: {
+    sessionId: string;
+    nominationFileId: string;
+    observationId: string;
+  }): Promise<GetObservationDetailsResponseDto> {
+    return this.getObservationDetailsQuery.handle(query);
   }
 }

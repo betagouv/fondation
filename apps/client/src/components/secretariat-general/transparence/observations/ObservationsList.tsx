@@ -63,21 +63,22 @@ const ObservationCard: FC<{
 
       {observation.files.length > 0 && (
         <div className="mt-3 border-t pt-3">
-          <div className="mb-2 text-sm font-medium">Pièces jointes:</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="fr-mb-1w fr-text--sm fr-text--bold">Pièces jointes:</div>
+          <ul className="fr-raw-list">
             {observation.files.map((file) => (
-              <button
-                key={file.id}
-                type="button"
-                disabled={isLoadingFile}
-                onClick={() => handleFileClick(file.id)}
-                className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200 disabled:opacity-50"
-              >
-                <i className="ri-file-line" />
-                {file.name}
-              </button>
+              <li key={file.id} className="fr-mb-1w">
+                <Button
+                  priority="tertiary no outline"
+                  iconId="ri-file-download-line"
+                  size="small"
+                  disabled={isLoadingFile}
+                  onClick={() => handleFileClick(file.id)}
+                >
+                  {file.name}
+                </Button>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
