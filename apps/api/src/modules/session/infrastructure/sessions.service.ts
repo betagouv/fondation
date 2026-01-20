@@ -47,6 +47,10 @@ import {
   NominationFileOutcomeEnum,
 } from '../domain/nomination-file-outcome';
 import { isDefined } from 'src/utils/is-defined';
+import {
+  GetLolfiMagistratUrlQuery,
+  LolfiMagistratUrlDto,
+} from './queries/get-lolfi-magistrat-url.query';
 
 @Injectable()
 export class SessionService {
@@ -54,16 +58,17 @@ export class SessionService {
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
-    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
-    private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
-    private readonly listNominationFilesQuery: ListNominationFilesQuery,
-    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
-    private readonly nominationSessionRepository: NominationSessionRepository,
-    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
-    private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
+    private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
+    private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
+    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
+    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+    private readonly listNominationFilesQuery: ListNominationFilesQuery,
+    private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
+    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
+    private readonly nominationSessionRepository: NominationSessionRepository,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -350,5 +355,12 @@ export class SessionService {
     session.writeNominationFileMemberMemo({ userId, nominationFileId, memo });
 
     return this.nominationSessionRepository.persist(session);
+  }
+
+  getLolfiMagistratUrl(query: {
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<LolfiMagistratUrlDto> {
+    return this.getLolfiMagistratUrlQuery.handle(query);
   }
 }

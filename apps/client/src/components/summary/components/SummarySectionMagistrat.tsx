@@ -5,13 +5,17 @@ import { DateOnly } from '@/models/date-only.model';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { PrioriteEnumLabels } from '@/types/enums.types';
 import { SummarySectionCard } from './SummarySectionCard';
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 
 export function SummarySectionMagistrat() {
-  const { summary } = useSummary();
+  const { summary, sessionId, nominationFileId } = useSummary();
 
   return (
     <SummarySectionCard id="magistrat">
-      <h1>{summary.priority ? `${summary.name} (${PrioriteEnumLabels[summary.priority]})` : summary.name}</h1>
+      <h1 className="flex flex-row items-center">
+        {summary.priority ? `${summary.name} (${PrioriteEnumLabels[summary.priority]})` : summary.name}
+        <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
+      </h1>
 
       <List>
         <List.Item isVisible={!!summary.birthDate}>

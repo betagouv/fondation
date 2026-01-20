@@ -221,6 +221,10 @@ export type UpdateNominationSessionDto = {
     positionStartDate: string | null;
 };
 
+export type LolfiMagistratUrlDto = {
+    url: string;
+};
+
 export type PaginatedMemberListItemDto = {
     items: Array<{
         id: string;
@@ -470,6 +474,7 @@ export type GetReportFileUrlsResponseDto = {
 export type DetailedReportDto = {
     id: string;
     sessionId: string;
+    nominationFileId: string;
     name: string;
     comment: string | null;
     formation: 'PARQUET' | 'SIEGE';
@@ -973,6 +978,22 @@ export type UpdateNominationSessionResponses = {
 };
 
 export type UpdateNominationSessionResponse = UpdateNominationSessionResponses[keyof UpdateNominationSessionResponses];
+
+export type GetLolfiMagistratUrlData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/lolfi-url';
+};
+
+export type GetLolfiMagistratUrlResponses = {
+    200: LolfiMagistratUrlDto;
+};
+
+export type GetLolfiMagistratUrlResponse = GetLolfiMagistratUrlResponses[keyof GetLolfiMagistratUrlResponses];
 
 export type ListMembersData = {
     body?: never;

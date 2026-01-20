@@ -164,6 +164,8 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             rank={retrievedReport.rank!}
             dureeDuPoste={retrievedReport.dureeDuPoste}
             priority={retrievedReport.priority}
+            sessionId={retrievedReport.sessionId}
+            nominationFileId={retrievedReport.nominationFileId}
           />
           <Biography biography={formattedBiography} />
           <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />

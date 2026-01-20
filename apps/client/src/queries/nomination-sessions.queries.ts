@@ -20,7 +20,9 @@ export const sessionKeys = {
     ['sessions', 'detailSession', props.sessionId] as const,
   listGdsSessions: () => ['sessions', 'listGdsSessions'] as const,
   listSessionAttachments: (props: { sessionId: string }) =>
-    ['sessions', 'listSessionAttachments', props.sessionId] as const
+    ['sessions', 'listSessionAttachments', props.sessionId] as const,
+  lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId: string }) =>
+    ['sessions', 'lolfiMagistratUrl', props] as const
 };
 
 type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
@@ -314,3 +316,12 @@ export function useDefineNominationFileOutcomeMutation(input: {
       )
   });
 }
+
+export const useLolfiMagistratUrlQuery = (input: { sessionId: string; nominationFileId: string }) =>
+  useQuery({
+    queryKey: sessionKeys.lolfiMagistratUrl(input),
+    queryFn: async () => {
+      const { data } = await $api.sessions.getLolfiMagistratUrl({ path: input });
+      return data ?? null;
+    }
+  });

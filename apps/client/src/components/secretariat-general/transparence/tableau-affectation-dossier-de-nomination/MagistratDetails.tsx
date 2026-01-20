@@ -14,6 +14,7 @@ import { reportHtmlIds } from '../../../reports/dom/html-ids';
 import { TextValue } from '../../../shared/TextValue';
 import { HandleMagistratSummaryButton } from './HandleMagistratSummaryButton';
 import { MemberMemo } from './MemberMemo';
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 
 export type MagistratDetailsProps = {
   sessionId: string;
@@ -50,8 +51,16 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <label className="text-xl font-semibold">{nomMagistrat}</label>
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-semibold">
+            {nomMagistrat}
+            <LolfiMagistratLink
+              small
+              name={nomMagistrat}
+              sessionId={sessionId}
+              nominationFileId={nominationFile.id}
+            />
+          </span>
           {<UserAvatarList users={nominationFile.reporters} max={2} />}
         </div>
         <HandleMagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
