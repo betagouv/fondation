@@ -58,7 +58,7 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
   });
 
   const headersWithSort = Object.entries(headers).map(([key, label]) =>
-    ['grade', 'observersCount', 'dueDate'].includes(key) ? (
+    ['grade', 'observersCount', 'dueDate', 'priority'].includes(key) ? (
       label
     ) : (
       <span className="flex items-center gap-1">
@@ -97,6 +97,7 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
               lodamObservants={report.lodamObservants}
               context="membre"
             />,
+            <div>{report.priority}</div>,
             <ReportStateTag state={report.state} />,
             <div>{report.dueDate}</div>
           ])}

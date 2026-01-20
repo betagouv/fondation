@@ -296,6 +296,7 @@ export type DetailedMemberSessionDto = {
             state: string;
             formation: string;
             folderNumber: number | null;
+            filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
             dueDate: {
                 year: number;
                 month: number;
@@ -497,6 +498,7 @@ export type DetailedReportDto = {
     rank: string | null;
     observers: Array<string>;
     dureeDuPoste: string | null;
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;

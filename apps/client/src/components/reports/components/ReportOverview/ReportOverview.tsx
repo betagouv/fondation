@@ -163,6 +163,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             targettedPosition={retrievedReport.targettedPosition!}
             rank={retrievedReport.rank!}
             dureeDuPoste={retrievedReport.dureeDuPoste}
+            priority={retrievedReport.priority}
           />
           <Biography biography={formattedBiography} />
           <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />

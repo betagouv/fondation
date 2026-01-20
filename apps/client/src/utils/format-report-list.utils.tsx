@@ -7,7 +7,7 @@ import { DateOnly } from '../models/date-only.model';
 import { getGdsReportPath } from './route-path.utils';
 
 import type { DetailedMemberSessionDto } from '@api/types';
-import type { GradeEnum, ReportStatusEnum } from '@/types/enums.types';
+import { PrioriteEnumLabels, type GradeEnum, type ReportStatusEnum } from '@/types/enums.types';
 import type { ObservationLinkItem } from '@/components/shared/ObservationLinks';
 
 export type FormattedReport = {
@@ -20,6 +20,7 @@ export type FormattedReport = {
   grade: string;
   targettedPosition: string;
   lodamObservants: string[];
+  priority: string;
   observationMagistrats: ObservationLinkItem[];
   href: string;
 };
@@ -33,8 +34,8 @@ export type FormattedReportList = {
 export const useFormattedReportList = (
   reports: DetailedMemberSessionDto['data']['reports']
 ): FormattedReportList => {
-  const filteredReports = [...reports]
-    .sort((a, b) =>
+  const filteredReports = reports
+    .toSorted((a, b) =>
       Number.isFinite(a.folderNumber) && Number.isFinite(b.folderNumber)
         ? (a.folderNumber as number) - (b.folderNumber as number)
         : 0
@@ -50,7 +51,8 @@ export const useFormattedReportList = (
         grade,
         targettedPosition,
         observers,
-        observationMagistrats
+        observationMagistrats,
+        filePriority
       }) => {
         const href = getGdsReportPath(id);
         const dueDateFormatted = dueDate
@@ -66,6 +68,7 @@ export const useFormattedReportList = (
           dueDate: dueDateFormatted,
           grade: gradeToLabel(grade as GradeEnum),
           targettedPosition,
+          priority: filePriority ? PrioriteEnumLabels[filePriority] : '-',
           lodamObservants: observers,
           observationMagistrats,
           state: state as ReportStatusEnum

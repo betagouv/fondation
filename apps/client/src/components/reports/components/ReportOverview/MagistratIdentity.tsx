@@ -2,11 +2,12 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import type { FC } from 'react';
 import { Card } from './Card';
 import { ReportVM } from '../../../../VM/ReportVM';
+import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 
 export type MagistratIdentityProps = Pick<
   ReportVM,
   'name' | 'birthDate' | 'grade' | 'currentPosition' | 'targettedPosition' | 'rank' | 'dureeDuPoste'
->;
+> & { priority: PrioriteEnum | null };
 
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   name,
@@ -15,11 +16,12 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   currentPosition,
   targettedPosition,
   dureeDuPoste,
-  rank
+  rank,
+  priority
 }) => {
   return (
     <Card label="Identité du magistrat">
-      <h1>{name}</h1>
+      <h1>{priority ? `${name} (${PrioriteEnumLabels[priority]})` : name}</h1>
       <div>
         <span
           className={cx('fr-text--bold')}

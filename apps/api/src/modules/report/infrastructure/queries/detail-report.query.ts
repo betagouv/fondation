@@ -12,18 +12,20 @@ import {
   dateOnlyJsonSchema,
   Magistrat,
   NominationFile,
+  PrioriteEnum,
   ReportFileUsage,
   Role,
 } from 'shared-models';
 
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { Files } from 'src/modules/framework/files';
 
 @Injectable()
 export class DetailReportQuery {
@@ -77,6 +79,7 @@ export class DetailReportQuery {
             observers: true,
             lastPositionDate: true,
             lastRankingDate: true,
+            priorite: true,
 
             session: {
               select: {
@@ -148,6 +151,9 @@ export class DetailReportQuery {
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
       targettedPosition: report.nominationFile.targetedPosition,
+      priority: report.nominationFile.priorite
+        ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorite)
+        : null,
 
       dateTransparence: DateOnly.fromDate(
         report.nominationFile.session.date,
@@ -231,6 +237,7 @@ export class DetailedReportDto extends createZodDto(
     rank: z.string().nullable(),
     observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
+    priority: z.enum(PrioriteEnum).nullable(),
 
     screenshots: z.array(
       z.object({
