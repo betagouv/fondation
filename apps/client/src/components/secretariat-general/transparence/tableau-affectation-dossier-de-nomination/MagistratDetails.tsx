@@ -2,8 +2,8 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+import { UserAvatarList } from '@/components/shared/user-avatar';
 import { ReportVM } from '../../../../VM/ReportVM';
-import { AvatarInitials } from '../../../layout/AvatarInitials';
 import {
   formatBiography,
   formatBirthDate,
@@ -47,22 +47,12 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
       )
     : null;
 
-  const reportersInitials = nominationFile.reporters.map(({ firstName, lastName }) =>
-    [lastName, firstName].map((x) => x.charAt(0).toUpperCase()).join('')
-  );
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <label className="text-xl font-semibold">{nomMagistrat}</label>
-          {reportersInitials && reportersInitials.length > 0 && (
-            <div className="flex items-center gap-2">
-              {reportersInitials.map((initials, index) => (
-                <AvatarInitials key={index} initials={initials} size="md" />
-              ))}
-            </div>
-          )}
+          {<UserAvatarList users={nominationFile.reporters} max={2} />}
         </div>
         <HandleMagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
       </div>
