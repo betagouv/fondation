@@ -27,7 +27,8 @@ export const ROUTE_PATHS = {
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId'
   },
 
-  SUMMARY: '/session/:sessionId/dossier/:fileId/synthese'
+  SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
+  REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat'
 } as const;
 
 export type RoutePath = typeof ROUTE_PATHS;

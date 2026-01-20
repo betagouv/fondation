@@ -68,6 +68,7 @@ export class DetailReportQuery {
         },
         nominationFile: {
           select: {
+            id: true,
             name: true,
             biography: true,
             number: true,
@@ -122,6 +123,7 @@ export class DetailReportQuery {
     return {
       id: report.id,
       sessionId: report.id,
+      nominationFileId: report.nominationFile.id,
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
 
@@ -221,6 +223,7 @@ export class DetailedReportDto extends createZodDto(
   z.object({
     id: z.string(),
     sessionId: z.string(),
+    nominationFileId: z.string(),
     name: z.string(),
     comment: z.string().nullable(),
     formation: z.enum(Magistrat.Formation),

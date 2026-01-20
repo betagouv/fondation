@@ -3,11 +3,12 @@ import type { FC } from 'react';
 import { Card } from './Card';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 
 export type MagistratIdentityProps = Pick<
   ReportVM,
   'name' | 'birthDate' | 'grade' | 'currentPosition' | 'targettedPosition' | 'rank' | 'dureeDuPoste'
-> & { priority: PrioriteEnum | null };
+> & { priority: PrioriteEnum | null; sessionId: string; nominationFileId: string };
 
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   name,
@@ -17,11 +18,16 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   targettedPosition,
   dureeDuPoste,
   rank,
-  priority
+  priority,
+  sessionId,
+  nominationFileId
 }) => {
   return (
     <Card label="Identité du magistrat">
-      <h1>{priority ? `${name} (${PrioriteEnumLabels[priority]})` : name}</h1>
+      <h1 className="flex flex-row items-center">
+        <span>{priority ? `${name} (${PrioriteEnumLabels[priority]})` : name}</span>
+        <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={name} />
+      </h1>
       <div>
         <span
           className={cx('fr-text--bold')}
