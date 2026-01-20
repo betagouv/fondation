@@ -5,12 +5,12 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { FILTER_RAPPORTEUR_NOBODY, type FiltersState } from '../../../shared/filter-configurations';
 import { CheckboxDossier } from './CheckboxDossier';
 import { DropdownPriorite } from './DropdownPriorite';
-import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { MagistratDnModalLink } from './MagistratDnModale';
 import { NominationFileOutcome } from './nomination-file-outcome/NominationFileOutcome';
 import { NominationFileOutcomeSelector } from './nomination-file-outcome/NominationFileOutcomeSelector';
 import { ObservantsCell } from './ObservantsCell';
 import type { FormationEnum } from '@/types/enums.types';
+import { ReadOnlyReportersCell, ReportersSelector } from './ReportersCell';
 
 export const HEADER_COLUMNS_AFFECTATIONS_DN = [
   { field: 'content.numeroDeDossier', label: 'N°', sortable: true },
@@ -52,11 +52,7 @@ export const dataRowsDn = (options: {
       readOnly: true
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
-    React.createElement(
-      'span',
-      { className: 'whitespace-pre-line' },
-      dossier.reporters.map(({ firstName, lastName }) => `${firstName} ${lastName}`.toUpperCase()).join('\n')
-    ),
+    React.createElement(ReadOnlyReportersCell, { dossier }),
     React.createElement(NominationFileOutcome, {
       outcome: dossier.content.outcome,
       formation: options.formation
@@ -94,11 +90,7 @@ export const dataRowsDnEdition = (options: {
       dossierId: dossier.id,
       initialPriorite: dossier.priority ?? undefined
     }),
-    React.createElement(DropdownRapporteurs, {
-      dossierId: dossier.id,
-      initialRapporteurs: dossier.reporters.map(({ id }) => id),
-      availableRapporteurs: options.availableRapporteurs
-    }),
+    React.createElement(ReportersSelector, { dossier, availableReporters: options.availableRapporteurs }),
     React.createElement(NominationFileOutcomeSelector, {
       sessionId: options.sessionId,
       nominationFileId: dossier.id,

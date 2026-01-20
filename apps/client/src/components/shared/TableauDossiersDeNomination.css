@@ -1,0 +1,3 @@
+#session-affectation-dossier-de-nomination-table table tr:has(.multi-reporters-alert) {
+  background-color: var(--background-alt-red-marianne);
+}
