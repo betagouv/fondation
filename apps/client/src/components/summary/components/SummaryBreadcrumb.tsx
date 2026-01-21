@@ -1,3 +1,4 @@
+import { transparencyToLabel } from '@/components/reports/labels/labels-mappers';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -7,36 +8,86 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 import { useNavigate } from 'react-router-dom';
 
 export function SummaryBreadcrumb() {
-  const navigate = useNavigate();
   const { user } = useUser();
-  const { sessionId, nominationFileId } = useSummary();
-  const { data } = useDetailedNominationSessionQuery({
-    sessionId: user?.role === 'ADJOINT_SECRETAIRE_GENERAL' ? sessionId : undefined
-  });
 
-  if (user?.role !== 'ADJOINT_SECRETAIRE_GENERAL' || !data) return null;
+  if (!user) return null;
+
+  if (user?.role === 'ADJOINT_SECRETAIRE_GENERAL') return <SgSummaryBreadcrumb />;
+
+  return <MemberSummaryBreadcrumb />;
+}
+
+function SgSummaryBreadcrumb() {
+  const navigate = useNavigate();
+  const { sessionId, nominationFileId, summary } = useSummary();
+  const { data } = useDetailedNominationSessionQuery({ sessionId });
 
   return (
     <div className="mb-8 flex items-center justify-between">
-      <Breadcrumb
-        id="summary-breadcrumb"
-        className="mb-0"
-        ariaLabel={`Fil d'Ariane de la synthèse de ${data.name}`}
-        breadcrumb={{
-          segments: [
-            { label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD },
-            { label: 'Gérer une session', to: ROUTE_PATHS.SG.MANAGE_SESSION },
-            {
-              label: data.name,
-              to: {
-                pathname: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId),
-                search: `?active=${nominationFileId}`
+      {data && (
+        <Breadcrumb
+          id="summary-breadcrumb"
+          className="mb-0"
+          ariaLabel={`Fil d'Ariane de la synthèse de ${summary.name}`}
+          breadcrumb={{
+            segments: [
+              { label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD },
+              { label: 'Gérer une session', to: ROUTE_PATHS.SG.MANAGE_SESSION },
+              {
+                label: data.name,
+                to: {
+                  pathname: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId),
+                  search: `?active=${nominationFileId}`
+                }
               }
-            }
-          ],
-          currentPageLabel: 'Synthèse'
-        }}
-      />
+            ],
+            currentPageLabel: 'Synthèse'
+          }}
+        />
+      )}
+      {window.history.length ? (
+        <Button
+          size="small"
+          iconId="fr-icon-close-line"
+          iconPosition="right"
+          priority="tertiary no outline"
+          onClick={() => navigate(-1)}
+        >
+          Fermer
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+function MemberSummaryBreadcrumb() {
+  const navigate = useNavigate();
+  const { sessionId, summary } = useSummary();
+  const { data } = useDetailedNominationSessionQuery({ sessionId });
+
+  return (
+    <div className="mb-8 flex items-center justify-between">
+      {data && (
+        <Breadcrumb
+          id="summary-breadcrumb"
+          className="mb-0"
+          ariaLabel={`Fil d'Ariane de la synthèse de ${summary.name}`}
+          breadcrumb={{
+            segments: [
+              { label: 'Transparences', to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
+              {
+                label: 'Pouvoir de proposition du garde des Sceaux',
+                to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD
+              },
+              {
+                label: transparencyToLabel(data.name, data.date),
+                to: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId)
+              }
+            ],
+            currentPageLabel: 'Synthèse'
+          }}
+        />
+      )}
       {window.history.length ? (
         <Button
           size="small"
