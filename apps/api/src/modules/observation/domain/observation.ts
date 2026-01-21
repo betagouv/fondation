@@ -35,12 +35,30 @@ export class ObservationFilesDetached {
   ) {}
 }
 
+export class ObservationMemberCommentWritten {
+  constructor(
+    readonly observationId: string,
+    readonly userId: string,
+    readonly comment: string,
+  ) {}
+}
+
+export class ObservationMemberCommentFilesAttached {
+  constructor(
+    readonly observationId: string,
+    readonly userId: string,
+    readonly files: readonly { id: string }[],
+  ) {}
+}
+
 type ObservationEvent =
   | ObservationCreated
   | ObservationFilesAttached
   | ObservationDeleted
   | ObservationUpdated
-  | ObservationFilesDetached;
+  | ObservationFilesDetached
+  | ObservationMemberCommentWritten
+  | ObservationMemberCommentFilesAttached;
 
 export class Observation {
   private constructor(
@@ -114,6 +132,30 @@ export class Observation {
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
+  }
+
+  attachMemberCommentFiles(command: {
+    userId: string;
+    files: readonly { id: string }[];
+  }): void {
+    if (command.files.length === 0) return;
+
+    this.#messages.push(
+      new ObservationMemberCommentFilesAttached(
+        this.id,
+        command.userId,
+        command.files,
+      ),
+    );
+  }
+
+  writeMemberComment(command: { userId: string; comment: string }): void {
+    const trimmed = command.comment.trim();
+    if (trimmed.length === 0) return;
+
+    this.#messages.push(
+      new ObservationMemberCommentWritten(this.id, command.userId, trimmed),
+    );
   }
 
   readonly #messages: ObservationEvent[] = [];

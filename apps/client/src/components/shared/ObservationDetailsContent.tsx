@@ -4,6 +4,8 @@ import Card from '@codegouvfr/react-dsfr/Card';
 
 import { DateOnly } from '@/models/date-only.model';
 import type { ObservationDetails } from '@queries/observations.queries';
+import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
+import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
 type ObservationDetailsContentProps = {
@@ -17,6 +19,8 @@ type ObservationDetailsContentProps = {
     label: string;
   };
   context: 'sg' | 'membre';
+  onUpdateMemberComment?: (comment: string) => void;
+  uploadFiles?: FilesUploader;
 };
 
 export function ObservationDetailsContent({
@@ -24,7 +28,9 @@ export function ObservationDetailsContent({
   observation,
   onDownloadFile,
   backLink,
-  context
+  context,
+  onUpdateMemberComment,
+  uploadFiles
 }: ObservationDetailsContentProps) {
   const observant = observation.observant;
   const candidacy = observant.candidacy;
@@ -114,6 +120,20 @@ export function ObservationDetailsContent({
               </ul>
             )}
           </section>
+
+          {context === 'membre' && onUpdateMemberComment && (
+            <section className="fr-mb-4w">
+              <h2 className="fr-h4" id="member-comment-label">
+                Mon commentaire
+              </h2>
+              <TipTapEditor
+                value={observation.memberComment?.comment ?? ''}
+                onChange={onUpdateMemberComment}
+                ariaLabelledby="member-comment-label"
+                uploadFiles={uploadFiles}
+              />
+            </section>
+          )}
 
           {relatedPropositions.length > 0 && (
             <section className="fr-mb-4w">

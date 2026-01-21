@@ -43,6 +43,12 @@ const ObservationDetailsSchema = z.object({
   }),
   files: z.array(ObservationFileSchema),
   relatedPropositions: z.array(RelatedPropositionSchema),
+  memberComment: z
+    .object({
+      comment: z.string(),
+      files: z.array(ObservationFileSchema),
+    })
+    .nullable(),
 });
 
 export class GetObservationDetailsResponseDto extends createZodDto(
@@ -54,6 +60,7 @@ export class GetObservationDetailsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
+    userId: string;
     sessionId: string;
     nominationFileId: string;
     observationId: string;
@@ -152,6 +159,28 @@ export class GetObservationDetailsQuery {
         observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
       }));
 
+      const memberComment = await tx.observationMemberComment.findUnique({
+        where: {
+          primaryKey: {
+            userId: query.userId,
+            observationId: query.observationId,
+          },
+        },
+        select: {
+          comment: true,
+          files: {
+            select: {
+              file: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
       return {
         id: observation.id,
         receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
@@ -172,6 +201,17 @@ export class GetObservationDetailsQuery {
           name: file.name,
         })),
         relatedPropositions,
+        memberComment: memberComment
+          ? {
+              comment: memberComment.comment,
+              files: memberComment.files.map(
+                ({ file }: { file: { id: string; name: string } }) => ({
+                  id: file.id,
+                  name: file.name,
+                }),
+              ),
+            }
+          : null,
       };
     });
   }

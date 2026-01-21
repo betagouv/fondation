@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UsePipes,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
@@ -22,6 +23,11 @@ import {
 import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
+  AttachMemberCommentFilesDto,
+  AttachedMemberCommentFilesDto,
+  WriteMemberCommentDto,
+} from './infrastructure/dtos/observation-member-comment.dto';
+import {
   CreateObservationDto,
   CreateObservationResponseDto,
   UpdateObservationDto,
@@ -31,7 +37,7 @@ import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-o
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
 import { ObservationService } from './observation.service';
 
-@ApiTags('Sessions')
+@ApiTags('Observations')
 @ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
 @ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/observations')
@@ -89,11 +95,13 @@ export class ObservationController {
     status: HttpStatus.OK,
   })
   async getObservationDetails(
+    @AuthedUserId() userId: string,
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('observationId') observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
+      userId,
       sessionId,
       nominationFileId,
       observationId,
@@ -134,7 +142,7 @@ export class ObservationController {
   @UseMultipartBody({
     schema: UpdateObservationDto,
     destination: ({ request, id, mimetype }) =>
-      `observations/${request.params.observationId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+      `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -148,6 +156,54 @@ export class ObservationController {
       magistratId: body.magistratId,
       filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
       fileIdsToDetach: body.detachFileIds ?? [],
+    });
+  }
+
+  @Post('/:observationId/member-comments/files')
+  @HasRole()
+  @UseMultipartBody({
+    schema: AttachMemberCommentFilesDto,
+    destination: ({ request, id, mimetype }) =>
+      `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: AttachedMemberCommentFilesDto,
+  })
+  async attachMemberCommentFiles(
+    @AuthedUserId() userId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('observationId') observationId: string,
+    @Body() { files }: Multipart<typeof AttachMemberCommentFilesDto>,
+  ): Promise<AttachedMemberCommentFilesDto> {
+    return this.observations.attachMemberCommentFiles({
+      userId,
+      sessionId,
+      nominationFileId,
+      observationId,
+      files,
+    });
+  }
+
+  @Put('/:observationId/member-comments')
+  @HasRole()
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async writeMemberComment(
+    @AuthedUserId() userId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('observationId') observationId: string,
+    @Body() { comment }: WriteMemberCommentDto,
+  ): Promise<void> {
+    await this.observations.writeMemberComment({
+      userId,
+      sessionId,
+      nominationFileId,
+      observationId,
+      comment,
     });
   }
 }

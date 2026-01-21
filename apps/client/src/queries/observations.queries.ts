@@ -186,3 +186,59 @@ export function useUpdateObservationMutation() {
       ])
   });
 }
+
+export function useAttachObservationMemberCommentFilesMutation() {
+  return useMutation({
+    mutationFn: async (params: {
+      sessionId: string;
+      nominationFileId: string;
+      observationId: string;
+      files: File[];
+    }): Promise<{ items: { id: string; name: string; url: string }[] }> => {
+      const { data } = await $api.sessions.attachObservationMemberCommentFiles({
+        path: {
+          sessionId: params.sessionId,
+          nominationFileId: params.nominationFileId,
+          observationId: params.observationId
+        },
+        body: {
+          files: params.files
+        }
+      });
+      return data ?? { items: [] };
+    }
+  });
+}
+
+export function useWriteObservationMemberCommentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      sessionId: string;
+      nominationFileId: string;
+      observationId: string;
+      comment: string;
+    }): Promise<void> => {
+      await $api.sessions.writeMemberComment({
+        path: {
+          sessionId: params.sessionId,
+          nominationFileId: params.nominationFileId,
+          observationId: params.observationId
+        },
+        body: {
+          comment: params.comment
+        }
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: observationKeys.observationDetails({
+          sessionId: variables.sessionId,
+          nominationFileId: variables.nominationFileId,
+          observationId: variables.observationId
+        })
+      });
+    }
+  });
+}
