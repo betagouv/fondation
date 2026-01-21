@@ -56,6 +56,7 @@ export const ReportListPage: FC = () => {
         formation={detailedGdsSession.data.session.formation as FormationEnum}
         transparency={detailedGdsSession.data.session.transparency}
         dateTransparence={detailedGdsSession.data.session.dateTransparence}
+        dueDate={detailedGdsSession.data.session.dateSeance}
       />
 
       {isVueGenerale ? (
