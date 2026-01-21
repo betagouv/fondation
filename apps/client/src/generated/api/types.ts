@@ -637,6 +637,13 @@ export type GetObservationDetailsResponseDto = {
             day: number;
         };
     }>;
+    memberComment: {
+        comment: string;
+        files: Array<{
+            id: string;
+            name: string;
+        }>;
+    } | null;
 };
 
 export type GetObservationFileUrlResponseDto = {
@@ -650,6 +657,22 @@ export type UpdateObservationDto = {
     magistratId: string;
     dateReception: string;
     detachFileIds?: Array<string>;
+};
+
+export type AttachMemberCommentFilesDto = {
+    files: Array<Blob | File>;
+};
+
+export type AttachedMemberCommentFilesDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteMemberCommentDto = {
+    comment: string;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -1490,6 +1513,40 @@ export type GetObservationFileUrlResponses = {
 };
 
 export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
+
+export type AttachMemberCommentFilesData = {
+    body: AttachMemberCommentFilesDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/files';
+};
+
+export type AttachMemberCommentFilesResponses = {
+    200: AttachedMemberCommentFilesDto;
+};
+
+export type AttachMemberCommentFilesResponse = AttachMemberCommentFilesResponses[keyof AttachMemberCommentFilesResponses];
+
+export type WriteMemberCommentData = {
+    body: WriteMemberCommentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments';
+};
+
+export type WriteMemberCommentResponses = {
+    204: void;
+};
+
+export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
 
 export type SearchMagistratsData = {
     body?: never;

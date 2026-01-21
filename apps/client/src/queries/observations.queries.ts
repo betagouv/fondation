@@ -29,7 +29,7 @@ export function useObservationDetailsQuery(props: {
     enabled: !!props.sessionId && !!props.nominationFileId && !!props.observationId,
     queryKey: observationKeys.observationDetails(props),
     queryFn: async (): Promise<ObservationDetails> => {
-      const { data } = await $api.sessions.getObservationDetails({
+      const { data } = await $api.observations.getObservationDetails({
         path: {
           sessionId: props.sessionId,
           nominationFileId: props.nominationFileId,
@@ -62,7 +62,7 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
     queryKey: observationKeys.observations(props),
     queryFn: async () => {
       if (!props.nominationFileId) return { observations: [] as Observation[] };
-      const { data } = await $api.sessions.listObservations({
+      const { data } = await $api.observations.listObservations({
         path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId }
       });
       return data ?? { observations: [] as Observation[] };
@@ -81,7 +81,7 @@ export function useCreateObservationMutation() {
       dateReception: string;
       files: File[];
     }): Promise<{ id: string } | null> => {
-      const { data } = await $api.sessions.createObservation({
+      const { data } = await $api.observations.createObservation({
         path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: {
           files: mutation.files,
@@ -110,7 +110,7 @@ export function useDeleteObservationMutation() {
       observationId: string;
       nominationFileId: string;
     }): Promise<void> => {
-      await $api.sessions.deleteObservation({
+      await $api.observations.deleteObservation({
         path: {
           sessionId: mutation.nominationFileId,
           nominationFileId: mutation.nominationFileId,
@@ -136,7 +136,7 @@ export function useGetObservationFileUrlMutation() {
       observationId: string;
       fileId: string;
     }): Promise<string> => {
-      const { data } = await $api.sessions.getObservationFileUrl({
+      const { data } = await $api.observations.getObservationFileUrl({
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
@@ -163,7 +163,7 @@ export function useUpdateObservationMutation() {
       files?: File[];
       detachFileIds?: string[];
     }): Promise<void> => {
-      await $api.sessions.updateObservation({
+      await $api.observations.updateObservation({
         path: {
           sessionId: mutation.sessionId,
           nominationFileId: mutation.nominationFileId,
@@ -195,7 +195,7 @@ export function useAttachObservationMemberCommentFilesMutation() {
       observationId: string;
       files: File[];
     }): Promise<{ items: { id: string; name: string; url: string }[] }> => {
-      const { data } = await $api.sessions.attachObservationMemberCommentFiles({
+      const { data } = await $api.observations.attachMemberCommentFiles({
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
@@ -220,7 +220,7 @@ export function useWriteObservationMemberCommentMutation() {
       observationId: string;
       comment: string;
     }): Promise<void> => {
-      await $api.sessions.writeMemberComment({
+      await $api.observations.writeMemberComment({
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,

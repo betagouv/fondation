@@ -66,6 +66,7 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
+        
           <section className="fr-mb-4w">
             <h2 className="fr-h4">Magistrat observant</h2>
             <dl className="fr-mb-0">
@@ -100,6 +101,20 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
+          {context === 'membre' && onUpdateMemberComment && (
+            <section className="fr-mb-4w">
+              <h2 className="fr-h4" id="member-comment-label">
+                Mon commentaire
+              </h2>
+              <TipTapEditor
+                value={observation.memberComment?.comment ?? ''}
+                onChange={onUpdateMemberComment}
+                ariaLabelledby="member-comment-label"
+                uploadFiles={uploadFiles}
+              />
+            </section>
+          )}
+
           <section className="fr-mb-4w">
             <h2 className="fr-h4">Pièce(s) jointe(s)</h2>
             {observation.files.length === 0 ? (
@@ -120,20 +135,6 @@ export function ObservationDetailsContent({
               </ul>
             )}
           </section>
-
-          {context === 'membre' && onUpdateMemberComment && (
-            <section className="fr-mb-4w">
-              <h2 className="fr-h4" id="member-comment-label">
-                Mon commentaire
-              </h2>
-              <TipTapEditor
-                value={observation.memberComment?.comment ?? ''}
-                onChange={onUpdateMemberComment}
-                ariaLabelledby="member-comment-label"
-                uploadFiles={uploadFiles}
-              />
-            </section>
-          )}
 
           {relatedPropositions.length > 0 && (
             <section className="fr-mb-4w">
