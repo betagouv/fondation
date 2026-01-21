@@ -11,16 +11,14 @@ export type SelectPrioriteProps = {
 const EMPTY_VALUE = '__EMPTY__' as const;
 const NO_CHANGE_VALUE = '__NO_CHANGE__' as const;
 
-const prioriteValueMap: Record<string, PrioriteValue> = {
-  [NO_CHANGE_VALUE]: undefined,
-  [EMPTY_VALUE]: null
-};
-
 export const SelectPriorite: FC<SelectPrioriteProps> = ({ selectedPriorite, onPrioriteChange }) => {
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    const prioriteValue = prioriteValueMap[value] ?? (value as PrioriteEnum);
-    onPrioriteChange(prioriteValue);
+    if (value === EMPTY_VALUE) {
+      onPrioriteChange(null);
+    } else if (value !== NO_CHANGE_VALUE) {
+      onPrioriteChange(value as PrioriteEnum);
+    }
   };
 
   const currentValue = selectedPriorite === undefined ? NO_CHANGE_VALUE : (selectedPriorite ?? EMPTY_VALUE);
