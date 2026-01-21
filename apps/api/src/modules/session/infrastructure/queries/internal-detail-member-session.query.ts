@@ -50,6 +50,7 @@ export class InternalDetailMemberSessionQuery {
           formation: true,
           sessionImportId: true,
           date: true,
+          dueDate: true,
           dossierDeNominations: {
             where: {
               reporterIds: {
@@ -99,6 +100,8 @@ export class InternalDetailMemberSessionQuery {
           formation: session.formation,
           transparency: session.name,
           dateTransparence: DateOnly.fromDate(session.date).toJson(),
+          dateSeance:
+            DateOnly.fromOptionalDate(session.dueDate)?.toJson() ?? null,
         },
         reports: session.dossierDeNominations.map((d) => {
           const { id, state } = assertIsDefined(d.reports[0]);
@@ -141,6 +144,7 @@ export class DetailedMemberSessionDto extends createZodDto(
         formation: z.string(),
         transparency: z.string(),
         dateTransparence: dateOnlyJsonSchema,
+        dateSeance: dateOnlyJsonSchema.nullable(),
       }),
       reports: z.array(
         z.object({
