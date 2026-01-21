@@ -14,12 +14,14 @@ export type HeaderReportListProps = {
   dateTransparence: DateOnlyJson;
   transparency: string;
   formation: FormationEnum;
+  dueDate: DateOnlyJson | null;
 };
 
 export const HeaderReportList: FC<HeaderReportListProps> = ({
   dateTransparence,
   transparency,
-  formation
+  formation,
+  dueDate
 }) => {
   const navigate = useNavigate();
   const breadcrumb = getTransparencesBreadCrumb(
@@ -39,12 +41,48 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
         breadcrumb={breadcrumb}
       />
 
-      <h1>
-        <span>Rapports sur la </span>
-        <span style={{ color: colors.options.yellowTournesol.sun407moon922.hover }}>
-          transparence du {DateOnly.fromStoreModel(dateTransparence).toFormattedString()} ({transparency})
-        </span>
-      </h1>
+      <div className="mb-8">
+        <h1 className="mb-0">
+          <span>Transparence: </span>
+          <span style={{ color: colors.options.yellowTournesol.sun407moon922.hover }}>{transparency}</span>
+        </h1>
+        <table>
+          <tbody>
+            <tr>
+              <th scope="row" style={{ color: colors.options.grey._625_425.default }}>
+                Publication le:
+              </th>
+              <td>
+                <DisplayedDate dateOnly={dateTransparence} />
+              </td>
+            </tr>
+            {dueDate && (
+              <tr>
+                <th scope="row" style={{ color: colors.options.grey._625_425.default }}>
+                  1<sup>è</sup> séance de restitution le:
+                </th>
+                <td>
+                  <DisplayedDate dateOnly={dueDate} />
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
+
+function DisplayedDate(props: { dateOnly: DateOnlyJson | null | undefined }) {
+  if (!props.dateOnly) return null;
+
+  const dateOnly = DateOnly.fromStoreModel(props.dateOnly);
+  const iso = dateOnly.toFormattedString('yyyy-MM-dd');
+  const formatted = dateOnly.toFormattedString('dd/MM/yyyy');
+
+  return (
+    <time dateTime={iso} title={iso}>
+      {formatted}
+    </time>
+  );
+}

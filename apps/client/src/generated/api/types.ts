@@ -293,6 +293,11 @@ export type DetailedMemberSessionDto = {
                 month: number;
                 day: number;
             };
+            dateSeance: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
         };
         reports: Array<{
             id: string;

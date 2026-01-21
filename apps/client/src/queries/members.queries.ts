@@ -115,7 +115,7 @@ export function useDetailedMemberGdsSession(input: {
   return useQuery({
     queryKey: memberKeys.detailMemberGdsSession(input),
     enabled: Boolean(input.sessionId && input.userId),
-    queryFn: async () => {
+    queryFn: () => {
       if (!input.sessionId || !input.userId) return null;
 
       return $api.members
