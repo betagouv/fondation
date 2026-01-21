@@ -26,6 +26,10 @@ import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/r
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import {
+  FILE_MIME_TYPES,
+  filenameToMimeType,
+} from 'src/modules/framework/files/mime-type';
 
 @Injectable()
 export class DetailReportQuery {
@@ -82,6 +86,23 @@ export class DetailReportQuery {
             lastRankingDate: true,
             priorite: true,
 
+            summary: {
+              select: {
+                content: true,
+                readers: { select: { userId: true } },
+                screenshots: {
+                  select: {
+                    file: { select: { id: true, name: true, path: true } },
+                  },
+                },
+                attachments: {
+                  select: {
+                    file: { select: { id: true, name: true, path: true } },
+                  },
+                },
+              },
+            },
+
             session: {
               select: {
                 name: true,
@@ -120,12 +141,41 @@ export class DetailReportQuery {
       ),
     );
 
+    let summary: DetailedReportDto['summary'] = null;
+    if (
+      report.nominationFile.summary?.readers.some(
+        (r) => r.userId === query.user.id,
+      )
+    ) {
+      const summaryScreenshots = await this.withUrls(
+        report.nominationFile.summary.screenshots.map(({ file }) => file),
+      );
+
+      summary = {
+        content: report.nominationFile.summary.content,
+        screenshots: summaryScreenshots.map((f) => ({
+          fileId: f.id,
+          name: f.name,
+          type: filenameToMimeType(f.name) ?? FILE_MIME_TYPES.bin,
+          url: f.url,
+        })),
+        attachments: report.nominationFile.summary.attachments.map(
+          ({ file }) => ({
+            fileId: file.id,
+            name: file.name,
+            type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
+          }),
+        ),
+      };
+    }
+
     return {
       id: report.id,
       sessionId: report.id,
       nominationFileId: report.nominationFile.id,
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
+      summary,
 
       attachments: attachments.map((f) => ({
         fileId: f.id,
@@ -258,6 +308,23 @@ export class DetailedReportDto extends createZodDto(
         fileId: z.string(),
       }),
     ),
+
+    summary: z
+      .object({
+        content: z.string(),
+        attachments: z.array(
+          z.object({ fileId: z.string(), name: z.string(), type: z.string() }),
+        ),
+        screenshots: z.array(
+          z.object({
+            fileId: z.string(),
+            name: z.string(),
+            type: z.string(),
+            url: z.url(),
+          }),
+        ),
+      })
+      .nullable(),
 
     rules: z.object({
       [NominationFile.RuleGroup.MANAGEMENT]: z.record(

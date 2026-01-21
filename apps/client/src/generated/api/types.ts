@@ -520,6 +520,20 @@ export type DetailedReportDto = {
         name: string;
         fileId: string;
     }>;
+    summary: {
+        content: string;
+        attachments: Array<{
+            fileId: string;
+            name: string;
+            type: string;
+        }>;
+        screenshots: Array<{
+            fileId: string;
+            name: string;
+            type: string;
+            url: string;
+        }>;
+    } | null;
     rules: {
         management: {
             [key: string]: {

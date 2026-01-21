@@ -8,17 +8,26 @@ import { reportHtmlIds } from '../../dom/html-ids';
 
 export type SummaryProps = {
   observers: string[] | null;
+  summary: { content: string } | null;
 };
 
 const { setIsScrolling, createListeners, removeListeners } = summaryScrollListenersFactory();
 
-export const Summary: FC<SummaryProps> = ({ observers }) => {
+export const Summary: FC<SummaryProps> = ({ observers, summary }) => {
   const summarySections = SUMMARY_SECTIONS.filter(({ anchorId }) => {
     const isObserverSection = anchorId === reportHtmlIds.overview.observersSection;
-    const isOtherSection = !isObserverSection;
-    const hasObservers = !!observers?.length;
+    if (isObserverSection) {
+      const hasObservers = !!observers?.length;
+      return hasObservers;
+    }
 
-    return isOtherSection || (isObserverSection && hasObservers);
+    const isSummarySection = anchorId === reportHtmlIds.overview.observersSection;
+    if (isSummarySection) {
+      const hasSummary = summary && !!summary.content;
+      return hasSummary;
+    }
+
+    return true;
   });
 
   const [currentSection, setCurrentSection] = useState<string | null>(null);

@@ -7,13 +7,12 @@ export function SummarySideNav() {
 
   return (
     <SideMenu
-      sticky
       align="left"
       title="SECTIONS"
       burgerMenuButtonText="SECTIONS"
       items={sections.map((anchor) => ({
         text: anchor.label,
-        linkProps: { to: { hash: `#${anchor.id}` } }
+        linkProps: { href: `#${anchor.id}` }
       }))}
     />
   );
