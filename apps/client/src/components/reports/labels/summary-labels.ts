@@ -4,6 +4,7 @@ export const summaryLabels = {
   comment: 'Rapport',
   biography: 'Biographie',
   observers: 'Observants',
+  summary: 'Synthèse',
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: 'Lignes directrices de gestion',
     [NominationFile.RuleGroup.STATUTORY]: 'Règles statutaires',

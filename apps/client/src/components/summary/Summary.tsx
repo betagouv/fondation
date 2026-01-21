@@ -26,7 +26,7 @@ export function Summary() {
       ) : null}
 
       <div className="flex flex-col items-center gap-y-4 md:flex-row md:items-start md:justify-center md:gap-x-4">
-        <div className="w-7/12 flex-shrink-0 flex-grow-0 flex-nowrap md:w-4/12 lg:w-3/12">
+        <div className="w-7/12 flex-shrink-0 flex-grow-0 flex-nowrap md:sticky md:top-0 md:w-4/12 lg:w-3/12">
           <SummarySideNav />
         </div>
         <div className="w-10/12 flex-shrink-0 flex-grow-0 flex-nowrap md:w-8/12">

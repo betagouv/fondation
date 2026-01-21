@@ -25,6 +25,7 @@ import { ReportOverviewState } from './ReportOverviewState';
 import { Summary } from './Summary';
 
 import { useDetachReportFiles, useUpdateReport } from '@queries/reports.queries';
+import { ReportSummaryCard } from './ReportSummaryCard';
 
 export const formatBiography = (biography: string | null) => {
   if (!biography) return null;
@@ -149,7 +150,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       <AutoSaveNotice />
       <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
         <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
-          <Summary observers={retrievedReport.observers} />
+          <Summary observers={retrievedReport.observers} summary={retrievedReport.summary} />
         </div>
         <div
           className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
@@ -168,6 +169,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             nominationFileId={retrievedReport.nominationFileId}
           />
           <Biography biography={formattedBiography} />
+          <ReportSummaryCard
+            summary={retrievedReport.summary}
+            sessionId={retrievedReport.sessionId}
+            nominationFileId={retrievedReport.nominationFileId}
+          />
           <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
           <Observers observers={formattedObservers} />
           <AttachedFileUpload
