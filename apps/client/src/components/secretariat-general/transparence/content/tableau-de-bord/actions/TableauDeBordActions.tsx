@@ -7,29 +7,23 @@ import clsx from 'clsx';
 import * as importAttachments from './ImportAttachmentModal';
 import * as importObservers from './ImportObservantsModal';
 
-import {
-  useDetailedNominationSessionAffectationsVersionQuery,
-  useListNominationSessionAttachmentsQuery,
-  usePublishVersionMutation,
-  useSessionNominationFilesQuery
-} from '@queries/nomination-sessions.queries';
-import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
-import { exportNominationFilesToExcel } from '../../../tableau-affectation-dossier-de-nomination/export-nomination-files-to-excel';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import type { FormationEnum } from '@/types/enums.types';
+import {
+  useDetailedNominationSessionAffectationsVersionQuery,
+  useListNominationFilesAsExcelMutation,
+  useListNominationSessionAttachmentsQuery,
+  usePublishVersionMutation
+} from '@queries/nomination-sessions.queries';
+import { NominationSessionAttachmentList } from '../../../../../shared/NominationSessionAttachmentList';
 
-export const TableauDeBordActions = ({
-  sessionId,
-  formation
-}: {
-  sessionId: string;
-  formation: FormationEnum;
-}) => {
+export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formation: FormationEnum }) => {
   const alerts = useAlerts();
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
-  const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
+  // const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
+  const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
 
   const isBrouillon = metadata?.status === 'BROUILLON';
 
@@ -86,11 +80,12 @@ export const TableauDeBordActions = ({
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {
+                // TODO: fix the excel export in the backend
                 priority: 'secondary',
                 iconId: 'fr-icon-download-line',
-                disabled: !nominationFiles || nominationFiles.items.length === 0,
+                // disabled: true,
                 children: 'Exporter en Excel',
-                onClick: () => exportNominationFilesToExcel(nominationFiles?.items ?? [], formation)
+                onClick: () => exportAsExcel({ sessionId })
               },
               {
                 priority: 'primary',

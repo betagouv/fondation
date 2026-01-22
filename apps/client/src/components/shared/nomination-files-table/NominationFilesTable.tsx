@@ -17,7 +17,7 @@ import { useNominationFilesTable } from './components/NominationFilesTableContex
 import { NominationFilesTableProvider } from './components/NominationFilesTableProvider';
 import { useNominationFilesTableColumns } from './components/useNominationFilesTableColumns.hook';
 
-function NominationFilesTableInner() {
+function NominationFilesTableInner(props: React.PropsWithChildren) {
   const { pathname } = useLocation();
   const isSg = React.useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
 
@@ -83,6 +83,7 @@ function NominationFilesTableInner() {
                   isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
                 }
               >
+                {props.children}
                 <NominationFilesTableActionsBar />
               </DataTable>
             </AlertsProvider>
@@ -93,14 +94,16 @@ function NominationFilesTableInner() {
   );
 }
 
-export function NominationFilesTable(props: {
-  isEditable?: false;
-  sessionId: string;
-  formation: FormationEnum;
-}) {
+export function NominationFilesTable(
+  props: React.PropsWithChildren<{
+    isEditable?: false;
+    sessionId: string;
+    formation: FormationEnum;
+  }>
+) {
   return (
     <NominationFilesTableProvider {...props}>
-      <NominationFilesTableInner />
+      <NominationFilesTableInner>{props.children}</NominationFilesTableInner>
     </NominationFilesTableProvider>
   );
 }

@@ -22,6 +22,7 @@ import { NominationSessionRepository } from './infrastructure/repositories/nomin
 import { SessionService } from './infrastructure/sessions.service';
 import { SessionController } from './session.controller';
 import { SummaryModule } from './summary.module';
+import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 
 @Module({
   exports: [SessionService, SummaryModule],
@@ -39,6 +40,7 @@ import { SummaryModule } from './summary.module';
     InternalDetailMemberSessionQuery,
     InternalListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,
+    ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,
     ListNominationSessionsQuery,

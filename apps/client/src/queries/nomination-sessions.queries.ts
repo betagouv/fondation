@@ -388,3 +388,20 @@ export const useCountUnaffectedFilesQuery = (options: {
       return data ?? null;
     }
   });
+
+export const useListNominationFilesAsExcelMutation = () =>
+  useMutation({
+    mutationFn: async (options: { sessionId: string }): Promise<void> => {
+      const { sessionId } = options;
+      const { data, response } = await $api.sessions.listNominationFilesAsExcel({
+        path: { sessionId },
+        parseAs: 'blob'
+      });
+
+      if (data instanceof Blob) {
+        response.headers.get('content-disposition');
+        const url = URL.createObjectURL(new File([data]));
+        window.open(url);
+      }
+    }
+  });

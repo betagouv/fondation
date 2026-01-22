@@ -822,6 +822,19 @@ export type AffectReportersResponses = {
 
 export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
 
+export type ListNominationFilesAsExcelData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files.xlsx';
+};
+
+export type ListNominationFilesAsExcelResponses = {
+    200: unknown;
+};
+
 export type ListNominationFilesData = {
     body?: never;
     path: {

@@ -60,7 +60,10 @@ export const ReportListPage: FC = () => {
       />
 
       {isVueGenerale ? (
-        <ReportsDnVueGenerale formation={detailedGdsSession.data.session.formation as FormationEnum}>
+        <ReportsDnVueGenerale
+          sessionId={detailedGdsSession.data.session.id}
+          formation={detailedGdsSession.data.session.formation as FormationEnum}
+        >
           {VueGeneraleSwitch}
         </ReportsDnVueGenerale>
       ) : (

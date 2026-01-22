@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -11,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  StreamableFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -29,6 +31,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { DateOnly } from 'src/utils/date-only';
 import {
   FILE_EXTENSIONS,
+  FILE_MIME_TYPES,
   UseMultipartBody,
   type Multipart,
 } from '../framework/files';
@@ -141,7 +144,16 @@ export class SessionController {
     });
   }
 
-  // @HasRole()
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Header('Content-Type', FILE_MIME_TYPES.xlsx)
+  @Get('/:sessionId/files.xlsx')
+  listNominationFilesAsExcel(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<StreamableFile> {
+    return this.sessions.listNominationFilesAsExcel({ sessionId });
+  }
+
+  @HasRole()
   @Get('/:sessionId/files')
   @ApiPaginated()
   @ZodResponse({

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { inspect } from 'node:util';
 
 import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
@@ -62,6 +62,7 @@ import {
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
+import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 
 @Injectable()
 export class SessionService {
@@ -82,6 +83,7 @@ export class SessionService {
     private readonly nominationSessionRepository: NominationSessionRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
+    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -390,5 +392,11 @@ export class SessionService {
     nominationFileIds: readonly string[] | undefined;
   }): Promise<CountedUnaffectedFilesDto> {
     return this.countUnaffectedFilesQuery.handle(query);
+  }
+
+  listNominationFilesAsExcel(query: {
+    sessionId: string;
+  }): Promise<StreamableFile> {
+    return this.listNominationFilesAsExcelQuery.handle(query);
   }
 }
