@@ -11,7 +11,7 @@ model File {
   attachedToSessions                  SessionAttachment[]
   filePublicUrls                      FilePublicUrl[]
   attachedToObservations              ObservationFile[]
-  attachedToObservationMemberComments ObservationMemberCommentFile[]
+  attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
   attachedToSummaries                 SummaryAttachment[]
   includedInSummariesContent          SummaryScreenshot[]
 

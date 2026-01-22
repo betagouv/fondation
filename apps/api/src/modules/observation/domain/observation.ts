@@ -43,7 +43,7 @@ export class ObservationMemberCommentWritten {
   ) {}
 }
 
-export class ObservationMemberCommentFilesAttached {
+export class ObservationMemberCommentScreenshotsAttached {
   constructor(
     readonly observationId: string,
     readonly userId: string,
@@ -58,7 +58,7 @@ type ObservationEvent =
   | ObservationUpdated
   | ObservationFilesDetached
   | ObservationMemberCommentWritten
-  | ObservationMemberCommentFilesAttached;
+  | ObservationMemberCommentScreenshotsAttached;
 
 export class Observation {
   private constructor(
@@ -134,14 +134,14 @@ export class Observation {
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
   }
 
-  attachMemberCommentFiles(command: {
+  attachMemberCommentScreenshots(command: {
     userId: string;
     files: readonly { id: string }[];
   }): void {
     if (command.files.length === 0) return;
 
     this.#messages.push(
-      new ObservationMemberCommentFilesAttached(
+      new ObservationMemberCommentScreenshotsAttached(
         this.id,
         command.userId,
         command.files,
@@ -150,11 +150,12 @@ export class Observation {
   }
 
   writeMemberComment(command: { userId: string; comment: string }): void {
-    const trimmed = command.comment.trim();
-    if (trimmed.length === 0) return;
-
     this.#messages.push(
-      new ObservationMemberCommentWritten(this.id, command.userId, trimmed),
+      new ObservationMemberCommentWritten(
+        this.id,
+        command.userId,
+        command.comment,
+      ),
     );
   }
 

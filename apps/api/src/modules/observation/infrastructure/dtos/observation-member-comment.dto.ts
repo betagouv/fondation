@@ -7,13 +7,13 @@ export class WriteMemberCommentDto extends createZodDto(
   }),
 ) {}
 
-export class AttachMemberCommentFilesDto extends createZodDto(
+export class AttachMemberCommentScreenshotsDto extends createZodDto(
   z.object({
     files: z.array(z.file()),
   }),
 ) {}
 
-export class AttachedMemberCommentFilesDto extends createZodDto(
+export class AttachedMemberCommentScreenshotsDto extends createZodDto(
   z.object({
     items: z.array(
       z.object({

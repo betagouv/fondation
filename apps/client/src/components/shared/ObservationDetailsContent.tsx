@@ -66,7 +66,6 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
-        
           <section className="fr-mb-4w">
             <h2 className="fr-h4">Magistrat observant</h2>
             <dl className="fr-mb-0">

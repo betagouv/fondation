@@ -5,7 +5,7 @@ import {
   useObservationDetailsQuery,
   useGetObservationFileUrlMutation,
   useWriteObservationMemberCommentMutation,
-  useAttachObservationMemberCommentFilesMutation
+  useAttachObservationMemberCommentScreenshotsMutation
 } from '@queries/observations.queries';
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
@@ -35,7 +35,7 @@ export function ObservationDetailsPage() {
 
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
-  const { mutateAsync: attachFiles } = useAttachObservationMemberCommentFilesMutation();
+  const { mutateAsync: attachFiles } = useAttachObservationMemberCommentScreenshotsMutation();
 
   const uploadFiles = React.useCallback<FilesUploader>(
     async (files: readonly File[]) => {

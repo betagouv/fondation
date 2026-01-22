@@ -23,8 +23,8 @@ import {
 import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
-  AttachMemberCommentFilesDto,
-  AttachedMemberCommentFilesDto,
+  AttachMemberCommentScreenshotsDto,
+  AttachedMemberCommentScreenshotsDto,
   WriteMemberCommentDto,
 } from './infrastructure/dtos/observation-member-comment.dto';
 import {
@@ -159,26 +159,26 @@ export class ObservationController {
     });
   }
 
-  @Post('/:observationId/member-comments/files')
+  @Post('/:observationId/member-comments/screenshots')
   @HasRole()
   @UseMultipartBody({
-    schema: AttachMemberCommentFilesDto,
+    schema: AttachMemberCommentScreenshotsDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
     status: HttpStatus.OK,
-    type: AttachedMemberCommentFilesDto,
+    type: AttachedMemberCommentScreenshotsDto,
   })
-  async attachMemberCommentFiles(
+  async attachMemberCommentScreenshots(
     @AuthedUserId() userId: string,
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('observationId') observationId: string,
-    @Body() { files }: Multipart<typeof AttachMemberCommentFilesDto>,
-  ): Promise<AttachedMemberCommentFilesDto> {
-    return this.observations.attachMemberCommentFiles({
+    @Body() { files }: Multipart<typeof AttachMemberCommentScreenshotsDto>,
+  ): Promise<AttachedMemberCommentScreenshotsDto> {
+    return this.observations.attachMemberCommentScreenshots({
       userId,
       sessionId,
       nominationFileId,

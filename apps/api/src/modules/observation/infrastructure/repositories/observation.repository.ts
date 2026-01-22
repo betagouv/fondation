@@ -10,7 +10,7 @@ import {
   ObservationDeleted,
   ObservationFilesAttached,
   ObservationFilesDetached,
-  ObservationMemberCommentFilesAttached,
+  ObservationMemberCommentScreenshotsAttached,
   ObservationMemberCommentWritten,
   ObservationUpdated,
 } from '../../domain/observation';
@@ -57,8 +57,10 @@ export class ObservationRepository {
         await this.persistObservationFilesDetached(message);
       } else if (message instanceof ObservationMemberCommentWritten) {
         await this.persistObservationMemberCommentWritten(message);
-      } else if (message instanceof ObservationMemberCommentFilesAttached) {
-        await this.persistObservationMemberCommentFilesAttached(message);
+      } else if (
+        message instanceof ObservationMemberCommentScreenshotsAttached
+      ) {
+        await this.persistObservationMemberCommentScreenshotsAttached(message);
       } else {
         assertNever(message);
       }
@@ -137,10 +139,25 @@ export class ObservationRepository {
     });
   }
 
-  private async persistObservationMemberCommentFilesAttached(
-    message: ObservationMemberCommentFilesAttached,
+  private async persistObservationMemberCommentScreenshotsAttached(
+    message: ObservationMemberCommentScreenshotsAttached,
   ) {
-    await this.prisma.observationMemberCommentFile.createMany({
+    await this.prisma.observationMemberComment.upsert({
+      where: {
+        primaryKey: {
+          userId: message.userId,
+          observationId: message.observationId,
+        },
+      },
+      create: {
+        userId: message.userId,
+        observationId: message.observationId,
+        comment: '',
+      },
+      update: {},
+    });
+
+    await this.prisma.observationMemberCommentScreenshot.createMany({
       data: message.files.map((file) => ({
         userId: message.userId,
         observationId: message.observationId,

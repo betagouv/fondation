@@ -46,7 +46,7 @@ const ObservationDetailsSchema = z.object({
   memberComment: z
     .object({
       comment: z.string(),
-      files: z.array(ObservationFileSchema),
+      screenshots: z.array(ObservationFileSchema),
     })
     .nullable(),
 });
@@ -168,7 +168,7 @@ export class GetObservationDetailsQuery {
         },
         select: {
           comment: true,
-          files: {
+          screenshots: {
             select: {
               file: {
                 select: {
@@ -204,12 +204,10 @@ export class GetObservationDetailsQuery {
         memberComment: memberComment
           ? {
               comment: memberComment.comment,
-              files: memberComment.files.map(
-                ({ file }: { file: { id: string; name: string } }) => ({
-                  id: file.id,
-                  name: file.name,
-                }),
-              ),
+              screenshots: memberComment.screenshots.map(({ file }) => ({
+                id: file.id,
+                name: file.name,
+              })),
             }
           : null,
       };

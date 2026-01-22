@@ -7,9 +7,10 @@ import {
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import { isDefined } from 'src/utils/is-defined';
 
 import { Observation } from './domain/observation';
-import { AttachedMemberCommentFilesDto } from './infrastructure/dtos/observation-member-comment.dto';
+import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import {
   GetObservationDetailsQuery,
   GetObservationDetailsResponseDto,
@@ -162,18 +163,18 @@ export class ObservationService {
     return this.getObservationDetailsQuery.handle(query);
   }
 
-  async attachMemberCommentFiles(command: {
+  async attachMemberCommentScreenshots(command: {
     userId: string;
     sessionId: string;
     nominationFileId: string;
     observationId: string;
     files: readonly StoredFile[];
-  }): Promise<AttachedMemberCommentFilesDto> {
+  }): Promise<AttachedMemberCommentScreenshotsDto> {
     const observation = await this.observationRepository.findById(
       command.observationId,
     );
 
-    observation.attachMemberCommentFiles({
+    observation.attachMemberCommentScreenshots({
       userId: command.userId,
       files: command.files.map((f) => ({ id: f.id })),
     });
@@ -196,9 +197,7 @@ export class ObservationService {
             url,
           };
         })
-        .filter((item): item is { id: string; name: string; url: string } =>
-          Boolean(item),
-        ),
+        .filter(isDefined),
     };
   }
 

@@ -187,7 +187,9 @@ export function useUpdateObservationMutation() {
   });
 }
 
-export function useAttachObservationMemberCommentFilesMutation() {
+export function useAttachObservationMemberCommentScreenshotsMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (params: {
       sessionId: string;
@@ -195,7 +197,7 @@ export function useAttachObservationMemberCommentFilesMutation() {
       observationId: string;
       files: File[];
     }): Promise<{ items: { id: string; name: string; url: string }[] }> => {
-      const { data } = await $api.observations.attachMemberCommentFiles({
+      const { data } = await $api.observations.attachMemberCommentScreenshots({
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
@@ -206,6 +208,15 @@ export function useAttachObservationMemberCommentFilesMutation() {
         }
       });
       return data ?? { items: [] };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: observationKeys.observationDetails({
+          sessionId: variables.sessionId,
+          nominationFileId: variables.nominationFileId,
+          observationId: variables.observationId
+        })
+      });
     }
   });
 }
