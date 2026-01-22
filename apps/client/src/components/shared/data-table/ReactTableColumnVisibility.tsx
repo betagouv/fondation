@@ -42,7 +42,7 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
               nativeInputProps: {
                 disabled: !column.getCanHide(),
                 checked: column.getIsVisible(),
-                onClick: column.getToggleVisibilityHandler()
+                onChange: column.getToggleVisibilityHandler()
               }
             };
           })}

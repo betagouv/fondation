@@ -1,9 +1,10 @@
-import type { Table, RowData } from '@tanstack/react-table';
+import type { RowData, Table } from '@tanstack/react-table';
 import React from 'react';
 
 import { ITEMS_PAR_PAGE } from '@/types/table.types';
 import Pagination from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
+import type { To } from 'react-router-dom';
 
 function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }) {
   const totalItemsCount = props.table.getRowCount();
@@ -20,14 +21,12 @@ function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }
       : undefined;
 
   return (
-    <div className="test-gray-600 text-sm">
+    <div className="test-gray-600 text-nowrap text-xs">
       <span className="md:hidden">
-        {displayedItemsCount} / {totalItemsCount}
-        {itemLabel}
+        {displayedItemsCount} / {totalItemsCount} {itemLabel}
       </span>
       <span className="hidden md:block">
-        Affichage de {displayedItemsCount} sur {totalItemsCount}
-        {itemLabel}
+        Affichage de {displayedItemsCount} sur {totalItemsCount} {itemLabel}
       </span>
     </div>
   );
@@ -46,7 +45,7 @@ function ReactTablePaginationSizeSelector<Data>(props: { table: Table<Data> }) {
   return (
     <Select
       label=""
-      className={'flex max-w-[400px]'}
+      className={'flex max-w-[400px] shrink-0'}
       nativeSelectProps={{ value: pageSize, onChange: onPageSizeChange }}
     >
       {ITEMS_PAR_PAGE.map((item) => (
@@ -61,23 +60,35 @@ function ReactTablePaginationSizeSelector<Data>(props: { table: Table<Data> }) {
 function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Data> }) {
   const pageCount = props.table.getPageCount();
   const { pageIndex } = props.table.getState().pagination;
+  const paginationRef = React.useRef<HTMLDivElement | null>(null);
+
+  const getPageLinkProps = React.useCallback(
+    (pageNumber: number) => ({
+      to: undefined as unknown as To,
+      onClick: () => {
+        props.table.setPageIndex(pageNumber - 1);
+
+        // TODO: should we improve this?
+        const $tableHead = paginationRef.current
+          ?.closest('.table-pagination')
+          ?.parentElement?.querySelector('.table-content thead');
+
+        $tableHead?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }),
+    [props.table]
+  );
 
   if (pageCount <= 1) return null;
 
   return (
     <Pagination
+      ref={paginationRef}
       showFirstLast
-      defaultPage={pageIndex}
       count={pageCount}
-      getPageLinkProps={(newPageIndex) => ({
-        onClick: () => {
-          props.table.setPageIndex(newPageIndex);
-        },
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        to: undefined
-      })}
+      defaultPage={pageIndex + 1}
+      classes={{ list: 'flex-nowrap' }}
+      getPageLinkProps={getPageLinkProps}
     />
   );
 }
@@ -86,8 +97,8 @@ export function ReactTablePagination<Data extends RowData>(props: { table: Table
   if (props.table.options.meta?.paginationEnabled === false) return null;
 
   return (
-    <div className="flex items-center justify-between gap-16">
-      <div className="flex items-center gap-6">
+    <div className="mt-6 flex items-end justify-between">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
         <ReactTablePaginationDescriptionPart table={props.table} />
         <ReactTablePaginationSizeSelector table={props.table} />
       </div>
