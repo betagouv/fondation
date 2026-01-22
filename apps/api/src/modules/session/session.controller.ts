@@ -259,7 +259,7 @@ export class SessionController {
   @UseMultipartBody({
     schema: UploadSessionAttachmentDto,
     destination: ({ request, id, mimetype }) =>
-      `/sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+      `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   async uploadSessionAttachment(
     @Param('sessionId') sessionId: string,
