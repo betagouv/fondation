@@ -355,7 +355,7 @@ export class Files implements OnApplicationBootstrap {
 
     return new StreamableFile(response.data, {
       type: filenameToMimeType(file.file.name),
-      disposition: `inline; filename="${file.file.name}"`,
+      disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
     });
   }
 
