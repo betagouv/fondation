@@ -104,7 +104,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
         tabs.length > 1) ? (
         <Tabs tabs={tabs} style={{ height: 'auto' }} />
       ) : (
-        tabs[0].content
+        tabs[0]?.content
       )}
     </SessionBlock>
   );
