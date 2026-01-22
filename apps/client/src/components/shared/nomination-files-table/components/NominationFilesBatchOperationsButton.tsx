@@ -1,20 +1,29 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useState, type FC } from 'react';
+import { useMemo, useState } from 'react';
 import { useAffectation, type PrioriteValue } from '../../../../contexts/AffectationDossiersContext';
-import { SelectMultipleRapporteurs } from './SelectMultipleRapporteurs';
-import { SelectPriorite } from './SelectPriorite';
+import { SelectMultipleRapporteurs } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/SelectMultipleRapporteurs';
+import { SelectPriorite } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/SelectPriorite';
+import { useMemberListQuery } from '@queries/members.queries';
+import { useNominationFilesTable } from './NominationFilesTableContext';
 
 const actionsGroupeesModal = createModal({
   id: 'actions-groupees-modal',
   isOpenedByDefault: false
 });
 
-export type ActionsGroupeesProps = {
-  availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
-};
+export function NominationFilesBatchOperationsButton() {
+  const { formation } = useNominationFilesTable();
+  const { data } = useMemberListQuery({
+    formations: ['COMMUN', formation],
+    pagination: { pageIndex: 0, pageSize: 100 }
+  });
 
-export const ActionsGroupees: FC<ActionsGroupeesProps> = ({ availableRapporteurs }) => {
+  const availableRapporteurs = useMemo(
+    () => (data?.items ?? []).map(({ id, firstName, lastName }) => ({ userId: id, firstName, lastName })),
+    [data]
+  );
+
   const { selectedDossierIds, updateAffectation, applyPrioriteValue } = useAffectation();
   const [localSelection, setLocalSelection] = useState<string[]>([]);
   const [localPriorite, setLocalPriorite] = useState<PrioriteValue>(undefined);
@@ -88,4 +97,4 @@ export const ActionsGroupees: FC<ActionsGroupeesProps> = ({ availableRapporteurs
       </actionsGroupeesModal.Component>
     </>
   );
-};
+}

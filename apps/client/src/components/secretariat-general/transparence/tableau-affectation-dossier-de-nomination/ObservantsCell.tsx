@@ -1,29 +1,29 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { type FC } from 'react';
+import { useMemo, type FC } from 'react';
 import { useObservationsModal } from './ObservationsModalContext';
 import { ObservationLinks } from '../../../shared/ObservationLinks';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/components/NominationFilesTableContext';
+import { useLocation } from 'react-router-dom';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 type ObservantsCellProps = {
-  id: string;
-  sessionId: string;
-  nominationFileName: string;
-  observants: string[] | null;
+  nominationFile: SessionNominationFile;
   readOnly?: boolean;
-  observationMagistrats: { id: string; firstName: string; lastName: string; observationId: string }[];
-  observationCount: number;
-  context?: 'sg' | 'membre';
 };
 
-export const ObservantsCell: FC<ObservantsCellProps> = ({
-  id,
-  sessionId,
-  observants,
-  observationCount,
-  observationMagistrats,
-  nominationFileName,
-  readOnly = false,
-  context = 'sg'
-}) => {
+export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile, readOnly = false }) => {
+  const { pathname } = useLocation();
+  const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
+
+  const { sessionId } = useNominationFilesTable();
+
+  const id = nominationFile.id;
+  const nominationFileName = nominationFile.content.nomMagistrat;
+  const observants = nominationFile.content.observants;
+  const observationCount = nominationFile.observationCount;
+  const observationMagistrats = nominationFile.observationMagistrats;
+
   const { open } = useObservationsModal();
 
   const handleAdd = () => open({ id, sessionId, name: nominationFileName }, 'create');
@@ -60,7 +60,7 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
       nominationFileId={id}
       observations={observationMagistrats}
       lodamObservants={observants}
-      context={context}
+      context={isSg ? 'sg' : 'membre'}
     />
   );
 };

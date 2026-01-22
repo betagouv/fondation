@@ -1,34 +1,40 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useAffectation } from '@/contexts/AffectationDossiersContext';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
-  useSessionNominationFilesQuery
+  useCountUnaffectedFilesQuery
 } from '@queries/nomination-sessions.queries';
-import { Link } from 'react-router-dom';
-import { useAffectation } from '@/contexts/AffectationDossiersContext';
+import { useNominationFilesTable } from './NominationFilesTableContext';
 
-export function NominationFilesAutoAffectationButton(props: { sessionId: string }) {
+export function NominationFilesAutoAffectationButton() {
   const alerts = useAlerts();
   const confirmation = useConfirmation();
-  const { affectations } = useAffectation();
+  const { affectations, selectedDossierIds } = useAffectation();
+  const { sessionId } = useNominationFilesTable();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
-  const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId: props.sessionId });
 
-  const nonAffectedFileIds = useMemo(
-    () =>
-      (nominationFiles?.items ?? [])
-        .filter((item) => (affectations[item.id] ?? item.reporters).length === 0)
-        .map(({ id }) => id),
-    [nominationFiles, affectations]
-  );
-  const hasAnyNonAffectedFile = useMemo(() => nonAffectedFileIds.length > 0, [nonAffectedFileIds]);
+  const nonAffectedFileIds = useMemo(() => {
+    if (selectedDossierIds.size === 0) return undefined;
+
+    const ids = [...selectedDossierIds].filter((id) => !(id in affectations));
+    return ids.length > 0 ? ids : undefined;
+  }, [selectedDossierIds, affectations]);
+
+  const { data, isFetching } = useCountUnaffectedFilesQuery({
+    sessionId,
+    nominationFileIds: nonAffectedFileIds
+  });
+
+  const unaffectedFilesCount = useMemo(() => data?.count ?? 0, [data]);
 
   const onAutoAffectation = useCallback(async () => {
-    if (!hasAnyNonAffectedFile) {
+    if (isFetching || !unaffectedFilesCount) {
       return;
     }
 
@@ -39,7 +45,7 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
         <>
           <p>
             Vous allez affecter automatiquement{' '}
-            <strong className="font-bold">{nonAffectedFileIds.length} dossiers</strong>, actuellement sans
+            <strong className="font-bold">{unaffectedFilesCount} dossiers</strong>, actuellement sans
             affectation.
           </p>
           <p>
@@ -58,7 +64,7 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
     if (!isConfirmed) return;
 
     await autoAffectation(
-      { sessionId: props.sessionId, nominationFileIds: nonAffectedFileIds },
+      { sessionId, nominationFileIds: nonAffectedFileIds },
       {
         onSuccess: () => {
           alerts.pushAlert({
@@ -74,16 +80,24 @@ export function NominationFilesAutoAffectationButton(props: { sessionId: string 
         }
       }
     );
-  }, [confirmation, hasAnyNonAffectedFile, autoAffectation, nonAffectedFileIds, props.sessionId, alerts]);
+  }, [
+    confirmation,
+    autoAffectation,
+    nonAffectedFileIds,
+    unaffectedFilesCount,
+    sessionId,
+    alerts,
+    isFetching
+  ]);
 
   return (
     <Button
       {...confirmation.buttonProps}
       priority="primary"
       onClick={onAutoAffectation}
-      disabled={isAutoAffecting || !hasAnyNonAffectedFile}
+      disabled={isAutoAffecting || !unaffectedFilesCount}
       iconId={isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line'}
-      title={hasAnyNonAffectedFile ? undefined : 'Tous les dossiers ont des rapporteurs attribués'}
+      title={unaffectedFilesCount ? undefined : 'Tous les dossiers ont des rapporteurs attribués'}
     >
       {isAutoAffecting ? 'Affectation en cours...' : 'Attribuer les rapports'}
     </Button>

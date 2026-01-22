@@ -2,6 +2,7 @@ import type { TableMetaFilterEnum } from '@/tanstack-react-table';
 import type { RowData, Table } from '@tanstack/react-table';
 import { DropdownFilter } from '../DropdownFilter';
 import React from 'react';
+import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
 
 function ReactTableFilterEnum<Data extends RowData>(props: {
   table: Table<Data>;
@@ -52,6 +53,14 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
             case 'enum':
               return (
                 <ReactTableFilterEnum
+                  table={props.table}
+                  filter={col.meta.filters}
+                  key={col.meta.filters.filterId}
+                />
+              );
+            case 'asyncList':
+              return (
+                <ReactTableFilterColumnAsyncList
                   table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}

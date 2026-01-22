@@ -32,6 +32,11 @@ import {
   UseMultipartBody,
   type Multipart,
 } from '../framework/files';
+import {
+  ApiPaginated,
+  Pagination,
+  QueryPagination,
+} from '../framework/pagination';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
@@ -40,6 +45,7 @@ import {
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
+  CountUnaffectedFilesQueryDto,
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
@@ -49,12 +55,14 @@ import {
   UploadSessionAttachmentDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
+import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
-import { ListedNominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
+import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
+import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
-import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 
 @ApiTags('Sessions')
 @UseInterceptors(SessionExceptionFilter)
@@ -133,21 +141,24 @@ export class SessionController {
     });
   }
 
-  @HasRole()
+  // @HasRole()
   @Get('/:sessionId/files')
-  @UsePipes(ZodValidationPipe)
+  @ApiPaginated()
   @ZodResponse({
-    type: ListedNominationFileAffectationItem,
+    type: PaginatedNominationFiles,
     status: HttpStatus.OK,
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { id: string; role: Role },
-    @Query() query: ListNominationFilesQueryDto,
-  ): Promise<ListedNominationFileAffectationItem> {
+    @QueryPagination() pagination: Pagination,
+    @Query(ZodValidationPipe) query: ListNominationFilesQueryDto,
+  ) {
     return this.sessions.listNominationFiles({
       user,
       sessionId,
+      pagination,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
@@ -162,6 +173,34 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAffectationVersion> {
     return this.sessions.detailNominationSessionAffectationsVersion({
+      sessionId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/:sessionId/files/reporters/versions/last/unaffected-count')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: CountedUnaffectedFilesDto, status: HttpStatus.OK })
+  countUnaffectedNominationFiles(
+    @Param('sessionId') sessionId: string,
+    @Query() { nominationFileIds }: CountUnaffectedFilesQueryDto,
+  ): Promise<CountedUnaffectedFilesDto> {
+    return this.sessions.countUnaffectedFiles({
+      sessionId,
+      nominationFileIds,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/:sessionId/files/reporters/versions/last/members')
+  @ZodResponse({
+    type: ListedCurrentlyAffectedReportersDto,
+    status: HttpStatus.OK,
+  })
+  listCurrentlyAffectedReporters(
+    @Param('sessionId') sessionId: string,
+  ): Promise<ListedCurrentlyAffectedReportersDto> {
+    return this.sessions.listCurrentlyAffectedReporters({
       sessionId,
     });
   }

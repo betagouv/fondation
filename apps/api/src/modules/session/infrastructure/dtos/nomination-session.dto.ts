@@ -69,3 +69,16 @@ export class DefineNominationFileOutcomeDto extends createZodDto(
     comment: z.string().trim().nonempty().nullable(),
   }),
 ) {}
+
+export class CountUnaffectedFilesQueryDto extends createZodDto(
+  z.object({
+    nominationFileIds: z.codec(
+      z.string().optional(),
+      z.array(z.uuid()).optional(),
+      {
+        decode: (str) => str?.split(','),
+        encode: (value) => value?.join(','),
+      },
+    ),
+  }),
+) {}

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import {
@@ -9,17 +8,26 @@ import {
   Role,
 } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import {
+  createPaginatedZodDto,
+  paginate,
+  Pagination,
+} from 'src/modules/framework/pagination';
+import { Sortable } from 'src/modules/framework/sorting';
 import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from '../../domain/nomination-file-outcome';
+import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -28,43 +36,55 @@ export class ListNominationFilesQuery {
     private readonly versionFinder: AffectationVersionFinder,
   ) {}
 
-  // TODO: paginate, sort, filter...
   async handle(query: {
     sessionId: string;
     user: { id: string; role: Role };
+    pagination: Pagination;
+    sorting: Sortable<ListNominationFilesQueryDto>;
     filters: {
-      reporterIds: readonly string[];
-      priorities: readonly PrioriteEnum[];
+      reporterIds: readonly (string | null)[];
+      priorities: readonly (PrioriteEnum | null)[];
     };
-  }): Promise<ListedNominationFileAffectationItem> {
+  }): Promise<PaginatedNominationFiles> {
     const isSG = query.user.role === Role.ADJOINT_SECRETAIRE_GENERAL;
 
-    const files = await this.prisma.$transaction(async (tx) => {
+    const direction = query.sorting.sortDesc ? 'desc' : 'asc';
+    const orderBy = (() => {
+      switch (query.sorting.sortBy) {
+        case 'name':
+          return { name: direction } as const;
+        case 'targetedPosition':
+          return { targetedPosition: direction } as const;
+        case 'targetedGrade':
+          return { sortableTargetedGrade: direction, number: 'asc' } as const;
+
+        default:
+        case 'fileNumber':
+          return { number: direction } as const;
+      }
+    })();
+
+    const [totalCount, files] = await this.prisma.$transaction(async (tx) => {
       const lastVersion = await this.versionFinder.last({
         tx,
         sessionId: query.sessionId,
       });
 
-      return tx.dossierDeNomination.findMany({
-        orderBy: { number: 'asc' },
-        where: {
-          sessionId: query.sessionId,
-          priorite: {
-            in:
-              query.filters.priorities.length > 0
-                ? query.filters.priorities.map(prioriteEnumToPrismaPrioriteEnum)
-                : undefined,
-          },
-          reporterIds:
-            query.filters.reporterIds.length > 0
-              ? {
-                  some: {
-                    versionId: lastVersion?.id,
-                    userId: { in: query.filters.reporterIds as string[] },
-                  },
-                }
-              : undefined,
-        },
+      const where: Prisma.DossierDeNominationWhereInput = {
+        sessionId: query.sessionId,
+        ...ListNominationFilesQuery.filtersToPrismaWhere(
+          query.filters,
+          lastVersion,
+        ),
+      };
+
+      const txCount = await tx.dossierDeNomination.count({ where });
+      const txFiles = await tx.dossierDeNomination.findMany({
+        where,
+        orderBy,
+        take: query.pagination.limit,
+        skip: (query.pagination.page - 1) * query.pagination.limit,
+
         select: {
           id: true,
           priorite: true,
@@ -89,14 +109,13 @@ export class ListNominationFilesQuery {
           },
           reporterIds: {
             where: { versionId: lastVersion?.id },
-            include: {
+            select: {
+              version: true,
+              createdAt: true,
               user: {
                 select: { id: true, firstName: true, lastName: true },
               },
             },
-          },
-          _count: {
-            select: { observations: true },
           },
           observations: {
             select: {
@@ -119,6 +138,8 @@ export class ListNominationFilesQuery {
           },
         },
       });
+
+      return [txCount, txFiles];
     });
 
     const items = files.map((x): NominationFileAffectationItem => {
@@ -166,7 +187,7 @@ export class ListNominationFilesQuery {
             lastName,
           }),
         ),
-        observationCount: x._count.observations,
+        observationCount: x.observations.length,
         observationMagistrats: x.observations
           .filter((obs) => obs.magistrat)
           .map((obs) => ({
@@ -190,7 +211,50 @@ export class ListNominationFilesQuery {
       };
     });
 
-    return { items };
+    return paginate({ items, totalCount, pagination: query.pagination });
+  }
+
+  private static filtersToPrismaWhere(
+    filters: {
+      reporterIds: readonly (string | null)[];
+      priorities: readonly (PrioriteEnum | null)[];
+    },
+    lastVersion: { id: string } | null,
+  ): Prisma.DossierDeNominationWhereInput {
+    const wherePriorities: Prisma.DossierDeNominationWhereInput[] = [];
+    if (filters.priorities.includes(null)) {
+      wherePriorities.push({ priorite: null });
+    }
+
+    if (filters.priorities.filter(isDefined).length > 0) {
+      wherePriorities.push({
+        priorite: {
+          in: filters.priorities
+            .filter(isDefined)
+            .map(prioriteEnumToPrismaPrioriteEnum),
+        },
+      });
+    }
+
+    const whereReporters: Prisma.DossierDeNominationWhereInput[] = [];
+    if (filters.reporterIds.includes(null)) {
+      whereReporters.push({ reporterIds: { none: {} } });
+    }
+
+    if (filters.reporterIds.filter(isDefined).length > 0) {
+      whereReporters.push({
+        reporterIds: {
+          some: {
+            versionId: lastVersion?.id,
+            userId: { in: filters.reporterIds.filter(isDefined) },
+          },
+        },
+      });
+    }
+
+    return {
+      AND: [{ OR: wherePriorities }, { OR: whereReporters }],
+    };
   }
 }
 
@@ -255,6 +319,6 @@ type NominationFileAffectationItem = z.infer<
   typeof NominationFileAffectationItemSchema
 >;
 
-export class ListedNominationFileAffectationItem extends createZodDto(
-  z.object({ items: z.array(NominationFileAffectationItemSchema) }),
+export class PaginatedNominationFiles extends createPaginatedZodDto(
+  NominationFileAffectationItemSchema,
 ) {}

@@ -1,8 +1,12 @@
 import React, { useMemo } from 'react';
 
 import { DropdownSelect } from '@/components/shared/DropdownSelect';
-import type { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
-import { useDefineNominationFileOutcomeMutation } from '@queries/nomination-sessions.queries';
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/components/NominationFilesTableContext';
+import type { NominationFileOutcomeEnum } from '@/types/enums.types';
+import {
+  useDefineNominationFileOutcomeMutation,
+  type SessionNominationFile
+} from '@queries/nomination-sessions.queries';
 import { NominationFileOutcomeBadge, NominationFileOutcomeShortBadge } from './NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from './OutcomeCommentModalContext';
 
@@ -15,20 +19,19 @@ const NOMINATION_FILE_OUTCOME_OPTIONS = [
   'WITHDRAWN'
 ] as const satisfies ('@@EMPTY' | NominationFileOutcomeEnum)[];
 
-export function NominationFileOutcomeSelector(props: {
-  sessionId: string;
-  nominationFileId: string;
-  formation: FormationEnum;
-  value: NominationFileOutcomeEnum | null;
-}) {
+export function NominationFileOutcomeSelector(props: { nominationFile: SessionNominationFile }) {
+  const nominationFileId = React.useMemo(() => props.nominationFile.id, [props]);
+  const initialOutcome = React.useMemo(() => props.nominationFile.content.outcome?.value, [props]);
+
   const [outcome, setOutcome] = React.useState<NominationFileOutcomeEnum | '@@EMPTY'>(
-    props.value ?? ('@@EMPTY' as const)
+    initialOutcome ?? ('@@EMPTY' as const)
   );
 
+  const { sessionId, formation } = useNominationFilesTable();
   const outcomeCommentDialog = useOutcomeCommentDialog();
   const { mutate, reset, isPending } = useDefineNominationFileOutcomeMutation({
-    sessionId: props.sessionId,
-    nominationFileId: props.nominationFileId
+    sessionId,
+    nominationFileId
   });
 
   const onChange = React.useCallback(
@@ -79,21 +82,21 @@ export function NominationFileOutcomeSelector(props: {
               value,
               label: (
                 <NominationFileOutcomeBadge
-                  formation={props.formation}
+                  formation={formation}
                   outcome={value}
                   key={`outcome_option_${value}`}
                 />
               ),
               selected: (
                 <NominationFileOutcomeShortBadge
-                  formation={props.formation}
+                  formation={formation}
                   outcome={value}
                   key={`short_outcome_option_${value}`}
                 />
               )
             }
       ),
-    [props.formation]
+    [formation]
   );
 
   return (

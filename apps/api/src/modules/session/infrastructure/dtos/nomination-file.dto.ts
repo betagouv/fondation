@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
-import { PrioriteEnum } from 'shared-models';
 import z from 'zod';
+
+import { PrioriteEnum } from 'shared-models';
+
+import { createSortableDto } from 'src/modules/framework/sorting';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
@@ -14,10 +17,33 @@ export class AffectReportersDto extends createZodDto(
   }),
 ) {}
 
-export class ListNominationFilesQueryDto extends createZodDto(
-  z.looseObject({
-    priorities: z.array(z.enum(PrioriteEnum)).optional(),
-    reporterIds: z.array(z.uuid()).optional(),
+export class ListNominationFilesQueryDto extends createSortableDto(
+  z.object({
+    sortBy: z
+      .enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade'])
+      .optional(),
+    priorities: z
+      .preprocess(
+        (x) =>
+          x === undefined
+            ? undefined
+            : ([] as unknown[])
+                .concat(x)
+                .map((val) => (val === 'null' ? null : val)),
+        z.array(z.enum(PrioriteEnum).nullable()).optional(),
+      )
+      .optional(),
+    reporterIds: z
+      .preprocess(
+        (x) =>
+          x === undefined
+            ? x
+            : ([] as unknown[])
+                .concat(x)
+                .map((val) => (val === 'null' ? null : val)),
+        z.array(z.uuid().nullable()).optional(),
+      )
+      .optional(),
   }),
 ) {}
 

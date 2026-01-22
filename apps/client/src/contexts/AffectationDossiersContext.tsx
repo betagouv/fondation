@@ -1,4 +1,12 @@
-import { type PropsWithChildren, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import {
+  type PropsWithChildren,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import type { PrioriteEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -28,7 +36,7 @@ interface AffectationContextType {
   applyPrioriteValue: (dossierId: string, priorite: PrioriteValue) => void;
   resetAffectations: () => void;
   getAllAffectations: () => DossierAffectation[];
-  toggleDossierSelection: (dossierId: string) => void;
+  setFilesSelection: (selection: Record<string, boolean>) => void;
   hasChanges: boolean;
 }
 
@@ -36,8 +44,12 @@ const AffectationContext = createContext<AffectationContextType | undefined>(und
 
 export const AffectationProvider = ({
   children,
+  selection,
   nominationFiles
-}: PropsWithChildren<{ nominationFiles: readonly SessionNominationFile[] }>) => {
+}: PropsWithChildren<{
+  selection: Record<string, boolean>;
+  nominationFiles: readonly SessionNominationFile[];
+}>) => {
   const fileById = useMemo(
     () =>
       new Map(
@@ -57,29 +69,44 @@ export const AffectationProvider = ({
     Record<string, { reporterIds: Set<string>; priority: PrioriteEnum | null; isSelected?: boolean }>
   >({});
 
-  const updateFile = useCallback(
+  const updateFiles = useCallback(
     (
-      fileId: string,
-      newState: {
-        reporterIds?: readonly string[];
-        priority?: PrioriteEnum | null;
-        isSelected?: (value: boolean) => boolean;
-      }
+      filesUpdate: Record<
+        string,
+        {
+          reporterIds?: readonly string[];
+          priority?: PrioriteEnum | null;
+          isSelected?: boolean;
+        }
+      >
     ) => {
       setState((map) => {
-        const {
-          reporterIds: existingReporterIds = [],
-          priority: existingPriority = null,
-          isSelected: existingSelected = false
-        } = map[fileId] ?? fileById.get(fileId) ?? {};
+        const unselected = Object.fromEntries(
+          Object.entries(map).map(([fileId, fileState]) => [fileId, { ...fileState, isSelected: false }])
+        );
+
+        const updated = Object.fromEntries(
+          Object.entries(filesUpdate).map(([fileId, newState]) => {
+            const {
+              reporterIds: existingReporterIds = [],
+              priority: existingPriority = null,
+              isSelected: existingSelected = false
+            } = map[fileId] ?? fileById.get(fileId) ?? {};
+
+            return [
+              fileId,
+              {
+                reporterIds: new Set(newState.reporterIds ?? existingReporterIds),
+                priority: newState.priority === undefined ? existingPriority : newState.priority,
+                isSelected: newState.isSelected ?? existingSelected
+              }
+            ] as const;
+          })
+        );
 
         return {
-          ...map,
-          [fileId]: {
-            isSelected: newState.isSelected?.(existingSelected) ?? existingSelected,
-            priority: newState.priority === undefined ? existingPriority : newState.priority,
-            reporterIds: new Set(newState.reporterIds ?? existingReporterIds)
-          }
+          ...unselected,
+          ...updated
         };
       });
     },
@@ -87,30 +114,39 @@ export const AffectationProvider = ({
   );
 
   const updateAffectation = useCallback(
-    (fileId: string, reporterIds: readonly string[]) => updateFile(fileId, { reporterIds }),
-    [updateFile]
+    (fileId: string, reporterIds: readonly string[]) => updateFiles({ [fileId]: { reporterIds } }),
+    [updateFiles]
   );
 
   const updatePriorite = useCallback(
-    (fileId: string, priority: PrioriteEnum | null) => updateFile(fileId, { priority }),
-    [updateFile]
+    (fileId: string, priority: PrioriteEnum | null) => updateFiles({ [fileId]: { priority } }),
+    [updateFiles]
   );
 
-  const clearPriorite = useCallback((fileId: string) => updateFile(fileId, { priority: null }), [updateFile]);
+  const clearPriorite = useCallback(
+    (fileId: string) => updateFiles({ [fileId]: { priority: null } }),
+    [updateFiles]
+  );
 
   const applyPrioriteValue = useCallback(
     (fileId: string, priority: PrioriteValue) =>
-      priority !== undefined ? updateFile(fileId, { priority }) : undefined,
-    [updateFile]
+      priority !== undefined ? updateFiles({ [fileId]: { priority } }) : undefined,
+    [updateFiles]
   );
 
   const resetAffectations = useCallback(() => {
     setState({});
-  }, []);
+  }, [setState]);
 
-  const toggleDossierSelection = useCallback(
-    (fileId: string) => updateFile(fileId, { isSelected: (value) => !value }),
-    [updateFile]
+  const setFilesSelection = useCallback(
+    (selection: Record<string, boolean>) => {
+      updateFiles(
+        Object.fromEntries(
+          Object.entries(selection).map(([fileId, isSelected]) => [fileId, { isSelected }] as const)
+        )
+      );
+    },
+    [updateFiles]
   );
 
   const getAllAffectations = useCallback(
@@ -123,7 +159,24 @@ export const AffectationProvider = ({
     [state]
   );
 
-  const hasChanges = useMemo(() => Object.keys(state).length > 0, [state]);
+  useEffect(() => {
+    setFilesSelection(selection);
+  }, [selection, setFilesSelection]);
+
+  const hasChanges = useMemo(
+    () =>
+      Object.entries(state).some(([fileId, { priority, reporterIds }]) => {
+        const origin = fileById.get(fileId);
+        if (!origin) return false;
+
+        return (
+          origin.priority !== priority ||
+          reporterIds.size !== origin.reporterIds.length ||
+          JSON.stringify([...reporterIds].toSorted()) !== JSON.stringify(origin.reporterIds.toSorted())
+        );
+      }),
+    [state, fileById]
+  );
   const affectations = useMemo(
     () =>
       Object.fromEntries(
@@ -158,7 +211,7 @@ export const AffectationProvider = ({
         applyPrioriteValue,
         resetAffectations,
         getAllAffectations,
-        toggleDossierSelection,
+        setFilesSelection,
         hasChanges
       }}
     >

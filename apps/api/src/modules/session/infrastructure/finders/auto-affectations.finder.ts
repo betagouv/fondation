@@ -17,7 +17,7 @@ import {
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectations';
-import { AffectationVersionFinder } from './affectation-version.finder';
+import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
 export class AutoAffectationsFinder {
@@ -27,50 +27,35 @@ export class AutoAffectationsFinder {
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
   ) {}
 
   async find(predicate: {
     sessionId: string;
-    nominationFileIds: readonly string[];
+    nominationFileIds: readonly string[] | undefined;
   }): Promise<AutoAffectations> {
     const session = await this.prisma.$transaction(async (tx) => {
-      const version = await this.affectationVersionFinder.last({
-        sessionId: predicate.sessionId,
-        tx,
-      });
-
       const txSession = await tx.session.findUnique({
         where: { id: predicate.sessionId },
         select: {
           date: true,
           formation: true,
-          dossierDeNominations: {
-            select: {
-              id: true,
-              targetedPosition: true,
-              targetedGrade: true,
-              number: true,
-              currentPosition: true,
-            },
-            where: {
-              outcome: null,
-              id: { in: predicate.nominationFileIds as string[] },
-              reporterIds: {
-                none: { versionId: version?.id },
-              },
-            },
-          },
         },
       });
 
       if (!txSession) return null;
 
+      const nominationFiles = await this.unaffectedFilesFinder.find({
+        tx,
+        sessionId: predicate.sessionId,
+        nominationFileIds: predicate.nominationFileIds,
+      });
+
       return {
         ...txSession,
         dossierDeNominations: await this.withJurisdiction(
           tx,
-          txSession.dossierDeNominations,
+          nominationFiles.items,
         ),
       };
     });

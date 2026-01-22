@@ -16,8 +16,8 @@ import {
 import { AffectationProvider, useAffectation } from '../../contexts/AffectationDossiersContext';
 import { useTable } from '../../hooks/useTable.hook';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
-import { NominationFilesAutoAffectationButton } from '../secretariat-general/transparence/content/tableau-de-bord/actions/NominationFilesAutoAffectationButton';
-import { ActionsGroupees } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ActionsGroupees';
+import { NominationFilesAutoAffectationButton } from './nomination-files-table/components/NominationFilesAutoAffectationButton';
+import { NominationFilesBatchOperationsButton } from './nomination-files-table/components/NominationFilesBatchOperationsButton';
 import { FiltresDossiersDeNomination } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/FiltresDossiersDeNomination';
 import { MagistratModaleProvider } from '../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
 import {
@@ -174,7 +174,7 @@ const TableauDossiersDeNominationContent = ({
             <>
               {isEditing && <NominationFilesAutoAffectationButton sessionId={sessionId} />}
               {isEditing && availableRapporteurs && (
-                <ActionsGroupees availableRapporteurs={availableRapporteurs} />
+                <NominationFilesBatchOperationsButton availableRapporteurs={availableRapporteurs} />
               )}
               {isEditing && (
                 <Button

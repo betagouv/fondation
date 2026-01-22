@@ -1,10 +1,13 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
+
 import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
+import { useNominationFilesTable } from './NominationFilesTableContext';
 
-export function TableauAffectationDossierDeNominationStatus(props: { sessionId: string }) {
-  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(props.sessionId);
+export function NominationFilesAffectationsStatus() {
+  const { sessionId, isEditable } = useNominationFilesTable();
+  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
 
-  if (!affectationsVersion) return null;
+  if (!affectationsVersion || isEditable) return null;
 
   const isBrouillon = affectationsVersion?.status === 'BROUILLON';
 

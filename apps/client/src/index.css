@@ -10,8 +10,9 @@ html {
   --fondation-editor-min-width: 5rem;
 }
 
-.fr-table > table tbody {
+.fr-table__content table tbody td {
   background-color: var(--grey-975-75);
+  padding: 1rem;
 }
 
 .ProseMirror {
