@@ -37,7 +37,7 @@ export function ObservationDetailsContent({
   const relatedPropositions = observation.relatedPropositions ?? [];
 
   return (
-    <>
+    <div className='bg-white p-8'>
       <div className="fr-mb-4w">
         <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
           {backLink.label}
@@ -175,6 +175,6 @@ export function ObservationDetailsContent({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
