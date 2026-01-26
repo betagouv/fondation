@@ -28,6 +28,7 @@ import {
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { isDefined } from 'src/utils/is-defined';
+import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -123,6 +124,8 @@ export class ListNominationFilesQuery {
           observations: {
             select: {
               id: true,
+              followUp: true,
+              followUpComment: true,
               magistrat: {
                 select: { id: true, firstName: true, lastName: true },
               },
@@ -191,6 +194,7 @@ export class ListNominationFilesQuery {
           }),
         ),
         observationCount: x.observations.length,
+        /** @deprecated */
         observationMagistrats: x.observations
           .filter((obs) => obs.magistrat)
           .map((obs) => ({
@@ -199,6 +203,20 @@ export class ListNominationFilesQuery {
             lastName: obs.magistrat!.lastName,
             observationId: obs.id,
           })),
+        observations: x.observations.map((obs) => {
+          return {
+            id: obs.id,
+            followUp: obs.followUp,
+            followUpComment: obs.followUp ? obs.followUpComment : null,
+            magistrat: obs.magistrat
+              ? {
+                  id: obs.magistrat.id,
+                  firstName: obs.magistrat.firstName,
+                  lastName: obs.magistrat.lastName,
+                }
+              : null,
+          };
+        }),
         memo: x.memberMemos.at(0)?.memo || null,
         summary: x.summary
           ? {
@@ -306,14 +324,27 @@ const NominationFileAffectationItemSchema = z.object({
     }),
   ),
   observationCount: z.number(),
-  observationMagistrats: z.array(
+  observations: z.array(
     z.object({
       id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      observationId: z.string(),
+      followUp: z.enum(ObservationFollowUp.enum).nullable(),
+      followUpComment: z.string().nullable(),
+      magistrat: z
+        .object({ id: z.string(), firstName: z.string(), lastName: z.string() })
+        .nullable(),
     }),
   ),
+  /** @deprecated */
+  observationMagistrats: z
+    .array(
+      z.object({
+        id: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        observationId: z.string(),
+      }),
+    )
+    .meta({ deprecated: true }),
   memo: z.string().nullable(),
   summary: z
     .object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() })
