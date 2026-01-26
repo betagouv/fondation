@@ -639,7 +639,7 @@ export type GetObservationDetailsResponseDto = {
     }>;
     memberComment: {
         comment: string;
-        files: Array<{
+        screenshots: Array<{
             id: string;
             name: string;
         }>;
@@ -659,11 +659,11 @@ export type UpdateObservationDto = {
     detachFileIds?: Array<string>;
 };
 
-export type AttachMemberCommentFilesDto = {
+export type AttachMemberCommentScreenshotsDto = {
     files: Array<Blob | File>;
 };
 
-export type AttachedMemberCommentFilesDto = {
+export type AttachedMemberCommentScreenshotsDto = {
     items: Array<{
         id: string;
         name: string;
@@ -1514,22 +1514,22 @@ export type GetObservationFileUrlResponses = {
 
 export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
 
-export type AttachMemberCommentFilesData = {
-    body: AttachMemberCommentFilesDto;
+export type AttachMemberCommentScreenshotsData = {
+    body: AttachMemberCommentScreenshotsDto;
     path: {
         sessionId: string;
         nominationFileId: string;
         observationId: string;
     };
     query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/files';
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots';
 };
 
-export type AttachMemberCommentFilesResponses = {
-    200: AttachedMemberCommentFilesDto;
+export type AttachMemberCommentScreenshotsResponses = {
+    200: AttachedMemberCommentScreenshotsDto;
 };
 
-export type AttachMemberCommentFilesResponse = AttachMemberCommentFilesResponses[keyof AttachMemberCommentFilesResponses];
+export type AttachMemberCommentScreenshotsResponse = AttachMemberCommentScreenshotsResponses[keyof AttachMemberCommentScreenshotsResponses];
 
 export type WriteMemberCommentData = {
     body: WriteMemberCommentDto;
