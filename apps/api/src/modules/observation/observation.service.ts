@@ -219,4 +219,17 @@ export class ObservationService {
 
     await this.observationRepository.persist(observation);
   }
+
+  async followUpWith(command: {
+    observationId: string;
+    userId: string | null;
+    followUp: string | null;
+    comment: string | null;
+  }): Promise<void> {
+    const observation = await this.observationRepository.findById(
+      command.observationId,
+    );
+    observation.followUpWith(command);
+    await this.observationRepository.persist(observation);
+  }
 }

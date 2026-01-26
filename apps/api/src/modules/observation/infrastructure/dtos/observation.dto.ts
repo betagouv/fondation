@@ -1,5 +1,6 @@
 import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 export class CreateObservationDto extends createZodDto(
   z.object({
@@ -29,5 +30,12 @@ export class UpdateObservationDto extends createZodDto(
     magistratId: z.uuid(),
     dateReception: z.iso.date(),
     detachFileIds: z.array(z.string()).optional(),
+  }),
+) {}
+
+export class FollowUpOnObservationDto extends createZodDto(
+  z.object({
+    followUp: z.enum(ObservationFollowUp.enum).nullable(),
+    comment: z.string().trim().nullable(),
   }),
 ) {}

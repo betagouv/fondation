@@ -10,6 +10,7 @@ import {
   ObservationDeleted,
   ObservationFilesAttached,
   ObservationFilesDetached,
+  ObservationFollowedUp,
   ObservationMemberCommentScreenshotsAttached,
   ObservationMemberCommentWritten,
   ObservationUpdated,
@@ -61,6 +62,8 @@ export class ObservationRepository {
         message instanceof ObservationMemberCommentScreenshotsAttached
       ) {
         await this.persistObservationMemberCommentScreenshotsAttached(message);
+      } else if (message instanceof ObservationFollowedUp) {
+        await this.persistObservationFollowedUp(message);
       } else {
         assertNever(message);
       }
@@ -165,5 +168,29 @@ export class ObservationRepository {
       })),
       skipDuplicates: true,
     });
+  }
+
+  private async persistObservationFollowedUp(message: ObservationFollowedUp) {
+    if (message.followUp === null) {
+      await this.prisma.observation.update({
+        where: { id: message.id },
+        data: {
+          followUp: null,
+          followUpComment: null,
+          followedUpByUserId: null,
+          followedUpAt: null,
+        },
+      });
+    } else {
+      await this.prisma.observation.update({
+        where: { id: message.id },
+        data: {
+          followUp: message.followUp.status,
+          followUpComment: message.followUp.comment,
+          followedUpByUserId: message.userId,
+          followedUpAt: new Date(),
+        },
+      });
+    }
   }
 }

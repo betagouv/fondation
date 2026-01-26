@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -20,7 +21,7 @@ import {
   UseMultipartBody,
   type Multipart,
 } from 'src/modules/framework/files';
-import { AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
   AttachMemberCommentScreenshotsDto,
@@ -30,6 +31,7 @@ import {
 import {
   CreateObservationDto,
   CreateObservationResponseDto,
+  FollowUpOnObservationDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
 import { GetObservationDetailsResponseDto } from './infrastructure/queries/get-observation-details.query';
@@ -203,6 +205,23 @@ export class ObservationController {
       sessionId,
       nominationFileId,
       observationId,
+      comment,
+    });
+  }
+
+  @Put('/:observation/follow-up')
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async followUpOnObservation(
+    @AuthedUser() user: { id: string },
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Body() { followUp, comment }: FollowUpOnObservationDto,
+  ) {
+    await this.observations.followUpWith({
+      userId: user.id,
+      observationId,
+      followUp,
       comment,
     });
   }
