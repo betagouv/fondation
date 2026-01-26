@@ -175,7 +175,13 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             nominationFileId={retrievedReport.nominationFileId}
           />
           <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-          <Observers observers={formattedObservers} />
+          <Observers
+            observers={formattedObservers}
+            observations={retrievedReport.observations}
+            sessionId={retrievedReport.sessionId}
+            nominationFileId={retrievedReport.nominationFileId}
+            reportId={id}
+          />
           <AttachedFileUpload
             reportId={id}
             attachments={retrievedReport.attachments}
