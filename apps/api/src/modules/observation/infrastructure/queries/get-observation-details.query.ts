@@ -4,6 +4,7 @@ import { DateOnlyJson, dateOnlyJsonSchema } from 'shared-models';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { NominationFileReportersFinder } from 'src/modules/session/infrastructure/finders/nomination-file-reporters.finder';
 import { DateOnly } from 'src/utils/date-only';
 
 const ObservationFileSchema = z.object({
@@ -57,7 +58,10 @@ export class GetObservationDetailsResponseDto extends createZodDto(
 
 @Injectable()
 export class GetObservationDetailsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reportersFinder: NominationFileReportersFinder,
+  ) {}
 
   async handle(query: {
     userId: string;
@@ -159,27 +163,36 @@ export class GetObservationDetailsQuery {
         observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
       }));
 
-      const memberComment = await tx.observationMemberComment.findUnique({
-        where: {
-          primaryKey: {
-            userId: query.userId,
-            observationId: query.observationId,
-          },
-        },
-        select: {
-          comment: true,
-          screenshots: {
+      const isReporter = await this.reportersFinder.isUserReporter({
+        userId: query.userId,
+        nominationFileId: query.nominationFileId,
+        sessionId: query.sessionId,
+        tx: tx as any,
+      });
+
+      const memberComment = isReporter
+        ? await tx.observationMemberComment.findUnique({
+            where: {
+              primaryKey: {
+                userId: query.userId,
+                observationId: query.observationId,
+              },
+            },
             select: {
-              file: {
+              comment: true,
+              screenshots: {
                 select: {
-                  id: true,
-                  name: true,
+                  file: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      });
+          })
+        : null;
 
       return {
         id: observation.id,

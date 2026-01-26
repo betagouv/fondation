@@ -100,13 +100,13 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
-          {context === 'membre' && onUpdateMemberComment && (
+          {context === 'membre' && observation.memberComment && onUpdateMemberComment && (
             <section className="fr-mb-4w">
               <h2 className="fr-h4" id="member-comment-label">
                 Mon commentaire
               </h2>
               <TipTapEditor
-                value={observation.memberComment?.comment ?? ''}
+                value={observation.memberComment.comment ?? ''}
                 onChange={onUpdateMemberComment}
                 ariaLabelledby="member-comment-label"
                 uploadFiles={uploadFiles}

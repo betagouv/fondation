@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,6 +8,7 @@ import {
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import { NominationFileReportersFinder } from 'src/modules/session/infrastructure/finders/nomination-file-reporters.finder';
 import { isDefined } from 'src/utils/is-defined';
 
 import { Observation } from './domain/observation';
@@ -34,6 +36,7 @@ export class ObservationService {
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly files: Files,
+    private readonly reportersFinder: NominationFileReportersFinder,
   ) {}
 
   async createObservation(command: {
@@ -170,6 +173,18 @@ export class ObservationService {
     observationId: string;
     files: readonly StoredFile[];
   }): Promise<AttachedMemberCommentScreenshotsDto> {
+    const isReporter = await this.reportersFinder.isUserReporter({
+      userId: command.userId,
+      nominationFileId: command.nominationFileId,
+      sessionId: command.sessionId,
+    });
+
+    if (!isReporter) {
+      throw new ForbiddenException(
+        'Seuls les rapporteurs du dossier peuvent ajouter des fichiers',
+      );
+    }
+
     const observation = await this.observationRepository.findById(
       command.observationId,
     );
@@ -208,6 +223,18 @@ export class ObservationService {
     observationId: string;
     comment: string;
   }): Promise<void> {
+    const isReporter = await this.reportersFinder.isUserReporter({
+      userId: command.userId,
+      nominationFileId: command.nominationFileId,
+      sessionId: command.sessionId,
+    });
+
+    if (!isReporter) {
+      throw new ForbiddenException(
+        'Seuls les rapporteurs du dossier peuvent modifier leur commentaire',
+      );
+    }
+
     const observation = await this.observationRepository.findById(
       command.observationId,
     );

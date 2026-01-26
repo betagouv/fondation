@@ -4,6 +4,7 @@ import { MembersModule } from '../members';
 
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
+import { NominationFileReportersFinder } from './infrastructure/finders/nomination-file-reporters.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -21,12 +22,13 @@ import { SessionController } from './session.controller';
 import { SummaryModule } from './summary.module';
 
 @Module({
-  exports: [SessionService, SummaryModule],
+  exports: [SessionService, SummaryModule, NominationFileReportersFinder],
   controllers: [SessionController],
   imports: [forwardRef(() => MembersModule), SummaryModule],
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,
+    NominationFileReportersFinder,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
