@@ -1,9 +1,7 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import type { FormationEnum, PrioriteEnum } from '@/types/enums.types';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
@@ -11,6 +9,7 @@ import { DataTable, useDataTable, useQueryDataTableState } from '@/components/sh
 import { useNominationFilesTable } from './contexts/files-table.context';
 import { useNominationFilesTableColumns } from './useNominationFilesTableColumns.hook';
 
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationsModalProvider } from './components/cells/observations/ObservationsModalContext';
@@ -21,8 +20,7 @@ import { FilesSelectionProvider } from './contexts/FilesSelectionProvider';
 import { NominationFilesTableProvider } from './contexts/NominationFilesTableProvider';
 
 function NominationFilesTableInner(props: React.PropsWithChildren) {
-  const { pathname } = useLocation();
-  const isSg = React.useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
+  const isSg = useIsSgNavigation();
 
   const { sessionId, formation, edition } = useNominationFilesTable();
   const columns = useNominationFilesTableColumns();
