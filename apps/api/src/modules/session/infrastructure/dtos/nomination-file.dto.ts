@@ -17,6 +17,13 @@ export class AffectReportersDto extends createZodDto(
   }),
 ) {}
 
+function toNullableArray(
+  value: unknown | undefined | null,
+): undefined | (unknown | null)[] {
+  if (value === undefined) return undefined;
+  return ([] as unknown[]).concat(value);
+}
+
 export class ListNominationFilesQueryDto extends createSortableDto(
   z.object({
     sortBy: z
@@ -24,23 +31,13 @@ export class ListNominationFilesQueryDto extends createSortableDto(
       .optional(),
     priorities: z
       .preprocess(
-        (x) =>
-          x === undefined
-            ? undefined
-            : ([] as unknown[])
-                .concat(x)
-                .map((val) => (val === 'null' ? null : val)),
+        (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
         z.array(z.enum(PrioriteEnum).nullable()).optional(),
       )
       .optional(),
     reporterIds: z
       .preprocess(
-        (x) =>
-          x === undefined
-            ? x
-            : ([] as unknown[])
-                .concat(x)
-                .map((val) => (val === 'null' ? null : val)),
+        (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
         z.array(z.uuid().nullable()).optional(),
       )
       .optional(),
