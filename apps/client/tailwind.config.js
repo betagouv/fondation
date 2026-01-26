@@ -13,6 +13,7 @@ export default {
       colors: {
         'light-orange': '#D2BC8966',
         'light-blue': '#E8EDFF',
+        'light-green': '#B8E6B566',
         'dark-blue': '#0063CB',
         'blue-france-sun-113': '#000091',
         'fr-gray-bg': '#f6f6f6'

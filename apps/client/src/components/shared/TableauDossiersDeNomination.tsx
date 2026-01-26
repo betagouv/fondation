@@ -155,7 +155,7 @@ const TableauDossiersDeNominationContent = ({
         data: paginatedData,
         availableRapporteurs: availableRapporteurs || []
       })
-    : dataRowsDn({ data: paginatedData, sessionId, formation });
+    : dataRowsDn({ data: paginatedData, sessionId, formation, context: isSg ? 'sg' : 'membre' });
 
   const rapporteurNoms = dossiersDeNomination?.flatMap((dossier) =>
     dossier.reporters.map((r) => r.firstName + ' ' + r.lastName).filter((nom): nom is string => nom != null)

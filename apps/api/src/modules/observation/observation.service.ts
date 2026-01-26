@@ -5,8 +5,12 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
+import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import { isDefined } from 'src/utils/is-defined';
 
 import { Observation } from './domain/observation';
+import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import {
   GetObservationDetailsQuery,
   GetObservationDetailsResponseDto,
@@ -29,6 +33,7 @@ export class ObservationService {
     private readonly getObservationDetailsQuery: GetObservationDetailsQuery,
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
+    private readonly files: Files,
   ) {}
 
   async createObservation(command: {
@@ -150,10 +155,68 @@ export class ObservationService {
   }
 
   getObservationDetails(query: {
+    userId: string;
     sessionId: string;
     nominationFileId: string;
     observationId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.getObservationDetailsQuery.handle(query);
+  }
+
+  async attachMemberCommentScreenshots(command: {
+    userId: string;
+    sessionId: string;
+    nominationFileId: string;
+    observationId: string;
+    files: readonly StoredFile[];
+  }): Promise<AttachedMemberCommentScreenshotsDto> {
+    const observation = await this.observationRepository.findById(
+      command.observationId,
+    );
+
+    observation.attachMemberCommentScreenshots({
+      userId: command.userId,
+      files: command.files.map((f) => ({ id: f.id })),
+    });
+
+    await this.observationRepository.persist(observation);
+
+    const urls = await this.files.getPublicUrls(
+      command.files.map((file) => file.id),
+    );
+
+    return {
+      items: command.files
+        .map((file) => {
+          const url = urls[file.id]?.toString();
+          if (!url) return undefined;
+
+          return {
+            id: file.id,
+            name: file.name,
+            url,
+          };
+        })
+        .filter(isDefined),
+    };
+  }
+
+  async writeMemberComment(command: {
+    userId: string;
+    sessionId: string;
+    nominationFileId: string;
+    observationId: string;
+    comment: string;
+  }): Promise<void> {
+    const observation = await this.observationRepository.findById(
+      command.observationId,
+    );
+
+    observation.writeMemberComment({
+      userId: command.userId,
+      comment: command.comment,
+    });
+
+    await this.observationRepository.persist(observation);
   }
 }

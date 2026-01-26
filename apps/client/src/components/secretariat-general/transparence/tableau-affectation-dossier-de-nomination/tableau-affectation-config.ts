@@ -33,6 +33,7 @@ export const dataRowsDn = (options: {
   formation: FormationEnum;
   sessionId: string;
   data: SessionNominationFile[];
+  context?: 'sg' | 'membre';
 }): ReactNode[][] => {
   return options.data.map((dossier) => [
     dossier.content.numeroDeDossier,
@@ -49,7 +50,8 @@ export const dataRowsDn = (options: {
       observants: dossier.content.observants,
       observationCount: dossier.observationCount,
       observationMagistrats: dossier.observationMagistrats,
-      readOnly: true
+      readOnly: true,
+      context: options.context
     }),
     dossier.priority ? PrioriteLabels[dossier.priority] : '-',
     React.createElement(ReadOnlyReportersCell, { dossier }),

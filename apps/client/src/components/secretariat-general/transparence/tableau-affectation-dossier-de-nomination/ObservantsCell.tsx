@@ -11,6 +11,7 @@ type ObservantsCellProps = {
   readOnly?: boolean;
   observationMagistrats: { id: string; firstName: string; lastName: string; observationId: string }[];
   observationCount: number;
+  context?: 'sg' | 'membre';
 };
 
 export const ObservantsCell: FC<ObservantsCellProps> = ({
@@ -20,7 +21,8 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
   observationCount,
   observationMagistrats,
   nominationFileName,
-  readOnly = false
+  readOnly = false,
+  context = 'sg'
 }) => {
   const { open } = useObservationsModal();
 
@@ -58,6 +60,7 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({
       nominationFileId={id}
       observations={observationMagistrats}
       lodamObservants={observants}
+      context={context}
     />
   );
 };

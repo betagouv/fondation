@@ -637,6 +637,13 @@ export type GetObservationDetailsResponseDto = {
             day: number;
         };
     }>;
+    memberComment: {
+        comment: string;
+        screenshots: Array<{
+            id: string;
+            name: string;
+        }>;
+    } | null;
 };
 
 export type GetObservationFileUrlResponseDto = {
@@ -650,6 +657,22 @@ export type UpdateObservationDto = {
     magistratId: string;
     dateReception: string;
     detachFileIds?: Array<string>;
+};
+
+export type AttachMemberCommentScreenshotsDto = {
+    files: Array<Blob | File>;
+};
+
+export type AttachedMemberCommentScreenshotsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteMemberCommentDto = {
+    comment: string;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -1490,6 +1513,40 @@ export type GetObservationFileUrlResponses = {
 };
 
 export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
+
+export type AttachMemberCommentScreenshotsData = {
+    body: AttachMemberCommentScreenshotsDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots';
+};
+
+export type AttachMemberCommentScreenshotsResponses = {
+    200: AttachedMemberCommentScreenshotsDto;
+};
+
+export type AttachMemberCommentScreenshotsResponse = AttachMemberCommentScreenshotsResponses[keyof AttachMemberCommentScreenshotsResponses];
+
+export type WriteMemberCommentData = {
+    body: WriteMemberCommentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments';
+};
+
+export type WriteMemberCommentResponses = {
+    204: void;
+};
+
+export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
 
 export type SearchMagistratsData = {
     body?: never;

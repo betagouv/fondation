@@ -1,9 +1,16 @@
 import { Navigate, useParams, useLocation } from 'react-router-dom';
+import React from 'react';
 
-import { useObservationDetailsQuery, useGetObservationFileUrlMutation } from '@queries/observations.queries';
+import {
+  useObservationDetailsQuery,
+  useGetObservationFileUrlMutation,
+  useWriteObservationMemberCommentMutation,
+  useAttachObservationMemberCommentScreenshotsMutation
+} from '@queries/observations.queries';
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
 import { getDetailSessionGdsPath } from '../../../utils/route-path.utils';
+import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 
 export function ObservationDetailsPage() {
   const { sessionId, nominationFileId, observationId } = useParams<{
@@ -27,10 +34,29 @@ export function ObservationDetailsPage() {
   });
 
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
+  const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
+  const { mutateAsync: attachFiles } = useAttachObservationMemberCommentScreenshotsMutation();
+
+  const uploadFiles = React.useCallback<FilesUploader>(
+    async (files: readonly File[]) => {
+      const result = await attachFiles({
+        sessionId: sessionId ?? '',
+        nominationFileId: nominationFileId ?? '',
+        observationId: observationId ?? '',
+        files: files as File[]
+      });
+      return (result?.items ?? []).map(({ id, name, url }) => ({
+        id,
+        name,
+        url: new URL(url)
+      }));
+    },
+    [attachFiles, sessionId, nominationFileId, observationId]
+  );
 
   if (isLoading) {
     return (
-      <PageContentLayout>
+      <PageContentLayout fullBackgroundGreen={true}>
         <p>Chargement...</p>
       </PageContentLayout>
     );
@@ -51,12 +77,21 @@ export function ObservationDetailsPage() {
     );
   };
 
+  const handleUpdateMemberComment = (comment: string) => {
+    writeMemberComment({
+      sessionId,
+      nominationFileId,
+      observationId,
+      comment
+    });
+  };
+
   const backLink = isSgContext
     ? { to: `/secretariat-general/session/${sessionId}`, label: 'Retour à la session' }
     : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
 
   return (
-    <PageContentLayout>
+    <PageContentLayout fullBackgroundGreen={true}>
       <ObservationDetailsContent
         sessionId={sessionId}
         nominationFileId={nominationFileId}
@@ -65,6 +100,8 @@ export function ObservationDetailsPage() {
         onDownloadFile={handleDownloadFile}
         backLink={backLink}
         context={context}
+        onUpdateMemberComment={handleUpdateMemberComment}
+        uploadFiles={uploadFiles}
       />
     </PageContentLayout>
   );
