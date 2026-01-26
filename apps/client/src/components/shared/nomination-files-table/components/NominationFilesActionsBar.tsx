@@ -1,7 +1,7 @@
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
 import { NominationFilesBatchOperationsButton } from './NominationFilesBatchOperationsButton';
 import { NominationFilesSaveAffectationsButton } from './NominationFilesSaveAffectationsButton';
-import { useNominationFilesTable } from './NominationFilesTableContext';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 import { NominationFilesToggleEditionModeButton } from './NominationFilesToggleEditionModeButton';
 
 export function NominationFilesTableActionsBar() {

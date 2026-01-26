@@ -7,7 +7,7 @@ import { useUpdateCommentAccessMutation } from '@queries/members.queries';
 import { useMemberListQuery, useUpdateNominationFileCommentMutation } from '@queries/members.queries';
 
 import type { FormationEnum } from '@/types/enums.types';
-import { UserChipsSelect } from '../../../shared/UserChipsSelect';
+import { UserChipsSelect } from '@/components/shared/UserChipsSelect';
 
 export type MagistratCommentEditProps = {
   nominationFileId: string;
@@ -34,8 +34,8 @@ export const MagistratCommentEdit: FC<MagistratCommentEditProps> = ({
   const { mutate: updateCommentAccess } = useUpdateCommentAccessMutation();
 
   const { data: eligibleUsers } = useMemberListQuery({
-    formations: [formation, 'COMMUN'],
-    pagination: { pageSize: 100, pageIndex: 0 }
+    formations: ['COMMUN', formation],
+    pagination: { pageIndex: 0, pageSize: 100 }
   });
 
   useEffect(() => {

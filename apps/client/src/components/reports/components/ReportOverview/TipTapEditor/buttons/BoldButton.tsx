@@ -12,7 +12,7 @@ export const BoldButton: FC = () => {
       if (!currentEditor) return true;
 
       const isHeadingActive = !!headingLevels.find((level) => currentEditor.isActive('heading', { level }));
-      return !currentEditor.can().chain().focus().toggleBold().run() || isHeadingActive;
+      return !currentEditor.can().toggleBold() || isHeadingActive;
     }
   });
 

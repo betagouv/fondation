@@ -55,7 +55,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
           <Accordion
             label={
               <span>
-                Pièces jointes <Badge>{attachments?.items.length ?? 0}</Badge>
+                Pièces jointes <Badge>{attachments?.items?.length ?? 0}</Badge>
               </span>
             }
             titleAs="h2"

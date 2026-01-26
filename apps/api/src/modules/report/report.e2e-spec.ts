@@ -64,6 +64,7 @@ describe('Report E2E', () => {
           dossierDeNominationImportId: randomUUID(),
           name: faker.person.fullName(),
           content: {},
+          sortableTargetedGrade: 0,
         },
       });
       const createdReport = await tx.report.create({

@@ -5,9 +5,9 @@ import clsx from 'clsx';
 import React from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { DropdownRapporteurs } from './DropdownRapporteurs';
 import { useMemberListQuery } from '@queries/members.queries';
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/components/NominationFilesTableContext';
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { DropdownRapporteurs } from './DropdownRapporteurs';
 
 function requires2Reporters(dossier: SessionNominationFile) {
   return (
@@ -71,11 +71,11 @@ function ReportersAlert(props: {
 export function ReportersSelector(props: { dossier: SessionNominationFile }) {
   const { formation } = useNominationFilesTable();
   const { data } = useMemberListQuery({
-    formations: [formation, 'COMMUN'],
+    formations: ['COMMUN', formation],
     pagination: { pageIndex: 0, pageSize: 100 }
   });
 
-  const availableRapporteurs = React.useMemo(
+  const reporters = React.useMemo(
     () => (data?.items ?? []).map(({ id, firstName, lastName }) => ({ userId: id, firstName, lastName })),
     [data]
   );
@@ -84,11 +84,7 @@ export function ReportersSelector(props: { dossier: SessionNominationFile }) {
     <div>
       <ReportersAlert dossier={props.dossier} />
 
-      <DropdownRapporteurs
-        dossierId={props.dossier.id}
-        initialRapporteurs={props.dossier.reporters.map(({ id }) => id)}
-        availableRapporteurs={availableRapporteurs}
-      />
+      <DropdownRapporteurs fileId={props.dossier.id} reporters={reporters} />
     </div>
   );
 }

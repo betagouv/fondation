@@ -2,19 +2,22 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { UserAvatarList } from '@/components/shared/user-avatar';
-import { ReportVM } from '../../../../VM/ReportVM';
+import { ReportVM } from '@/VM/ReportVM';
+import { reportHtmlIds } from '@/components/reports/dom/html-ids';
+
 import {
   formatBiography,
   formatBirthDate,
   formatDurationFromDate,
   formatObservers
-} from '../../../reports/components/ReportOverview/ReportOverview';
-import { reportHtmlIds } from '../../../reports/dom/html-ids';
-import { TextValue } from '../../../shared/TextValue';
-import { HandleMagistratSummaryButton } from './HandleMagistratSummaryButton';
-import { MemberMemo } from './MemberMemo';
+} from '@/components/reports/components/ReportOverview/ReportOverview';
+
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
+import { TextValue } from '@/components/shared/TextValue';
+import { UserAvatarList } from '@/components/shared/user-avatar';
+
+import { MagistratSummaryButton } from './MagistratSummaryButton';
+import { MemberMemo } from './member-memo/MemberMemo';
 
 export type MagistratDetailsProps = {
   sessionId: string;
@@ -63,7 +66,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           </span>
           {<UserAvatarList users={nominationFile.reporters} max={2} />}
         </div>
-        <HandleMagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
+        <MagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
       </div>
       <div>
         <TextValue

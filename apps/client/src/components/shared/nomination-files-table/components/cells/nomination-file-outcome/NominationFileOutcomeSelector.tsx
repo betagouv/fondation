@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 
 import { DropdownSelect } from '@/components/shared/DropdownSelect';
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/components/NominationFilesTableContext';
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,

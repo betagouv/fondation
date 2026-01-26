@@ -1,9 +1,6 @@
 import type { FormationEnum } from '@/types/enums.types';
 import React from 'react';
-import {
-  NominationFilesTableContext,
-  type NominationFilesTableContextType
-} from './NominationFilesTableContext';
+import { NominationFilesTableContext, type NominationFilesTableContextType } from './files-table.context';
 
 export function NominationFilesTableProvider(
   props: React.PropsWithChildren<{ sessionId: string; formation: FormationEnum; isEditable?: false }>

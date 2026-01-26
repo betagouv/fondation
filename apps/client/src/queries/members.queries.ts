@@ -26,6 +26,7 @@ export const useMemberListQuery = (
   } = {}
 ) =>
   useQuery({
+    staleTime: 1_000,
     placeholderData: (prev) => prev,
     queryKey: memberKeys.listMembers(options),
     queryFn: () => {

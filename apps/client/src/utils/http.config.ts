@@ -1,7 +1,7 @@
 import type { CreateClientConfig } from '../generated/api/client/types';
 import { HttpException } from './http-exception';
 
-const baseUrl = 'http://localhost:3000'; // import.meta.env.PROD ? import.meta.env.VITE_API_URL : '';
+const baseUrl = import.meta.env.PROD ? import.meta.env.VITE_API_URL : '';
 
 /** @see https://heyapi.dev/openapi-ts/clients/fetch#runtime-api */
 export const createClientConfig: CreateClientConfig = (config) => ({

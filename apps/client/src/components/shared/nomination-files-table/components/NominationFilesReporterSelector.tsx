@@ -8,7 +8,7 @@ export type SelectMultipleRapporteursProps = {
   onSelectionChange: (rapporteurIds: string[]) => void;
 };
 
-export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
+export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps> = ({
   availableRapporteurs,
   selectedRapporteurs,
   onSelectionChange
@@ -47,7 +47,7 @@ export const SelectMultipleRapporteurs: FC<SelectMultipleRapporteursProps> = ({
               key={rapporteur.userId}
               options={[
                 {
-                  label: `${rapporteur.lastName.toUpperCase()} ${rapporteur.firstName.toUpperCase()}`,
+                  label: `${rapporteur.lastName} ${rapporteur.firstName}`.toUpperCase(),
                   nativeInputProps: {
                     checked: selectedRapporteurs.includes(rapporteur.userId),
                     onChange: () => toggleRapporteur(rapporteur.userId)

@@ -1,27 +1,24 @@
+import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 import { Select } from '@codegouvfr/react-dsfr/Select';
-import type { FC } from 'react';
-import { PrioriteEnum, PrioriteLabels } from 'shared-models/models/priorite.enum';
-import type { PrioriteValue } from '../../../../contexts/AffectationDossiersContext';
-
-export type SelectPrioriteProps = {
-  selectedPriorite: PrioriteValue;
-  onPrioriteChange: (priorite: PrioriteValue) => void;
-};
 
 const EMPTY_VALUE = '__EMPTY__' as const;
 const NO_CHANGE_VALUE = '__NO_CHANGE__' as const;
 
-export const SelectPriorite: FC<SelectPrioriteProps> = ({ selectedPriorite, onPrioriteChange }) => {
+export const NominationFilesPrioritySelector = (props: {
+  selectedPriorite: PrioriteEnum | null | undefined;
+  onPrioriteChange: (value: PrioriteEnum | null) => unknown;
+}) => {
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     if (value === EMPTY_VALUE) {
-      onPrioriteChange(null);
+      props.onPrioriteChange(null);
     } else if (value !== NO_CHANGE_VALUE) {
-      onPrioriteChange(value as PrioriteEnum);
+      props.onPrioriteChange(value as PrioriteEnum);
     }
   };
 
-  const currentValue = selectedPriorite === undefined ? NO_CHANGE_VALUE : (selectedPriorite ?? EMPTY_VALUE);
+  const currentValue =
+    props.selectedPriorite === undefined ? NO_CHANGE_VALUE : (props.selectedPriorite ?? EMPTY_VALUE);
 
   return (
     <div className="flex flex-col">
@@ -35,9 +32,10 @@ export const SelectPriorite: FC<SelectPrioriteProps> = ({ selectedPriorite, onPr
         >
           <option value={NO_CHANGE_VALUE}>Ne pas modifier</option>
           <option value={EMPTY_VALUE}>Aucune priorité</option>
-          {Object.values(PrioriteEnum).map((priorite) => (
-            <option key={priorite} value={priorite}>
-              {PrioriteLabels[priorite]}
+
+          {Object.entries(PrioriteEnumLabels).map(([priority, label]) => (
+            <option key={priority} value={priority}>
+              {label}
             </option>
           ))}
         </Select>

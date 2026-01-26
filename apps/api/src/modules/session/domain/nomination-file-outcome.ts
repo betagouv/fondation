@@ -1,3 +1,5 @@
+import { Magistrat } from 'shared-models';
+import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
 const NOMINATION_FILE_OUTCOMES = [
@@ -63,5 +65,47 @@ export class UnknownNominationFileOutcome extends Error {
 export class NominationFileOutcomeRequiresComment extends Error {
   constructor(readonly outcome: NominationFileOutcomeEnum) {
     super();
+  }
+}
+
+export function nominationFileOutcomeLabel(props: {
+  outcome: NominationFileOutcomeEnum;
+  formation: Magistrat.Formation;
+}): string {
+  switch (props.formation) {
+    case Magistrat.Formation.PARQUET:
+      switch (props.outcome) {
+        case 'VALIDATED':
+          return 'avis favorable';
+        case 'NON_VALIDATED':
+          return 'avis défavorable';
+        case 'SUSPENDED':
+          return 'sursis à statuer';
+        case 'REMOVED':
+          return 'retrait';
+        case 'WITHDRAWN':
+          return 'retrait (désistement)';
+        default:
+          return assertNever(props.outcome);
+      }
+
+    case Magistrat.Formation.SIEGE:
+      switch (props.outcome) {
+        case 'VALIDATED':
+          return 'avis conforme';
+        case 'NON_VALIDATED':
+          return 'avis non conforme';
+        case 'SUSPENDED':
+          return 'sursis à statuer';
+        case 'REMOVED':
+          return 'retrait';
+        case 'WITHDRAWN':
+          return 'retrait (désistement)';
+        default:
+          return assertNever(props.outcome);
+      }
+
+    default:
+      return assertNever(props.formation);
   }
 }

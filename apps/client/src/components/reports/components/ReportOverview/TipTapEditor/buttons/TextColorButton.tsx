@@ -12,6 +12,10 @@ export const TextColorButton = () => {
     editor,
     selector: (ctx) => ctx.editor?.getAttributes('textStyle').color
   });
+  const isDisabled = useEditorState({
+    editor,
+    selector: ({ editor }) => !editor || !editor.can().setColor('#000000')
+  });
 
   const [textColor, setTextColor] = React.useState(editorTextColor ?? textColors.default.grey.default);
 
@@ -28,8 +32,6 @@ export const TextColorButton = () => {
     editor?.chain().focus().setColor(nextTextColor).run();
   };
 
-  const isDisabled = !editor?.can().chain().focus().setColor('#000000').run();
-
   if (!editor) {
     return null;
   }
@@ -38,7 +40,7 @@ export const TextColorButton = () => {
     <div className="relative">
       <EditorButton
         onClick={() => inputRef.current?.click()}
-        disabled={isDisabled}
+        disabled={!!isDisabled}
         title="Couleur du texte"
         style={{ color: textColor }}
         iconId="ri-font-color"

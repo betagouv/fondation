@@ -1,6 +1,5 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
 import {
   createContext,
   useContext,
@@ -11,8 +10,11 @@ import {
   type FC,
   type PropsWithChildren
 } from 'react';
-import { ObservationForm } from '../observations/ObservationForm';
-import { ObservationsList } from '../observations/ObservationsList';
+
+import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
+
+import { ObservationForm } from './ObservationForm';
+import { ObservationsList } from './ObservationsList';
 
 type ActiveFile = { sessionId: string; id: string; name: string };
 type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';

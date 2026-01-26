@@ -7,10 +7,7 @@ import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useCreateSummaryMutation } from '@queries/summary.queries';
 
-export function HandleMagistratSummaryButton(props: {
-  sessionId: string;
-  nominationFile: SessionNominationFile;
-}) {
+export function MagistratSummaryButton(props: { sessionId: string; nominationFile: SessionNominationFile }) {
   const { user } = useUser();
   const navigate = useNavigate();
   const { mutate, reset, isPending: isCreating } = useCreateSummaryMutation();

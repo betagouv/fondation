@@ -1,11 +1,16 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useMemo, useState } from 'react';
-import { useAffectation, type PrioriteValue } from '../../../../contexts/AffectationDossiersContext';
-import { SelectMultipleRapporteurs } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/SelectMultipleRapporteurs';
-import { SelectPriorite } from '../../../secretariat-general/transparence/tableau-affectation-dossier-de-nomination/SelectPriorite';
+import { useCallback, useMemo, useState } from 'react';
+
+import type { PrioriteEnum } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
-import { useNominationFilesTable } from './NominationFilesTableContext';
+
+import { useAffectations } from '../contexts/files-affectations.context';
+import { useSelectedFileIds } from '../contexts/files-selection.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
+
+import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
+import { NominationFilesPrioritySelector } from './NominationFilesPrioritySelector';
 
 const actionsGroupeesModal = createModal({
   id: 'actions-groupees-modal',
@@ -24,35 +29,46 @@ export function NominationFilesBatchOperationsButton() {
     [data]
   );
 
-  const { selectedDossierIds, updateAffectation, applyPrioriteValue } = useAffectation();
+  const selectedFileIds = useSelectedFileIds();
+  const { affectReporters, prioritize } = useAffectations();
+  const hasSelection = useMemo(() => selectedFileIds.length > 0, [selectedFileIds]);
+
   const [localSelection, setLocalSelection] = useState<string[]>([]);
-  const [localPriorite, setLocalPriorite] = useState<PrioriteValue>(undefined);
+  const [localPriorite, setLocalPriorite] = useState<PrioriteEnum | null | undefined>(undefined);
 
-  const hasSelection = selectedDossierIds.size > 0;
-
-  const handleOpenModal = () => {
+  const handleOpenModal = useCallback(() => {
     setLocalSelection([]);
     setLocalPriorite(undefined);
     actionsGroupeesModal.open();
-  };
+  }, [setLocalSelection, setLocalPriorite]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setLocalSelection([]);
     setLocalPriorite(undefined);
     actionsGroupeesModal.close();
-  };
+  }, [setLocalSelection, setLocalPriorite]);
 
-  const handleApply = () => {
-    Array.from(selectedDossierIds).forEach((dossierId) => {
-      if (localSelection.length > 0) {
-        updateAffectation(dossierId, localSelection);
-      }
-      applyPrioriteValue(dossierId, localPriorite);
-    });
+  const handleApply = useCallback(() => {
+    if (localSelection.length > 0) {
+      affectReporters(Object.fromEntries(selectedFileIds.map((fileId) => [fileId, localSelection] as const)));
+    }
+
+    if (localPriorite !== undefined) {
+      prioritize(Object.fromEntries(selectedFileIds.map((fileId) => [fileId, localPriorite] as const)));
+    }
+
     setLocalSelection([]);
     setLocalPriorite(undefined);
     actionsGroupeesModal.close();
-  };
+  }, [
+    selectedFileIds,
+    affectReporters,
+    prioritize,
+    setLocalPriorite,
+    setLocalSelection,
+    localPriorite,
+    localSelection
+  ]);
 
   return (
     <>
@@ -82,12 +98,15 @@ export function NominationFilesBatchOperationsButton() {
         <div className="flex flex-col gap-2">
           <div>
             <h3 className="mb-2 text-base font-semibold">Définir une priorité</h3>
-            <SelectPriorite selectedPriorite={localPriorite} onPrioriteChange={setLocalPriorite} />
+            <NominationFilesPrioritySelector
+              selectedPriorite={localPriorite}
+              onPrioriteChange={setLocalPriorite}
+            />
           </div>
 
           <div className="border-t border-gray-200 pt-2">
             <h3 className="mb-2 text-base font-semibold">Affecter des rapporteurs</h3>
-            <SelectMultipleRapporteurs
+            <NominationFilesReporterSelector
               availableRapporteurs={availableRapporteurs}
               selectedRapporteurs={localSelection}
               onSelectionChange={setLocalSelection}

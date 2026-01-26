@@ -2,8 +2,8 @@ import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useUser } from '@queries/auth.queries';
-
 import type { FormationEnum } from '@/types/enums.types';
+
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';
 

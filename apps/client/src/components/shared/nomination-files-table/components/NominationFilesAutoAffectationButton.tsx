@@ -3,28 +3,32 @@ import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import { useAffectation } from '@/contexts/AffectationDossiersContext';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
   useCountUnaffectedFilesQuery
 } from '@queries/nomination-sessions.queries';
-import { useNominationFilesTable } from './NominationFilesTableContext';
+import { useAffectations } from '../contexts/files-affectations.context';
+import { useSelectedFileIds } from '../contexts/files-selection.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 
 export function NominationFilesAutoAffectationButton() {
   const alerts = useAlerts();
   const confirmation = useConfirmation();
-  const { affectations, selectedDossierIds } = useAffectation();
+  const selectedIds = useSelectedFileIds();
+  const { getAffectations } = useAffectations();
   const { sessionId } = useNominationFilesTable();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
 
   const nonAffectedFileIds = useMemo(() => {
-    if (selectedDossierIds.size === 0) return undefined;
+    if (selectedIds.length === 0) return undefined;
 
-    const ids = [...selectedDossierIds].filter((id) => !(id in affectations));
+    const affectedIds = new Set(getAffectations().map(({ id }) => id));
+
+    const ids = selectedIds.filter((id) => !affectedIds.has(id));
     return ids.length > 0 ? ids : undefined;
-  }, [selectedDossierIds, affectations]);
+  }, [selectedIds, getAffectations]);
 
   const { data, isFetching } = useCountUnaffectedFilesQuery({
     sessionId,

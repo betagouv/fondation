@@ -17,23 +17,17 @@ export class ListCurrentlyAffectedReportersQuery {
       const txVersion = await this.versions.last({ sessionId, tx });
       if (!txVersion) return null;
 
-      return this.prisma.affectationVersion.findUnique({
-        where: { id: txVersion.id },
+      return this.prisma.nominationFileToReporter.findMany({
+        distinct: ['userId'],
+        where: { versionId: txVersion.id },
         select: {
-          affectations: {
-            orderBy: { user: { lastName: 'asc' } },
-            select: {
-              user: {
-                select: { id: true, firstName: true, lastName: true },
-              },
-            },
-          },
+          user: { select: { id: true, firstName: true, lastName: true } },
         },
       });
     });
 
     return {
-      items: (version?.affectations ?? []).map(({ user }) => ({
+      items: (version ?? []).map(({ user }) => ({
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,

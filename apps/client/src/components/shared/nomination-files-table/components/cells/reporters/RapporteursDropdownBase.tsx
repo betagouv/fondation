@@ -2,7 +2,8 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useState, type FC, type ReactNode } from 'react';
-import { DropdownMenu } from '../../../shared/DropdownMenu';
+
+import { DropdownMenu } from '@/components/shared/DropdownMenu';
 
 export type RapporteursDropdownBaseProps = {
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];

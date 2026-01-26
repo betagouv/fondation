@@ -1,16 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
-import { DropdownPriorite } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/DropdownPriorite';
-import { MagistratDnModalLink } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/MagistratDnModale';
-import { NominationFileOutcome } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/nomination-file-outcome/NominationFileOutcome';
-import { NominationFileOutcomeSelector } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/nomination-file-outcome/NominationFileOutcomeSelector';
-import { ObservantsCell } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ObservantsCell';
-import {
-  ReadOnlyReportersCell,
-  ReportersSelector
-} from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ReportersCell';
-import { toFullName } from '@/components/shared/user-avatar/user-avatar.utils';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import {
@@ -18,7 +8,15 @@ import {
   type SessionNominationFile
 } from '@queries/nomination-sessions.queries';
 
-import { useNominationFilesTable } from './NominationFilesTableContext';
+import { useNominationFilesTable } from './contexts/files-table.context';
+
+import { NominationFilesPrioritySelector } from './components/cells/NominationFilesPrioritySelector';
+import { NominationFileOutcome } from './components/cells/nomination-file-outcome/NominationFileOutcome';
+import { NominationFileOutcomeSelector } from './components/cells/nomination-file-outcome/NominationFileOutcomeSelector';
+import { ReadOnlyReportersCell, ReportersSelector } from './components/cells/reporters/ReportersCell';
+import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
+import { ObservantsCell } from './components/cells/observations/ObservantsCell';
+import { toFullName } from '@/utils/user.utils';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
@@ -74,7 +72,7 @@ export const useNominationFilesTableColumns = () => {
           const value = cell.getValue();
 
           if (edition?.isEditing) {
-            return <DropdownPriorite dossierId={row.original.id} initialPriorite={value} />;
+            return <NominationFilesPrioritySelector fileId={row.original.id} />;
           }
 
           return value ? PrioriteEnumLabels[value] : '-';

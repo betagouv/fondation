@@ -31,3 +31,9 @@ export function prioriteEnumToPrismaPrioriteEnum(
       return assertNever(value);
   }
 }
+
+export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
+  ETOILE: 'Étoilé',
+  OUTRE_MER: 'Outre-mer',
+  PROFILE: 'Profilé',
+};

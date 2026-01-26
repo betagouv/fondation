@@ -238,7 +238,9 @@ export class ListNominationFilesQuery {
 
     const whereReporters: Prisma.DossierDeNominationWhereInput[] = [];
     if (filters.reporterIds.includes(null)) {
-      whereReporters.push({ reporterIds: { none: {} } });
+      whereReporters.push({
+        reporterIds: { none: { versionId: lastVersion?.id } },
+      });
     }
 
     if (filters.reporterIds.filter(isDefined).length > 0) {

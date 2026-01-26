@@ -1,8 +1,8 @@
-import { useCallback, useMemo, type FC } from 'react';
+import { useMemo } from 'react';
 
 import { UserAvatarList } from '@/components/shared/user-avatar';
 
-import { useAffectation } from '../../../../contexts/AffectationDossiersContext';
+import { useAffectationRow } from '@/components/shared/nomination-files-table/contexts/files-affectations.context';
 import { RapporteursDropdownBase } from './RapporteursDropdownBase';
 
 export type InputAffectationProps = {
@@ -11,24 +11,16 @@ export type InputAffectationProps = {
   availableRapporteurs: { userId: string; firstName: string; lastName: string }[];
 };
 
-export const DropdownRapporteurs: FC<InputAffectationProps> = ({
-  dossierId,
-  initialRapporteurs,
-  availableRapporteurs
+export const DropdownRapporteurs = (props: {
+  fileId: string;
+  reporters: { userId: string; firstName: string; lastName: string }[];
 }) => {
-  const { affectations, updateAffectation } = useAffectation();
-  const selectedRapporteurs = affectations[dossierId] ?? initialRapporteurs;
+  const { reporterIds, affectReporters } = useAffectationRow(props.fileId);
+  const selectedRapporteurs = useMemo(() => reporterIds ?? [], [reporterIds]);
 
   const reporterMap = useMemo(
-    () => new Map(availableRapporteurs.map((reporter) => [reporter.userId, reporter] as const)),
-    [availableRapporteurs]
-  );
-
-  const handleSelectionChange = useCallback(
-    (rapporteurIds: string[]) => {
-      updateAffectation(dossierId, rapporteurIds);
-    },
-    [dossierId, updateAffectation]
+    () => new Map(props.reporters.map((reporter) => [reporter.userId, reporter] as const)),
+    [props.reporters]
   );
 
   const selectedUsers = useMemo(
@@ -46,9 +38,9 @@ export const DropdownRapporteurs: FC<InputAffectationProps> = ({
 
   return (
     <RapporteursDropdownBase
-      availableRapporteurs={availableRapporteurs}
+      availableRapporteurs={props.reporters}
       selectedRapporteurs={selectedRapporteurs}
-      onSelectionChange={handleSelectionChange}
+      onSelectionChange={affectReporters}
       buttonLabel={buttonLabel}
     />
   );

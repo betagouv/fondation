@@ -65,7 +65,11 @@ export class AutoAffectationsFinder {
     const date = DateOnly.fromDate(session.date);
     const formation = prismaFormationEnumToFormationEnum(session.formation);
 
-    const members = await this.findMembers({ date, formation });
+    const members = await this.findMembers({
+      date,
+      formation,
+      sessionId: predicate.sessionId,
+    });
     const files = this.toAutoAffectationNominationFiles(
       session.dossierDeNominations,
       { date, formation },
@@ -120,6 +124,7 @@ export class AutoAffectationsFinder {
 
   private async findMembers(session: {
     date: DateOnly;
+    sessionId: string;
     formation: Magistrat.Formation;
   }): Promise<AutoAffectationMember[]> {
     const memberIds = await this.membersService.findMembers({
@@ -155,6 +160,7 @@ export class AutoAffectationsFinder {
             INNER JOIN nominations_context.dossier_de_nomination ddn ON r.nomination_file_id = ddn.id
           WHERE (
             NOT r.is_deleted
+            AND r.session_id != ${session.sessionId}
             AND r.reporter_id = ANY(${memberIds}::UUID[])
             AND r.created_at >= ${startOfYear(this.clock.now())}::DATE
           )
@@ -219,11 +225,6 @@ export class AutoAffectationsFinder {
       currentJurisdiction: string | null;
     })[]
   > {
-    const definedPositions = positions.filter(
-      (p): p is T & { targetedPosition: string } =>
-        isDefined(p.targetedPosition),
-    );
-
     const result = await tx.$queryRaw<
       { id: string; current: string | null; target: string | null }[]
     >`
@@ -232,7 +233,7 @@ export class AutoAffectationsFinder {
           (p.content ->> 'id')::UUID AS id,
           (p.content ->> 'currentPosition') AS current_position,
           (p.content ->> 'targetedPosition') AS targeted_position
-        FROM UNNEST (${definedPositions}::jsonb[]) AS p(content)
+        FROM UNNEST (${positions}::jsonb[]) AS p(content)
       )
 
       SELECT queried_positions.id, current_j.codejur AS "current", target_j.codejur AS "target"

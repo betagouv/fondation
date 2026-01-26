@@ -1,11 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useMemo, type FC } from 'react';
-import { useObservationsModal } from './ObservationsModalContext';
-import { ObservationLinks } from '../../../shared/ObservationLinks';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/components/NominationFilesTableContext';
 import { useLocation } from 'react-router-dom';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { ObservationLinks } from '@/components/shared/ObservationLinks';
+import { useObservationsModal } from './ObservationsModalContext';
 
 type ObservantsCellProps = {
   nominationFile: SessionNominationFile;

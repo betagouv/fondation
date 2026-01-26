@@ -1,35 +1,56 @@
-import * as $api from '@api/sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
+  ListNominationFilesAsExcelData,
   ListNominationFilesData,
   PaginatedNominationFiles
 } from '@api/types';
+import * as $api from '@api/sdk';
+import { client } from '@api/client';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import type { Override } from '@/types/utils.types';
 import { HttpException } from '@/utils/http-exception';
 
+type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
+  ? Rest
+  : Parts extends [infer Head, ...infer Tail]
+    ? Head extends undefined | null
+      ? NonNullableKey<Tail, Rest>
+      : Head extends Record<string, never>
+        ? NonNullableKey<Tail, Rest>
+        : NonNullableKey<Tail, [...Rest, Head]>
+    : Rest;
+
+function key<const Parts extends unknown[]>(...parts: Parts): NonNullableKey<Parts> {
+  return parts.filter((x): x is NonNullable<typeof x> => {
+    if (x === undefined || x === null) return false;
+
+    if (typeof x === 'object') return Object.keys(x).length > 0;
+    return true;
+  }) as NonNullableKey<Parts>;
+}
+
 export const sessionKeys = {
-  detailSessionAffectationVersion: (props: { sessionId: string }) =>
-    ['sessions', 'detailSessionAffectationVersion', props.sessionId] as const,
-  listSessionNominationFiles: (props: { sessionId: string | undefined; [k: string]: unknown }) => {
-    const { sessionId, ...rest } = props;
-    return ['sessions', 'listSessionNominationFiles', sessionId, rest] as const;
+  detailSessionAffectationVersion: (props?: { sessionId: string }) =>
+    key('sessions', 'detailSessionAffectationVersion', props?.sessionId),
+  listSessionNominationFiles: (props?: { sessionId: string; [k: string]: unknown }) => {
+    const { sessionId, ...rest } = props ?? {};
+    return key('sessions', 'listSessionNominationFiles', sessionId, rest);
   },
-  detailSession: (props: { sessionId: string | undefined }) =>
-    ['sessions', 'detailSession', props.sessionId] as const,
-  listGdsSessions: () => ['sessions', 'listGdsSessions'] as const,
+  detailSession: (props?: { sessionId: string | undefined }) =>
+    key('sessions', 'detailSession', props?.sessionId),
+  listGdsSessions: () => key('sessions', 'listGdsSessions'),
   listSessionAttachments: (props: { sessionId: string }) =>
-    ['sessions', 'listSessionAttachments', props.sessionId] as const,
+    key('sessions', 'listSessionAttachments', props.sessionId),
   lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId: string }) =>
-    ['sessions', 'lolfiMagistratUrl', props] as const,
+    key('sessions', 'lolfiMagistratUrl', props?.sessionId, props?.nominationFileId),
   listCurrentlyAffectedReporters: (props?: { sessionId: string }) =>
-    ['sessions', 'listCurrentlyAffectedReporters', props] as const,
+    key('sessions', 'listCurrentlyAffectedReporters', props?.sessionId),
   countUnaffectedFiles: (props?: { sessionId: string; nominationFileIds?: readonly string[] }) =>
-    ['sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds] as const
+    key('sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds)
 };
 
 type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
@@ -38,7 +59,13 @@ const doesQueryKey = {
   matchesAny:
     (...keys: readonly NominationSessionQueryKey[]) =>
     ({ queryKey }: { queryKey: readonly unknown[] }) =>
-      keys.some((key) => queryKey.length === key.length && queryKey.every((x, index) => x === key[index]))
+      keys.some((key) =>
+        key.every((x, i) =>
+          typeof queryKey[i] === 'string' || typeof queryKey[i] === 'number'
+            ? queryKey[i] === x
+            : JSON.stringify(queryKey[i]) === JSON.stringify(x)
+        )
+      )
 } as const;
 
 export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: string) =>
@@ -393,15 +420,19 @@ export const useListNominationFilesAsExcelMutation = () =>
   useMutation({
     mutationFn: async (options: { sessionId: string }): Promise<void> => {
       const { sessionId } = options;
-      const { data, response } = await $api.sessions.listNominationFilesAsExcel({
-        path: { sessionId },
-        parseAs: 'blob'
+      const url = client.buildUrl<ListNominationFilesAsExcelData>({
+        url: '/api/sessions/v2/{sessionId}/files.xlsx',
+        path: { sessionId }
       });
 
-      if (data instanceof Blob) {
-        response.headers.get('content-disposition');
-        const url = URL.createObjectURL(new File([data]));
-        window.open(url);
-      }
+      const $a = document.createElement('a');
+      $a.href = url;
+      $a.target = '_blank';
+      $a.rel = 'noopener';
+      $a.style.display = 'none';
+
+      document.body.appendChild($a);
+      $a.click();
+      $a.remove();
     }
   });

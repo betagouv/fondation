@@ -6,7 +6,7 @@ export const HighlightButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().chain().focus().toggleHighlight().run()
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleHighlight()
   });
 
   const toggleHighlight = () => {

@@ -1,31 +1,28 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
-import { useAffectation } from '@/contexts/AffectationDossiersContext';
-import type { PrioriteEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import { useNominationFilesTable } from './NominationFilesTableContext';
+import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useAffectations } from '../contexts/files-affectations.context';
 
 export function NominationFilesSaveAffectationsButton() {
   const alerts = useAlerts();
   const { sessionId, isEditable, edition } = useNominationFilesTable();
-  const { getAllAffectations, resetAffectations, hasChanges } = useAffectation();
+  const { getAffectations, resetAffectations, hasChanges } = useAffectations();
   const { mutate: saveAffectations, isPending } = useAffectNominationFilesReportersMutation();
 
   const handleSave = React.useCallback(() => {
-    if (!isEditable) return;
-
-    const affectations = getAllAffectations();
+    if (!isEditable || !hasChanges) return;
 
     saveAffectations(
       {
         sessionId,
-        affectations: affectations.map((a) => ({
-          reporterIds: a.rapporteurIds,
-          nominationFileId: a.dossierId,
-          priority: (a.priorite ?? null) as PrioriteEnum
+        affectations: getAffectations().map(({ reporterIds, priority, id }) => ({
+          priority,
+          reporterIds,
+          nominationFileId: id
         }))
       },
       {
@@ -59,14 +56,23 @@ export function NominationFilesSaveAffectationsButton() {
         }
       }
     );
-  }, [alerts, sessionId, getAllAffectations, saveAffectations, isEditable, edition, resetAffectations]);
+  }, [
+    alerts,
+    sessionId,
+    isEditable,
+    hasChanges,
+    edition,
+    getAffectations,
+    saveAffectations,
+    resetAffectations
+  ]);
 
   return (
     <Button
       priority="primary"
       iconId="fr-icon-save-line"
       title="Sauvegarder les affectations"
-      disabled={!hasChanges || isPending}
+      disabled={!isEditable || !hasChanges || isPending}
       onClick={handleSave}
     >
       Sauvegarder

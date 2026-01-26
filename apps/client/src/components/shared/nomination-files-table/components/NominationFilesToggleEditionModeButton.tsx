@@ -1,12 +1,12 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
-import { useAffectation } from '@/contexts/AffectationDossiersContext';
-import { useNominationFilesTable } from './NominationFilesTableContext';
+import { useAffectations } from '../contexts/files-affectations.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 
 export function NominationFilesToggleEditionModeButton() {
   const { isEditable, edition } = useNominationFilesTable();
-  const { resetAffectations, hasChanges } = useAffectation();
+  const { hasChanges, resetAffectations } = useAffectations();
 
   const onClick = React.useCallback(() => {
     if (!isEditable) return;
