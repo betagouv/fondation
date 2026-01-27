@@ -49,7 +49,10 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (body: { email: string; password: string }) => $api.auth.login({ body }),
+    mutationFn: (body: { email: string; password: string }) => {
+      const authorization = btoa(`${body.email}:${body.password}`);
+      return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() })
   });
 }

@@ -29,13 +29,14 @@ export class files {
 }
 
 export class auth {
-    public static login<ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>) {
-        return (options.client ?? client).post<LoginResponses, unknown, ThrowOnError>({
+    public static login<ThrowOnError extends boolean = false>(options?: Options<LoginData, ThrowOnError>) {
+        return (options?.client ?? client).post<LoginResponses, unknown, ThrowOnError>({
+            security: [{ scheme: 'basic', type: 'http' }],
             url: '/api/auth/v2/login',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
-                ...options.headers
+                ...options?.headers
             }
         });
     }
