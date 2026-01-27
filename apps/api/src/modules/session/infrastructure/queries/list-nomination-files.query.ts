@@ -56,7 +56,10 @@ export class ListNominationFilesQuery {
         case 'targetedPosition':
           return { targetedPosition: direction } as const;
         case 'targetedGrade':
-          return { sortableTargetedGrade: direction, number: 'asc' } as const;
+          return [
+            { sortableTargetedGrade: direction },
+            { number: 'asc' },
+          ] as const satisfies Prisma.DossierDeNominationOrderByWithRelationInput[];
 
         default:
         case 'fileNumber':
