@@ -1,12 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useMemo, type FC } from 'react';
-import { useLocation } from 'react-router-dom';
+import { type FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { useObservationsModal } from './ObservationsModalContext';
 
 type ObservantsCellProps = {
@@ -15,8 +14,7 @@ type ObservantsCellProps = {
 };
 
 export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile, readOnly = false }) => {
-  const { pathname } = useLocation();
-  const isSg = useMemo(() => pathname.includes(ROUTE_PATHS.SG.DASHBOARD), [pathname]);
+  const isSg = useIsSgNavigation();
 
   const { sessionId } = useNominationFilesTable();
 

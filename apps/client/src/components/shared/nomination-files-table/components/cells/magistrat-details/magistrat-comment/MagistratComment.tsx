@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useUser } from '@queries/auth.queries';
 import type { FormationEnum } from '@/types/enums.types';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';
 
@@ -21,8 +21,7 @@ export const MagistratComment: FC<MagistratCommentProps> = ({
   formation
 }) => {
   const { sessionId } = useParams<{ sessionId: string }>();
-  const { user } = useUser();
-  const isSG = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
+  const isSG = useIsSg();
 
   const showComment = isSG || initialComment !== null;
 
