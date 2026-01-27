@@ -11,7 +11,7 @@ export const HeadingButton: FC<HeadingButtonProps> = ({ level }) => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().chain().focus().toggleHeading({ level }).run()
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleHeading({ level })
   });
 
   const toggleHeading = () => {

@@ -4,11 +4,11 @@ import { useCallback, type FC } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
+import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-import { TableauAffectationDossierDeNomination } from '../tableau-affectation-dossier-de-nomination/TableauAffectationDossierDeNomination';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 
@@ -59,7 +59,9 @@ export const Transparence: FC = () => {
           <TableauDeBordActions sessionId={sessionId!} formation={transparence.formation} />
           <TableauDeBordResume {...transparence} />
         </div>
-        <TableauAffectationDossierDeNomination formation={transparence.formation} />
+        <div className="mb-8">
+          <NominationFilesTable sessionId={sessionId!} formation={transparence.formation} />
+        </div>
       </div>
     </AlertsProvider>
   );

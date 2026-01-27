@@ -3,7 +3,7 @@ import type {
   DetailedNominationSessionDto,
   DetailedReportDto,
   DetailedUserResponseDto,
-  ListedNominationFileAffectationItem
+  PaginatedNominationFiles
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
@@ -62,7 +62,7 @@ export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
 };
 
 export type NominationFileOutcomeEnum = NonNullable<
-  ListedNominationFileAffectationItem['items'][number]['content']['outcome']
+  PaginatedNominationFiles['items'][number]['content']['outcome']
 >['value'];
 
 const NOMINATION_FILE_OUTCOME_LABELS = {

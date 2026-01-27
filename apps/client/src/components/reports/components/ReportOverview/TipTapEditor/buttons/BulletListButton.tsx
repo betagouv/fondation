@@ -6,7 +6,7 @@ export const BulletListButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().chain().focus().toggleBulletList().run()
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleBulletList()
   });
 
   const toggleBulletList = () => {

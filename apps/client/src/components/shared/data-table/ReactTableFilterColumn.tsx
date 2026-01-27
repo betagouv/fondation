@@ -2,6 +2,7 @@ import type { TableMetaFilterEnum } from '@/tanstack-react-table';
 import type { RowData, Table } from '@tanstack/react-table';
 import { DropdownFilter } from '../DropdownFilter';
 import React from 'react';
+import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
 
 function ReactTableFilterEnum<Data extends RowData>(props: {
   table: Table<Data>;
@@ -42,9 +43,27 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 }
 
 export function ReactTableFilterColumn<Data extends RowData>(props: { table: Table<Data> }) {
+  const hasFilterActive = props.table
+    .getState()
+    .columnFilters.some(
+      ({ value }) =>
+        (Array.isArray(value) && value.length > 0) || (typeof value === 'string' && value.trim().length > 0)
+    );
+
+  const paginationLabel = props.table.options.meta?.paginationItemLabel;
+  const rowsCount = props.table.getRowCount();
+  const label =
+    hasFilterActive && !!paginationLabel
+      ? typeof paginationLabel === 'string'
+        ? `${rowsCount} ${paginationLabel}:`
+        : rowsCount > 1
+          ? `${rowsCount} ${paginationLabel.other}:`
+          : `${rowsCount} ${paginationLabel.one}:`
+      : 'Filtrer par:';
+
   return (
     <div className="flex items-center gap-4">
-      <span className="font-bold">Filter par:</span>
+      <span className="font-bold">{label}</span>
       {props.table.options.columns
         .filter((col) => !!col.meta?.filters)
         .map((col) => {
@@ -52,6 +71,14 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
             case 'enum':
               return (
                 <ReactTableFilterEnum
+                  table={props.table}
+                  filter={col.meta.filters}
+                  key={col.meta.filters.filterId}
+                />
+              );
+            case 'asyncList':
+              return (
+                <ReactTableFilterColumnAsyncList
                   table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
