@@ -88,10 +88,10 @@ export function NominationFileOutcomeCommentModal(props: {
           label={
             isCommentRequired ? (
               <>
-                commentaire<span className="text-red-500">*</span>
+                commentaire concernant l'issue de ce dossier<span className="text-red-500">*</span>
               </>
             ) : (
-              'commentaire'
+              `commentaire concernant l'issue de ce dossier`
             )
           }
           hintText={hasError ? <span className="text-red-600">{hint}</span> : undefined}

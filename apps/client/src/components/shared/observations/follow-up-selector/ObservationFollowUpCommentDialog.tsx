@@ -4,7 +4,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import React, { type FormEvent } from 'react';
 
-export const observationFollowUpModal = createModal({
+export const observationFollowUpCommentModal = createModal({
   isOpenedByDefault: false,
   id: `observation-follow-up-comment-modal`
 });
@@ -34,26 +34,26 @@ export function ObservationFollowUpCommentModal(props: {
     setWillDrop(true);
   }, [props, willDrop, setComment, setWillDrop]);
 
-  useIsModalOpen(observationFollowUpModal, { onConceal });
+  useIsModalOpen(observationFollowUpCommentModal, { onConceal });
 
   const onCancel = React.useCallback(() => {
     if (isCommentRequired) return;
 
     setWillDrop(false);
-    observationFollowUpModal.close();
+    observationFollowUpCommentModal.close();
   }, [setWillDrop, isCommentRequired]);
 
   const onSave = React.useCallback(() => {
     if (isCommentRequired && !comment?.trim()) return;
 
-    if (comment) props.onChange(comment.trim());
+    props.onChange(comment?.trim() || null);
 
     setWillDrop(false);
-    observationFollowUpModal.close();
+    observationFollowUpCommentModal.close();
   }, [comment, isCommentRequired, props]);
 
   return (
-    <observationFollowUpModal.Component
+    <observationFollowUpCommentModal.Component
       title="Commentaire"
       concealingBackdrop
       buttons={[
@@ -62,14 +62,16 @@ export function ObservationFollowUpCommentModal(props: {
           priority: 'secondary',
           onClick: onCancel,
           disabled: isCommentRequired,
-          title: isCommentRequired ? hint : undefined
+          title: isCommentRequired ? hint : undefined,
+          doClosesModal: false
         },
         {
           children: 'Sauvegarder',
           priority: 'primary',
           onClick: onSave,
           disabled: isCommentRequired && !comment?.trim(),
-          title: isCommentRequired && !comment?.trim() ? hint : undefined
+          title: isCommentRequired && !comment?.trim() ? hint : undefined,
+          doClosesModal: false
         }
       ]}
     >
@@ -79,10 +81,10 @@ export function ObservationFollowUpCommentModal(props: {
           label={
             isCommentRequired ? (
               <>
-                commentaire <span className="text-red-500">*</span>
+                commentaire sur la suite donnée à cette observation <span className="text-red-500">*</span>
               </>
             ) : (
-              'commentaire'
+              'commentaire sur la suite donnée à cette observation'
             )
           }
           hintText={error ? <span className="text-red-500">{error}</span> : null}
@@ -96,6 +98,6 @@ export function ObservationFollowUpCommentModal(props: {
           }}
         />
       </form>
-    </observationFollowUpModal.Component>
+    </observationFollowUpCommentModal.Component>
   );
 }

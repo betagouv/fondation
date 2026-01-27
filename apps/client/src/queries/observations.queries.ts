@@ -2,6 +2,7 @@ import * as $api from '@api/sdk';
 import type {
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
+  PaginatedNominationFiles,
   SearchMagistratsResponseDto
 } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -277,9 +278,33 @@ export function useFollowUpOnObservationMutation() {
         path: { sessionId, nominationFileId, observationId }
       });
     },
-    onSuccess: (_data, { sessionId, nominationFileId, observationId }) =>
-      queryClient.invalidateQueries({
+    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
+      queryClient.setQueryData(
+        sessionKeys.listSessionNominationFiles({ sessionId }),
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId
+                ? {
+                    ...item,
+                    observations: item.observations.map((observation) =>
+                      observation.id === observationId
+                        ? { ...observation, followUp, followUpComment: comment }
+                        : observation
+                    )
+                  }
+                : item
+            )
+          };
+        }
+      );
+
+      return queryClient.invalidateQueries({
         queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
-      })
+      });
+    }
   });
 }

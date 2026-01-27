@@ -5,7 +5,7 @@ import {
   ObservationFollowUpCommentContext,
   type ObservationFollowUpCommentEvent
 } from './ObservationFollowUpCommentContext';
-import { observationFollowUpModal } from './ObservationFollowUpCommentDialog';
+import { observationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
 
 export function useObservationFollowUpCommentDialog() {
   const ctx = React.useContext(ObservationFollowUpCommentContext);
@@ -18,7 +18,7 @@ export function useObservationFollowUpCommentDialog() {
 
       return new Promise<ObservationFollowUpCommentEvent>((resolve) => {
         ctx.setCallback(() => resolve);
-        observationFollowUpModal.open();
+        observationFollowUpCommentModal.open();
       });
     },
     [ctx]

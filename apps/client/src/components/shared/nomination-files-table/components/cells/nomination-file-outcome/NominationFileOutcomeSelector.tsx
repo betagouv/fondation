@@ -9,6 +9,7 @@ import {
 } from '@queries/nomination-sessions.queries';
 import { NominationFileOutcomeBadge, NominationFileOutcomeShortBadge } from './NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from './OutcomeCommentModalContext';
+import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 
 const NOMINATION_FILE_OUTCOME_OPTIONS = [
   '@@EMPTY',
@@ -29,6 +30,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
 
   const { sessionId, formation } = useNominationFilesTable();
   const outcomeCommentDialog = useOutcomeCommentDialog();
+  const observationFollowUps = useObservationFollowUpReminderModal();
   const { mutate, reset, isPending } = useDefineNominationFileOutcomeMutation({
     sessionId,
     nominationFileId
@@ -41,6 +43,11 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
           ? { outcome: changedOutcome.value, comment: changedOutcome.comment }
           : { outcome: null, comment: null },
         {
+          onSuccess() {
+            if (changedOutcome.value === null) return;
+
+            observationFollowUps.remindOfObservationFollowUpIfNecessary(props.nominationFile);
+          },
           onSettled() {
             reset();
           },
@@ -50,7 +57,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
         }
       );
     },
-    [mutate, reset]
+    [mutate, reset, observationFollowUps, props.nominationFile]
   );
 
   const onOutcomeChange = React.useCallback(
