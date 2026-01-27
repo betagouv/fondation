@@ -120,6 +120,19 @@ export type PaginatedNominationFiles = {
             lastName: string;
         }>;
         observationCount: number;
+        observations: Array<{
+            id: string;
+            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+            followUpComment: string | null;
+            magistrat: {
+                id: string;
+                firstName: string;
+                lastName: string;
+            } | null;
+        }>;
+        /**
+         * @deprecated
+         */
         observationMagistrats: Array<{
             id: string;
             firstName: string;
@@ -641,6 +654,8 @@ export type GetObservationDetailsResponseDto = {
         name: string;
         proposedPosition: string | null;
     };
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUpComment: string | null;
     files: Array<{
         id: string;
         name: string;
@@ -693,6 +708,11 @@ export type AttachedMemberCommentScreenshotsDto = {
 
 export type WriteMemberCommentDto = {
     comment: string;
+};
+
+export type FollowUpOnObservationDto = {
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    comment: string | null;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -1619,6 +1639,23 @@ export type WriteMemberCommentResponses = {
 };
 
 export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
+
+export type FollowUpOnObservationData = {
+    body: FollowUpOnObservationDto;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
+};
+
+export type FollowUpOnObservationResponses = {
+    204: void;
+};
+
+export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
 
 export type SearchMagistratsData = {
     body?: never;
