@@ -654,6 +654,8 @@ export type GetObservationDetailsResponseDto = {
         name: string;
         proposedPosition: string | null;
     };
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUpComment: string | null;
     files: Array<{
         id: string;
         name: string;
@@ -1646,7 +1648,7 @@ export type FollowUpOnObservationData = {
         sessionId: string;
     };
     query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observation}/follow-up';
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
 };
 
 export type FollowUpOnObservationResponses = {

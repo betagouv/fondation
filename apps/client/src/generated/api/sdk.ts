@@ -446,7 +446,7 @@ export class observations {
     
     public static followUpOnObservation<ThrowOnError extends boolean = false>(options: Options<FollowUpOnObservationData, ThrowOnError>) {
         return (options.client ?? client).put<FollowUpOnObservationResponses, unknown, ThrowOnError>({
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observation}/follow-up',
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

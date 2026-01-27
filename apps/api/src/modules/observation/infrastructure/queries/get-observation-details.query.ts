@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { DateOnly } from 'src/utils/date-only';
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -41,6 +42,8 @@ const ObservationDetailsSchema = z.object({
     name: z.string(),
     proposedPosition: z.string().nullable(),
   }),
+  followUp: z.enum(ObservationFollowUp.enum).nullable(),
+  followUpComment: z.string().nullable(),
   files: z.array(ObservationFileSchema),
   relatedPropositions: z.array(RelatedPropositionSchema),
   memberComment: z
@@ -74,6 +77,9 @@ export class GetObservationDetailsQuery {
         select: {
           id: true,
           dateReception: true,
+          followUp: true,
+          followUpComment: true,
+
           magistrat: {
             select: {
               id: true,
@@ -184,6 +190,8 @@ export class GetObservationDetailsQuery {
       return {
         id: observation.id,
         receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
+        followUp: observation.followUp,
+        followUpComment: observation.followUpComment,
         observant: {
           id: magistrat.id,
           firstName: magistrat.firstName,

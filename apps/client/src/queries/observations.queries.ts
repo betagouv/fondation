@@ -6,6 +6,7 @@ import type {
 } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionKeys } from './nomination-sessions.queries';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
@@ -251,5 +252,34 @@ export function useWriteObservationMemberCommentMutation() {
         })
       });
     }
+  });
+}
+
+export function useFollowUpOnObservationMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (mutation: {
+      sessionId: string;
+      nominationFileId: string;
+      observationId: string;
+      followUp: ObservationFollowupEnum | null;
+      comment: string | null;
+    }) => {
+      const { sessionId, nominationFileId, observationId, followUp, comment } = mutation;
+      const body =
+        followUp === null
+          ? // FIXME: issue with code generation
+            { followUp: null as unknown as ObservationFollowupEnum, comment: null }
+          : { followUp: followUp as ObservationFollowupEnum, comment };
+
+      await $api.observations.followUpOnObservation({
+        body,
+        path: { sessionId, nominationFileId, observationId }
+      });
+    },
+    onSuccess: (_data, { sessionId, nominationFileId, observationId }) =>
+      queryClient.invalidateQueries({
+        queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
+      })
   });
 }

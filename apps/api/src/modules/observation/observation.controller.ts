@@ -209,7 +209,7 @@ export class ObservationController {
     });
   }
 
-  @Put('/:observation/follow-up')
+  @Put('/:observationId/follow-up')
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -11,6 +11,7 @@ import { PageContentLayout } from '../../../components/shared/PageContentLayout'
 import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
 import { getDetailSessionGdsPath } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
+import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 
 export function ObservationDetailsPage() {
   const { sessionId, nominationFileId, observationId } = useParams<{
@@ -92,17 +93,19 @@ export function ObservationDetailsPage() {
 
   return (
     <PageContentLayout fullBackgroundGreen={true}>
-      <ObservationDetailsContent
-        sessionId={sessionId}
-        nominationFileId={nominationFileId}
-        observationId={observationId}
-        observation={observation}
-        onDownloadFile={handleDownloadFile}
-        backLink={backLink}
-        context={context}
-        onUpdateMemberComment={handleUpdateMemberComment}
-        uploadFiles={uploadFiles}
-      />
+      <ObservationFollowUpCommentProvider>
+        <ObservationDetailsContent
+          sessionId={sessionId}
+          nominationFileId={nominationFileId}
+          observationId={observationId}
+          observation={observation}
+          onDownloadFile={handleDownloadFile}
+          backLink={backLink}
+          context={context}
+          onUpdateMemberComment={handleUpdateMemberComment}
+          uploadFiles={uploadFiles}
+        />
+      </ObservationFollowUpCommentProvider>
     </PageContentLayout>
   );
 }
