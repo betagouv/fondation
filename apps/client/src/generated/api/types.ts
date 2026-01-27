@@ -728,7 +728,7 @@ export type GetFileByFileUrlResponses = {
 };
 
 export type LoginData = {
-    body: LoginDto;
+    body?: LoginDto;
     path?: never;
     query?: never;
     url: '/api/auth/v2/login';

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -11,7 +12,13 @@ import {
   UseFilters,
   UsePipes,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   type CookieOptions,
   type Request as ExpressRequest,
@@ -42,10 +49,35 @@ export class SimpleAuthController {
   @Post('login')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
+  @ApiConsumes('application/json', 'application/x-www-form-urlencoded')
+  @ApiBody({ type: LoginDto, required: false })
+  @ApiBasicAuth()
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    headers: {
+      'Set-Cookie': {
+        example: 'sessionId=f256088e-e97a-4b56-919a-20af8329421a',
+      },
+    },
+  })
   async login(
-    @Body() body: LoginDto,
+    @Body() body: LoginDto | undefined,
+    @Req() req: ExpressRequest,
     @Res() res: ExpressResponse,
   ): Promise<void> {
+    const authorization = req.get('authorization');
+    if (/^basic/i.test(authorization || '')) {
+      const [email, password] = Buffer.from(
+        (authorization ?? '').split(' ').slice(1).join(' ').trim(),
+        'base64',
+      )
+        .toString()
+        .split(':');
+      body = LoginDto.schema.parse({ email, password });
+    } else if (!body) {
+      throw new BadRequestException();
+    }
+
     const session = await this.auth.login(body);
     this.decorateResponse({ res, session }).end();
   }
