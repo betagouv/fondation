@@ -18,6 +18,8 @@ import { NominationFilesAffectationsStatus } from './components/NominationFilesA
 import { FilesAffectationsProvider } from './contexts/FilesAffectationsProvider';
 import { FilesSelectionProvider } from './contexts/FilesSelectionProvider';
 import { NominationFilesTableProvider } from './contexts/NominationFilesTableProvider';
+import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
+import { ObservationFollowUpReminderProvider } from './components/cells/observation-follow-up/ObservationFollowUpReminderProvider';
 
 function NominationFilesTableInner(props: React.PropsWithChildren) {
   const isSg = useIsSgNavigation();
@@ -68,31 +70,35 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     <ObservationsModalProvider>
       <MagistratModaleProvider nominationFiles={nominationFiles} sessionId={sessionId}>
         <NominationFileOutcomeCommentModalProvider formation={formation}>
-          <FilesSelectionProvider selection={tableState.rowSelection}>
-            <FilesAffectationsProvider files={nominationFiles}>
-              <AlertsProvider>
-                <div className="fr-container flex items-end justify-between">
-                  <NominationFilesAffectationsStatus />
+          <ObservationFollowUpCommentProvider>
+            <ObservationFollowUpReminderProvider>
+              <FilesSelectionProvider selection={tableState.rowSelection}>
+                <FilesAffectationsProvider files={nominationFiles}>
+                  <AlertsProvider>
+                    <div className="fr-container flex items-end justify-between">
+                      <NominationFilesAffectationsStatus />
 
-                  <AlertsProvider.Alerts small className="my-3 flex-shrink-0" />
-                </div>
+                      <AlertsProvider.Alerts small className="my-3 flex-shrink-0" />
+                    </div>
 
-                <DataTable
-                  classNames={{
-                    content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto'
-                  }}
-                  table={table}
-                  placeholder={
-                    isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
-                  }
-                >
-                  {props.children}
+                    <DataTable
+                      classNames={{
+                        content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto'
+                      }}
+                      table={table}
+                      placeholder={
+                        isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
+                      }
+                    >
+                      {props.children}
 
-                  <NominationFilesTableActionsBar />
-                </DataTable>
-              </AlertsProvider>
-            </FilesAffectationsProvider>
-          </FilesSelectionProvider>
+                      <NominationFilesTableActionsBar />
+                    </DataTable>
+                  </AlertsProvider>
+                </FilesAffectationsProvider>
+              </FilesSelectionProvider>
+            </ObservationFollowUpReminderProvider>
+          </ObservationFollowUpCommentProvider>
         </NominationFileOutcomeCommentModalProvider>
       </MagistratModaleProvider>
     </ObservationsModalProvider>

@@ -15,9 +15,10 @@ export function ObservationFollowUpSelector(props: {
   observationId: string;
   followUp: ObservationFollowupEnum | null;
   comment: string | null;
+  onChange?: (data: { followUp: ObservationFollowupEnum | null; comment: string | null }) => unknown;
 }) {
   const isSg = useIsSg();
-  const { mutate, isPending } = useFollowUpOnObservationMutation();
+  const { mutateAsync, reset, isPending } = useFollowUpOnObservationMutation();
   const { waitForComment } = useObservationFollowUpCommentDialog();
   const [selected, select] = React.useState(props.followUp ?? 'null');
 
@@ -39,37 +40,52 @@ export function ObservationFollowUpSelector(props: {
         comment = event.value;
       }
 
+      const followUp = value === 'null' ? null : value;
       const { sessionId, nominationFileId, observationId } = props;
-      mutate({
-        sessionId,
-        nominationFileId,
-        observationId,
-        comment,
-        followUp: value === 'null' ? null : value
-      });
+      await mutateAsync(
+        {
+          sessionId,
+          nominationFileId,
+          observationId,
+          comment,
+          followUp
+        },
+        {
+          onSettled() {
+            reset();
+          },
+          onSuccess() {
+            props.onChange?.({ comment, followUp });
+          }
+        }
+      );
     },
-    [props, select, waitForComment, mutate]
+    [props, select, waitForComment, mutateAsync, reset]
   );
 
   if (!isSg) return null;
 
   return (
-    <Select
-      label="Suite"
-      nativeSelectProps={{
-        onChange,
-        value: selected,
-        disabled: isPending
-      }}
-    >
-      <option key="observation_followUp_null" value={'null'}>
-        Aucune
-      </option>
-      {Object.values(ObservationFollowUpEnum).map((value) => (
-        <option key={`observation_followUp_${value}`} value={value}>
-          {ObservationFollowUpEnumLabels[value]}
+    <div>
+      <Select
+        label="Suite"
+        className="!mb-0"
+        nativeSelectProps={{
+          onChange,
+          value: selected,
+          disabled: isPending
+        }}
+      >
+        <option key="observation_followUp_null" value={'null'}>
+          Aucune
         </option>
-      ))}
-    </Select>
+        {Object.values(ObservationFollowUpEnum).map((value) => (
+          <option key={`observation_followUp_${value}`} value={value}>
+            {ObservationFollowUpEnumLabels[value]}
+          </option>
+        ))}
+      </Select>
+      {props.comment && <p className="mb-0 mt-2 p-0 text-sm font-normal italic">{props.comment}</p>}
+    </div>
   );
 }

@@ -122,6 +122,11 @@ export type PaginatedNominationFiles = {
         observationCount: number;
         observations: Array<{
             id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
             followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
             followUpComment: string | null;
             magistrat: {

@@ -126,6 +126,7 @@ export class ListNominationFilesQuery {
               id: true,
               followUp: true,
               followUpComment: true,
+              dateReception: true,
               magistrat: {
                 select: { id: true, firstName: true, lastName: true },
               },
@@ -208,6 +209,7 @@ export class ListNominationFilesQuery {
             id: obs.id,
             followUp: obs.followUp,
             followUpComment: obs.followUp ? obs.followUpComment : null,
+            date: DateOnly.fromDate(obs.dateReception).toJson(),
             magistrat: obs.magistrat
               ? {
                   id: obs.magistrat.id,
@@ -327,6 +329,7 @@ const NominationFileAffectationItemSchema = z.object({
   observations: z.array(
     z.object({
       id: z.string(),
+      date: dateOnlyJsonSchema,
       followUp: z.enum(ObservationFollowUp.enum).nullable(),
       followUpComment: z.string().nullable(),
       magistrat: z
