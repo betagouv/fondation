@@ -39,7 +39,7 @@ export function ObservationDetailsContent({
   const relatedPropositions = observation.relatedPropositions ?? [];
 
   return (
-    <>
+    <div className="bg-white p-8">
       <div className="fr-mb-4w">
         <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
           {backLink.label}
@@ -111,13 +111,13 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
-          {context === 'membre' && onUpdateMemberComment && (
+          {context === 'membre' && observation.memberComment && onUpdateMemberComment && (
             <section className="fr-mb-4w">
               <h2 className="fr-h4" id="member-comment-label">
                 Mon commentaire
               </h2>
               <TipTapEditor
-                value={observation.memberComment?.comment ?? ''}
+                value={observation.memberComment.comment ?? ''}
                 onChange={onUpdateMemberComment}
                 ariaLabelledby="member-comment-label"
                 uploadFiles={uploadFiles}
@@ -186,6 +186,6 @@ export function ObservationDetailsContent({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Navigate, useParams, useLocation } from 'react-router-dom';
+import { Navigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import React from 'react';
 
 import {
@@ -9,7 +9,7 @@ import {
 } from '@queries/observations.queries';
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
-import { getDetailSessionGdsPath } from '../../../utils/route-path.utils';
+import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 
@@ -19,6 +19,9 @@ export function ObservationDetailsPage() {
     nominationFileId: string;
     observationId: string;
   }>();
+
+  const [searchParams] = useSearchParams();
+  const reportId = searchParams.get('reportId');
 
   const location = useLocation();
   const isSgContext = location.pathname.startsWith('/secretariat-general');
@@ -89,7 +92,9 @@ export function ObservationDetailsPage() {
 
   const backLink = isSgContext
     ? { to: `/secretariat-general/session/${sessionId}`, label: 'Retour à la session' }
-    : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
+    : reportId
+      ? { to: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId), label: 'Retour au rapport' }
+      : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
 
   return (
     <PageContentLayout fullBackgroundGreen={true}>

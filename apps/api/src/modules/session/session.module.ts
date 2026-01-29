@@ -25,7 +25,7 @@ import { SummaryModule } from './summary.module';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 
 @Module({
-  exports: [SessionService, SummaryModule],
+  exports: [SessionService, SummaryModule, AffectationVersionFinder],
   controllers: [SessionController],
   imports: [forwardRef(() => MembersModule), SummaryModule],
   providers: [
