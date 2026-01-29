@@ -176,6 +176,7 @@ describe('Session E2E', () => {
         id: expect.any(String),
         observationCount: 0,
         observationMagistrats: [],
+        observations: [],
         priority: null,
         memo: null,
         summary: null,
@@ -192,6 +193,7 @@ describe('Session E2E', () => {
         comment: null,
         commentAccessUserIds: [],
         id: expect.any(String),
+        observations: [],
         observationCount: 0,
         observationMagistrats: [],
         content: {

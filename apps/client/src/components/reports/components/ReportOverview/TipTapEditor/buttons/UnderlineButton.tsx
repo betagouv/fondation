@@ -6,7 +6,7 @@ export const UnderlineButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().chain().focus().toggleUnderline().run()
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleUnderline()
   });
 
   const toggleUnderline = () => {

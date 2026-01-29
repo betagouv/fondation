@@ -6,6 +6,7 @@ import z from 'zod';
 import { PrismaService } from 'src/modules/framework/database';
 import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 import { DateOnly } from 'src/utils/date-only';
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -42,6 +43,8 @@ const ObservationDetailsSchema = z.object({
     name: z.string(),
     proposedPosition: z.string().nullable(),
   }),
+  followUp: z.enum(ObservationFollowUp.enum).nullable(),
+  followUpComment: z.string().nullable(),
   files: z.array(ObservationFileSchema),
   relatedPropositions: z.array(RelatedPropositionSchema),
   memberComment: z
@@ -78,6 +81,9 @@ export class GetObservationDetailsQuery {
         select: {
           id: true,
           dateReception: true,
+          followUp: true,
+          followUpComment: true,
+
           magistrat: {
             select: {
               id: true,
@@ -194,17 +200,18 @@ export class GetObservationDetailsQuery {
           })
         : null;
 
-      // Si l'utilisateur est rapporteur, retourner un objet vide si pas de commentaire
       const memberComment = isReporter
-        ? memberCommentFromDb ?? {
+        ? (memberCommentFromDb ?? {
             comment: '',
             screenshots: [],
-          }
+          })
         : null;
 
       return {
         id: observation.id,
         receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
+        followUp: observation.followUp,
+        followUpComment: observation.followUpComment,
         observant: {
           id: magistrat.id,
           firstName: magistrat.firstName,

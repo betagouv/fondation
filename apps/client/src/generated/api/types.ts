@@ -68,7 +68,7 @@ export type AffectReportersDto = {
     }>;
 };
 
-export type ListedNominationFileAffectationItem = {
+export type PaginatedNominationFiles = {
     items: Array<{
         id: string;
         priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
@@ -120,6 +120,24 @@ export type ListedNominationFileAffectationItem = {
             lastName: string;
         }>;
         observationCount: number;
+        observations: Array<{
+            id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+            followUpComment: string | null;
+            magistrat: {
+                id: string;
+                firstName: string;
+                lastName: string;
+            } | null;
+        }>;
+        /**
+         * @deprecated
+         */
         observationMagistrats: Array<{
             id: string;
             firstName: string;
@@ -133,6 +151,14 @@ export type ListedNominationFileAffectationItem = {
             canWrite: boolean;
         } | null;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
 };
 
 export type FoundAffectationVersion = {
@@ -147,8 +173,20 @@ export type FoundAffectationVersion = {
     } | null;
 };
 
+export type CountedUnaffectedFilesDto = {
+    count: number;
+};
+
+export type ListedCurrentlyAffectedReportersDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+    }>;
+};
+
 export type AutoAffectationDto = {
-    nominationFileIds: Array<string>;
+    nominationFileIds?: Array<string>;
 };
 
 export type UpdateCommentDto = {
@@ -635,6 +673,8 @@ export type GetObservationDetailsResponseDto = {
         name: string;
         proposedPosition: string | null;
     };
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUpComment: string | null;
     files: Array<{
         id: string;
         name: string;
@@ -689,6 +729,11 @@ export type WriteMemberCommentDto = {
     comment: string;
 };
 
+export type FollowUpOnObservationDto = {
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    comment: string | null;
+};
+
 export type SearchMagistratsResponseDto = {
     items: Array<{
         id: string;
@@ -722,7 +767,7 @@ export type GetFileByFileUrlResponses = {
 };
 
 export type LoginData = {
-    body: LoginDto;
+    body?: LoginDto;
     path?: never;
     query?: never;
     url: '/api/auth/v2/login';
@@ -816,20 +861,40 @@ export type AffectReportersResponses = {
 
 export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
 
+export type ListNominationFilesAsExcelData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files.xlsx';
+};
+
+export type ListNominationFilesAsExcelResponses = {
+    200: unknown;
+};
+
 export type ListNominationFilesData = {
     body?: never;
     path: {
         sessionId: string;
     };
     query?: {
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        reporterIds?: Array<string>;
+        sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
+        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown>;
+        reporterIds?: Array<string | unknown>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
     };
     url: '/api/sessions/v2/{sessionId}/files';
 };
 
 export type ListNominationFilesResponses = {
-    200: ListedNominationFileAffectationItem;
+    200: PaginatedNominationFiles;
 };
 
 export type ListNominationFilesResponse = ListNominationFilesResponses[keyof ListNominationFilesResponses];
@@ -848,6 +913,38 @@ export type DetailNominationSessionAffectationsVersionResponses = {
 };
 
 export type DetailNominationSessionAffectationsVersionResponse = DetailNominationSessionAffectationsVersionResponses[keyof DetailNominationSessionAffectationsVersionResponses];
+
+export type CountUnaffectedNominationFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        nominationFileIds?: string;
+    };
+    url: '/api/sessions/v2/{sessionId}/files/reporters/versions/last/unaffected-count';
+};
+
+export type CountUnaffectedNominationFilesResponses = {
+    200: CountedUnaffectedFilesDto;
+};
+
+export type CountUnaffectedNominationFilesResponse = CountUnaffectedNominationFilesResponses[keyof CountUnaffectedNominationFilesResponses];
+
+export type ListCurrentlyAffectedReportersData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/reporters/versions/last/members';
+};
+
+export type ListCurrentlyAffectedReportersResponses = {
+    200: ListedCurrentlyAffectedReportersDto;
+};
+
+export type ListCurrentlyAffectedReportersResponse = ListCurrentlyAffectedReportersResponses[keyof ListCurrentlyAffectedReportersResponses];
 
 export type PublishNominationSessionAffectationsVersionData = {
     body?: never;
@@ -1561,6 +1658,23 @@ export type WriteMemberCommentResponses = {
 };
 
 export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
+
+export type FollowUpOnObservationData = {
+    body: FollowUpOnObservationDto;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
+};
+
+export type FollowUpOnObservationResponses = {
+    204: void;
+};
+
+export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
 
 export type SearchMagistratsData = {
     body?: never;

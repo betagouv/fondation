@@ -7,6 +7,7 @@ import type { ObservationDetails } from '@queries/observations.queries';
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
+import { ObservationFollowUpSelector } from './observations/follow-up-selector/ObservationFollowUpSelector';
 
 type ObservationDetailsContentProps = {
   sessionId: string;
@@ -26,6 +27,7 @@ type ObservationDetailsContentProps = {
 export function ObservationDetailsContent({
   sessionId,
   observation,
+  nominationFileId,
   onDownloadFile,
   backLink,
   context,
@@ -44,7 +46,16 @@ export function ObservationDetailsContent({
         </Link>
       </div>
 
-      <h1 className="fr-h2 fr-mb-4w">Fiche observation</h1>
+      <h1 className="fr-h2 fr-mb-4w flex items-center justify-between">
+        <span>Fiche observation</span>
+        <ObservationFollowUpSelector
+          sessionId={sessionId}
+          nominationFileId={nominationFileId}
+          observationId={observation.id}
+          followUp={observation.followUp}
+          comment={observation.followUpComment}
+        />
+      </h1>
 
       <div className="fr-grid-row fr-grid-row--gutters">
         <div className="fr-col-12 fr-col-lg-8">

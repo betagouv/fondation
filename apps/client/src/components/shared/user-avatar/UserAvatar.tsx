@@ -2,7 +2,8 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
-import { userAvatarSizes, toFullName } from './user-avatar.utils';
+import { toFullName } from '@/utils/user.utils';
+import { userAvatarSizes } from './user-avatar.utils';
 
 export function UserAvatar(props: {
   size?: 'sm' | 'md' | 'lg';

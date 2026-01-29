@@ -1,11 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
-import type {
-  ListedMemberSessionsDto,
-  ListedNominationFileAffectationItem,
-  ListMembersData
-} from '@api/types';
+import type { ListedMemberSessionsDto, ListMembersData, PaginatedNominationFiles } from '@api/types';
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
@@ -30,6 +26,7 @@ export const useMemberListQuery = (
   } = {}
 ) =>
   useQuery({
+    staleTime: 1_000,
     placeholderData: (prev) => prev,
     queryKey: memberKeys.listMembers(options),
     queryFn: () => {
@@ -197,7 +194,7 @@ export function useWriteNominationFileMemberMemoMutation() {
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
       queryClient.setQueryData(
         sessionKeys.listSessionNominationFiles({ sessionId }),
-        (old: ListedNominationFileAffectationItem | undefined) => {
+        (old: PaginatedNominationFiles | undefined) => {
           if (!old) return old;
 
           return {

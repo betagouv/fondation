@@ -45,7 +45,7 @@ export function ReactTableHead<Data extends RowData>(props: { table: Table<Data>
       {props.table.getHeaderGroups().map((group) => (
         <tr key={group.id}>
           {props.table.options.enableRowSelection ? (
-            <th className={clsx(cx('fr-cell--fixed'), 'w-8')}>
+            <th className={clsx('w-8', cx('fr-cell--fixed'))}>
               {props.table.options.meta?.allRowsSelectionEnabled ? (
                 <IndeterminateCheckbox
                   small

@@ -2,20 +2,17 @@ import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
-
-import { useUser } from '@queries/auth.queries';
+import { useContext } from 'react';
 
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
+import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useContext } from 'react';
 import { SummaryContext } from './SummaryContext';
 
 /** @see https://www.systeme-de-design.gouv.fr/version-courante/fr/modeles/pages-types/page-d-erreurs */
 export function SummaryNotFound() {
   const { sessionId } = useContext(SummaryContext);
-
-  const { user } = useUser();
-  const isSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
+  const isSg = useIsSg();
 
   const buttons: ButtonProps[] = [];
 

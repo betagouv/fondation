@@ -2,10 +2,12 @@ import * as $api from '@api/sdk';
 import type {
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
+  PaginatedNominationFiles,
   SearchMagistratsResponseDto
 } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionKeys } from './nomination-sessions.queries';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
@@ -249,6 +251,59 @@ export function useWriteObservationMemberCommentMutation() {
           nominationFileId: variables.nominationFileId,
           observationId: variables.observationId
         })
+      });
+    }
+  });
+}
+
+export function useFollowUpOnObservationMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (mutation: {
+      sessionId: string;
+      nominationFileId: string;
+      observationId: string;
+      followUp: ObservationFollowupEnum | null;
+      comment: string | null;
+    }) => {
+      const { sessionId, nominationFileId, observationId, followUp, comment } = mutation;
+      const body =
+        followUp === null
+          ? // FIXME: issue with code generation
+            { followUp: null as unknown as ObservationFollowupEnum, comment: null }
+          : { followUp: followUp as ObservationFollowupEnum, comment };
+
+      await $api.observations.followUpOnObservation({
+        body,
+        path: { sessionId, nominationFileId, observationId }
+      });
+    },
+    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
+      queryClient.setQueryData(
+        sessionKeys.listSessionNominationFiles({ sessionId }),
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId
+                ? {
+                    ...item,
+                    observations: item.observations.map((observation) =>
+                      observation.id === observationId
+                        ? { ...observation, followUp, followUpComment: comment }
+                        : observation
+                    )
+                  }
+                : item
+            )
+          };
+        }
+      );
+
+      return queryClient.invalidateQueries({
+        queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
       });
     }
   });

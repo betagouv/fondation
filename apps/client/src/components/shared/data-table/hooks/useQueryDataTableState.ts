@@ -1,4 +1,4 @@
-import type { TableState } from '@tanstack/react-table';
+import type { PaginationState, TableState } from '@tanstack/react-table';
 import { parseAsBoolean, parseAsIndex, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import React from 'react';
 
@@ -35,7 +35,6 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
   initialState: State = {} as State
 ): [State, React.Dispatch<React.SetStateAction<TableState>>] {
   assertIsPageSize(initialState.pagination?.pageSize);
-
   const { pagination, sorting, columnFilters, globalFilter, ...initialNonQueryState } = initialState;
 
   const [nonQueryState, setNonQueryState] = React.useState(initialNonQueryState);
@@ -73,16 +72,31 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
         ...newNonQueryState
       } = typeof updater === 'function' ? updater(tableState) : updater;
 
+      const paginationState: Partial<PaginationState> = { ...(newPagination ?? {}) };
+      if (
+        JSON.stringify({
+          globalFilter: tableState.globalFilter,
+          columnFilters: tableState.columnFilters,
+          sorting: tableState.sorting
+        }) !==
+        JSON.stringify({
+          globalFilter: newGlobalFilter,
+          columnFilters: newColumnFilters,
+          sorting: newSorting
+        })
+      ) {
+        paginationState.pageIndex = 0;
+      }
+
+      setNonQueryState((prev) => ({ ...prev, ...newNonQueryState }));
       setQueryState({
+        page: paginationState.pageIndex,
+        perPage: paginationState.pageSize,
         desc: newSorting?.[0]?.desc ?? false,
         sortBy: newSorting?.[0]?.id ?? '',
-        page: newPagination?.pageIndex,
-        perPage: newPagination?.pageSize,
         filters: omitEmptyFilters(newColumnFilters ?? []),
         q: (newGlobalFilter ?? '').trim()
       });
-
-      setNonQueryState(newNonQueryState);
     },
     [tableState, setQueryState, setNonQueryState]
   );

@@ -34,11 +34,12 @@ model User {
   reporterOnNominationFileIds NominationFileToReporter[]
   publishedVersions           AffectationVersion[]
   commentAccess               CommentAccess[]
-  createdObservations         Observation[]
+  createdObservations         Observation[]              @relation("user_to_observation")
   observationMemberComments   ObservationMemberComment[]
   memos                       MemberMemo[]
   authorOfSummaries           Summary[]
   readerOfSummaries           SummaryReader[]
+  followedUpObservations      Observation[]              @relation("user_to_observation_follow_up")
 
   @@map("users")
   @@schema("identity_and_access_context")

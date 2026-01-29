@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 export function openapi(app: INestApplication): void {
@@ -12,7 +12,15 @@ export function openapi(app: INestApplication): void {
           app,
           new DocumentBuilder()
             .setDescription(`[raw JSON](/openapi/root.json)`)
-            .addCookieAuth('sessionId')
+            .addCookieAuth('sessionId', {
+              name: 'sessionId',
+              type: 'apiKey',
+              in: 'cookie',
+            })
+            .addBasicAuth({
+              type: 'http',
+              scheme: 'basic',
+            })
             .build(),
           { operationIdFactory: (_, methodKey) => methodKey },
         ),

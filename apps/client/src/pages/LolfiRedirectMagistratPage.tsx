@@ -3,7 +3,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Compass from '@codegouvfr/react-dsfr/picto/Compass';
 import React from 'react';
-import { Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
@@ -44,7 +44,9 @@ function LolfiRedirectMagistratInner() {
 
   const { remainingSeconds, isEnded } = useCountdown();
 
-  if (isEnded && data?.url) return <Navigate to={data.url} />;
+  if (isEnded && !error && data?.url) {
+    window.location.href = data.url;
+  }
 
   return (
     <div className="fr-container">

@@ -3,7 +3,8 @@ import type {
   DetailedNominationSessionDto,
   DetailedReportDto,
   DetailedUserResponseDto,
-  ListedNominationFileAffectationItem
+  FollowUpOnObservationDto,
+  PaginatedNominationFiles
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
@@ -62,7 +63,7 @@ export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
 };
 
 export type NominationFileOutcomeEnum = NonNullable<
-  ListedNominationFileAffectationItem['items'][number]['content']['outcome']
+  PaginatedNominationFiles['items'][number]['content']['outcome']
 >['value'];
 
 const NOMINATION_FILE_OUTCOME_LABELS = {
@@ -127,3 +128,16 @@ export function outcomeLabels(outcome: { formation: FormationEnum; value: Nomina
     badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.value]
   };
 }
+
+export type ObservationFollowupEnum = NonNullable<FollowUpOnObservationDto['followUp']>;
+export const ObservationFollowUpEnum = {
+  ALERT: 'ALERT',
+  INTERESTING: 'INTERESTING',
+  REFERENCE: 'REFERENCE'
+} as const satisfies Record<ObservationFollowupEnum, ObservationFollowupEnum>;
+
+export const ObservationFollowUpEnumLabels = {
+  ALERT: 'Signalement',
+  REFERENCE: 'Recommendation',
+  INTERESTING: `Digne d'intérêt`
+} as const satisfies Record<ObservationFollowupEnum, string>;

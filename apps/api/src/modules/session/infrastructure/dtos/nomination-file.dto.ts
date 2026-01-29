@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
-import { PrioriteEnum } from 'shared-models';
 import z from 'zod';
+
+import { PrioriteEnum } from 'shared-models';
+
+import { createSortableDto } from 'src/modules/framework/sorting';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
@@ -14,10 +17,30 @@ export class AffectReportersDto extends createZodDto(
   }),
 ) {}
 
-export class ListNominationFilesQueryDto extends createZodDto(
-  z.looseObject({
-    priorities: z.array(z.enum(PrioriteEnum)).optional(),
-    reporterIds: z.array(z.uuid()).optional(),
+function toNullableArray(
+  value: unknown | undefined | null,
+): undefined | (unknown | null)[] {
+  if (value === undefined) return undefined;
+  return ([] as unknown[]).concat(value);
+}
+
+export class ListNominationFilesQueryDto extends createSortableDto(
+  z.object({
+    sortBy: z
+      .enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade'])
+      .optional(),
+    priorities: z
+      .preprocess(
+        (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
+        z.array(z.enum(PrioriteEnum).nullable()).optional(),
+      )
+      .optional(),
+    reporterIds: z
+      .preprocess(
+        (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
+        z.array(z.uuid().nullable()).optional(),
+      )
+      .optional(),
   }),
 ) {}
 

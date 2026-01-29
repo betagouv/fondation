@@ -1,4 +1,5 @@
 import { Id, makeId } from 'src/utils/id';
+import { ObservationFollowUp } from './observation-follow-up';
 
 export class UserNotAllowedToAttachScreenshotsError extends Error {
   constructor() {
@@ -63,6 +64,14 @@ export class ObservationMemberCommentScreenshotsAttached {
   ) {}
 }
 
+export class ObservationFollowedUp {
+  constructor(
+    readonly id: string,
+    readonly followUp: ObservationFollowUp | null,
+    readonly userId: string | null,
+  ) {}
+}
+
 type ObservationEvent =
   | ObservationCreated
   | ObservationFilesAttached
@@ -70,7 +79,8 @@ type ObservationEvent =
   | ObservationUpdated
   | ObservationFilesDetached
   | ObservationMemberCommentWritten
-  | ObservationMemberCommentScreenshotsAttached;
+  | ObservationMemberCommentScreenshotsAttached
+  | ObservationFollowedUp;
 
 export class Observation {
   private constructor(
@@ -181,6 +191,25 @@ export class Observation {
         command.userId,
         command.comment,
       ),
+    );
+  }
+
+  followUpWith(command: {
+    followUp: string | null;
+    comment: string | null;
+    userId: string | null;
+  }): void {
+    if (command.followUp === null) {
+      this.#messages.push(new ObservationFollowedUp(this.id, null, null));
+      return;
+    }
+
+    const followUp = ObservationFollowUp.from({
+      followUp: command.followUp,
+      comment: command.comment,
+    });
+    this.#messages.push(
+      new ObservationFollowedUp(this.id, followUp, command.userId),
     );
   }
 

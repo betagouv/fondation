@@ -17,7 +17,7 @@ import {
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectations';
-import { AffectationVersionFinder } from './affectation-version.finder';
+import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
 export class AutoAffectationsFinder {
@@ -27,50 +27,35 @@ export class AutoAffectationsFinder {
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
   ) {}
 
   async find(predicate: {
     sessionId: string;
-    nominationFileIds: readonly string[];
+    nominationFileIds: readonly string[] | undefined;
   }): Promise<AutoAffectations> {
     const session = await this.prisma.$transaction(async (tx) => {
-      const version = await this.affectationVersionFinder.last({
-        sessionId: predicate.sessionId,
-        tx,
-      });
-
       const txSession = await tx.session.findUnique({
         where: { id: predicate.sessionId },
         select: {
           date: true,
           formation: true,
-          dossierDeNominations: {
-            select: {
-              id: true,
-              targetedPosition: true,
-              targetedGrade: true,
-              number: true,
-              currentPosition: true,
-            },
-            where: {
-              outcome: null,
-              id: { in: predicate.nominationFileIds as string[] },
-              reporterIds: {
-                none: { versionId: version?.id },
-              },
-            },
-          },
         },
       });
 
       if (!txSession) return null;
 
+      const nominationFiles = await this.unaffectedFilesFinder.find({
+        tx,
+        sessionId: predicate.sessionId,
+        nominationFileIds: predicate.nominationFileIds,
+      });
+
       return {
         ...txSession,
         dossierDeNominations: await this.withJurisdiction(
           tx,
-          txSession.dossierDeNominations,
+          nominationFiles.items,
         ),
       };
     });
@@ -80,7 +65,11 @@ export class AutoAffectationsFinder {
     const date = DateOnly.fromDate(session.date);
     const formation = prismaFormationEnumToFormationEnum(session.formation);
 
-    const members = await this.findMembers({ date, formation });
+    const members = await this.findMembers({
+      date,
+      formation,
+      sessionId: predicate.sessionId,
+    });
     const files = this.toAutoAffectationNominationFiles(
       session.dossierDeNominations,
       { date, formation },
@@ -135,6 +124,7 @@ export class AutoAffectationsFinder {
 
   private async findMembers(session: {
     date: DateOnly;
+    sessionId: string;
     formation: Magistrat.Formation;
   }): Promise<AutoAffectationMember[]> {
     const memberIds = await this.membersService.findMembers({
@@ -170,6 +160,7 @@ export class AutoAffectationsFinder {
             INNER JOIN nominations_context.dossier_de_nomination ddn ON r.nomination_file_id = ddn.id
           WHERE (
             NOT r.is_deleted
+            AND r.session_id != ${session.sessionId}
             AND r.reporter_id = ANY(${memberIds}::UUID[])
             AND r.created_at >= ${startOfYear(this.clock.now())}::DATE
           )
@@ -234,11 +225,6 @@ export class AutoAffectationsFinder {
       currentJurisdiction: string | null;
     })[]
   > {
-    const definedPositions = positions.filter(
-      (p): p is T & { targetedPosition: string } =>
-        isDefined(p.targetedPosition),
-    );
-
     const result = await tx.$queryRaw<
       { id: string; current: string | null; target: string | null }[]
     >`
@@ -247,7 +233,7 @@ export class AutoAffectationsFinder {
           (p.content ->> 'id')::UUID AS id,
           (p.content ->> 'currentPosition') AS current_position,
           (p.content ->> 'targetedPosition') AS targeted_position
-        FROM UNNEST (${definedPositions}::jsonb[]) AS p(content)
+        FROM UNNEST (${positions}::jsonb[]) AS p(content)
       )
 
       SELECT queried_positions.id, current_j.codejur AS "current", target_j.codejur AS "target"

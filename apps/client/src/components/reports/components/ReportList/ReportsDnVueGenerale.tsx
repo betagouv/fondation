@@ -1,45 +1,17 @@
-import { useParams } from 'react-router-dom';
-import { ErrorMessage } from '../../../shared/ErrorMessage';
-import { TableauDossiersDeNomination } from '../../../shared/TableauDossiersDeNomination';
-import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
-import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
+import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
 import type { FormationEnum } from '@/types/enums.types';
-import { ObservationsModalProvider } from '@/components/secretariat-general/transparence/tableau-affectation-dossier-de-nomination/ObservationsModalContext';
+import type React from 'react';
+import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';
 
-type ReportsDnVueGeneraleProps = React.PropsWithChildren<{
-  formation: FormationEnum;
-}>;
-
-export const ReportsDnVueGenerale = ({ formation, children }: ReportsDnVueGeneraleProps) => {
-  const { sessionId } = useParams();
-  const {
-    data,
-    isLoading: isLoadingDossiersDeNomination,
-    isError: isErrorDossiersDeNomination
-  } = useSessionNominationFilesQuery({
-    sessionId: sessionId as string
-  });
-
-  if (isLoadingDossiersDeNomination) {
-    return <div>Chargement des dossiers de nomination...</div>;
-  }
-
-  if (isErrorDossiersDeNomination) {
-    return <ErrorMessage message="Erreur lors du chargement des dossiers de nomination..." />;
-  }
-
+export const ReportsDnVueGenerale = (
+  props: React.PropsWithChildren<{ sessionId: string; formation: FormationEnum }>
+) => {
   return (
     <div className="my-4 flex flex-col gap-4">
-      <ObservationsModalProvider>
-        <TableauDossiersDeNomination
-          dossiersDeNomination={data?.items || []}
-          formation={formation}
-          sessionId={sessionId!}
-        >
-          {children}
-        </TableauDossiersDeNomination>
-      </ObservationsModalProvider>
-      <TransparencyAttachmentsSection sessionId={sessionId as string} />
+      <NominationFilesTable formation={props.formation} sessionId={props.sessionId!} isEditable={false}>
+        {props.children}
+      </NominationFilesTable>
+      <TransparencyAttachmentsSection sessionId={props.sessionId} />
     </div>
   );
 };

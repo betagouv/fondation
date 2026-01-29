@@ -36,6 +36,7 @@ import {
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
+import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
 @Injectable()
 export class NominationSessionRepository {
@@ -414,6 +415,11 @@ export class NominationSessionRepository {
             targetedGrade: f.targetedGrade,
             careerInformation: f.careerInformation,
             dueDate: assertIsDefined(session).dueDate,
+
+            /** virtual field for sorting */
+            sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
+              f.targetedGrade,
+            ),
 
             /** @deprecated */
             dossierDeNominationImportId: randomUUID(),

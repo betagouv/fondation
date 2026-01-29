@@ -1,27 +1,32 @@
-import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
+import { HelpPage } from '@/pages/HelpPage';
+import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
+import { SummaryPage } from '@/pages/summary/SummaryPage';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
 import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
 import { LoginPage } from '../pages/LoginPage';
 import { ManageSessionPage } from '../pages/secretariat-general/ManageSessionPage';
+import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
 import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
-import { SessionsPage } from '../pages/transparence/SessionsPage';
-import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
-import { getDetailSessionGdsPath, ROUTE_PATHS } from '../utils/route-path.utils';
-import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
 import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
 import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
-import { HelpPage } from '@/pages/HelpPage';
-import { SummaryPage } from '@/pages/summary/SummaryPage';
-import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
+import { SessionsPage } from '../pages/transparence/SessionsPage';
+import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
+import { ROUTE_PATHS } from '../utils/route-path.utils';
+import { AppErrorBoundary } from './AppErrorBoundary';
 
-const router = createBrowserRouter([
+const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
+const router = sentryCreateBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
+    errorElement: <AppErrorBoundary />,
     children: [
       {
         path: '/',
@@ -63,11 +68,6 @@ const router = createBrowserRouter([
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
             element: <ObservationDetailsPage />
-          },
-          {
-            // Useful in case of bookmarks or history
-            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_GDS,
-            action: ({ params }) => redirect(getDetailSessionGdsPath({ sessionId: params.sessionId! }))
           }
         ]
       },

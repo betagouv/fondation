@@ -1,16 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
+import { inspect } from 'node:util';
 
 import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
+import { Pagination } from 'src/modules/framework/pagination';
+import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
 import { DateOnly } from 'src/utils/date-only';
-import { inspect } from 'util';
+import { isDefined } from 'src/utils/is-defined';
 import { NominationFile } from '../domain/nomination-file';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from '../domain/nomination-file-outcome';
 import { NominationSession } from '../domain/nomination-session';
+import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { type FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
+import {
+  CountedUnaffectedFilesDto,
+  CountUnaffectedFilesQuery,
+} from './queries/count-unaffected-files.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -20,6 +32,10 @@ import {
   type DetailedNominationSessionDto,
   DetailNominationSessionQuery,
 } from './queries/detail-nomination-session.query';
+import {
+  GetLolfiMagistratUrlQuery,
+  LolfiMagistratUrlDto,
+} from './queries/get-lolfi-magistrat-url.query';
 import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
 import {
   type DetailedMemberSessionDto,
@@ -30,8 +46,12 @@ import {
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
 import {
-  type ListedNominationFileAffectationItem,
+  ListCurrentlyAffectedReportersQuery,
+  ListedCurrentlyAffectedReportersDto,
+} from './queries/list-currently-affected-reporters.query';
+import {
   ListNominationFilesQuery,
+  type PaginatedNominationFiles,
 } from './queries/list-nomination-files.query';
 import {
   type ListedNominationSessionAttachmentDto,
@@ -42,15 +62,7 @@ import {
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from '../domain/nomination-file-outcome';
-import { isDefined } from 'src/utils/is-defined';
-import {
-  GetLolfiMagistratUrlQuery,
-  LolfiMagistratUrlDto,
-} from './queries/get-lolfi-magistrat-url.query';
+import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 
 @Injectable()
 export class SessionService {
@@ -69,6 +81,9 @@ export class SessionService {
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
     private readonly nominationSessionFileFinder: NominationSessionFileFinder,
     private readonly nominationSessionRepository: NominationSessionRepository,
+    private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
+    private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
+    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -123,13 +138,15 @@ export class SessionService {
   }
 
   async listNominationFiles(query: {
+    pagination: Pagination;
+    sorting: Sortable<ListNominationFilesQueryDto>;
     sessionId: string;
     user: { role: Role; id: string };
     filters: {
-      reporterIds: readonly string[];
-      priorities: readonly PrioriteEnum[];
+      reporterIds: readonly (string | null)[];
+      priorities: readonly (PrioriteEnum | null)[];
     };
-  }): Promise<ListedNominationFileAffectationItem> {
+  }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
   }
 
@@ -152,7 +169,7 @@ export class SessionService {
 
   async autoAffectation(command: {
     sessionId: string;
-    nominationFileIds: readonly string[];
+    nominationFileIds: readonly string[] | undefined;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
@@ -362,5 +379,24 @@ export class SessionService {
     nominationFileId: string;
   }): Promise<LolfiMagistratUrlDto> {
     return this.getLolfiMagistratUrlQuery.handle(query);
+  }
+
+  listCurrentlyAffectedReporters(query: {
+    sessionId: string;
+  }): Promise<ListedCurrentlyAffectedReportersDto> {
+    return this.listCurrentlyAffectedReportersQuery.handle(query);
+  }
+
+  countUnaffectedFiles(query: {
+    sessionId: string;
+    nominationFileIds: readonly string[] | undefined;
+  }): Promise<CountedUnaffectedFilesDto> {
+    return this.countUnaffectedFilesQuery.handle(query);
+  }
+
+  listNominationFilesAsExcel(query: {
+    sessionId: string;
+  }): Promise<StreamableFile> {
+    return this.listNominationFilesAsExcelQuery.handle(query);
   }
 }
