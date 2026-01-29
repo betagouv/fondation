@@ -4,6 +4,7 @@ import { DateOnlyJson, dateOnlyJsonSchema } from 'shared-models';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 import { DateOnly } from 'src/utils/date-only';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
@@ -60,7 +61,10 @@ export class GetObservationDetailsResponseDto extends createZodDto(
 
 @Injectable()
 export class GetObservationDetailsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly affectationVersionFinder: AffectationVersionFinder,
+  ) {}
 
   async handle(query: {
     userId: string;
@@ -165,27 +169,43 @@ export class GetObservationDetailsQuery {
         observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
       }));
 
-      const memberComment = await tx.observationMemberComment.findUnique({
-        where: {
-          primaryKey: {
-            userId: query.userId,
-            observationId: query.observationId,
-          },
-        },
-        select: {
-          comment: true,
-          screenshots: {
+      const isReporter = await this.affectationVersionFinder.isUserReporter({
+        userId: query.userId,
+        nominationFileId: query.nominationFileId,
+        sessionId: query.sessionId,
+        tx,
+      });
+
+      const memberCommentFromDb = isReporter
+        ? await tx.observationMemberComment.findUnique({
+            where: {
+              primaryKey: {
+                userId: query.userId,
+                observationId: query.observationId,
+              },
+            },
             select: {
-              file: {
+              comment: true,
+              screenshots: {
                 select: {
-                  id: true,
-                  name: true,
+                  file: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      });
+          })
+        : null;
+
+      const memberComment = isReporter
+        ? (memberCommentFromDb ?? {
+            comment: '',
+            screenshots: [],
+          })
+        : null;
 
       return {
         id: observation.id,

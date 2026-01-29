@@ -111,6 +111,22 @@ export class DetailReportQuery {
                 dueDate: true,
               },
             },
+
+            observations: {
+              select: {
+                id: true,
+                dateReception: true,
+                magistrat: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    usedName: true,
+                  },
+                },
+              },
+              orderBy: { dateReception: 'desc' },
+            },
           },
         },
       },
@@ -237,6 +253,12 @@ export class DetailReportQuery {
             .filter(isDefined),
         ),
       },
+
+      observations: report.nominationFile.observations.map((obs) => ({
+        id: obs.id,
+        dateReception: DateOnly.fromDate(obs.dateReception).toJson(),
+        magistrat: obs.magistrat,
+      })),
     };
   }
 
@@ -340,5 +362,18 @@ export class DetailedReportDto extends createZodDto(
         z.object({ id: z.string(), validated: z.boolean() }),
       ),
     }),
+
+    observations: z.array(
+      z.object({
+        id: z.string(),
+        dateReception: dateOnlyJsonSchema,
+        magistrat: z.object({
+          id: z.string(),
+          firstName: z.string(),
+          lastName: z.string(),
+          usedName: z.string(),
+        }),
+      }),
+    ),
   }),
 ) {}

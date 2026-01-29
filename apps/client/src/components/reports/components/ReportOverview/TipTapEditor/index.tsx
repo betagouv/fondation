@@ -29,8 +29,10 @@ export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps
 
   return (
     <EditorContext.Provider value={providerValue}>
-      <MenuBar />
-      <EditorContent editor={editor} />
+      <div className="tiptap-editor-wrapper">
+        <MenuBar />
+        <EditorContent editor={editor} />
+      </div>
     </EditorContext.Provider>
   );
 };

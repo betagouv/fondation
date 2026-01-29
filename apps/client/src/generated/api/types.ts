@@ -592,6 +592,20 @@ export type DetailedReportDto = {
             };
         };
     };
+    observations: Array<{
+        id: string;
+        dateReception: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        magistrat: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            usedName: string;
+        };
+    }>;
 };
 
 export type UpdateReportDto = {

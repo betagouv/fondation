@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { SessionModule } from '../session/session.module';
 import { MagistratService } from './infrastructure/magistrat.service';
 import { GetObservationDetailsQuery } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
@@ -11,6 +12,7 @@ import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
 @Module({
+  imports: [SessionModule],
   controllers: [ObservationController, MagistratController],
   exports: [ObservationService, MagistratService],
   providers: [

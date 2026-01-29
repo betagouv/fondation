@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,9 +8,14 @@ import {
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 import { isDefined } from 'src/utils/is-defined';
 
-import { Observation } from './domain/observation';
+import {
+  Observation,
+  UserNotAllowedToAttachScreenshotsError,
+  UserNotAllowedToWriteCommentError,
+} from './domain/observation';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import {
   GetObservationDetailsQuery,
@@ -34,6 +40,7 @@ export class ObservationService {
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly files: Files,
+    private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
   async createObservation(command: {
@@ -170,14 +177,27 @@ export class ObservationService {
     observationId: string;
     files: readonly StoredFile[];
   }): Promise<AttachedMemberCommentScreenshotsDto> {
+    const reporterIds = await this.affectationVersionFinder.findReporterIds({
+      nominationFileId: command.nominationFileId,
+      sessionId: command.sessionId,
+    });
+
     const observation = await this.observationRepository.findById(
       command.observationId,
     );
 
-    observation.attachMemberCommentScreenshots({
-      userId: command.userId,
-      files: command.files.map((f) => ({ id: f.id })),
-    });
+    try {
+      observation.attachMemberCommentScreenshots({
+        userId: command.userId,
+        reporterIds,
+        files: command.files.map((f) => ({ id: f.id })),
+      });
+    } catch (error) {
+      if (error instanceof UserNotAllowedToAttachScreenshotsError) {
+        throw new ForbiddenException();
+      }
+      throw error;
+    }
 
     await this.observationRepository.persist(observation);
 
@@ -208,14 +228,27 @@ export class ObservationService {
     observationId: string;
     comment: string;
   }): Promise<void> {
+    const reporterIds = await this.affectationVersionFinder.findReporterIds({
+      nominationFileId: command.nominationFileId,
+      sessionId: command.sessionId,
+    });
+
     const observation = await this.observationRepository.findById(
       command.observationId,
     );
 
-    observation.writeMemberComment({
-      userId: command.userId,
-      comment: command.comment,
-    });
+    try {
+      observation.writeMemberComment({
+        userId: command.userId,
+        reporterIds,
+        comment: command.comment,
+      });
+    } catch (error) {
+      if (error instanceof UserNotAllowedToWriteCommentError) {
+        throw new ForbiddenException();
+      }
+      throw error;
+    }
 
     await this.observationRepository.persist(observation);
   }
