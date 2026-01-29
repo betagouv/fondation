@@ -1,12 +1,13 @@
-import { Link } from 'react-router-dom';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
+import { Link } from 'react-router-dom';
 
-import { DateOnly } from '@/models/date-only.model';
-import type { ObservationDetails } from '@queries/observations.queries';
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
+import { DateOnly } from '@/models/date-only.model';
+import type { ObservationDetails } from '@queries/observations.queries';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
+import { LolfiMagistratLink } from './LolfiMagistratLink';
 import { ObservationFollowUpSelector } from './observations/follow-up-selector/ObservationFollowUpSelector';
 
 type ObservationDetailsContentProps = {
@@ -68,7 +69,15 @@ export function ObservationDetailsContent({
               </div>
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>
-                <dd className="fr-col-8 fr-m-0">{observation.observedMagistrat?.name}</dd>
+                <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
+                  {observation.observedMagistrat?.name}
+                  <LolfiMagistratLink
+                    sessionId={sessionId}
+                    nominationFileId={nominationFileId}
+                    name={observation.observedMagistrat?.name}
+                    small
+                  />
+                </dd>
               </div>
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Poste observé :</dt>
@@ -82,8 +91,19 @@ export function ObservationDetailsContent({
             <dl className="fr-mb-0">
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">NOM Prénom :</dt>
-                <dd className="fr-col-8 fr-m-0">
-                  {observant.lastName.toUpperCase()} {observant.firstName}
+                <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
+                  <span>
+                    {observant.lastName.toUpperCase()} {observant.firstName}
+                  </span>
+                  {/* TODO revoir cette partie, conditionné au fait que l'observant soit un candidat.  */}
+                  {candidacy && (
+                    <LolfiMagistratLink
+                      sessionId={sessionId}
+                      nominationFileId={candidacy.nominationFileId}
+                      name={`${observant.lastName.toUpperCase()} ${observant.firstName}`}
+                      small
+                    />
+                  )}
                 </dd>
               </div>
               {candidacy && (

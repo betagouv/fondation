@@ -187,7 +187,7 @@ export class DetailReportQuery {
 
     return {
       id: report.id,
-      sessionId: report.id,
+      sessionId: report.sessionId,
       nominationFileId: report.nominationFile.id,
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
