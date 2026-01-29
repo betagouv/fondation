@@ -1,5 +1,17 @@
 import { Id, makeId } from 'src/utils/id';
 
+export class UserNotAllowedToAttachScreenshotsError extends Error {
+  constructor() {
+    super();
+  }
+}
+
+export class UserNotAllowedToWriteCommentError extends Error {
+  constructor() {
+    super();
+  }
+}
+
 export class ObservationCreated {
   constructor(
     readonly id: string,
@@ -136,8 +148,13 @@ export class Observation {
 
   attachMemberCommentScreenshots(command: {
     userId: string;
+    reporterIds: readonly string[];
     files: readonly { id: string }[];
   }): void {
+    if (!command.reporterIds.includes(command.userId)) {
+      throw new UserNotAllowedToAttachScreenshotsError();
+    }
+
     if (command.files.length === 0) return;
 
     this.#messages.push(
@@ -149,7 +166,15 @@ export class Observation {
     );
   }
 
-  writeMemberComment(command: { userId: string; comment: string }): void {
+  writeMemberComment(command: {
+    userId: string;
+    reporterIds: readonly string[];
+    comment: string;
+  }): void {
+    if (!command.reporterIds.includes(command.userId)) {
+      throw new UserNotAllowedToWriteCommentError();
+    }
+
     this.#messages.push(
       new ObservationMemberCommentWritten(
         this.id,

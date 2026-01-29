@@ -1,13 +1,13 @@
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Card from '@codegouvfr/react-dsfr/Card';
-import { Card as ReportCard } from './Card';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 
+import { capitalize } from '@/utils/string.utils';
+import type { DetailedReportDto } from '@api/types';
 import clsx from 'clsx';
-import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportVM } from '../../../../VM/ReportVM';
 import { DateOnly } from '../../../../models/date-only.model';
 import { getObservationDetailsPath } from '../../../../utils/route-path.utils';
-import type { DetailedReportDto } from '@api/types';
+import { reportHtmlIds } from '../../dom/html-ids';
 
 export const Observers = ({
   observers,
@@ -28,8 +28,11 @@ export const Observers = ({
   if (!hasObservers && !hasObservations) return null;
 
   return (
-    <ReportCard id={reportHtmlIds.overview.observersSection}>
-      <h2 id={reportHtmlIds.overview.observers}>{ReportVM.observersLabel}</h2>
+    <section
+      id={reportHtmlIds.overview.observersSection}
+      className={clsx('rounded-lg bg-white', cx('fr-px-3w', 'fr-py-2w'))}
+    >
+      <h2>Observants</h2>
 
       {hasObservers && (
         <div
@@ -52,7 +55,7 @@ export const Observers = ({
           <h3 className={cx('fr-h6', 'fr-mt-3w', 'fr-mb-2w')}>Observations reçues</h3>
           <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2')}>
             {observations.map((observation: NonNullable<DetailedReportDto['observations']>[number]) => {
-              const magistratName = `${observation.magistrat.lastName.toUpperCase()} ${observation.magistrat.firstName}`;
+              const magistratName = `${observation.magistrat.lastName.toUpperCase()} ${capitalize(observation.magistrat.firstName)}`;
 
               const observationPath = getObservationDetailsPath(
                 {
@@ -86,7 +89,7 @@ export const Observers = ({
           </div>
         </>
       )}
-    </ReportCard>
+    </section>
   );
 };
 

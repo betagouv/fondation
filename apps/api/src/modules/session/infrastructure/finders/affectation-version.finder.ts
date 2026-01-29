@@ -3,11 +3,13 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 
 @Injectable()
 export class AffectationVersionFinder {
+  constructor(private readonly prisma: PrismaService) {}
   async last(query: {
     sessionId: string;
     tx: Prisma.TransactionClient;
@@ -69,6 +71,65 @@ export class AffectationVersionFinder {
         version.statut,
       ),
     };
+  }
+
+  async findReporterIds(query: {
+    nominationFileId: string;
+    sessionId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<string[]> {
+    if (!query.tx)
+      return this.prisma.$transaction((tx) =>
+        this.findReporterIds({ ...query, tx }),
+      );
+    const prismaClient = query.tx;
+
+    const version = await this.lastPublished({
+      sessionId: query.sessionId,
+      tx: prismaClient as Prisma.TransactionClient,
+    });
+
+    if (!version) return [];
+
+    const reporters = await prismaClient.nominationFileToReporter.findMany({
+      where: {
+        nominationFileId: query.nominationFileId,
+        versionId: version.id,
+      },
+      select: { userId: true },
+    });
+
+    return reporters.map(({ userId }) => userId);
+  }
+
+  async isUserReporter(query: {
+    userId: string;
+    nominationFileId: string;
+    sessionId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<boolean> {
+    if (!query.tx)
+      return this.prisma.$transaction((tx) =>
+        this.isUserReporter({ ...query, tx }),
+      );
+    const prismaClient = query.tx;
+
+    const version = await this.lastPublished({
+      sessionId: query.sessionId,
+      tx: prismaClient as Prisma.TransactionClient,
+    });
+
+    if (!version) return false;
+
+    const reporter = await prismaClient.nominationFileToReporter.findFirst({
+      where: {
+        nominationFileId: query.nominationFileId,
+        versionId: version.id,
+        userId: query.userId,
+      },
+    });
+
+    return reporter !== null;
   }
 }
 

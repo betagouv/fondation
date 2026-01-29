@@ -4,7 +4,7 @@ import { DateOnlyJson, dateOnlyJsonSchema } from 'shared-models';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { NominationFileReportersFinder } from 'src/modules/session/infrastructure/finders/nomination-file-reporters.finder';
+import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 import { DateOnly } from 'src/utils/date-only';
 
 const ObservationFileSchema = z.object({
@@ -60,7 +60,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
 export class GetObservationDetailsQuery {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly reportersFinder: NominationFileReportersFinder,
+    private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
   async handle(query: {
@@ -163,14 +163,14 @@ export class GetObservationDetailsQuery {
         observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
       }));
 
-      const isReporter = await this.reportersFinder.isUserReporter({
+      const isReporter = await this.affectationVersionFinder.isUserReporter({
         userId: query.userId,
         nominationFileId: query.nominationFileId,
         sessionId: query.sessionId,
-        tx: tx as any,
+        tx,
       });
 
-      const memberComment = isReporter
+      const memberCommentFromDb = isReporter
         ? await tx.observationMemberComment.findUnique({
             where: {
               primaryKey: {
@@ -192,6 +192,14 @@ export class GetObservationDetailsQuery {
               },
             },
           })
+        : null;
+
+      // Si l'utilisateur est rapporteur, retourner un objet vide si pas de commentaire
+      const memberComment = isReporter
+        ? memberCommentFromDb ?? {
+            comment: '',
+            screenshots: [],
+          }
         : null;
 
       return {
