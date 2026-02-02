@@ -1,12 +1,9 @@
-import Card from '@codegouvfr/react-dsfr/Card';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 
-import { capitalize } from '@/utils/string.utils';
+import { ObservationCard } from '@/components/shared/observations';
 import type { DetailedReportDto } from '@api/types';
 import clsx from 'clsx';
 import { ReportVM } from '../../../../VM/ReportVM';
-import { DateOnly } from '../../../../models/date-only.model';
-import { getObservationDetailsPath } from '../../../../utils/route-path.utils';
 import { reportHtmlIds } from '../../dom/html-ids';
 
 export const Observers = ({
@@ -53,39 +50,17 @@ export const Observers = ({
       {hasObservations && (
         <>
           <h3 className={cx('fr-h6', 'fr-mt-3w', 'fr-mb-2w')}>Observations reçues</h3>
-          <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2')}>
-            {observations.map((observation: NonNullable<DetailedReportDto['observations']>[number]) => {
-              const magistratName = `${observation.magistrat.lastName.toUpperCase()} ${capitalize(observation.magistrat.firstName)}`;
-
-              const observationPath = getObservationDetailsPath(
-                {
-                  sessionId,
-                  nominationFileId,
-                  observationId: observation.id
-                },
-                'membre'
-              );
-              const linkWithReport = reportId ? `${observationPath}?reportId=${reportId}` : observationPath;
-
-              return (
-                <Card
-                  key={observation.id}
-                  title={magistratName}
-                  desc={
-                    <div className={cx('fr-text--sm')}>
-                      <p className={cx('fr-mb-0', 'fr-text--light')}>
-                        Observation du {DateOnly.fromDateOnly(observation.dateReception)}
-                      </p>
-                    </div>
-                  }
-                  linkProps={{
-                    to: linkWithReport
-                  }}
-                  enlargeLink
-                  size="small"
-                />
-              );
-            })}
+          <div className={clsx('grid grid-cols-2 gap-4')}>
+            {observations.map((observation: NonNullable<DetailedReportDto['observations']>[number]) => (
+              <ObservationCard
+                key={observation.id}
+                observation={observation}
+                sessionId={sessionId!}
+                nominationFileId={nominationFileId!}
+                context="membre"
+                reportId={reportId}
+              />
+            ))}
           </div>
         </>
       )}

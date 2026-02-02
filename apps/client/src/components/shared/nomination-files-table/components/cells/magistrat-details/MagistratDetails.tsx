@@ -14,7 +14,10 @@ import {
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { TextValue } from '@/components/shared/TextValue';
+import { ObservationCard } from '@/components/shared/observations';
 import { UserAvatarList } from '@/components/shared/user-avatar';
+
+import clsx from 'clsx';
 
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -103,6 +106,23 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           {formattedBiography}
         </div>
       </div>
+
+      {nominationFile.observations && nominationFile.observations.length > 0 && (
+        <div>
+          <label className="text-xl font-semibold">Observations ({nominationFile.observations.length})</label>
+          <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'mt-2')}>
+            {nominationFile.observations.map((observation) => (
+              <ObservationCard
+                key={observation.id}
+                observation={observation}
+                sessionId={sessionId}
+                nominationFileId={nominationFile.id}
+                context="sg"
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <MemberMemo sessionId={sessionId} nominationFileId={nominationFile.id} memo={nominationFile.memo} />
     </div>

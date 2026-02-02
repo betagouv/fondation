@@ -1,9 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { type FC } from 'react';
 
+import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import {
-  useObservationsQuery,
   useGetObservationFileUrlMutation,
+  useObservationsQuery,
   type Observation
 } from '@queries/observations.queries';
 
@@ -44,6 +45,24 @@ const ObservationCard: FC<{
           )}
         </div>
         <div className="flex gap-1">
+          <Button
+            iconId="ri-external-link-line"
+            priority="tertiary no outline"
+            size="small"
+            title="Voir les détails"
+            linkProps={{
+              to: getObservationDetailsPath(
+                {
+                  sessionId,
+                  nominationFileId,
+                  observationId: observation.id
+                },
+                'sg'
+              ),
+              target: '_blank',
+              rel: 'noopener noreferrer'
+            }}
+          />
           <Button
             iconId="ri-edit-line"
             priority="tertiary no outline"
