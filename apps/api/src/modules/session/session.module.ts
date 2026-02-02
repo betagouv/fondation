@@ -6,6 +6,7 @@ import { AffectationVersionFinder } from './infrastructure/finders/affectation-v
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
+import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -15,6 +16,7 @@ import { GetNominationFileWithCommentQuery } from './infrastructure/queries/get-
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
 import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
@@ -22,7 +24,6 @@ import { NominationSessionRepository } from './infrastructure/repositories/nomin
 import { SessionService } from './infrastructure/sessions.service';
 import { SessionController } from './session.controller';
 import { SummaryModule } from './summary.module';
-import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 
 @Module({
   exports: [SessionService, SummaryModule, AffectationVersionFinder],
@@ -31,6 +32,7 @@ import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-n
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,
+    CountNominationFilesByStatusQuery,
     CountUnaffectedFilesQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,

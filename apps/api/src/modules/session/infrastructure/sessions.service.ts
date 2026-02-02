@@ -23,6 +23,10 @@ import {
   CountedUnaffectedFilesDto,
   CountUnaffectedFilesQuery,
 } from './queries/count-unaffected-files.query';
+import {
+  CountNominationFilesByStatusQuery,
+  NominationFilesStatusCountDto,
+} from './queries/count-nomination-files-by-status.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -83,6 +87,7 @@ export class SessionService {
     private readonly nominationSessionRepository: NominationSessionRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
+    private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly prisma: PrismaService,
   ) {}
@@ -398,5 +403,11 @@ export class SessionService {
     sessionId: string;
   }): Promise<StreamableFile> {
     return this.listNominationFilesAsExcelQuery.handle(query);
+  }
+
+  countNominationFilesByStatus(query: {
+    sessionId: string;
+  }): Promise<NominationFilesStatusCountDto> {
+    return this.countNominationFilesByStatusQuery.handle(query);
   }
 }

@@ -2,6 +2,7 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { ReportVM } from '@/VM/ReportVM';
 import { reportHtmlIds } from '@/components/reports/dom/html-ids';
 
@@ -28,6 +29,7 @@ export type MagistratDetailsProps = {
 };
 
 export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominationFile }) => {
+  const isSg = useIsSgNavigation();
   const {
     dateDeNaissance,
     observants,
@@ -117,7 +119,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
                 observation={observation}
                 sessionId={sessionId}
                 nominationFileId={nominationFile.id}
-                context="sg"
+                context={isSg ? 'sg' : 'membre'}
               />
             ))}
           </div>

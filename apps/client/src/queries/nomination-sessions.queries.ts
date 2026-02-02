@@ -50,7 +50,9 @@ export const sessionKeys = {
   listCurrentlyAffectedReporters: (props?: { sessionId: string }) =>
     key('sessions', 'listCurrentlyAffectedReporters', props?.sessionId),
   countUnaffectedFiles: (props?: { sessionId: string; nominationFileIds?: readonly string[] }) =>
-    key('sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds)
+    key('sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds),
+  nominationFilesStatusCounts: (props?: { sessionId: string }) =>
+    key('sessions', 'nominationFilesStatusCounts', props?.sessionId)
 };
 
 type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
@@ -126,7 +128,8 @@ export function useAffectNominationFilesReportersMutation() {
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
-          sessionKeys.countUnaffectedFiles({ sessionId })
+          sessionKeys.countUnaffectedFiles({ sessionId }),
+          sessionKeys.nominationFilesStatusCounts({ sessionId })
         )
       })
   });
@@ -166,7 +169,8 @@ export function useAutoAffectationMutation() {
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
-          sessionKeys.countUnaffectedFiles({ sessionId })
+          sessionKeys.countUnaffectedFiles({ sessionId }),
+          sessionKeys.nominationFilesStatusCounts({ sessionId })
         )
       })
   });
@@ -368,7 +372,10 @@ export function useDefineNominationFileOutcomeMutation(input: {
           }
         ),
         queryClient.invalidateQueries({
-          queryKey: sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId })
+          predicate: doesQueryKey.matchesAny(
+            sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
+            sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId })
+          )
         })
       ])
   });
@@ -434,5 +441,16 @@ export const useListNominationFilesAsExcelMutation = () =>
       document.body.appendChild($a);
       $a.click();
       $a.remove();
+    }
+  });
+
+export const useNominationFilesStatusCountsQuery = (options: { sessionId: string }) =>
+  useQuery({
+    queryKey: sessionKeys.nominationFilesStatusCounts(options),
+    queryFn: async () => {
+      const { data } = await $api.sessions.countNominationFilesByStatus({
+        path: { sessionId: options.sessionId }
+      });
+      return data ?? null;
     }
   });

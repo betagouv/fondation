@@ -1,16 +1,16 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type FC, useRef, useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useEffect, useRef, useState, type FC } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
 import {
   useCreateObservationMutation,
-  useUpdateObservationMutation,
   useSearchMagistratsQuery,
+  useUpdateObservationMutation,
   type MagistratSearchResult,
   type Observation
 } from '@queries/observations.queries';
@@ -73,7 +73,7 @@ export const ObservationForm: FC<{
         lastName: observation.magistrat.lastName,
         usedName: '',
         grade: null,
-        professionalEmail: null
+        currentPosition: null
       });
       setSearchTerm(`${observation.magistrat.lastName} ${observation.magistrat.firstName}`);
     }
@@ -222,9 +222,7 @@ export const ObservationForm: FC<{
                   </div>
                   <div className="text-xs text-gray-500">
                     {magistrat.grade && <span>{magistrat.grade}</span>}
-                    {magistrat.professionalEmail && (
-                      <span className="ml-2">{magistrat.professionalEmail}</span>
-                    )}
+                    {magistrat.currentPosition && <span className="ml-2">- {magistrat.currentPosition}</span>}
                   </div>
                 </button>
               ))
