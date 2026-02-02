@@ -177,6 +177,12 @@ export type CountedUnaffectedFilesDto = {
     count: number;
 };
 
+export type NominationFilesStatusCountDto = {
+    unaffected: number;
+    inProgress: number;
+    withOutcome: number;
+};
+
 export type ListedCurrentlyAffectedReportersDto = {
     items: Array<{
         id: string;
@@ -741,7 +747,7 @@ export type SearchMagistratsResponseDto = {
         lastName: string;
         usedName: string;
         grade: string | null;
-        professionalEmail: string | null;
+        currentPosition: string | null;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -930,6 +936,21 @@ export type CountUnaffectedNominationFilesResponses = {
 };
 
 export type CountUnaffectedNominationFilesResponse = CountUnaffectedNominationFilesResponses[keyof CountUnaffectedNominationFilesResponses];
+
+export type CountNominationFilesByStatusData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/status-counts';
+};
+
+export type CountNominationFilesByStatusResponses = {
+    200: NominationFilesStatusCountDto;
+};
+
+export type CountNominationFilesByStatusResponse = CountNominationFilesByStatusResponses[keyof CountNominationFilesByStatusResponses];
 
 export type ListCurrentlyAffectedReportersData = {
     body?: never;

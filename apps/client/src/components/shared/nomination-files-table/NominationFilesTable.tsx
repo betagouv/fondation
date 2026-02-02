@@ -15,6 +15,7 @@ import { NominationFileOutcomeCommentModalProvider } from './components/cells/no
 import { ObservationsModalProvider } from './components/cells/observations/ObservationsModalContext';
 import { NominationFilesTableActionsBar } from './components/NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './components/NominationFilesAffectationsStatus';
+import { NominationFilesStatusBadges } from './components/NominationFilesStatusBadges';
 import { FilesAffectationsProvider } from './contexts/FilesAffectationsProvider';
 import { FilesSelectionProvider } from './contexts/FilesSelectionProvider';
 import { NominationFilesTableProvider } from './contexts/NominationFilesTableProvider';
@@ -75,10 +76,12 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
               <FilesSelectionProvider selection={tableState.rowSelection}>
                 <FilesAffectationsProvider files={nominationFiles}>
                   <AlertsProvider>
-                    <div className="fr-container flex items-end justify-between">
-                      <NominationFilesAffectationsStatus />
-
-                      <AlertsProvider.Alerts small className="my-3 flex-shrink-0" />
+                    <div className="fr-container mb-4 flex flex-col gap-4">
+                      <div className="flex items-end justify-between">
+                        <NominationFilesAffectationsStatus />
+                        <AlertsProvider.Alerts small className="flex-shrink-0" />
+                      </div>
+                      <NominationFilesStatusBadges />
                     </div>
 
                     <DataTable

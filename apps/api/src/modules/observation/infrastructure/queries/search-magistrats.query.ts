@@ -16,7 +16,7 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     lastName: z.string(),
     usedName: z.string(),
     grade: z.string().nullable(),
-    professionalEmail: z.string().nullable(),
+    currentPosition: z.string().nullable(),
   }),
 ) {}
 
@@ -44,7 +44,7 @@ export class SearchMagistratsQuery {
         }
       : undefined;
 
-    const [totalCount, items] = await this.prisma.$transaction([
+    const [totalCount, rawItems] = await this.prisma.$transaction([
       this.prisma.magistrat.count({ where }),
       this.prisma.magistrat.findMany({
         where,
@@ -54,13 +54,22 @@ export class SearchMagistratsQuery {
           lastName: true,
           usedName: true,
           grade: true,
-          professionalEmail: true,
+          adminPosition: true,
         },
         take: query.pagination.limit,
         skip: (query.pagination.page - 1) * query.pagination.limit,
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
       }),
     ]);
+
+    const items = rawItems.map((item) => ({
+      id: item.id,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      usedName: item.usedName,
+      grade: item.grade,
+      currentPosition: item.adminPosition,
+    }));
 
     return paginate({ totalCount, items, pagination: query.pagination });
   }

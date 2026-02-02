@@ -59,6 +59,7 @@ import {
 } from './infrastructure/dtos/nomination-session.dto';
 import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
+import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
@@ -201,6 +202,15 @@ export class SessionController {
       sessionId,
       nominationFileIds,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/:sessionId/files/status-counts')
+  @ZodResponse({ type: NominationFilesStatusCountDto, status: HttpStatus.OK })
+  countNominationFilesByStatus(
+    @Param('sessionId') sessionId: string,
+  ): Promise<NominationFilesStatusCountDto> {
+    return this.sessions.countNominationFilesByStatus({ sessionId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
