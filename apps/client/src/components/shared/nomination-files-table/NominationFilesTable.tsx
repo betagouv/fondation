@@ -1,3 +1,5 @@
+import './NominationFilesTable.css';
+
 import React from 'react';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';

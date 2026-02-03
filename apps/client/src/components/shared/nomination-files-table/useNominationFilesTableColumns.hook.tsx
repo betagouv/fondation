@@ -10,13 +10,13 @@ import {
 
 import { useNominationFilesTable } from './contexts/files-table.context';
 
+import { toFullName } from '@/utils/user.utils';
 import { NominationFilesPrioritySelector } from './components/cells/NominationFilesPrioritySelector';
+import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcome } from './components/cells/nomination-file-outcome/NominationFileOutcome';
 import { NominationFileOutcomeSelector } from './components/cells/nomination-file-outcome/NominationFileOutcomeSelector';
-import { ReadOnlyReportersCell, ReportersSelector } from './components/cells/reporters/ReportersCell';
-import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
-import { toFullName } from '@/utils/user.utils';
+import { ReportersCell } from './components/cells/reporters/ReportersCell';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
@@ -95,13 +95,7 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('reporters', {
         enableSorting: false,
         header: 'Rapporteur(s)',
-        cell: ({ row }) => {
-          if (edition?.isEditing) {
-            return <ReportersSelector dossier={row.original} />;
-          }
-
-          return <ReadOnlyReportersCell dossier={row.original} />;
-        },
+        cell: ({ row }) => <ReportersCell dossier={row.original} />,
 
         meta: {
           filters: {

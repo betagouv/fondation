@@ -31,14 +31,11 @@ function requires2Reporters(dossier: SessionNominationFile) {
   );
 }
 
-function ReportersAlert(props: {
-  dossier: SessionNominationFile;
-  children?: (children: React.ReactNode) => React.ReactNode;
-}) {
+function ReportersAlert(props: { dossier: SessionNominationFile }) {
   if (!requires2Reporters(props.dossier)) return null;
 
-  const output = (
-    <div className="multi-reporters-alert cursor-pointer">
+  return (
+    <div className="multi-reporters-alert cursor-pointer pr-1">
       <Tooltip title="2 rapporteurs attendus">
         <i
           style={{
@@ -60,15 +57,9 @@ function ReportersAlert(props: {
       </Tooltip>
     </div>
   );
-
-  if (props.children) {
-    return props.children(output);
-  }
-
-  return output;
 }
 
-export function ReportersSelector(props: { dossier: SessionNominationFile }) {
+function ReportersSelector(props: { dossier: SessionNominationFile }) {
   const { formation } = useNominationFilesTable();
   const { data } = useMemberListQuery({
     formations: ['COMMUN', formation],
@@ -81,24 +72,34 @@ export function ReportersSelector(props: { dossier: SessionNominationFile }) {
   );
 
   return (
-    <div>
+    <div className="flex items-center">
       <ReportersAlert dossier={props.dossier} />
-
       <DropdownRapporteurs fileId={props.dossier.id} reporters={reporters} />
     </div>
   );
 }
 
-export function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
+function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
   if (props.dossier.reporters.length === 0) return '-';
 
   return (
-    <ul className="m-0 list-none p-0">
-      <ReportersAlert dossier={props.dossier}>{(children) => <li>{children}</li>}</ReportersAlert>
-
-      {props.dossier.reporters.map(({ id, firstName, lastName }) => (
-        <li key={id}>{`${firstName} ${lastName}`.toUpperCase()}</li>
-      ))}
-    </ul>
+    <div className="flex items-center">
+      <ReportersAlert dossier={props.dossier} />
+      <ul className="m-0 list-none p-0">
+        {props.dossier.reporters.map(({ id, firstName, lastName }) => (
+          <li key={id}>{`${firstName} ${lastName}`.toUpperCase()}</li>
+        ))}
+      </ul>
+    </div>
   );
+}
+
+export function ReportersCell(props: { dossier: SessionNominationFile }) {
+  const { edition } = useNominationFilesTable();
+
+  if (edition?.isEditing) {
+    return <ReportersSelector dossier={props.dossier} />;
+  }
+
+  return <ReadOnlyReportersCell dossier={props.dossier} />;
 }
