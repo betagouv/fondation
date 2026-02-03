@@ -1,14 +1,23 @@
+import { unaccent } from './unaccent';
+
 export function capitalize(input: string): string {
+  const normalized = unaccent(input);
   let output = '';
   let shouldCapitalize = true;
-  for (const char of input) {
+
+  for (let i = 0; i < normalized.length; i++) {
+    const char = input[i];
+    if (!char) continue;
+
     if (shouldCapitalize) {
       output += char.toUpperCase();
       shouldCapitalize = false;
       continue;
     }
 
-    shouldCapitalize = /\W/.test(char);
+    const c = normalized[i];
+    if (c && /\W/.test(c)) shouldCapitalize = true;
+
     output += char;
   }
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { unaccent } from 'src/utils/unaccent';
 import z from 'zod';
 
 @Injectable()
@@ -27,11 +28,7 @@ export class GetLolfiMagistratUrlQuery {
       const [nominationFile] = session?.dossierDeNominations ?? [];
       if (!nominationFile) return null;
 
-      const search = nominationFile.name
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-
+      const search = unaccent(nominationFile.name).toLowerCase();
       const [{ externalId } = {}] = await tx.$queryRawTyped(
         findMagistratExternalIdByFullName(search),
       );
