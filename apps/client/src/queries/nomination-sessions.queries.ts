@@ -13,6 +13,7 @@ import { client } from '@api/client';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import type { Override } from '@/types/utils.types';
 import { HttpException } from '@/utils/http-exception';
+import { getBaseUrl } from '@/utils/http.config';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
   ? Rest
@@ -429,7 +430,8 @@ export const useListNominationFilesAsExcelMutation = () =>
       const { sessionId } = options;
       const url = client.buildUrl<ListNominationFilesAsExcelData>({
         url: '/api/sessions/v2/{sessionId}/files.xlsx',
-        path: { sessionId }
+        path: { sessionId },
+        baseUrl: getBaseUrl()
       });
 
       const $a = document.createElement('a');
