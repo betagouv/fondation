@@ -26,7 +26,10 @@ import {
   NominationFileOutcomeEnum,
 } from '../../domain/nomination-file-outcome';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import {
+  AffectationVersionFinder,
+  OptionalAffectationVersion,
+} from '../finders/affectation-version.finder';
 import { isDefined } from 'src/utils/is-defined';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 
@@ -112,7 +115,7 @@ export class ListNominationFilesQuery {
             select: { userId: true },
           },
           reporterIds: {
-            where: { versionId: lastVersion?.id },
+            where: { versionId: lastVersion.optionalId },
             select: {
               version: true,
               createdAt: true,
@@ -242,7 +245,7 @@ export class ListNominationFilesQuery {
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
     },
-    lastVersion: { id: string } | null,
+    lastVersion: OptionalAffectationVersion,
   ): Prisma.DossierDeNominationWhereInput {
     const wherePriorities: Prisma.DossierDeNominationWhereInput[] = [];
     if (filters.priorities.includes(null)) {
@@ -262,7 +265,7 @@ export class ListNominationFilesQuery {
     const whereReporters: Prisma.DossierDeNominationWhereInput[] = [];
     if (filters.reporterIds.includes(null)) {
       whereReporters.push({
-        reporterIds: { none: { versionId: lastVersion?.id } },
+        reporterIds: { none: { versionId: lastVersion.optionalId } },
       });
     }
 
@@ -270,7 +273,7 @@ export class ListNominationFilesQuery {
       whereReporters.push({
         reporterIds: {
           some: {
-            versionId: lastVersion?.id,
+            versionId: lastVersion.optionalId,
             userId: { in: filters.reporterIds.filter(isDefined) },
           },
         },

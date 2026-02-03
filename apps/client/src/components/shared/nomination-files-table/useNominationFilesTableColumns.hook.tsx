@@ -11,16 +11,15 @@ import {
 import { useNominationFilesTable } from './contexts/files-table.context';
 
 import { toFullName } from '@/utils/user.utils';
-import { NominationFilesPrioritySelector } from './components/cells/NominationFilesPrioritySelector';
 import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcome } from './components/cells/nomination-file-outcome/NominationFileOutcome';
-import { NominationFileOutcomeSelector } from './components/cells/nomination-file-outcome/NominationFileOutcomeSelector';
+import { NominationFilesPriorityCell } from './components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
 import { ReportersCell } from './components/cells/reporters/ReportersCell';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
-  const { edition, sessionId } = useNominationFilesTable();
+  const { sessionId } = useNominationFilesTable();
 
   return React.useMemo(
     () => [
@@ -62,21 +61,13 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.observants', {
         enableSorting: false,
         header: 'Observant(s)',
-        cell: ({ row }) => <ObservantsCell nominationFile={row.original} readOnly={!edition?.isEditing} />
+        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />
       }),
 
       h.accessor('priority', {
         enableSorting: false,
         header: 'Priorité',
-        cell: ({ cell, row }) => {
-          const value = cell.getValue();
-
-          if (edition?.isEditing) {
-            return <NominationFilesPrioritySelector fileId={row.original.id} />;
-          }
-
-          return value ? PrioriteEnumLabels[value] : '-';
-        },
+        cell: ({ row }) => <NominationFilesPriorityCell nominationFile={row.original} />,
 
         meta: {
           filters: {
@@ -114,16 +105,10 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.outcome', {
         enableSorting: false,
         header: 'Issue',
-        cell: ({ row }) => {
-          if (edition?.isEditing) {
-            return <NominationFileOutcomeSelector nominationFile={row.original} />;
-          }
-
-          return <NominationFileOutcome nominationFile={row.original} />;
-        }
+        cell: ({ row }) => <NominationFileOutcome nominationFile={row.original} />
       })
     ],
-    [sessionId, edition]
+    [sessionId]
   );
 };
 

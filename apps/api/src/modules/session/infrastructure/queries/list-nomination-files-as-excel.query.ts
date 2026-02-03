@@ -52,7 +52,7 @@ export class ListNominationFilesAsExcelQuery {
               },
 
               reporterIds: {
-                where: { versionId: version?.id },
+                where: { versionId: version.optionalId },
                 select: {
                   user: {
                     select: { firstName: true, lastName: true },

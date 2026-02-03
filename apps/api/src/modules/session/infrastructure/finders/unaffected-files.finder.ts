@@ -39,7 +39,7 @@ export class UnaffectedFilesFinder {
         sessionId: predicate.sessionId,
         id: { in: predicate.nominationFileIds as string[] | undefined },
         reporterIds: {
-          none: { versionId: version?.id },
+          none: { versionId: version.optionalId },
         },
       },
     });

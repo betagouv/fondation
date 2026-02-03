@@ -29,10 +29,12 @@ export class InternalDetailMemberSessionQuery {
     typeDeSaisine: TypeDeSaisine;
   }): Promise<DetailedMemberSessionDto> {
     const session = await this.prisma.$transaction(async (tx) => {
-      const version = await this.versionFinder.lastPublished({
-        sessionId: query.sessionId,
-        tx,
-      });
+      const version = await this.versionFinder
+        .lastPublished({
+          sessionId: query.sessionId,
+          tx,
+        })
+        .then((v) => v.getNullable());
 
       if (!version) throw new NotFoundException();
 

@@ -25,6 +25,6 @@ export class DetailNominationSessionAffectationVersionQuery {
 
     if (!version) throw new NotFoundException();
 
-    return version;
+    return version.get();
   }
 }

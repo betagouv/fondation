@@ -16,7 +16,7 @@ import {
 } from '../domain/nomination-file-outcome';
 import { NominationSession } from '../domain/nomination-session';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
-import { type FoundAffectationVersion } from './finders/affectation-version.finder';
+import { FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import {

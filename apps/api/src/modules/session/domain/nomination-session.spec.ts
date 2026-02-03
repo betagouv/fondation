@@ -216,6 +216,26 @@ describe('NominationSession', () => {
     expect(messages).toEqual([]);
   });
 
+  it('should publish an unknown version', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      version: null,
+      formationMemberIds: new Set<string>(),
+      nominationFileIdsWithOutcome: new Set(),
+    });
+
+    session.publishAffectationVersion({ userId: 'user-id' });
+
+    const { messages } = session;
+    expect(messages).toEqual([
+      new NominationSessionAffectationVersionPublished(
+        'session-id',
+        undefined,
+        'user-id',
+      ),
+    ]);
+  });
+
   it('should grant comment access to users', () => {
     const session = NominationSession.from({
       id: 'session-id',

@@ -10,13 +10,11 @@ import { useObservationsModal } from './ObservationsModalContext';
 
 type ObservantsCellProps = {
   nominationFile: SessionNominationFile;
-  readOnly?: boolean;
 };
 
-export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile, readOnly = false }) => {
+export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile }) => {
   const isSg = useIsSgNavigation();
-
-  const { sessionId } = useNominationFilesTable();
+  const { sessionId, edition } = useNominationFilesTable();
 
   const id = nominationFile.id;
   const nominationFileName = nominationFile.content.nomMagistrat;
@@ -29,7 +27,7 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile, readOn
   const handleAdd = () => open({ id, sessionId, name: nominationFileName }, 'create');
   const handleView = () => open({ id, sessionId, name: nominationFileName }, 'view');
 
-  if (!readOnly) {
+  if (edition?.isEditing) {
     return (
       <div className="flex flex-col gap-2">
         {observants && observants.length > 0 && (

@@ -7,16 +7,12 @@ export function NominationFilesAffectationsStatus() {
   const { sessionId, isEditable } = useNominationFilesTable();
   const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
 
-  if (!affectationsVersion || !isEditable) return null;
+  if (!affectationsVersion || affectationsVersion.version === 0 || !isEditable) return null;
 
   const isBrouillon = affectationsVersion?.status === 'BROUILLON';
-
   return (
     <div className={'mb-4 flex flex-col gap-2'}>
-      <Badge severity={isBrouillon ? 'info' : 'success'}>
-        {isBrouillon ? 'Brouillon' : 'Publiée'}
-        {affectationsVersion.version > 1 && ` - Version ${affectationsVersion.version}`}
-      </Badge>
+      <Badge severity={isBrouillon ? 'info' : 'success'}>{isBrouillon ? 'Brouillon' : 'Publiée'}</Badge>
     </div>
   );
 }

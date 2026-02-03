@@ -15,9 +15,9 @@ export class ListCurrentlyAffectedReportersQuery {
     const { sessionId } = query;
     const version = await this.prisma.$transaction(async (tx) => {
       const txVersion = await this.versions.last({ sessionId, tx });
-      if (!txVersion) return null;
 
-      return this.prisma.nominationFileToReporter.findMany({
+      if (txVersion.isNone()) return null;
+      return tx.nominationFileToReporter.findMany({
         distinct: ['userId'],
         where: { versionId: txVersion.id },
         select: {
