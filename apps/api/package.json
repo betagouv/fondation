@@ -26,6 +26,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
     "@aws-sdk/s3-request-presigner": "^3.922.0",
+    "@dotenvx/dotenvx": "1.51.1",
     "@nestjs/common": "^11.1.8",
     "@nestjs/core": "^11.1.8",
     "@nestjs/event-emitter": "^3.0.1",
@@ -54,7 +55,6 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.51.1",
     "@faker-js/faker": "^9.9.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
