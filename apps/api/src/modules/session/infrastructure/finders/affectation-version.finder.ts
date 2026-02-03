@@ -1,19 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import assert from 'node:assert';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
-import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 
 @Injectable()
 export class AffectationVersionFinder {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** @warning does not check that the session exists */
   async last(query: {
     sessionId: string;
     tx: Prisma.TransactionClient;
-  }): Promise<FoundAffectationVersion | null> {
+  }): Promise<OptionalAffectationVersion> {
     const { _max } = await query.tx.affectationVersion.aggregate({
       where: { sessionId: query.sessionId },
       _max: { version: true },
@@ -26,6 +29,7 @@ export class AffectationVersionFinder {
     });
   }
 
+  /** @warning does not check that the session exists */
   async lastPublished(query: {
     sessionId: string;
     tx: Prisma.TransactionClient;
@@ -46,7 +50,7 @@ export class AffectationVersionFinder {
     tx: Prisma.TransactionClient;
     sessionId: string;
     version: number | null;
-  }): Promise<FoundAffectationVersion | null> {
+  }): Promise<OptionalAffectationVersion> {
     const version = await props.tx.affectationVersion.findFirst({
       select: {
         id: true,
@@ -60,9 +64,10 @@ export class AffectationVersionFinder {
         : { sessionId: props.sessionId },
     });
 
-    if (!version) return null;
+    if (!version) return OptionalAffectationVersion.none();
 
-    return {
+    return OptionalAffectationVersion.some({
+      '@type': 'fr.csm.fondation.affectations.version.some',
       id: version.id,
       version: version.version,
       author: version.user ?? null,
@@ -70,7 +75,7 @@ export class AffectationVersionFinder {
       status: prismaStatutAffectationEnumToStatutAffectationEnum(
         version.statut,
       ),
-    };
+    });
   }
 
   async findReporterIds(query: {
@@ -78,23 +83,23 @@ export class AffectationVersionFinder {
     sessionId: string;
     tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
-    if (!query.tx)
+    if (!query.tx) {
       return this.prisma.$transaction((tx) =>
         this.findReporterIds({ ...query, tx }),
       );
-    const prismaClient = query.tx;
+    }
 
     const version = await this.lastPublished({
+      tx: query.tx,
       sessionId: query.sessionId,
-      tx: prismaClient as Prisma.TransactionClient,
     });
 
-    if (!version) return [];
+    if (version.isNone()) return [];
 
-    const reporters = await prismaClient.nominationFileToReporter.findMany({
+    const reporters = await query.tx.nominationFileToReporter.findMany({
       where: {
+        versionId: version.optionalId,
         nominationFileId: query.nominationFileId,
-        versionId: version.id,
       },
       select: { userId: true },
     });
@@ -108,33 +113,40 @@ export class AffectationVersionFinder {
     sessionId: string;
     tx?: Prisma.TransactionClient;
   }): Promise<boolean> {
-    if (!query.tx)
+    if (!query.tx) {
       return this.prisma.$transaction((tx) =>
         this.isUserReporter({ ...query, tx }),
       );
-    const prismaClient = query.tx;
+    }
 
     const version = await this.lastPublished({
       sessionId: query.sessionId,
-      tx: prismaClient as Prisma.TransactionClient,
+      tx: query.tx,
     });
 
-    if (!version) return false;
+    if (version.isNone()) return false;
 
-    const reporter = await prismaClient.nominationFileToReporter.findFirst({
+    const reporter = await query.tx.nominationFileToReporter.findFirst({
       where: {
-        nominationFileId: query.nominationFileId,
         versionId: version.id,
+        nominationFileId: query.nominationFileId,
         userId: query.userId,
       },
     });
-
     return reporter !== null;
   }
 }
 
-export class FoundAffectationVersion extends createZodDto(
+export class NoneAffectationVersion extends createZodDto(
   z.object({
+    '@type': z.literal('fr.csm.fondation.affectations.version.none'),
+    version: z.literal(0),
+  }),
+) {}
+
+export class SomeAffectationVersion extends createZodDto(
+  z.object({
+    '@type': z.literal('fr.csm.fondation.affectations.version.some'),
     id: z.uuid(),
     status: z.enum(StatutAffectation),
     version: z.number().int().gte(1),
@@ -144,3 +156,76 @@ export class FoundAffectationVersion extends createZodDto(
       .nullable(),
   }),
 ) {}
+
+export type FoundAffectationVersion =
+  | SomeAffectationVersion
+  | NoneAffectationVersion;
+
+export class OptionalAffectationVersion<
+  V extends FoundAffectationVersion = FoundAffectationVersion,
+> {
+  private constructor(private readonly value: V) {}
+
+  static some(
+    someVersion: SomeAffectationVersion,
+  ): OptionalAffectationVersion<SomeAffectationVersion> {
+    return new OptionalAffectationVersion(someVersion);
+  }
+
+  static none(): OptionalAffectationVersion<NoneAffectationVersion> {
+    return new OptionalAffectationVersion({
+      '@type': 'fr.csm.fondation.affectations.version.none',
+      version: 0,
+    });
+  }
+
+  isNone(): this is this & OptionalAffectationVersion<NoneAffectationVersion> {
+    return this.value['@type'] === 'fr.csm.fondation.affectations.version.none';
+  }
+
+  get(): FoundAffectationVersion {
+    return this.value;
+  }
+
+  getNullable(): SomeAffectationVersion | null {
+    return this.map((v) => v);
+  }
+
+  get optionalId(): SomeAffectationVersion['id'] | undefined {
+    return this.map({ some: ({ id }) => id, none: () => undefined });
+  }
+
+  /** @throws */
+  get id(): SomeAffectationVersion['id'] {
+    const id = this.optionalId;
+    assert.ok(
+      id !== undefined,
+      `OptionalAffectationVersion did not receive any version`,
+    );
+
+    return id;
+  }
+
+  map<U>(someMapper: (version: SomeAffectationVersion) => U): U | null;
+  map<U, T>(predicates: {
+    some: (version: SomeAffectationVersion) => U;
+    none: (version: NoneAffectationVersion) => T;
+  }): U | T;
+
+  map<U, T = null>(
+    mappers:
+      | ((version: SomeAffectationVersion) => U)
+      | {
+          some: (version: SomeAffectationVersion) => U;
+          none: (version: NoneAffectationVersion) => T;
+        },
+  ): U | T {
+    if (this.value['@type'] === 'fr.csm.fondation.affectations.version.none') {
+      if ('none' in mappers) return mappers.none(this.value);
+      return null as T;
+    }
+
+    if (typeof mappers === 'function') return mappers(this.value);
+    return mappers.some(this.value);
+  }
+}

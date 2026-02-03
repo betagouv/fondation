@@ -102,3 +102,7 @@ html {
     border-radius: 0.125rem;
   }
 }
+
+[data-fr-js-tooltip-referent] {
+  cursor: pointer;
+}

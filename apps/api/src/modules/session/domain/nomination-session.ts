@@ -33,7 +33,7 @@ export class NominationSessionFilePriorityUpdated {
 export class NominationSessionAffectationVersionPublished {
   constructor(
     readonly sessionId: string,
-    readonly versionId: string,
+    readonly versionId: string | undefined,
     readonly userId: string,
   ) {}
 }
@@ -354,12 +354,12 @@ export class NominationSession {
   }
 
   publishAffectationVersion(props: { userId: string }) {
-    if (!this.version || !this.version.isDraft) return;
+    if (this.version && !this.version.isDraft) return;
 
     this.#messages.push(
       new NominationSessionAffectationVersionPublished(
         this.id,
-        this.version.id,
+        this.version?.id,
         props.userId,
       ),
     );

@@ -27,7 +27,12 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
 
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { DateOnly } from 'src/utils/date-only';
 import {
   FILE_EXTENSIONS,
@@ -57,7 +62,11 @@ import {
   UpdateNominationSessionFilesObserversDto,
   UploadSessionAttachmentDto,
 } from './infrastructure/dtos/nomination-session.dto';
-import { FoundAffectationVersion } from './infrastructure/finders/affectation-version.finder';
+import {
+  FoundAffectationVersion,
+  NoneAffectationVersion,
+  SomeAffectationVersion,
+} from './infrastructure/finders/affectation-version.finder';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -181,7 +190,17 @@ export class SessionController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/:sessionId/files/reporters/versions/last')
-  @ZodResponse({ type: FoundAffectationVersion, status: HttpStatus.OK })
+  @ApiExtraModels(SomeAffectationVersion, NoneAffectationVersion)
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      discriminator: { propertyName: '@type' },
+      oneOf: [
+        { $ref: getSchemaPath(SomeAffectationVersion) },
+        { $ref: getSchemaPath(NoneAffectationVersion) },
+      ],
+    },
+  })
   detailNominationSessionAffectationsVersion(
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAffectationVersion> {

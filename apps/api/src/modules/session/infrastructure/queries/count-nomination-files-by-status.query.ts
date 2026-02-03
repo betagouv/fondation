@@ -15,38 +15,39 @@ export class CountNominationFilesByStatusQuery {
   async handle(query: {
     sessionId: string;
   }): Promise<NominationFilesStatusCountDto> {
-    const lastVersion = await this.versionFinder.last({
-      tx: this.prisma,
-      sessionId: query.sessionId,
-    });
-
     const [unaffected, inProgress, withOutcome] =
-      await this.prisma.$transaction([
-        this.prisma.dossierDeNomination.count({
-          where: {
-            sessionId: query.sessionId,
-            outcome: null,
-            reporterIds: lastVersion
-              ? { none: { versionId: lastVersion.id } }
-              : { none: {} },
-          },
-        }),
-        this.prisma.dossierDeNomination.count({
-          where: {
-            sessionId: query.sessionId,
-            outcome: null,
-            reporterIds: lastVersion
-              ? { some: { versionId: lastVersion.id } }
-              : undefined,
-          },
-        }),
-        this.prisma.dossierDeNomination.count({
-          where: {
-            sessionId: query.sessionId,
-            outcome: { not: null },
-          },
-        }),
-      ]);
+      await this.prisma.$transaction(async (tx) => {
+        const version = await this.versionFinder
+          .last({ tx, sessionId: query.sessionId })
+          .then((v) => v.getNullable());
+
+        return [
+          await tx.dossierDeNomination.count({
+            where: {
+              outcome: null,
+              sessionId: query.sessionId,
+              reporterIds: { none: { versionId: version?.id } },
+            },
+          }),
+
+          await tx.dossierDeNomination.count({
+            where: {
+              outcome: null,
+              sessionId: query.sessionId,
+              reporterIds: version
+                ? { some: { versionId: version.id } }
+                : undefined,
+            },
+          }),
+
+          await tx.dossierDeNomination.count({
+            where: {
+              sessionId: query.sessionId,
+              outcome: { not: null },
+            },
+          }),
+        ];
+      });
 
     return { unaffected, inProgress, withOutcome };
   }

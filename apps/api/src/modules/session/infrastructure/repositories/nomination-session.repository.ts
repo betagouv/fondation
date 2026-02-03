@@ -69,7 +69,7 @@ export class NominationSessionRepository {
 
       if (!session) throw new NotFoundException();
 
-      const version = await this.affectationVersionFinder.last({
+      const optionalVersion = await this.affectationVersionFinder.last({
         tx,
         sessionId: id,
       });
@@ -87,13 +87,11 @@ export class NominationSessionRepository {
         nominationFileIdsWithOutcome: new Set(
           session.dossierDeNominations.map(({ id }) => id),
         ),
-        version: version
-          ? {
-              id: version.id,
-              version: version.version,
-              isDraft: version.status === StatutAffectation.BROUILLON,
-            }
-          : null,
+        version: optionalVersion.map(({ id, status, version }) => ({
+          id,
+          version,
+          isDraft: status === StatutAffectation.BROUILLON,
+        })),
       });
     });
   }
@@ -215,22 +213,6 @@ export class NominationSessionRepository {
     tx: Prisma.TransactionClient,
     message: NominationSessionAffectationVersionPublished,
   ) {
-    await tx.session.update({
-      where: { id: message.sessionId },
-      data: {
-        affectationVersions: {
-          update: {
-            where: { id: message.versionId },
-            data: {
-              statut: 'PUBLIEE',
-              auteurPublicationId: message.userId,
-              datePublication: this.clock.now(),
-            },
-          },
-        },
-      },
-    });
-
     const session = await tx.session.findUnique({
       where: { id: message.sessionId },
       select: {
@@ -256,6 +238,26 @@ export class NominationSessionRepository {
       throw new InternalServerErrorException();
     }
 
+    if (message.versionId) {
+      await tx.affectationVersion.update({
+        where: { id: message.versionId },
+        data: {
+          statut: 'PUBLIEE',
+          auteurPublicationId: message.userId,
+          datePublication: this.clock.now(),
+        },
+      });
+    } else {
+      await tx.affectationVersion.create({
+        data: {
+          statut: 'PUBLIEE',
+          auteurPublicationId: message.userId,
+          datePublication: this.clock.now(),
+          sessionId: message.sessionId,
+        },
+      });
+    }
+
     const reporterIds = Array.from(
       new Set(
         session.affectationVersions.flatMap(({ affectations }) =>
@@ -268,6 +270,8 @@ export class NominationSessionRepository {
       where: { sessionId: session.id, reporterId: { notIn: reporterIds } },
       data: { isDeleted: true },
     });
+
+    if (reporterIds.length === 0) return;
 
     const reportsToCreate = session.affectationVersions.flatMap(
       ({ affectations }) =>

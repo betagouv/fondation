@@ -20,12 +20,12 @@ import { NominationSessionAttachmentList } from '../../../../../shared/Nominatio
 export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formation: FormationEnum }) => {
   const alerts = useAlerts();
   const { data: metadata } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
-  // const { data: nominationFiles } = useSessionNominationFilesQuery({ sessionId });
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
   const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
 
   const isBrouillon = metadata?.status === 'BROUILLON';
+  const hasNoVersionYet = metadata?.version === 0;
 
   const onPublierAffectations = () => {
     publierAffectations(
@@ -92,7 +92,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
                 onClick: onPublierAffectations,
                 disabled: isPublishing,
                 children: isPublishing ? 'Publication en cours...' : 'Publier aux membres',
-                className: isBrouillon ? 'block' : 'hidden'
+                className: isBrouillon || hasNoVersionYet ? 'block' : 'hidden'
               }
             ]}
           />

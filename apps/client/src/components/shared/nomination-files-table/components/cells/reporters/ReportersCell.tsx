@@ -1,3 +1,5 @@
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
+
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -23,6 +25,14 @@ function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
 
 export function ReportersCell(props: { dossier: SessionNominationFile }) {
   const { edition } = useNominationFilesTable();
+
+  if (edition?.isEditing && props.dossier.content.outcome) {
+    return (
+      <Tooltip title="issue renseignée">
+        <ReadOnlyReportersCell dossier={props.dossier} />
+      </Tooltip>
+    );
+  }
 
   if (edition?.isEditing) {
     return <ReportersSelector file={props.dossier} />;
