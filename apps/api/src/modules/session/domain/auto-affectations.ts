@@ -34,7 +34,7 @@ export class AutoAffectations {
           const files =
             i === this.members.length - 1
               ? gradedFiles.slice(i * take) // in the last iteration we take all remaining files
-              : gradedFiles.slice(i * take, i + 1 * take);
+              : gradedFiles.slice(i * take, (i + 1) * take);
 
           const reporterIds = this.findNextReporters(files);
           if (!reporterIds.length) {
