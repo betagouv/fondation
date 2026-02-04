@@ -20,18 +20,10 @@ SELECT
   u.last_name AS "lastName",
   u.gender,
 
-  COALESCE(
-    ARRAY_AGG(
-      JSON_BUILD_OBJECT(
-        'id', j.codejur,
-        'label', j.libelle
-      )
-    ) FILTER (WHERE j.codejur IS NOT NULL),
-    ARRAY[]::JSON[]
-  )::JSON[] AS "excludedJurisdictions",
+  COALESCE(excluded.jurisdictions, ARRAY[]::JSONB[])::JSONB[] AS "excludedJurisdictions",
 
   ARRAY_AGG(
-    JSON_BUILD_OBJECT(
+    JSONB_BUILD_OBJECT(
       'year', "member_stats"."year",
       'targetedGrade', "member_stats"."targeted_grade",
       'count', COALESCE("member_stats"."count", 0)
@@ -42,15 +34,23 @@ FROM identity_and_access_context.users u
 
   LEFT JOIN "member_stats" ON "member_stats"."reporter_id" = u.id
 
-  LEFT JOIN data_administration_context.excluded_jurisdictions ej
-    ON ej.user_id = u.id
-  LEFT JOIN data_administration_context.jurisdictions j
-    ON j.codejur = ej.jurisdiction_id
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(
+      JSONB_BUILD_OBJECT(
+        'id', j.codejur,
+        'label', j.libelle
+      )
+    ) FILTER (WHERE j.codejur IS NOT NULL) AS "jurisdictions"
+    FROM data_administration_context.excluded_jurisdictions ej
+      LEFT JOIN data_administration_context.jurisdictions j
+        ON j.codejur = ej.jurisdiction_id
+    WHERE ej.user_id = u.id
+    GROUP BY ej.user_id
+  ) AS excluded ON TRUE
 
 WHERE (
   u.id = $1::UUID
   AND u.role IN ('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
 )
 
-GROUP BY u.id;
-
+GROUP BY u.id, excluded.jurisdictions;
