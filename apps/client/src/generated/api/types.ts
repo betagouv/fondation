@@ -161,7 +161,8 @@ export type PaginatedNominationFiles = {
     };
 };
 
-export type FoundAffectationVersion = {
+export type SomeAffectationVersion = {
+    '@type': string;
     id: string;
     status: 'BROUILLON' | 'PUBLIEE';
     version: number;
@@ -171,6 +172,11 @@ export type FoundAffectationVersion = {
         firstName: string;
         lastName: string;
     } | null;
+};
+
+export type NoneAffectationVersion = {
+    '@type': string;
+    version: number;
 };
 
 export type CountedUnaffectedFilesDto = {
@@ -642,6 +648,7 @@ export type ListObservationsResponseDto = {
             firstName: string;
             lastName: string;
             usedName: string;
+            currentPosition: string | null;
         } | null;
         createdBy: {
             id: string;
@@ -716,7 +723,7 @@ export type UpdateObservationDto = {
     files?: Array<Blob | File>;
     magistratId: string;
     dateReception: string;
-    detachFileIds?: Array<string>;
+    detachFileIds?: string | Array<string>;
 };
 
 export type AttachMemberCommentScreenshotsDto = {
@@ -915,7 +922,11 @@ export type DetailNominationSessionAffectationsVersionData = {
 };
 
 export type DetailNominationSessionAffectationsVersionResponses = {
-    200: FoundAffectationVersion;
+    200: ({
+        '@type': 'SomeAffectationVersion';
+    } & SomeAffectationVersion) | ({
+        '@type': 'NoneAffectationVersion';
+    } & NoneAffectationVersion);
 };
 
 export type DetailNominationSessionAffectationsVersionResponse = DetailNominationSessionAffectationsVersionResponses[keyof DetailNominationSessionAffectationsVersionResponses];

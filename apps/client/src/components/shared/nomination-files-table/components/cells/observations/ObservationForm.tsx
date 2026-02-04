@@ -73,7 +73,7 @@ export const ObservationForm: FC<{
         lastName: observation.magistrat.lastName,
         usedName: '',
         grade: null,
-        currentPosition: null
+        currentPosition: observation.magistrat.currentPosition ?? null
       });
       setSearchTerm(`${observation.magistrat.lastName} ${observation.magistrat.firstName}`);
     }
@@ -233,6 +233,7 @@ export const ObservationForm: FC<{
           <div className="mt-2 flex items-center gap-2 rounded bg-blue-50 p-2">
             <span className="text-sm">
               {selectedMagistrat.lastName} {selectedMagistrat.firstName}
+              {selectedMagistrat.currentPosition && ` - ${selectedMagistrat.currentPosition}`}
             </span>
             <button
               type="button"

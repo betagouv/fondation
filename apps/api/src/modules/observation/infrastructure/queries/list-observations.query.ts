@@ -18,6 +18,7 @@ const ObservationSchema = z.object({
       firstName: z.string(),
       lastName: z.string(),
       usedName: z.string(),
+      currentPosition: z.string().nullable(),
     })
     .nullable(),
   createdBy: z
@@ -59,6 +60,7 @@ export class ListObservationsQuery {
             firstName: true,
             lastName: true,
             usedName: true,
+            adminPosition: true,
           },
         },
         createdByUser: {
@@ -86,7 +88,15 @@ export class ListObservationsQuery {
         id: obs.id,
         dateReception: obs.dateReception.toISOString(),
         createdAt: obs.createdAt.toISOString(),
-        magistrat: obs.magistrat,
+        magistrat: obs.magistrat
+          ? {
+              id: obs.magistrat.id,
+              firstName: obs.magistrat.firstName,
+              lastName: obs.magistrat.lastName,
+              usedName: obs.magistrat.usedName,
+              currentPosition: obs.magistrat.adminPosition,
+            }
+          : null,
         createdBy: obs.createdByUser,
         files: obs.files.map(({ file }) => ({
           id: file.id,
