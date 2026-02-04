@@ -8,7 +8,7 @@ import { type FC, useRef, useState } from 'react';
 import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
 import { UploadExcelFailedAlert } from '../../../nouvelle-transparence/UploadExcelFailedAlert';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { ALERT_PRESETS, useAlerts } from '@/components/shared/alerts/alerts.context';
 
 export const modal = createModal({
   id: 'modal-import-observations-transparence',
@@ -31,7 +31,7 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
     onConceal: () => {
       setObservantsFile(null);
       reset();
-      alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true });
+      alerts.pushAlert(ALERT_PRESETS.DATA_UPDATED);
 
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

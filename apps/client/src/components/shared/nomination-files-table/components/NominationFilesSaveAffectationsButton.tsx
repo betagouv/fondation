@@ -3,7 +3,7 @@ import React from 'react';
 
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { ALERT_PRESETS, useAlerts } from '@/components/shared/alerts/alerts.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
 import { useAffectations } from '../contexts/files-affectations.context';
 
@@ -26,7 +26,7 @@ export function NominationFilesSaveAffectationsButton() {
         }))
       },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées', autoClose: true }),
+        onSuccess: () => alerts.pushAlert(ALERT_PRESETS.DATA_UPDATED),
         onSettled: () => {
           resetAffectations();
           edition?.setEditing(false);

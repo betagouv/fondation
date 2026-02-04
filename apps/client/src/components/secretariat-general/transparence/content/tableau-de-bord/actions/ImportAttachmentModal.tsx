@@ -3,7 +3,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useCallback, useState } from 'react';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { ALERT_PRESETS, useAlerts } from '@/components/shared/alerts/alerts.context';
 
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
@@ -39,7 +39,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
       },
       {
         onSuccess: () => {
-          alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true });
+          alerts.pushAlert(ALERT_PRESETS.DATA_UPDATED);
           setAttachmentFile(null);
           modal.close();
         },

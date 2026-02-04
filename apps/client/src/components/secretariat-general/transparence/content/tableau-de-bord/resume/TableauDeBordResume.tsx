@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useUpdateNominationSessionMutation } from '@queries/nomination-sessions.queries';
 
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { ALERT_PRESETS, useAlerts } from '@/components/shared/alerts/alerts.context';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
@@ -30,7 +30,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     await updateNominationSessionAsync(
       { sessionId: transparence.id, data },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true }),
+        onSuccess: () => alerts.pushAlert(ALERT_PRESETS.DATA_UPDATED),
         onError: () =>
           alerts.pushAlert({ severity: 'error', title: 'Erreur lors de la modification de la transparence' })
       }
