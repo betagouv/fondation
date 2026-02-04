@@ -99,7 +99,11 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Nom de la transparence*"
+              label={
+                <>
+                  Nom de la transparence<span className="text-red-500">*</span>
+                </>
+              }
               id="nom-transparence"
               nativeInputProps={{
                 value,
@@ -117,7 +121,11 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Date de la transparence*"
+              label={
+                <>
+                  Date de la transparence<span className="text-red-500">*</span>
+                </>
+              }
               id="date-transparence"
               nativeInputProps={{
                 type: 'date',
@@ -135,7 +143,11 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange } }) => (
             <Select
-              label="Formation*"
+              label={
+                <>
+                  Formation<span className="text-red-500">*</span>
+                </>
+              }
               nativeSelectProps={{
                 value,
                 onChange,
@@ -157,7 +169,11 @@ const NouvelleTransparence: FC = () => {
           control={control}
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Clôture du délai d'observation*"
+              label={
+                <>
+                  Clôture du délai d'observation<span className="text-red-500">*</span>
+                </>
+              }
               id="date-cloture-delai-observation"
               nativeInputProps={{
                 type: 'date',
@@ -224,7 +240,11 @@ const NouvelleTransparence: FC = () => {
                 }
               }}
               hint="Format supporté : xlsx."
-              label="Fichier*"
+              label={
+                <>
+                  Fichier<span className="text-red-500">*</span>
+                </>
+              }
               state={errors.file ? 'error' : 'default'}
               stateRelatedMessage={errors.file?.message}
             />
