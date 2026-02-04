@@ -300,11 +300,31 @@ export class NominationSessionRepository {
     }
   }
 
-  private persistNominationSessionAffectationVersionCreated(
+  private async persistNominationSessionAffectationVersionCreated(
     tx: Prisma.TransactionClient,
     message: NominationSessionAffectationVersionCreated,
   ) {
-    return tx.session.update({
+    let previousVersion: {
+      id: string;
+      affectations: { nominationFileId: string; userId: string }[];
+    } | null = null;
+
+    if (message.version.version > 1) {
+      previousVersion = await tx.affectationVersion.findUnique({
+        select: {
+          id: true,
+          affectations: { select: { nominationFileId: true, userId: true } },
+        },
+        where: {
+          sessionId_version: {
+            sessionId: message.sessionId,
+            version: message.version.version - 1,
+          },
+        },
+      });
+    }
+
+    await tx.session.update({
       where: { id: message.sessionId },
       data: {
         affectationVersions: {
@@ -316,6 +336,18 @@ export class NominationSessionRepository {
         },
       },
     });
+
+    if (previousVersion) {
+      await tx.nominationFileToReporter.createMany({
+        data: previousVersion.affectations.map(
+          ({ nominationFileId, userId }) => ({
+            versionId: message.version.id,
+            nominationFileId,
+            userId,
+          }),
+        ),
+      });
+    }
   }
 
   private async persistNominationSessionFileCommentAccessGranted(
