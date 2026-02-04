@@ -178,13 +178,11 @@ export function ObservationDetailsContent({
                     <Card
                       title={proposition.magistratName}
                       desc={
-                        <div className="fr-text--sm">
-                          {proposition.number && <p className="fr-mb-1v">N° {proposition.number}</p>}
-                          <p className="fr-mb-1v">{proposition.proposedPosition ?? '-'}</p>
-                          <p className="fr-mb-0 fr-text--light">
-                            Observation du {DateOnly.fromDateOnly(proposition.observationDate)}
-                          </p>
-                        </div>
+                        <span className="fr-text--sm">
+                          {proposition.number && <span className="mb-1 block">N° {proposition.number}</span>}
+                          <span className="mb-1 block">{proposition.proposedPosition ?? '-'}</span>
+                          <span className="block text-gray-500"></span>
+                        </span>
                       }
                       linkProps={{
                         to: getObservationDetailsPath(
