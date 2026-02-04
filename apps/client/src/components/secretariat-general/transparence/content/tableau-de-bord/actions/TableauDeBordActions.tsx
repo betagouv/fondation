@@ -33,7 +33,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
         onSuccess: () => {
           alerts.pushAlert({
             severity: 'success',
-            title: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
+            title: 'Session publiée avec succès'
           });
         },
         onError: () => {
