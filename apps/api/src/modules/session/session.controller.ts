@@ -232,7 +232,7 @@ export class SessionController {
     return this.sessions.countNominationFilesByStatus({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole()
   @Get('/:sessionId/files/reporters/versions/last/members')
   @ZodResponse({
     type: ListedCurrentlyAffectedReportersDto,
