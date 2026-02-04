@@ -26,19 +26,19 @@ export class CountNominationFilesByStatusQuery {
             where: {
               outcome: null,
               sessionId: query.sessionId,
-              reporterIds: { none: { versionId: version?.id } },
+              reporterIds: { none: version ? { versionId: version.id } : {} },
             },
           }),
 
-          await tx.dossierDeNomination.count({
-            where: {
-              outcome: null,
-              sessionId: query.sessionId,
-              reporterIds: version
-                ? { some: { versionId: version.id } }
-                : undefined,
-            },
-          }),
+          version
+            ? await tx.dossierDeNomination.count({
+                where: {
+                  outcome: null,
+                  sessionId: query.sessionId,
+                  reporterIds: { some: { versionId: version.id } },
+                },
+              })
+            : 0,
 
           await tx.dossierDeNomination.count({
             where: {
