@@ -1,17 +1,19 @@
 import React from 'react';
 
-import { AlertsContext, type AlertContextType, type AlertProps } from './alerts.context';
 import { Alert, type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
+import { AlertsContext, type AlertContextType, type AlertProps } from './alerts.context';
 
 function AlertsProvider(props: React.PropsWithChildren) {
   const [alerts, setAlerts] = React.useState<AlertProps[]>([]);
 
-  const pushAlert: AlertContextType['pushAlert'] = React.useCallback(
-    (alert) => {
-      setAlerts((a) => a.concat({ ...alert, id: crypto.randomUUID(), createdAt: new Date() }));
-    },
-    [setAlerts]
-  );
+  const pushAlert: AlertContextType['pushAlert'] = React.useCallback((alert) => {
+    const id = crypto.randomUUID();
+    setAlerts((a) => a.concat({ ...alert, id, createdAt: new Date() }));
+
+    if (alert.severity === 'success') {
+      setTimeout(() => setAlerts((a) => a.filter((x) => x.id !== id)), alert.timeout ?? 4000);
+    }
+  }, []);
 
   return <AlertsContext value={{ alerts, setAlerts, pushAlert }}>{props.children}</AlertsContext>;
 }

@@ -1,5 +1,5 @@
-import React from 'react';
 import { type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
+import React from 'react';
 
 type AlertSeverity = DsfrAlertProps['severity'];
 export type AlertProps = {
@@ -12,7 +12,7 @@ export type AlertProps = {
 
 export type AlertContextType = {
   alerts: readonly AlertProps[];
-  pushAlert(options: Omit<AlertProps, 'id' | 'createdAt'>): void;
+  pushAlert(options: Omit<AlertProps, 'id' | 'createdAt'> & { timeout?: number }): void;
   setAlerts: (alerts: AlertProps[]) => void;
 };
 export const AlertsContext = React.createContext<AlertContextType | null>(null);
