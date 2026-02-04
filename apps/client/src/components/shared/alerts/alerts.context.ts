@@ -12,7 +12,7 @@ export type AlertProps = {
 
 export type AlertContextType = {
   alerts: readonly AlertProps[];
-  pushAlert(options: Omit<AlertProps, 'id' | 'createdAt'> & { timeout?: number }): void;
+  pushAlert(options: Omit<AlertProps, 'id' | 'createdAt'> & { timeout?: number; autoClose?: boolean }): void;
   setAlerts: (alerts: AlertProps[]) => void;
 };
 export const AlertsContext = React.createContext<AlertContextType | null>(null);

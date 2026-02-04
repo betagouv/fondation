@@ -30,7 +30,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     await updateNominationSessionAsync(
       { sessionId: transparence.id, data },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Données actualisées' }),
+        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true }),
         onError: () =>
           alerts.pushAlert({ severity: 'error', title: 'Erreur lors de la modification de la transparence' })
       }

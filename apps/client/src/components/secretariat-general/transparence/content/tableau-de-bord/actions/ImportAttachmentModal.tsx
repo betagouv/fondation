@@ -39,7 +39,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
       },
       {
         onSuccess: () => {
-          alerts.pushAlert({ severity: 'success', title: 'Données actualisées' });
+          alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true });
           setAttachmentFile(null);
           modal.close();
         },

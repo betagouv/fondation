@@ -26,7 +26,7 @@ export function NominationFilesSaveAffectationsButton() {
         }))
       },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées' }),
+        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées', autoClose: true }),
         onSettled: () => {
           resetAffectations();
           edition?.setEditing(false);

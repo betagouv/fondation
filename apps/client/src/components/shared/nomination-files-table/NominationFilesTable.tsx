@@ -2,7 +2,6 @@ import './NominationFilesTable.css';
 
 import React from 'react';
 
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import type { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 
@@ -77,29 +76,24 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
             <ObservationFollowUpReminderProvider>
               <FilesSelectionProvider selection={tableState.rowSelection}>
                 <FilesAffectationsProvider files={nominationFiles}>
-                  <AlertsProvider>
-                    <div className="fr-container mb-4 flex flex-col gap-4">
-                      <div className="flex items-end justify-between">
-                        <NominationFilesAffectationsStatus />
-                        <AlertsProvider.Alerts small className="flex-shrink-0" />
-                      </div>
-                      <NominationFilesStatusBadges />
-                    </div>
+                  <div className="fr-container mb-4 flex flex-col gap-4">
+                    <NominationFilesAffectationsStatus />
+                    <NominationFilesStatusBadges />
+                  </div>
 
-                    <DataTable
-                      classNames={{
-                        content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto'
-                      }}
-                      table={table}
-                      placeholder={
-                        isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
-                      }
-                    >
-                      {props.children}
+                  <DataTable
+                    classNames={{
+                      content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto'
+                    }}
+                    table={table}
+                    placeholder={
+                      isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
+                    }
+                  >
+                    {props.children}
 
-                      <NominationFilesTableActionsBar />
-                    </DataTable>
-                  </AlertsProvider>
+                    <NominationFilesTableActionsBar />
+                  </DataTable>
                 </FilesAffectationsProvider>
               </FilesSelectionProvider>
             </ObservationFollowUpReminderProvider>

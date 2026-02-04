@@ -31,7 +31,7 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
     onConceal: () => {
       setObservantsFile(null);
       reset();
-      alerts.pushAlert({ severity: 'success', title: 'Données actualisées' });
+      alerts.pushAlert({ severity: 'success', title: 'Données actualisées', autoClose: true });
 
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

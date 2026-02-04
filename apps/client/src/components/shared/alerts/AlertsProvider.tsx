@@ -10,7 +10,7 @@ function AlertsProvider(props: React.PropsWithChildren) {
     const id = crypto.randomUUID();
     setAlerts((a) => a.concat({ ...alert, id, createdAt: new Date() }));
 
-    if (alert.severity === 'success') {
+    if (alert.autoClose) {
       setTimeout(() => setAlerts((a) => a.filter((x) => x.id !== id)), alert.timeout ?? 4000);
     }
   }, []);
