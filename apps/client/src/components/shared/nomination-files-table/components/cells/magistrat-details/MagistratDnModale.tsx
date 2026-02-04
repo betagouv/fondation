@@ -1,7 +1,7 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { useQueryState } from 'nuqs';
-import { useCallback, useLayoutEffect, useMemo, useRef, type PropsWithChildren } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type PropsWithChildren } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -35,19 +35,16 @@ export function MagistratModaleProvider(
     [activeNominationFileId, props.nominationFiles]
   );
 
-  useLayoutEffect(() => {
-    const nominationFileExists = activeFileIndex !== -1;
-    if (nominationFileExists && !isOpen) {
-      // Bug in @codegouvfr/react-dsfr implementation for the modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const modalExists = Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal);
-      if (modalExists) {
-        modalMagistratDnDetails.open();
-      } else {
-        setActiveNominationFileId(null);
-      }
-    }
-  }, [activeFileIndex, isOpen, setActiveNominationFileId, modalRef]);
+  const modalExists = useCallback(() => {
+    // Bug in @codegouvfr/react-dsfr implementation for the modal
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal);
+  }, [modalRef]);
+
+  useEffect(() => {
+    if (activeFileIndex !== -1 && !isOpen && modalExists()) modalMagistratDnDetails.open();
+    if (activeFileIndex === -1 && isOpen && modalExists()) modalMagistratDnDetails.close();
+  }, [activeFileIndex, isOpen, setActiveNominationFileId, modalExists]);
 
   const hasPrevious = props.nominationFiles.length > 0 && activeFileIndex > 0;
   const onPreviousClicked = useCallback(() => {
@@ -104,7 +101,6 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
 
   const hasComment =
     !!props.nominationFile.memo ||
-    !!props.nominationFile.comment || // FIXME: deprecated?
     !!props.nominationFile.summary?.canWrite ||
     !!props.nominationFile.summary?.canRead;
 

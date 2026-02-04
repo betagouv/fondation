@@ -74,7 +74,7 @@ export const ReportsTable: React.FC<React.PropsWithChildren<ReportsTableProps>> 
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="fr-container mt-8 flex items-center justify-between">
         <FiltresRapports filters={filters} onFiltersChange={setFilters} />
         {children}
       </div>
