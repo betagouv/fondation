@@ -80,10 +80,10 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                   <AlertsProvider>
                     <div className="fr-container mb-4 flex flex-col gap-4">
                       <div className="flex items-end justify-between">
-                        <NominationFilesAffectationsStatus />
+                        {isSg ? <NominationFilesAffectationsStatus /> : null}
                         <AlertsProvider.Alerts small className="flex-shrink-0" />
                       </div>
-                      <NominationFilesStatusBadges />
+                      {isSg ? <NominationFilesStatusBadges /> : null}
                     </div>
 
                     <DataTable
