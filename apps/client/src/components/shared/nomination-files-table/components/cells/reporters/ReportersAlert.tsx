@@ -5,6 +5,7 @@ import clsx from 'clsx';
 
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 
 function requires2Reporters(dossier: SessionNominationFile, selectedCount?: number) {
   const search = unaccent(dossier.content.posteCible || '').toLowerCase();
@@ -25,7 +26,8 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
 }
 
 export function ReportersAlert(props: { dossier: SessionNominationFile; selectedReportersCount?: number }) {
-  if (!requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
+  const isSg = useIsSgNavigation();
+  if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 
   return (
     /** @warning ".multi-reporters-alert" is used by the table CSS to display the orange row */
