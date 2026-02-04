@@ -18,7 +18,8 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
       'procureur pres la cour de cassation',
       'procureur national anti-terroriste',
       'procureur national financier',
-      'premier president de chambre'
+      'premier president de chambre',
+      'avocat general cc  paris'
     ].some((position) => search.startsWith(position))
   );
 }
