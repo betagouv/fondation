@@ -18,7 +18,7 @@ export class ListNominationSessionsQuery {
   }): Promise<ListedNominationSessionsDto> {
     const sessions = await this.prisma.session.findMany({
       where: { typeDeSaisine: query.typeDeSaisine },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ date: 'desc' }, { createdAt: 'asc' }],
       select: {
         id: true,
         name: true,
