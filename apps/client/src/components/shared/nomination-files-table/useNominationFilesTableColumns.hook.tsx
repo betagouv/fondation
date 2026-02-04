@@ -12,7 +12,7 @@ import { useNominationFilesTable } from './contexts/files-table.context';
 
 import { toFullName } from '@/utils/user.utils';
 import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
-import { NominationFileOutcome } from './components/cells/nomination-file-outcome/NominationFileOutcome';
+import { NominationFilesOutcomeCell } from './components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from './components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
 import { ReportersCell } from './components/cells/reporters/ReportersCell';
@@ -105,7 +105,7 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.outcome', {
         enableSorting: false,
         header: 'Issue',
-        cell: ({ row }) => <NominationFileOutcome nominationFile={row.original} />
+        cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />
       })
     ],
     [sessionId]
