@@ -19,7 +19,7 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
       'procureur national anti-terroriste',
       'procureur national financier',
       'premier president de chambre'
-    ].some((position) => search.includes(position))
+    ].some((position) => search.startsWith(position))
   );
 }
 
