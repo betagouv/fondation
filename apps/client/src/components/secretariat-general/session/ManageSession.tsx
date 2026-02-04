@@ -84,19 +84,21 @@ export const ManageSession = () => {
     { field: 'typeDeSaisine', label: 'Type de session' },
     { field: 'name', label: 'Intitulé de la session' },
     { field: 'formation', label: 'Formation' },
-    { field: 'dateTransparence', label: 'Date de publication' },
-    { field: 'dateEcheance', label: "Date d'écheance" },
+    { field: 'date', label: 'Date de publication' },
+    { field: 'dueDate', label: "Date d'écheance" },
     { field: 'status', label: 'Statut' }
   ];
 
   const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
     <span className="flex items-center gap-1">
       {header.label}
-      <SortButton
-        iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-        onClick={() => handleSort(header.field)}
-        label={header.label}
-      />
+      {['date', 'dueDate'].includes(header.field) ? (
+        <SortButton
+          iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
+          onClick={() => handleSort(header.field)}
+          label={header.label}
+        />
+      ) : null}
     </span>
   ));
 

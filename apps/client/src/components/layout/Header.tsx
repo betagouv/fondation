@@ -3,10 +3,10 @@ import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation'
 
 import { HelpPageButton } from '@/pages/HelpPage';
 import { useUser } from '@queries/auth.queries';
+import { useLocation } from 'react-router-dom';
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
-import { useLocation } from 'react-router-dom';
 
 export const AppHeader = () => {
   const { pathname } = useLocation();
@@ -16,27 +16,29 @@ export const AppHeader = () => {
   const navigation: MainNavigationProps.Item[] = [
     {
       text: 'Accueil',
-      linkProps: { href: '/' }
+      linkProps: { href: '/' },
+      isActive: ROUTE_PATHS.SG.DASHBOARD === pathname
     },
     {
       text: 'Créer une session',
-      linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE }
+      linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE },
+      isActive: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE === pathname
     },
     {
       text: 'Gérer une session',
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION }
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
+      isActive: [
+        ROUTE_PATHS.SG.MANAGE_SESSION,
+        new RegExp(ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', '[^/]*'))
+      ].some((x) => pathname.match(x))
     },
     {
       text: 'Gérer les membres',
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS }
-    },
-    {
-      text: 'Archives',
-      linkProps: {
-        href: '#',
-        target: '_self',
-        'aria-disabled': true
-      }
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
+      isActive: [
+        ROUTE_PATHS.SG.MANAGE_MEMBERS,
+        new RegExp(ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', '[^/]*'))
+      ].some((x) => pathname.match(x))
     }
   ];
 

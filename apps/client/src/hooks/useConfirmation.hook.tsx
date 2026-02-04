@@ -10,7 +10,7 @@ import {
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
-const confirmationModal = createModal({ isOpenedByDefault: false, id: `confirmation_modal` });
+export const confirmationModal = createModal({ isOpenedByDefault: false, id: `confirmation_modal` });
 
 type ConfirmationOptions = {
   title?: string;

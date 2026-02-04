@@ -59,7 +59,7 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
             {dueDate && (
               <tr>
                 <th scope="row" className="text-left" style={{ color: colors.options.grey._625_425.default }}>
-                  1<sup>è</sup> séance de restitution le:
+                  1<sup>è</sup> séance le:
                 </th>
                 <td>
                   <DisplayedDate dateOnly={dueDate} />

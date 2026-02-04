@@ -5,7 +5,6 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
 import * as importAttachments from './ImportAttachmentModal';
-import * as importObservers from './ImportObservantsModal';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import type { FormationEnum } from '@/types/enums.types';
@@ -34,7 +33,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
         onSuccess: () => {
           alerts.pushAlert({
             severity: 'success',
-            title: 'Les affectations ont été publiées aux membres avec succès. Les rapports ont été créés.'
+            title: 'Session publiée avec succès'
           });
         },
         onError: () => {
@@ -65,25 +64,18 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
         </div>
 
         <div className="flex flex-col gap-2">
-          <importObservers.ImportObservantsModal sessionId={sessionId} />
           <importAttachments.ImportAttachmentModal sessionId={sessionId} />
 
           <ButtonsGroup
             buttons={[
               {
-                children: 'Importer les observations',
-                nativeButtonProps: importObservers.modal.buttonProps
-              },
-              {
-                priority: 'secondary',
+                priority: 'primary',
                 children: 'Importer une pièce jointe',
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {
-                // TODO: fix the excel export in the backend
                 priority: 'secondary',
                 iconId: 'fr-icon-download-line',
-                // disabled: true,
                 children: 'Exporter en Excel',
                 onClick: () => exportAsExcel({ sessionId })
               },

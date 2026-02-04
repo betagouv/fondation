@@ -5,7 +5,7 @@ import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
-import { useAffectations } from '../contexts/files-affectations.context';
+import { NO_PRIORITY, useAffectations } from '../contexts/files-affectations.context';
 
 export function NominationFilesSaveAffectationsButton() {
   const alerts = useAlerts();
@@ -20,9 +20,9 @@ export function NominationFilesSaveAffectationsButton() {
       {
         sessionId,
         affectations: getAffectations().map(({ reporterIds, priority, id }) => ({
-          priority,
           reporterIds,
-          nominationFileId: id
+          nominationFileId: id,
+          priority: priority === NO_PRIORITY ? null : priority
         }))
       },
       {
