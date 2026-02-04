@@ -72,10 +72,15 @@ export class ListNominationFilesQuery {
     })();
 
     const [totalCount, files] = await this.prisma.$transaction(async (tx) => {
-      const lastVersion = await this.versionFinder.last({
-        tx,
-        sessionId: query.sessionId,
-      });
+      const lastVersion = isSG
+        ? await this.versionFinder.last({
+            tx,
+            sessionId: query.sessionId,
+          })
+        : await this.versionFinder.lastPublished({
+            tx,
+            sessionId: query.sessionId,
+          });
 
       const where: Prisma.DossierDeNominationWhereInput = {
         sessionId: query.sessionId,
