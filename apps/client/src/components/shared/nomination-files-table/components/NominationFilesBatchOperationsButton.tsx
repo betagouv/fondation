@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { PrioriteEnum } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 
-import { useAffectations } from '../contexts/files-affectations.context';
+import { useAffectations, type NoPriority } from '../contexts/files-affectations.context';
 import { useSelectedFileIds } from '../contexts/files-selection.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
@@ -34,7 +34,7 @@ export function NominationFilesBatchOperationsButton() {
   const hasSelection = useMemo(() => selectedFileIds.length > 0, [selectedFileIds]);
 
   const [localSelection, setLocalSelection] = useState<string[]>([]);
-  const [localPriorite, setLocalPriorite] = useState<PrioriteEnum | null | undefined>(undefined);
+  const [localPriorite, setLocalPriorite] = useState<PrioriteEnum | NoPriority | undefined>(undefined);
 
   const handleOpenModal = useCallback(() => {
     setLocalSelection([]);

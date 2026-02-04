@@ -3,15 +3,18 @@ import React from 'react';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import type { PrioriteEnum } from '@/types/enums.types';
 
-type AffectationFile = { id: string; priority: PrioriteEnum | null; reporterIds: Set<string> };
+export const NO_PRIORITY = 'NONE' as const;
+export type NoPriority = typeof NO_PRIORITY;
+
+type AffectationFile = { id: string; priority: PrioriteEnum | NoPriority; reporterIds: Set<string> };
 
 class SingleFileAffectation {
-  #priority?: PrioriteEnum | null;
+  #priority?: PrioriteEnum | NoPriority;
   #reporterIds?: Set<string>;
 
   constructor(readonly original: AffectationFile) {}
 
-  toJSON(): { id: string; priority: PrioriteEnum | null; reporterIds: string[] } {
+  toJSON(): { id: string; priority: PrioriteEnum | NoPriority; reporterIds: string[] } {
     return {
       id: this.original.id,
       priority: this.#priority ?? this.original.priority,
@@ -39,13 +42,13 @@ class SingleFileAffectation {
     this.#reporterIds = reporterIds;
   }
 
-  setPriority(value: PrioriteEnum | null): void {
+  setPriority(value: PrioriteEnum | NoPriority): void {
     if (this.original.priority === value) {
       this.#priority = undefined;
       return;
     }
 
-    this.#priority = value;
+    this.#priority = value ?? NO_PRIORITY;
   }
 
   reset(): void {
@@ -55,7 +58,7 @@ class SingleFileAffectation {
 }
 
 export class FilesAffectationsState
-  implements Iterable<{ id: string; reporterIds: string[]; priority: PrioriteEnum | null }>
+  implements Iterable<{ id: string; reporterIds: string[]; priority: PrioriteEnum | NoPriority }>
 {
   readonly hasChanges: boolean = false;
   private constructor(readonly affectations: Map<string, SingleFileAffectation>) {
@@ -73,21 +76,15 @@ export class FilesAffectationsState
 
   affect(affectations: Record<string, readonly string[]>): FilesAffectationsState {
     for (const [id, reporterIds] of Object.entries(affectations)) {
-      const affectation = this.affectations.get(id);
-      if (!affectation) continue;
-
-      affectation.setReporterIds(new Set(reporterIds));
+      this.affectations.get(id)?.setReporterIds(new Set(reporterIds));
     }
 
     return new FilesAffectationsState(new Map(this.affectations));
   }
 
-  prioritize(priorities: Record<string, PrioriteEnum | null>): FilesAffectationsState {
+  prioritize(priorities: Record<string, PrioriteEnum | NoPriority>): FilesAffectationsState {
     for (const [id, priority] of Object.entries(priorities)) {
-      const affectation = this.affectations.get(id);
-      if (!affectation) continue;
-
-      affectation.setPriority(priority);
+      this.affectations.get(id)?.setPriority(priority);
     }
 
     return new FilesAffectationsState(new Map(this.affectations));
@@ -114,7 +111,7 @@ export class FilesAffectationsState
 
 type AffectationAction =
   | { type: 'affect'; affectations: Record<string, readonly string[]> }
-  | { type: 'prioritize'; priorities: Record<string, PrioriteEnum | null> }
+  | { type: 'prioritize'; priorities: Record<string, PrioriteEnum | NoPriority> }
   | { type: 'reset' }
   | { type: 'init'; files: readonly SessionNominationFile[] };
 
@@ -144,9 +141,9 @@ function reducer(state: FilesAffectationsState, action: AffectationAction): File
 type FilesAffectationsContextType = {
   hasChanges: boolean;
   resetAffectations: () => void;
-  prioritize: (priorities: Record<string, PrioriteEnum | null>) => void;
+  prioritize: (priorities: Record<string, PrioriteEnum | NoPriority>) => void;
   affectReporters: (affectations: Record<string, readonly string[]>) => void;
-  getAffectations: () => { id: string; priority: PrioriteEnum | null; reporterIds: string[] }[];
+  getAffectations: () => { id: string; priority: PrioriteEnum | NoPriority; reporterIds: string[] }[];
 };
 type InternalFilesAffectationsContextType = FilesAffectationsContextType & {
   root: FilesAffectationsState;
@@ -170,7 +167,7 @@ export function useAffectationsModel(
   const getAffectations = React.useCallback(() => state.toJSON(), [state]);
 
   const prioritize = React.useCallback(
-    (priorities: Record<string, PrioriteEnum | null>) => dispatch({ type: 'prioritize', priorities }),
+    (priorities: Record<string, PrioriteEnum | NoPriority>) => dispatch({ type: 'prioritize', priorities }),
     [dispatch]
   );
 
@@ -193,8 +190,8 @@ export function useAffectations(): FilesAffectationsContextType {
 
 export function useAffectationRow(fileId: string): {
   reporterIds: string[] | undefined;
-  priority: PrioriteEnum | null | undefined;
-  prioritize: (priority: PrioriteEnum | null) => void;
+  priority: PrioriteEnum | NoPriority | undefined;
+  prioritize: (priority: PrioriteEnum | NoPriority) => void;
   affectReporters: (reporterIds: readonly string[]) => void;
 } {
   const {
@@ -207,7 +204,7 @@ export function useAffectationRow(fileId: string): {
   const reporterIds = React.useMemo(() => (file ? [...file.reporterIds] : undefined), [file]);
 
   const prioritize = React.useCallback(
-    (priority: PrioriteEnum | null) => {
+    (priority: PrioriteEnum | NoPriority) => {
       rootPrioritize({ [fileId]: priority });
     },
     [fileId, rootPrioritize]
