@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { confirmationModal, useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
@@ -55,7 +55,9 @@ export function NominationFilesAutoAffectationButton() {
           <p>
             L'affectation automatique prend en compte un plan de charge sur la session, ainsi que les
             incompatibilités de juridictions configurées dans{' '}
-            <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>&laquo;&nbsp;Gérer les membres&nbsp;&raquo;</Link>
+            <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS} onClick={() => confirmationModal.close()}>
+              &laquo;&nbsp;Gérer les membres&nbsp;&raquo;
+            </Link>
           </p>
           <p>
             Une fois l'affectation faite, vous aurez toujours la possibilité de la modifier avant de la
