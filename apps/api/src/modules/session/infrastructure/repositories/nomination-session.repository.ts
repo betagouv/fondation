@@ -524,7 +524,7 @@ export class NominationSessionRepository {
   ) {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
-      data: { outcome: message.outcome, comment: message.comment },
+      data: { outcome: message.outcome, outcomeComment: message.comment },
     });
   }
 

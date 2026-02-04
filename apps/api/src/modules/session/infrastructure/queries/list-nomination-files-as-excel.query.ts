@@ -75,6 +75,12 @@ export class ListNominationFilesAsExcelQuery {
       nf.currentPosition || '',
       nf.grade || '',
       nf.targetedPosition || '',
+      nf.reporterIds
+        .map(
+          ({ user }) =>
+            `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`,
+        )
+        .join(', '),
       nf.observations
         .map(({ magistrat }) =>
           magistrat.usedName !== magistrat.lastName
@@ -100,12 +106,6 @@ export class ListNominationFilesAsExcelQuery {
           )
         : '',
       nf.outcome && nf.outcomeComment ? nf.outcomeComment : '',
-      nf.reporterIds
-        .map(
-          ({ user }) =>
-            `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`,
-        )
-        .join(', '),
     ]);
 
     const sessionData = [
@@ -115,11 +115,11 @@ export class ListNominationFilesAsExcelQuery {
         'Poste actuel',
         'Grade actuel',
         'Poste cible',
+        'Rapporteur(s)',
         'Observants',
         'Priorité',
         'Issue',
         'Commentaire issue',
-        'Rapporteur(s)',
       ],
       ...rows,
     ];
