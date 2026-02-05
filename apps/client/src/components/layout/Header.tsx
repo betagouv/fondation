@@ -1,44 +1,53 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
+import React from 'react';
+import { useLocation, matchPath } from 'react-router-dom';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/HelpPage';
-import { useUser } from '@queries/auth.queries';
-import { useLocation } from 'react-router-dom';
-import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 
+function useRouteMatcher() {
+  const { pathname } = useLocation();
+  return React.useCallback(
+    (patterns: readonly FondationPath[], options?: { end: boolean }) => {
+      return patterns.some(
+        (pattern) => matchPath({ path: pattern, end: false, ...options }, pathname) !== null
+      );
+    },
+    [pathname]
+  );
+}
+
 export const AppHeader = () => {
   const { pathname } = useLocation();
-  const { user } = useUser();
-  const includeSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL' && pathname !== 'login';
+  const routeMatches = useRouteMatcher();
+  const isUserSg = useIsSg();
+
+  const includeSg = isUserSg && pathname !== ROUTE_PATHS.LOGIN;
 
   const navigation: MainNavigationProps.Item[] = [
     {
       text: 'Accueil',
       linkProps: { href: '/' },
-      isActive: ROUTE_PATHS.SG.DASHBOARD === pathname
+      isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true })
     },
     {
       text: 'Créer une session',
       linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE },
-      isActive: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE === pathname
+      isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE])
     },
     {
       text: 'Gérer une session',
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
-      isActive: [
-        ROUTE_PATHS.SG.MANAGE_SESSION,
-        new RegExp(ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', '[^/]*'))
-      ].some((x) => pathname.match(x))
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID])
     },
     {
       text: 'Gérer les membres',
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
-      isActive: [
-        ROUTE_PATHS.SG.MANAGE_MEMBERS,
-        new RegExp(ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', '[^/]*'))
-      ].some((x) => pathname.match(x))
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER])
     }
   ];
 

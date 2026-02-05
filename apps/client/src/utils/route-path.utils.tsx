@@ -1,7 +1,4 @@
-import type { DateOnlyJson, Magistrat } from 'shared-models';
-import { DateTransparenceRoutesMapper } from './date-transparence-routes.utils';
-import { FormationsRoutesMapper } from './formations-routes.utils';
-import { GdsTransparenciesRoutesMapper } from './gds-transparencies-routes.utils';
+import { generatePath } from 'react-router-dom';
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
@@ -9,9 +6,6 @@ export const ROUTE_PATHS = {
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
-    /** @deprecated */
-    DETAILS_GDS:
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/:dateTransparence/:transparency/:formation/rapports/:sessionId',
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId'
@@ -33,33 +27,23 @@ export const ROUTE_PATHS = {
 
 export type RoutePath = typeof ROUTE_PATHS;
 
+export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;
+
 export type RoutePathSecretariat = RoutePath['SG'][keyof RoutePath['SG']];
 
 export function getDetailSessionGdsPath(props: {
   sessionId: string;
   focus?: 'affectations' | 'general';
 }): string {
-  const path = ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', props.sessionId);
+  const path = generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, { sessionId: props.sessionId });
   return path + (props.focus ? `?focus=${props.focus}` : '');
 }
 
-/** @deprecated */
-export const getGdsDetailsPath = (
-  dateTransparence: DateOnlyJson,
-  transparency: string,
-  formation: Magistrat.Formation,
-  sessionId: string
-) => {
-  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/${DateTransparenceRoutesMapper.toPathSegment(dateTransparence)}/${GdsTransparenciesRoutesMapper.toPathSegment(transparency)}/${FormationsRoutesMapper.toPathSegment(formation)}/rapports/${sessionId}`;
-};
-
 export const getGdsReportPath = (id: string) => {
-  return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/${id}`;
+  return generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id });
 };
 
-export const getSgSessionPath = (sessionId: string) => {
-  return `/secretariat-general/session/${sessionId}`;
-};
+export const getSgSessionPath = (sessionId: string) => generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId });
 
 export const getObservationDetailsPath = (
   props: {
@@ -69,8 +53,18 @@ export const getObservationDetailsPath = (
   },
   context: 'sg' | 'membre' = 'sg'
 ) => {
+  const { sessionId, nominationFileId, observationId } = props;
   if (context === 'membre') {
-    return `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/${props.sessionId}/dossiers/${props.nominationFileId}/observations/${props.observationId}`;
+    return generatePath(ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS, {
+      sessionId,
+      nominationFileId,
+      observationId
+    });
   }
-  return `/secretariat-general/session/${props.sessionId}/dossiers/${props.nominationFileId}/observations/${props.observationId}`;
+
+  return generatePath(ROUTE_PATHS.SG.OBSERVATION_DETAILS, {
+    sessionId,
+    nominationFileId,
+    observationId
+  });
 };
