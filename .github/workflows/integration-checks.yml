@@ -1,4 +1,7 @@
 name: Integration checks
+permissions:
+  contents: read
+  packages: read
 
 on:
   pull_request:

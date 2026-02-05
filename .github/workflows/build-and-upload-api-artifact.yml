@@ -1,4 +1,6 @@
 name: Build and upload API artifact
+permissions:
+  contents: read
 
 on:
   workflow_call:
