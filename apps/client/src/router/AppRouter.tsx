@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import { HelpPage } from '@/pages/HelpPage';
 import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';

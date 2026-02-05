@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
 export type ObservationLinkItem = {

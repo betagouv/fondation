@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { confirmationModal, useConfirmation } from '@/hooks/useConfirmation.hook';

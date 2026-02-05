@@ -2,7 +2,7 @@ import type { DateOnlyJson } from '@/types/date-only.types';
 import type { FormationEnum } from '@/types/enums.types';
 import { colors } from '@codegouvfr/react-dsfr';
 import type { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { DateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,

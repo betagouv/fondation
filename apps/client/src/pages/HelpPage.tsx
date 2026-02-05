@@ -4,7 +4,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useUser } from '@queries/auth.queries';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 export function HelpPage() {
   const location = useLocation();

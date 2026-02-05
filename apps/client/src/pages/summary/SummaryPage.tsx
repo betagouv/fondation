@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';

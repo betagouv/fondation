@@ -1,6 +1,6 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import type { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 import { useLogout, useUser } from '@queries/auth.queries';

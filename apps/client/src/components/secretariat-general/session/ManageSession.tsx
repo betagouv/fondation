@@ -2,7 +2,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 
 import { TypeDeSaisineLabels } from 'shared-models';
 

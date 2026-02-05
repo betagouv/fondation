@@ -1,7 +1,7 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useCallback, type FC } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
