@@ -17,14 +17,25 @@ export class SearchJurisdictionsQuery {
         take: 20,
         orderBy: [{ codejur: 'asc' }],
         where: {
-          codejur: query.includeIds ? { notIn: query.includeIds } : undefined,
-          OR: query.search
-            ? [
-                { codejur: { contains: query.search, mode: 'insensitive' } },
-                { ville: { contains: query.search, mode: 'insensitive' } },
-                { libelle: { contains: query.search, mode: 'insensitive' } },
-              ]
-            : undefined,
+          AND: [
+            { codejur: { not: { startsWith: 'TI' } } },
+            { codejur: { not: { startsWith: 'TGI' } } },
+            {
+              codejur: query.includeIds
+                ? { notIn: query.includeIds }
+                : undefined,
+            },
+            {
+              OR: query.search
+                ? //prettier-ignore
+                  [
+                    { codejur: { contains: query.search, mode: 'insensitive' } },
+                    { ville:   { contains: query.search, mode: 'insensitive' } },
+                    { libelle: { contains: query.search, mode: 'insensitive' } },
+                  ]
+                : undefined,
+            },
+          ],
         },
         select: { codejur: true, libelle: true, typeJur: true, ville: true },
       });
