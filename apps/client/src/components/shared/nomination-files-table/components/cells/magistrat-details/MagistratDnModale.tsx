@@ -1,16 +1,28 @@
+import { colors } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { useQueryState } from 'nuqs';
-import { useCallback, useEffect, useMemo, useRef, type PropsWithChildren } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren
+} from 'react';
 
 import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { MagistratRouteDetails } from './MagistratRouteDetails';
+import { MagistratDetails } from './MagistratDetails';
 
 const modalMagistratDnDetails = createModal({
   id: `modal-magistrat-dn-details`,
   isOpenedByDefault: false
 });
+
+type MagistratModalContextType = { setActive(id: string): void };
+const MagistratModalContext = createContext(null as unknown as MagistratModalContextType);
 
 export function MagistratModaleProvider(
   props: PropsWithChildren<{
@@ -18,7 +30,7 @@ export function MagistratModaleProvider(
     nominationFiles: SessionNominationFile[];
   }>
 ) {
-  const [activeNominationFileId, setActiveNominationFileId] = useQueryState('active');
+  const [activeNominationFileId, setActiveNominationFileId] = useState<string | null>(null);
   const modalRef = useRef<HTMLDialogElement | null>(null);
 
   const isOpen = useIsModalOpen(modalMagistratDnDetails, {
@@ -35,11 +47,18 @@ export function MagistratModaleProvider(
     [activeNominationFileId, props.nominationFiles]
   );
 
-  const modalExists = useCallback(() => {
-    // Bug in @codegouvfr/react-dsfr implementation for the modal
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal);
-  }, [modalRef]);
+  const activeFile = useMemo(
+    () => (activeFileIndex !== -1 ? props.nominationFiles[activeFileIndex] : null),
+    [activeFileIndex, props.nominationFiles]
+  );
+
+  const modalExists = useCallback(
+    () =>
+      // Bug in @codegouvfr/react-dsfr implementation for the modal
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal),
+    [modalRef]
+  );
 
   useEffect(() => {
     if (activeFileIndex !== -1 && !isOpen && modalExists()) modalMagistratDnDetails.open();
@@ -88,27 +107,33 @@ export function MagistratModaleProvider(
           }
         ]}
       >
-        <MagistratRouteDetails sessionId={props.sessionId} nominationFiles={props.nominationFiles} />
+        {activeFile && <MagistratDetails sessionId={props.sessionId} nominationFile={activeFile} />}
       </modalMagistratDnDetails.Component>
 
-      {props.children}
+      <MagistratModalContext value={{ setActive: setActiveNominationFileId }}>
+        {props.children}
+      </MagistratModalContext>
     </>
   );
 }
 
 export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
-  const location = useLocation();
+  const ctx = useContext(MagistratModalContext);
 
   const hasComment =
     !!props.nominationFile.memo ||
     !!props.nominationFile.summary?.canWrite ||
     !!props.nominationFile.summary?.canRead;
 
-  const search = new URLSearchParams(location.search);
-  search.set('active', props.nominationFile.id);
-
   return (
-    <Link aria-controls={modalMagistratDnDetails.id} to={{ search: `?${search.toString()}` }}>
+    <Button
+      size="small"
+      className="text-left font-normal normal-case underline"
+      style={{ color: colors.decisions.text.default.grey.default }}
+      priority="tertiary no outline"
+      aria-controls={modalMagistratDnDetails.id}
+      onClick={() => ctx.setActive(props.nominationFile.id)}
+    >
       {props.nominationFile.content.nomMagistrat}
       {hasComment && (
         <i
@@ -118,6 +143,6 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
           aria-label="Commentaire présent"
         />
       )}
-    </Link>
+    </Button>
   );
 }
