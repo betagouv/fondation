@@ -30,11 +30,11 @@ export const Avatar: FC = () => {
       <Badge small noIcon className="mx-2 mb-4 mt-0 self-center">
         {RoleEnumLabels[user.role]}
       </Badge>
-      <Button className="mb-0!">
+      <Button className="mb-0!" onClick={onClickLogout}>
         <div className="flex items-center gap-8 rounded py-2">
           <div className="flex items-center gap-2">
             <UserAvatar user={user} />
-            <div id="avatar-logout" onClick={onClickLogout} className="font-semibold hover:cursor-pointer">
+            <div id="avatar-logout" className="font-semibold hover:cursor-pointer">
               Se déconnecter
             </div>
           </div>
