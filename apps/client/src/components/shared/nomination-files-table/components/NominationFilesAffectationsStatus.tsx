@@ -9,7 +9,7 @@ export function NominationFilesAffectationsStatus() {
 
   if (!affectationsVersion || affectationsVersion.version === 0 || !isEditable) return null;
 
-  const isBrouillon = affectationsVersion?.status === 'BROUILLON';
+  const isBrouillon = 'status' in affectationsVersion && affectationsVersion.status === 'BROUILLON';
   return (
     <div className={'mb-4 flex flex-col gap-2'}>
       <Badge severity={isBrouillon ? 'info' : 'success'}>{isBrouillon ? 'Brouillon' : 'Publiée'}</Badge>

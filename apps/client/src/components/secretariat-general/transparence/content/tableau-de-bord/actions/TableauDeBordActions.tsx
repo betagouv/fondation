@@ -23,7 +23,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
   const { mutate: publierAffectations, isPending: isPublishing } = usePublishVersionMutation();
   const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
 
-  const isBrouillon = metadata?.status === 'BROUILLON';
+  const isBrouillon = metadata && 'status' in metadata && metadata.status === 'BROUILLON';
   const hasNoVersionYet = metadata?.version === 0;
 
   const onPublierAffectations = () => {

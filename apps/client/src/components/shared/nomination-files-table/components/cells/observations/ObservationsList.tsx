@@ -41,6 +41,7 @@ const ObservationCard: FC<{
           {observation.magistrat && (
             <div className="font-medium">
               Observant: {observation.magistrat.lastName} {observation.magistrat.firstName}
+              {observation.magistrat.currentPosition && ` - ${observation.magistrat.currentPosition}`}
             </div>
           )}
         </div>
