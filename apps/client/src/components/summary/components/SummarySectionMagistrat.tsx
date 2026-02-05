@@ -1,4 +1,4 @@
-import { differenceInCalendarYears, differenceInMonths } from 'date-fns';
+import { differenceInMonths, differenceInYears } from 'date-fns';
 
 import { DateOnly } from '@/models/date-only.model';
 
@@ -59,7 +59,7 @@ function BirthDate(props: { date: { day: number; month: number; year: number } |
   const date = birthDateOnly.toDate();
   const str = birthDateOnly.toFormattedString('dd/MM/yyyy');
 
-  const age = differenceInCalendarYears(now, date);
+  const age = differenceInYears(now, date);
 
   return (
     <span>
