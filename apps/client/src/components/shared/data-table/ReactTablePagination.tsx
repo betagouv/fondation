@@ -4,7 +4,6 @@ import React from 'react';
 import { ITEMS_PAR_PAGE } from '@/types/table.types';
 import Pagination from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
-import type { To } from 'react-router-dom';
 
 function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }) {
   const totalItemsCount = props.table.getRowCount();
@@ -64,7 +63,7 @@ function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Da
 
   const getPageLinkProps = React.useCallback(
     (pageNumber: number) => ({
-      to: undefined as unknown as To,
+      to: '#',
       onClick: () => {
         props.table.setPageIndex(pageNumber - 1);
 
