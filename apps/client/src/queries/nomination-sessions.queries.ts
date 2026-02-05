@@ -351,8 +351,8 @@ export function useDefineNominationFileOutcomeMutation(input: {
 
     onSuccess: (_, { outcome, comment }) =>
       Promise.allSettled([
-        queryClient.setQueryData(
-          sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+        queryClient.setQueriesData(
+          { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
           (old: PaginatedNominationFiles | undefined) => {
             if (!old) return old;
 

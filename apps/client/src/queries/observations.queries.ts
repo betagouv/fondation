@@ -279,8 +279,8 @@ export function useFollowUpOnObservationMutation() {
       });
     },
     onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
-      queryClient.setQueryData(
-        sessionKeys.listSessionNominationFiles({ sessionId }),
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         (old: PaginatedNominationFiles | undefined) => {
           if (!old) return old;
 

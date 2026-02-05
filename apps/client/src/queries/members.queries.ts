@@ -134,9 +134,8 @@ export function useUpdateNominationFileCommentMutation() {
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, comment }) => {
-      // Mise à jour optimiste du cache pour l'affichage de l'icône
-      queryClient.setQueryData(
-        sessionKeys.listSessionNominationFiles({ sessionId }),
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         (old: { items: { id: string; comment?: string | null }[] } | undefined) => {
           if (!old) return old;
 
@@ -161,9 +160,8 @@ export function useUpdateCommentAccessMutation() {
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, userIds }) => {
-      // Mise à jour optimiste du cache sans refetch
-      queryClient.setQueryData(
-        sessionKeys.listSessionNominationFiles({ sessionId }),
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         (old: { items: { id: string; commentAccessUserIds?: string[] }[] } | undefined) => {
           if (!old) return old;
 
@@ -192,8 +190,8 @@ export function useWriteNominationFileMemberMemoMutation() {
         body: { memo: mutation.memo }
       }),
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
-      queryClient.setQueryData(
-        sessionKeys.listSessionNominationFiles({ sessionId }),
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         (old: PaginatedNominationFiles | undefined) => {
           if (!old) return old;
 
