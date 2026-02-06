@@ -84,6 +84,7 @@ export function ObservationFollowUpReminderModal(props: {
     }
   });
 
+  const [isDirty, setDirty] = React.useState<boolean>(false);
   const [observations, setObservations] = React.useState<ObservationWithFollowUp[]>([]);
 
   React.useEffect(() => {
@@ -102,6 +103,7 @@ export function ObservationFollowUpReminderModal(props: {
         return 0;
       });
     setObservations(initialObservations);
+    setDirty(false);
   }, [props.nominationFile]);
 
   useIsModalOpen(observationFollowUpReminderModal, {
@@ -115,6 +117,7 @@ export function ObservationFollowUpReminderModal(props: {
 
   const onChange = React.useCallback(
     (observation: ObservationWithFollowUp) => {
+      setDirty(true);
       setObservations((obs) => obs.map((o) => (o.id === observation.id ? observation : o)));
     },
     [setObservations]
@@ -141,9 +144,9 @@ export function ObservationFollowUpReminderModal(props: {
     <observationFollowUpReminderModal.Component
       title="Suite aux observations"
       buttons={[
-        missingFollowUpCount > 0
-          ? { children: 'Ignorer', priority: 'secondary' }
-          : { children: 'Fermer', iconId: 'fr-icon-close-line', iconPosition: 'right', priority: 'primary' }
+        missingFollowUpCount === 0 || isDirty
+          ? { children: 'Fermer', iconId: 'fr-icon-close-line', iconPosition: 'right', priority: 'primary' }
+          : { children: 'Ignorer', priority: 'secondary' }
       ]}
     >
       {description}
