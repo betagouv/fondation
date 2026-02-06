@@ -1,4 +1,7 @@
 name: "Continuous Delivery"
+permissions:
+  contents: read
+  packages: read
 
 on:
   push:

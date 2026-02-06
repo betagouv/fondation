@@ -1,4 +1,6 @@
 name: Build and upload client artifact
+permissions:
+  contents: read
 
 on:
   workflow_call:
