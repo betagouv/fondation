@@ -364,7 +364,7 @@ export function useDefineNominationFileOutcomeMutation(input: {
                       ...item,
                       content: {
                         ...item.content,
-                        outcome: { value: outcome, comment }
+                        outcome: outcome === null ? null : { value: outcome, comment }
                       }
                     }
                   : item
