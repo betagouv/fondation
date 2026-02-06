@@ -138,6 +138,6 @@ export const ObservationFollowUpEnum = {
 
 export const ObservationFollowUpEnumLabels = {
   ALERT: 'Signalement',
-  REFERENCE: 'Recommendation',
+  REFERENCE: 'Recommandation',
   INTERESTING: `Digne d'intérêt`
 } as const satisfies Record<ObservationFollowupEnum, string>;
