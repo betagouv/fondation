@@ -5,7 +5,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useUser } from '@queries/auth.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export function SummaryBreadcrumb() {
   const { user } = useUser();

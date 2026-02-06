@@ -5,7 +5,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, type FC } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 

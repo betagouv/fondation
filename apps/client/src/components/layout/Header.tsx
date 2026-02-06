@@ -1,7 +1,7 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import React from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
+import { useLocation, matchPath } from 'react-router';
 
 import { useIsSg } from '@/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/HelpPage';

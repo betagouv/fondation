@@ -1,4 +1,4 @@
-import { Navigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
+import { Navigate, useParams, useLocation, useSearchParams } from 'react-router';
 import React from 'react';
 
 import {

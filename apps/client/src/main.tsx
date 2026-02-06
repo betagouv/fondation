@@ -8,7 +8,7 @@ import * as Sentry from '@sentry/react';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { authKeys } from '@queries/auth.queries.ts';
 import { AppRouter } from './router/AppRouter.tsx';

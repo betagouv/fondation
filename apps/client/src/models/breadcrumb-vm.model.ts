@@ -1,4 +1,4 @@
-import type { To } from 'react-router-dom';
+import type { To } from 'react-router';
 
 export type BreadcrumbVM = {
   currentPageLabel: string;

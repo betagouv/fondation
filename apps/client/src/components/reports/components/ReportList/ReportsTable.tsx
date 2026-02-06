@@ -8,7 +8,7 @@ import { SortButton } from '../../../shared/SortButton';
 import { useTable } from '../../../../hooks/useTable.hook';
 import { TableControl } from '../../../shared/TableControl';
 import { FiltresRapports, type ReportFiltersState } from './FiltresRapports';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ObservationLinks } from '../../../shared/ObservationLinks';
 
 // Fonction de filtrage des rapports

@@ -3,7 +3,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Compass from '@codegouvfr/react-dsfr/picto/Compass';
 import React from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router';
 
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
