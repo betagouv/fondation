@@ -1,0 +1,15 @@
+name: "Deploy staging"
+permissions:
+  contents: read
+  packages: read
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      environment: staging
