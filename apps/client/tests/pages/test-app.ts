@@ -10,7 +10,7 @@ export class TestApp {
     login: new LoginPage(this),
     createSession: new CreateSessionPage(this),
     manageSessions: new ManageSessionsPage(this),
-    manageSingleSession: new ManageSingleSessionPage(this)
+    session: new ManageSingleSessionPage(this)
   };
 
   constructor(readonly page: Page) {}

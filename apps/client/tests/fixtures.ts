@@ -8,7 +8,7 @@ import { TestApp } from './pages/test-app';
 export { expect } from '@playwright/test';
 
 type UserRole = NonNullable<RegisterUserDto['role']>;
-type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUserDto, 'role'> & {
+export type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUserDto, 'role'> & {
   id: string;
   role: Role;
 };
@@ -49,7 +49,7 @@ type Fixtures = {
   memberSiege: RegisteredUser<'MEMBRE_DU_SIEGE'>;
   memberParquet: RegisteredUser<'MEMBRE_DU_PARQUET'>;
 
-  registerUser: (dto?: Partial<RegisterUserDto>) => Promise<RegisteredUser<UserRole>>;
+  registerUser: (dto?: Partial<RegisterUserDto>) => Promise<RegisteredUser>;
 };
 
 export const test = base.extend<Fixtures>({
