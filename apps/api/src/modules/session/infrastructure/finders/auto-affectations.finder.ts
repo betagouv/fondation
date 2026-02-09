@@ -33,6 +33,7 @@ export class AutoAffectationsFinder {
   async find(predicate: {
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
+    excludedMemberIds: readonly string[] | undefined;
   }): Promise<AutoAffectations> {
     const session = await this.prisma.$transaction(async (tx) => {
       const txSession = await tx.session.findUnique({
@@ -69,6 +70,7 @@ export class AutoAffectationsFinder {
       date,
       formation,
       sessionId: predicate.sessionId,
+      excludedMemberIds: predicate.excludedMemberIds,
     });
     const files = this.toAutoAffectationNominationFiles(
       session.dossierDeNominations,
@@ -126,11 +128,17 @@ export class AutoAffectationsFinder {
     date: DateOnly;
     sessionId: string;
     formation: Magistrat.Formation;
+    excludedMemberIds: readonly string[] | undefined;
   }): Promise<AutoAffectationMember[]> {
-    const memberIds = await this.membersService.findMembers({
+    let memberIds = await this.membersService.findMembers({
       ids: undefined,
       formation: session.formation,
     });
+
+    if (session.excludedMemberIds?.length) {
+      const excluded = new Set(session.excludedMemberIds);
+      memberIds = memberIds.filter((id) => !excluded.has(id));
+    }
 
     if (memberIds.length === 0) return [];
 

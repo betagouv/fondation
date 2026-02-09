@@ -199,6 +199,7 @@ export type ListedCurrentlyAffectedReportersDto = {
 
 export type AutoAffectationDto = {
     nominationFileIds?: Array<string>;
+    excludedMemberIds?: Array<string>;
 };
 
 export type UpdateCommentDto = {

@@ -159,10 +159,17 @@ export function useAutoAffectationMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (mutation: { sessionId: string; nominationFileIds: readonly string[] | undefined }) =>
+    mutationFn: (mutation: {
+      sessionId: string;
+      nominationFileIds: readonly string[] | undefined;
+      excludedMemberIds: string[] | undefined;
+    }) =>
       $api.sessions.autoAffectation({
         path: { sessionId: mutation.sessionId },
-        body: { nominationFileIds: mutation.nominationFileIds as string[] | undefined }
+        body: {
+          nominationFileIds: mutation.nominationFileIds as string[] | undefined,
+          excludedMemberIds: mutation.excludedMemberIds
+        }
       }),
 
     onSuccess: (_data, { sessionId }) =>
