@@ -1,5 +1,4 @@
-import { Module } from '@nestjs/common';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, DynamicModule, Get, Module } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Health')
@@ -9,5 +8,14 @@ export class HealthController {
   getHealth() {}
 }
 
-@Module({ controllers: [HealthController] })
-export class HealthModule {}
+@Module({})
+export class HealthModule {
+  static register(): DynamicModule {
+    // Let's prevent a DOS attack, by exposing this only in tests
+    if (process.env.NODE_ENV === 'production') {
+      return { module: HealthModule };
+    }
+
+    return { module: HealthModule, controllers: [HealthController] };
+  }
+}

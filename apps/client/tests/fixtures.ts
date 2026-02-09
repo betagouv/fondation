@@ -15,17 +15,18 @@ type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUserDto, 'r
 
 async function registerUser<const Role extends UserRole>(
   request: APIRequestContext,
-  role: Role
+  role: Role,
+  defaultUser?: Partial<Omit<RegisterUserDto, 'role'>>
 ): Promise<RegisteredUser<Role>> {
   // see apps/api/.env.e2e
   const token = 'FthDG8SXXzWD6eOzybymzXh1bHqHepZG';
 
   const person = {
-    email: `test_email+E2E-${crypto.randomUUID()}-E2E@justice.fr`,
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    password: faker.string.alphanumeric(20),
-    gender: 'FEMALE' as const
+    email: (defaultUser?.email || `test_email+e2e-${crypto.randomUUID()}-e2e@justice.fr`).toLowerCase(),
+    firstName: (defaultUser?.firstName || faker.person.firstName()).toLowerCase(),
+    lastName: (defaultUser?.lastName || faker.person.lastName()).toLowerCase(),
+    password: defaultUser?.password || faker.string.alphanumeric(20),
+    gender: defaultUser?.gender ?? ('FEMALE' as const)
   };
 
   const result = await request.post('/api/auth/v2/register', {
@@ -39,16 +40,30 @@ async function registerUser<const Role extends UserRole>(
 }
 
 type Fixtures = {
+  // same as anonymousApp, but the login phase is already done with the userSg
   app: TestApp;
+  anonymousApp: TestApp;
 
   userSg: RegisteredUser<'ADJOINT_SECRETAIRE_GENERAL'>;
   memberCommon: RegisteredUser<'MEMBRE_COMMUN'>;
   memberSiege: RegisteredUser<'MEMBRE_DU_SIEGE'>;
   memberParquet: RegisteredUser<'MEMBRE_DU_PARQUET'>;
+
+  registerUser: (dto?: Partial<RegisterUserDto>) => Promise<RegisteredUser<UserRole>>;
 };
 
 export const test = base.extend<Fixtures>({
-  app: ({ page }, use) => use(new TestApp(page)),
+  anonymousApp: ({ page }, use) => use(new TestApp(page)),
+
+  app: async ({ anonymousApp: app, userSg }, use) => {
+    await app.pages.login.goto();
+    await app.pages.login.with({ email: userSg.email, password: userSg.password });
+
+    return use(app);
+  },
+
+  registerUser: async ({ request }, use) =>
+    use((dto?: Partial<RegisterUserDto>) => registerUser(request, dto?.role ?? 'MEMBRE_COMMUN', dto)),
 
   userSg: async ({ request }, use) => use(await registerUser(request, 'ADJOINT_SECRETAIRE_GENERAL')),
 

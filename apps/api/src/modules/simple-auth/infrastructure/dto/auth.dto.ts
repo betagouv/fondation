@@ -1,6 +1,6 @@
-import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { Gender, Role } from 'shared-models';
+import z from 'zod';
 
 export const LoginDtoSchema = z.object({
   email: z.email().trim(),
@@ -14,7 +14,7 @@ export class RegisterUserDto extends createZodDto(
     firstName: z.string(),
     lastName: z.string(),
     gender: z.enum(Gender),
-    email: z.email(),
+    email: z.email().toLowerCase(),
     password: z.string(),
     role: z.enum(Role).nullish(),
   }),

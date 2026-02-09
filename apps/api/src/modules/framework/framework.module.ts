@@ -14,7 +14,7 @@ import { ObservabilityModule } from './observability';
     ConfigModule,
     DatabaseModule,
     FilesModule,
-    HealthModule,
+    HealthModule.register(),
     ObservabilityModule,
   ],
   exports: [
