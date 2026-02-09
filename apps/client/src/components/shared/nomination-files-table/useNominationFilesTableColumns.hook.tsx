@@ -16,6 +16,7 @@ import { NominationFilesOutcomeCell } from './components/cells/nomination-file-o
 import { NominationFilesPriorityCell } from './components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
 import { ReportersCell } from './components/cells/reporters/ReportersCell';
+import { NominationFileTargetPositionCell } from './components/cells/targeted-position/NominationFileTargetPositionCell';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
@@ -48,7 +49,7 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.posteCible', {
         enableSorting: false,
         header: 'Poste cible',
-        cell: ({ cell }) => cell.getValue()
+        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />
       }),
 
       h.accessor('content.gradeCible', {

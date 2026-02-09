@@ -124,6 +124,7 @@ export type PaginatedNominationFiles = {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
                 comment: string | null;
             } | null;
+            isAlertHidden: boolean;
         };
         comment: string | null;
         commentAccessUserIds?: Array<string>;
@@ -1095,6 +1096,22 @@ export type DefineNominationFileOutcomeResponses = {
 };
 
 export type DefineNominationFileOutcomeResponse = DefineNominationFileOutcomeResponses[keyof DefineNominationFileOutcomeResponses];
+
+export type HideNominationFileAlertData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/file/{nominationFileId}/alert';
+};
+
+export type HideNominationFileAlertResponses = {
+    204: void;
+};
+
+export type HideNominationFileAlertResponse = HideNominationFileAlertResponses[keyof HideNominationFileAlertResponses];
 
 export type ListNominationSessionAttachmentsData = {
     body?: never;

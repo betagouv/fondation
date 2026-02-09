@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { client } from '@api/client';
+import * as $api from '@api/sdk';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
@@ -7,8 +9,6 @@ import type {
   ListNominationFilesData,
   PaginatedNominationFiles
 } from '@api/types';
-import * as $api from '@api/sdk';
-import { client } from '@api/client';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import type { Override } from '@/types/utils.types';
@@ -456,3 +456,29 @@ export const useNominationFilesStatusCountsQuery = (options: { sessionId: string
       return data ?? null;
     }
   });
+
+export function useNominationFilesAlertMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { nominationFileId: string }) =>
+      $api.sessions.hideNominationFileAlert({
+        path: { sessionId: input.sessionId, nominationFileId: mutation.nominationFileId }
+      }),
+    onSuccess: (_, { nominationFileId }) =>
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId
+                ? { ...item, content: { ...item.content, isAlertHidden: true } }
+                : item
+            )
+          };
+        }
+      )
+  });
+}
