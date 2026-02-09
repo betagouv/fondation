@@ -11,6 +11,7 @@
       "@api/*": ["./src/generated/api/*"],
       "@/*": ["./src/*"]
     },
+    "types": ["react", "react-dom"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

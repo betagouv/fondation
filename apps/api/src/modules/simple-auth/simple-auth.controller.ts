@@ -10,12 +10,15 @@ import {
   Req,
   Res,
   UseFilters,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import {
   ApiBasicAuth,
   ApiBody,
   ApiConsumes,
+  ApiExcludeEndpoint,
+  ApiExtraModels,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -26,14 +29,22 @@ import {
 } from 'express';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { Role } from 'shared-models';
+
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import { LoginDto } from './infrastructure/dto/auth.dto';
+import {
+  LoginDto,
+  RegisteredUserDto,
+  RegisterUserDto,
+} from './infrastructure/dto/auth.dto';
+import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUserId, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
 @ApiTags('Auth')
+@ApiExtraModels(RegisterUserDto, RegisteredUserDto)
 @UseFilters(AuthExceptionFilter)
 @Controller('/api/auth/v2')
 export class SimpleAuthController {
@@ -107,6 +118,18 @@ export class SimpleAuthController {
 
     await this.auth.unAuthenticate({ userId, sessionId });
     this.unDecorateResponse(response).end();
+  }
+
+  @Post('register')
+  @ApiExcludeEndpoint()
+  @UsePipes(ZodValidationPipe)
+  @UseGuards(DevelopmentEnvironmentGuard)
+  @ZodResponse({ status: HttpStatus.CREATED, type: RegisteredUserDto })
+  registerUser(@Body() body: RegisterUserDto): Promise<RegisteredUserDto> {
+    return this.auth.registerUser({
+      ...body,
+      role: body.role ?? Role.MEMBRE_COMMUN,
+    });
   }
 
   private decorateResponse(props: {

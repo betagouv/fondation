@@ -8,6 +8,19 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
+export type RegisterUserDto = {
+    firstName: string;
+    lastName: string;
+    gender: 'MALE' | 'FEMALE';
+    email: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+};
+
+export type RegisteredUserDto = {
+    id: string;
+};
+
 export type LoginDto = {
     email: string;
     password: string;
@@ -776,6 +789,17 @@ export type GetFileByFileUrlData = {
 };
 
 export type GetFileByFileUrlResponses = {
+    200: unknown;
+};
+
+export type GetHealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/_health';
+};
+
+export type GetHealthResponses = {
     200: unknown;
 };
 

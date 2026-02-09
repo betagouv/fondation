@@ -14,6 +14,10 @@ export const ConfigSchema = z.object({
     process.env.FRONTEND_ORIGIN_URL!,
   ),
 
+  e2eApiToken: z
+    .prefault(z.string().trim().nonempty().nullish(), process.env.E2E_API_TOKEN)
+    .transform((x) => (process.env.NODE_ENV === 'production' ? null : x)),
+
   sentryDsn: z.prefault(z.url().optional(), process.env.SENTRY_DSN),
 
   databaseUrl: z.prefault(

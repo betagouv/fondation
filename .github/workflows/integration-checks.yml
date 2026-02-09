@@ -86,6 +86,9 @@ jobs:
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
+      - name: Install Playwright
+        uses: ./.github/playwright
+
       - name: Test
         run: pnpm test:all
 
