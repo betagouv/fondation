@@ -19,7 +19,7 @@ export function NominationFilesAutoAffectationButton() {
   const confirmation = useConfirmation();
   const selectedIds = useSelectedFileIds();
   const { getAffectations } = useAffectations();
-  const { sessionId, formation } = useNominationFilesTable();
+  const { sessionId, formation, edition } = useNominationFilesTable();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
   const excludedMemberIdsRef = useRef<string[]>([]);
 
@@ -82,10 +82,7 @@ export function NominationFilesAutoAffectationButton() {
       },
       {
         onSuccess: () => {
-          alerts.pushAlert({
-            severity: 'success',
-            title: "L'attribution automatique des rapports a été effectuée avec succès."
-          });
+          edition?.setEditing(false);
         },
         onError: () => {
           alerts.pushAlert({
@@ -103,7 +100,8 @@ export function NominationFilesAutoAffectationButton() {
     autoAffectation,
     sessionId,
     nonAffectedFileIds,
-    alerts
+    alerts,
+    edition
   ]);
 
   return (
