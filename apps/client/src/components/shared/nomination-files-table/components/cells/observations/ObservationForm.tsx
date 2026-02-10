@@ -285,7 +285,7 @@ export const ObservationForm: FC<{
         render={({ field }) => (
           <Input
             textArea
-            label="Commentaire (optionnel)"
+            label="Historique observant (optionnel)"
             nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
           />
         )}

@@ -56,7 +56,7 @@ export function ObservationDescription(props: {
   return (
     <>
       <h2 className="fr-h4 flex justify-between">
-        <span>Commentaire</span>
+        <span>Historique observant</span>
         {isSg ? (
           isEditing ? (
             <Button
