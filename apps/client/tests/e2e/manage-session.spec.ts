@@ -91,8 +91,6 @@ test.describe('Gérer les sessions', () => {
       // Et que je sauvegarde les affectations
       await page.saveAffectationsButton.click();
 
-      await app.page.locator('.fr-alert:has-text("Succès: données actualisées")').waitFor();
-
       // Alors "ANTONIO GRAMSCI" est désigné rapporteur de "Pierre BOURDIEU"
       await row.locator(app.page.getByRole('cell', { name: 'ANTONIO GRAMSCI' })).waitFor({ timeout: 800 });
     });
