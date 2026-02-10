@@ -270,6 +270,7 @@ export class SessionController {
     await this.sessions.autoAffectation({
       sessionId,
       nominationFileIds: body.nominationFileIds,
+      excludedMemberIds: body.excludedMemberIds,
     });
   }
 

@@ -175,6 +175,7 @@ export class SessionService {
   async autoAffectation(command: {
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
+    excludedMemberIds: readonly string[] | undefined;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
@@ -182,6 +183,7 @@ export class SessionService {
     const autoAffectations = await this.autoAffectationsFinder.find({
       sessionId: command.sessionId,
       nominationFileIds: command.nominationFileIds,
+      excludedMemberIds: command.excludedMemberIds,
     });
 
     session.autoAffectNominationFileReporters(autoAffectations);
