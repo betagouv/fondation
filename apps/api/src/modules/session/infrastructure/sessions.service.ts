@@ -20,13 +20,13 @@ import { FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import {
-  CountedUnaffectedFilesDto,
-  CountUnaffectedFilesQuery,
-} from './queries/count-unaffected-files.query';
-import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
 } from './queries/count-nomination-files-by-status.query';
+import {
+  CountedUnaffectedFilesDto,
+  CountUnaffectedFilesQuery,
+} from './queries/count-unaffected-files.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -53,6 +53,7 @@ import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
 } from './queries/list-currently-affected-reporters.query';
+import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 import {
   ListNominationFilesQuery,
   type PaginatedNominationFiles,
@@ -66,7 +67,6 @@ import {
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
-import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 
 @Injectable()
 export class SessionService {
@@ -411,5 +411,16 @@ export class SessionService {
     sessionId: string;
   }): Promise<NominationFilesStatusCountDto> {
     return this.countNominationFilesByStatusQuery.handle(query);
+  }
+
+  async hideAlert(command: {
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+    session.hideAlert(command);
+    await this.nominationSessionRepository.persist(session);
   }
 }

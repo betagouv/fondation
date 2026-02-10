@@ -19,6 +19,7 @@ import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 import {
+  NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
   NominationFileOutcomeDefined,
   NominationSession,
@@ -143,6 +144,8 @@ export class NominationSessionRepository {
           await this.persistNominationFileOutcomeDefined(tx, message);
         } else if (message instanceof NominationFileMemberMemoWritten) {
           await this.persistNominationFileMemberMemoWritten(tx, message);
+        } else if (message instanceof NominationFileAlertHidden) {
+          await this.persistNominationFileAlertHidden(tx, message);
         } else {
           assertNever(message);
         }
@@ -547,6 +550,16 @@ export class NominationSessionRepository {
         nominationFileId: message.nominationFileId,
         memo: message.memo,
       },
+    });
+  }
+
+  private async persistNominationFileAlertHidden(
+    tx: Prisma.TransactionClient,
+    message: NominationFileAlertHidden,
+  ) {
+    await tx.dossierDeNomination.update({
+      where: { sessionId: message.sessionId, id: message.nominationFileId },
+      data: { alertHidden: true },
     });
   }
 }

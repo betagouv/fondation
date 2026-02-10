@@ -8,6 +8,7 @@ onlyBuiltDependencies:
 
 catalog:
   zod: 4.1.12
+  '@faker-js/faker': 9.9.0
 
 preferFrozenLockfile: true
 ignoreDepScripts: true
