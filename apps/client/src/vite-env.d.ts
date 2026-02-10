@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_GDS_TRANSPA_FILES_IDS: string;
   readonly VITE_SENTRY_DSN: string | undefined;
   readonly VITE_DEPLOY_ENV: string;
+  readonly VITE_TAGGED_VERSION: string | undefined;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }
