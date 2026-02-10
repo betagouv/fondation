@@ -1,0 +1,14 @@
+name: "Deploy production"
+permissions:
+  contents: read
+  packages: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    if: github.ref_type == 'branch' && github.ref_name == 'production'
+    uses: ./.github/workflows/release.yml
+    with:
+      environment: production

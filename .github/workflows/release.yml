@@ -1,29 +1,26 @@
-name: "Continuous Delivery"
+name: "Release"
 permissions:
   contents: read
   packages: read
 
 on:
-  push:
-    branches:
-      - staging
+  workflow_call:
+    inputs:
+      environment:
+        description: "'staging' or 'production'"
+        required: true
+        type: string
 
 jobs:
-  integration-checks:
-    uses: ./.github/workflows/integration-checks.yml
-    secrets: inherit
-
   build-and-upload-api-artifact:
-    needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-api-artifact.yml
     with:
       tag: "v${{ github.run_number }}"
 
   build-and-upload-client-artifact:
-    needs: [integration-checks]
     uses: ./.github/workflows/build-and-upload-client-artifact.yml
     with:
-      environment: staging
+      environment: ${{ inputs.environment }}
       tag: "v${{ github.run_number }}"
     secrets: inherit
 
@@ -32,6 +29,6 @@ jobs:
     needs: [build-and-upload-api-artifact, build-and-upload-client-artifact]
     uses: ./.github/workflows/deploy-to-scalingo.yml
     with:
-      environment: staging
+      environment: ${{ inputs.environment }}
       tag: "v${{ github.run_number }}"
     secrets: inherit
