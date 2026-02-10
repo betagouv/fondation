@@ -7,6 +7,10 @@ export const SUMMARY_SECTIONS: SummarySection[] = [
     label: summaryLabels.biography
   },
   {
+    anchorId: reportHtmlIds.overview.fileComment,
+    label: summaryLabels.fileComment
+  },
+  {
     anchorId: reportHtmlIds.overview.summary,
     label: summaryLabels.summary
   },

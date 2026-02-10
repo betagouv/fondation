@@ -5,6 +5,7 @@ export const reportHtmlIds = {
     comment: 'comment',
     commentSection: 'comment-section',
     biographySection: 'biography-section',
+    fileComment: 'file-comment-section',
     observersSection: 'observers-section',
     summary: 'summary-section',
     managementSection: 'management-rule-section',

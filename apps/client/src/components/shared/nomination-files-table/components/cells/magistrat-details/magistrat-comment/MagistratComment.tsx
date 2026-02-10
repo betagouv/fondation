@@ -1,49 +1,76 @@
-import type { FC } from 'react';
 import { useParams } from 'react-router';
 
-import type { FormationEnum } from '@/types/enums.types';
-
 import { useIsSg } from '@/hooks/roles.hook';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useCallback, useId, useState } from 'react';
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';
 
-export type MagistratCommentProps = {
-  nominationFileId: string;
+export function MagistratComment(props: {
+  id: string;
   initialComment?: string | null;
-  initialCommentAccessUserIds?: string[];
-  formation: FormationEnum;
-};
+  nominationFileId: string;
+}) {
+  const { nominationFileId, initialComment } = props;
 
-export const MagistratComment: FC<MagistratCommentProps> = ({
-  nominationFileId,
-  initialComment,
-  initialCommentAccessUserIds,
-  formation
-}) => {
+  const isSg = useIsSg();
   const { sessionId } = useParams<{ sessionId: string }>();
-  const isSG = useIsSg();
+  const [isEditing, setEditing] = useState<boolean>(false);
+  const isEditable = isSg && !!sessionId;
 
-  const showComment = isSG || initialComment !== null;
+  const id = useId();
 
-  if (!showComment) {
-    return null;
-  }
+  const toggleEdition = useCallback(() => {
+    setEditing((editing) => !editing);
+  }, [setEditing]);
 
-  if (isSG && sessionId) {
-    return (
-      <MagistratCommentEdit
-        key={
-          // to unmount the component
-          `magistrat-comment-edit-${sessionId}-${nominationFileId}-${formation}`
-        }
-        nominationFileId={nominationFileId}
-        sessionId={sessionId}
-        initialComment={initialComment}
-        initialCommentAccessUserIds={initialCommentAccessUserIds}
-        formation={formation}
-      />
-    );
-  }
+  const showComment = isSg || initialComment !== null;
+  if (!showComment) return null;
 
-  return <MagistratCommentView initialComment={initialComment} />;
-};
+  return (
+    <div>
+      <div className="mb-2 flex justify-between">
+        <label htmlFor={id} className="text-xl font-semibold">
+          Historique proposition
+        </label>
+
+        {isEditable ? (
+          isEditing ? (
+            <Button
+              size="small"
+              onClick={toggleEdition}
+              title="Sauvegarder l'historique"
+              priority="primary"
+              iconId="ri-check-line"
+            >
+              Ok
+            </Button>
+          ) : (
+            <Button
+              onClick={toggleEdition}
+              title="Éditer l'historique"
+              priority="tertiary no outline"
+              size="small"
+              iconId="fr-icon-edit-fill"
+            />
+          )
+        ) : null}
+      </div>
+
+      {isEditable && isEditing ? (
+        <MagistratCommentEdit
+          key={
+            // to unmount the component
+            `magistrat-comment-edit-${sessionId}-${nominationFileId}`
+          }
+          id={id}
+          sessionId={sessionId}
+          initialComment={initialComment}
+          nominationFileId={nominationFileId}
+        />
+      ) : (
+        <MagistratCommentView id={id} initialComment={initialComment} />
+      )}
+    </div>
+  );
+}
