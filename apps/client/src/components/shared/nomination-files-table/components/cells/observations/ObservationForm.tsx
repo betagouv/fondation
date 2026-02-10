@@ -20,6 +20,7 @@ const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 const observationFormSchema = z.object({
   magistratId: z.string().min(1, 'Champ obligatoire'),
   dateReception: z.string().min(1, 'Champ obligatoire'),
+  description: z.string(),
   files: z.array(z.instanceof(File)).optional()
 });
 
@@ -47,6 +48,7 @@ export const ObservationForm: FC<{
     defaultValues: {
       magistratId: observation?.magistrat?.id ?? '',
       dateReception: observation?.dateReception?.split('T')[0] ?? '',
+      description: observation?.description,
       files: []
     },
     mode: 'onChange'
@@ -107,6 +109,7 @@ export const ObservationForm: FC<{
           nominationFileId,
           magistratId: data.magistratId,
           dateReception: data.dateReception,
+          description: data.description,
           files: data.files,
           detachFileIds: filesToDetach
         },
@@ -124,6 +127,7 @@ export const ObservationForm: FC<{
           nominationFileId,
           magistratId: data.magistratId,
           dateReception: data.dateReception,
+          description: data.description,
           files: data.files ?? []
         },
         {
@@ -274,6 +278,18 @@ export const ObservationForm: FC<{
           )}
         </div>
       )}
+
+      <Controller
+        name="description"
+        control={control}
+        render={({ field }) => (
+          <Input
+            textArea
+            label="Historique observant (optionnel)"
+            nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
+          />
+        )}
+      />
 
       <Controller
         name="files"

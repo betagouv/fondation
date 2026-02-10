@@ -1,3 +1,4 @@
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   GetObservationDetailsResponseDto,
@@ -7,7 +8,6 @@ import type {
 } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionKeys } from './nomination-sessions.queries';
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
@@ -81,6 +81,7 @@ export function useCreateObservationMutation() {
       nominationFileId: string;
       magistratId: string;
       dateReception: string;
+      description: string | undefined | null;
       files: File[];
     }): Promise<{ id: string } | null> => {
       const { data } = await $api.observations.createObservation({
@@ -88,7 +89,8 @@ export function useCreateObservationMutation() {
         body: {
           files: mutation.files,
           magistratId: mutation.magistratId,
-          dateReception: mutation.dateReception
+          dateReception: mutation.dateReception,
+          description: mutation.description
         }
       });
       return data ?? null;
@@ -162,6 +164,7 @@ export function useUpdateObservationMutation() {
       nominationFileId: string;
       dateReception: string;
       magistratId: string;
+      description: string | undefined | null;
       files?: File[];
       detachFileIds?: string[];
     }): Promise<void> => {
@@ -175,12 +178,16 @@ export function useUpdateObservationMutation() {
           magistratId: mutation.magistratId,
           dateReception: mutation.dateReception,
           detachFileIds: mutation.detachFileIds,
+          description: mutation.description,
           files: mutation.files
         }
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
-      Promise.all([
+    onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
+        }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId })
         }),

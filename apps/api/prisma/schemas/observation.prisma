@@ -10,6 +10,7 @@ model Observation {
   followUpComment    String?                        @map("follow_up_comment")
   followedUpAt       DateTime?                      @map("followed_up_at")
   followedUpByUserId String?                        @map("followed_up_by_user_id") @db.Uuid
+  description        String                         @default("")
 
   nominationFile DossierDeNomination        @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   magistrat      Magistrat                  @relation(fields: [magistratId], references: [id], onDelete: Restrict, onUpdate: NoAction)

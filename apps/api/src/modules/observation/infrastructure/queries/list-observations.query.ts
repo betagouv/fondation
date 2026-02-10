@@ -12,6 +12,7 @@ const ObservationFileSchema = z.object({
 const ObservationSchema = z.object({
   id: z.string(),
   dateReception: z.string(),
+  description: z.string(),
   magistrat: z
     .object({
       id: z.string(),
@@ -54,6 +55,7 @@ export class ListObservationsQuery {
         id: true,
         dateReception: true,
         createdAt: true,
+        description: true,
         magistrat: {
           select: {
             id: true,
@@ -88,6 +90,7 @@ export class ListObservationsQuery {
         id: obs.id,
         dateReception: obs.dateReception.toISOString(),
         createdAt: obs.createdAt.toISOString(),
+        description: obs.description,
         magistrat: obs.magistrat
           ? {
               id: obs.magistrat.id,
