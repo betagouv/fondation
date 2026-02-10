@@ -4,10 +4,12 @@ import { Link } from 'react-router';
 
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
+import { useIsSg } from '@/hooks/roles.hook';
 import { DateOnly } from '@/models/date-only.model';
 import type { ObservationDetails } from '@queries/observations.queries';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 import { LolfiMagistratLink } from './LolfiMagistratLink';
+import { ObservationDescription } from './ObservationDescription';
 import { ObservationFollowUpSelector } from './observations/follow-up-selector/ObservationFollowUpSelector';
 
 type ObservationDetailsContentProps = {
@@ -35,6 +37,7 @@ export function ObservationDetailsContent({
   onUpdateMemberComment,
   uploadFiles
 }: ObservationDetailsContentProps) {
+  const isSg = useIsSg();
   const observant = observation.observant;
   const candidacy = observant.candidacy;
   const relatedPropositions = observation.relatedPropositions ?? [];
@@ -144,6 +147,16 @@ export function ObservationDetailsContent({
               />
             </section>
           )}
+
+          {isSg || observation.description ? (
+            <section className="fr-mb-4w">
+              <ObservationDescription
+                sessionId={sessionId}
+                nominationFileId={nominationFileId}
+                observation={observation}
+              />
+            </section>
+          ) : null}
 
           <section className="fr-mb-4w">
             <h2 className="fr-h4">Pièce(s) jointe(s)</h2>

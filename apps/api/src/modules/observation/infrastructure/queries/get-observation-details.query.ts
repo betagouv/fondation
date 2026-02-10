@@ -43,6 +43,7 @@ const ObservationDetailsSchema = z.object({
     name: z.string(),
     proposedPosition: z.string().nullable(),
   }),
+  description: z.string(),
   followUp: z.enum(ObservationFollowUp.enum).nullable(),
   followUpComment: z.string().nullable(),
   files: z.array(ObservationFileSchema),
@@ -83,6 +84,7 @@ export class GetObservationDetailsQuery {
           dateReception: true,
           followUp: true,
           followUpComment: true,
+          description: true,
 
           magistrat: {
             select: {
@@ -212,6 +214,7 @@ export class GetObservationDetailsQuery {
         receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
+        description: observation.description,
         observant: {
           id: magistrat.id,
           firstName: magistrat.firstName,

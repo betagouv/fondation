@@ -647,6 +647,7 @@ export type CreateObservationDto = {
     files?: Array<Blob | File>;
     magistratId: string;
     dateReception: string;
+    description?: string | null;
 };
 
 export type CreateObservationResponseDto = {
@@ -657,6 +658,7 @@ export type ListObservationsResponseDto = {
     observations: Array<{
         id: string;
         dateReception: string;
+        description: string;
         magistrat: {
             id: string;
             firstName: string;
@@ -700,6 +702,7 @@ export type GetObservationDetailsResponseDto = {
         name: string;
         proposedPosition: string | null;
     };
+    description: string;
     followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
     followUpComment: string | null;
     files: Array<{
@@ -737,6 +740,7 @@ export type UpdateObservationDto = {
     files?: Array<Blob | File>;
     magistratId: string;
     dateReception: string;
+    description?: string | null;
     detachFileIds?: string | Array<string>;
 };
 
