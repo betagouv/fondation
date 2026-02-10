@@ -1,46 +1,34 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import React from 'react';
 
-const modal = createModal({
-  id: 'modal-delete-attached-file-transparence',
-  isOpenedByDefault: false
-});
+import { useConfirmation } from '@/hooks/useConfirmation.hook';
 
-export type DeleteAttachmentModalProps = {
-  fileName: string;
-  onDelete: () => void;
-};
+export function DeleteAttachmentModal(props: { fileName: string; onDelete: () => void }) {
+  const confirmation = useConfirmation();
 
-export const DeleteAttachmentModal = ({ fileName, onDelete }: DeleteAttachmentModalProps) => {
+  const onDelete = React.useCallback(async () => {
+    const { isConfirmed } = await confirmation.waitForConfirmation({
+      title: 'Confirmer la suppression du fichier',
+      content: (
+        <p>
+          Confirmez-vous la suppression du fichier:{' '}
+          <strong>&laquo;&nbsp;{props.fileName}&nbsp;&raquo;</strong>
+        </p>
+      )
+    });
+
+    if (isConfirmed) props.onDelete();
+  }, [props, confirmation]);
+
   return (
-    <>
-      <modal.Component
-        title="Confirmer la suppression du fichier"
-        buttons={[
-          {
-            children: 'Annuler'
-          },
-          {
-            children: 'Confirmer',
-            nativeButtonProps: {
-              onClick: () => {
-                onDelete();
-              }
-            }
-          }
-        ]}
-      >
-        <span>
-          Confirmez vous la suppression du fichier: <br />
-          <em>{fileName}</em>
-        </span>
-      </modal.Component>
-      <Button
-        priority="tertiary no outline"
-        iconId="fr-icon-delete-bin-fill"
-        title={`delete-attached-file-${fileName}`}
-        nativeButtonProps={modal.buttonProps}
-      />
-    </>
+    <Button
+      size="small"
+      onClick={onDelete}
+      className="rounded-full"
+      priority="tertiary no outline"
+      iconId="fr-icon-delete-bin-fill"
+      title={`Supprimer ${props.fileName}`}
+      nativeButtonProps={confirmation.buttonProps}
+    />
   );
-};
+}
