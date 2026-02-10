@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
 import { NO_PRIORITY, useAffectations } from '../contexts/files-affectations.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 
 export function NominationFilesSaveAffectationsButton() {
   const alerts = useAlerts();
@@ -26,7 +26,6 @@ export function NominationFilesSaveAffectationsButton() {
         }))
       },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Succès: données actualisées' }),
         onSettled: () => {
           resetAffectations();
           edition?.setEditing(false);
