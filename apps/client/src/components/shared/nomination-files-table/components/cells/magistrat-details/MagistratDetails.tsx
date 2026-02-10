@@ -2,9 +2,9 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { ReportVM } from '@/VM/ReportVM';
 import { reportHtmlIds } from '@/components/reports/dom/html-ids';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 
 import {
   formatBiography,
@@ -45,6 +45,8 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
   const formattedBirthDate = dateDeNaissance ? formatBirthDate(dateDeNaissance, new Date()) : null;
   const formattedObservers = observants ? formatObservers(observants) : null;
   const formattedBiography = formatBiography(historique);
+
+  const observersCount = (observants?.length ?? 0) + (nominationFile.observations?.length ?? 0);
 
   const dureeDuPoste = datePriseDeFonctionPosteActuel
     ? formatDurationFromDate(
@@ -87,18 +89,6 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
       </div>
       <div>
         <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>
-          {ReportVM.observersLabel}
-        </label>
-        <div
-          aria-labelledby={reportHtmlIds.overview.biography}
-          className="w-full whitespace-pre-line leading-7"
-        >
-          {formattedObservers ?? 'Aucun'}
-        </div>
-      </div>
-
-      <div>
-        <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>
           {ReportVM.biographyLabel}
         </label>
         <div
@@ -109,9 +99,14 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
         </div>
       </div>
 
-      {nominationFile.observations && nominationFile.observations.length > 0 && (
-        <div>
-          <label className="text-xl font-semibold">Observations ({nominationFile.observations.length})</label>
+      <div>
+        <label className="text-xl font-semibold">
+          Observants{observersCount > 0 ? ` (${observersCount})` : null}
+        </label>
+        {formattedObservers && (
+          <div className="w-full whitespace-pre-line leading-7">{formattedObservers}</div>
+        )}
+        {nominationFile.observations && nominationFile.observations.length > 0 && (
           <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'mt-2')}>
             {nominationFile.observations.map((observation) => (
               <ObservationCard
@@ -123,8 +118,11 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+        {!formattedObservers && !(nominationFile.observations || []).length && (
+          <div className="w-full whitespace-pre-line leading-7">Aucun</div>
+        )}
+      </div>
 
       <MemberMemo sessionId={sessionId} nominationFileId={nominationFile.id} memo={nominationFile.memo} />
     </div>
