@@ -10,16 +10,20 @@ export function NominationFilesStatusBadges(props: { className?: string }) {
 
   if (!counts || !isEditable) return null;
 
+  const { unaffected, inProgress, withOutcome } = counts;
+  const total = unaffected + inProgress + withOutcome;
+
   return (
     <div className={clsx('flex gap-4', props.className)}>
+      <Badge noIcon>Total propositions : {total}</Badge>
       <Badge severity="warning" noIcon>
-        À affecter : {counts.unaffected}
+        À affecter : {unaffected}
       </Badge>
       <Badge severity="info" noIcon>
-        En cours : {counts.inProgress}
+        En cours : {inProgress}
       </Badge>
       <Badge severity="success" noIcon>
-        Issue renseignée : {counts.withOutcome}
+        Issue renseignée : {withOutcome}
       </Badge>
     </div>
   );
