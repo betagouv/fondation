@@ -15,7 +15,7 @@ export function NominationFilesStatusBadges(props: { className?: string }) {
 
   return (
     <div className={clsx('flex gap-4', props.className)}>
-      <Badge noIcon>Total propositions : {total}</Badge>
+      <Badge noIcon>Total : {total}</Badge>
       <Badge severity="warning" noIcon>
         À affecter : {unaffected}
       </Badge>
