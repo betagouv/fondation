@@ -76,6 +76,8 @@ model DossierDeNomination {
   lastRankingDate   DateTime? @map("last_ranking_date") @db.Date
   lastPositionDate  DateTime? @map("last_position_date") @db.Date
   careerInformation String?   @map("career_information")
+  /// might be temporary
+  alertHidden       Boolean   @default(false) @map("alert_hidden")
   /// @deprecated
   dueDate           DateTime? @map("due_date") @db.Date
 

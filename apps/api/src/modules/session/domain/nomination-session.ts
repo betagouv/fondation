@@ -127,6 +127,13 @@ export class NominationFileMemberMemoWritten {
   ) {}
 }
 
+export class NominationFileAlertHidden {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+  ) {}
+}
+
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
@@ -140,7 +147,8 @@ type NominationSessionEvent =
   | NominationSessionAttachmentRemoved
   | NominationSessionUpdated
   | NominationFileOutcomeDefined
-  | NominationFileMemberMemoWritten;
+  | NominationFileMemberMemoWritten
+  | NominationFileAlertHidden;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -483,6 +491,12 @@ export class NominationSession {
         command.nominationFileId,
         trimmed,
       ),
+    );
+  }
+
+  hideAlert(command: { nominationFileId: string }) {
+    this.#messages.push(
+      new NominationFileAlertHidden(this.id, command.nominationFileId),
     );
   }
 

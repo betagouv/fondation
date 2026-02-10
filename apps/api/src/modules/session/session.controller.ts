@@ -67,8 +67,8 @@ import {
   NoneAffectationVersion,
   SomeAffectationVersion,
 } from './infrastructure/finders/affectation-version.finder';
-import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
@@ -333,6 +333,16 @@ export class SessionController {
       comment: body.comment,
       outcome: body.outcome,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/:sessionId/file/:nominationFileId/alert')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async hideNominationFileAlert(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<void> {
+    await this.sessions.hideAlert({ sessionId, nominationFileId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
