@@ -1,7 +1,4 @@
 name: "Release"
-permissions:
-  contents: read
-  packages: read
 
 on:
   workflow_call:
@@ -11,6 +8,12 @@ on:
         required: true
         type: string
 
+    secrets:
+      VITE_SENTRY_DSN:
+        required: false
+      SCALINGO_API_TOKEN:
+        required: false
+
 jobs:
   build-and-upload-api-artifact:
     uses: ./.github/workflows/build-and-upload-api-artifact.yml
@@ -19,16 +22,16 @@ jobs:
 
   build-and-upload-client-artifact:
     uses: ./.github/workflows/build-and-upload-client-artifact.yml
+    secrets: inherit
     with:
       environment: ${{ inputs.environment }}
       tag: "v${{ github.run_number }}"
-    secrets: inherit
 
-  deploy-staging:
-    name: Deploy staging
+  deploy:
+    name: Deploy scalingo
     needs: [build-and-upload-api-artifact, build-and-upload-client-artifact]
     uses: ./.github/workflows/deploy-to-scalingo.yml
+    secrets: inherit
     with:
       environment: ${{ inputs.environment }}
       tag: "v${{ github.run_number }}"
-    secrets: inherit

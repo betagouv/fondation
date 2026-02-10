@@ -11,5 +11,6 @@ on:
 jobs:
   release:
     uses: ./.github/workflows/release.yml
+    secrets: inherit
     with:
       environment: staging

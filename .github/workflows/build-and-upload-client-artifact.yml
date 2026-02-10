@@ -1,6 +1,4 @@
 name: Build and upload client artifact
-permissions:
-  contents: read
 
 on:
   workflow_call:
@@ -11,6 +9,9 @@ on:
       tag:
         type: string
         required: true
+    secrets:
+      VITE_SENTRY_DSN:
+        required: false
 
 jobs:
   build-and-deploy-client-artifact:
@@ -18,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
 
       - uses: pnpm/action-setup@v4.2.0
         with:
@@ -36,6 +39,11 @@ jobs:
       - name: Build DSFR
         run: pnpm --filter client run update-icons
 
+      - name: Find last tag
+        id: last-tag
+        run: |
+          echo "tag=$(git describe --abbrev=0 --tags)" >> "$GITHUB_OUTPUT"
+
       - name: Build client
         run: pnpm --filter client... build
         env:
@@ -43,6 +51,7 @@ jobs:
           VITE_GDS_TRANSPA_FILES_IDS: ${{ vars.VITE_GDS_TRANSPA_FILES_IDS }}
           VITE_DEPLOY_ENV: ${{ vars.VITE_DEPLOY_ENV }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_TAGGED_VERSION: ${{ steps.last-tag.outputs.tag }}
 
       - name: Create Archive
         run: |
