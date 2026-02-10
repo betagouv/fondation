@@ -20,16 +20,16 @@ import {
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import {
+  FILE_MIME_TYPES,
+  filenameToMimeType,
+} from 'src/modules/framework/files/mime-type';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import {
-  FILE_MIME_TYPES,
-  filenameToMimeType,
-} from 'src/modules/framework/files/mime-type';
 
 @Injectable()
 export class DetailReportQuery {
@@ -85,6 +85,7 @@ export class DetailReportQuery {
             lastPositionDate: true,
             lastRankingDate: true,
             priorite: true,
+            comment: true,
 
             summary: {
               select: {
@@ -218,6 +219,7 @@ export class DetailReportQuery {
       grade: z.enum(Magistrat.Grade).parse(report.nominationFile.grade),
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
+      fileComment: report.nominationFile.comment,
       targettedPosition: report.nominationFile.targetedPosition,
       priority: report.nominationFile.priorite
         ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorite)
@@ -313,6 +315,7 @@ export class DetailedReportDto extends createZodDto(
     observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
     priority: z.enum(PrioriteEnum).nullable(),
+    fileComment: z.string().nullable(),
 
     screenshots: z.array(
       z.object({

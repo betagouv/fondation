@@ -25,6 +25,7 @@ import { ReportOverviewState } from './ReportOverviewState';
 import { Summary } from './Summary';
 
 import { useDetachReportFiles, useUpdateReport } from '@queries/reports.queries';
+import { ReportOverviewFileComment } from './ReportOverviewFileComment';
 import { ReportSummaryCard } from './ReportSummaryCard';
 
 export const formatBiography = (biography: string | null) => {
@@ -150,7 +151,11 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       <AutoSaveNotice />
       <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
         <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
-          <Summary observers={retrievedReport.observers} summary={retrievedReport.summary} />
+          <Summary
+            observers={retrievedReport.observers}
+            summary={retrievedReport.summary}
+            fileComment={retrievedReport.fileComment}
+          />
         </div>
         <div
           className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
@@ -169,6 +174,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             nominationFileId={retrievedReport.nominationFileId}
           />
           <Biography biography={formattedBiography} />
+          <ReportOverviewFileComment report={retrievedReport} />
           <ReportSummaryCard
             summary={retrievedReport.summary}
             sessionId={retrievedReport.sessionId}

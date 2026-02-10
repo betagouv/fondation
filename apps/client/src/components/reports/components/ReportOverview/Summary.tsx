@@ -1,19 +1,20 @@
 import { SideMenu, type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
 import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { SUMMARY_SECTIONS } from '../../../../constants/summary-sections.constants';
+import { reportHtmlIds } from '../../dom/html-ids';
 import { scrollToSummarySection } from '../../dom/scroll-to-summary-section';
 import { summaryScrollListenersFactory } from '../../dom/summary-scroll-listeners';
 import { useObservedSections } from './hooks/useObservedSections';
-import { SUMMARY_SECTIONS } from '../../../../constants/summary-sections.constants';
-import { reportHtmlIds } from '../../dom/html-ids';
 
 export type SummaryProps = {
   observers: string[] | null;
+  fileComment: string | null;
   summary: { content: string } | null;
 };
 
 const { setIsScrolling, createListeners, removeListeners } = summaryScrollListenersFactory();
 
-export const Summary: FC<SummaryProps> = ({ observers, summary }) => {
+export const Summary: FC<SummaryProps> = ({ observers, summary, fileComment }) => {
   const summarySections = SUMMARY_SECTIONS.filter(({ anchorId }) => {
     const isObserverSection = anchorId === reportHtmlIds.overview.observersSection;
     if (isObserverSection) {
@@ -25,6 +26,12 @@ export const Summary: FC<SummaryProps> = ({ observers, summary }) => {
     if (isSummarySection) {
       const hasSummary = summary && !!summary.content;
       return hasSummary;
+    }
+
+    const isFileCommentSection = anchorId === reportHtmlIds.overview.fileComment;
+    if (isFileCommentSection) {
+      const hasFileComment = !!fileComment?.trim();
+      return hasFileComment;
     }
 
     return true;

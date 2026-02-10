@@ -21,6 +21,7 @@ import { UserAvatarList } from '@/components/shared/user-avatar';
 import clsx from 'clsx';
 
 import { MagistratSummaryButton } from './MagistratSummaryButton';
+import { MagistratComment } from './magistrat-comment/MagistratComment';
 import { MemberMemo } from './member-memo/MemberMemo';
 
 export type MagistratDetailsProps = {
@@ -98,6 +99,12 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           {formattedBiography}
         </div>
       </div>
+
+      <MagistratComment
+        id={`${nominationFile.id}-comment-input`}
+        nominationFileId={nominationFile.id}
+        initialComment={nominationFile.comment}
+      />
 
       <div>
         <label className="text-xl font-semibold">

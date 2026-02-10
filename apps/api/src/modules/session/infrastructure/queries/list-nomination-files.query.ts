@@ -160,8 +160,6 @@ export class ListNominationFilesQuery {
 
     const items = files.map((x): NominationFileAffectationItem => {
       const commentAccessUserIds = x.commentAccess.map(({ userId }) => userId);
-      const canReadComment =
-        isSG || commentAccessUserIds.includes(query.user.id);
 
       return {
         id: x.id,
@@ -195,7 +193,7 @@ export class ListNominationFilesQuery {
         priority: x.priorite
           ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
           : null,
-        comment: canReadComment ? x.comment : null,
+        comment: x.comment,
         commentAccessUserIds: isSG ? commentAccessUserIds : undefined,
         reporters: x.reporterIds.map(
           ({ user: { id, firstName, lastName } }) => ({

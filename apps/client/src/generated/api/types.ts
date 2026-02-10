@@ -574,6 +574,7 @@ export type DetailedReportDto = {
     observers: Array<string>;
     dureeDuPoste: string | null;
     priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+    fileComment: string | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;

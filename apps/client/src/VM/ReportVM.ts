@@ -44,6 +44,7 @@ export class ReportVM<
   static commentLabel = 'Rapport';
   static reportersLabel = 'Rapporteurs';
   static biographyLabel = 'Biographie';
+  static fileCommentLabel = 'Historique proposition';
   static identityLabel = 'Identité';
   static observersLabel = 'Observants';
   static attachedFilesLabel = 'Ajouter des pièces jointes';
