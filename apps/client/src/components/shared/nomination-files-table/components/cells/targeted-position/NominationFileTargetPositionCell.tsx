@@ -5,6 +5,7 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import React from 'react';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { NominationFileTargetPositionContext } from './NominationFileTargetPositionContext';
@@ -25,6 +26,7 @@ function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile):
   position: string;
   hasAlert: boolean;
 } {
+  const isSg = useIsSg();
   const [position, normalizedPosition, isAlertHidden] = React.useMemo(() => {
     const target = nominationFile.content.posteCible;
 
@@ -35,7 +37,7 @@ function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile):
 
   return {
     position,
-    hasAlert: !isAlertHidden && HEARING_ALERT_POSITIONS.some((x) => x.test(normalizedPosition))
+    hasAlert: isSg && !isAlertHidden && HEARING_ALERT_POSITIONS.some((x) => x.test(normalizedPosition))
   };
 }
 
