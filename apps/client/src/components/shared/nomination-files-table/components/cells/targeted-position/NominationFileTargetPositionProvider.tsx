@@ -144,8 +144,9 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
           <>
             <p>
               Le poste de <strong>{nominationFile.content.posteCible}</strong> pour la proposition{' '}
-              {nominationFile.content.numeroDeDossier} peut nécessiter une fiche de juridiction
+              {nominationFile.content.numeroDeDossier} peut nécessiter une fiche de juridiction.
             </p>
+            <p>Une fois téléchargé le fichier sera disponible dans les pièces jointes de la session.</p>
 
             {error ? (
               <Alert
