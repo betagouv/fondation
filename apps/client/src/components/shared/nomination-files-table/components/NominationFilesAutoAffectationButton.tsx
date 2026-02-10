@@ -1,5 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
@@ -21,7 +21,7 @@ export function NominationFilesAutoAffectationButton() {
   const { getAffectations } = useAffectations();
   const { sessionId, formation } = useNominationFilesTable();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
-  const excludedRef = useRef<string[]>([]);
+  const excludedMemberIdsRef = useRef<string[]>([]);
 
   const nonAffectedFileIds = useMemo(() => {
     if (selectedIds.length === 0) return undefined;
@@ -39,12 +39,12 @@ export function NominationFilesAutoAffectationButton() {
 
   const unaffectedFilesCount = data?.count ?? 0;
 
-  const onAutoAffectation = async () => {
+  const onAutoAffectation = useCallback(async () => {
     if (isFetching || !unaffectedFilesCount) {
       return;
     }
 
-    excludedRef.current = [];
+    excludedMemberIdsRef.current = [];
 
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: `Affectation automatique`,
@@ -67,7 +67,7 @@ export function NominationFilesAutoAffectationButton() {
             Une fois l'affectation faite, vous aurez toujours la possibilité de la modifier avant de la
             publier aux membres.
           </p>
-          <MemberExclusionSelector formation={formation} excludedRef={excludedRef} />
+          <MemberExclusionSelector formation={formation} excludedMemberIdsRef={excludedMemberIdsRef} />
         </>
       )
     });
@@ -78,7 +78,7 @@ export function NominationFilesAutoAffectationButton() {
       {
         sessionId,
         nominationFileIds: nonAffectedFileIds,
-        excludedMemberIds: excludedRef.current.length ? excludedRef.current : undefined
+        excludedMemberIds: excludedMemberIdsRef.current.length ? excludedMemberIdsRef.current : undefined
       },
       {
         onSuccess: () => {
@@ -95,7 +95,16 @@ export function NominationFilesAutoAffectationButton() {
         }
       }
     );
-  };
+  }, [
+    isFetching,
+    unaffectedFilesCount,
+    confirmation,
+    formation,
+    autoAffectation,
+    sessionId,
+    nonAffectedFileIds,
+    alerts
+  ]);
 
   return (
     <Button
