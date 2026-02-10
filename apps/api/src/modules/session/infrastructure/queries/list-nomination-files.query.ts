@@ -16,11 +16,13 @@ import {
   Pagination,
 } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
@@ -30,8 +32,6 @@ import {
   AffectationVersionFinder,
   OptionalAffectationVersion,
 } from '../finders/affectation-version.finder';
-import { isDefined } from 'src/utils/is-defined';
-import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -116,6 +116,7 @@ export class ListNominationFilesQuery {
           dueDate: true,
           outcome: true,
           outcomeComment: true,
+          alertHidden: true,
           commentAccess: {
             select: { userId: true },
           },
@@ -189,6 +190,7 @@ export class ListNominationFilesQuery {
                 value: x.outcome as NominationFileOutcomeEnum,
               }
             : null,
+          isAlertHidden: x.alertHidden,
         },
         priority: x.priorite
           ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
@@ -318,6 +320,7 @@ const NominationFileContentSchema = z.object({
       comment: z.string().nullable(),
     })
     .nullable(),
+  isAlertHidden: z.boolean(),
 });
 
 const NominationFileAffectationItemSchema = z.object({

@@ -9,10 +9,10 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "start": "nest start",
+    "start": "dotenvx run -- nest start",
+    "start:e2e": "dotenvx run -f .env.e2e -f .env -- nest start",
     "dev": "dotenvx run -- nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "types:check": "tsc --noEmit",
@@ -55,7 +55,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.9.0",
+    "@faker-js/faker": "catalog:",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.8",
