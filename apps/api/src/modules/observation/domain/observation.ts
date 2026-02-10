@@ -20,6 +20,7 @@ export class ObservationCreated {
     readonly magistratId: string,
     readonly dateReception: Date,
     readonly createdByUserId: string,
+    readonly description: string,
   ) {}
 }
 
@@ -37,7 +38,11 @@ export class ObservationDeleted {
 export class ObservationUpdated {
   constructor(
     readonly id: string,
-    readonly data: { dateReception: Date; magistratId: string },
+    readonly data: {
+      dateReception: Date;
+      magistratId: string;
+      description: string;
+    },
   ) {}
 }
 
@@ -95,6 +100,7 @@ export class Observation {
     magistratId: string;
     dateReception: Date;
     createdByUserId: string;
+    description: string | null | undefined;
     files: readonly { id: string }[];
   }): Observation {
     const id = makeId('ObservationId');
@@ -112,6 +118,7 @@ export class Observation {
         command.magistratId,
         command.dateReception,
         command.createdByUserId,
+        (command.description || '').trim(),
       ),
     );
 
@@ -146,8 +153,17 @@ export class Observation {
     this.#messages.push(new ObservationDeleted(this.id));
   }
 
-  update(command: { dateReception: Date; magistratId: string }): void {
-    this.#messages.push(new ObservationUpdated(this.id, command));
+  update(command: {
+    dateReception: Date;
+    magistratId: string;
+    description: string | undefined | null;
+  }): void {
+    this.#messages.push(
+      new ObservationUpdated(this.id, {
+        ...command,
+        description: command.description?.trim() ?? '',
+      }),
+    );
   }
 
   detachFiles(command: { fileIds: readonly string[] }): void {

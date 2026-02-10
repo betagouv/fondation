@@ -70,6 +70,7 @@ export class ObservationController {
       nominationFileId,
       magistratId: body.magistratId,
       dateReception: new Date(body.dateReception),
+      description: body.description,
       files: (body.files ?? []).map((file) => ({
         id: file.id,
       })),
@@ -156,6 +157,7 @@ export class ObservationController {
       observationId,
       dateReception: new Date(body.dateReception),
       magistratId: body.magistratId,
+      description: body.description,
       filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
       fileIdsToDetach: body.detachFileIds ?? [],
     });

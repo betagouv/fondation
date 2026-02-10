@@ -49,33 +49,26 @@ export class ObservationService {
     nominationFileId: string;
     magistratId: string;
     dateReception: Date;
+    description: string | undefined | null;
     files: readonly { id: string }[];
   }): Promise<{ id: string }> {
     const nominationFile = await this.prisma.dossierDeNomination.findUnique({
-      where: { id: command.nominationFileId, sessionId: command.sessionId },
-      select: { id: true },
+      where: { sessionId: command.sessionId, id: command.nominationFileId },
+      select: {
+        id: true,
+        observations: {
+          select: { id: true },
+          where: { magistratId: command.magistratId },
+        },
+      },
     });
 
     if (!nominationFile) {
-      throw new NotFoundException(
-        `Nomination file with id ${command.nominationFileId} not found`,
-      );
+      throw new NotFoundException();
     }
 
-    const existingObservation = await this.prisma.observation.findUnique({
-      where: {
-        nominationFileId_magistratId: {
-          nominationFileId: command.nominationFileId,
-          magistratId: command.magistratId,
-        },
-      },
-      select: { id: true },
-    });
-
-    if (existingObservation) {
-      throw new ConflictException(
-        'Une observation de ce magistrat existe déjà pour ce dossier de nomination',
-      );
+    if (nominationFile.observations.length > 0) {
+      throw new ConflictException();
     }
 
     const observation = Observation.create({
@@ -83,6 +76,7 @@ export class ObservationService {
       magistratId: command.magistratId,
       dateReception: command.dateReception,
       createdByUserId: command.userId,
+      description: command.description,
       files: command.files,
     });
 
@@ -107,6 +101,7 @@ export class ObservationService {
     observationId: string;
     dateReception: Date;
     magistratId: string;
+    description: string | null | undefined;
     filesToAttach: readonly { id: string }[];
     fileIdsToDetach: readonly string[];
   }): Promise<void> {
@@ -135,15 +130,10 @@ export class ObservationService {
     observation.update({
       dateReception: command.dateReception,
       magistratId: command.magistratId,
+      description: command.description,
     });
-
-    if (command.filesToAttach.length > 0) {
-      observation.attachFiles({ files: command.filesToAttach });
-    }
-
-    if (command.fileIdsToDetach.length > 0) {
-      observation.detachFiles({ fileIds: command.fileIdsToDetach });
-    }
+    observation.attachFiles({ files: command.filesToAttach });
+    observation.detachFiles({ fileIds: command.fileIdsToDetach });
 
     await this.observationRepository.persist(observation);
   }
