@@ -30,14 +30,12 @@ export function ObservationCard({
 
   const dateObj = 'dateReception' in observation ? observation.dateReception : observation.date;
 
-  const observationPath = getObservationDetailsPath(
-    {
-      sessionId,
-      nominationFileId,
-      observationId: observation.id
-    },
-    context
-  );
+  const observationPath = getObservationDetailsPath({
+    context,
+    sessionId,
+    nominationFileId,
+    observationId: observation.id
+  });
   const linkWithReport = reportId ? `${observationPath}?reportId=${reportId}` : observationPath;
 
   return (

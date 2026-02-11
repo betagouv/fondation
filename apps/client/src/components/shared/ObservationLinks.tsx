@@ -39,10 +39,12 @@ export function ObservationLinks({
               <span key={obs.observationId}>
                 {index > 0 && ', '}
                 <Link
-                  to={getObservationDetailsPath(
-                    { sessionId, nominationFileId, observationId: obs.observationId },
-                    context
-                  )}
+                  to={getObservationDetailsPath({
+                    context,
+                    sessionId,
+                    nominationFileId,
+                    observationId: obs.observationId
+                  })}
                   className="text-blue-600"
                 >
                   {obs.lastName} {obs.firstName}
