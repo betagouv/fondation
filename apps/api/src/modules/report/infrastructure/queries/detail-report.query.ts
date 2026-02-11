@@ -117,6 +117,10 @@ export class DetailReportQuery {
               select: {
                 id: true,
                 dateReception: true,
+                memberComments: {
+                  where: { userId: query.user.id },
+                  select: { comment: true },
+                },
                 magistrat: {
                   select: {
                     id: true,
@@ -260,6 +264,9 @@ export class DetailReportQuery {
         id: obs.id,
         dateReception: DateOnly.fromDate(obs.dateReception).toJson(),
         magistrat: obs.magistrat,
+        hasUserComment: obs.memberComments.some(
+          ({ comment }) => !!comment.trim(),
+        ),
       })),
     };
   }
@@ -370,6 +377,7 @@ export class DetailedReportDto extends createZodDto(
       z.object({
         id: z.string(),
         dateReception: dateOnlyJsonSchema,
+        hasUserComment: z.boolean(),
         magistrat: z.object({
           id: z.string(),
           firstName: z.string(),
