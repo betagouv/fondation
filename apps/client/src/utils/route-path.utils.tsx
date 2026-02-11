@@ -45,16 +45,14 @@ export const getGdsReportPath = (id: string) => {
 
 export const getSgSessionPath = (sessionId: string) => generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId });
 
-export const getObservationDetailsPath = (
-  props: {
-    sessionId: string;
-    nominationFileId: string;
-    observationId: string;
-  },
-  context: 'sg' | 'membre' = 'sg'
-) => {
+export const getObservationDetailsPath = (props: {
+  sessionId: string;
+  nominationFileId: string;
+  observationId: string;
+  context: 'sg' | 'membre';
+}) => {
   const { sessionId, nominationFileId, observationId } = props;
-  if (context === 'membre') {
+  if (props.context === 'membre') {
     return generatePath(ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS, {
       sessionId,
       nominationFileId,

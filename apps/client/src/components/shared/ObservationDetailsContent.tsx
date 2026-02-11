@@ -198,14 +198,12 @@ export function ObservationDetailsContent({
                         </span>
                       }
                       linkProps={{
-                        to: getObservationDetailsPath(
-                          {
-                            sessionId,
-                            nominationFileId: proposition.nominationFileId,
-                            observationId: proposition.observationId
-                          },
-                          context
-                        )
+                        to: getObservationDetailsPath({
+                          context,
+                          sessionId,
+                          nominationFileId: proposition.nominationFileId,
+                          observationId: proposition.observationId
+                        })
                       }}
                       enlargeLink
                       size="small"
