@@ -4,6 +4,8 @@ import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
 
+import { ReportFileUsage } from 'shared-models';
+import z from 'zod';
 import {
   Report,
   ReportFilesAttached,
@@ -11,8 +13,6 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
-import z from 'zod';
-import { ReportFileUsage } from 'shared-models';
 
 @Injectable()
 export class ReportRepository {
@@ -89,20 +89,30 @@ export class ReportRepository {
   }
 
   private async persistReportFilesDetached(message: ReportFilesDetached) {
-    const report = await this.prisma.report.findFirst({
-      where: { id: message.id, reporterId: message.reporterId },
-      include: {
-        files: {
-          where: { file: { name: { in: message.fileNames as string[] } } },
-          include: { file: { select: { name: true, path: true } } },
+    await this.prisma.$transaction(async (tx) => {
+      const report = await tx.report.findFirst({
+        where: { id: message.id, reporterId: message.reporterId },
+        include: {
+          files: {
+            where: { file: { name: { in: message.fileNames as string[] } } },
+            include: { file: { select: { name: true, path: true, id: true } } },
+          },
         },
-      },
+      });
+
+      const files = (report?.files ?? []).map(({ file }) => ({
+        id: file.id,
+        path: file.path,
+      }));
+
+      if (files.length > 0) {
+        await tx.reportFile.deleteMany({
+          where: { fileId: { in: files.map(({ id }) => id) } },
+        });
+
+        this.files.delete(files);
+      }
     });
-
-    const filePaths =
-      report?.files.map(({ file }) => file.path.join('/')) ?? [];
-
-    await this.files.delete(filePaths);
   }
 
   private async persistReportFilesAttached(message: ReportFilesAttached) {

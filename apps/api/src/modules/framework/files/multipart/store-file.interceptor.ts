@@ -7,12 +7,10 @@ import {
 import type { Request as ExpressRequest } from 'express';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { noop } from 'src/utils/noop';
-import { ignoreAsync } from 'src/utils/promises';
 import { Files } from '../files';
+import { Sanitizer } from '../sanitizers';
 import { MultipartFile } from './multipart.file';
 import { StoredFile } from './multipart.types';
-import { Sanitizer } from '../sanitizers';
 
 @Injectable()
 export class StoreFileInterceptor implements NestInterceptor {
@@ -82,15 +80,12 @@ export class StoreFileInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       catchError((err) => {
-        ignoreAsync(() =>
-          this.files
-            .delete(
-              multipartFiles
-                .filter((f) => f.deleteOnFail && f.path)
-                .map(({ path }) => path as string),
-            )
-            .catch(noop),
+        this.files.delete(
+          multipartFiles
+            .filter((f) => Boolean(f.deleteOnFail && f.path))
+            .map(({ id, path }) => ({ id, path: (path as string).split('/') })),
         );
+
         return throwError(() => err);
       }),
     );
