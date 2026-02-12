@@ -41,7 +41,7 @@
     "@tiptap/extension-highlight": "^3.15.3",
     "@tiptap/extension-history": "^3.15.3",
     "@tiptap/extension-image": "^3.15.3",
-    "@tiptap/extension-italic": "^3.15.3",
+    "@tiptap/extension-italic": "^3.18.0",
     "@tiptap/extension-list-item": "^3.15.3",
     "@tiptap/extension-ordered-list": "^3.15.3",
     "@tiptap/extension-paragraph": "^3.15.3",
