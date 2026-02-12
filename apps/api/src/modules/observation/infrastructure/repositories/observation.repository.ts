@@ -130,12 +130,16 @@ export class ObservationRepository {
     tx: Prisma.TransactionClient,
     message: ObservationFilesDetached,
   ) {
-    const files = await tx.file.findMany({
-      where: { id: { in: message.fileIds as string[] } },
-      select: { path: true },
+    const observation = await tx.observationFile.findMany({
+      where: { fileId: { in: message.fileIds as string[] } },
+      select: { file: { select: { id: true, path: true } } },
     });
 
-    await this.files.delete(files.map((f) => f.path.join('/')));
+    await tx.observationFile.deleteMany({
+      where: { fileId: { in: observation.map(({ file }) => file.id) } },
+    });
+
+    this.files.delete(observation.map(({ file }) => file));
   }
 
   private async persistObservationMemberCommentWritten(

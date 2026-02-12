@@ -7,7 +7,6 @@ import {
 } from 'src/modules/framework/files/mime-type';
 import { SimpleAuthService } from 'src/modules/simple-auth';
 import { isDefined } from 'src/utils/is-defined';
-import { ignoreAsync } from 'src/utils/promises';
 import { Summary } from '../domain/summary';
 import { IncludedFilesInSummaryContentDto } from './dtos/summary.dto';
 import {
@@ -67,15 +66,6 @@ export class SummaryService {
     const summary = await this.summaryRepository.find(command);
     summary.detachFiles(command);
     await this.summaryRepository.persist(summary);
-
-    ignoreAsync(async () => {
-      const files = await this.prisma.file.findMany({
-        select: { path: true },
-        where: { id: { in: command.fileIds as string[] } },
-      });
-
-      await this.files.delete(files.map((file) => file.path.join('/')));
-    });
   }
 
   async includeFilesIntoContent(command: {

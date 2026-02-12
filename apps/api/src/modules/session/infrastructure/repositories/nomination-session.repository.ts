@@ -496,13 +496,21 @@ export class NominationSessionRepository {
   ) {
     const attachment = await tx.sessionAttachment.findFirst({
       where: { fileId: message.fileId, sessionId: message.sessionId },
-      select: { file: { select: { path: true, name: true } } },
+      select: { file: { select: { path: true, name: true, id: true } } },
     });
 
     if (!attachment) return;
 
-    /** @warning we rely on the cascade from the files table since we escape from the current transaction */
-    await this.files.delete([attachment.file.path.join('/')]);
+    await tx.sessionAttachment.delete({
+      where: {
+        sessionId_fileId: {
+          fileId: message.fileId,
+          sessionId: message.sessionId,
+        },
+      },
+    });
+
+    this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
   }
 
   private async persistNominationSessionUpdated(

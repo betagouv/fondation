@@ -29,17 +29,19 @@ import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled, partitionSettled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
+import axios from 'axios';
 import { inspect } from 'node:util';
 import { makeId } from 'src/utils/id';
+import { Clock } from '../clock';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
-import axios from 'axios';
-import { Clock } from '../clock';
 
 /** @internal */
 class RollbackFilePathOperationError {
   constructor(
-    readonly pathsToDelete: readonly string[],
+    readonly filesToDelete:
+      | readonly string[]
+      | readonly { id: string; path: readonly string[] }[],
     readonly cause: Error,
   ) {}
 }
@@ -211,7 +213,7 @@ export class Files implements OnApplicationBootstrap {
       return filesWithId.map(({ meta }) => meta?.id).filter(isDefined);
     } catch (err) {
       if (err instanceof RollbackFilePathOperationError) {
-        ignoreAsync(() => this.delete(err.pathsToDelete).catch(noop));
+        this._delete(err.filesToDelete);
         throw err.cause;
       }
 
@@ -219,15 +221,27 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async delete(filePaths: readonly string[]): Promise<void> {
-    if (filePaths.length === 0) return;
+  /** this is a best effort request to delete the files */
+  delete(files: readonly { id: string; path: readonly string[] }[]): void {
+    ignoreAsync(() => this._delete(files));
+  }
+
+  private async _delete(
+    files:
+      | readonly { id: string; path: readonly string[] }[]
+      | readonly string[],
+  ): Promise<void> {
+    if (files.length === 0) return;
     try {
       const response = await this.client.send(
         new DeleteObjectsCommand({
           Bucket: this.bucketName,
           Delete: {
-            Objects: filePaths.map((filePath) => ({
-              Key: encodeURI(filePath),
+            Objects: files.map((file) => ({
+              Key:
+                typeof file === 'string'
+                  ? encodeURI(file)
+                  : encodeURI(file.path.join('/')),
             })),
           },
         }),
@@ -252,18 +266,22 @@ export class Files implements OnApplicationBootstrap {
 
       await this.prisma
         .$transaction(
-          filePaths.map((file) => {
-            const path = file.split('/');
-            return this.prisma.file.deleteMany({
-              where: { bucket: this.bucketName, path: { equals: path } },
-            });
+          files.map((file) => {
+            if (typeof file === 'string') {
+              const path = file.split('/');
+              return this.prisma.file.deleteMany({
+                where: { bucket: this.bucketName, path: { equals: path } },
+              });
+            }
+
+            return this.prisma.file.delete({ where: { id: file.id } });
           }),
         )
         .catch((err) => {
           throw new RollbackFilePathOperationError(
-            filePaths,
+            files,
             new InternalServerErrorException(
-              `failed deleting ${filePaths.length} files`,
+              `failed deleting ${files.length} files`,
               err,
             ),
           );
@@ -286,12 +304,15 @@ export class Files implements OnApplicationBootstrap {
         if (err instanceof RollbackDeleteFilesCommandError) {
           versionsToDelete.push(...err.pathsToDelete);
         } else {
-          for (const path of err.pathsToDelete) {
+          for (const file of err.filesToDelete) {
             try {
               const objectVersion = await this.client.send(
                 new ListObjectVersionsCommand({
                   Bucket: this.bucketName,
-                  Prefix: encodeURI(path),
+                  Prefix:
+                    typeof file === 'string'
+                      ? encodeURI(file)
+                      : encodeURI(file.path.join('/')),
                 }),
               );
               const lastDeleted = objectVersion.DeleteMarkers?.find(

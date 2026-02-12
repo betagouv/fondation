@@ -36,7 +36,9 @@ export function partitionSettled<T>(
 
 const ignoreAsyncLogger = new Logger('ignoreAsync');
 export function ignoreAsync(action: () => Promise<unknown>): void {
-  action().catch((error) => {
-    ignoreAsyncLogger.warn(`ignoreAsync function threw exception: ${error}`);
+  process.nextTick(() => {
+    action().catch((error) => {
+      ignoreAsyncLogger.warn(`ignoreAsync function threw exception: ${error}`);
+    });
   });
 }
