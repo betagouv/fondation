@@ -6,6 +6,9 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize]
+    branches-ignore:
+      - "dependabot/*"
+
   workflow_call:
 
 jobs:

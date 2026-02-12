@@ -3,7 +3,6 @@ updates:
   - package-ecosystem: 'npm'
     directories:
       - /apps/api
-      - /apps/client
       - /packages/shared-models
     schedule:
       interval: 'weekly'
@@ -11,7 +10,32 @@ updates:
     cooldown:
       default-days: 14
     versioning-strategy: increase
-    open-pull-requests-limit: 1
+    groups:
+      security:
+        dependency-type: development
+        applies-to: security-updates
+      deps:
+        dependency-type: development
+        applies-to: version-updates
+    labels:
+      - dependencies
+
+  - package-ecosystem: 'npm'
+    directories:
+      - /apps/client
+    schedule:
+      interval: 'weekly'
+      day: sunday
+    cooldown:
+      default-days: 14
+    versioning-strategy: increase
+    groups:
+      security:
+        dependency-type: development
+        applies-to: security-updates
+      deps:
+        dependency-type: development
+        applies-to: version-updates
     labels:
       - dependencies
 
