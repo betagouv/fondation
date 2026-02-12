@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directories:
+      - /apps/api
+      - /apps/client
+      - /packages/shared-models
+    schedule:
+      interval: 'weekly'
+      day: sunday
+    cooldown:
+      default-days: 14
+    versioning-strategy: increase
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+    versioning-strategy: increase
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
