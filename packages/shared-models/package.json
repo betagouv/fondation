@@ -18,7 +18,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
     "zod": "^4.1.12"
   }
 }

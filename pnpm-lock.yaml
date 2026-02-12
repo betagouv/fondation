@@ -83,9 +83,6 @@ importers:
       fast-xml-parser:
         specifier: ^5.3.0
         version: 5.3.1
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
       nest-commander:
         specifier: ^3.20.1
         version: 3.20.1(@nestjs/common@11.1.8(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(@types/inquirer@8.2.12)(@types/node@24.10.0)(typescript@5.9.3)
@@ -400,9 +397,6 @@ importers:
 
   packages/shared-models:
     dependencies:
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
       zod:
         specifier: ^4.1.12
         version: 4.1.12
