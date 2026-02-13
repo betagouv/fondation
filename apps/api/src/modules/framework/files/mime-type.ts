@@ -19,6 +19,8 @@ export const FILE_MIME_TYPES = {
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   odp: 'application/vnd.oasis.opendocument.presentation',
   bin: 'application/octet-stream',
+  xml: 'text/xml',
+  zip: 'application/zip',
 } as const;
 
 export type FileMimeType =
