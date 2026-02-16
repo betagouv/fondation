@@ -152,9 +152,9 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
         <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
           <Summary
-            observers={retrievedReport.observers}
             summary={retrievedReport.summary}
             fileComment={retrievedReport.fileComment}
+            observers={retrievedReport.observers.concat(retrievedReport.observations.map(({ id }) => id))}
           />
         </div>
         <div

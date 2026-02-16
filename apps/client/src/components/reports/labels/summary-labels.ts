@@ -3,7 +3,7 @@ import { NominationFile } from 'shared-models';
 export const summaryLabels = {
   comment: 'Rapport',
   biography: 'Biographie',
-  observers: 'Observants',
+  observers: 'Observant(s)',
   summary: 'Synthèse',
   fileComment: 'Historique proposition',
   rules: {
