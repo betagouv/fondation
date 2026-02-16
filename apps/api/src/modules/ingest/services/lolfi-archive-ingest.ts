@@ -80,6 +80,8 @@ export class LolfiArchiveIngestor {
               expected,
             });
           }
+
+          result.push({ id: fileId, name: filePath, sha256: hash });
         });
 
         const toFileStorage = h.streamTo({
@@ -96,7 +98,6 @@ export class LolfiArchiveIngestor {
         );
 
         await Promise.all([isHashValidPromise, pipelinePromise]);
-        result.push({ name: filePath, id: fileId });
       }
     });
 
@@ -124,7 +125,12 @@ type LolfiMissingFileError = {
 };
 
 type IngestedLolfiArchiveFailed = LolfiHashError | LolfiMissingFileError;
-export type IngestedLolfiArchiveSuccess = { id: string; name: string };
+export type IngestedLolfiArchiveSuccess = {
+  id: string;
+  name: string;
+  sha256: string;
+};
+
 export type IngestedLolfiArchive = Result<
   IngestedLolfiArchiveSuccess,
   IngestedLolfiArchiveFailed

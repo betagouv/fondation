@@ -53,6 +53,7 @@
     "prisma": "^6.19.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "sax": "^1.4.4",
     "shared-models": "workspace:*",
     "unzipper": "^0.12.3",
     "zod": "catalog:"
@@ -71,6 +72,7 @@
     "@types/node": "^24.10.0",
     "@types/pdfkit": "^0.17.3",
     "@types/pg": "^8.11.10",
+    "@types/sax": "^1.2.7",
     "@types/supertest": "^6.0.3",
     "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.46.3",

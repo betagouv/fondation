@@ -65,7 +65,10 @@ class ScalingoHttpService {
       this.http.post(
         url,
         { detached: true, ...options },
-        { headers: { Authorization: `Bearer ${this.bearer.token}` } },
+        {
+          headers: { Authorization: `Bearer ${this.bearer.token}` },
+          signal: this.auth.abortController.signal,
+        },
       ),
     );
   }
@@ -81,6 +84,7 @@ export class ScalingoHttpContainer {
     private readonly apiToken: string,
     private readonly appName: string,
     private readonly clock: Clock,
+    readonly abortController: AbortController,
   ) {}
 
   async withAuthentication<T>(
@@ -111,7 +115,10 @@ export class ScalingoHttpContainer {
       this.http.post(
         url,
         {},
-        { auth: { username: '', password: this.apiToken } },
+        {
+          auth: { username: '', password: this.apiToken },
+          signal: this.abortController.signal,
+        },
       ),
     );
 

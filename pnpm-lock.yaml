@@ -116,6 +116,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      sax:
+        specifier: ^1.4.4
+        version: 1.4.4
       shared-models:
         specifier: workspace:*
         version: link:../../packages/shared-models
@@ -165,6 +168,9 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.15.5
+      '@types/sax':
+        specifier: ^1.2.7
+        version: 1.2.7
       '@types/supertest':
         specifier: ^6.0.3
         version: 6.0.3
@@ -2739,6 +2745,9 @@ packages:
 
   '@types/react@19.1.8':
     resolution: {integrity: sha512-AwAfQ2Wa5bCx9WP8nZL2uMZWod7J7/JSplxbTmBQ5ms6QpqNYm672H0Vu9ZVKVngQ+ii4R/byguVEUZQyeg44g==}
+
+  '@types/sax@1.2.7':
+    resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
 
   '@types/send@0.17.5':
     resolution: {integrity: sha512-z6F2D3cOStZvuk2SaP6YrwkNO65iTZcwA2ZkSABegdkAh/lf+Aa/YQndZVfmEXT5vgAp6zv06VQ3ejSVjAny4w==}
@@ -5497,6 +5506,10 @@ packages:
     resolution: {integrity: sha512-y5LWb0IlbO4e97Zr7c3mlpabcbBtS+ieiZ9iwDooShpFKWXf62zz5pEPdwrLYm+Bxn1fnbwFGzHuCLSA9tBmrw==}
     engines: {node: '>=14.0.0'}
     hasBin: true
+
+  sax@1.4.4:
+    resolution: {integrity: sha512-1n3r/tGXO6b6VXMdFT54SHzT9ytu9yr7TaELowdYpMqY/Ao7EnlQGmAQ1+RatX7Tkkdm6hONI2owqNx2aZj5Sw==}
+    engines: {node: '>=11.0.0'}
 
   scheduler@0.26.0:
     resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
@@ -9110,6 +9123,10 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
+  '@types/sax@1.2.7':
+    dependencies:
+      '@types/node': 24.10.0
+
   '@types/send@0.17.5':
     dependencies:
       '@types/mime': 1.3.5
@@ -12128,6 +12145,8 @@ snapshots:
     optionalDependencies:
       '@parcel/watcher': 2.5.4
     optional: true
+
+  sax@1.4.4: {}
 
   scheduler@0.26.0: {}
 
