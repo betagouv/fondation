@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { unaccent } from 'src/utils/unaccent';
 import z from 'zod';
 
@@ -38,12 +39,8 @@ export class GetLolfiMagistratUrlQuery {
 
     if (!id) throw new NotFoundException();
 
-    const url = new URL(
-      `http://lolfi.dsj.intranet.justice.gouv.fr/lolf/lolf_fic_fonc.asp?affiche=fic`,
-    );
-    url.searchParams.set('num_fonc', id);
-
-    return { url: url.toString() };
+    const url = buildMagistratLolfiUrl(id);
+    return { url };
   }
 }
 

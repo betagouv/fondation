@@ -1,19 +1,21 @@
-import { useIsSg } from '@/hooks/roles.hook';
-import { DateOnly } from '@/models/date-only.model';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { useUpdateObservationMutation, type ObservationDetails } from '@queries/observations.queries';
 import React from 'react';
 import { useDebounce } from 'use-debounce';
 
-function ObservationDescriptionReadOnly(props: { observation: ObservationDetails }) {
+import { useIsSg } from '@/hooks/roles.hook';
+import { DateOnly } from '@/models/date-only.model';
+import type { GetObservationDetailsResponseDto } from '@api/types';
+import { useUpdateObservationMutation } from '@queries/observations.queries';
+
+function ObservationDescriptionReadOnly(props: { observation: GetObservationDetailsResponseDto }) {
   return <div className="rounded bg-gray-100 p-4">{props.observation.description}</div>;
 }
 
 function ObservationDescriptionEditor(props: {
   sessionId: string;
   nominationFileId: string;
-  observation: ObservationDetails;
+  observation: GetObservationDetailsResponseDto;
 }) {
   const [description, setDescription] = React.useState(props.observation.description);
   const [debouncedDescription] = useDebounce(description, 400);
@@ -44,7 +46,7 @@ function ObservationDescriptionEditor(props: {
 export function ObservationDescription(props: {
   sessionId: string;
   nominationFileId: string;
-  observation: ObservationDetails;
+  observation: GetObservationDetailsResponseDto;
 }) {
   const isSg = useIsSg();
   const [isEditing, setEditing] = React.useState<boolean>(false);

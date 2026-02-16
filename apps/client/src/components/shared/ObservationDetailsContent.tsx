@@ -6,7 +6,7 @@ import { TipTapEditor } from '@/components/reports/components/ReportOverview/Tip
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { useIsSg } from '@/hooks/roles.hook';
 import { DateOnly } from '@/models/date-only.model';
-import type { ObservationDetails } from '@queries/observations.queries';
+import type { GetObservationDetailsResponseDto } from '@api/types';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 import { LolfiMagistratLink } from './LolfiMagistratLink';
 import { ObservationDescription } from './ObservationDescription';
@@ -16,7 +16,7 @@ type ObservationDetailsContentProps = {
   sessionId: string;
   nominationFileId: string;
   observationId: string;
-  observation: ObservationDetails;
+  observation: GetObservationDetailsResponseDto;
   onDownloadFile: (fileId: string) => void;
   backLink: {
     to: string;
@@ -41,6 +41,12 @@ export function ObservationDetailsContent({
   const observant = observation.observant;
   const candidacy = observant.candidacy;
   const relatedPropositions = observation.relatedPropositions ?? [];
+
+  const biographyItems = observant.biography
+    ?.split('- ')
+    .map((x) => x.trim())
+    .filter((x) => !!x)
+    .map((part, i) => <li key={`observer_biography_${i}`}>{part}</li>);
 
   return (
     <div className="bg-white p-8">
@@ -98,15 +104,16 @@ export function ObservationDetailsContent({
                   <span>
                     {observant.lastName.toUpperCase()} {observant.firstName}
                   </span>
-                  {/* TODO revoir cette partie, conditionné au fait que l'observant soit un candidat.  */}
-                  {candidacy && (
-                    <LolfiMagistratLink
-                      sessionId={sessionId}
-                      nominationFileId={candidacy.nominationFileId}
-                      name={`${observant.lastName.toUpperCase()} ${observant.firstName}`}
-                      small
-                    />
-                  )}
+                  <Button
+                    size="small"
+                    className="rounded-full after:hidden"
+                    priority="tertiary no outline"
+                    title="vers LOLFI"
+                    iconId="fr-icon-external-link-line"
+                    iconPosition="right"
+                    linkProps={{ target: '_blank', href: observant.externalUrl }}
+                    children={undefined /* FIXME: TS issue otherwise */}
+                  />
                 </dd>
               </div>
               {candidacy && (
@@ -128,19 +135,21 @@ export function ObservationDetailsContent({
               {observant.biography && (
                 <div className="fr-grid-row fr-mb-2w">
                   <dt className="fr-col-4 fr-text--bold">Biographie :</dt>
-                  <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">{observant.biography}</dd>
+                  <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">
+                    <ul className="list-['-_'] p-0">{biographyItems}</ul>
+                  </dd>
                 </div>
               )}
             </dl>
           </section>
 
-          {context === 'membre' && observation.memberComment && onUpdateMemberComment && (
+          {context === 'membre' && observation.isMemberReporter && onUpdateMemberComment && (
             <section className="fr-mb-4w">
               <h2 className="fr-h4" id="member-comment-label">
                 Mon commentaire
               </h2>
               <TipTapEditor
-                value={observation.memberComment.comment ?? ''}
+                value={observation.memberComment?.comment ?? ''}
                 onChange={onUpdateMemberComment}
                 ariaLabelledby="member-comment-label"
                 uploadFiles={uploadFiles}

@@ -1,17 +1,18 @@
-import { Navigate, useParams, useLocation, useSearchParams } from 'react-router';
 import React from 'react';
+import { Navigate, useParams, useSearchParams } from 'react-router';
 
-import {
-  useObservationDetailsQuery,
-  useGetObservationFileUrlMutation,
-  useWriteObservationMemberCommentMutation,
-  useAttachObservationMemberCommentScreenshotsMutation
-} from '@queries/observations.queries';
-import { PageContentLayout } from '../../../components/shared/PageContentLayout';
-import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
-import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
+import {
+  useAttachObservationMemberCommentScreenshotsMutation,
+  useGetObservationFileUrlMutation,
+  useObservationDetailsQuery,
+  useWriteObservationMemberCommentMutation
+} from '@queries/observations.queries';
+import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
+import { PageContentLayout } from '../../../components/shared/PageContentLayout';
+import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 
 export function ObservationDetailsPage() {
   const { sessionId, nominationFileId, observationId } = useParams<{
@@ -23,8 +24,7 @@ export function ObservationDetailsPage() {
   const [searchParams] = useSearchParams();
   const reportId = searchParams.get('reportId');
 
-  const location = useLocation();
-  const isSgContext = location.pathname.startsWith('/secretariat-general');
+  const isSgContext = useIsSgNavigation();
   const context = isSgContext ? 'sg' : 'membre';
 
   const {
