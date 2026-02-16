@@ -87,6 +87,7 @@ export class ObservationRepository {
         magistratId: message.magistratId,
         dateReception: message.dateReception,
         createdByUserId: message.createdByUserId,
+        description: message.description || '',
       },
     });
   }
