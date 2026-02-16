@@ -181,7 +181,11 @@ export class Files implements OnApplicationBootstrap {
       },
     };
 
-    await factory(helper);
+    await factory(helper).catch((error) => {
+      this.logger.warn(
+        `file batch stream session factory failed with error: ${error}`,
+      );
+    });
 
     if (fileStoragePromises.length === 0) return [];
 
@@ -225,7 +229,7 @@ export class Files implements OnApplicationBootstrap {
     } catch (error) {
       this.logger.warn(`SQL error, while creating files`, { error });
 
-      await this._delete(fulfilled.map((file) => file.path));
+      ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
       throw new InternalServerErrorException(
         `Failed uploading ${fulfilled.length} files`,
       );
@@ -234,8 +238,8 @@ export class Files implements OnApplicationBootstrap {
 
   async create(files: readonly FondationFile[]): Promise<string[]> {
     return this.openBatchStreamSession(async (h) => {
-      for (const file of files) {
-        await pipeline(Readable.from(file.buffer), h.streamTo(file));
+      for (const { buffer, ...file } of files) {
+        await pipeline(Readable.from(buffer), h.streamTo(file));
       }
     });
   }

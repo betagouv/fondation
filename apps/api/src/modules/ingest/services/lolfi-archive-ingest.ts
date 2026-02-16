@@ -1,23 +1,36 @@
-import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
-import { pipeline } from 'node:stream/promises';
-import { MulterFile } from 'src/modules/framework/files/multipart/multipart.types';
-
+import { Injectable } from '@nestjs/common';
+import { Clock } from 'src/modules/framework/clock';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
-import unzipper from 'unzipper';
+import { Result, ResultBuilder } from 'src/utils/result';
+import { pipeline } from 'stream';
+import * as unzipper from 'unzipper';
 import { passthroughHash } from './passthrough-hash';
 
 @Injectable()
-export class LolfiArchivePipe
-  implements PipeTransform<MulterFile, Promise<{ name: string; id: string }[]>>
-{
-  constructor(private readonly files: Files) {}
+export class LolfiArchiveIngestor {
+  constructor(
+    private readonly files: Files,
+    private readonly clock: Clock,
+  ) {}
 
-  async transform(file: MulterFile) {
-    const start = performance.now();
+  private static readonly EXPECTED_FILES = new Set([
+    'CANDIDATS.xml',
+    'DESIDERATA.xml',
+    'FONCTIONS.xml',
+    'GRADES.xml',
+    'JURIDICTIONS.xml',
+    'MAGISTRATS.xml',
+    'POSADS.xml',
+    'POSTES_2.xml',
+    'SESSIONS.xml',
+    'TRANSPARENCES.xml',
+    'TYPE_JURIDICTION.xml',
+  ]);
 
-    const dir = await unzipper.Open.buffer(file.buffer);
+  async ingest(archiveBuffer: Buffer): Promise<IngestedLolfiArchive> {
+    const dir = await unzipper.Open.buffer(archiveBuffer);
     const hashes = new Map(
       await Promise.all(
         dir.files
@@ -34,9 +47,13 @@ export class LolfiArchivePipe
       ),
     );
 
-    const result = new Result();
-    const now = new Date().toISOString();
+    const now = this.clock.now().toISOString();
+    const result = new ResultBuilder<
+      IngestedLolfiArchiveSuccess,
+      IngestedLolfiArchiveFailed
+    >();
 
+    const seenFiles = new Set<string>();
     await this.files.openBatchStreamSession(async (h) => {
       for (const file of dir.files.filter(
         (file) => file.type === 'File' && file.path.endsWith('.xml'),
@@ -47,6 +64,8 @@ export class LolfiArchivePipe
           `expected a file name`,
         );
 
+        seenFiles.add(filePath);
+
         const { promise: hashedPromise, stream: computeHash } =
           passthroughHash('sha256');
 
@@ -54,10 +73,11 @@ export class LolfiArchivePipe
           const expected = hashes.get(file.path);
           if (hash !== expected) {
             result.fail({
+              type: 'LolfiHashError',
               message: `Le hash de "${filePath}" ne correspond pas à l'attendu`,
-              expected,
               computed: hash,
               file: filePath,
+              expected,
             });
           }
         });
@@ -76,49 +96,36 @@ export class LolfiArchivePipe
         );
 
         await Promise.all([isHashValidPromise, pipelinePromise]);
-        result.pushData({ name: filePath, id: fileId });
+        result.push({ name: filePath, id: fileId });
       }
     });
 
-    const duration = performance.now() - start;
-    console.log('Duration %sms', duration.toFixed(2));
-
-    if (!result.success) {
-      throw new BadRequestException({
-        errors: result.errors,
-      });
+    const missingFiles =
+      LolfiArchiveIngestor.EXPECTED_FILES.difference(seenFiles);
+    for (const missingFile of missingFiles) {
+      result.fail({ type: 'LolfiMissingFileError', missingFile });
     }
 
-    return result.data;
+    return result.build();
   }
 }
 
-class Result {
-  get success(): boolean {
-    return this._success;
-  }
+type LolfiHashError = {
+  type: 'LolfiHashError';
+  message: string;
+  expected: string | undefined;
+  computed: string;
+  file: string;
+};
 
-  get errors(): readonly unknown[] {
-    if (this._success) return [];
-    return this._errors;
-  }
+type LolfiMissingFileError = {
+  type: 'LolfiMissingFileError';
+  missingFile: string;
+};
 
-  get data(): { name: string; id: string }[] {
-    if (!this._success) return [];
-
-    return this._data;
-  }
-
-  private _success: boolean = true;
-  private _errors: unknown[] = [];
-  private _data: { name: string; id: string }[] = [];
-
-  fail(error: unknown): void {
-    this._success = false;
-    this._errors.push(error);
-  }
-
-  pushData(file: { name: string; id: string }): void {
-    this._data.push(file);
-  }
-}
+type IngestedLolfiArchiveFailed = LolfiHashError | LolfiMissingFileError;
+export type IngestedLolfiArchiveSuccess = { id: string; name: string };
+export type IngestedLolfiArchive = Result<
+  IngestedLolfiArchiveSuccess,
+  IngestedLolfiArchiveFailed
+>;
