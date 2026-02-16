@@ -42,7 +42,7 @@ function LolfiRedirectMagistratInner() {
     window.close();
   }, []);
 
-  const { remainingSeconds, isEnded } = useCountdown();
+  const { remainingSeconds, isEnded } = useCountdown(3_000);
 
   if (isEnded && !error && data?.url) {
     window.location.href = data.url;
