@@ -108,7 +108,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
 
       <div>
         <label className="text-xl font-semibold">
-          Observants{observersCount > 0 ? ` (${observersCount})` : null}
+          Observant(s){observersCount > 0 ? ` (${observersCount})` : null}
         </label>
         {formattedObservers && (
           <div className="w-full whitespace-pre-line leading-7">{formattedObservers}</div>

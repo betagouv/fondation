@@ -22,7 +22,7 @@ export const Summary: FC<SummaryProps> = ({ observers, summary, fileComment }) =
       return hasObservers;
     }
 
-    const isSummarySection = anchorId === reportHtmlIds.overview.observersSection;
+    const isSummarySection = anchorId === reportHtmlIds.overview.summary;
     if (isSummarySection) {
       const hasSummary = summary && !!summary.content;
       return hasSummary;
@@ -55,7 +55,7 @@ export const Summary: FC<SummaryProps> = ({ observers, summary, fileComment }) =
     return removeListeners;
   }, []);
 
-  const sideMenuItems: SideMenuProps.Item[] = SUMMARY_SECTIONS.map(({ anchorId, label }) => ({
+  const sideMenuItems: SideMenuProps.Item[] = summarySections.map(({ anchorId, label }) => ({
     linkProps: {
       href: `#${anchorId}`,
       onClick: () => onAnchorClick(anchorId)

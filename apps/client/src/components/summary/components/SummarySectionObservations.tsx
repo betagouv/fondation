@@ -1,6 +1,6 @@
 import { useSummary } from '@/pages/summary/SummaryContext';
-import { SummarySectionCard } from './SummarySectionCard';
 import { capitalize } from '@/utils/string.utils';
+import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionObservations() {
   const { summary } = useSummary();
@@ -12,7 +12,7 @@ export function SummarySectionObservations() {
 
   return (
     <SummarySectionCard id="observants">
-      <h2>Observants</h2>
+      <h2>Observant(s)</h2>
 
       <ul className="list-['-_']">
         {summary.observers.map((observer) => (

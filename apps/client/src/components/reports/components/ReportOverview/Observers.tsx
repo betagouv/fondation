@@ -29,7 +29,7 @@ export const Observers = ({
       id={reportHtmlIds.overview.observersSection}
       className={clsx('rounded-lg bg-white', cx('fr-px-3w', 'fr-py-2w'))}
     >
-      <h2>Observants</h2>
+      <h2>Observant(s)</h2>
 
       {hasObservers && (
         <div

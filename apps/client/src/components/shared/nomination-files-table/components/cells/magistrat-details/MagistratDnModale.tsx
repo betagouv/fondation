@@ -128,21 +128,26 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
   return (
     <Button
       size="small"
-      className="text-left font-normal normal-case underline"
+      className="flex flex-col items-start text-left font-normal normal-case"
       style={{ color: colors.decisions.text.default.grey.default }}
       priority="tertiary no outline"
       aria-controls={modalMagistratDnDetails.id}
       onClick={() => ctx.setActive(props.nominationFile.id)}
     >
-      {props.nominationFile.content.nomMagistrat}
-      {hasComment && (
-        <i
-          className="ri-message-3-line ml-1 cursor-pointer"
-          style={{ fontSize: '10px' }}
-          title="Commentaire présent"
-          aria-label="Commentaire présent"
-        />
-      )}
+      <div className="text-left leading-4 underline">
+        {props.nominationFile.content.nomMagistrat}
+        {hasComment && (
+          <i
+            className="ri-message-3-line ml-1 cursor-pointer"
+            style={{ fontSize: '10px' }}
+            title="Commentaire présent"
+            aria-label="Commentaire présent"
+          />
+        )}
+      </div>
+      {props.nominationFile.content.posteActuel ? (
+        <span className="text-xs">{props.nominationFile.content.posteActuel}</span>
+      ) : null}
     </Button>
   );
 }
