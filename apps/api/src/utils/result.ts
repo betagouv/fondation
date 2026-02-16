@@ -2,10 +2,18 @@ export type Result<Success, Failure> =
   | { success: false; errors: Failure[] }
   | { success: true; data: Success[] };
 
+export type DetailedFailure<Failure> =
+  | { success: true }
+  | { success: false; errors: Failure[] };
+
 export class ResultBuilder<Success, Failure> {
   #success: boolean = true;
   #data = [] as Success[];
   #errors = [] as Failure[];
+
+  get success(): boolean {
+    return this.#success;
+  }
 
   get data(): readonly Success[] {
     return this.#data;

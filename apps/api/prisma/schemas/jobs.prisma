@@ -30,14 +30,12 @@ model IngestionJobFile {
   startedAt DateTime?           @map("started_at")
   endedAt   DateTime?           @map("ended_at")
 
-  error    String?
-  metadata Json?   @db.JsonB
-
   job  IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   file File         @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   requirements IngestionJobRequirement[] @relation("jobWithDependency")
   isRequiredBy IngestionJobRequirement[] @relation("dependencyOfJob")
+  errors       IngestionJobFileError[]
 
   @@id([jobId, fileId], name: "primaryKey")
   @@map("ingestion_job_file")
@@ -54,6 +52,23 @@ model IngestionJobRequirement {
   job      IngestionJobFile @relation(fields: [jobId, jobFileId], references: [jobId, fileId], name: "jobWithDependency")
   requires IngestionJobFile @relation(fields: [requiredJobId, requiredFileId], references: [jobId, fileId], name: "dependencyOfJob")
 
+  @@id([jobId, jobFileId, requiredJobId, requiredFileId], name: "primaryKey")
   @@map("ingestion_job_requirement")
+  @@schema("jobs")
+}
+
+model IngestionJobFileError {
+  id     Int    @id @default(autoincrement()) @db.Integer
+  jobId  Int    @db.Integer
+  fileId String @db.Uuid
+
+  lineNumber Int?   @map("line_number") @db.Integer
+  entityName String @map("entity_name")
+  entityId   String @map("entity_id")
+  error      String
+
+  jobFile IngestionJobFile @relation(fields: [jobId, fileId], references: [jobId, fileId])
+
+  @@map("ingestion_job_file_error")
   @@schema("jobs")
 }

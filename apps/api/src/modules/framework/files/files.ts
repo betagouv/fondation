@@ -32,7 +32,9 @@ import axios from 'axios';
 import { PassThrough, Readable, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
+import { Prisma } from 'src/generated/prisma/client';
 import { makeId } from 'src/utils/id';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { Clock } from '../clock';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
@@ -399,6 +401,36 @@ export class Files implements OnApplicationBootstrap {
       type: filenameToMimeType(file.file.name),
       disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
     });
+  }
+
+  async getFile(props: {
+    fileId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Readable | null> {
+    if (!props.tx) {
+      return this.prisma.$transaction((tx) => this.getFile({ ...props, tx }));
+    }
+
+    const storedFile = await props.tx.file.findUnique({
+      where: { id: props.fileId },
+      select: { path: true },
+    });
+
+    if (!storedFile) return null;
+
+    const command = new GetObjectCommand({
+      ...this.sseHeaders,
+      Bucket: this.bucketName,
+      Key: encodeURI(storedFile.path.join('/')),
+    });
+
+    const response = await this.client.send(command);
+    if (!response.Body) throw new Error('Not Found');
+
+    return assertIsDefined(
+      response.Body as Readable | undefined,
+      `file ${props.fileId} not found`,
+    );
   }
 
   private async generatePublicUrl(file: {

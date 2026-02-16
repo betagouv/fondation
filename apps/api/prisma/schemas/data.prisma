@@ -70,3 +70,13 @@ model Transparence {
   @@map("transparences")
   @@schema("data_administration_context")
 }
+
+model JurisdictionType {
+  id    String @id @db.Char(4)
+  label String
+  sort  Int
+
+  @@index([sort])
+  @@map("jurisdiction_type")
+  @@schema("data_administration_context")
+}
