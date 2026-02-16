@@ -701,6 +701,7 @@ export type GetObservationDetailsResponseDto = {
             desiredPosition: string | null;
             rank: string | null;
         } | null;
+        externalUrl: string;
     };
     observedMagistrat: {
         name: string;
@@ -725,6 +726,7 @@ export type GetObservationDetailsResponseDto = {
             day: number;
         };
     }>;
+    isMemberReporter: boolean;
     memberComment: {
         comment: string;
         screenshots: Array<{

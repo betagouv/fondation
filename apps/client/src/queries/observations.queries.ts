@@ -1,7 +1,6 @@
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
-  GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   PaginatedNominationFiles,
   SearchMagistratsResponseDto
@@ -20,8 +19,6 @@ export const observationKeys = {
   searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props] as const
 };
 
-export type ObservationDetails = GetObservationDetailsResponseDto;
-
 export function useObservationDetailsQuery(props: {
   sessionId: string;
   nominationFileId: string;
@@ -30,7 +27,7 @@ export function useObservationDetailsQuery(props: {
   return useQuery({
     enabled: !!props.sessionId && !!props.nominationFileId && !!props.observationId,
     queryKey: observationKeys.observationDetails(props),
-    queryFn: async (): Promise<ObservationDetails> => {
+    queryFn: async () => {
       const { data } = await $api.observations.getObservationDetails({
         path: {
           sessionId: props.sessionId,
@@ -38,7 +35,8 @@ export function useObservationDetailsQuery(props: {
           observationId: props.observationId
         }
       });
-      return data as ObservationDetails;
+
+      return data;
     }
   });
 }
