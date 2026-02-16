@@ -13,6 +13,7 @@ on:
 
 jobs:
   build:
+    if: github.actor != 'dependabot[bot]'
     timeout-minutes: 5
     runs-on: ubuntu-latest
     env:
