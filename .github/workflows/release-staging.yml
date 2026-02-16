@@ -41,7 +41,7 @@ jobs:
       - shell: bash
         id: changelog
         run: |
-          last_tags=$(git tag --merged HEAD --sort=-committerdate | /usr/bin/head -n2)
+          last_tags=$(git tag --merged HEAD --sort=-creatordate | /usr/bin/head -n2)
           echo "$last_tags"
           {
             echo 'markdown<<EOF'
