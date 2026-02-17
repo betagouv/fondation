@@ -3,8 +3,8 @@ import z from 'zod';
 
 import { makeId } from 'src/utils/id';
 
-import { AuthSession } from './auth-session';
 import { AuthPassword } from './auth-password';
+import { AuthSession } from './auth-session';
 
 export class AuthUserNotAuthentifiable extends Error {}
 
@@ -66,8 +66,11 @@ export class AuthUser {
     readonly password: AuthPassword,
   ) {}
 
-  authenticate(props: { plainPassword: string; now: Date }): AuthSession {
-    if (!this.password.equals(props.plainPassword)) {
+  async authenticate(props: {
+    plainPassword: string;
+    now: Date;
+  }): Promise<AuthSession> {
+    if (!(await this.password.equals(props.plainPassword))) {
       throw new AuthUserNotAuthentifiable();
     }
 
