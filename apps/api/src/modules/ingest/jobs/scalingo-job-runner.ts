@@ -6,8 +6,8 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 
-import { Clock } from '../framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
+import { Clock } from 'src/modules/framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { FailedToStartCommand } from './job-errors';
 import { ScalingoHttpContainer } from './scalingo-http';
 

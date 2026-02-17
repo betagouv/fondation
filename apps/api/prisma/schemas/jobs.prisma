@@ -14,10 +14,22 @@ model IngestionJob {
   endedAt   DateTime?           @map("ended_at")
   status    PrismaJobStatusEnum @default(IDLE)
 
-  files IngestionJobFile[]
+  files  IngestionJobFile[]
+  errors IngestionJobError[]
 
   @@index([status, endedAt])
   @@map("ingestion_job")
+  @@schema("jobs")
+}
+
+model IngestionJobError {
+  id    Int    @id @default(autoincrement()) @db.Integer
+  error String
+  jobId Int    @db.Integer
+
+  job IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("ingestion_job_error")
   @@schema("jobs")
 }
 

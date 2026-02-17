@@ -4,7 +4,7 @@ import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { Result, ResultBuilder } from 'src/utils/result';
-import { pipeline } from 'stream';
+import { pipeline } from 'stream/promises';
 import * as unzipper from 'unzipper';
 import { passthroughHash } from './passthrough-hash';
 
@@ -74,7 +74,7 @@ export class LolfiArchiveIngestor {
           if (hash !== expected) {
             result.fail({
               type: 'LolfiHashError',
-              message: `Le hash de "${filePath}" ne correspond pas à l'attendu`,
+              message: `Le hash de "${filePath}" (${hash.slice(0, 8)}) ne correspond pas à l'attendu (${expected?.slice(0, 8) || 'N/A'})`,
               computed: hash,
               file: filePath,
               expected,
@@ -104,7 +104,11 @@ export class LolfiArchiveIngestor {
     const missingFiles =
       LolfiArchiveIngestor.EXPECTED_FILES.difference(seenFiles);
     for (const missingFile of missingFiles) {
-      result.fail({ type: 'LolfiMissingFileError', missingFile });
+      result.fail({
+        type: 'LolfiMissingFileError',
+        message: `Le fichier "${missingFile}" est absent`,
+        missingFile,
+      });
     }
 
     return result.build();
@@ -121,10 +125,11 @@ type LolfiHashError = {
 
 type LolfiMissingFileError = {
   type: 'LolfiMissingFileError';
+  message: string;
   missingFile: string;
 };
 
-type IngestedLolfiArchiveFailed = LolfiHashError | LolfiMissingFileError;
+export type IngestedLolfiArchiveFailed = LolfiHashError | LolfiMissingFileError;
 export type IngestedLolfiArchiveSuccess = {
   id: string;
   name: string;

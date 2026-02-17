@@ -4,8 +4,8 @@ import { addMilliseconds } from 'date-fns';
 import { lastValueFrom } from 'rxjs';
 import z from 'zod';
 
+import { Clock } from 'src/modules/framework/clock';
 import * as time from 'src/utils/time';
-import { Clock } from '../framework/clock';
 
 class ScalingoBearer {
   private static readonly EXPIRATION_TIME_MS = 50 * time.MINUTES;
