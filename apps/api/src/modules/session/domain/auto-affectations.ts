@@ -78,11 +78,11 @@ export class AutoAffectationMember {
   static from(props: {
     id: string;
     session: { date: DateOnly; formation: Magistrat.Formation };
-    pastReportCountPerGrade: Map<Magistrat.Grade, number>;
+    affectationCountPerGrade: Map<Magistrat.Grade, number>;
     excludedJurisdictions: Set<string> | null;
   }): AutoAffectationMember {
     const pastWorkload = Array.from(
-      props.pastReportCountPerGrade.entries(),
+      props.affectationCountPerGrade.entries(),
     ).reduce(
       (workload, [grade, count]) =>
         workload.add(

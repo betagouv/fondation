@@ -1,10 +1,10 @@
 import { Magistrat } from 'shared-models';
-import {
-  AutoAffectations,
-  AutoAffectationNominationFile,
-  AutoAffectationMember,
-} from './auto-affectations';
 import { DateOnly } from 'src/utils/date-only';
+import {
+  AutoAffectationMember,
+  AutoAffectationNominationFile,
+  AutoAffectations,
+} from './auto-affectations';
 
 describe('automated affectation', () => {
   const session = {
@@ -17,7 +17,7 @@ describe('automated affectation', () => {
       session,
       id: 'memberId',
       excludedJurisdictions: new Set(['CA  RENNES']),
-      pastReportCountPerGrade: new Map(),
+      affectationCountPerGrade: new Map(),
     });
 
     const file: AutoAffectationNominationFile =
@@ -37,7 +37,7 @@ describe('automated affectation', () => {
     const member = AutoAffectationMember.from({
       session,
       excludedJurisdictions: null,
-      pastReportCountPerGrade: new Map(),
+      affectationCountPerGrade: new Map(),
       id: 'memberId',
     });
 
@@ -57,7 +57,7 @@ describe('automated affectation', () => {
     const member = AutoAffectationMember.from({
       session,
       excludedJurisdictions: new Set(['CA  RENNES']),
-      pastReportCountPerGrade: new Map(),
+      affectationCountPerGrade: new Map(),
       id: 'memberId',
     });
 
@@ -77,7 +77,7 @@ describe('automated affectation', () => {
     const member = AutoAffectationMember.from({
       session: { ...session, formation: Magistrat.Formation.SIEGE },
       excludedJurisdictions: new Set(['CA  RENNES']),
-      pastReportCountPerGrade: new Map(),
+      affectationCountPerGrade: new Map(),
       id: 'memberId',
     });
 
@@ -98,19 +98,19 @@ describe('automated affectation', () => {
       AutoAffectationMember.from({
         session,
         excludedJurisdictions: new Set(['CA  RENNES']),
-        pastReportCountPerGrade: new Map([[Magistrat.Grade.G1, 10]]),
+        affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 10]]),
         id: 'memberId',
       }),
       AutoAffectationMember.from({
         session,
         excludedJurisdictions: new Set(['CA  STRASBOURG']),
-        pastReportCountPerGrade: new Map([[Magistrat.Grade.G1, 5]]),
+        affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 5]]),
         id: 'memberId2',
       }),
       AutoAffectationMember.from({
         session,
         excludedJurisdictions: new Set(['CA  LYON']),
-        pastReportCountPerGrade: new Map(),
+        affectationCountPerGrade: new Map(),
         id: 'memberId3',
       }),
     ];
@@ -145,13 +145,13 @@ describe('automated affectation', () => {
         session,
         id: 'memberId1',
         excludedJurisdictions: null,
-        pastReportCountPerGrade: new Map(),
+        affectationCountPerGrade: new Map(),
       }),
       AutoAffectationMember.from({
         session,
         id: 'memberId2',
         excludedJurisdictions: null,
-        pastReportCountPerGrade: new Map(),
+        affectationCountPerGrade: new Map(),
       }),
     ];
 
