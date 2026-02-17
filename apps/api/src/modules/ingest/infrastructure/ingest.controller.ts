@@ -32,7 +32,7 @@ export class IngestController {
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { files: 1, fileSize: 30 * 1_024 * 1_024 /* Mb */ },
-      fileFilter(req, file, callback) {
+      fileFilter(_req, file, callback) {
         callback(null, file.mimetype === FILE_MIME_TYPES.zip);
       },
     }),

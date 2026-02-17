@@ -1,6 +1,11 @@
 export type LolfiJob = {
   id: number;
-  files: { id: string; name: string; sha256: string; lastSha256: string }[];
+  files: {
+    id: string;
+    name: string;
+    sha256: string;
+    lastSha256: string | undefined;
+  }[];
 };
 
 export class LolfiJobFileNotFoundError extends Error {
