@@ -1,5 +1,4 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { startOfYear } from 'date-fns';
 import { Magistrat } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
@@ -12,6 +11,7 @@ import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
+import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
 import {
   AutoAffectationMember,
   AutoAffectationNominationFile,
@@ -142,12 +142,7 @@ export class AutoAffectationsFinder {
 
     if (memberIds.length === 0) return [];
 
-    type ReportCount = {
-      reporterId: string;
-      targetedGrade: string | null;
-      reportCount: Prisma.Decimal;
-    };
-    const [membersExcludedJurisdictions, reportCounts] =
+    const [membersExcludedJurisdictions, memberYearlyWorkload] =
       await this.prisma.$transaction([
         this.prisma.user.findMany({
           where: { id: { in: memberIds } },
@@ -159,29 +154,17 @@ export class AutoAffectationsFinder {
           },
         }),
 
-        this.prisma.$queryRaw<ReportCount[]>`
-          SELECT
-            r.reporter_id AS "reporterId",
-            ddn.targeted_grade AS "targetedGrade",
-            COUNT(r.id) AS "reportCount"
-          FROM reports_context.reports r
-            INNER JOIN nominations_context.dossier_de_nomination ddn ON r.nomination_file_id = ddn.id
-          WHERE (
-            NOT r.is_deleted
-            AND r.session_id != ${session.sessionId}
-            AND r.reporter_id = ANY(${memberIds}::UUID[])
-            AND r.created_at >= ${startOfYear(this.clock.now())}::DATE
-          )
-          GROUP BY r.reporter_id, ddn.targeted_grade;
-        `,
+        this.prisma.$queryRawTyped(
+          findMemberCurrentYearWorkloadRawQuery(memberIds),
+        ),
       ]);
 
-    const reportCountByMemberIdAndGrade = reportCounts.reduce(
-      (map, { targetedGrade, reportCount, reporterId }) => {
+    const affectationCountByMemberIdAndGrade = memberYearlyWorkload.reduce(
+      (map, { targetedGrade, workload, reporterId }) => {
         if (!isGrade(targetedGrade)) return map;
 
         const byGrade = map.get(reporterId) ?? new Map();
-        byGrade.set(targetedGrade, Number(reportCount));
+        byGrade.set(targetedGrade, Number(workload));
 
         map.set(reporterId, byGrade);
         return map;
@@ -205,15 +188,15 @@ export class AutoAffectationsFinder {
       const excludedJurisdictions = new Set<string>(
         excludedJurisdictionIdByMemberId.get(id) ?? [],
       );
-      const pastReportCountPerGrade =
-        reportCountByMemberIdAndGrade.get(id) ??
+      const affectationCountPerGrade =
+        affectationCountByMemberIdAndGrade.get(id) ??
         new Map<Magistrat.Grade, number>();
 
       return AutoAffectationMember.from({
         id,
         session,
         excludedJurisdictions,
-        pastReportCountPerGrade,
+        affectationCountPerGrade,
       });
     });
   }

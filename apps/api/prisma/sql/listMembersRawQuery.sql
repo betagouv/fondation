@@ -4,40 +4,53 @@
 -- @param {Int} $5:limit
 -- @param {Int} $6:offset
 
-WITH stats_for_current_year AS (
+WITH max_version AS (
   SELECT
-    r.reporter_id AS reporter_id,
-    EXTRACT (YEAR FROM r.created_at) AS "year",
-    d.targeted_grade AS targeted_grade,
-    COUNT(r.id) AS "count"
-  FROM reports_context.reports r
-    INNER JOIN nominations_context.dossier_de_nomination d ON d.id = r.nomination_file_id
-  WHERE r.is_deleted = FALSE AND r.created_at >= ((EXTRACT (YEAR FROM CURRENT_DATE)) || '-01-01')::DATE
-  GROUP BY r.reporter_id, EXTRACT (YEAR FROM r.created_at), d.targeted_grade
-  ORDER BY EXTRACT (YEAR FROM r.created_at) ASC
+    session_id,
+    MAX("version") AS "version"
+  FROM nominations_context.affectation
+  WHERE created_at >= ((EXTRACT(YEAR FROM CURRENT_DATE)) || '-01-01')::DATE
+  GROUP BY session_id
+),
+
+stats_for_current_year AS (
+  SELECT
+    nfr.user_id AS reporter_id,
+    ddn.targeted_grade,
+    EXTRACT(YEAR FROM affectation.created_at) AS "year",
+    COUNT(ddn.id) AS count
+
+  FROM nominations_context.affectation
+    INNER JOIN max_version
+      ON max_version.session_id = affectation.session_id AND max_version."version" = affectation."version"
+    LEFT JOIN nominations_context.nomination_file_to_reporter AS nfr ON nfr.version_id = affectation.id
+    LEFT JOIN nominations_context.dossier_de_nomination AS ddn ON ddn.id = nfr.nomination_file_id
+
+  GROUP BY nfr.user_id, EXTRACT(YEAR FROM affectation.created_at), ddn.targeted_grade
+  ORDER BY EXTRACT(YEAR FROM affectation.created_at) ASC
 )
 
-SELECT 
+SELECT
   m.id,
-  m.role,
+  m."role",
   m.first_name AS "firstName",
   m.last_name AS "lastName",
   COALESCE(
     ARRAY_AGG(
       JSON_BUILD_OBJECT(
-        'year', s.year, 
-        'targetedGrade', s.targeted_grade, 
+        'year', s."year",
+        'targetedGrade', s.targeted_grade,
         'count', COALESCE(s.count, 0)
       )
-    ) FILTER (WHERE s.year IS NOT NULL),
+    ) FILTER (WHERE s."year" IS NOT NULL),
     ARRAY[]::JSON[]
-  )::JSON[] AS "stats"
+  )::JSON[] AS stats
 FROM
-  identity_and_access_context.users m
-  LEFT JOIN stats_for_current_year s ON s.reporter_id = m.id
+  identity_and_access_context."users" AS m
+  LEFT JOIN stats_for_current_year AS s ON s.reporter_id = m.id
 
 WHERE (
-  m.role = ANY($1)
+  m."role" = ANY($1)
   AND ($2::TEXT IS NULL OR (
     m.email ILIKE '%' || $2::TEXT || '%'
     OR m.first_name ILIKE '%' || $2::TEXT || '%'
@@ -50,14 +63,14 @@ ORDER BY (
   CASE
     WHEN $3::TEXT IS NOT NULL AND $4::TEXT = 'desc' THEN
       CASE
-        WHEN $3::TEXT = 'firstName' THEN "first_name"
-        ELSE "last_name"
+        WHEN $3::TEXT = 'firstName' THEN m.first_name
+        ELSE m.last_name
       END
   END
 ) DESC, (
   CASE
-    WHEN $3::TEXT = 'firstName' THEN "first_name"
-    ELSE "last_name"
+    WHEN $3::TEXT = 'firstName' THEN m.first_name
+    ELSE m.last_name
   END
 ) ASC
 
