@@ -1,9 +1,15 @@
+-- @param {formation} $2:formation
+
 WITH max_version AS (
   SELECT
-    session_id,
-    MAX("version") AS "version"
+    affectation.session_id,
+    MAX(affectation."version") AS "version"
   FROM nominations_context.affectation
-  WHERE created_at >= ((EXTRACT(YEAR FROM CURRENT_DATE)) || '-01-01')::DATE
+    INNER JOIN nominations_context.session ON session.id = affectation.session_id
+  WHERE (
+    "session".formation = $2::formation
+    AND affectation.created_at >= ((EXTRACT(YEAR FROM CURRENT_DATE)) || '-01-01')::DATE
+  )
   GROUP BY session_id
 )
 

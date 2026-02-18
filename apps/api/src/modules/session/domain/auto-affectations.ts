@@ -26,44 +26,49 @@ export class AutoAffectations {
     nominationFileId: string;
     reporterIds: readonly string[];
   }[] {
-    return this.nominationFiles
-      .flatMap((gradedFiles) => {
-        const take = Math.ceil(gradedFiles.length / this.members.length);
+    const output: { nominationFileId: string; reporterIds: string[] }[] = [];
+    for (const gradedFiles of this.nominationFiles) {
+      let attempts = 0;
+      const take = Math.ceil(gradedFiles.length / this.members.length);
+      const localGradedFiles = [...gradedFiles];
 
-        return this.members.flatMap((_member, i) => {
+      while (localGradedFiles.length && attempts < 3) {
+        const sortedMembers = this.members.toSorted(
+          AutoAffectationMember.compareByWorkloadAsc,
+        );
+
+        for (
+          let i = 0;
+          i < sortedMembers.length && localGradedFiles.length > 0;
+          i++
+        ) {
+          const member = sortedMembers[i];
+          if (!member) continue;
+
           const files =
-            i === this.members.length - 1
-              ? gradedFiles.slice(i * take) // in the last iteration we take all remaining files
-              : gradedFiles.slice(i * take, (i + 1) * take);
+            i === sortedMembers.length - 1
+              ? localGradedFiles.splice(0, localGradedFiles.length) // in the last iteration we take all remaining files
+              : localGradedFiles.splice(0, take);
 
-          const reporterIds = this.findNextReporters(files);
-          if (!reporterIds.length) {
-            return [];
+          if (files.some((file) => !member.canReportOn(file))) {
+            localGradedFiles.unshift(...files);
+            continue;
           }
 
-          return files.map(({ id: nominationFileId }) => ({
-            reporterIds,
-            nominationFileId,
-          }));
-        });
-      })
-      .toArray();
-  }
+          member.affect(...files);
+          output.push(
+            ...files.map(({ id: nominationFileId }) => ({
+              reporterIds: [member.id],
+              nominationFileId,
+            })),
+          );
+        }
 
-  private findNextReporters(
-    files: readonly AutoAffectationNominationFile[],
-  ): string[] {
-    const sortedMembers = this.members.toSorted(
-      AutoAffectationMember.compareByWorkloadAsc,
-    );
-
-    for (const member of sortedMembers) {
-      if (files.every((file) => member.canReportOn(file))) {
-        return [member.affect(...files).id];
+        attempts++;
       }
     }
 
-    return [];
+    return output;
   }
 }
 
