@@ -36,6 +36,7 @@ export class ListNominationFilesAsExcelQuery {
               number: true,
               currentPosition: true,
               grade: true,
+              targetedGrade: true,
               targetedPosition: true,
               priorite: true,
 
@@ -75,6 +76,7 @@ export class ListNominationFilesAsExcelQuery {
       nf.currentPosition || '',
       nf.grade || '',
       nf.targetedPosition || '',
+      nf.targetedGrade || '',
       nf.reporterIds
         .map(
           ({ user }) =>
@@ -83,16 +85,12 @@ export class ListNominationFilesAsExcelQuery {
         .join(', '),
       nf.observations
         .map(({ magistrat }) =>
-          magistrat.usedName !== magistrat.lastName
-            ? [
-                magistrat.usedName.toUpperCase(),
-                magistrat.lastName.toUpperCase(),
-                capitalize(magistrat.firstName),
-              ].join(' ')
-            : [
-                magistrat.lastName.toUpperCase(),
-                capitalize(magistrat.firstName),
-              ].join(' '),
+          [
+            capitalize(magistrat.firstName),
+            magistrat.usedName && magistrat.usedName !== magistrat.lastName
+              ? magistrat.usedName.toUpperCase()
+              : magistrat.lastName.toUpperCase(),
+          ].join(' '),
         )
         .concat(nf.observers || [])
         .join(','),
@@ -115,6 +113,7 @@ export class ListNominationFilesAsExcelQuery {
         'Poste actuel',
         'Grade actuel',
         'Poste cible',
+        'Grade cible',
         'Rapporteur(s)',
         'Observants',
         'Priorité',
@@ -132,14 +131,15 @@ export class ListNominationFilesAsExcelQuery {
           '!cols': [
             { wch: 10 }, // N°
             { wch: 25 }, // Magistrat
-            { wch: 30 }, // Poste actuel
-            { wch: 20 }, // Grade actuel
-            { wch: 30 }, // Poste cible
-            { wch: 25 }, // Observants
+            { wch: 70 }, // Poste actuel
+            { wch: 10 }, // Grade actuel
+            { wch: 70 }, // Poste cible
+            { wch: 10 }, // Grade cible
+            { wch: 30 }, // Rapporteur(s)
+            { wch: 70 }, // Observants
             { wch: 15 }, // Priorité
             { wch: 20 }, // Issue
             { wch: 30 }, // Commentaire Issue
-            { wch: 30 }, // Rapporteur(s)
           ],
         },
       },
