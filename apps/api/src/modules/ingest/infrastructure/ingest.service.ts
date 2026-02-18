@@ -1,7 +1,9 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import { inspect } from 'node:util';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { JobRunner } from '../jobs/job-runner';
+import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
 import {
   IngestedLolfiArchive,
   IngestedLolfiArchiveFailed,
@@ -17,14 +19,22 @@ export class IngestService {
     private readonly jobs: JobRunner,
     private readonly prisma: PrismaService,
     private readonly lolfiArchiveIngestor: LolfiArchiveIngestor,
+    private readonly lolfiFilesIngestor: LolfiFilesIngestor,
   ) {}
+
+  async ingestLolfiFiles(jobId: number): Promise<{ success: boolean }> {
+    return this.lolfiFilesIngestor.ingest(jobId);
+  }
 
   async ingestLolfiArchive(archive: Buffer): Promise<
     | { id: number; status: 'STARTED' }
     | {
         id: number;
         status: 'FAILED';
-        errors: IngestedLolfiArchiveFailed[];
+        errors: (
+          | IngestedLolfiArchiveFailed
+          | { type: 'Unknown'; message: string }
+        )[];
       }
   > {
     const runningJobExists = await this.prisma.ingestionJob.findFirst({
@@ -43,9 +53,30 @@ export class IngestService {
     const jobId = await this.prepareJob({ result, start });
 
     if (result.success) {
-      await this.jobs.runDetached(
-        `node apps/api/dist/cli ingest lolfi --id ${jobId}`,
-      );
+      try {
+        await this.jobs.runDetached(
+          `node apps/api/dist/src/cli lolfi-job --jobId ${jobId}`,
+        );
+      } catch (e) {
+        const inspected = inspect(e);
+        this.logger.error(`Error when running detached: ${inspected}`);
+
+        await this.prisma.ingestionJob
+          .update({
+            where: { id: jobId },
+            data: {
+              status: 'FAILED',
+              errors: { create: { error: inspected } },
+            },
+          })
+          .catch(() => {});
+
+        return {
+          id: jobId,
+          status: 'FAILED',
+          errors: [{ type: 'Unknown', message: inspected }],
+        };
+      }
     }
 
     if (!result.success) {
@@ -64,7 +95,7 @@ export class IngestService {
       const job = await tx.ingestionJob.create({
         select: { id: true },
         data: props.result.success
-          ? { status: 'IDLE', startedAt: props.start }
+          ? { status: 'IDLE' }
           : { status: 'FAILED', startedAt: props.start, endedAt: now },
       });
 

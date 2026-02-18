@@ -8,8 +8,10 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { ResultBuilder } from 'src/utils/result';
-import { LolfiJob, LolfiJobFileNotFoundError } from '../lolfi-job.type';
+import { fr } from 'zod/locales';
+import { LolfiJob } from '../lolfi-job.type';
 import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 
 @Injectable()
@@ -23,42 +25,24 @@ export class JobFileIngestor {
   ) {}
 
   async ingest<T>(options: {
-    job: LolfiJob;
-    fileName: string;
+    job: { id: number };
+    file: LolfiJob['files'][number];
     tag: string;
     schema: z.ZodType<T>;
     mapper: (
       item: AsyncIterable<{ data: T; success: boolean }>,
     ) => AsyncIterable<unknown>;
   }): Promise<{ success: boolean }> {
-    const file = options.job.files.find(
-      (file) => file.name === options.fileName,
-    );
-
-    if (!file) {
-      throw new LolfiJobFileNotFoundError(options.fileName);
-    }
-
     const parser = new LolfiXmlSaxParser({ tag: options.tag });
+    z.config(fr());
 
-    const { job } = options;
+    const { job, file } = options;
     try {
       const fileContentResult = await this.prisma.$transaction(
-        async (
-          tx,
-        ): Promise<
-          | { success: false }
-          | { success: true }
-          | { success: true; fileContent: Readable }
-        > => {
+        async (tx): Promise<{ success: boolean; fileContent?: Readable }> => {
           const startedAt = this.clock.now();
           if (file.sha256 === file.lastSha256) {
-            await tx.ingestionJobFile.update({
-              where: { primaryKey: { jobId: job.id, fileId: file.id } },
-              data: { status: 'SUCCEEDED', startedAt, endedAt: startedAt },
-            });
-
-            return { success: true };
+            return this.succeedJobFile({ tx, file, startedAt, jobId: job.id });
           }
 
           await tx.ingestionJobFile.update({
@@ -72,7 +56,7 @@ export class JobFileIngestor {
           });
 
           if (!fileContent) {
-            await this.failJobFile({
+            return this.failJobFile({
               tx,
               file,
               jobId: job.id,
@@ -80,8 +64,6 @@ export class JobFileIngestor {
                 { error: `Impossible de récupérer le fichier "${file.name}"` },
               ],
             });
-
-            return { success: false };
           }
 
           return { success: true, fileContent };
@@ -89,11 +71,11 @@ export class JobFileIngestor {
       );
 
       if (!fileContentResult.success) return { success: false };
-      if (fileContentResult.success && !('fileContent' in fileContentResult)) {
+      if (fileContentResult.success && !fileContentResult.fileContent) {
         return { success: true };
       }
 
-      const fileContent$ = fileContentResult.fileContent;
+      const fileContent$ = assertIsDefined(fileContentResult.fileContent);
       const result = new ResultBuilder<
         T,
         { num: string | undefined; error: z.ZodError }
@@ -126,12 +108,9 @@ export class JobFileIngestor {
       );
 
       if (result.success) {
-        await this.prisma.ingestionJobFile.update({
-          data: { status: 'SUCCEEDED', endedAt: this.clock.now() },
-          where: { primaryKey: { jobId: job.id, fileId: file.id } },
-        });
+        return this.succeedJobFile({ file, jobId: job.id });
       } else {
-        await this.failJobFile({
+        return this.failJobFile({
           file,
           jobId: job.id,
           errors: result.errors.map((error) => ({
@@ -140,16 +119,47 @@ export class JobFileIngestor {
           })),
         });
       }
-
-      return { success: result.success };
     } catch (e) {
-      await this.failJobFile({
+      return this.failJobFile({
         file,
         jobId: job.id,
         errors: [{ error: `Erreur technique: ${inspect(e)}` }],
       });
-      return { success: false };
     }
+  }
+
+  private async succeedJobFile(context: {
+    tx?: Prisma.TransactionClient;
+    startedAt?: Date;
+    jobId: number;
+    file: { id: string; name: string };
+  }): Promise<{ success: boolean }> {
+    if (!context.tx) {
+      return this.prisma.$transaction((tx) =>
+        this.succeedJobFile({ ...context, tx }),
+      );
+    }
+
+    return context.tx.ingestionJobFile
+      .update({
+        data: {
+          status: 'SUCCEEDED',
+          endedAt: this.clock.now(),
+          startedAt: context.startedAt,
+        },
+        where: {
+          primaryKey: { jobId: context.jobId, fileId: context.file.id },
+        },
+      })
+      .then(
+        () => ({ success: true }),
+        (error) => {
+          this.logger.error(
+            `Failed succeeding job #${context.jobId} ${context.file.name}: ${inspect(error)}`,
+          );
+          return { success: false };
+        },
+      );
   }
 
   private async failJobFile(context: {
@@ -157,7 +167,7 @@ export class JobFileIngestor {
     jobId: number;
     file: { id: string; name: string };
     tx?: Prisma.TransactionClient;
-  }): Promise<void> {
+  }): Promise<{ success: false }> {
     if (!context.tx) {
       return this.prisma.$transaction((tx) =>
         this.failJobFile({ ...context, tx }),
@@ -165,21 +175,31 @@ export class JobFileIngestor {
     }
 
     this.logger.error(`${context.file.name} failed`);
-    await context.tx.ingestionJobFile.update({
-      where: { primaryKey: { jobId: context.jobId, fileId: context.file.id } },
-      data: {
-        status: 'FAILED',
-        endedAt: this.clock.now(),
-        errors: {
-          createMany: {
-            data: context.errors.map((error) => ({
-              entityId: error.entityId,
-              entityName: 'Type juridiction',
-              error: error.error,
-            })),
+    await context.tx.ingestionJobFile
+      .update({
+        where: {
+          primaryKey: { jobId: context.jobId, fileId: context.file.id },
+        },
+        data: {
+          status: 'FAILED',
+          endedAt: this.clock.now(),
+          errors: {
+            createMany: {
+              data: context.errors.map((error) => ({
+                entityId: error.entityId,
+                entityName: 'Type juridiction',
+                error: error.error,
+              })),
+            },
           },
         },
-      },
-    });
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Failed failing job #${context.jobId} ${context.file.name}: ${inspect(error)}`,
+        );
+      });
+
+    return { success: false };
   }
 }

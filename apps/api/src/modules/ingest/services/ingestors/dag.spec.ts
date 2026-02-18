@@ -24,4 +24,13 @@ describe('DAG', () => {
       'file-5',
     ]);
   });
+
+  it('should sort even with missing requirement', () => {
+    const result = dag([
+      { file: { id: 'file-2' }, requirements: [{ requiredFileId: 'file-1' }] },
+      { file: { id: 'file-3' }, requirements: [] },
+    ]);
+
+    expect(result.map(({ file }) => file.id)).toEqual(['file-3', 'file-2']);
+  });
 });

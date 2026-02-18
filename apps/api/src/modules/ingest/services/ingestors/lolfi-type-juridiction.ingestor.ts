@@ -19,7 +19,10 @@ export class LolfiTypeJuridictionIngestor {
     return file.name === 'TYPE_JURIDICTION.xml';
   }
 
-  async ingest(job: LolfiJob): Promise<{ success: boolean }> {
+  async ingest(options: {
+    job: Pick<LolfiJob, 'id'>;
+    file: LolfiJob['files'][number];
+  }): Promise<{ success: boolean }> {
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
@@ -46,9 +49,9 @@ export class LolfiTypeJuridictionIngestor {
     }
 
     const { success } = await this.ingestor.ingest({
-      job,
+      job: options.job,
+      file: options.file,
       mapper,
-      fileName: 'TYPE_JURIDICTION.xml',
       schema: TypeJuridictionSchema,
       tag: 'type_juridiction',
     });
