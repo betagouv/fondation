@@ -2,6 +2,7 @@ import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { inspect } from 'node:util';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
+import { withLolfiFileRequirements } from '../domain/requirements';
 import { JobRunner } from '../jobs/job-runner';
 import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
 import {
@@ -101,14 +102,17 @@ export class IngestService {
       });
 
       if (props.result.success) {
-        await tx.ingestionJobFile.createMany({
-          data: props.result.data.map((file) => ({
-            jobId: job.id,
-            fileId: file.id,
-            fileSha256: file.sha256,
-            status: 'IDLE',
-          })),
-        });
+        for (const file of withLolfiFileRequirements(props.result.data)) {
+          await tx.ingestionJobFile.create({
+            data: {
+              jobId: job.id,
+              fileId: file.id,
+              fileSha256: file.sha256,
+              status: 'IDLE',
+              requirements: { create: file.requirements },
+            },
+          });
+        }
       } else {
         await tx.ingestionJobError.createMany({
           data: props.result.errors.map(({ message }) => ({

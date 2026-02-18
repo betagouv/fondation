@@ -57,16 +57,14 @@ model IngestionJobFile {
 }
 
 model IngestionJobRequirement {
-  jobId     Int    @map("job_id") @db.Integer
-  jobFileId String @map("job_file_id") @db.Uuid
-
-  requiredJobId  Int    @map("required_job_id") @db.Integer
+  jobId          Int    @map("job_id") @db.Integer
+  jobFileId      String @map("job_file_id") @db.Uuid
   requiredFileId String @map("required_file_id") @db.Uuid
 
   job      IngestionJobFile @relation(fields: [jobId, jobFileId], references: [jobId, fileId], name: "jobWithDependency")
-  requires IngestionJobFile @relation(fields: [requiredJobId, requiredFileId], references: [jobId, fileId], name: "dependencyOfJob")
+  requires IngestionJobFile @relation(fields: [jobId, requiredFileId], references: [jobId, fileId], name: "dependencyOfJob")
 
-  @@id([jobId, jobFileId, requiredJobId, requiredFileId], name: "primaryKey")
+  @@id([jobId, jobFileId, requiredFileId], name: "primaryKey")
   @@map("ingestion_job_requirement")
   @@schema("jobs")
 }
@@ -76,9 +74,8 @@ model IngestionJobFileError {
   jobId  Int    @map("job_id") @db.Integer
   fileId String @map("file_id") @db.Uuid
 
-  entityName String  @map("entity_name")
-  entityId   String? @map("entity_id")
-  error      String
+  entityId String? @map("entity_id")
+  error    String
 
   jobFile IngestionJobFile @relation(fields: [jobId, fileId], references: [jobId, fileId])
 

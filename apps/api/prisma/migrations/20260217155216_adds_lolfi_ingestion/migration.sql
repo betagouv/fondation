@@ -51,10 +51,9 @@ CREATE TABLE "jobs"."ingestion_job_file" (
 CREATE TABLE "jobs"."ingestion_job_requirement" (
     "job_id" INTEGER NOT NULL,
     "job_file_id" UUID NOT NULL,
-    "required_job_id" INTEGER NOT NULL,
     "required_file_id" UUID NOT NULL,
 
-    CONSTRAINT "ingestion_job_requirement_pkey" PRIMARY KEY ("job_id","job_file_id","required_job_id","required_file_id")
+    CONSTRAINT "ingestion_job_requirement_pkey" PRIMARY KEY ("job_id","job_file_id","required_file_id")
 );
 
 -- CreateTable
@@ -88,7 +87,7 @@ ALTER TABLE "jobs"."ingestion_job_file" ADD CONSTRAINT "ingestion_job_file_file_
 ALTER TABLE "jobs"."ingestion_job_requirement" ADD CONSTRAINT "ingestion_job_requirement_job_id_job_file_id_fkey" FOREIGN KEY ("job_id", "job_file_id") REFERENCES "jobs"."ingestion_job_file"("job_id", "file_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "jobs"."ingestion_job_requirement" ADD CONSTRAINT "ingestion_job_requirement_required_job_id_required_file_id_fkey" FOREIGN KEY ("required_job_id", "required_file_id") REFERENCES "jobs"."ingestion_job_file"("job_id", "file_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "jobs"."ingestion_job_requirement" ADD CONSTRAINT "ingestion_job_requirement_job_id_required_file_id_fkey" FOREIGN KEY ("job_id", "required_file_id") REFERENCES "jobs"."ingestion_job_file"("job_id", "file_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_file_error" ADD CONSTRAINT "ingestion_job_file_error_job_id_file_id_fkey" FOREIGN KEY ("job_id", "file_id") REFERENCES "jobs"."ingestion_job_file"("job_id", "file_id") ON DELETE RESTRICT ON UPDATE CASCADE;

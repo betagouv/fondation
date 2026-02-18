@@ -186,7 +186,6 @@ export class JobFileIngestor {
             createMany: {
               data: context.errors.map((error) => ({
                 entityId: error.entityId,
-                entityName: 'Type juridiction',
                 error: error.error,
               })),
             },

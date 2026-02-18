@@ -13,6 +13,7 @@ import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { dag } from './dag';
+import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class LolfiFilesIngestor {
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
+    private readonly juridictionIngestor: LolfiJuridictionIngestor,
   ) {}
 
   async ingest(
@@ -176,6 +178,10 @@ export class LolfiFilesIngestor {
       let runResult: { success: boolean } = { success: true };
       if (this.typeJuridictionIngestor.handles(file)) {
         runResult = await this.typeJuridictionIngestor.ingest({ file, job });
+      }
+
+      if (this.juridictionIngestor.handles(file)) {
+        runResult = await this.juridictionIngestor.ingest({ file, job });
       }
 
       if (!runResult.success) result.success = false;
