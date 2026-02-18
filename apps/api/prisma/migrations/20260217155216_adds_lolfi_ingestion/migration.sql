@@ -21,6 +21,7 @@ CREATE TABLE "jobs"."ingestion_job" (
     "started_at" TIMESTAMP(3),
     "ended_at" TIMESTAMP(3),
     "status" "jobs"."status_enum" NOT NULL DEFAULT 'IDLE',
+    "metadata" JSONB,
 
     CONSTRAINT "ingestion_job_pkey" PRIMARY KEY ("id")
 );

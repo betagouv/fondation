@@ -47,7 +47,7 @@ class ScalingoHttpService {
     env?: Record<string, string | number>;
     size?: 'S' | 'M' | 'L' | 'XL';
     detached?: boolean;
-  }): Promise<void> {
+  }): Promise<{ container: { id: string } }> {
     await this.withValidBearer();
 
     const url = new URL(
@@ -61,10 +61,35 @@ class ScalingoHttpService {
       );
     }
 
-    await lastValueFrom(
-      this.http.post(
+    const { data } = await lastValueFrom(
+      this.http.post<{ container: { id: string } }>(
         url,
         { detached: true, ...options },
+        {
+          headers: { Authorization: `Bearer ${this.bearer.token}` },
+          signal: this.auth.abortController.signal,
+        },
+      ),
+    );
+
+    return data;
+  }
+
+  async sendContainerSignal(options: {
+    containerId: string;
+    signal?: 'SIGUSR1' | 'SIGUSR2';
+  }): Promise<void> {
+    await this.withValidBearer();
+
+    const url = new URL(
+      `/v1/apps/${this.appName}/containers/${options.containerId}/kill`,
+      ScalingoHttpService.BASE_URL,
+    ).toString();
+
+    await lastValueFrom(
+      this.http.post<{ container: { id: string } }>(
+        url,
+        { signal: options.signal || 'SIGUSR1' },
         {
           headers: { Authorization: `Bearer ${this.bearer.token}` },
           signal: this.auth.abortController.signal,

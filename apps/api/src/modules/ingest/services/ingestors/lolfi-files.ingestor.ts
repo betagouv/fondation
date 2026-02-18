@@ -25,9 +25,14 @@ export class LolfiFilesIngestor {
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
   ) {}
 
-  async ingest(jobId: number): Promise<{ success: boolean }> {
+  async ingest(
+    jobId: number,
+    signal: AbortSignal,
+  ): Promise<{ success: boolean }> {
     try {
-      const { success } = await this.ingestInternal(jobId);
+      const { success } = await this.ingestInternal(jobId, signal);
+
+      if (signal.aborted) return { success: true };
 
       if (success) await this.succeedJob(jobId);
       else await this.failJob(jobId);
@@ -39,7 +44,11 @@ export class LolfiFilesIngestor {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2025'
       ) {
-        this.logger.error(`Could not find job #${jobId}: ${inspect(e)}`);
+        this.logger.error(
+          `Could not find job #${jobId}: ${inspect(e)}`,
+          e.stack,
+          { error: e },
+        );
 
         throw new NotFoundException(undefined, { cause: e });
       }
@@ -61,7 +70,11 @@ export class LolfiFilesIngestor {
         },
       })
       .catch((error) => {
-        this.logger.error(`Failed succeeding job #${jobId}: ${inspect(error)}`);
+        this.logger.error(
+          `Failed succeeding job #${jobId}: ${inspect(error)}`,
+          error instanceof Error ? error.stack : undefined,
+          { error },
+        );
       });
   }
 
@@ -76,22 +89,27 @@ export class LolfiFilesIngestor {
         },
       })
       .catch((error) => {
-        this.logger.error(`Failed failing job #${jobId}: ${inspect(error)}`);
+        this.logger.error(
+          `Failed failing job #${jobId}: ${inspect(error)}`,
+          error instanceof Error ? error.stack : undefined,
+          { error },
+        );
       });
   }
 
-  private async ingestInternal(jobId: number): Promise<{ success: boolean }> {
+  private async ingestInternal(
+    jobId: number,
+    signal: AbortSignal,
+  ): Promise<{ success: boolean }> {
     const [lastSucceededJob, currentJob] = await this.prisma.$transaction(
       async (tx) => {
         const runningJob = await tx.ingestionJob.findFirst({
           where: { status: 'RUNNING' },
-          select: { startedAt: true, id: true },
+          select: { id: true },
         });
 
         if (isDefined(runningJob)) {
-          this.logger.error(
-            `Job #${runningJob.id}, started at ${runningJob.startedAt.toISOString()} and is not done`,
-          );
+          this.logger.error(`Job #${runningJob.id} is not done`);
 
           throw new ConflictException();
         }
@@ -149,6 +167,12 @@ export class LolfiFilesIngestor {
 
     const result = { success: true };
     for (const file of job.files) {
+      if (signal.aborted) {
+        await this.cancel(jobId).catch(() => {});
+        result.success = true;
+        return result;
+      }
+
       let runResult: { success: boolean } = { success: true };
       if (this.typeJuridictionIngestor.handles(file)) {
         runResult = await this.typeJuridictionIngestor.ingest({ file, job });
@@ -158,5 +182,30 @@ export class LolfiFilesIngestor {
     }
 
     return result;
+  }
+
+  private async cancel(jobId: number) {
+    await this.prisma
+      .$transaction(async (tx) => {
+        await tx.ingestionJobFile.updateMany({
+          where: { status: 'IDLE', jobId },
+          data: { status: 'CANCELED' },
+        });
+
+        await tx.ingestionJob.updateMany({
+          data: { status: 'CANCELED', endedAt: this.clock.now() },
+          where: {
+            id: jobId,
+            status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
+          },
+        });
+      })
+      .catch((e) => {
+        this.logger.error(
+          `Failed to write job as canceled: ${inspect(e)}`,
+          e instanceof Error ? e.stack : undefined,
+          { error: e },
+        );
+      });
   }
 }

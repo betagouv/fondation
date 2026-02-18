@@ -16,8 +16,34 @@ export class IngestLolfiCommand extends CommandRunner {
   }
 
   async run(_params: string[], options: { jobId: number }): Promise<void> {
-    const { success } = await this.ingestor.ingestLolfiFiles(options.jobId);
-    if (!success) throw new Error(`#${options.jobId} failed`);
+    return IngestLolfiCommand.cancelable(async (signal) => {
+      const { success } = await this.ingestor.ingestLolfiFiles(
+        options.jobId,
+        signal,
+      );
+
+      if (!success) throw new Error(`#${options.jobId} failed`);
+    });
+  }
+
+  private static async cancelable<T>(
+    action: (signal: AbortSignal) => Promise<T>,
+    signal = 'SIGUSR1',
+  ): Promise<T> {
+    let promise: Promise<T> | undefined = undefined;
+
+    const abortController = new AbortController();
+    async function cancelOnUSR1() {
+      abortController.abort();
+      if (promise) await promise;
+    }
+
+    process.once(signal, cancelOnUSR1);
+    promise = action(abortController.signal).finally(() => {
+      process.removeListener(signal, cancelOnUSR1);
+    });
+
+    return promise;
   }
 }
 

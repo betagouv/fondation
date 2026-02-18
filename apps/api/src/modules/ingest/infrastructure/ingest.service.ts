@@ -22,8 +22,11 @@ export class IngestService {
     private readonly lolfiFilesIngestor: LolfiFilesIngestor,
   ) {}
 
-  async ingestLolfiFiles(jobId: number): Promise<{ success: boolean }> {
-    return this.lolfiFilesIngestor.ingest(jobId);
+  async ingestLolfiFiles(
+    jobId: number,
+    signal: AbortSignal,
+  ): Promise<{ success: boolean }> {
+    return this.lolfiFilesIngestor.ingest(jobId, signal);
   }
 
   async ingestLolfiArchive(archive: Buffer): Promise<
@@ -54,9 +57,7 @@ export class IngestService {
 
     if (result.success) {
       try {
-        await this.jobs.runDetached(
-          `node apps/api/dist/src/cli lolfi-job --jobId ${jobId}`,
-        );
+        await this.jobs.runDetached(jobId);
       } catch (e) {
         const inspected = inspect(e);
         this.logger.error(`Error when running detached: ${inspected}`);

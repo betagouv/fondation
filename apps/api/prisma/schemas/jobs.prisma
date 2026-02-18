@@ -3,6 +3,7 @@ enum PrismaJobStatusEnum {
   RUNNING
   FAILED
   SUCCEEDED
+  CANCELED
 
   @@map("status_enum")
   @@schema("jobs")
@@ -13,6 +14,7 @@ model IngestionJob {
   startedAt DateTime?           @map("started_at")
   endedAt   DateTime?           @map("ended_at")
   status    PrismaJobStatusEnum @default(IDLE)
+  metadata  Json?               @db.JsonB
 
   files  IngestionJobFile[]
   errors IngestionJobError[]
