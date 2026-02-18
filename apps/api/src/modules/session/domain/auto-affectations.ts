@@ -26,17 +26,18 @@ export class AutoAffectations {
     nominationFileId: string;
     reporterIds: readonly string[];
   }[] {
+    const sortedMembers = this.members.toSorted(
+      AutoAffectationMember.compareByWorkloadAsc,
+    );
+
     const output: { nominationFileId: string; reporterIds: string[] }[] = [];
     for (const gradedFiles of this.nominationFiles) {
+      const take = Math.ceil(gradedFiles.length / sortedMembers.length);
+
       let attempts = 0;
-      const take = Math.ceil(gradedFiles.length / this.members.length);
       const localGradedFiles = [...gradedFiles];
 
-      while (localGradedFiles.length && attempts < 3) {
-        const sortedMembers = this.members.toSorted(
-          AutoAffectationMember.compareByWorkloadAsc,
-        );
-
+      while (localGradedFiles.length && attempts++ < 3) {
         for (
           let i = 0;
           i < sortedMembers.length && localGradedFiles.length > 0;
@@ -63,8 +64,6 @@ export class AutoAffectations {
             })),
           );
         }
-
-        attempts++;
       }
     }
 
@@ -109,6 +108,13 @@ export class AutoAffectationMember {
   }
 
   affect(...files: AutoAffectationNominationFile[]): this {
+    /**
+     * NOTE: At the moment, adding load has no effect during the affectation process.
+     * The affectation is made mainly inside a session, since ALL members are expected
+     * to have at least one affectation, even with a huge workload.
+     *
+     * This method might disappear in the future, but is still used in tests.
+     */
     for (const file of files) {
       this.workload = this.workload.add(file.workload);
     }
