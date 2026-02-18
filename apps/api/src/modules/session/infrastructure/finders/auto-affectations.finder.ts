@@ -155,7 +155,7 @@ export class AutoAffectationsFinder {
         }),
 
         this.prisma.$queryRawTyped(
-          findMemberCurrentYearWorkloadRawQuery(memberIds),
+          findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation),
         ),
       ]);
 
