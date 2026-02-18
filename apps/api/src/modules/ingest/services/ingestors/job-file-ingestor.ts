@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import z from 'zod';
-
 import { inspect } from 'node:util';
+import z from 'zod';
+import { fr } from 'zod/locales';
+
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { ResultBuilder } from 'src/utils/result';
-import { fr } from 'zod/locales';
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 
@@ -96,7 +96,6 @@ export class JobFileIngestor {
               const num = item.attributes['num'];
               result.fail({ num, error: jurisdictionTypeResult.error });
             } else {
-              result.push(jurisdictionTypeResult.data);
               yield {
                 success: result.success,
                 data: jurisdictionTypeResult.data,

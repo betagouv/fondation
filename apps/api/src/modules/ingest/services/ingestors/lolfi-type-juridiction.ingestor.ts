@@ -83,10 +83,12 @@ export class LolfiTypeJuridictionIngestor {
   }
 }
 
-const TypeJuridictionSchema = z.object({
-  type: z.string().trim().nonempty(),
-  label: z.string().trim().nonempty(),
-  sort: z.coerce.number().int().gte(0),
-});
+const TypeJuridictionSchema = z
+  .object({
+    type_jur: z.string().trim().nonempty(),
+    libelle: z.string().trim().nonempty(),
+    tri: z.coerce.number().int().gte(0),
+  })
+  .transform((x) => ({ type: x.type_jur, label: x.libelle, sort: x.tri }));
 
 type TypeJuridiction = z.infer<typeof TypeJuridictionSchema>;

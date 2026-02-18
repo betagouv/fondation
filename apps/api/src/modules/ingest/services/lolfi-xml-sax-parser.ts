@@ -1,4 +1,5 @@
 import { Transform, TransformCallback } from 'node:stream';
+import { StringDecoder } from 'node:string_decoder';
 import sax from 'sax';
 
 export type LolfiNode = {
@@ -78,15 +79,57 @@ class LolfiNodeBuilder {
   }
 }
 
-/** takes latin1 encoded xml string as input and streams {@link LolfiNode} */
+/**
+ * takes latin1 encoded xml string as input and streams {@link LolfiNode}
+ *
+ * ```
+ * import * as assert from 'node:assert';
+ * import { Readable } from 'node:stream';
+ * import { pipeline } from 'node:stream/promises'
+ *
+ * const content = Buffer.from(`
+ *  <?xml version="1.0" encoding="ISO-8859-1" ?>
+ *  <root>
+ *    <subroot>
+ *      <entity>
+ *        <id>1</id>
+ *        <name>Charles</name>
+ *        <role null="TRUE" />
+ *      </entity>
+ *    </subroot>
+ *  </root>
+ * `, 'latin1')
+ *
+ * const parser = new LolfiXmlSaxParser({ tag: 'entity' });
+ * await pipeline(Readable.from(content), parser, async function* (source: AsyncIterable<LolfiNode>) {
+ *   for await (const item of source) {
+ *      assert.equal(item, {
+ *        name: 'entity', content: null, attributes: {}, children: [
+ *          { name: 'id', content: '1', attributes: {}, children: [] },
+ *          { name: 'name', content: 'Charles', attributes: {}, children: [] },
+ *          { name: 'role', content: null, attributes: {}, children: [] },
+ *        ]
+ *      })
+ *   }
+ * })
+ * ```
+ */
 export class LolfiXmlSaxParser extends Transform {
   private readonly parser: sax.SAXParser;
   private readonly tag: string;
   private readonly predicate: ((node: LolfiNode) => boolean) | undefined;
 
+  /** LOLFI specific */
+  private readonly stringDecoder = new StringDecoder('latin1');
+
   private currentNode: LolfiNodeBuilder | null = null;
 
-  constructor(props: { tag: string; predicate?: (row: LolfiNode) => boolean }) {
+  constructor(props: {
+    /** the tag you want to keep as _primary_ object (the rest will be considered _sub_ objects) */
+    tag: string;
+    /** mainly when wanting to ignore duplicates */
+    predicate?: (row: LolfiNode) => boolean;
+  }) {
     super({ readableObjectMode: true });
 
     this.tag = props.tag;
@@ -133,17 +176,29 @@ export class LolfiXmlSaxParser extends Transform {
     this.currentNode?.setContent(text);
   }
 
+  override _flush(callback: TransformCallback) {
+    try {
+      const utf8 = this.stringDecoder.end();
+      if (utf8.length) this.parser.write(utf8);
+
+      callback();
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   override _transform(
     chunk: Buffer,
     _encoding: unknown,
     callback: TransformCallback,
   ): void {
-    const utf8 = Buffer.from(chunk.toString('latin1'), 'latin1').toString(
-      'utf-8',
-    );
+    try {
+      const utf8 = this.stringDecoder.write(chunk);
+      if (utf8.length) this.parser.write(utf8);
 
-    this.parser.write(utf8);
-
-    callback();
+      callback();
+    } catch (error) {
+      callback(error);
+    }
   }
 }
