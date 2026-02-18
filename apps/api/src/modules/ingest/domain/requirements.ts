@@ -18,9 +18,9 @@ type LolfiFile = (typeof LOLFI_FILES)[number];
  * TODO: this list is not complete yet
  */
 const REQUIREMENTS = new Map<LolfiFile, Set<LolfiFile>>([
-  ['FONCTIONS.xml', new Set([] as const satisfies LolfiFile[])],
-
   ['GRADES.xml', new Set([] as const satisfies LolfiFile[])],
+
+  ['FONCTIONS.xml', new Set([] as const satisfies LolfiFile[])],
 
   ['POSADS.xml', new Set([] as const satisfies LolfiFile[])],
 
@@ -41,18 +41,18 @@ const REQUIREMENTS = new Map<LolfiFile, Set<LolfiFile>>([
     ] as const satisfies LolfiFile[]),
   ],
 
+  ['SESSIONS.xml', new Set([] as const satisfies LolfiFile[])],
+
   [
     'MAGISTRATS.xml',
     new Set(['POSTES_2.xml', 'POSADS.xml'] as const satisfies LolfiFile[]),
   ],
 
-  ['DESIDERATA.xml', new Set([] as const satisfies LolfiFile[])],
+  ['TRANSPARENCES.xml', new Set([] as const satisfies LolfiFile[])],
 
   ['CANDIDATS.xml', new Set([] as const satisfies LolfiFile[])],
 
-  ['SESSIONS.xml', new Set([] as const satisfies LolfiFile[])],
-
-  ['TRANSPARENCES.xml', new Set([] as const satisfies LolfiFile[])],
+  ['DESIDERATA.xml', new Set([] as const satisfies LolfiFile[])],
 ]);
 
 const LOLFI_FILE_SET = new Set(LOLFI_FILES);
