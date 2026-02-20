@@ -37,10 +37,14 @@ export class LolfiGradesIngestor {
         if (!success) continue;
 
         const { grade, libelle, tri, masse_grade, mg_libelle, mg_tri } = data;
-        grades.set(grade, { grade, libelle, tri, masse_grade });
 
-        if (massGrades.has(masse_grade)) continue;
-        massGrades.set(masse_grade, { masse_grade, mg_libelle, mg_tri });
+        if (!massGrades.has(masse_grade)) {
+          massGrades.set(masse_grade, { masse_grade, mg_libelle, mg_tri });
+        }
+
+        if (!massGrades.has(grade)) {
+          grades.set(grade, { grade, libelle, tri, masse_grade });
+        }
       }
 
       await self.flush({
@@ -54,7 +58,7 @@ export class LolfiGradesIngestor {
 
     const { success } = await this.ingestor.ingest({
       mapper,
-      tag: 'grade',
+      tag: 'grades',
       schema: RawGradeSchema,
       job: options.job,
       file: options.file,
@@ -74,12 +78,17 @@ export class LolfiGradesIngestor {
       .$transaction(async (tx) => {
         const unknownMassGrades = await tx.$queryRawTyped(
           insertGradesRawQuery([
-            ...props.massGrades
-              .values()
-              .map((x) => ({ ...x, masse_grade: null })),
+            ...props.massGrades.values().map((x) => ({
+              grade: x.masse_grade,
+              tri: x.mg_tri,
+              libelle: x.mg_libelle,
+              masse_grade: null,
+            })),
 
             ...props.grades.values(),
-          ]),
+          ] satisfies (Omit<ExtractedGrade, 'masse_grade'> & {
+            masse_grade: string | null;
+          })[]),
         );
 
         if (unknownMassGrades.length === 0) return;

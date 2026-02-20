@@ -18,6 +18,11 @@ silver_unknown_mass_grade AS (
 gold_grade AS (
   INSERT INTO data_administration_context.grade (grade, sort, label, mass_grade_id)
   SELECT grade, sort, label, mass_grade_id FROM bronze_grade
+
+  ON CONFLICT (grade) DO UPDATE set
+    sort = EXCLUDED.sort,
+    label = EXCLUDED.label,
+    mass_grade_id = EXCLUDED.mass_grade_id
 )
 
 SELECT *
