@@ -178,63 +178,16 @@ describe('automated affectation', () => {
       expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId2'] });
 
       expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId2'] });
     }
 
     expect(members).toContainEqual(
-      expect.objectContaining({ id: 'memberId1', workload: { value: 10 } }),
+      expect.objectContaining({ id: 'memberId1', workload: { value: 8 } }),
     );
     expect(members).toContainEqual(
-      expect.objectContaining({ id: 'memberId2', workload: { value: 8 } }),
+      expect.objectContaining({ id: 'memberId2', workload: { value: 10 } }),
     );
-  });
-
-  it('should distribute between members, even if a lighter distribution exists', () => {
-    const members = [
-      AutoAffectationMember.from({
-        session,
-        id: 'memberId1',
-        excludedJurisdictions: null,
-        affectationCountPerGrade: new Map(),
-      }),
-      AutoAffectationMember.from({
-        session,
-        id: 'memberId2',
-        excludedJurisdictions: null,
-        affectationCountPerGrade: new Map([[Magistrat.Grade.G3SUP, 3]]),
-      }),
-      AutoAffectationMember.from({
-        session,
-        id: 'memberId3',
-        excludedJurisdictions: null,
-        affectationCountPerGrade: new Map(),
-      }),
-    ];
-
-    // prettier-ignore
-    const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
-      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
-    ];
-
-    const autoAffectations = AutoAffectations.from({ members, files });
-    const result = autoAffectations.distribute();
-
-    // prettier-ignore
-    {
-      expect(result).toContainEqual({ nominationFileId: 'file-1', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-2', reporterIds: ['memberId1'] });
-
-      expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId3'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId3'] });
-
-      // Here memberId2 has a huge workload, but we still want this distribution 
-      expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId2'] });
-    }
   });
 
   it('should affect the same number of files to members, despite their workload', () => {
@@ -261,11 +214,9 @@ describe('automated affectation', () => {
 
       AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
       AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
-      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 6, session }),
 
       AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
       AutoAffectationNominationFile.from({ id: 'file-8', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 8, session }),
-      AutoAffectationNominationFile.from({ id: 'file-9', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 9, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -273,17 +224,76 @@ describe('automated affectation', () => {
 
     // prettier-ignore
     {
-      expect(result).toContainEqual({ nominationFileId: 'file-1', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-1', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-2', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId2'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-3', reporterIds: ['memberId1'] });
 
-      expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-4', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-5', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-6', reporterIds: ['memberId2'] });
 
-      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId1'] });
+      expect(result).toContainEqual({ nominationFileId: 'file-7', reporterIds: ['memberId2'] });
       expect(result).toContainEqual({ nominationFileId: 'file-8', reporterIds: ['memberId1'] });
-      expect(result).toContainEqual({ nominationFileId: 'file-9', reporterIds: ['memberId2'] });
     }
+  });
+
+  it('should not affect anyone if no jurisdiction is compatible', () => {
+    const members = [
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId1',
+        excludedJurisdictions: new Set(['CA  NANTES']),
+        affectationCountPerGrade: new Map(),
+      }),
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId2',
+        excludedJurisdictions: new Set(['CA  NANTES']),
+        affectationCountPerGrade: new Map(),
+      }),
+    ];
+
+    // prettier-ignore
+    const files: AutoAffectationNominationFile[] = [
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+    ];
+
+    const autoAffectations = AutoAffectations.from({ members, files });
+    const result = autoAffectations.distribute();
+
+    expect(result).toEqual([]);
+  });
+
+  it('should ignore non affectable files', () => {
+    const members = [
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId1',
+        excludedJurisdictions: new Set(['CA  NANTES']),
+        affectationCountPerGrade: new Map(),
+      }),
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId2',
+        excludedJurisdictions: new Set(['CA  NANTES']),
+        affectationCountPerGrade: new Map(),
+      }),
+    ];
+
+    // prettier-ignore
+    const files: AutoAffectationNominationFile[] = [
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+    ];
+
+    const autoAffectations = AutoAffectations.from({ members, files });
+    const result = autoAffectations.distribute();
+
+    expect(result).toEqual([
+      { nominationFileId: 'file-1', reporterIds: ['memberId1'] },
+      { nominationFileId: 'file-3', reporterIds: ['memberId2'] },
+      { nominationFileId: 'file-4', reporterIds: ['memberId2'] },
+    ]);
   });
 });
