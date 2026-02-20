@@ -27,43 +27,51 @@ export class AutoAffectations {
     reporterIds: readonly string[];
   }[] {
     const sortedMembers = this.members.toSorted(
-      AutoAffectationMember.compareByWorkloadAsc,
+      AutoAffectationMember.compareByWorkloadDesc,
     );
 
     const output: { nominationFileId: string; reporterIds: string[] }[] = [];
     for (const gradedFiles of this.nominationFiles) {
-      const take = Math.ceil(gradedFiles.length / sortedMembers.length);
+      // We only keep files where at least one member can report on
+      const files = gradedFiles.filter((file) =>
+        sortedMembers.some((member) => member.canReportOn(file)),
+      );
 
-      let attempts = 0;
-      const localGradedFiles = [...gradedFiles];
+      // How many files should be affected to a member in a given grade group. At least 1.
+      const take = Math.max(1, Math.floor(files.length / sortedMembers.length));
 
-      while (localGradedFiles.length && attempts++ < 3) {
-        for (
-          let i = 0;
-          i < sortedMembers.length && localGradedFiles.length > 0;
-          i++
-        ) {
-          const member = sortedMembers[i];
-          if (!member) continue;
+      /** If there are more members than files, we want to affect more files to the least
+          work loaded member (end of the {@link sortedMembers} list). */
+      const startMemberIndex = Math.max(0, this.members.length - files.length);
 
-          const files =
-            i === sortedMembers.length - 1
-              ? localGradedFiles.splice(0, localGradedFiles.length) // in the last iteration we take all remaining files
-              : localGradedFiles.splice(0, take);
+      for (
+        let i = startMemberIndex, attempts = 0;
+        i < sortedMembers.length && files.length > 0 && attempts < 2;
+        i = (i + 1) % sortedMembers.length || attempts++
+      ) {
+        const member = sortedMembers[i];
+        if (!member) continue;
 
-          if (files.some((file) => !member.canReportOn(file))) {
-            localGradedFiles.unshift(...files);
-            continue;
-          }
+        const shouldTakeRemaining =
+          take > 1 ? files.length < take * 2 : i === sortedMembers.length - 1;
 
-          member.affect(...files);
-          output.push(
-            ...files.map(({ id: nominationFileId }) => ({
-              reporterIds: [member.id],
-              nominationFileId,
-            })),
-          );
+        const filesChunk = files.splice(
+          0,
+          shouldTakeRemaining ? files.length : take,
+        );
+
+        if (filesChunk.some((file) => !member.canReportOn(file))) {
+          files.unshift(...filesChunk);
+          continue;
         }
+
+        member.affect(...filesChunk);
+        output.push(
+          ...filesChunk.map(({ id: nominationFileId }) => ({
+            reporterIds: [member.id],
+            nominationFileId,
+          })),
+        );
       }
     }
 
@@ -130,11 +138,11 @@ export class AutoAffectationMember {
     );
   }
 
-  static compareByWorkloadAsc(
+  static compareByWorkloadDesc(
     a: AutoAffectationMember,
     b: AutoAffectationMember,
   ): number {
-    return a.workload.toNumber() - b.workload.toNumber();
+    return b.workload.toNumber() - a.workload.toNumber();
   }
 }
 
