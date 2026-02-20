@@ -13,6 +13,7 @@ import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { dag } from './dag';
+import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
@@ -27,6 +28,7 @@ export class LolfiFilesIngestor {
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
     private readonly gradeIngestor: LolfiGradesIngestor,
+    private readonly functionsIngestor: LolfiFonctionsIngestor,
   ) {}
 
   async ingest(
@@ -198,6 +200,10 @@ export class LolfiFilesIngestor {
 
     if (this.gradeIngestor.handles(props.file)) {
       return this.gradeIngestor.ingest(props);
+    }
+
+    if (this.functionsIngestor.handles(props.file)) {
+      return this.functionsIngestor.ingest(props);
     }
 
     return Promise.resolve({ success: true });

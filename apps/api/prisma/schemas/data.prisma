@@ -94,3 +94,20 @@ model Grade {
   @@map("grade")
   @@schema("data_administration_context")
 }
+
+model Function {
+  id        String              @id
+  sort      Int                 @db.SmallInt
+  formation PrismaFormationEnum
+  addition  String?
+
+  label              String
+  label_one_male     String?
+  label_one_female   String?
+  label_other_male   String?
+  label_other_female String?
+
+  @@index([sort])
+  @@map("function")
+  @@schema("data_administration_context")
+}

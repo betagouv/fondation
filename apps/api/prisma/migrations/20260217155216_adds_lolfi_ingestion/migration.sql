@@ -26,6 +26,21 @@ CREATE TABLE "data_administration_context"."grade" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."function" (
+    "id" TEXT NOT NULL,
+    "sort" SMALLINT NOT NULL,
+    "formation" "public"."formation",
+    "addition" TEXT,
+    "label" TEXT NOT NULL,
+    "label_one_male" TEXT,
+    "label_one_female" TEXT,
+    "label_other_male" TEXT,
+    "label_other_female" TEXT,
+
+    CONSTRAINT "function_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
@@ -79,6 +94,9 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
 
 -- CreateIndex
 CREATE INDEX "jurisdiction_type_sort_idx" ON "data_administration_context"."jurisdiction_type"("sort");
+
+-- CreateIndex
+CREATE INDEX "function_sort_idx" ON "data_administration_context"."function"("sort");
 
 -- CreateIndex
 CREATE INDEX "grade_sort_idx" ON "data_administration_context"."grade"("sort");
