@@ -111,3 +111,12 @@ model Function {
   @@map("function")
   @@schema("data_administration_context")
 }
+
+model Pause {
+  id    String  @id
+  rate  Float
+  label String?
+
+  @@map("pause")
+  @@schema("data_administration_context")
+}

@@ -41,6 +41,15 @@ CREATE TABLE "data_administration_context"."function" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."pause" (
+    "id" TEXT NOT NULL,
+    "rate" DOUBLE PRECISION NOT NULL,
+    "label" TEXT,
+
+    CONSTRAINT "pause_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
