@@ -45,7 +45,6 @@ jobs:
           echo "$last_tags"
           {
             echo 'markdown<<EOF'
-            echo "**CHANGELOG**"
             node scripts/changelog $last_tags
             echo EOF
           } >> "$GITHUB_OUTPUT"
@@ -61,5 +60,7 @@ jobs:
           CHANGELOG: ${{ steps.changelog.outputs.markdown }}
           MATTERMOST_WEBHOOK: ${{ env.MATTERMOST_WEBHOOK }}
         run: |
-          jq -n --arg text "$CHANGELOG" '{text:$text}' \
+          jq -n --arg text "$CHANGELOG" '{attachments: [
+            { text:$text, title:"Changelog", fields: [{ short: true, title: CC, value: "- @jquagliatini\n- @remi.boureau.lienard"}] }
+          ]}' \
             | curl -XPOST -i -H 'Content-type: application/json' -d @- "$MATTERMOST_WEBHOOK"
