@@ -147,3 +147,12 @@ model Position {
   @@map("position")
   @@schema("data_administration_context")
 }
+
+model LolfiSession {
+  id        Int      @id @db.Integer
+  label     String?
+  createdAt DateTime @map("created_at") @db.Date
+
+  @@map("session")
+  @@schema("data_administration_context")
+}
