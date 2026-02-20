@@ -1,7 +1,7 @@
-import z from 'zod';
-
 import { Injectable, Logger } from '@nestjs/common';
 import { inspect } from 'node:util';
+import z from 'zod';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';

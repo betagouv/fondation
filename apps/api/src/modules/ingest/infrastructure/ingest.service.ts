@@ -76,7 +76,7 @@ export class IngestService {
         return {
           id: jobId,
           status: 'FAILED',
-          errors: [{ type: 'Unknown', message: inspected }],
+          errors: [{ type: 'Unknown', message: `Erreur technique` }],
         };
       }
     }
@@ -102,15 +102,22 @@ export class IngestService {
       });
 
       if (props.result.success) {
+        await tx.ingestionJobFile.createMany({
+          data: props.result.data.map((file) => ({
+            jobId: job.id,
+            fileId: file.id,
+            fileSha256: file.sha256,
+            status: 'IDLE',
+          })),
+        });
+
         for (const file of withLolfiFileRequirements(props.result.data)) {
-          await tx.ingestionJobFile.create({
-            data: {
+          await tx.ingestionJobRequirement.createMany({
+            data: file.requirements.map(({ requiredFileId }) => ({
               jobId: job.id,
-              fileId: file.id,
-              fileSha256: file.sha256,
-              status: 'IDLE',
-              requirements: { create: file.requirements },
-            },
+              jobFileId: file.id,
+              requiredFileId: requiredFileId,
+            })),
           });
         }
       } else {

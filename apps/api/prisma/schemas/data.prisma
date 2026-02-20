@@ -80,3 +80,17 @@ model JurisdictionType {
   @@map("jurisdiction_type")
   @@schema("data_administration_context")
 }
+
+model Grade {
+  grade       String  @id
+  label       String
+  sort        Int     @db.SmallInt
+  massGradeId String? @map("mass_grade_id")
+
+  massGrade Grade?  @relation(fields: [massGradeId], references: [grade], onDelete: SetNull, onUpdate: NoAction, name: "parentGrade")
+  grades    Grade[] @relation("parentGrade")
+
+  @@index([sort])
+  @@map("grade")
+  @@schema("data_administration_context")
+}

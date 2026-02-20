@@ -13,6 +13,7 @@ import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { dag } from './dag';
+import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
 
@@ -25,6 +26,7 @@ export class LolfiFilesIngestor {
     private readonly prisma: PrismaService,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
+    private readonly gradeIngestor: LolfiGradesIngestor,
   ) {}
 
   async ingest(
@@ -175,19 +177,30 @@ export class LolfiFilesIngestor {
         return result;
       }
 
-      let runResult: { success: boolean } = { success: true };
-      if (this.typeJuridictionIngestor.handles(file)) {
-        runResult = await this.typeJuridictionIngestor.ingest({ file, job });
-      }
-
-      if (this.juridictionIngestor.handles(file)) {
-        runResult = await this.juridictionIngestor.ingest({ file, job });
-      }
-
+      const runResult = await this.ingestFile({ file, job });
       if (!runResult.success) result.success = false;
     }
 
     return result;
+  }
+
+  private ingestFile(props: {
+    job: { id: number };
+    file: LolfiJob['files'][number];
+  }): Promise<{ success: boolean }> {
+    if (this.typeJuridictionIngestor.handles(props.file)) {
+      return this.typeJuridictionIngestor.ingest(props);
+    }
+
+    if (this.juridictionIngestor.handles(props.file)) {
+      return this.juridictionIngestor.ingest(props);
+    }
+
+    if (this.gradeIngestor.handles(props.file)) {
+      return this.gradeIngestor.ingest(props);
+    }
+
+    return Promise.resolve({ success: true });
   }
 
   private async cancel(jobId: number) {

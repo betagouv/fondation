@@ -16,6 +16,16 @@ CREATE TABLE "data_administration_context"."jurisdiction_type" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."grade" (
+    "grade" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "sort" SMALLINT NOT NULL,
+    "mass_grade_id" TEXT,
+
+    CONSTRAINT "grade_pkey" PRIMARY KEY ("grade")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
@@ -61,7 +71,6 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
     "id" SERIAL NOT NULL,
     "job_id" INTEGER NOT NULL,
     "file_id" UUID NOT NULL,
-    "entity_name" TEXT NOT NULL,
     "entity_id" TEXT,
     "error" TEXT NOT NULL,
 
@@ -72,7 +81,13 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
 CREATE INDEX "jurisdiction_type_sort_idx" ON "data_administration_context"."jurisdiction_type"("sort");
 
 -- CreateIndex
+CREATE INDEX "grade_sort_idx" ON "data_administration_context"."grade"("sort");
+
+-- CreateIndex
 CREATE INDEX "ingestion_job_status_ended_at_idx" ON "jobs"."ingestion_job"("status", "ended_at");
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."grade" ADD CONSTRAINT "grade_mass_grade_id_fkey" FOREIGN KEY ("mass_grade_id") REFERENCES "data_administration_context"."grade"("grade") ON DELETE SET NULL ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_error" ADD CONSTRAINT "ingestion_job_error_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "jobs"."ingestion_job"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

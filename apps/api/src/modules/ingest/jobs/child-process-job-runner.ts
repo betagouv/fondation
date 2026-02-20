@@ -33,13 +33,21 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
   }
 
   async runDetached(jobId: number): Promise<void> {
-    const command = `node apps/api/dist/src/cli lolfi-job --jobId ${jobId}`;
+    const command = `node dist/src/cli lolfi-job --jobId ${jobId}`;
     this.logger.debug(`Starting "${command} with node:child_process"`);
     try {
       const child = spawn(command, {
         detached: true,
         stdio: 'ignore',
         signal: this.controller.signal,
+      });
+
+      child.on('error', (err) => {
+        this.logger.error(
+          `Child Process error: ${inspect(err)}`,
+          err instanceof Error ? err.stack : undefined,
+          { error: err },
+        );
       });
 
       if (!child.pid) {
