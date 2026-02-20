@@ -17,14 +17,7 @@ WITH bronze_jurisdiction AS (
 silver_jurisdiction AS (
   SELECT bronze_jurisdiction.*
   FROM bronze_jurisdiction
-    INNER JOIN data_administration_context.jurisdiction_type AS jt ON jt.id = bronze_jurisdiction.codejur
-),
-
-silver_unknown_jurisdictions AS (
-  SELECT bj.codejur, bj.type_jur
-  FROM bronze_jurisdiction AS bj
-    LEFT JOIN data_administration_context.jurisdiction_type AS jt ON jt.id = bj.codejur
-  WHERE jt.id IS NULL
+    INNER JOIN data_administration_context.jurisdiction_type AS jt ON jt.id = bronze_jurisdiction.type_jur
 ),
 
 gold_jurisdiction AS (
@@ -57,6 +50,13 @@ gold_jurisdiction AS (
       ville_jur = EXCLUDED.ville_jur,
       ville = EXCLUDED.ville
       -- noqa: enable=all
+),
+
+silver_unknown_jurisdictions AS (
+  SELECT bj.codejur, bj.type_jur
+  FROM bronze_jurisdiction AS bj
+    LEFT JOIN data_administration_context.jurisdiction_type AS jt ON jt.id = bj.type_jur
+  WHERE jt.id IS NULL
 )
 
 SELECT *

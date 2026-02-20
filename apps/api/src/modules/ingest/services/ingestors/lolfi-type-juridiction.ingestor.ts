@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { inspect } from 'node:util';
 import z from 'zod';
 
+import { insertJurisdictionTypesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
@@ -33,18 +34,13 @@ export class LolfiTypeJuridictionIngestor {
 
       for await (const { data, success } of source) {
         if (success) accumulator.push(data);
-
-        if (accumulator.length >= 30) {
-          const { success } = await self.flush(accumulator);
-          if (!success) mappingResult.success = false;
-          accumulator.length = 0;
-        }
       }
 
       if (accumulator.length) {
-        const { success } = await self.flush(accumulator);
-        if (!success) mappingResult.success = false;
-        accumulator.length = 0;
+        await self.flush({
+          items: accumulator,
+          result: mappingResult,
+        });
       }
     }
 
@@ -59,36 +55,33 @@ export class LolfiTypeJuridictionIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(items: readonly TypeJuridiction[]) {
-    return this.prisma.$executeRaw`
-      INSERT INTO "data_administration_context"."jurisdiction_type" (id, label, sort)
-      SELECT
-        j ->> 'type' AS "id",
-        j ->> 'label' AS "label",
-        (j ->> 'sort')::INT AS "sort"
-      FROM UNNEST (${items}::JSONB[]) AS j
-
-      ON CONFLICT (id) DO UPDATE SET
-        "label" = EXCLUDED."label", 
-        "sort" = EXCLUDED."sort";
-    `.then(
-      () => ({ success: true }),
-      (e) => {
-        this.logger.error(
-          `Error while flushing TYPE_JURIDICTION: ${inspect(e)}`,
-        );
-        return { success: false };
-      },
-    );
+  private flush(props: {
+    items: TypeJuridiction[];
+    result: { success: boolean };
+  }) {
+    return this.prisma
+      .$queryRawTyped(insertJurisdictionTypesRawQuery(props.items))
+      .then(
+        () => ({ success: true }),
+        (error) => {
+          this.logger.error(
+            `Failed flushing TYPE_JURIDICTION.xml: ${inspect(error)}`,
+            error instanceof Error ? error.stack : undefined,
+            { error },
+          );
+          props.result.success = false;
+        },
+      )
+      .finally(() => {
+        props.items.length = 0;
+      });
   }
 }
 
-const TypeJuridictionSchema = z
-  .object({
-    type_jur: z.string().trim().nonempty(),
-    libelle: z.string().trim().nonempty(),
-    tri: z.coerce.number().int().gte(0),
-  })
-  .transform((x) => ({ type: x.type_jur, label: x.libelle, sort: x.tri }));
+const TypeJuridictionSchema = z.object({
+  type_jur: z.string().trim().nonempty(),
+  libelle: z.string().trim().nonempty(),
+  tri: z.coerce.number().int().gte(0),
+});
 
 type TypeJuridiction = z.infer<typeof TypeJuridictionSchema>;

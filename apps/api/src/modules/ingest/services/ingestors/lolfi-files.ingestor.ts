@@ -11,12 +11,13 @@ import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { isDefined } from 'src/utils/is-defined';
 
+import { dag } from '../../domain/requirements';
 import { LolfiJob } from '../lolfi-job.type';
-import { dag } from './dag';
 import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
 import { LolfiPosadsIngestor } from './lolfi-posads.ingestor';
+import { LolfiPostesIngestor } from './lolfi-postes.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
 
 @Injectable()
@@ -31,6 +32,7 @@ export class LolfiFilesIngestor {
     private readonly gradeIngestor: LolfiGradesIngestor,
     private readonly functionsIngestor: LolfiFonctionsIngestor,
     private readonly pausesIngestor: LolfiPosadsIngestor,
+    private readonly positionsIngestor: LolfiPostesIngestor,
   ) {}
 
   async ingest(
@@ -163,6 +165,9 @@ export class LolfiFilesIngestor {
     );
 
     const files = dag(currentJob.files);
+    this.logger.debug('FILES:');
+    this.logger.debug(files.map(({ file }) => `- ${file.name}`).join('\n'));
+
     const job: LolfiJob = {
       id: currentJob.id,
       files: files.map(({ file, fileSha256 }) => ({
@@ -192,14 +197,6 @@ export class LolfiFilesIngestor {
     job: { id: number };
     file: LolfiJob['files'][number];
   }): Promise<{ success: boolean }> {
-    if (this.typeJuridictionIngestor.handles(props.file)) {
-      return this.typeJuridictionIngestor.ingest(props);
-    }
-
-    if (this.juridictionIngestor.handles(props.file)) {
-      return this.juridictionIngestor.ingest(props);
-    }
-
     if (this.gradeIngestor.handles(props.file)) {
       return this.gradeIngestor.ingest(props);
     }
@@ -210,6 +207,18 @@ export class LolfiFilesIngestor {
 
     if (this.pausesIngestor.handles(props.file)) {
       return this.pausesIngestor.ingest(props);
+    }
+
+    if (this.typeJuridictionIngestor.handles(props.file)) {
+      return this.typeJuridictionIngestor.ingest(props);
+    }
+
+    if (this.juridictionIngestor.handles(props.file)) {
+      return this.juridictionIngestor.ingest(props);
+    }
+
+    if (this.positionsIngestor.handles(props.file)) {
+      return this.positionsIngestor.ingest(props);
     }
 
     return Promise.resolve({ success: true });

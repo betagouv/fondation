@@ -17,7 +17,7 @@ type LolfiFile = (typeof LOLFI_FILES)[number];
 /**
  * TODO: this list is not complete yet
  */
-const REQUIREMENTS = new Map<LolfiFile, Set<LolfiFile>>([
+export const REQUIREMENTS = new Map<LolfiFile, Set<LolfiFile>>([
   ['GRADES.xml', new Set([] as const satisfies LolfiFile[])],
 
   ['FONCTIONS.xml', new Set([] as const satisfies LolfiFile[])],
@@ -77,5 +77,27 @@ export function withLolfiFileRequirements<
     );
 
     return { ...file, requirements };
+  });
+}
+
+const REQUIREMENT_INDICES = new Map(
+  REQUIREMENTS.keys().map((filename, index) => [filename, index]),
+);
+
+export function dag<File extends { file: { name: string } }>(
+  files: readonly File[],
+): File[] {
+  return files.toSorted((a, b) => {
+    const aFileName = a.file.name;
+    const bFileName = b.file.name;
+
+    if (!isLolfiFile(aFileName) && !isLolfiFile(bFileName)) return 0;
+    else if (isLolfiFile(aFileName) && !isLolfiFile(bFileName)) return -1;
+    else if (!isLolfiFile(aFileName) && isLolfiFile(bFileName)) return 1;
+
+    return (
+      (REQUIREMENT_INDICES.get(aFileName as LolfiFile) ?? -1) -
+      (REQUIREMENT_INDICES.get(bFileName as LolfiFile) ?? -1)
+    );
   });
 }

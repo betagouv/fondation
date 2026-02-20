@@ -50,6 +50,20 @@ CREATE TABLE "data_administration_context"."pause" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."position" (
+    "id" INTEGER NOT NULL,
+    "profile" TEXT,
+    "profile_id" TEXT,
+    "bbis" BOOLEAN NOT NULL DEFAULT false,
+    "grade_id" TEXT NOT NULL,
+    "function_id" TEXT,
+    "jurisdiction_id" TEXT NOT NULL,
+    "jurisdiction_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "position_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
@@ -115,6 +129,18 @@ CREATE INDEX "ingestion_job_status_ended_at_idx" ON "jobs"."ingestion_job"("stat
 
 -- AddForeignKey
 ALTER TABLE "data_administration_context"."grade" ADD CONSTRAINT "grade_mass_grade_id_fkey" FOREIGN KEY ("mass_grade_id") REFERENCES "data_administration_context"."grade"("grade") ON DELETE SET NULL ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_grade_id_fkey" FOREIGN KEY ("grade_id") REFERENCES "data_administration_context"."grade"("grade") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_function_id_fkey" FOREIGN KEY ("function_id") REFERENCES "data_administration_context"."function"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_jurisdiction_type_id_fkey" FOREIGN KEY ("jurisdiction_type_id") REFERENCES "data_administration_context"."jurisdiction_type"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_jurisdiction_id_fkey" FOREIGN KEY ("jurisdiction_id") REFERENCES "data_administration_context"."jurisdictions"("codejur") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_error" ADD CONSTRAINT "ingestion_job_error_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "jobs"."ingestion_job"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

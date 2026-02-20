@@ -102,7 +102,7 @@ const RawFunctionSchema = z.object({
     .trim()
     .nonempty()
     .nullable()
-    .transform((x) => x?.replace(/\b:codejur\b/, '{codejur}') ?? null),
+    .transform((x) => x?.replace(/:codejur/, '{codejur}') ?? null),
 });
 
 type RawFunction = z.infer<typeof RawFunctionSchema>;

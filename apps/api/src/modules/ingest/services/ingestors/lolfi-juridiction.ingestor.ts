@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { inspect } from 'node:util';
-import { ingestLolfiJurisdictionRawQuery } from 'src/generated/prisma/sql';
+import { insertJurisdictionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
@@ -17,7 +17,7 @@ export class LolfiJuridictionIngestor {
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
-    return file.name === 'JURIDICTION.xml';
+    return file.name === 'JURIDICTIONS.xml';
   }
 
   async ingest(options: {
@@ -35,7 +35,7 @@ export class LolfiJuridictionIngestor {
       for await (const { data, success } of source) {
         if (success) accumulator.push(data);
 
-        if (accumulator.length >= 100) {
+        if (accumulator.length >= 300) {
           await self.flush({
             items: accumulator,
             fileId: options.file.id,
@@ -57,7 +57,7 @@ export class LolfiJuridictionIngestor {
 
     const { success } = await this.ingestor.ingest({
       mapper,
-      tag: 'juridiction',
+      tag: 'juridictions',
       schema: RawJurisdictionSchema,
       job: options.job,
       file: options.file,
@@ -75,7 +75,7 @@ export class LolfiJuridictionIngestor {
     return this.prisma
       .$transaction(async (tx) => {
         const unknownJurisdictionTypes = await tx.$queryRawTyped(
-          ingestLolfiJurisdictionRawQuery(props.items),
+          insertJurisdictionsRawQuery(props.items),
         );
 
         if (unknownJurisdictionTypes.length === 0) return;
@@ -96,6 +96,9 @@ export class LolfiJuridictionIngestor {
           { error },
         );
         props.result.success = false;
+      })
+      .finally(() => {
+        props.items.length = 0;
       });
   }
 }

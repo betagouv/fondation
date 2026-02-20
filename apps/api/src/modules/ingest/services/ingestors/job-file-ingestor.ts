@@ -33,9 +33,7 @@ export class JobFileIngestor {
       item: AsyncIterable<{ data: T; success: boolean }>,
     ) => AsyncIterable<unknown>;
   }): Promise<{ success: boolean }> {
-    const parser = new LolfiXmlSaxParser({ tag: options.tag });
-    z.config(fr());
-
+    let start: number;
     const { job, file } = options;
     try {
       const fileContentResult = await this.prisma.$transaction(
@@ -72,6 +70,7 @@ export class JobFileIngestor {
 
       if (!fileContentResult.success) return { success: false };
       if (fileContentResult.success && !fileContentResult.fileContent) {
+        this.logger.log(`${options.file.name} sha256 did not change. Exitting`);
         return { success: true };
       }
 
@@ -81,24 +80,30 @@ export class JobFileIngestor {
         { num: string | undefined; error: z.ZodError }
       >();
 
+      start = performance.now();
+      this.logger.log(`Started ingesting ${options.file.name}`);
+
+      const parser = new LolfiXmlSaxParser({ tag: options.tag });
+      z.config(fr());
+
       await pipeline(
         fileContent$,
         parser,
         async function* (source: AsyncIterable<LolfiNode>) {
           for await (const item of source) {
-            const jurisdictionTypeResult = await options.schema.safeParseAsync(
+            const parseResult = await options.schema.safeParseAsync(
               Object.fromEntries(
                 item.children.map(({ name, content }) => [name, content]),
               ),
             );
 
-            if (!jurisdictionTypeResult.success) {
+            if (!parseResult.success) {
               const num = item.attributes['num'];
-              result.fail({ num, error: jurisdictionTypeResult.error });
+              result.fail({ num, error: parseResult.error });
             } else {
               yield {
                 success: result.success,
-                data: jurisdictionTypeResult.data,
+                data: parseResult.data,
               };
             }
           }
@@ -124,6 +129,11 @@ export class JobFileIngestor {
         jobId: job.id,
         errors: [{ error: `Erreur technique: ${inspect(e)}` }],
       });
+    } finally {
+      const duration = start! ? (performance.now() - start).toFixed(2) : null;
+      this.logger.log(
+        `Done ingesting ${options.file.name}${duration ? ` (${duration}ms)` : ''}`,
+      );
     }
   }
 
