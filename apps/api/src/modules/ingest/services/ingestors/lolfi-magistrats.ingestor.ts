@@ -1,0 +1,210 @@
+import z from 'zod';
+
+import { Injectable, Logger } from '@nestjs/common';
+import { inspect } from 'node:util';
+import { insertMagistratRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
+import { LolfiJob } from '../lolfi-job.type';
+import { JobFileIngestor } from './job-file-ingestor';
+
+@Injectable()
+export class LolfiMagistratsIngestor {
+  private readonly logger = new Logger(LolfiMagistratsIngestor.name);
+
+  constructor(
+    private readonly ingestor: JobFileIngestor,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  handles(file: LolfiJob['files'][number]): boolean {
+    return file.name === 'MAGISTRATS.xml';
+  }
+
+  async ingest(options: {
+    job: Pick<LolfiJob, 'id'>;
+    file: LolfiJob['files'][number];
+  }): Promise<{ success: boolean }> {
+    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const mappingResult = { success: true };
+
+    async function* mapper(
+      source: AsyncIterable<{ data: RawMagistrat; success: boolean }>,
+    ) {
+      const errors: { entityId: string; error: string }[] = [];
+      const accumulator: RawMagistrat[] = [];
+      const ids = new Set<number>();
+
+      for await (const { data, success } of source) {
+        if (!success) continue;
+
+        if (ids.has(data.id)) {
+          self.logger.warn(`Magistrat "${data.id}" is duplicated. Ignored`);
+          errors.push({
+            entityId: String(data.id),
+            error: `Magistrat "${data.id}" dupliqué. La seconde occurrence est ignorée`,
+          });
+          continue;
+        }
+
+        ids.add(data.id);
+        accumulator.push(data);
+
+        if (accumulator.length >= 500) {
+          await self.flush({
+            errors,
+            items: accumulator,
+            fileId: options.file.id,
+            jobId: options.job.id,
+            result: mappingResult,
+          });
+        }
+      }
+
+      if (accumulator.length > 0 || errors.length > 0) {
+        await self.flush({
+          errors,
+          items: accumulator,
+          fileId: options.file.id,
+          jobId: options.job.id,
+          result: mappingResult,
+        });
+      }
+    }
+
+    const { success } = await this.ingestor.ingest({
+      mapper,
+      tag: 'magistrats',
+      schema: RawMagistratSchema,
+      job: options.job,
+      file: options.file,
+    });
+
+    return { success: success && mappingResult.success };
+  }
+
+  private flush(props: {
+    items: RawMagistrat[];
+    errors: { entityId: string; error: string }[];
+    jobId: number;
+    fileId: string;
+    result: { success: boolean };
+  }) {
+    return this.prisma
+      .$transaction(async (tx) => {
+        if (props.items.length > 0) {
+          const unknown = await tx.$queryRawTyped(
+            insertMagistratRawQuery(props.items),
+          );
+
+          if (unknown.length > 0) {
+            for (const u of unknown) {
+              const entityId = u.id;
+              if (!entityId) continue;
+
+              const error =
+                u.unknownGrade !== null
+                  ? `Grade "${u.unknownGrade}" inconnu`
+                  : u.unknownPositionId !== null
+                    ? `Poste "${u.unknownPositionId}" inconnu`
+                    : u.unknownPauseId
+                      ? `POSAD "${u.unknownPauseId}" inconnue`
+                      : u.unknownPrevPauseId
+                        ? `POSAD précédente "${u.unknownPrevPauseId}" inconnue`
+                        : null;
+
+              if (!error) continue;
+
+              await tx.ingestionJobFileError.create({
+                data: {
+                  error,
+                  entityId: String(entityId),
+                  fileId: props.fileId,
+                  jobId: props.jobId,
+                },
+              });
+            }
+          }
+        }
+
+        if (props.errors.length > 0) {
+          await tx.ingestionJobFileError.createMany({
+            data: props.errors.map(({ entityId, error }) => ({
+              error,
+              entityId,
+              jobId: props.jobId,
+              fileId: props.fileId,
+            })),
+          });
+        }
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Failed flushing MAGISTRATS.xml chunk: ${inspect(error)}`,
+          error instanceof Error ? error.stack : undefined,
+          { error },
+        );
+        props.result.success = false;
+      })
+      .finally(() => {
+        props.errors.length = 0;
+        props.items.length = 0;
+      });
+  }
+}
+
+const RawLolfiDate = z
+  .string()
+  .trim()
+  .regex(/\d\d\/\d\d\/\d{4}/, {
+    error: ({ input }) => `DD/MM/YYYY attendu vs. "${input}"`,
+  })
+  .transform((x) => {
+    const [date, month, year] = x.split('/');
+    return new Date(`${year}-${month}-${date}`);
+  })
+  .pipe(z.date());
+
+const RawMagistratSchema = z.object({
+  id: z.coerce.number().int().gte(1),
+  civilite: z.string(),
+  nom: z.string().trim().nonempty(),
+  prenom: z.string().trim().nonempty(),
+  nom_marital: z.string().trim().nonempty().nullable(),
+  nom_usage: z.string().trim().nonempty().nullable(),
+  sit_fam: z.string().trim().nonempty().nullable(),
+  email_pro: z.string().trim().nonempty().nullable(),
+  date_naiss: RawLolfiDate.nullable(),
+  lieu_naiss: z.string().trim().nonempty().nullable(),
+  dep_naiss: z.string().trim().nonempty().nullable(),
+  grade: z.string().trim().nonempty().nullable(),
+  date_grade: RawLolfiDate.nullable(),
+  num_emploi_cible: z.string().trim().nonempty().nullable(),
+  date_installation: RawLolfiDate.nullable(),
+  date_nomination: RawLolfiDate.nullable(),
+  tableau: z
+    .union([RawLolfiDate, z.coerce.number().int()])
+    .transform((x) => (x instanceof Date ? x.getUTCFullYear() : x)),
+  historique: z.string().trim().nonempty().nullable(),
+  posad: z.string().trim().nonempty().nullable(),
+  posad_prev: z.string().trim().nonempty().nullable(),
+  date_posad_prev: RawLolfiDate.nullable(),
+  posad_prev2: z.string().trim().nonempty().nullable(),
+  date_posad_prev2: RawLolfiDate.nullable(),
+  date_modification: RawLolfiDate.nullable(),
+
+  date_posad_prev_fin: z
+    .string()
+    .trim()
+    .nonempty()
+    .regex(/\d\d\/\d\d\/\d\d/, {
+      error: ({ input }) => `DD/MM/YY vs. "${input}"`,
+    })
+    .transform((x) => {
+      const [date, month, year] = x.split('/');
+      return new Date(`19${year}-${month}-${date}`);
+    })
+    .pipe(z.date())
+    .nullable(),
+});
+
+type RawMagistrat = z.infer<typeof RawMagistratSchema>;

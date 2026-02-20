@@ -34,7 +34,7 @@ export class LolfiSessionsIngestor {
       const ids = new Set<number>();
       for await (const { data, success } of source) {
         if (ids.has(data.num_session)) {
-          this.logger.warn(
+          self.logger.warn(
             `SESSIONS.xml ${data.num_session} is duplicated. Ignoring`,
           );
           continue;

@@ -37,7 +37,7 @@ export class LolfiPostesIngestor {
         if (!success) continue;
 
         if (ids.has(data.num_emploi_cible)) {
-          this.logger.warn(
+          self.logger.warn(
             `Position "${data.num_emploi_cible}" is duplicated. Ignored`,
           );
           continue;

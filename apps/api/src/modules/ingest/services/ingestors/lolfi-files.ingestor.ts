@@ -16,6 +16,7 @@ import { LolfiJob } from '../lolfi-job.type';
 import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
+import { LolfiMagistratsIngestor } from './lolfi-magistrats.ingestor';
 import { LolfiPosadsIngestor } from './lolfi-posads.ingestor';
 import { LolfiPostesIngestor } from './lolfi-postes.ingestor';
 import { LolfiSessionsIngestor } from './lolfi-sessions.ingestor';
@@ -35,6 +36,7 @@ export class LolfiFilesIngestor {
     private readonly pausesIngestor: LolfiPosadsIngestor,
     private readonly positionsIngestor: LolfiPostesIngestor,
     private readonly sessionsIngestor: LolfiSessionsIngestor,
+    private readonly magistratIngestor: LolfiMagistratsIngestor,
   ) {}
 
   async ingest(
@@ -225,6 +227,10 @@ export class LolfiFilesIngestor {
 
     if (this.sessionsIngestor.handles(props.file)) {
       return this.sessionsIngestor.ingest(props);
+    }
+
+    if (this.magistratIngestor.handles(props.file)) {
+      return this.magistratIngestor.ingest(props);
     }
 
     return Promise.resolve({ success: true });

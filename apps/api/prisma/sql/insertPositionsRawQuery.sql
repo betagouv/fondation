@@ -20,8 +20,8 @@ silver_position AS (
       ON j.codejur = bp.jurisdiction_id
     INNER JOIN data_administration_context.grade AS g
       ON g.grade = bp.grade_id
-    INNER JOIN data_administration_context.function AS f
-      ON f.id = bp.function_id
+    LEFT JOIN data_administration_context.function AS f
+      ON f.id = bp.function_id 
 ),
 
 gold_position AS (
@@ -76,7 +76,7 @@ unknown_function AS (
   FROM bronze_position AS bp
     LEFT JOIN data_administration_context.function AS f
       ON f.id = bp.function_id
-  WHERE f.id IS NULL
+  WHERE bp.function_id IS NOT NULL AND f.id IS NULL
 ),
 
 unknown_grade AS (

@@ -37,7 +37,7 @@ export class LolfiPosadsIngestor {
         if (!success) continue;
 
         if (ids.has(data.posad)) {
-          this.logger.warn(`Pause "${data.posad}" is duplicated. Ignored`);
+          self.logger.warn(`Pause "${data.posad}" is duplicated. Ignored`);
           continue;
         }
 

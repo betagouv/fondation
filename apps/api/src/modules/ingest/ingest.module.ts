@@ -7,6 +7,7 @@ import { LolfiFilesIngestor } from './services/ingestors/lolfi-files.ingestor';
 import { LolfiFonctionsIngestor } from './services/ingestors/lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './services/ingestors/lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './services/ingestors/lolfi-juridiction.ingestor';
+import { LolfiMagistratsIngestor } from './services/ingestors/lolfi-magistrats.ingestor';
 import { LolfiPosadsIngestor } from './services/ingestors/lolfi-posads.ingestor';
 import { LolfiPostesIngestor } from './services/ingestors/lolfi-postes.ingestor';
 import { LolfiSessionsIngestor } from './services/ingestors/lolfi-sessions.ingestor';
@@ -29,6 +30,7 @@ import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
     LolfiPosadsIngestor,
     LolfiPostesIngestor,
     LolfiSessionsIngestor,
+    LolfiMagistratsIngestor,
   ],
 })
 export class IngestModule {}
