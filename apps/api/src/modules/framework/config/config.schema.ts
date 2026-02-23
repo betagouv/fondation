@@ -28,6 +28,14 @@ export const ConfigSchema = z.object({
     process.env.DATABASE_URL!,
   ),
 
+  scalingo: z.preprocess(
+    () => ({}),
+    z.object({
+      appName: z.prefault(z.string().optional(), process.env.SCALINGO_APP_NAME),
+      apiKey: z.prefault(z.string().optional(), process.env.SCALINGO_API_KEY),
+    }),
+  ),
+
   s3: z.preprocess(
     () => ({}),
     z.object({

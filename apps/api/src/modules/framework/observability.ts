@@ -29,7 +29,7 @@ export class SentryService {
   }
 
   captureException(
-    exception: HttpException,
+    exception: unknown,
     request: ExpressRequest,
     status: number,
   ): void {

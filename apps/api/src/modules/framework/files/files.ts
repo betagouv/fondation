@@ -7,9 +7,9 @@ import {
   HeadBucketCommand,
   ListObjectVersionsCommand,
   PutBucketCorsCommand,
-  PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   Inject,
@@ -29,11 +29,14 @@ import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
-import { ignoreAsync, isFulfilled, partitionSettled } from 'src/utils/promises';
+import { ignoreAsync, isFulfilled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
+import { PassThrough, Readable, Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { Prisma } from 'src/generated/prisma/client';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { Clock } from '../clock';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
@@ -41,9 +44,10 @@ import { filenameToMimeType } from './mime-type';
 /** @internal */
 class RollbackFilePathOperationError {
   constructor(
-    readonly filesToDelete:
-      | readonly string[]
-      | readonly { id: string; path: readonly string[] }[],
+    readonly filesToDelete: readonly (
+      | { id: string; path: readonly string[] }
+      | string
+    )[],
     readonly cause: Error,
   ) {}
 }
@@ -170,105 +174,130 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
-  create(files: readonly FondationFile[]): Promise<string[]> {
-    if (files.length === 0) return Promise.resolve([]);
+  async openBatchStreamSession(
+    factory: (helper: {
+      streamTo(file: Omit<FondationFile, 'buffer'>): Writable;
+    }) => Promise<unknown>,
+  ): Promise<string[]> {
+    const fileStoragePromises: {
+      file: Omit<FondationFile, 'buffer'>;
+      promise: Promise<unknown>;
+    }[] = [];
+    const helper = {
+      streamTo: (file: Omit<FondationFile, 'buffer'>) => {
+        const path = file.path
+          .split('/')
+          .filter((x) => !!x.trim())
+          .join('/');
 
-    return Sentry.startSpan(
-      {
-        name: 'fr.csm.fondation:files:create',
-        attributes: Object.fromEntries(
-          files
-            .flatMap((file, i) => [
-              [`file.${i}.size`, file.buffer.byteLength],
-              [`file.${i}.type`, file.mimeType],
-            ])
-            .concat([['objectsCount', files.length]]),
-        ),
-      },
-      () => this._create(files),
-    );
-  }
-
-  private async _create(files: readonly FondationFile[]): Promise<string[]> {
-    try {
-      const { fulfilled, rejected } = await Promise.allSettled(
-        files.map((file) =>
-          this.client
-            .send(
-              new PutObjectCommand({
-                ...this.sseHeaders,
-                Key: encodeURI(file.path),
-                Bucket: this.bucketName,
-                Metadata: Object.fromEntries(
-                  Object.entries(file.meta ?? {}).filter(
-                    (entry): entry is [string, string] => !!entry[1],
-                  ),
-                ),
-                ContentType: file.mimeType,
-                Body: file.buffer,
-              }),
-            )
-            .then(() => file.path),
-        ),
-      ).then(partitionSettled);
-
-      if (rejected.length > 0) {
-        this.logger.warn(
-          `Failed uploading ${rejected.length} files
-          ${inspect(rejected.map((x) => x.reason))}`,
-        );
-
-        throw new RollbackFilePathOperationError(
-          fulfilled.map(({ value }) => value),
-          new InternalServerErrorException(
-            `Failure uploading ${rejected.length} files`,
-          ),
-        );
-      }
-
-      const filesWithId = files.map((file) => {
-        file.meta = { ...(file.meta ?? {}) };
-        file.meta.id = file.meta.id ?? makeId('FileId');
-        return file;
-      });
-
-      await this.prisma.file
-        .createMany({
-          data: filesWithId.map((file) => {
-            const path = file.path.split('/').filter((x) => !!x.trim());
-
-            return {
-              path,
-              name: file.name,
-              id: file.meta?.id,
-              bucket: this.bucketName,
-              storageProvider: PrismaStorageProviderEnum.SCALEWAY,
-            };
-          }),
-        })
-        .catch((err) => {
-          this.logger.warn(
-            `Failed uploading ${files.length} files: ${inspect(err)}`,
-          );
-
-          throw new RollbackFilePathOperationError(
-            files.map(({ path }) => path),
-            new InternalServerErrorException(
-              `Failed uploading ${files.length} files`,
-              { cause: err },
+        const passthrough = new PassThrough();
+        const upload = new Upload({
+          client: this.client,
+          params: {
+            ...this.sseHeaders,
+            Bucket: this.bucketName,
+            Key: encodeURI(path),
+            Body: passthrough,
+            ContentType: file.mimeType,
+            Metadata: Object.fromEntries(
+              Object.entries(file.meta ?? {}).filter(
+                (entry): entry is [string, string] => !!entry[1],
+              ),
             ),
-          );
+          },
         });
 
-      return filesWithId.map(({ meta }) => meta?.id).filter(isDefined);
-    } catch (err) {
-      if (err instanceof RollbackFilePathOperationError) {
-        this._delete(err.filesToDelete);
-        throw err.cause;
-      }
+        fileStoragePromises.push({
+          file: { ...file, path },
+          promise: Sentry.startSpan(
+            {
+              name: 'fr.csm.fondation:files:create_single',
+              attributes: {
+                'file.name': file.name,
+                'file.type': file.mimeType,
+              },
+            },
+            async (span) => {
+              const { $metadata } = await upload.done();
+              if (($metadata.attempts ?? 0) > 1) {
+                span.setAttribute('attempts', $metadata.attempts);
+              }
+            },
+          ),
+        });
 
-      throw err;
+        return passthrough;
+      },
+    };
+
+    await Sentry.startSpan({ name: 'fr.csm.fondation:files:create' }, (span) =>
+      factory(helper).catch((error) => {
+        span.setAttribute('error', error);
+        span.recordException(error);
+        this.logger.warn(
+          `file batch stream session factory failed with error: ${error}`,
+        );
+      }),
+    );
+
+    if (fileStoragePromises.length === 0) return [];
+
+    const fulfilled: Omit<FondationFile, 'buffer'>[] = [];
+    const rejected: Omit<FondationFile, 'buffer'>[] = [];
+
+    await Promise.allSettled(
+      fileStoragePromises.map(({ file, promise }) =>
+        promise.then(
+          () => fulfilled.push(file),
+          (error) => {
+            Sentry.getActiveSpan()?.recordException(error);
+            Sentry.getActiveSpan()?.setAttribute('error', error);
+
+            this.logger.warn(`HTTP error while uploading file to S3`, {
+              error,
+            });
+
+            rejected.push(file);
+          },
+        ),
+      ),
+    );
+
+    if (rejected.length > 0) {
+      await this._delete(fulfilled.map((file) => file.path));
+      throw new InternalServerErrorException(
+        `Failed uploading ${rejected.length} files`,
+      );
     }
+
+    try {
+      const toCreate = fulfilled.map((file) => ({
+        name: file.name,
+        path: file.path.split('/'),
+        id: file.meta?.id ?? makeId('FileId'),
+        bucket: this.bucketName,
+        storageProvider: PrismaStorageProviderEnum.SCALEWAY,
+      }));
+
+      await this.prisma.file.createMany({ data: toCreate });
+
+      return toCreate.map(({ id }) => id);
+    } catch (error) {
+      this.logger.warn(`SQL error, while creating files`, { error });
+
+      ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
+      throw new InternalServerErrorException(
+        `Failed uploading ${fulfilled.length} files`,
+      );
+    }
+  }
+
+  async create(files: readonly FondationFile[]): Promise<string[]> {
+    return this.openBatchStreamSession(async (h) => {
+      for (const { buffer, ...file } of files) {
+        await pipeline(Readable.from(buffer), h.streamTo(file));
+      }
+    });
   }
 
   /** this is a best effort request to delete the files */
@@ -285,9 +314,7 @@ export class Files implements OnApplicationBootstrap {
   }
 
   private async _delete(
-    files:
-      | readonly { id: string; path: readonly string[] }[]
-      | readonly string[],
+    files: readonly ({ id: string; path: readonly string[] } | string)[],
   ): Promise<void> {
     if (files.length === 0) return;
     try {
@@ -442,6 +469,36 @@ export class Files implements OnApplicationBootstrap {
         disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
       }),
     };
+  }
+
+  async getFile(props: {
+    fileId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Readable | null> {
+    if (!props.tx) {
+      return this.prisma.$transaction((tx) => this.getFile({ ...props, tx }));
+    }
+
+    const storedFile = await props.tx.file.findUnique({
+      where: { id: props.fileId },
+      select: { path: true },
+    });
+
+    if (!storedFile) return null;
+
+    const command = new GetObjectCommand({
+      ...this.sseHeaders,
+      Bucket: this.bucketName,
+      Key: encodeURI(storedFile.path.join('/')),
+    });
+
+    const response = await this.client.send(command);
+    if (!response.Body) throw new Error('Not Found');
+
+    return assertIsDefined(
+      response.Body as Readable | undefined,
+      `file ${props.fileId} not found`,
+    );
   }
 
   private async generatePublicUrl(file: {

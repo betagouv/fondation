@@ -392,7 +392,7 @@ export class DetailedReportDto extends createZodDto(
           id: z.string(),
           firstName: z.string(),
           lastName: z.string(),
-          usedName: z.string(),
+          usedName: z.string().nullable(),
         }),
       }),
     ),

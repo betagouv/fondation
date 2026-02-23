@@ -1,0 +1,85 @@
+enum PrismaJobStatusEnum {
+  IDLE
+  RUNNING
+  FAILED
+  SUCCEEDED
+  CANCELED
+
+  @@map("status_enum")
+  @@schema("jobs")
+}
+
+model IngestionJob {
+  id        Int                 @id @default(autoincrement()) @db.Integer
+  startedAt DateTime?           @map("started_at")
+  endedAt   DateTime?           @map("ended_at")
+  status    PrismaJobStatusEnum @default(IDLE)
+  metadata  Json?               @db.JsonB
+
+  files  IngestionJobFile[]
+  errors IngestionJobError[]
+
+  @@index([status, endedAt])
+  @@map("ingestion_job")
+  @@schema("jobs")
+}
+
+model IngestionJobError {
+  id    Int    @id @default(autoincrement()) @db.Integer
+  error String
+  jobId Int    @map("job_id") @db.Integer
+
+  job IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("ingestion_job_error")
+  @@schema("jobs")
+}
+
+model IngestionJobFile {
+  jobId      Int    @map("job_id") @db.Integer
+  fileId     String @map("file_id") @db.Uuid
+  fileSha256 String @map("file_sha256")
+
+  status    PrismaJobStatusEnum @default(IDLE)
+  startedAt DateTime?           @map("started_at")
+  endedAt   DateTime?           @map("ended_at")
+
+  job  IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  file File         @relation(fields: [fileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  requirements IngestionJobRequirement[] @relation("jobWithDependency")
+  isRequiredBy IngestionJobRequirement[] @relation("dependencyOfJob")
+  errors       IngestionJobFileError[]
+
+  @@id([jobId, fileId], name: "primaryKey")
+  @@map("ingestion_job_file")
+  @@schema("jobs")
+}
+
+model IngestionJobRequirement {
+  jobId          Int    @map("job_id") @db.Integer
+  jobFileId      String @map("job_file_id") @db.Uuid
+  requiredFileId String @map("required_file_id") @db.Uuid
+
+  job      IngestionJobFile @relation(fields: [jobId, jobFileId], references: [jobId, fileId], name: "jobWithDependency")
+  requires IngestionJobFile @relation(fields: [jobId, requiredFileId], references: [jobId, fileId], name: "dependencyOfJob")
+
+  @@id([jobId, jobFileId, requiredFileId], name: "primaryKey")
+  @@map("ingestion_job_requirement")
+  @@schema("jobs")
+}
+
+model IngestionJobFileError {
+  id     Int    @id @default(autoincrement()) @db.Integer
+  jobId  Int    @map("job_id") @db.Integer
+  fileId String @map("file_id") @db.Uuid
+
+  entityId     String? @map("entity_id")
+  entityNumber Int?    @map("entity_number")
+  error        String
+
+  jobFile IngestionJobFile @relation(fields: [jobId, fileId], references: [jobId, fileId])
+
+  @@map("ingestion_job_file_error")
+  @@schema("jobs")
+}

@@ -24,6 +24,7 @@ model Jurisdiction {
   ville           String?
 
   excludedByUserIds ExcludedJurisdiction[]
+  positions         Position[]
 
   @@map("jurisdictions")
   @@schema("data_administration_context")
@@ -68,5 +69,168 @@ model Transparence {
 
   @@unique([name, formation, date_transparence], map: "transparences_name_formation_date_transparence_unique")
   @@map("transparences")
+  @@schema("data_administration_context")
+}
+
+model JurisdictionType {
+  id    String @id @db.Char(4)
+  label String
+  sort  Int
+
+  positions Position[]
+
+  @@index([sort])
+  @@map("jurisdiction_type")
+  @@schema("data_administration_context")
+}
+
+model Grade {
+  grade       String  @id
+  label       String
+  sort        Int     @db.SmallInt
+  massGradeId String? @map("mass_grade_id")
+
+  massGrade Grade?  @relation(fields: [massGradeId], references: [grade], onDelete: SetNull, onUpdate: NoAction, name: "parentGrade")
+  grades    Grade[] @relation("parentGrade")
+
+  positions Position[]
+
+  @@index([sort])
+  @@map("grade")
+  @@schema("data_administration_context")
+}
+
+model Function {
+  id        String               @id
+  sort      Int                  @db.SmallInt
+  formation PrismaFormationEnum?
+  addition  String?
+
+  label              String
+  label_one_male     String?
+  label_one_female   String?
+  label_other_male   String?
+  label_other_female String?
+
+  positions Position[]
+
+  @@index([sort])
+  @@map("function")
+  @@schema("data_administration_context")
+}
+
+model AdministrativePosition {
+  id    String  @id
+  rate  Float
+  label String?
+
+  @@map("administrative_position")
+  @@schema("data_administration_context")
+}
+
+model Position {
+  id        Int     @id @db.Integer
+  profile   String?
+  profileId String? @map("profile_id")
+  bbis      Boolean @default(false)
+
+  gradeId            String  @map("grade_id")
+  functionId         String? @map("function_id")
+  jurisdictionId     String  @map("jurisdiction_id")
+  jurisdictionTypeId String  @map("jurisdiction_type_id")
+
+  grade            Grade            @relation(fields: [gradeId], references: [grade], onDelete: Cascade, onUpdate: Cascade)
+  function         Function?        @relation(fields: [functionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  jurisdictionType JurisdictionType @relation(fields: [jurisdictionTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  jurisdiction     Jurisdiction     @relation(fields: [jurisdictionId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
+
+  candidateWishes      CandidateWish[]
+  nominationsTargeting Nomination[]    @relation("targetPositionFk")
+  nominationsCurrent   Nomination[]    @relation("currentPositionFk")
+
+  @@map("position")
+  @@schema("data_administration_context")
+}
+
+model LolfiSession {
+  id        Int      @id @db.Integer
+  label     String?
+  createdAt DateTime @map("created_at") @db.Date
+
+  candidates  Candidate[]
+  nominations Nomination[]
+
+  @@map("session")
+  @@schema("data_administration_context")
+}
+
+model Candidate {
+  id                   Int     @id @db.Integer
+  magistratId          String  @map("magistrat_id")
+  isJoint              Boolean @default(false) @map("is_joint")
+  spouse               String?
+  comment              String?
+  adr1                 String?
+  adr2                 String?
+  postalCode           String? @map("postal_code")
+  city                 String?
+  phone                String?
+  mandate              String?
+  spouseMandate        String? @map("spouse_mandate")
+  spouseOccupation     String? @map("spouse_occupation")
+  articleL111          String? @map("article_l111")
+  observationSessionId Int?    @map("observation_session_id") @db.Integer
+
+  updatedAt DateTime? @map("updated_at") @db.Date
+
+  magistrat          Magistrat       @relation(fields: [magistratId], references: [externalId], onDelete: Cascade, onUpdate: NoAction)
+  observationSession LolfiSession?   @relation(fields: [observationSessionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  candidateWishes    CandidateWish[]
+
+  @@map("candidate")
+  @@schema("data_administration_context")
+}
+
+model CandidateWish {
+  id          Int      @id @db.Integer
+  candidateId Int      @map("candidate_id") @db.Integer
+  positionId  Int      @map("position_id") @db.Integer
+  createdAt   DateTime @map("created_at") @db.Date
+
+  candidat Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  position Position  @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("candidate_wish")
+  @@schema("data_administration_context")
+}
+
+enum PrismaNominationTypeEnum {
+  PROMOTION
+  EQUIVALENT
+
+  @@map("nomination_type_enum")
+  @@schema("data_administration_context")
+}
+
+model Nomination {
+  id                 Int                      @id @db.Integer
+  magistratId        String                   @map("magistrat_id")
+  sessionId          Int                      @map("session_id") @db.Integer
+  targetedPositionId Int                      @map("targeted_position_id") @db.Integer
+  currentPositionId  Int                      @map("current_position_id") @db.Integer
+  type               PrismaNominationTypeEnum @default(EQUIVALENT)
+  isDesignated       Boolean                  @default(false) @map("is_designated")
+  rank               Int                      @db.SmallInt
+  lastRankingDate    DateTime?                @map("last_ranking_date") @db.Date
+  lastPromotionYear  Int?                     @map("last_promotion_year")
+  positionSort       BigInt                   @map("position_sort")
+
+  magistrat        Magistrat    @relation(fields: [magistratId], references: [externalId], onDelete: Cascade, onUpdate: NoAction)
+  session          LolfiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetedPosition Position     @relation(fields: [targetedPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "targetPositionFk")
+  currentPosition  Position     @relation(fields: [currentPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "currentPositionFk")
+
+  @@index([positionSort])
+  @@map("nomination")
   @@schema("data_administration_context")
 }

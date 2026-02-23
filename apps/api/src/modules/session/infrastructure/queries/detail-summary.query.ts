@@ -258,7 +258,7 @@ export class DetailedSummaryDto extends createZodDto(
         magistrat: z.object({
           id: z.string(),
           firstName: z.string(),
-          usedName: z.string(),
+          usedName: z.string().nullable(),
           lastName: z.string(),
         }),
       }),
