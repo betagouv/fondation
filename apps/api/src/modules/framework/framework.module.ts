@@ -3,6 +3,7 @@ import { Global, Module } from '@nestjs/common';
 import { ClockModule } from './clock';
 import { ConfigModule } from './config';
 import { DatabaseModule } from './database';
+import { ExceptionModule } from './exception';
 import { FilesModule } from './files';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
@@ -14,9 +15,10 @@ import { ObservabilityModule } from './observability';
     ClockModule,
     ConfigModule,
     DatabaseModule,
+    ExceptionModule,
     FilesModule,
-    HttpModule.register(),
     HealthModule.register(),
+    HttpModule.register(),
     ObservabilityModule,
   ],
   exports: [

@@ -21,10 +21,11 @@
     "test:e2e": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-e2e.config.ts",
     "test:all": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-all.config.ts",
     "cli": "dotenvx run -- ts-node -r tsconfig-paths/register src/cli.ts",
-    "prisma": "prisma"
+    "prisma": "dotenvx run -- prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
+    "@aws-sdk/lib-storage": "^3.989.0",
     "@aws-sdk/s3-request-presigner": "^3.922.0",
     "@dotenvx/dotenvx": "1.51.1",
     "@nestjs/axios": "^4.0.1",
@@ -52,7 +53,9 @@
     "prisma": "^6.19.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "sax": "^1.4.4",
     "shared-models": "workspace:*",
+    "unzipper": "^0.12.3",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -69,7 +72,9 @@
     "@types/node": "^24.10.0",
     "@types/pdfkit": "^0.17.3",
     "@types/pg": "^8.11.10",
+    "@types/sax": "^1.2.7",
     "@types/supertest": "^6.0.3",
+    "@types/unzipper": "^0.10.11",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
     "concurrently": "^9.2.1",
