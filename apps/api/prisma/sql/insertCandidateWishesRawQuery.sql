@@ -18,6 +18,10 @@ gold_wish AS (
   INSERT INTO data_administration_context.candidate_wish (id, candidate_id, position_id, created_at)
   SELECT id, candidate_id, position_id, created_at
   FROM silver_wish
+  ON CONFLICT (id) DO UPDATE SET
+    candidate_id = EXCLUDED.candidate_id,
+    position_id = EXCLUDED.position_id,
+    created_at = EXCLUDED.created_at
 )
 
 SELECT

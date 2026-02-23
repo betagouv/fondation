@@ -37,6 +37,7 @@ model Magistrat {
 
   observations Observation[]
   candidacies  Candidate[]
+  nominations  Nomination[]
 
   @@index([lastName, firstName])
   @@index([usedName])

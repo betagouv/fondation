@@ -22,6 +22,7 @@ import { LolfiMagistratsIngestor } from './lolfi-magistrats.ingestor';
 import { LolfiPosadsIngestor } from './lolfi-posads.ingestor';
 import { LolfiPostesIngestor } from './lolfi-postes.ingestor';
 import { LolfiSessionsIngestor } from './lolfi-sessions.ingestor';
+import { LolfiTransparencesIngestor } from './lolfi-transparences.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
 
 @Injectable()
@@ -41,6 +42,7 @@ export class LolfiFilesIngestor {
     private readonly magistratIngestor: LolfiMagistratsIngestor,
     private readonly candidatesIngestor: LolfiCandidatsIngestor,
     private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
+    private readonly nominationsIngestor: LolfiTransparencesIngestor,
   ) {}
 
   async ingest(
@@ -224,6 +226,10 @@ export class LolfiFilesIngestor {
 
     if (this.magistratIngestor.handles(props.file)) {
       return this.magistratIngestor.ingest(props);
+    }
+
+    if (this.nominationsIngestor.handles(props.file)) {
+      return this.nominationsIngestor.ingest(props);
     }
 
     if (this.candidatesIngestor.handles(props.file)) {

@@ -143,17 +143,22 @@ model Position {
   function         Function?        @relation(fields: [functionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   jurisdictionType JurisdictionType @relation(fields: [jurisdictionTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   jurisdiction     Jurisdiction     @relation(fields: [jurisdictionId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
-  candidateWishes  CandidateWish[]
+
+  candidateWishes      CandidateWish[]
+  nominationsTargeting Nomination[]    @relation("targetPositionFk")
+  nominationsCurrent   Nomination[]    @relation("currentPositionFk")
 
   @@map("position")
   @@schema("data_administration_context")
 }
 
 model LolfiSession {
-  id         Int         @id @db.Integer
-  label      String?
-  createdAt  DateTime    @map("created_at") @db.Date
-  candidates Candidate[]
+  id        Int      @id @db.Integer
+  label     String?
+  createdAt DateTime @map("created_at") @db.Date
+
+  candidates  Candidate[]
+  nominations Nomination[]
 
   @@map("session")
   @@schema("data_administration_context")
@@ -196,5 +201,36 @@ model CandidateWish {
   position Position  @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@map("candidate_wish")
+  @@schema("data_administration_context")
+}
+
+enum PrismaNominationTypeEnum {
+  PROMOTION
+  EQUIVALENT
+
+  @@map("nomination_type_enum")
+  @@schema("data_administration_context")
+}
+
+model Nomination {
+  id                 Int                      @id @db.Integer
+  magistratId        String                   @map("magistrat_id")
+  sessionId          Int                      @map("session_id") @db.Integer
+  targetedPositionId Int                      @map("targeted_position_id") @db.Integer
+  currentPositionId  Int                      @map("current_position_id") @db.Integer
+  type               PrismaNominationTypeEnum @default(EQUIVALENT)
+  isDesignated       Boolean                  @default(false) @map("is_designated")
+  rank               Int                      @db.SmallInt
+  lastRankingDate    DateTime?                @map("last_ranking_date") @db.Date
+  lastPromotionYear  Int?                     @map("last_promotion_year")
+  positionSort       BigInt                   @map("position_sort")
+
+  magistrat        Magistrat    @relation(fields: [magistratId], references: [externalId], onDelete: Cascade, onUpdate: NoAction)
+  session          LolfiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetedPosition Position     @relation(fields: [targetedPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "targetPositionFk")
+  currentPosition  Position     @relation(fields: [currentPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "currentPositionFk")
+
+  @@index([positionSort])
+  @@map("nomination")
   @@schema("data_administration_context")
 }

@@ -4,6 +4,9 @@ BEGIN;
 CREATE SCHEMA IF NOT EXISTS "jobs";
 
 -- CreateEnum
+CREATE TYPE "data_administration_context"."nomination_type_enum" AS ENUM ('PROMOTION', 'EQUIVALENT');
+
+-- CreateEnum
 CREATE TYPE "jobs"."status_enum" AS ENUM ('IDLE', 'RUNNING', 'FAILED', 'SUCCEEDED');
 
 -- CreateTable
@@ -105,6 +108,23 @@ CREATE TABLE "data_administration_context"."candidate_wish" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."nomination" (
+    "id" INTEGER NOT NULL,
+    "magistrat_id" TEXT NOT NULL,
+    "session_id" INTEGER NOT NULL,
+    "targeted_position_id" INTEGER NOT NULL,
+    "current_position_id" INTEGER NOT NULL,
+    "type" "data_administration_context"."nomination_type_enum" NOT NULL DEFAULT 'EQUIVALENT',
+    "is_designated" BOOLEAN NOT NULL DEFAULT false,
+    "rank" SMALLINT NOT NULL,
+    "last_ranking_date" DATE,
+    "last_promotion_year" INTEGER,
+    "position_sort" BIGINT NOT NULL,
+
+    CONSTRAINT "nomination_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
@@ -169,6 +189,9 @@ CREATE INDEX "function_sort_idx" ON "data_administration_context"."function"("so
 CREATE INDEX "grade_sort_idx" ON "data_administration_context"."grade"("sort");
 
 -- CreateIndex
+CREATE INDEX "nomination_position_sort_idx" ON "data_administration_context"."nomination"("position_sort");
+
+-- CreateIndex
 CREATE INDEX "ingestion_job_status_ended_at_idx" ON "jobs"."ingestion_job"("status", "ended_at");
 
 -- AddForeignKey
@@ -197,6 +220,18 @@ ALTER TABLE "data_administration_context"."candidate_wish" ADD CONSTRAINT "candi
 
 -- AddForeignKey
 ALTER TABLE "data_administration_context"."candidate_wish" ADD CONSTRAINT "candidate_wish_position_id_fkey" FOREIGN KEY ("position_id") REFERENCES "data_administration_context"."position"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."nomination" ADD CONSTRAINT "nomination_magistrat_id_fkey" FOREIGN KEY ("magistrat_id") REFERENCES "nominations_context"."magistrat"("external_id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."nomination" ADD CONSTRAINT "nomination_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "data_administration_context"."session"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."nomination" ADD CONSTRAINT "nomination_targeted_position_id_fkey" FOREIGN KEY ("targeted_position_id") REFERENCES "data_administration_context"."position"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."nomination" ADD CONSTRAINT "nomination_current_position_id_fkey" FOREIGN KEY ("current_position_id") REFERENCES "data_administration_context"."position"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_error" ADD CONSTRAINT "ingestion_job_error_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "jobs"."ingestion_job"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
