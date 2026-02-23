@@ -73,6 +73,38 @@ CREATE TABLE "data_administration_context"."session" (
 );
 
 -- CreateTable
+CREATE TABLE "data_administration_context"."candidate" (
+    "id" INTEGER NOT NULL,
+    "magistrat_id" TEXT NOT NULL,
+    "is_joint" BOOLEAN NOT NULL DEFAULT false,
+    "spouse" TEXT,
+    "comment" TEXT,
+    "adr1" TEXT,
+    "adr2" TEXT,
+    "postal_code" TEXT,
+    "city" TEXT,
+    "phone" TEXT,
+    "mandate" TEXT,
+    "spouse_mandate" TEXT,
+    "spouse_occupation" TEXT,
+    "article_l111" TEXT,
+    "observation_session_id" INTEGER,
+    "updated_at" DATE,
+
+    CONSTRAINT "candidate_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "data_administration_context"."candidate_wish" (
+    "id" INTEGER NOT NULL,
+    "candidate_id" INTEGER NOT NULL,
+    "position_id" INTEGER NOT NULL,
+    "created_at" DATE NOT NULL,
+
+    CONSTRAINT "candidate_wish_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "jobs"."ingestion_job" (
     "id" SERIAL NOT NULL,
     "started_at" TIMESTAMP(3),
@@ -124,28 +156,6 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
     CONSTRAINT "ingestion_job_file_error_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "data_administration_context"."candidate" (
-    "id" INTEGER NOT NULL,
-    "magistrat_id" TEXT NOT NULL,
-    "is_joint" BOOLEAN NOT NULL DEFAULT false,
-    "spouse" TEXT,
-    "comment" TEXT,
-    "adr1" TEXT,
-    "adr2" TEXT,
-    "postal_code" TEXT,
-    "city" TEXT,
-    "phone" TEXT,
-    "mandate" TEXT,
-    "spouse_mandate" TEXT,
-    "spouse_occupation" TEXT,
-    "article_l111" TEXT,
-    "observation_session_id" INTEGER,
-    "updated_at" DATE,
-
-    CONSTRAINT "candidate_pkey" PRIMARY KEY ("id")
-);
-
 ALTER TABLE "nominations_context"."magistrat" ALTER COLUMN "used_name" DROP NOT NULL;
 
 -- CreateIndex
@@ -180,6 +190,12 @@ ALTER TABLE "data_administration_context"."candidate" ADD CONSTRAINT "candidate_
 
 -- AddForeignKey
 ALTER TABLE "data_administration_context"."candidate" ADD CONSTRAINT "candidate_observation_session_id_fkey" FOREIGN KEY ("observation_session_id") REFERENCES "data_administration_context"."session"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."candidate_wish" ADD CONSTRAINT "candidate_wish_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "data_administration_context"."candidate"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."candidate_wish" ADD CONSTRAINT "candidate_wish_position_id_fkey" FOREIGN KEY ("position_id") REFERENCES "data_administration_context"."position"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_error" ADD CONSTRAINT "ingestion_job_error_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "jobs"."ingestion_job"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

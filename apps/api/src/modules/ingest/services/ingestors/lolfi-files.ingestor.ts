@@ -14,6 +14,7 @@ import { isDefined } from 'src/utils/is-defined';
 import { dag } from '../../domain/requirements';
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
+import { LolfiDesiderataIngestor } from './lolfi-desiderata.ingestor';
 import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
@@ -39,6 +40,7 @@ export class LolfiFilesIngestor {
     private readonly sessionsIngestor: LolfiSessionsIngestor,
     private readonly magistratIngestor: LolfiMagistratsIngestor,
     private readonly candidatesIngestor: LolfiCandidatsIngestor,
+    private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
   ) {}
 
   async ingest(
@@ -139,9 +141,9 @@ export class LolfiFilesIngestor {
           },
         });
 
-        return [lastSucceededJob, currentJob];
+        return [lastSucceededJob, currentJob] as const;
       })
-      .catch((e) => {
+      .catch((e): never => {
         if (
           e instanceof Prisma.PrismaClientKnownRequestError &&
           e.code === 'P2025'
@@ -226,6 +228,10 @@ export class LolfiFilesIngestor {
 
     if (this.candidatesIngestor.handles(props.file)) {
       return this.candidatesIngestor.ingest(props);
+    }
+
+    if (this.candidateWishesIngestor.handles(props.file)) {
+      return this.candidateWishesIngestor.ingest(props);
     }
 
     return Promise.resolve({ success: true });
