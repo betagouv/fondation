@@ -77,7 +77,7 @@ export class JobFileIngestor {
       const fileContent$ = assertIsDefined(fileContentResult.fileContent);
       const result = new ResultBuilder<
         T,
-        { num: string | undefined; error: z.ZodError }
+        { num: number | undefined; error: z.ZodError }
       >();
 
       start = performance.now();
@@ -99,7 +99,7 @@ export class JobFileIngestor {
 
             if (!parseResult.success) {
               const num = item.attributes['num'];
-              result.fail({ num, error: parseResult.error });
+              result.fail({ num: Number(num), error: parseResult.error });
             } else {
               yield {
                 success: result.success,
@@ -118,7 +118,7 @@ export class JobFileIngestor {
           file,
           jobId: job.id,
           errors: result.errors.map((error) => ({
-            entityId: error.num,
+            entityNumber: error.num,
             error: z.prettifyError(error.error),
           })),
         });
@@ -173,7 +173,7 @@ export class JobFileIngestor {
   }
 
   private async failJobFile(context: {
-    errors: { entityId?: string; error: string }[];
+    errors: { entityNumber?: number; error: string }[];
     jobId: number;
     file: { id: string; name: string };
     tx?: Prisma.TransactionClient;
@@ -196,7 +196,7 @@ export class JobFileIngestor {
           errors: {
             createMany: {
               data: context.errors.map((error) => ({
-                entityId: error.entityId,
+                entityNumber: error.entityNumber,
                 error: error.error,
               })),
             },

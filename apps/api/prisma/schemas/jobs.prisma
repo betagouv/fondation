@@ -74,8 +74,9 @@ model IngestionJobFileError {
   jobId  Int    @map("job_id") @db.Integer
   fileId String @map("file_id") @db.Uuid
 
-  entityId String? @map("entity_id")
-  error    String
+  entityId     String? @map("entity_id")
+  entityNumber Int?    @map("entity_number")
+  error        String
 
   jobFile IngestionJobFile @relation(fields: [jobId, fileId], references: [jobId, fileId])
 

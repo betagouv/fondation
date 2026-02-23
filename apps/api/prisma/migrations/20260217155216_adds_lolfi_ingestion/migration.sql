@@ -151,6 +151,7 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
     "job_id" INTEGER NOT NULL,
     "file_id" UUID NOT NULL,
     "entity_id" TEXT,
+    "entity_number" INTEGER,
     "error" TEXT NOT NULL,
 
     CONSTRAINT "ingestion_job_file_error_pkey" PRIMARY KEY ("id")
