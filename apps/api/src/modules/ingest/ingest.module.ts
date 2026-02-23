@@ -3,6 +3,7 @@ import { IngestController } from './infrastructure/ingest.controller';
 import { IngestService } from './infrastructure/ingest.service';
 import { JobsModule } from './jobs/jobs.module';
 import { JobFileIngestor } from './services/ingestors/job-file-ingestor';
+import { LolfiCandidatsIngestor } from './services/ingestors/lolfi-candidats.ingestor';
 import { LolfiFilesIngestor } from './services/ingestors/lolfi-files.ingestor';
 import { LolfiFonctionsIngestor } from './services/ingestors/lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './services/ingestors/lolfi-grades.ingestor';
@@ -31,6 +32,7 @@ import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
     LolfiPostesIngestor,
     LolfiSessionsIngestor,
     LolfiMagistratsIngestor,
+    LolfiCandidatsIngestor,
   ],
 })
 export class IngestModule {}

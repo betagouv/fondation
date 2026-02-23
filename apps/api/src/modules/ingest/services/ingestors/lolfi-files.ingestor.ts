@@ -13,6 +13,7 @@ import { isDefined } from 'src/utils/is-defined';
 
 import { dag } from '../../domain/requirements';
 import { LolfiJob } from '../lolfi-job.type';
+import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
 import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
 import { LolfiGradesIngestor } from './lolfi-grades.ingestor';
 import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
@@ -37,6 +38,7 @@ export class LolfiFilesIngestor {
     private readonly positionsIngestor: LolfiPostesIngestor,
     private readonly sessionsIngestor: LolfiSessionsIngestor,
     private readonly magistratIngestor: LolfiMagistratsIngestor,
+    private readonly candidatesIngestor: LolfiCandidatsIngestor,
   ) {}
 
   async ingest(
@@ -53,21 +55,9 @@ export class LolfiFilesIngestor {
 
       return { success };
     } catch (e) {
-      /** @see https://docs.prisma.io/docs/orm/reference/prisma-client-reference#return-type-4 */
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        this.logger.error(
-          `Could not find job #${jobId}: ${inspect(e)}`,
-          e.stack,
-          { error: e },
-        );
-
-        throw new NotFoundException(undefined, { cause: e });
+      if (e instanceof ConflictException || e instanceof NotFoundException) {
+        throw e;
       }
-
-      if (e instanceof ConflictException) throw e;
 
       await this.failJob(jobId, e);
       return { success: false };
@@ -84,11 +74,7 @@ export class LolfiFilesIngestor {
         },
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed succeeding job #${jobId}: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed succeeding job #${jobId}`, error);
       });
   }
 
@@ -103,11 +89,7 @@ export class LolfiFilesIngestor {
         },
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed failing job #${jobId}: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed failing job #${jobId}`, error);
       });
   }
 
@@ -115,8 +97,8 @@ export class LolfiFilesIngestor {
     jobId: number,
     signal: AbortSignal,
   ): Promise<{ success: boolean }> {
-    const [lastSucceededJob, currentJob] = await this.prisma.$transaction(
-      async (tx) => {
+    const [lastSucceededJob, currentJob] = await this.prisma
+      .$transaction(async (tx) => {
         const runningJob = await tx.ingestionJob.findFirst({
           where: { status: 'RUNNING' },
           select: { id: true },
@@ -158,8 +140,17 @@ export class LolfiFilesIngestor {
         });
 
         return [lastSucceededJob, currentJob];
-      },
-    );
+      })
+      .catch((e) => {
+        if (
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === 'P2025'
+        ) {
+          throw new NotFoundException(undefined, { cause: e });
+        }
+
+        throw e;
+      });
 
     const lastHashByName = new Map<string, string>(
       (lastSucceededJob?.files ?? []).map(({ file, fileSha256 }) => [
@@ -233,6 +224,10 @@ export class LolfiFilesIngestor {
       return this.magistratIngestor.ingest(props);
     }
 
+    if (this.candidatesIngestor.handles(props.file)) {
+      return this.candidatesIngestor.ingest(props);
+    }
+
     return Promise.resolve({ success: true });
   }
 
@@ -253,11 +248,7 @@ export class LolfiFilesIngestor {
         });
       })
       .catch((e) => {
-        this.logger.error(
-          `Failed to write job as canceled: ${inspect(e)}`,
-          e instanceof Error ? e.stack : undefined,
-          { error: e },
-        );
+        this.logger.error(`Failed to write job as canceled`, e);
       });
   }
 }

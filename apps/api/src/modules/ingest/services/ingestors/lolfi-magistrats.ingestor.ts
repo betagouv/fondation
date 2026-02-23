@@ -1,11 +1,11 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { insertMagistratRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
+import { RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiMagistratsIngestor {
@@ -34,14 +34,12 @@ export class LolfiMagistratsIngestor {
       const accumulator: RawMagistrat[] = [];
       const ids = new Set<number>();
 
-      for await (const { data, success } of source) {
-        if (!success) continue;
-
+      for await (const { data } of source) {
         if (ids.has(data.id)) {
           self.logger.warn(`Magistrat "${data.id}" is duplicated. Ignored`);
           errors.push({
             entityId: String(data.id),
-            error: `Magistrat "${data.id}" dupliqué. La seconde occurrence est ignorée`,
+            error: `Magistrat "${data.id}" dupliqué. La première occurrence est la seule sauvegardée`,
           });
           continue;
         }
@@ -69,6 +67,8 @@ export class LolfiMagistratsIngestor {
           result: mappingResult,
         });
       }
+
+      ids.clear();
     }
 
     const { success } = await this.ingestor.ingest({
@@ -106,11 +106,13 @@ export class LolfiMagistratsIngestor {
                   ? `Grade "${u.unknownGrade}" inconnu`
                   : u.unknownPositionId !== null
                     ? `Poste "${u.unknownPositionId}" inconnu`
-                    : u.unknownPauseId
-                      ? `POSAD "${u.unknownPauseId}" inconnue`
-                      : u.unknownPrevPauseId
-                        ? `POSAD précédente "${u.unknownPrevPauseId}" inconnue`
-                        : null;
+                    : u.unknownAdminPosition !== null
+                      ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
+                      : u.unknownPrevAdminPosition !== null
+                        ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
+                        : u.unknownPrevAdminPosition2 !== null
+                          ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
+                          : null;
 
               if (!error) continue;
 
@@ -138,11 +140,7 @@ export class LolfiMagistratsIngestor {
         }
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing MAGISTRATS.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing MAGISTRATS.xml chunk`, error);
         props.result.success = false;
       })
       .finally(() => {
@@ -152,25 +150,13 @@ export class LolfiMagistratsIngestor {
   }
 }
 
-const RawLolfiDate = z
-  .string()
-  .trim()
-  .regex(/\d\d\/\d\d\/\d{4}/, {
-    error: ({ input }) => `DD/MM/YYYY attendu vs. "${input}"`,
-  })
-  .transform((x) => {
-    const [date, month, year] = x.split('/');
-    return new Date(`${year}-${month}-${date}`);
-  })
-  .pipe(z.date());
-
 const RawMagistratSchema = z.object({
   id: z.coerce.number().int().gte(1),
   civilite: z.string(),
   nom: z.string().trim().nonempty(),
   prenom: z.string().trim().nonempty(),
   nom_marital: z.string().trim().nonempty().nullable(),
-  nom_usage: z.string().trim().nonempty().nullable(),
+  nom_usage: z.string().trim().nonempty().nullable().catch(null),
   sit_fam: z.string().trim().nonempty().nullable(),
   email_pro: z.string().trim().nonempty().nullable(),
   date_naiss: RawLolfiDate.nullable(),
@@ -195,9 +181,9 @@ const RawMagistratSchema = z.object({
   date_posad_prev_fin: z
     .string()
     .trim()
-    .nonempty()
+    /** @warning this is NOT a RawLolfiDate */
     .regex(/\d\d\/\d\d\/\d\d/, {
-      error: ({ input }) => `DD/MM/YY vs. "${input}"`,
+      error: ({ input }) => `DD/MM/YY attendu vs. "${input}"`,
     })
     .transform((x) => {
       const [date, month, year] = x.split('/');

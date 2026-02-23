@@ -164,7 +164,8 @@ export class JobFileIngestor {
         () => ({ success: true }),
         (error) => {
           this.logger.error(
-            `Failed succeeding job #${context.jobId} ${context.file.name}: ${inspect(error)}`,
+            `Failed succeeding job #${context.jobId} ${context.file.name}`,
+            error,
           );
           return { success: false };
         },
@@ -204,7 +205,8 @@ export class JobFileIngestor {
       })
       .catch((error) => {
         this.logger.error(
-          `Failed failing job #${context.jobId} ${context.file.name}: ${inspect(error)}`,
+          `Failed failing job #${context.jobId} ${context.file.name}`,
+          error,
         );
       });
 

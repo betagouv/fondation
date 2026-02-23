@@ -119,12 +119,12 @@ model Function {
   @@schema("data_administration_context")
 }
 
-model Pause {
+model AdministrativePosition {
   id    String  @id
   rate  Float
   label String?
 
-  @@map("pause")
+  @@map("administrative_position")
   @@schema("data_administration_context")
 }
 
@@ -149,10 +149,37 @@ model Position {
 }
 
 model LolfiSession {
-  id        Int      @id @db.Integer
-  label     String?
-  createdAt DateTime @map("created_at") @db.Date
+  id         Int         @id @db.Integer
+  label      String?
+  createdAt  DateTime    @map("created_at") @db.Date
+  candidates Candidate[]
 
   @@map("session")
+  @@schema("data_administration_context")
+}
+
+model Candidate {
+  id                   Int     @id @db.Integer
+  magistratId          String  @map("magistrat_id")
+  isJoint              Boolean @default(false) @map("is_joint")
+  spouse               String?
+  comment              String?
+  adr1                 String?
+  adr2                 String?
+  postalCode           String? @map("postal_code")
+  city                 String?
+  phone                String?
+  mandate              String?
+  spouseMandate        String? @map("spouse_mandate")
+  spouseOccupation     String? @map("spouse_occupation")
+  articleL111          String? @map("article_l111")
+  observationSessionId Int?    @map("observation_session_id") @db.Integer
+
+  updatedAt DateTime? @map("updated_at") @db.Date
+
+  magistrat          Magistrat     @relation(fields: [magistratId], references: [externalId], onDelete: Cascade, onUpdate: NoAction)
+  observationSession LolfiSession? @relation(fields: [observationSessionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@map("candidate")
   @@schema("data_administration_context")
 }

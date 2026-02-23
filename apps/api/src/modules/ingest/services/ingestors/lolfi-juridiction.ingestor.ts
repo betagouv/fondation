@@ -1,11 +1,11 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { insertJurisdictionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
+import { RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiJuridictionIngestor {
@@ -90,11 +90,7 @@ export class LolfiJuridictionIngestor {
         });
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing JURIDICTION.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing JURIDICTION.xml chunk`, error);
         props.result.success = false;
       })
       .finally(() => {
@@ -110,14 +106,7 @@ const RawJurisdictionSchema = z.object({
   adr2: z.string().trim().nonempty().nullable(),
   arrondissement: z.string().trim().nonempty().nullable(),
   codepos: z.string().trim().nonempty().nullable(),
-  date_suppression: z
-    .string()
-    .regex(/\d\d\/\d\d\/\d{4}/)
-    .transform((x) => {
-      const [date, month, year] = x.split('/');
-      return new Date(`${year}-${month}-${date}`);
-    })
-    .nullable(),
+  date_suppression: RawLolfiDate,
   libelle: z.string().trim().nonempty().nullable(),
   ressort: z.string().trim().nonempty().nullable(),
   ville_jur: z.string().trim().nonempty().nullable(),

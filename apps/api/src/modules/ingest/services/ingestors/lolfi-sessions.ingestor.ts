@@ -1,11 +1,11 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
+import { RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiSessionsIngestor {
@@ -72,11 +72,7 @@ export class LolfiSessionsIngestor {
     return this.prisma
       .$queryRawTyped(insertLolfiSessionRawQuery(props.items))
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing SESSIONS.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
         props.result.success = false;
       });
   }
@@ -85,14 +81,7 @@ export class LolfiSessionsIngestor {
 const RawSessionSchema = z.object({
   num_session: z.coerce.number().int().gte(0).lte(2_147_483_647),
   libelle: z.string().trim().nonempty().nullable(),
-  date_publication: z
-    .string()
-    .regex(/\d\d\/\d\d\/\d{4}/)
-    .transform((x) => {
-      const [date, month, year] = x.split('/');
-      return new Date(`${year}-${month}-${date}`);
-    })
-    .pipe(z.date()),
+  date_publication: RawLolfiDate,
 });
 
 type RawSession = z.infer<typeof RawSessionSchema>;

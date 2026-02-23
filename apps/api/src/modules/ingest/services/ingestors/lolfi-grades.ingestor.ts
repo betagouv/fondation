@@ -1,7 +1,6 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { insertGradesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
@@ -103,11 +102,7 @@ export class LolfiGradesIngestor {
         });
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing GRADES.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing GRADES.xml chunk`, error);
         props.result.success = false;
       });
   }

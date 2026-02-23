@@ -1,8 +1,7 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
-import { insertPausesRawQuery } from 'src/generated/prisma/sql';
+import { insertAdministrativePositionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
@@ -71,13 +70,9 @@ export class LolfiPosadsIngestor {
     result: { success: boolean };
   }) {
     return this.prisma
-      .$queryRawTyped(insertPausesRawQuery(props.items))
+      .$queryRawTyped(insertAdministrativePositionsRawQuery(props.items))
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing POSADS.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing POSADS.xml chunk`, error);
         props.result.success = false;
       });
   }

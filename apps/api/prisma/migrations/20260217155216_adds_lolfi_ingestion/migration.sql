@@ -41,12 +41,12 @@ CREATE TABLE "data_administration_context"."function" (
 );
 
 -- CreateTable
-CREATE TABLE "data_administration_context"."pause" (
+CREATE TABLE "data_administration_context"."administrative_position" (
     "id" TEXT NOT NULL,
     "rate" DOUBLE PRECISION NOT NULL,
     "label" TEXT,
 
-    CONSTRAINT "pause_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "administrative_position_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -124,6 +124,30 @@ CREATE TABLE "jobs"."ingestion_job_file_error" (
     CONSTRAINT "ingestion_job_file_error_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "data_administration_context"."candidate" (
+    "id" INTEGER NOT NULL,
+    "magistrat_id" TEXT NOT NULL,
+    "is_joint" BOOLEAN NOT NULL DEFAULT false,
+    "spouse" TEXT,
+    "comment" TEXT,
+    "adr1" TEXT,
+    "adr2" TEXT,
+    "postal_code" TEXT,
+    "city" TEXT,
+    "phone" TEXT,
+    "mandate" TEXT,
+    "spouse_mandate" TEXT,
+    "spouse_occupation" TEXT,
+    "article_l111" TEXT,
+    "observation_session_id" INTEGER,
+    "updated_at" DATE,
+
+    CONSTRAINT "candidate_pkey" PRIMARY KEY ("id")
+);
+
+ALTER TABLE "nominations_context"."magistrat" ALTER COLUMN "used_name" DROP NOT NULL;
+
 -- CreateIndex
 CREATE INDEX "jurisdiction_type_sort_idx" ON "data_administration_context"."jurisdiction_type"("sort");
 
@@ -150,6 +174,12 @@ ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_ju
 
 -- AddForeignKey
 ALTER TABLE "data_administration_context"."position" ADD CONSTRAINT "position_jurisdiction_id_fkey" FOREIGN KEY ("jurisdiction_id") REFERENCES "data_administration_context"."jurisdictions"("codejur") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."candidate" ADD CONSTRAINT "candidate_magistrat_id_fkey" FOREIGN KEY ("magistrat_id") REFERENCES "nominations_context"."magistrat"("external_id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "data_administration_context"."candidate" ADD CONSTRAINT "candidate_observation_session_id_fkey" FOREIGN KEY ("observation_session_id") REFERENCES "data_administration_context"."session"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "jobs"."ingestion_job_error" ADD CONSTRAINT "ingestion_job_error_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "jobs"."ingestion_job"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

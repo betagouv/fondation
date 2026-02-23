@@ -1,7 +1,6 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { Magistrat } from 'shared-models';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
@@ -67,11 +66,7 @@ export class LolfiFonctionsIngestor {
     return this.prisma
       .$queryRawTyped(insertFunctionsRawQuery(props.items))
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing FONCTIONS.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
         props.result.success = false;
       });
   }

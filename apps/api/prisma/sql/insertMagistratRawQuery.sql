@@ -6,8 +6,7 @@ WITH bronze_magistrat AS (
     (m ->> 'date_nomination')::DATE AS nomination_date,
     (m ->> 'date_posad_prev')::DATE AS admin_position_prev_start,
     (m ->> 'date_posad_prev_fin')::DATE AS admin_position_prev_end,
-    (m ->> 'date_posad_prev2')::DATE AS admin_position_prev2,
-    (m ->> 'date_posad_prev2_fin')::DATE AS admin_position_prev2_date,
+    (m ->> 'date_posad_prev2')::DATE AS admin_position_prev2_date,
     (m ->> 'date_modification')::DATE AS lolfi_updated_at,
     (m ->> 'tableau')::INT AS advancement_year,
     m ->> 'id' AS external_id,
@@ -24,7 +23,8 @@ WITH bronze_magistrat AS (
     m ->> 'num_emploi_cible' AS current_position_id,
     m ->> 'historique' AS career_history,
     m ->> 'posad' AS admin_position,
-    m ->> 'posad_prev' AS admin_position_prev
+    m ->> 'posad_prev' AS admin_position_prev,
+    m ->> 'posad_prev2' AS admin_position_prev2
   FROM UNNEST($1::JSONB[]) AS m
 ),
 
@@ -33,8 +33,7 @@ silver_magistrat AS (
   FROM bronze_magistrat AS bm
     INNER JOIN data_administration_context.grade AS g ON g.grade = bm.grade
     INNER JOIN data_administration_context."position" AS p ON p.id = bm.current_position_id::INT
-    INNER JOIN data_administration_context.pause AS pause ON pause.id = bm.admin_position
-    INNER JOIN data_administration_context.pause AS pause_prev ON pause_prev.id = bm.admin_position_prev
+    INNER JOIN data_administration_context.administrative_position AS ap ON ap.id = bm.admin_position
 ),
 
 gold_magistrats AS (
@@ -46,7 +45,6 @@ gold_magistrats AS (
     advancement_year,
     admin_position_prev_start,
     admin_position_prev_end,
-    admin_position_prev2,
     admin_position_prev2_date,
     lolfi_updated_at,
     external_id,
@@ -64,6 +62,7 @@ gold_magistrats AS (
     career_history,
     admin_position,
     admin_position_prev,
+    admin_position_prev2,
     created_at,
     updated_at
   )
@@ -75,7 +74,6 @@ gold_magistrats AS (
     advancement_year,
     admin_position_prev_start,
     admin_position_prev_end,
-    admin_position_prev2,
     admin_position_prev2_date,
     lolfi_updated_at,
     external_id,
@@ -93,6 +91,7 @@ gold_magistrats AS (
     career_history,
     admin_position,
     admin_position_prev,
+    admin_position_prev2,
     CURRENT_TIMESTAMP AS created_at,
     CURRENT_TIMESTAMP AS updated_at
   FROM silver_magistrat
@@ -105,7 +104,6 @@ gold_magistrats AS (
     advancement_year = EXCLUDED.advancement_year,
     admin_position_prev_start = EXCLUDED.admin_position_prev_start,
     admin_position_prev_end = EXCLUDED.admin_position_prev_end,
-    admin_position_prev2 = EXCLUDED.admin_position_prev2,
     admin_position_prev2_date = EXCLUDED.admin_position_prev2_date,
     lolfi_updated_at = EXCLUDED.lolfi_updated_at,
     civilite = EXCLUDED.civilite,
@@ -122,50 +120,27 @@ gold_magistrats AS (
     career_history = EXCLUDED.career_history,
     admin_position = EXCLUDED.admin_position,
     admin_position_prev = EXCLUDED.admin_position_prev,
+    admin_position_prev2 = EXCLUDED.admin_position_prev2,
     updated_at = CURRENT_TIMESTAMP
 )
 
 SELECT
   bm.external_id AS "id",
-  bm.grade AS "unknownGrade",
-  NULL AS "unknownPositionId",
-  NULL AS "unknownPauseId",
-  NULL AS "unknownPrevPauseId"
+  err.*
 FROM bronze_magistrat AS bm
-  LEFT JOIN data_administration_context.grade AS g ON g.grade = bm.grade
-WHERE g.grade IS NULL
-
-UNION
-
-SELECT
-  bm.external_id AS "id",
-  NULL AS "unknownGrade",
-  bm.current_position_id AS "unknownPositionId",
-  NULL AS "unknownPauseId",
-  NULL AS "unknownPrevPauseId"
-FROM bronze_magistrat AS bm
-  LEFT JOIN data_administration_context."position" AS p ON p.id = bm.current_position_id::INT
-WHERE p.id IS NULL
-
-UNION
-SELECT
-  bm.external_id AS "id",
-  NULL AS "unknownGrade",
-  NULL AS "unknownPositionId",
-  bm.admin_position AS "unknownPauseId",
-  NULL AS "unknownPrevPauseId"
-FROM bronze_magistrat AS bm
-  LEFT JOIN data_administration_context.pause AS pause ON pause.id = bm.admin_position
-WHERE pause.id IS NULL
-
-UNION
-
-SELECT
-  bm.external_id AS "id",
-  NULL AS "unknownGrade",
-  NULL AS "unknownPositionId",
-  NULL AS "unknownPauseId",
-  bm.admin_position_prev AS "unknownPrevPauseId"
-FROM bronze_magistrat AS bm
-  LEFT JOIN data_administration_context.pause AS pause_prev ON pause_prev.id = bm.admin_position_prev
-WHERE pause_prev.id IS NULL;
+LEFT JOIN data_administration_context.grade AS g ON g.grade = bm.grade
+LEFT JOIN data_administration_context."position" AS p ON p.id = bm.current_position_id::INT
+LEFT JOIN data_administration_context.administrative_position AS ap1 ON ap1.id = bm.admin_position
+LEFT JOIN data_administration_context.administrative_position AS ap2 ON ap2.id = bm.admin_position_prev
+LEFT JOIN data_administration_context.administrative_position AS ap3 ON ap3.id = bm.admin_position_prev2
+CROSS JOIN LATERAL (
+  SELECT bm.grade, NULL, NULL, NULL, NULL WHERE g.grade IS NULL
+  UNION ALL
+  SELECT NULL, bm.current_position_id, NULL, NULL, NULL WHERE p.id IS NULL
+  UNION ALL
+  SELECT NULL, NULL, bm.admin_position, NULL, NULL WHERE ap1.id IS NULL
+  UNION ALL
+  SELECT NULL, NULL, NULL, bm.admin_position_prev, NULL WHERE ap2.id IS NULL
+  UNION ALL
+  SELECT NULL, NULL, NULL, NULL, bm.admin_position_prev2 WHERE ap3.id IS NULL
+) AS err("unknownGrade", "unknownPositionId", "unknownAdminPosition", "unknownPrevAdminPosition", "unknownPrevAdminPosition2");

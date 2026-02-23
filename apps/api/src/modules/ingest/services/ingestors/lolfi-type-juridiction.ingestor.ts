@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import z from 'zod';
 
 import { insertJurisdictionTypesRawQuery } from 'src/generated/prisma/sql';
@@ -64,11 +63,7 @@ export class LolfiTypeJuridictionIngestor {
       .then(
         () => ({ success: true }),
         (error) => {
-          this.logger.error(
-            `Failed flushing TYPE_JURIDICTION.xml: ${inspect(error)}`,
-            error instanceof Error ? error.stack : undefined,
-            { error },
-          );
+          this.logger.error(`Failed flushing TYPE_JURIDICTION.xml`, error);
           props.result.success = false;
         },
       )

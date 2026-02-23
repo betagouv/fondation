@@ -1,7 +1,6 @@
 import z from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { inspect } from 'node:util';
 import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
@@ -118,11 +117,7 @@ export class LolfiPostesIngestor {
         }
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed flushing POSTES_2.xml chunk: ${inspect(error)}`,
-          error instanceof Error ? error.stack : undefined,
-          { error },
-        );
+        this.logger.error(`Failed flushing POSTES_2.xml chunk`, error);
         props.result.success = false;
       })
       .finally(() => {
