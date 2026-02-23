@@ -2,14 +2,13 @@ import { HttpService } from '@nestjs/axios';
 import {
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   OnApplicationShutdown,
 } from '@nestjs/common';
 
-import { inspect } from 'node:util';
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
 import z, { ZodSafeParseResult } from 'zod';
 import { FailedToCancelJob, FailedToStartJob } from './job-errors';
 import { ScalingoHttpContainer } from './scalingo-http';
@@ -28,7 +27,6 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
   constructor(
     http: HttpService,
     clock: Clock,
-    private readonly prisma: PrismaService,
     @Inject(API_CONFIG_TOKEN) config: ApiConfig,
   ) {
     const { appName, apiKey } = config.scalingo;
@@ -40,11 +38,13 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
         clock,
         this.abortController,
       );
+    } else {
+      this.logger.warn(`Won't use the scalingo runner`);
     }
   }
 
   /** starts the command in a "worker" scope, without creating any tunnel between this process and the other one */
-  async runDetached(jobId: number): Promise<void> {
+  async runDetached(jobId: number): Promise<ScalingoJobMetadata> {
     if (!this.scalingo) {
       this.logger.error(
         `Tried running job #${jobId} with scalingo, when this runner is not available`,
@@ -54,36 +54,14 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
 
     const command = `node apps/api/dist/src/cli lolfi-job --jobId ${jobId}`;
     this.logger.debug(`Starting "${command}" with scalingo job runner`);
-    try {
-      const result = await this.scalingo.withAuthentication((http) =>
-        http.runOneOffContainer({ command }),
-      );
 
-      await this.prisma.ingestionJob
-        .update({
-          where: { id: jobId },
-          data: {
-            metadata: new ScalingoJobMetadata(result.container.id).toJSON(),
-          },
-        })
-        .catch((error) => {
-          this.logger.error(
-            `Failed recording scalingo job metadata, won't be able to cancel it: ${inspect(error)}`,
-            { error },
-          );
-        });
-    } catch (error) {
-      this.logger.error(
-        `Failed running "${command}" with scalingo`,
-        error instanceof Error ? error.stack : undefined,
-        { error },
-      );
-
-      throw new FailedToStartJob(jobId, error);
-    }
+    const result = await this.scalingo.withAuthentication((http) =>
+      http.runOneOffContainer({ command }),
+    );
+    return new ScalingoJobMetadata(result.container.id);
   }
 
-  async cancel(jobId: number): Promise<void> {
+  async cancel(metadata: unknown, jobId: number): Promise<void> {
     if (!this.scalingo) {
       this.logger.error(
         `Tried canceling job #${jobId} with scalingo, when this runner is not available`,
@@ -91,19 +69,10 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
       throw new FailedToCancelJob(jobId);
     }
 
-    const job = await this.prisma.ingestionJob.findFirst({
-      where: { id: jobId },
-      select: { metadata: true },
-    });
-    if (!job) {
-      this.logger.error(`No job #${jobId} available`);
-      return;
-    }
-
-    const metadata = await ScalingoJobMetadata.from(job.metadata);
-    if (!metadata.success) {
+    const meta = await ScalingoJobMetadata.from(metadata);
+    if (!meta.success) {
       this.logger.error(
-        `Could not read metadata: ${z.formatError(metadata.error)}`,
+        `Could not read metadata: ${z.formatError(meta.error)}`,
       );
       return;
     }
@@ -111,16 +80,13 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
     try {
       await this.scalingo.withAuthentication((http) =>
         http.sendContainerSignal({
-          containerId: metadata.data.containerId,
+          containerId: meta.data.containerId,
           signal: 'SIGUSR1',
         }),
       );
     } catch (e) {
-      this.logger.error(
-        `Error while killing container: ${inspect(e)}`,
-        e.stack,
-        { error: e },
-      );
+      this.logger.error(`Error while killing container`, e);
+      throw new InternalServerErrorException(undefined, { cause: e });
     }
   }
 

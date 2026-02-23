@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from 'src/generated/prisma/client';
 import { ChildProcessJobRunner } from './child-process-job-runner';
 import { ScalingoJobRunner } from './scalingo-job-runner';
 
@@ -10,7 +11,7 @@ export class JobRunner {
     private readonly childProcess: ChildProcessJobRunner,
   ) {}
 
-  runDetached(jobId: number): Promise<void> {
+  runDetached(jobId: number): Promise<{ toJSON(): Prisma.InputJsonValue }> {
     if (!this.scalingo.isAvailable) {
       return this.childProcess.runDetached(jobId);
     }

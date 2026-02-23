@@ -1,9 +1,9 @@
 export class FailedToStartJob extends Error {
   constructor(
     readonly jobId: number,
-    cause?: unknown,
+    options: { cause?: unknown; message?: string } = {},
   ) {
-    super(undefined, { cause });
+    super(options.message, { cause: options.cause });
   }
 }
 

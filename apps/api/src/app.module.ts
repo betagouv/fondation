@@ -2,11 +2,8 @@ import { type INestApplication, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import z from 'zod';
-import { fr } from 'zod/locales';
+
 import { API_CONFIG_TOKEN, type ApiConfig } from './modules/framework/config';
-import { HttpExceptionFilter } from './modules/framework/exception';
-import { SentryService } from './modules/framework/observability';
 import { openapi } from './modules/framework/openapi';
 import { RootModule } from './modules/root.module';
 
@@ -20,14 +17,12 @@ export class AppModule {
     app.disable('x-powered-by');
     app.enableCors({ origin: config.frontendOriginUrl, credentials: true });
     app.use(cookieParser(config.cookieSecret));
-    app.useGlobalFilters(new HttpExceptionFilter(app.get(SentryService)));
     app.enableShutdownHooks();
 
     if (process.env.NODE_ENV !== 'production') {
       openapi(app);
     }
 
-    z.config(fr());
     return app;
   }
 

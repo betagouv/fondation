@@ -1,9 +1,7 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { spawn } from 'node:child_process';
-import { inspect } from 'node:util';
-import { PrismaService } from 'src/modules/framework/database';
-import z from 'zod';
-import { LolfiJob } from '../services/lolfi-job.type';
+import * as path from 'node:path';
+import z, { ZodSafeParseResult } from 'zod';
 import { FailedToStartJob } from './job-errors';
 
 /** @warning prefer using {@link JobRunner} */
@@ -14,71 +12,70 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
 
   private readonly controller = new AbortController();
 
-  constructor(private readonly prisma: PrismaService) {}
-
-  async cancel(job: LolfiJob): Promise<void> {
-    const ingestionJob = await this.prisma.ingestionJob.findFirst({
-      where: { id: job.id },
-      select: { metadata: true },
-    });
-
-    if (!ingestionJob) return;
-
-    const metadata = await ChildProcessJobMetadata.from(ingestionJob.metadata);
-    if (!metadata) return;
+  async cancel(metadata: unknown): Promise<void> {
+    const meta = await ChildProcessJobMetadata.from(metadata);
+    if (!meta.success) {
+      this.logger.warn(`Could not read metadata: ${z.formatError(meta.error)}`);
+      return;
+    }
 
     try {
-      process.kill(metadata.pid, 'SIGUSR1');
-    } catch {}
+      process.kill(meta.data.pid, 'SIGUSR1');
+    } catch (e) {
+      this.logger.warn(
+        `Failed sending SIGUSR1 signal to process ${meta.data.pid}`,
+        e,
+      );
+    }
   }
 
-  async runDetached(jobId: number): Promise<void> {
-    const command = `node dist/src/cli lolfi-job --jobId ${jobId}`;
-    this.logger.debug(`Starting "${command} with node:child_process"`);
-    try {
-      const child = spawn(command, {
+  runDetached(jobId: number): Promise<ChildProcessJobMetadata> {
+    return this.spawnChildProcess(jobId).catch((err) => {
+      throw err instanceof FailedToStartJob
+        ? err
+        : new FailedToStartJob(jobId, { cause: err });
+    });
+  }
+
+  private static readonly CWD = path.resolve(__dirname, '..', '..', '..');
+
+  private spawnChildProcess(jobId: number): Promise<ChildProcessJobMetadata> {
+    const commandParts = [
+      'node',
+      'cli',
+      'lolfi-job',
+      '--jobId',
+      `${jobId}`,
+    ] as const;
+
+    const command = commandParts.join(' ');
+    this.logger.debug(`Starting "${command}" with node:child_process"`);
+
+    return new Promise<ChildProcessJobMetadata>((resolve, reject) => {
+      const child = spawn(commandParts[0], commandParts.slice(1), {
         detached: true,
         stdio: 'ignore',
         signal: this.controller.signal,
+        cwd: ChildProcessJobRunner.CWD,
+      });
+
+      child.on('spawn', () => {
+        if (!child.pid) {
+          return reject(
+            new FailedToStartJob(jobId, { message: `no PID available` }),
+          );
+        }
+
+        resolve(new ChildProcessJobMetadata(child.pid));
       });
 
       child.on('error', (err) => {
-        this.logger.error(
-          `Child Process error: ${inspect(err)}`,
-          err instanceof Error ? err.stack : undefined,
-          { error: err },
-        );
+        this.logger.error(`Child Process error`, err);
+        reject(err);
       });
 
-      if (!child.pid) {
-        throw new Error(`No PID available`);
-      }
-
-      const pid = child.pid;
       child.unref();
-
-      const metadata = new ChildProcessJobMetadata(pid);
-      await this.prisma.ingestionJob
-        .update({
-          where: { id: jobId },
-          data: { metadata: metadata.toJSON() },
-        })
-        .catch((error) => {
-          this.logger.error(
-            `Error while recording job #${jobId} metadata, won't be able to cancel it: ${inspect(error)}`,
-            error.stack,
-            { error: error },
-          );
-        });
-    } catch (error) {
-      this.logger.error(
-        `Failed running "${command}" with node:child_process`,
-        error instanceof Error ? error.stack : undefined,
-        { error },
-      );
-
-      throw new FailedToStartJob(jobId, error);
-    }
+    });
   }
 
   onApplicationShutdown(signal?: string) {
@@ -104,10 +101,11 @@ class ChildProcessJobMetadata {
     };
   }
 
-  static async from(data: unknown) {
-    const result = await ChildProcessJobMetadata.SCHEMA.safeParseAsync(data);
-    if (!result.success) return null;
-
-    return new ChildProcessJobMetadata(result.data.pid);
+  static from(
+    data: unknown,
+  ): Promise<ZodSafeParseResult<ChildProcessJobMetadata>> {
+    return ChildProcessJobMetadata.SCHEMA.transform(
+      ({ pid }) => new ChildProcessJobMetadata(pid),
+    ).safeParseAsync(data);
   }
 }
