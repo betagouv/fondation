@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Module } from '@nestjs/common';
+import { Inject, Injectable, Module } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { Request as ExpressRequest } from 'express';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -25,7 +25,7 @@ export class SentryService {
   }
 
   captureException(
-    exception: HttpException,
+    exception: unknown,
     request: ExpressRequest,
     status: number,
   ): void {

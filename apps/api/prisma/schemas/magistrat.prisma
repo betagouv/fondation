@@ -9,7 +9,7 @@ model Magistrat {
   lastName      String  @map("last_name")
   firstName     String  @map("first_name")
   marriedName   String? @map("married_name")
-  usedName      String  @map("used_name")
+  usedName      String? @map("used_name")
   maritalStatus String? @map("marital_status")
 
   professionalEmail String? @map("professional_email")
@@ -36,6 +36,8 @@ model Magistrat {
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
 
   observations Observation[]
+  candidacies  Candidate[]
+  nominations  Nomination[]
 
   @@index([lastName, firstName])
   @@index([usedName])
