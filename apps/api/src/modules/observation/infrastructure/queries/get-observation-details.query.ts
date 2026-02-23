@@ -173,7 +173,7 @@ export class GetObservationDetailsQuery {
     sessionId: string,
     firstName: string,
     lastName: string,
-    usedName: string,
+    usedName: string | null,
   ): Promise<{
     nominationFileId: string;
     desiredPosition: string | null;
@@ -246,7 +246,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
       id: z.string(),
       firstName: z.string(),
       lastName: z.string(),
-      usedName: z.string(),
+      usedName: z.string().nullable(),
       biography: z.string().nullable(),
       candidacy: CandidacySchema.nullable(),
       externalUrl: z.url(),

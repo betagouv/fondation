@@ -14,6 +14,7 @@ model File {
   attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
   attachedToSummaries                 SummaryAttachment[]
   includedInSummariesContent          SummaryScreenshot[]
+  ingestionJobFile                    IngestionJobFile[]
 
   @@map("files")
   @@schema("files_context")
