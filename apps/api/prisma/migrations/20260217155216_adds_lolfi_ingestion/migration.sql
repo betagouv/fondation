@@ -7,7 +7,7 @@ CREATE SCHEMA IF NOT EXISTS "jobs";
 CREATE TYPE "data_administration_context"."nomination_type_enum" AS ENUM ('PROMOTION', 'EQUIVALENT');
 
 -- CreateEnum
-CREATE TYPE "jobs"."status_enum" AS ENUM ('IDLE', 'RUNNING', 'FAILED', 'SUCCEEDED');
+CREATE TYPE "jobs"."status_enum" AS ENUM ('IDLE', 'RUNNING', 'FAILED', 'SUCCEEDED', 'CANCELED');
 
 -- CreateTable
 CREATE TABLE "data_administration_context"."jurisdiction_type" (
