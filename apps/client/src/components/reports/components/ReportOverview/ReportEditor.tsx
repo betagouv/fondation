@@ -1,9 +1,8 @@
 import { reportHtmlIds } from '../../dom/html-ids';
 
-import { ReportVM } from '../../../../VM/ReportVM';
-import { TextareaCard } from './TextareaCard';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 import React from 'react';
+import { TextareaCard } from './TextareaCard';
 import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
 
 export type ReportEditorProps = {
@@ -27,7 +26,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({ reportId, comment, o
     <TextareaCard
       cardId={reportHtmlIds.overview.commentSection}
       titleId={reportHtmlIds.overview.comment}
-      label={ReportVM.commentLabel}
+      label="Rapport"
       content={comment}
       onContentChange={onUpdate}
       uploadFiles={uploadFiles}

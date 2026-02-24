@@ -1,6 +1,6 @@
+import { labels } from '@/constants/labels.constants';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { Card } from './Card';
-import { ReportVM } from '../../../../VM/ReportVM';
 
 export type BiographyProps = {
   biography: string | null;
@@ -8,7 +8,7 @@ export type BiographyProps = {
 
 export const Biography: React.FC<BiographyProps> = ({ biography }) => (
   <Card id={reportHtmlIds.overview.biographySection}>
-    <h2 id={reportHtmlIds.overview.biography}>{ReportVM.biographyLabel}</h2>
+    <h2 id={reportHtmlIds.overview.biography}>{labels.magistrat.biography}</h2>
     <div aria-labelledby={reportHtmlIds.overview.biography} className="w-full whitespace-pre-line leading-10">
       {biography}
     </div>

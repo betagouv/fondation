@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import type { PrioriteEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export const NO_PRIORITY = 'NONE' as const;
 export type NoPriority = typeof NO_PRIORITY;
@@ -57,9 +57,11 @@ class SingleFileAffectation {
   }
 }
 
-export class FilesAffectationsState
-  implements Iterable<{ id: string; reporterIds: string[]; priority: PrioriteEnum | NoPriority }>
-{
+export class FilesAffectationsState implements Iterable<{
+  id: string;
+  reporterIds: string[];
+  priority: PrioriteEnum | NoPriority;
+}> {
   readonly hasChanges: boolean = false;
   private constructor(readonly affectations: Map<string, SingleFileAffectation>) {
     for (const file of affectations.values()) {

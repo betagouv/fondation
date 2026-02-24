@@ -2,9 +2,9 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, FC } from 'react';
 import { NominationFile } from 'shared-models';
 
-import { Card } from './Card';
-import { ReportVM } from '../../../../VM/ReportVM';
 import type { DetailedReportDto } from '@api/types';
+import { stateToLabel } from '../../labels/state-label.mapper';
+import { Card } from './Card';
 
 export type ReportOverviewStateProps = {
   state: DetailedReportDto['state'];
@@ -18,16 +18,10 @@ export const ReportOverviewState: FC<ReportOverviewStateProps> = ({ state, onUpd
   return (
     <Card>
       <div className="flex">
-        <Select
-          label={ReportVM.stateSelectLabel}
-          nativeSelectProps={{
-            value: state,
-            onChange
-          }}
-        >
-          {Object.entries(ReportVM.stateSelectOptions).map(([stateKey, stateLabel]) => (
-            <option key={stateKey} value={stateKey}>
-              {stateLabel}
+        <Select label="Statut du rapport" nativeSelectProps={{ value: state, onChange }}>
+          {Object.values(NominationFile.ReportState).map((status) => (
+            <option key={status} value={status}>
+              {stateToLabel(status)}
             </option>
           ))}
         </Select>
