@@ -2,11 +2,9 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import type { DetailedReportDto } from '@api/types';
 import { useReportById } from '@queries/reports.queries';
 
-import { NominationFile, ReportFileUsage, type DateOnlyJson } from 'shared-models';
-import { DateOnly } from '../../../../models/date-only.model';
+import { NominationFile } from 'shared-models';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage
@@ -27,54 +25,7 @@ import { Summary } from './Summary';
 import { useDetachReportFiles, useUpdateReport } from '@queries/reports.queries';
 import { ReportOverviewFileComment } from './ReportOverviewFileComment';
 import { ReportSummaryCard } from './ReportSummaryCard';
-
-export const formatBiography = (biography: string | null) => {
-  if (!biography) return null;
-  if (biography.indexOf('- ') === -1) return biography;
-
-  const biographyElements = biography
-    .trim()
-    .split('- ')
-    .map((part) => part.trim());
-  // we skipt the real first element because it is empty
-  const [, firstElement, ...otherElements] = biographyElements;
-  return `- ${firstElement}\n- ${otherElements.join('\n- ')}`;
-};
-
-export const formatObservers = (observers: DetailedReportDto['observers']) => {
-  if (!observers || observers.length === 0) {
-    return null;
-  }
-  return observers?.map((observer) => observer.split('\n') as [string, ...string[]]);
-};
-
-export const formatDurationFromDate = (startDate: Date, endDate: Date = new Date()): string => {
-  const startYear = startDate.getFullYear();
-  const startMonth = startDate.getMonth();
-  const endYear = endDate.getFullYear();
-  const endMonth = endDate.getMonth();
-
-  const months = (endYear - startYear) * 12 + (endMonth - startMonth);
-  const years = Math.floor(months / 12);
-  const remainingMonths = months % 12;
-
-  if (years === 0) {
-    return `${remainingMonths} mois`;
-  }
-
-  if (remainingMonths === 0) {
-    return `${years} an${years > 1 ? 's' : ''}`;
-  }
-
-  return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
-};
-
-export const formatBirthDate = (birthDateJson: DateOnlyJson, currentDate: Date) => {
-  const birthDate = DateOnly.fromStoreModel(birthDateJson);
-  const today = DateOnly.fromDate(currentDate);
-  const age = birthDate.getAge(today);
-  return `${birthDate.toFormattedString()} (${age} ans)`;
-};
+import { formatBiography, formatObservers } from './formatters';
 
 export type ReportOverviewProps = {
   id: string;
@@ -106,7 +57,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     navigate
   );
 
-  const formattedBirthDate = formatBirthDate(retrievedReport.birthDate!, new Date());
   const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
@@ -119,7 +69,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       {
         reportId: id,
         files,
-        usage: ReportFileUsage.ATTACHMENT
+        usage: 'ATTACHMENT'
       },
       onSuccess
     );
@@ -163,7 +113,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
           <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
           <MagistratIdentity
             name={retrievedReport.name}
-            birthDate={formattedBirthDate}
+            birthDate={retrievedReport.birthDate}
             grade={retrievedReport.grade}
             currentPosition={retrievedReport.currentPosition!}
             targettedPosition={retrievedReport.targettedPosition!}

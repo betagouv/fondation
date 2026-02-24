@@ -1,14 +1,26 @@
-import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useMemo, type FC } from 'react';
-import { ReportVM } from '../../../../VM/ReportVM';
+
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
+import { labels } from '@/constants/labels.constants';
+import { PrioriteEnumLabels } from '@/types/enums.types';
+import type { DetailedReportDto } from '@api/types';
 import { Card } from './Card';
+import { formatBirthDate } from './formatters';
 
 export type MagistratIdentityProps = Pick<
-  ReportVM,
-  'name' | 'birthDate' | 'grade' | 'currentPosition' | 'targettedPosition' | 'rank' | 'dureeDuPoste'
-> & { priorities: PrioriteEnum[]; sessionId: string; nominationFileId: string };
+  DetailedReportDto,
+  | 'name'
+  | 'birthDate'
+  | 'grade'
+  | 'currentPosition'
+  | 'targettedPosition'
+  | 'rank'
+  | 'dureeDuPoste'
+  | 'sessionId'
+  | 'nominationFileId'
+  | 'priorities'
+>;
 
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   name,
@@ -28,6 +40,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
     [priorities]
   );
 
+  const formattedBirthDate = formatBirthDate(birthDate!, new Date());
   return (
     <Card label="Identité du magistrat">
       <h1 className="flex flex-row items-center">
@@ -36,30 +49,26 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
       </h1>
       {priorities.length > 0 ? <p>{intlPriorities}</p> : null}
       <div>
-        <span
-          className={cx('fr-text--bold')}
-        >{`${ReportVM.magistratIdentityLabels.currentPosition} : `}</span>
+        <span className={cx('fr-text--bold')}>{`${labels.magistrat.currentPosition} : `}</span>
         <span>{`${currentPosition} - ${grade}`}</span>
       </div>
       {dureeDuPoste && (
         <div>
-          <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.dureeDuPoste} : `}</span>
+          <span className={cx('fr-text--bold')}>{`${labels.magistrat.dureeDuPoste} : `}</span>
           <span>{dureeDuPoste}</span>
         </div>
       )}
       <div>
-        <span
-          className={cx('fr-text--bold')}
-        >{`${ReportVM.magistratIdentityLabels.targettedPosition} : `}</span>
+        <span className={cx('fr-text--bold')}>{`${labels.magistrat.targettedPosition} : `}</span>
         <span>{`${targettedPosition}`}</span>
       </div>
       <div>
-        <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.rank} : `}</span>
+        <span className={cx('fr-text--bold')}>{`${labels.magistrat.rank} : `}</span>
         <span>{`${rank}`}</span>
       </div>
       <div>
-        <span className={cx('fr-text--bold')}>{`${ReportVM.magistratIdentityLabels.birthDate} : `}</span>
-        <span>{`${birthDate}`}</span>
+        <span className={cx('fr-text--bold')}>{`${labels.magistrat.birthDate} : `}</span>
+        <span>{`${formattedBirthDate}`}</span>
       </div>
     </Card>
   );
