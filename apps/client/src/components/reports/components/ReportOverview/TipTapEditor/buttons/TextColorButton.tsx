@@ -1,6 +1,5 @@
 import { colors } from '@codegouvfr/react-dsfr/fr/colors';
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { ChangeEvent } from 'react';
 import React, { useRef } from 'react';
 import { EditorButton } from './EditorButton';
 
@@ -25,7 +24,7 @@ export const TextColorButton = () => {
     textColors.default.error.default
   ];
 
-  const setColor = (event: ChangeEvent<HTMLInputElement>) => {
+  const setColor: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const nextTextColor = event.target.value;
 
     setTextColor(nextTextColor);
@@ -52,7 +51,7 @@ export const TextColorButton = () => {
         className="invisible absolute left-0 top-1 h-full w-full"
         type="color"
         list="presetColors"
-        onInput={setColor}
+        onChange={setColor}
         value={textColor}
         id="input-color"
       />

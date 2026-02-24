@@ -1,50 +1,38 @@
 import { NominationFile } from 'shared-models';
 
-import { ReportVM } from '../../../../VM/ReportVM';
+import type { GroupRulesChecked } from '@/types/rules.types';
+import type { DetailedReportDto } from '@api/types';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { ReportRule } from './ReportRule';
-import type { DetailedReportDto } from '@api/types';
 
 export type ReportRulesProps = {
-  rulesChecked: ReportVM['rulesChecked'];
+  rulesChecked: GroupRulesChecked;
   onUpdateReportRule: (ruleGroup: NominationFile.RuleGroup, ruleName: NominationFile.RuleName) => () => void;
   rules: DetailedReportDto['rules'];
 };
 
 export const ReportRules: React.FC<ReportRulesProps> = ({ rulesChecked, onUpdateReportRule, rules }) => {
-  const onUpdateManagementRule = (ruleName: NominationFile.ManagementRule) =>
-    onUpdateReportRule(NominationFile.RuleGroup.MANAGEMENT, ruleName);
-
-  const onUpdateStatutoryRule = (ruleName: NominationFile.StatutoryRule) =>
-    onUpdateReportRule(NominationFile.RuleGroup.STATUTORY, ruleName);
-
-  const onUpdateQualitativeRule = (ruleName: NominationFile.QualitativeRule) =>
-    onUpdateReportRule(NominationFile.RuleGroup.QUALITATIVE, ruleName);
-
   return (
     <>
-      <ReportRule<NominationFile.StatutoryRule>
-        id={reportHtmlIds.overview.statutorySection}
-        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.STATUTORY]}
-        rulesChecked={rulesChecked.statutory}
-        onUpdateReportRule={onUpdateStatutoryRule}
+      <ReportRule
         rules={rules}
+        rulesChecked={rulesChecked}
+        onUpdateReportRule={onUpdateReportRule}
+        id={reportHtmlIds.overview.statutorySection}
         ruleGroup={NominationFile.RuleGroup.STATUTORY}
       />
-      <ReportRule<NominationFile.ManagementRule>
-        id={reportHtmlIds.overview.managementSection}
-        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.MANAGEMENT]}
-        rulesChecked={rulesChecked.management}
-        onUpdateReportRule={onUpdateManagementRule}
+      <ReportRule
         rules={rules}
+        rulesChecked={rulesChecked}
+        onUpdateReportRule={onUpdateReportRule}
+        id={reportHtmlIds.overview.managementSection}
         ruleGroup={NominationFile.RuleGroup.MANAGEMENT}
       />
-      <ReportRule<NominationFile.QualitativeRule>
-        id={reportHtmlIds.overview.qualitativeSection}
-        title={ReportVM.ruleGroupToLabel[NominationFile.RuleGroup.QUALITATIVE]}
-        rulesChecked={rulesChecked.qualitative}
-        onUpdateReportRule={onUpdateQualitativeRule}
+      <ReportRule
         rules={rules}
+        rulesChecked={rulesChecked}
+        onUpdateReportRule={onUpdateReportRule}
+        id={reportHtmlIds.overview.qualitativeSection}
         ruleGroup={NominationFile.RuleGroup.QUALITATIVE}
       />
     </>
