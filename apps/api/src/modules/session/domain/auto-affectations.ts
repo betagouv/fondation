@@ -4,6 +4,8 @@ import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 
 export class AutoAffectations {
+  private readonly logger = new Logger(AutoAffectations.name);
+
   private constructor(
     private readonly members: readonly AutoAffectationMember[],
     private readonly nominationFiles: IteratorObject<
@@ -29,19 +31,31 @@ export class AutoAffectations {
     const sortedMembers = this.members.toSorted(
       AutoAffectationMember.compareByWorkloadDesc,
     );
+    this.logger.debug(
+      `Got ${sortedMembers.length} members in formation ${sortedMembers[0]!.formation}`,
+    );
 
-    const output: { nominationFileId: string; reporterIds: string[] }[] = [];
     for (const gradedFiles of this.nominationFiles) {
       // We only keep files where at least one member can report on
       const files = gradedFiles.filter((file) =>
         sortedMembers.some((member) => member.canReportOn(file)),
       );
 
+      this.logger.debug('');
+      this.logger.debug(
+        `${files.length} files available in grade ${gradedFiles[0]?.targetedGrade}`,
+      );
+
+      if (files.length !== gradedFiles.length) {
+        this.logger.warn(`Excluded ${gradedFiles.length - files.length} files`);
+      }
+
       // How many files should be affected to a member in a given grade group. At least 1.
-      const take = Math.max(1, Math.floor(files.length / sortedMembers.length));
+      const take = Math.max(1, Math.round(files.length / sortedMembers.length));
+      this.logger.debug(`Should affect ${take} files per member`);
 
       /** If there are more members than files, we want to affect more files to the least
-          work loaded member (end of the {@link sortedMembers} list). */
+       work loaded member (end of the {@link sortedMembers} list). */
       const startMemberIndex = Math.max(0, this.members.length - files.length);
 
       for (
@@ -59,27 +73,61 @@ export class AutoAffectations {
           0,
           shouldTakeRemaining ? files.length : take,
         );
+        this.logger.debug(
+          `Will affect ${shouldTakeRemaining ? filesChunk.length : take} files per member`,
+        );
 
         if (filesChunk.some((file) => !member.canReportOn(file))) {
-          files.unshift(...filesChunk);
+          this.logger.warn(`Jurisdiction exclusion on this files chunk`);
+
+          if (i === startMemberIndex) {
+            files.unshift(...filesChunk);
+            const nextMember = sortedMembers
+              .slice(i + 1, sortedMembers.length)
+              .find((otherMember) =>
+                filesChunk.every((file) => otherMember.canReportOn(file)),
+              );
+
+            if (nextMember) {
+              this.logger.debug(`found another member, restarting...`);
+              sortedMembers[i + 1] = member;
+              sortedMembers[i] = nextMember;
+              i -= 1;
+            }
+          } else {
+            const found = sortedMembers
+              .slice(startMemberIndex, i)
+              .reverse()
+              .concat(sortedMembers.slice(i + 1, sortedMembers.length))
+              .find((otherMember) =>
+                otherMember.exchangeLastAffectationWith(member, filesChunk),
+              );
+
+            if (found) {
+              this.logger.debug(`exchanged files with another member`);
+            } else {
+              files.unshift(...filesChunk);
+              this.logger.warn(`did not find another member to exchange files`);
+            }
+          }
+
           continue;
         }
 
         member.affect(...filesChunk);
-        output.push(
-          ...filesChunk.map(({ id: nominationFileId }) => ({
-            reporterIds: [member.id],
-            nominationFileId,
-          })),
-        );
       }
     }
 
-    return output;
+    const result = sortedMembers.flatMap((member) => member.affectations);
+    this.logger.debug(`${result.length} affectations made`);
+
+    return result;
   }
 }
 
 export class AutoAffectationMember {
+  private readonly files: AutoAffectationNominationFile[][] = [];
+
   private constructor(
     readonly id: string,
     readonly formation: Magistrat.Formation,
@@ -116,18 +164,54 @@ export class AutoAffectationMember {
   }
 
   affect(...files: AutoAffectationNominationFile[]): this {
+    this.files.push(files);
+
     /**
      * NOTE: At the moment, adding load has no effect during the affectation process.
      * The affectation is made mainly inside a session, since ALL members are expected
      * to have at least one affectation, even with a huge workload.
-     *
-     * This method might disappear in the future, but is still used in tests.
      */
     for (const file of files) {
       this.workload = this.workload.add(file.workload);
     }
 
     return this;
+  }
+
+  exchangeLastAffectationWith(
+    otherMember: AutoAffectationMember,
+    files: AutoAffectationNominationFile[],
+  ): boolean {
+    if (files.some((file) => !this.canReportOn(file))) return false;
+
+    const lastFiles = this.files.pop();
+    if (!lastFiles || lastFiles.length === 0) return false;
+    if (lastFiles.some((file) => !otherMember.canReportOn(file))) {
+      this.files.push(lastFiles);
+      return false;
+    }
+
+    otherMember.affect(...lastFiles);
+
+    for (const file of lastFiles) {
+      this.workload = this.workload.sub(file.workload);
+    }
+
+    this.affect(...files);
+
+    return true;
+  }
+
+  get affectations(): {
+    nominationFileId: string;
+    reporterIds: string[];
+  }[] {
+    return this.files.flatMap((files) =>
+      files.map((file) => ({
+        reporterIds: [this.id],
+        nominationFileId: file.id,
+      })),
+    );
   }
 
   canReportOn(candidate: AutoAffectationNominationFile): boolean {
@@ -155,6 +239,10 @@ class NominationFileWorkload {
 
   add({ value }: NominationFileWorkload): NominationFileWorkload {
     return new NominationFileWorkload(this.value + value);
+  }
+
+  sub({ value }: NominationFileWorkload): NominationFileWorkload {
+    return new NominationFileWorkload(this.value - value);
   }
 
   static zero(): NominationFileWorkload {
