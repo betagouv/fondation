@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import type { PrioriteEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export const NO_PRIORITY = 'NONE' as const;
 export type NoPriority = typeof NO_PRIORITY;

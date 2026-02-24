@@ -3,7 +3,6 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { ObservationCard } from '@/components/shared/observations';
 import type { DetailedReportDto } from '@api/types';
 import clsx from 'clsx';
-import { ReportVM } from '../../../../VM/ReportVM';
 import { reportHtmlIds } from '../../dom/html-ids';
 
 export const Observers = ({
@@ -12,7 +11,8 @@ export const Observers = ({
   sessionId,
   nominationFileId,
   reportId
-}: Pick<ReportVM, 'observers'> & {
+}: {
+  observers: string[] | null;
   observations?: DetailedReportDto['observations'];
   sessionId?: string;
   nominationFileId?: string;

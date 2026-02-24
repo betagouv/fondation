@@ -2,7 +2,6 @@ import type { FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { ReportVM } from '@/VM/ReportVM';
 import { reportHtmlIds } from '@/components/reports/dom/html-ids';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 
@@ -11,7 +10,7 @@ import {
   formatBirthDate,
   formatDurationFromDate,
   formatObservers
-} from '@/components/reports/components/ReportOverview/ReportOverview';
+} from '@/components/reports/components/ReportOverview/formatters';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { TextValue } from '@/components/shared/TextValue';
@@ -20,6 +19,7 @@ import { UserAvatarList } from '@/components/shared/user-avatar';
 
 import clsx from 'clsx';
 
+import { labels } from '@/constants/labels.constants';
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MagistratComment } from './magistrat-comment/MagistratComment';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -77,20 +77,15 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
         <MagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
       </div>
       <div>
-        <TextValue
-          label={ReportVM.magistratIdentityLabels.currentPosition}
-          value={`${posteActuel} - ${grade}`}
-        />
-        {dureeDuPoste && (
-          <TextValue label={ReportVM.magistratIdentityLabels.dureeDuPoste} value={dureeDuPoste} />
-        )}
-        <TextValue label={ReportVM.magistratIdentityLabels.targettedPosition} value={posteCible!} />
-        <TextValue label={ReportVM.magistratIdentityLabels.rank} value={rang!} />
-        <TextValue label={ReportVM.magistratIdentityLabels.birthDate} value={formattedBirthDate!} />
+        <TextValue label={labels.magistrat.currentPosition} value={`${posteActuel} - ${grade}`} />
+        {dureeDuPoste && <TextValue label={labels.magistrat.dureeDuPoste} value={dureeDuPoste} />}
+        <TextValue label={labels.magistrat.targettedPosition} value={posteCible!} />
+        <TextValue label={labels.magistrat.rank} value={rang!} />
+        <TextValue label={labels.magistrat.birthDate} value={formattedBirthDate!} />
       </div>
       <div>
         <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>
-          {ReportVM.biographyLabel}
+          {labels.magistrat.biography}
         </label>
         <div
           aria-labelledby={reportHtmlIds.overview.biography}
