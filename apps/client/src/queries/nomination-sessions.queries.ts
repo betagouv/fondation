@@ -130,7 +130,8 @@ export function useAffectNominationFilesReportersMutation() {
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
           sessionKeys.countUnaffectedFiles({ sessionId }),
-          sessionKeys.nominationFilesStatusCounts({ sessionId })
+          sessionKeys.nominationFilesStatusCounts({ sessionId }),
+          sessionKeys.listCurrentlyAffectedReporters({ sessionId })
         )
       })
   });
@@ -178,7 +179,8 @@ export function useAutoAffectationMutation() {
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
           sessionKeys.countUnaffectedFiles({ sessionId }),
-          sessionKeys.nominationFilesStatusCounts({ sessionId })
+          sessionKeys.nominationFilesStatusCounts({ sessionId }),
+          sessionKeys.listCurrentlyAffectedReporters({ sessionId })
         )
       })
   });
