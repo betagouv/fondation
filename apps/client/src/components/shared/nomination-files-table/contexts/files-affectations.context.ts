@@ -58,7 +58,12 @@ class SingleFileAffectation {
 }
 
 export class FilesAffectationsState
-  implements Iterable<{ id: string; reporterIds: string[]; priority: PrioriteEnum | NoPriority }>
+  implements
+    Iterable<{
+      id: string;
+      reporterIds: string[];
+      priority: PrioriteEnum | NoPriority;
+    }>
 {
   readonly hasChanges: boolean = false;
   private constructor(readonly affectations: Map<string, SingleFileAffectation>) {
