@@ -3,7 +3,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, type FC } from 'react';
+import { useCallback, useRef, type FC } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Magistrat } from 'shared-models';
@@ -53,12 +53,14 @@ const nouvelleTransparenceDtoSchema = z.object({
 type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
 const NouvelleTransparence: FC = () => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE);
   const {
     mutateAsync: addTransparencyAsync,
     error: transparenceUploadError,
-    reset: resetTransparencyMutation
+    reset: resetTransparencyMutation,
+    isPending
   } = useCreateNominationSessionFromLodamMutation();
 
   const {
@@ -74,7 +76,15 @@ const NouvelleTransparence: FC = () => {
     (dto) => {
       resetTransparencyMutation();
       return addTransparencyAsync(dto, {
-        onSuccess: (_, { name }) => navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } })
+        onSuccess: (_, { name }) => navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } }),
+        onSettled() {
+          resetTransparencyMutation();
+
+          if (inputRef.current) {
+            inputRef.current.value = '';
+            inputRef.current.files = null;
+          }
+        }
       });
     },
     [resetTransparencyMutation, addTransparencyAsync, navigate]
@@ -231,6 +241,7 @@ const NouvelleTransparence: FC = () => {
               className="mb-4"
               nativeInputProps={{
                 type: 'file',
+                ref: inputRef,
                 onChange: (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -264,7 +275,8 @@ const NouvelleTransparence: FC = () => {
             {
               id: 'enregistrer',
               children: 'Enregistrer',
-              type: 'submit'
+              type: 'submit',
+              disabled: isPending
             }
           ]}
           inlineLayoutWhen="always"
