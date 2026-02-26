@@ -1,6 +1,7 @@
 import {
   Catch,
   HttpException,
+  Logger,
   Module,
   Optional,
   type ArgumentsHost,
@@ -16,6 +17,8 @@ import { SentryService } from './observability';
 
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
+  private readonly logger = new Logger(CatchEverythingFilter.name);
+
   constructor(
     @Optional() private readonly sentryService: SentryService | undefined,
   ) {}
@@ -26,8 +29,9 @@ export class CatchEverythingFilter implements ExceptionFilter {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
 
-    if (this.sentryService && status >= 500) {
-      this.sentryService.captureException(exception, request, status);
+    if (status >= 500) {
+      this.logger.error('Error', exception);
+      this.sentryService?.captureException(exception, request, status);
     }
 
     const exceptionResponse =

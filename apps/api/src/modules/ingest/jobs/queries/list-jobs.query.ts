@@ -14,24 +14,27 @@ export class ListJobsQuery {
 
   async handle(query: {
     pagination: Pagination;
-    status:
-      | 'SUCCEEDED'
-      | 'FAILED'
-      | 'RUNNING'
-      | 'IDLE'
-      | 'CANCELED'
-      | undefined;
+    statuses: ('SUCCEEDED' | 'FAILED' | 'RUNNING' | 'IDLE' | 'CANCELED')[];
   }): Promise<PaginatedJobsDto> {
     const [totalCount, items] = await this.prisma.$transaction([
-      this.prisma.ingestionJob.count({ where: { status: query.status } }),
+      this.prisma.ingestionJob.count({
+        where: {
+          status:
+            query.statuses.length > 0 ? { in: query.statuses } : undefined,
+        },
+      }),
       this.prisma.ingestionJob.findMany({
         orderBy: { id: 'desc' },
-        where: { status: query.status },
+        where: {
+          status:
+            query.statuses.length > 0 ? { in: query.statuses } : undefined,
+        },
         take: query.pagination.limit,
         skip: (query.pagination.page - 1) * query.pagination.limit,
         select: {
           id: true,
           status: true,
+          createdAt: true,
           startedAt: true,
           endedAt: true,
           errors: { select: { error: true } },
@@ -44,6 +47,7 @@ export class ListJobsQuery {
       pagination: query.pagination,
       items: items.map((item) => ({
         ...item,
+        createdAt: item.createdAt.toISOString(),
         startedAt: item.startedAt?.toISOString(),
         endedAt: item.endedAt?.toISOString(),
       })),
@@ -55,6 +59,7 @@ export class PaginatedJobsDto extends createPaginatedZodDto(
   z.object({
     id: z.number(),
     status: z.enum(PrismaJobStatusEnum),
+    createdAt: z.iso.datetime(),
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
     errors: z.array(z.object({ error: z.string() })),

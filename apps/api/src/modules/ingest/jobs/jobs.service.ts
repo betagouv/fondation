@@ -12,13 +12,7 @@ export class JobsService {
 
   listJobs(query: {
     pagination: Pagination;
-    status:
-      | 'SUCCEEDED'
-      | 'FAILED'
-      | 'RUNNING'
-      | 'IDLE'
-      | 'CANCELED'
-      | undefined;
+    statuses: ('SUCCEEDED' | 'FAILED' | 'RUNNING' | 'IDLE' | 'CANCELED')[];
   }): Promise<PaginatedJobsDto> {
     return this.listJobsQuery.handle(query);
   }

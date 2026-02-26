@@ -13,6 +13,7 @@ export class DetailsJobQuery {
       where: { id: query.jobId },
       select: {
         id: true,
+        createdAt: true,
         startedAt: true,
         endedAt: true,
         status: true,
@@ -42,6 +43,7 @@ export class DetailsJobQuery {
 
     return {
       ...job,
+      createdAt: job.createdAt.toISOString() ?? null,
       startedAt: job.startedAt?.toISOString() ?? null,
       endedAt: job.endedAt?.toISOString() ?? null,
       files: job.files.map(({ fileId, ...file }) => ({
@@ -57,6 +59,7 @@ export class DetailsJobQuery {
 export class DetailedJobDto extends createZodDto(
   z.object({
     id: z.number(),
+    createdAt: z.iso.datetime(),
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
     status: z.enum(PrismaJobStatusEnum),

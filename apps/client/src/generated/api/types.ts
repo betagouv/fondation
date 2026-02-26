@@ -14,7 +14,7 @@ export type RegisterUserDto = {
     gender: 'MALE' | 'FEMALE';
     email: string;
     password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
 };
 
 export type RegisteredUserDto = {
@@ -30,7 +30,7 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     gender: 'MALE' | 'FEMALE';
 };
 
@@ -474,7 +474,7 @@ export type DetailedSummaryDto = {
         magistrat: {
             id: string;
             firstName: string;
-            usedName: string;
+            usedName: string | null;
             lastName: string;
         };
     }>;
@@ -514,7 +514,7 @@ export type FoundSummaryReadersDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     }>;
 };
 
@@ -633,7 +633,7 @@ export type DetailedReportDto = {
             id: string;
             firstName: string;
             lastName: string;
-            usedName: string;
+            usedName: string | null;
         };
     }>;
 };
@@ -667,7 +667,7 @@ export type ListObservationsResponseDto = {
             id: string;
             firstName: string;
             lastName: string;
-            usedName: string;
+            usedName: string | null;
             currentPosition: string | null;
         } | null;
         createdBy: {
@@ -694,7 +694,7 @@ export type GetObservationDetailsResponseDto = {
         id: string;
         firstName: string;
         lastName: string;
-        usedName: string;
+        usedName: string | null;
         biography: string | null;
         candidacy: {
             nominationFileId: string;
@@ -788,6 +788,55 @@ export type SearchMagistratsResponseDto = {
         next?: string;
         previous?: string;
     };
+};
+
+export type JobStatusEnum = 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+
+export type PaginatedJobsDto = {
+    items: Array<{
+        id: number;
+        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+        createdAt: string;
+        startedAt: string | null;
+        endedAt: string | null;
+        errors: Array<{
+            error: string;
+        }>;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type DetailedJobDto = {
+    id: number;
+    createdAt: string;
+    startedAt: string | null;
+    endedAt: string | null;
+    status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+    errors: Array<{
+        error: string;
+    }>;
+    files: Array<{
+        id: string;
+        fileSha256: string;
+        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+        startedAt: string | null;
+        endedAt: string | null;
+        requirements: Array<{
+            requiredFileId: string;
+        }>;
+        errors: Array<{
+            entityId: string | null;
+            entityNumber: number | null;
+            error: string;
+        }>;
+    }>;
 };
 
 export type GetFileByFileUrlData = {
@@ -1775,3 +1824,64 @@ export type SearchMagistratsResponses = {
 };
 
 export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
+
+export type SearchFullNameData = {
+    body?: never;
+    path?: never;
+    query: {
+        search: string;
+    };
+    url: '/api/magistrats/v1/fullname';
+};
+
+export type SearchFullNameResponses = {
+    200: unknown;
+};
+
+export type IngestLolfiArchiveData = {
+    body: {
+        /**
+         * a .zip file
+         */
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/ingest/v1/lolfi';
+};
+
+export type IngestLolfiArchiveResponses = {
+    201: unknown;
+};
+
+export type ListJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        statuses?: unknown;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/jobs/v1';
+};
+
+export type ListJobsResponses = {
+    200: PaginatedJobsDto;
+};
+
+export type ListJobsResponse = ListJobsResponses[keyof ListJobsResponses];
+
+export type DetailsJobData = {
+    body?: never;
+    path: {
+        jobId: number;
+    };
+    query?: never;
+    url: '/api/jobs/v1/{jobId}';
+};
+
+export type DetailsJobResponses = {
+    200: DetailedJobDto;
+};
+
+export type DetailsJobResponse = DetailsJobResponses[keyof DetailsJobResponses];

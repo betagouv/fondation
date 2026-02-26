@@ -1,0 +1,6 @@
+BEGIN;
+
+-- AlterTable
+ALTER TABLE "jobs"."ingestion_job" ADD COLUMN     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+COMMIT;
