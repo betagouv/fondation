@@ -1,2 +1,2 @@
-export { JobRunner } from './job-runner';
 export { JobsModule } from './jobs.module';
+export { JobRunner } from './runner/job-runner';

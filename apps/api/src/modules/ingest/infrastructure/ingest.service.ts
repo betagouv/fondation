@@ -4,7 +4,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { withLolfiFileRequirements } from '../domain/requirements';
-import { JobRunner } from '../jobs/job-runner';
+import { JobRunner } from '../jobs';
 import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
 import {
   IngestedLolfiArchive,
