@@ -1,6 +1,6 @@
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
-import { AutoAffectations } from 'src/modules/session/domain/auto-affectations';
+import { AutoAffectations } from 'src/modules/session/domain/auto-affectation/auto-affectations';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';

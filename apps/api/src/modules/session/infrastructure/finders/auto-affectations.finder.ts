@@ -5,7 +5,6 @@ import { PrismaService } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 
 import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { DateOnly } from 'src/utils/date-only';
@@ -16,7 +15,7 @@ import {
   AutoAffectationMember,
   AutoAffectationNominationFile,
   AutoAffectations,
-} from 'src/modules/session/domain/auto-affectations';
+} from 'src/modules/session/domain/auto-affectation';
 import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class AutoAffectationsFinder {
   readonly logger = new Logger(AutoAffectationsFinder.name);
 
   constructor(
-    private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
