@@ -1,23 +1,7 @@
-import { type AllRulesMapV2, NominationFile } from 'shared-models';
-import type { NonEmptyTuple } from 'type-fest';
+import type React from 'react';
+import { NominationFile } from 'shared-models';
 
-type GroupLabels<RulesMap extends AllRulesMapV2, RuleGroup extends NominationFile.RuleGroup> =
-  NonEmptyTuple<RulesMap[RuleGroup]> extends readonly [RulesMap[RuleGroup], ...RulesMap[RuleGroup][]]
-    ? {
-        [key in RulesMap[RuleGroup][number]]: {
-          label: string;
-          hint: string | React.ReactElement;
-        };
-      }
-    : undefined;
-
-export type RulesLabelsMap<RulesMap extends AllRulesMapV2 = AllRulesMapV2> = {
-  [NominationFile.RuleGroup.MANAGEMENT]: GroupLabels<RulesMap, NominationFile.RuleGroup.MANAGEMENT>;
-  [NominationFile.RuleGroup.STATUTORY]: GroupLabels<RulesMap, NominationFile.RuleGroup.STATUTORY>;
-  [NominationFile.RuleGroup.QUALITATIVE]: GroupLabels<RulesMap, NominationFile.RuleGroup.QUALITATIVE>;
-};
-
-export const allRulesLabelsMap: RulesLabelsMap = {
+export const allRulesLabelsMap = {
   [NominationFile.RuleGroup.MANAGEMENT]: {
     [NominationFile.ManagementRule.TRANSFER_TIME]: {
       label: 'Mutation avant 3 ans',
@@ -226,4 +210,17 @@ Voir rubrique dossier > E - Evaluations dans LOLFI.`
       hint: `Voir rubrique dossier > C - incidents, discipline dans LOLFI.`
     }
   }
+} as const satisfies {
+  [NominationFile.RuleGroup.MANAGEMENT]: Record<
+    NominationFile.ManagementRule,
+    { label: React.ReactNode; hint: React.ReactNode }
+  >;
+  [NominationFile.RuleGroup.QUALITATIVE]: Record<
+    NominationFile.QualitativeRule,
+    { label: React.ReactNode; hint: React.ReactNode }
+  >;
+  [NominationFile.RuleGroup.STATUTORY]: Record<
+    NominationFile.StatutoryRule,
+    { label: React.ReactNode; hint: React.ReactNode }
+  >;
 };
