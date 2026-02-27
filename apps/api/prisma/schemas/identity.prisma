@@ -67,6 +67,7 @@ enum PrismaRoleEnum {
   MEMBRE_DU_PARQUET
   MEMBRE_COMMUN
   ADJOINT_SECRETAIRE_GENERAL
+  ADMIN
 
   @@map("role")
   @@schema("identity_and_access_context")

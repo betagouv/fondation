@@ -1,5 +1,6 @@
 import type {
   AffectReportersDto,
+  DetailedJobDto,
   DetailedNominationSessionDto,
   DetailedReportDto,
   DetailedUserResponseDto,
@@ -12,7 +13,8 @@ export const RoleEnumLabels: Record<RoleEnum, string> = {
   MEMBRE_DU_SIEGE: 'Membre du siège',
   MEMBRE_DU_PARQUET: 'Membre du parquet',
   MEMBRE_COMMUN: 'Membre commun',
-  ADJOINT_SECRETAIRE_GENERAL: 'Secrétariat général'
+  ADJOINT_SECRETAIRE_GENERAL: 'Secrétariat général',
+  ADMIN: 'Administrateur'
 };
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
@@ -141,3 +143,20 @@ export const ObservationFollowUpEnumLabels = {
   REFERENCE: 'Recommandation',
   INTERESTING: `Digne d'intérêt`
 } as const satisfies Record<ObservationFollowupEnum, string>;
+
+export type JobStatusEnum = DetailedJobDto['status'];
+export const JobStatusEnum = {
+  CANCELED: 'CANCELED',
+  FAILED: 'FAILED',
+  IDLE: 'IDLE',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED'
+} as const satisfies Record<JobStatusEnum, JobStatusEnum>;
+
+export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
+  CANCELED: 'annulé',
+  FAILED: 'échec',
+  IDLE: 'en attente',
+  RUNNING: 'en cours',
+  SUCCEEDED: 'succès'
+};
