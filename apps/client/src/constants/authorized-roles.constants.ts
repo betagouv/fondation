@@ -1,6 +1,7 @@
 import type { RoleEnum } from '@/types/enums.types';
 
 export const AUTHORIZED_ROLES = {
+  NONE: [] satisfies RoleEnum[],
   MEMBER: ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] satisfies RoleEnum[],
   SG: ['ADJOINT_SECRETAIRE_GENERAL'] satisfies RoleEnum[],
   ALL: [
@@ -9,4 +10,4 @@ export const AUTHORIZED_ROLES = {
     'MEMBRE_DU_PARQUET',
     'MEMBRE_DU_SIEGE'
   ] satisfies RoleEnum[]
-} as Record<'MEMBER' | 'SG' | 'ALL', unknown[]>;
+} as Record<'NONE' | 'MEMBER' | 'SG' | 'ALL', unknown[]>;

@@ -11,6 +11,7 @@ enum PrismaJobStatusEnum {
 
 model IngestionJob {
   id        Int                 @id @default(autoincrement()) @db.Integer
+  createdAt DateTime            @default(now()) @map("created_at")
   startedAt DateTime?           @map("started_at")
   endedAt   DateTime?           @map("ended_at")
   status    PrismaJobStatusEnum @default(IDLE)

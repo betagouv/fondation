@@ -22,6 +22,13 @@ export const ROUTE_PATHS = {
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId'
   },
 
+  ADMIN: {
+    ROOT: '/admin',
+    LIST_JOBS: '/admin/jobs',
+    DETAILS_JOB: '/admin/jobs/:jobId',
+    INGEST_LOLFI: '/admin/lolfi'
+  },
+
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
   REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat'
 } as const;

@@ -13,7 +13,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, authorizedRoles 
   const { user, isFetching } = useUser();
 
   if (isFetching) return null;
-  if (user && authorizedRoles.includes(user.role)) return children;
+  if (user && (user.role === 'ADMIN' || authorizedRoles.includes(user.role))) return children;
 
   return <Navigate to={ROUTE_PATHS.LOGIN} replace />;
 };

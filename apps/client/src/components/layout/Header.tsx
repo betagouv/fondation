@@ -3,7 +3,7 @@ import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation'
 import React from 'react';
 import { matchPath, useLocation } from 'react-router';
 
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsAdmin, useIsSg } from '@/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/help/HelpPage';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { Avatar } from './Avatar';
@@ -25,8 +25,9 @@ export const AppHeader = () => {
   const { pathname } = useLocation();
   const routeMatches = useRouteMatcher();
   const isUserSg = useIsSg();
+  const isUserAdmin = useIsAdmin();
 
-  const includeSg = isUserSg && pathname !== ROUTE_PATHS.LOGIN;
+  const shouldShowNavBar = (isUserAdmin || isUserSg) && pathname !== ROUTE_PATHS.LOGIN;
 
   const navigation: MainNavigationProps.Item[] = [
     {
@@ -51,6 +52,41 @@ export const AppHeader = () => {
     }
   ];
 
+  if (isUserAdmin) {
+    navigation.push({
+      text: (
+        <span className="ri-admin-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+          Administration
+        </span>
+      ),
+      isActive: routeMatches([
+        ROUTE_PATHS.ADMIN.LIST_JOBS,
+        ROUTE_PATHS.ADMIN.DETAILS_JOB,
+        ROUTE_PATHS.ADMIN.INGEST_LOLFI
+      ]),
+      menuLinks: [
+        {
+          linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
+          text: (
+            <span className="fr-icon-file-add-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+              Import LOLFI manuel
+            </span>
+          ),
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI])
+        },
+        {
+          linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
+          text: (
+            <span className="ri-play-circle-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+              Ingestions
+            </span>
+          ),
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB])
+        }
+      ]
+    });
+  }
+
   return (
     <Header
       serviceTitle="Fondation"
@@ -62,7 +98,7 @@ export const AppHeader = () => {
       }}
       homeLinkProps={{ to: '/', title: 'Accueil' }}
       quickAccessItems={[<HelpPageButton />, <LolfiCsm />, <Avatar />]}
-      navigation={includeSg ? navigation : []}
+      navigation={shouldShowNavBar ? navigation : []}
     />
   );
 };

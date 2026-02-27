@@ -2,6 +2,10 @@ import * as Sentry from '@sentry/react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
+import { AdminLayout } from '@/pages/admin/AdminLayout';
+import { IngestLolfiArchivePage } from '@/pages/admin/ingest/IngestLolfiArchivePage';
+import { DetailsJobPage } from '@/pages/admin/jobs/DetailsJobPage';
+import { JobsPage } from '@/pages/admin/jobs/JobsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UserManualPage } from '@/pages/help/UserManualPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
@@ -111,6 +115,21 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
             element: <DetailsMemberPage />
+          }
+        ]
+      },
+      {
+        path: ROUTE_PATHS.ADMIN.ROOT,
+        element: <AdminLayout />,
+        children: [
+          {
+            path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
+            element: <IngestLolfiArchivePage />
+          },
+          {
+            path: ROUTE_PATHS.ADMIN.LIST_JOBS,
+            element: <JobsPage />,
+            children: [{ path: ROUTE_PATHS.ADMIN.DETAILS_JOB, element: <DetailsJobPage /> }]
           }
         ]
       }

@@ -1,14 +1,14 @@
 import {
+  applyDecorators,
+  CanActivate,
   createParamDecorator,
   ExecutionContext,
-  UnauthorizedException,
-  CanActivate,
-  Injectable,
-  SetMetadata,
-  applyDecorators,
-  UseGuards,
-  mixin,
   ForbiddenException,
+  Injectable,
+  mixin,
+  SetMetadata,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ApiCookieAuth } from '@nestjs/swagger';
@@ -53,6 +53,8 @@ class HasRoleGuard implements CanActivate {
     if (!isDefined(user)) {
       throw new UnauthorizedException();
     }
+
+    if (user.role === Role.ADMIN) return true;
 
     const userMissesAnyRequiredRole =
       roles.length > 0 && !roles.includes(user.role as Role);

@@ -12,6 +12,8 @@ export function prismaRoleEnumToRoleEnum(value: PrismaRoleEnum): Role {
       return Role.MEMBRE_COMMUN;
     case PrismaRoleEnum.ADJOINT_SECRETAIRE_GENERAL:
       return Role.ADJOINT_SECRETAIRE_GENERAL;
+    case PrismaRoleEnum.ADMIN:
+      return Role.ADMIN;
     default:
       return assertNever(value);
   }
@@ -27,6 +29,8 @@ export function roleEnumToPrismaRoleEnum(value: Role): PrismaRoleEnum {
       return PrismaRoleEnum.MEMBRE_COMMUN;
     case Role.ADJOINT_SECRETAIRE_GENERAL:
       return PrismaRoleEnum.ADJOINT_SECRETAIRE_GENERAL;
+    case Role.ADMIN:
+      return PrismaRoleEnum.ADMIN;
     default:
       return assertNever(value);
   }

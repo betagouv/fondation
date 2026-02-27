@@ -12,7 +12,15 @@ WITH bronze_position AS (
 ),
 
 silver_position AS (
-  SELECT bp.*
+  SELECT
+    bp.bbis,
+    bp.id,
+    bp.profile,
+    bp.profile_id,
+    g.grade AS grade_id,
+    f.id AS function_id,
+    j.codejur AS jurisdiction_id,
+    jt.id AS jurisdiction_type_id
   FROM bronze_position AS bp
     INNER JOIN data_administration_context.jurisdiction_type AS jt
       ON jt.id = bp.jurisdiction_type_id
