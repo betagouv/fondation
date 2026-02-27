@@ -28,6 +28,7 @@ export function roleToFormation(role: Role): Magistrat.Formation | undefined {
   switch (role) {
     case Role.MEMBRE_COMMUN:
     case Role.ADJOINT_SECRETAIRE_GENERAL:
+    case Role.ADMIN:
       return undefined;
     case Role.MEMBRE_DU_PARQUET:
       return Magistrat.Formation.PARQUET;

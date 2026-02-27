@@ -24,10 +24,10 @@ export function SummarySectionObservations() {
           <li key={magistrat.id}>
             {[
               capitalize(magistrat.firstName),
-              magistrat.usedName.toUpperCase(),
+              magistrat.usedName?.toUpperCase(),
               magistrat.lastName.toUpperCase()
             ]
-              .filter((x) => !!x.trim())
+              .filter((x) => !!x?.trim())
               .join(' ')}
           </li>
         ))}
