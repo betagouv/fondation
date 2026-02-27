@@ -59,8 +59,21 @@ export const AppHeader = () => {
           Administration
         </span>
       ),
-      isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
+      isActive: routeMatches([
+        ROUTE_PATHS.ADMIN.LIST_JOBS,
+        ROUTE_PATHS.ADMIN.DETAILS_JOB,
+        ROUTE_PATHS.ADMIN.INGEST_LOLFI
+      ]),
       menuLinks: [
+        {
+          linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
+          text: (
+            <span className="fr-icon-file-add-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+              Import LOLFI manuel
+            </span>
+          ),
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI])
+        },
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (

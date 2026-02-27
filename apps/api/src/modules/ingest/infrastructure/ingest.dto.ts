@@ -19,16 +19,20 @@ export class IngestedLolfiArchiveDto extends createZodDto(
       .array(
         z.discriminatedUnion('type', [
           z.object({
-            type: z.literal('LolfiHashError'),
+            type: z.enum(['LolfiHashError']),
             message: z.string(),
             expected: z.string().optional(),
             computed: z.string(),
             file: z.string(),
           }),
           z.object({
-            type: z.literal('LolfiMissingFileError'),
+            type: z.enum(['LolfiMissingFileError']),
             message: z.string(),
             missingFile: z.string(),
+          }),
+          z.object({
+            type: z.enum(['Unknown']),
+            message: z.string(),
           }),
         ]),
       )

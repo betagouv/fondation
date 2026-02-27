@@ -25,6 +25,7 @@ export class DetailsJobQuery {
             status: true,
             startedAt: true,
             endedAt: true,
+            file: { select: { name: true } },
             requirements: { select: { requiredFileId: true } },
             errors: {
               orderBy: { id: 'asc' },
@@ -46,9 +47,10 @@ export class DetailsJobQuery {
       createdAt: job.createdAt.toISOString() ?? null,
       startedAt: job.startedAt?.toISOString() ?? null,
       endedAt: job.endedAt?.toISOString() ?? null,
-      files: job.files.map(({ fileId, ...file }) => ({
+      files: job.files.map(({ fileId, file: storedFile, ...file }) => ({
         ...file,
         id: fileId,
+        name: storedFile.name,
         startedAt: file.startedAt?.toISOString() ?? null,
         endedAt: file.endedAt?.toISOString() ?? null,
       })),
@@ -67,6 +69,7 @@ export class DetailedJobDto extends createZodDto(
     files: z.array(
       z.object({
         id: z.string(),
+        name: z.string(),
         fileSha256: z.string(),
         status: z.enum(PrismaJobStatusEnum),
         startedAt: z.iso.datetime().nullable(),

@@ -790,6 +790,25 @@ export type SearchMagistratsResponseDto = {
     };
 };
 
+export type IngestedLolfiArchiveDto = {
+    id: number;
+    status: 'STARTED' | 'FAILED';
+    errors?: Array<{
+        type: 'LolfiHashError';
+        message: string;
+        expected?: string;
+        computed: string;
+        file: string;
+    } | {
+        type: 'LolfiMissingFileError';
+        message: string;
+        missingFile: string;
+    } | {
+        type: 'Unknown';
+        message: string;
+    }>;
+};
+
 export type JobStatusEnum = 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
 
 export type PaginatedJobsDto = {
@@ -824,6 +843,7 @@ export type DetailedJobDto = {
     }>;
     files: Array<{
         id: string;
+        name: string;
         fileSha256: string;
         status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
         startedAt: string | null;
@@ -1851,14 +1871,16 @@ export type IngestLolfiArchiveData = {
 };
 
 export type IngestLolfiArchiveResponses = {
-    201: unknown;
+    200: IngestedLolfiArchiveDto;
 };
+
+export type IngestLolfiArchiveResponse = IngestLolfiArchiveResponses[keyof IngestLolfiArchiveResponses];
 
 export type ListJobsData = {
     body?: never;
     path?: never;
     query?: {
-        statuses?: unknown;
+        statuses?: Array<JobStatusEnum>;
         page?: number;
         limit?: number;
     };

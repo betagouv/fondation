@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Controller,
+  HttpStatus,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -10,9 +11,11 @@ import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 import { Role } from 'shared-models';
 
+import { ZodResponse } from 'nestjs-zod';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { MulterFile } from 'src/modules/framework/files/multipart/multipart.types';
 import { HasRole } from 'src/modules/simple-auth';
+import { IngestedLolfiArchiveDto } from './ingest.dto';
 import { IngestService } from './ingest.service';
 
 @Controller('/api/ingest/v1')
@@ -39,11 +42,15 @@ export class IngestController {
       },
     }),
   )
-  async ingestLolfiArchive(@UploadedFile('file') file: MulterFile) {
+  @ZodResponse({ status: HttpStatus.OK, type: IngestedLolfiArchiveDto })
+  async ingestLolfiArchive(
+    @UploadedFile('file') file: MulterFile,
+  ): Promise<IngestedLolfiArchiveDto> {
     const result = await this.ingest.ingestLolfiArchive(file.buffer);
     if (result.status === 'FAILED') {
       throw new BadRequestException({ errors: result.errors });
     }
+
     return result;
   }
 }

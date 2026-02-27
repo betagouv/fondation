@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { HelpPage } from '@/pages/HelpPage';
 import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
 import { AdminLayout } from '@/pages/admin/AdminLayout';
+import { IngestLolfiArchivePage } from '@/pages/admin/ingest/IngestLolfiArchivePage';
 import { DetailsJobPage } from '@/pages/admin/jobs/DetailsJobPage';
 import { JobsPage } from '@/pages/admin/jobs/JobsPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
@@ -112,6 +113,10 @@ const router = sentryCreateBrowserRouter([
         path: ROUTE_PATHS.ADMIN.ROOT,
         element: <AdminLayout />,
         children: [
+          {
+            path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
+            element: <IngestLolfiArchivePage />
+          },
           {
             path: ROUTE_PATHS.ADMIN.LIST_JOBS,
             element: <JobsPage />,

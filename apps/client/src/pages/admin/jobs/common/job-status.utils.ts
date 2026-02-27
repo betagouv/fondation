@@ -12,7 +12,7 @@ export const JOB_STATUS_ICONS = {
     beforeBgColor: 'before:!bg-blue-500'
   },
   FAILED: {
-    icon: 'ri-checkbox-blank-circle-fill',
+    icon: 'ri-close-circle-fill',
     textColor: 'text-red-600',
     beforeBgColor: 'before:!bg-red-600'
   },
@@ -25,5 +25,13 @@ export const JOB_STATUS_ICONS = {
     icon: 'ri-spam-2-fill',
     textColor: 'text-gray-600',
     beforeBgColor: 'before:!bg-gray-600'
+  },
+  WARNING: {
+    icon: 'ri-error-warning-fill',
+    textColor: 'text-orange-600',
+    beforeBgColor: 'before:!bg-orange-600'
   }
-} as const satisfies Record<JobStatusEnum, { icon: string; textColor: string; beforeBgColor: string }>;
+} as const satisfies Record<
+  JobStatusEnum | 'WARNING',
+  { icon: string; textColor: string; beforeBgColor: string }
+>;
