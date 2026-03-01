@@ -35,7 +35,7 @@
     "@nestjs/platform-express": "^11.1.14",
     "@nestjs/swagger": "^11.2.6",
     "@prisma/adapter-pg": "^6.19.2",
-    "@prisma/client": "^6.19.2",
+    "@prisma/client": "^7.4.0",
     "@sentry/node": "^10.40.0",
     "axios": "^1.13.6",
     "axios-retry": "^4.5.0",
