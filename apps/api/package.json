@@ -48,7 +48,7 @@
     "nestjs-zod": "^5.1.1",
     "node-xlsx": "^0.24.0",
     "pg": "^8.19.0",
-    "prisma": "^6.19.2",
+    "prisma": "^7.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "sax": "^1.4.4",
