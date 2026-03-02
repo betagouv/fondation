@@ -348,46 +348,53 @@ export type ListedMemberSessionsDto = {
 };
 
 export type DetailedMemberSessionDto = {
-    data: {
-        session: {
+    items: Array<{
+        id: string;
+        nominationFileId: string;
+        state: string;
+        formation: string;
+        folderNumber: number | null;
+        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        dueDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        name: string;
+        grade: string;
+        currentPosition: string | null;
+        targettedPosition: string;
+        observers: Array<string>;
+        observationMagistrats: Array<{
             id: string;
-            sessionImportId: string;
-            formation: string;
-            transparency: string;
-            dateTransparence: {
-                year: number;
-                month: number;
-                day: number;
-            };
-            dateSeance: {
-                year: number;
-                month: number;
-                day: number;
-            } | null;
-        };
-        reports: Array<{
-            id: string;
-            nominationFileId: string;
-            state: string;
-            formation: string;
-            folderNumber: number | null;
-            filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
-            dueDate: {
-                year: number;
-                month: number;
-                day: number;
-            } | null;
-            name: string;
-            grade: string;
-            targettedPosition: string;
-            observers: Array<string>;
-            observationMagistrats: Array<{
-                id: string;
-                firstName: string;
-                lastName: string;
-                observationId: string;
-            }>;
+            firstName: string;
+            lastName: string;
+            observationId: string;
         }>;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    session: {
+        id: string;
+        sessionImportId: string;
+        formation: string;
+        transparency: string;
+        dateTransparence: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        dateSeance: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
     };
 };
 
@@ -1302,7 +1309,16 @@ export type DetailsMemberSessionData = {
         userId: string;
         sessionId: string;
     };
-    query?: never;
+    query?: {
+        sortBy?: 'number' | 'name' | 'targetedPosition' | 'status';
+        status?: string | unknown;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
     url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}';
 };
 

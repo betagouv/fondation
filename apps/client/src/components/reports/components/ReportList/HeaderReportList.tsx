@@ -41,7 +41,7 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
         breadcrumb={breadcrumb}
       />
 
-      <div className="mb-8">
+      <div>
         <h1 className="mb-0">
           <span>Transparence: </span>
           <span style={{ color: colors.options.yellowTournesol.sun407moon922.hover }}>{transparency}</span>
