@@ -1,6 +1,8 @@
+import './instrument';
+
 import { AppModule } from './app.module';
 
-function bootstrap() {
+async function bootstrap() {
   return AppModule.listen();
 }
 

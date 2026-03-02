@@ -21,6 +21,10 @@ jobs:
     concurrency: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          fetch-tags: true
+          fetch-depth: 200
+
       - name: Download api artifact
         uses: actions/download-artifact@v4
         with:
@@ -33,8 +37,22 @@ jobs:
         run: |
           curl -O https://cli-dl.scalingo.com/install && bash install
           echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Find current version
+        shell: bash
+        id: app-version
+        env:
+          environment: ${{ inputs.environment }}
+        run: |
+          last_tag=$(git describe --abbrev=0 --tags 2>/dev/null)
+          echo "tag=${last_tag:-$environment}" >> $GITHUB_OUTPUT
+
       - name: Login to scalingo
         run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Update remote version envvar
+        run: scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} env-set APP_VERSION=${{ steps.app-version.outputs.tag }}
+
       - name: Deploy api
         run: |
           echo "Deploying api on app ${{ vars.SCALINGO_API_APP_NAME }}"
