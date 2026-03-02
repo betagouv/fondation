@@ -26,6 +26,7 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import {
+  DetailsMemberSessionQueryDto,
   ListMembersQueryDto,
   WriteNominationFileMemberMemoDto,
 } from './infrastructure/dtos/members.dto';
@@ -96,18 +97,24 @@ export class MembersController {
   }
 
   @HasRole()
+  @ApiPaginated()
   @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId')
   @ZodResponse({ type: DetailedMemberSessionDto, status: HttpStatus.OK })
   detailsMemberSession(
     @Param('userId') userId: string,
     @Param('sessionId') sessionId: string,
+    @QueryPagination() pagination: Pagination,
+    @Query(ZodValidationPipe) query: DetailsMemberSessionQueryDto,
     @AuthedUser() authUser: { id: string; role: Role },
   ): Promise<DetailedMemberSessionDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 
     return this.sessions.detailMemberSession({
       user: authUser,
+      status: query.status ?? undefined,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      pagination,
       sessionId,
     });
   }

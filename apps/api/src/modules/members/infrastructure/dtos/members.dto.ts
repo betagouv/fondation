@@ -1,4 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
+import { NominationFile } from 'shared-models';
+import { createSortableDto } from 'src/modules/framework/sorting';
 import { isDefined } from 'src/utils/is-defined';
 import z from 'zod';
 
@@ -16,4 +18,20 @@ export class ListMembersQueryDto extends createZodDto(
 
 export class WriteNominationFileMemberMemoDto extends createZodDto(
   z.object({ memo: z.string() }),
+) {}
+
+export class DetailsMemberSessionQueryDto extends createSortableDto(
+  z.object({
+    sortBy: z.enum(['number', 'name', 'targetedPosition', 'status']).optional(),
+    status: z
+      .string()
+      .transform((x) =>
+        x
+          .split(',')
+          .map((x) => x.trim())
+          .filter((x) => !!x),
+      )
+      .pipe(z.array(z.enum(NominationFile.ReportState)))
+      .nullish(),
+  }),
 ) {}

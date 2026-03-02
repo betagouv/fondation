@@ -1,23 +1,21 @@
-import { useFormattedReportList } from '../../../../utils/format-report-list.utils';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
-import { ReportsTable } from './ReportsTable';
+import { DataTable } from '@/components/shared/data-table';
+import type { RowData, Table } from '@tanstack/react-table';
 import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
-import type { DetailedMemberSessionDto } from '@api/types';
 
-export function ReportList(
-  props: React.PropsWithChildren<{ sessionId: string; reports: DetailedMemberSessionDto['data']['reports'] }>
+export function ReportList<Data extends RowData>(
+  props: React.PropsWithChildren<{ sessionId: string; table: Table<Data> }>
 ) {
-  const { reports, headers } = useFormattedReportList(props.reports);
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
     sessionId: props.sessionId
   });
 
   return (
-    <div className="my-4 flex flex-col gap-4">
-      <ReportsTable headers={headers} reports={reports} sessionId={props.sessionId}>
+    <div className="mb-4 mt-12 flex flex-col gap-4">
+      <DataTable table={props.table} placeholder={`Aucun résultat ne correspond aux valeurs filtrées`}>
         {props.children}
-      </ReportsTable>
+      </DataTable>
 
       {Boolean(attachments?.items.length) && (
         <div>

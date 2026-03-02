@@ -71,21 +71,26 @@ type Paginated<T> = {
   links: { next?: string; previous?: string };
 };
 
-export function createPaginatedZodDto(schema: z.ZodObject) {
+export function createPaginatedZodDto(
+  schema: z.ZodObject,
+  extension?: z.ZodObject,
+) {
   return createZodDto(
-    z.object({
-      items: z.array(schema),
-      totalCount: z.number().int().gte(0),
-      currentPageIndex: z.number().int().gte(1),
-      nextPageIndex: z.number().int().gte(2).optional(),
-      previousPageIndex: z.number().int().gte(1).optional(),
-      links: z
-        .object({
-          next: z.string().optional(),
-          previous: z.string().optional(),
-        })
-        .optional(),
-    }),
+    z
+      .object({
+        items: z.array(schema),
+        totalCount: z.number().int().gte(0),
+        currentPageIndex: z.number().int().gte(1),
+        nextPageIndex: z.number().int().gte(2).optional(),
+        previousPageIndex: z.number().int().gte(1).optional(),
+        links: z
+          .object({
+            next: z.string().optional(),
+            previous: z.string().optional(),
+          })
+          .optional(),
+      })
+      .safeExtend(extension?.shape ?? {}),
   );
 }
 

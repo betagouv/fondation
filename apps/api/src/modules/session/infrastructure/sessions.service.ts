@@ -1,12 +1,19 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { inspect } from 'node:util';
 
-import { Magistrat, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
+import {
+  Magistrat,
+  PrioriteEnum,
+  NominationFile as Reports,
+  Role,
+  TypeDeSaisine,
+} from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
+import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { NominationFile } from '../domain/nomination-file';
@@ -103,8 +110,11 @@ export class SessionService {
   /** @internal */
   detailMemberSession(query: {
     user: { id: string; role: Role };
+    pagination: Pagination;
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
+    status: Reports.ReportState[] | undefined;
+    sorting: Sortable<DetailsMemberSessionQueryDto>;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
   }

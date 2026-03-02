@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
 import type { ListedMemberSessionsDto, ListMembersData, PaginatedNominationFiles } from '@api/types';
+import type { NominationFile } from 'shared-models';
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
@@ -13,8 +14,14 @@ export const memberKeys = {
   listMemberGdsSessions: (props: { userId: string | undefined }) =>
     ['listMemberGdsSessions', props.userId] as const,
 
-  detailMemberGdsSession: (props: { userId: string | undefined; sessionId: string | undefined }) =>
-    ['detailMemberGdsSession', props] as const
+  detailMemberGdsSession: (props: {
+    userId: string | undefined;
+    sessionId: string | undefined;
+    [k: string]: unknown;
+  }) => {
+    const { userId, sessionId, ...rest } = props;
+    return ['detailMemberGdsSession', userId, sessionId, rest] as const;
+  }
 };
 
 export const useMemberListQuery = (
@@ -108,16 +115,28 @@ export function useListMemberGdsSessions(input: { userId: string | undefined }) 
 export function useDetailedMemberGdsSession(input: {
   userId: string | undefined;
   sessionId: string | undefined;
+
+  status: NominationFile.ReportState[] | undefined;
+  pagination: { pageIndex: number; pageSize: number };
+  sorting: { id: 'name' | 'number' | 'targetedPosition'; desc: boolean }[];
 }) {
   return useQuery({
     queryKey: memberKeys.detailMemberGdsSession(input),
     enabled: Boolean(input.sessionId && input.userId),
+    placeholderData: (prev) => prev,
     queryFn: () => {
       if (!input.sessionId || !input.userId) return null;
 
       return $api.members
         .detailsMemberSession({
-          path: { userId: input.userId, sessionId: input.sessionId }
+          path: { userId: input.userId, sessionId: input.sessionId },
+          query: {
+            status: input.status?.join(','),
+            page: input.pagination.pageIndex + 1,
+            limit: input.pagination.pageSize,
+            sortBy: input.sorting[0]?.id,
+            sortDesc: input.sorting[0]?.desc
+          }
         })
         .then(({ data = null }) => data);
     }
