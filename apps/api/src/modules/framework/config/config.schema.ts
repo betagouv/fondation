@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const ConfigSchema = z.object({
   isProduction: z.prefault(z.boolean(), process.env.NODE_ENV === 'production'),
 
+  appName: z.string().default('fondation-api'),
+  appVersion: z.prefault(z.string().optional(), process.env.APP_VERSION),
+
   port: z.prefault(z.number(), Number(process.env.PORT) || 3000),
 
   cookieSecret: z.prefault(z.string().min(32), process.env.COOKIE_SECRET!),
