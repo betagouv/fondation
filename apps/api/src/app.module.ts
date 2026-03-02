@@ -21,15 +21,16 @@ export class AppModule {
     app.useGlobalFilters(new HttpExceptionFilter(app.get(SentryService)));
     app.enableShutdownHooks();
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (!config.isProduction) {
       openapi(app);
     }
 
     return app;
   }
 
-  static async listen(port?: number | string): Promise<void> {
+  static async listen(): Promise<void> {
     const app = await AppModule.create();
-    return app.listen(port ?? (process.env.PORT || 3_000));
+    const config = app.get(API_CONFIG_TOKEN);
+    return app.listen(config.port);
   }
 }
