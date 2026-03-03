@@ -270,7 +270,7 @@ export class NominationSessionRepository {
     );
 
     await tx.report.updateMany({
-      where: { sessionId: session.id, reporterId: { notIn: reporterIds } },
+      where: { sessionId: session.id },
       data: { isDeleted: true },
     });
 
