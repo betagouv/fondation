@@ -9,6 +9,11 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 
+import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
+import {
+  internalCountTotalDetailsMemberSessionRawQuery,
+  internalDetailsMemberSessionRawQuery,
+} from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   createPaginatedZodDto,
@@ -19,7 +24,6 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
-import { reportStateToPrismaReportStateEnum } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
@@ -39,117 +43,95 @@ export class InternalDetailMemberSessionQuery {
     pagination: Pagination;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
   }): Promise<DetailedMemberSessionDto> {
-    const [totalCount, session] = await this.prisma.$transaction(async (tx) => {
-      const version = await this.versionFinder
-        .lastPublished({
-          sessionId: query.sessionId,
-          tx,
-        })
-        .then((v) => v.getNullable());
+    const [session, totalCount, files] = await this.prisma.$transaction(
+      async (tx) => {
+        const version = await this.versionFinder
+          .lastPublished({
+            sessionId: query.sessionId,
+            tx,
+          })
+          .then((v) => v.getNullable());
 
-      if (!version) throw new NotFoundException();
+        if (!version) throw new NotFoundException();
 
-      const sortOrder = query.sorting.sortDesc ? 'desc' : 'asc';
+        const formation = roleToFormation(query.user.role);
 
-      const formation = roleToFormation(query.user.role);
+        const [total] = await tx.$queryRawTyped(
+          internalCountTotalDetailsMemberSessionRawQuery(
+            formation ?? null,
+            query.sessionId,
+            'TRANSPARENCE_GDS',
+            query.user.id,
+            query.status ?? null,
+          ),
+        );
 
-      const totalCount = await tx.dossierDeNomination.count({
-        where: {
-          sessionId: query.sessionId,
-          reporterIds: {
-            some: { versionId: version.id, userId: query.user.id },
+        const session = await tx.session.findFirst({
+          select: {
+            id: true,
+            name: true,
+            sessionImportId: true,
+            formation: true,
+            date: true,
+            dueDate: true,
           },
-        },
-      });
-
-      const session = await tx.session.findFirst({
-        where: {
-          formation,
-          id: query.sessionId,
-          typeDeSaisine: query.typeDeSaisine,
-        },
-        select: {
-          id: true,
-          name: true,
-          typeDeSaisine: true,
-          formation: true,
-          sessionImportId: true,
-          date: true,
-          dueDate: true,
-          dossierDeNominations: {
-            take: query.pagination.limit,
-            skip: (query.pagination.page - 1) * query.pagination.limit,
-            orderBy: [
-              {
-                name: query.sorting.sortBy === 'name' ? sortOrder : undefined,
-                number:
-                  query.sorting.sortBy === 'number' ? sortOrder : undefined,
-                targetedPosition:
-                  query.sorting.sortBy == 'targetedPosition'
-                    ? sortOrder
-                    : undefined,
-              },
-            ],
-            where: {
-              reports: {
-                some: {
-                  isDeleted: false,
-                  reporterId: query.user.id,
-                  state: {
-                    in: query.status?.map(reportStateToPrismaReportStateEnum),
-                  },
-                },
-              },
-              reporterIds: {
-                some: { versionId: version.id, userId: query.user.id },
-              },
-            },
-            select: {
-              id: true,
-              biography: true,
-              birthDate: true,
-              currentPosition: true,
-              grade: true,
-              lastPositionDate: true,
-              lastRankingDate: true,
-              name: true,
-              number: true,
-              observers: true,
-              rank: true,
-              targetedPosition: true,
-              priorite: true,
-              reports: {
-                take: 1,
-                select: { id: true, state: true },
-                where: {
-                  isDeleted: false,
-                  reporterId: query.user.id,
-                  state: {
-                    in: query.status?.map(reportStateToPrismaReportStateEnum),
-                  },
-                },
-              },
-              observations: {
-                select: {
-                  id: true,
-                  magistrat: {
-                    select: { id: true, firstName: true, lastName: true },
-                  },
-                },
-              },
-            },
+          where: {
+            typeDeSaisine: 'TRANSPARENCE_GDS',
+            id: query.sessionId,
+            formation,
           },
-        },
-      });
+        });
 
-      return [totalCount, session];
-    });
+        const files = await tx.$queryRawTyped(
+          internalDetailsMemberSessionRawQuery(
+            formation ?? null,
+            query.sessionId,
+            'TRANSPARENCE_GDS',
+            query.user.id,
+            query.status ?? null,
+            query.sorting.sortDesc ? 'desc' : 'asc',
+            query.sorting.sortBy ?? null,
+            query.pagination.limit,
+            (query.pagination.page - 1) * query.pagination.limit,
+          ),
+        );
+
+        return [session, Number(total?.count ?? 0), files];
+      },
+    );
 
     if (!session) throw new NotFoundException();
 
     const paginated = paginate({
-      items: session.dossierDeNominations.map((d) => {
-        const { id, state } = assertIsDefined(d.reports[0]);
+      items: files.map((d) => {
+        const { reports, observations } = z
+          .object({
+            reports: z.array(
+              z.object({
+                id: z.string(),
+                state: z.enum(PrismaReportStateEnum),
+              }),
+            ),
+            observations: z.array(
+              z
+                .object({
+                  id: z.string(),
+                  magistrat: z.preprocess(
+                    (x) => (Array.isArray(x) ? x[0] : x),
+                    z
+                      .object({
+                        id: z.string(),
+                        firstName: z.string(),
+                        lastName: z.string(),
+                      })
+                      .nullish(),
+                  ),
+                })
+                .nullable(),
+            ),
+          })
+          .parse(d);
+        const { id, state } = assertIsDefined(reports[0]);
 
         return {
           id,
@@ -166,13 +148,13 @@ export class InternalDetailMemberSessionQuery {
             ? prismaPrioriteEnumToPrioriteEnum(d.priorite)
             : null,
           observers: d.observers,
-          observationMagistrats: d.observations
-            .filter((obs) => obs.magistrat)
+          observationMagistrats: observations
+            .filter((obs) => obs && obs.magistrat)
             .map((obs) => ({
-              id: obs.magistrat!.id,
-              firstName: obs.magistrat!.firstName,
-              lastName: obs.magistrat!.lastName,
-              observationId: obs.id,
+              id: obs!.magistrat!.id,
+              firstName: obs!.magistrat!.firstName,
+              lastName: obs!.magistrat!.lastName,
+              observationId: obs!.id,
             })),
         };
       }),
