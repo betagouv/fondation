@@ -14,7 +14,7 @@ export type RegisterUserDto = {
     gender: 'MALE' | 'FEMALE';
     email: string;
     password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
 };
 
 export type RegisteredUserDto = {
@@ -30,7 +30,7 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     gender: 'MALE' | 'FEMALE';
 };
 
@@ -177,7 +177,7 @@ export type PaginatedNominationFiles = {
 };
 
 export type SomeAffectationVersion = {
-    '@type': string;
+    '@type': 'fr.csm.fondation.affectations.version.some';
     id: string;
     status: 'BROUILLON' | 'PUBLIEE';
     version: number;
@@ -190,7 +190,7 @@ export type SomeAffectationVersion = {
 };
 
 export type NoneAffectationVersion = {
-    '@type': string;
+    '@type': 'fr.csm.fondation.affectations.version.none';
     version: number;
 };
 
@@ -521,7 +521,7 @@ export type FoundSummaryReadersDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     }>;
 };
 

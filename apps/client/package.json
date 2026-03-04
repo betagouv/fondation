@@ -61,7 +61,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.3",
     "@faker-js/faker": "catalog:",
-    "@hey-api/openapi-ts": "^0.93.1",
+    "@hey-api/openapi-ts": "0.93.0",
     "@playwright/test": "^1.58.2",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@types/node": "^24.10.15",
