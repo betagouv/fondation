@@ -3,9 +3,9 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
 
 function requires2Reporters(dossier: SessionNominationFile, selectedCount?: number) {
   const search = unaccent(dossier.content.posteCible || '').toLowerCase();
@@ -20,7 +20,8 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
       'procureur national anti-terroriste',
       'procureur national financier',
       'premier president de chambre',
-      'avocat general cc  paris'
+      'avocat general cc  paris',
+      'premier avocat general cc  paris'
     ].some((position) => search.startsWith(position))
   );
 }
