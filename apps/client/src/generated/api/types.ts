@@ -188,7 +188,7 @@ export type PaginatedNominationFiles = {
 };
 
 export type SomeAffectationVersion = {
-    '@type': string;
+    '@type': 'fr.csm.fondation.affectations.version.some';
     id: string;
     status: 'BROUILLON' | 'PUBLIEE';
     version: number;
@@ -201,7 +201,7 @@ export type SomeAffectationVersion = {
 };
 
 export type NoneAffectationVersion = {
-    '@type': string;
+    '@type': 'fr.csm.fondation.affectations.version.none';
     version: number;
 };
 

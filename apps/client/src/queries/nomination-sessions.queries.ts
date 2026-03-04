@@ -7,7 +7,9 @@ import type {
   ImportNominationSessionFromLodamXlsxDto,
   ListNominationFilesAsExcelData,
   ListNominationFilesData,
-  PaginatedNominationFiles
+  NoneAffectationVersion,
+  PaginatedNominationFiles,
+  SomeAffectationVersion
 } from '@api/types';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
@@ -76,7 +78,10 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
     queryFn: () =>
       $api.sessions
         .detailNominationSessionAffectationsVersion({ path: { sessionId } })
-        .then(({ data = null }) => data)
+        // FIXME: broken type generation with oneOf
+        // https://github.com/hey-api/openapi-ts/issues/3270
+        // ☝️ this is an AI responding...
+        .then(({ data = null }) => data as SomeAffectationVersion | NoneAffectationVersion | null)
   });
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
