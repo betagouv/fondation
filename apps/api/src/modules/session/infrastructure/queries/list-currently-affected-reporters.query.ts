@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { createZodDto } from 'nestjs-zod';
+import { PrismaService } from 'src/modules/framework/database';
 import z from 'zod';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListCurrentlyAffectedReportersQuery {
@@ -19,6 +19,10 @@ export class ListCurrentlyAffectedReportersQuery {
       if (txVersion.isNone()) return null;
       return tx.nominationFileToReporter.findMany({
         distinct: ['userId'],
+        orderBy: [
+          { user: { lastName: 'asc' } },
+          { user: { firstName: 'asc' } },
+        ],
         where: { versionId: txVersion.id },
         select: {
           user: { select: { id: true, firstName: true, lastName: true } },
