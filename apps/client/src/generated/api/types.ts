@@ -239,6 +239,10 @@ export type UploadSessionAttachmentDto = {
     file: Blob | File;
 };
 
+export type UploadSessionAttachmentsDto = {
+    files: Array<Blob | File>;
+};
+
 export type ListedNominationSessionAttachmentDto = {
     items: Array<{
         name: string;
@@ -1159,6 +1163,21 @@ export type UploadSessionAttachmentResponses = {
 };
 
 export type UploadSessionAttachmentResponse = UploadSessionAttachmentResponses[keyof UploadSessionAttachmentResponses];
+
+export type UploadSessionAttachmentsData = {
+    body: UploadSessionAttachmentsDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/multiattachments';
+};
+
+export type UploadSessionAttachmentsResponses = {
+    204: void;
+};
+
+export type UploadSessionAttachmentsResponse = UploadSessionAttachmentsResponses[keyof UploadSessionAttachmentsResponses];
 
 export type RemoveSessionAttachmentData = {
     body?: never;

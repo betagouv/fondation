@@ -441,10 +441,10 @@ export class NominationSession {
     );
   }
 
-  addAttachment(command: { file: { id: string } }) {
-    this.#messages.push(
-      new NominationSessionAttachmentAdded(this.id, command.file),
-    );
+  addAttachments(command: { files: { id: string }[] }) {
+    for (const file of command.files) {
+      this.#messages.push(new NominationSessionAttachmentAdded(this.id, file));
+    }
   }
 
   removeAttachment(command: { fileId: string }) {

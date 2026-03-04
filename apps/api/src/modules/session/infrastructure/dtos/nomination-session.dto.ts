@@ -55,8 +55,15 @@ export class UpdateNominationSessionDto extends createZodDto(
   }),
 ) {}
 
+/** @deprecated */
 export class UploadSessionAttachmentDto extends createZodDto(
   z.object({ file: z.file() }),
+) {}
+
+export class UploadSessionAttachmentsDto extends createZodDto(
+  z.object({
+    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file())),
+  }),
 ) {}
 
 export class ListCommentAccessDto extends createZodDto(

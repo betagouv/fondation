@@ -30,6 +30,7 @@ import { SessionService } from './infrastructure/sessions.service';
 import {
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -61,6 +62,7 @@ import {
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadSessionAttachmentDto,
+  UploadSessionAttachmentsDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import {
   FoundAffectationVersion,
@@ -346,6 +348,11 @@ export class SessionController {
     await this.sessions.hideAlert({ sessionId, nominationFileId });
   }
 
+  /** @deprecated */
+  @ApiOperation({
+    deprecated: true,
+    description: 'prefer uploadSessionAttachments',
+  })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/:sessionId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -358,9 +365,27 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Body() { file }: Multipart<typeof UploadSessionAttachmentDto>,
   ) {
-    await this.sessions.addNominationSessionAttachment({
+    await this.sessions.addNominationSessionAttachments({
       sessionId,
-      file,
+      files: [file],
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId/multiattachments')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseMultipartBody({
+    schema: UploadSessionAttachmentsDto,
+    destination: ({ request, id, mimetype }) =>
+      `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  async uploadSessionAttachments(
+    @Param('sessionId') sessionId: string,
+    @Body() { files }: Multipart<typeof UploadSessionAttachmentsDto>,
+  ) {
+    await this.sessions.addNominationSessionAttachments({
+      sessionId,
+      files,
     });
   }
 
