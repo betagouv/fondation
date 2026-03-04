@@ -121,7 +121,7 @@ export type PaginatedNominationFiles = {
             } | null;
             informationCarrière: string | null;
             outcome: {
-                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
                 comment: string | null;
             } | null;
             isAlertHidden: boolean;
@@ -232,7 +232,7 @@ export type UpdateCommentAccessDto = {
 };
 
 export type DefineNominationFileOutcomeDto = {
-    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
     comment: string | null;
 };
 
@@ -491,7 +491,7 @@ export type DetailedSummaryDto = {
         };
     }>;
     outcome: {
-        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN';
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
         comment: string | null;
     } | null;
     summary: {

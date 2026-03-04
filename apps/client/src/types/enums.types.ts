@@ -72,14 +72,18 @@ const NOMINATION_FILE_OUTCOME_LABELS = {
     NON_VALIDATED: 'avis défavorable',
     SUSPENDED: 'sursis à statuer',
     REMOVED: 'retrait',
-    WITHDRAWN: 'retrait (désistement)'
+    WITHDRAWN: 'retrait (désistement)',
+    ASSESSING: 'en attente évaluation',
+    WAITING_DSJ: 'en attente complément DSJ'
   },
   SIEGE: {
     VALIDATED: 'avis conforme',
     NON_VALIDATED: 'avis non conforme',
     SUSPENDED: 'sursis à statuer',
     REMOVED: 'retrait',
-    WITHDRAWN: 'retrait (désistement)'
+    WITHDRAWN: 'retrait (désistement)',
+    ASSESSING: 'en attente évaluation',
+    WAITING_DSJ: 'en attente complément DSJ'
   }
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
@@ -89,14 +93,18 @@ const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
     NON_VALIDATED: 'défavorable',
     SUSPENDED: 'sursis',
     REMOVED: 'retrait',
-    WITHDRAWN: 'désistement'
+    WITHDRAWN: 'désistement',
+    ASSESSING: 'évaluation',
+    WAITING_DSJ: 'complément DSJ'
   },
   SIEGE: {
     VALIDATED: 'conforme',
     NON_VALIDATED: 'non conforme',
     SUSPENDED: 'sursis',
     REMOVED: 'retrait',
-    WITHDRAWN: 'désistement'
+    WITHDRAWN: 'désistement',
+    ASSESSING: 'évaluation',
+    WAITING_DSJ: 'complément DSJ'
   }
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
@@ -106,14 +114,18 @@ const NOMINATION_FILE_OUTCOME_ACRONYM = {
     NON_VALIDATED: 'AD',
     SUSPENDED: 'SAS',
     REMOVED: 'R',
-    WITHDRAWN: 'RD'
+    WITHDRAWN: 'RD',
+    ASSESSING: 'EVL',
+    WAITING_DSJ: 'DSJ'
   },
   SIEGE: {
     VALIDATED: 'AC',
     NON_VALIDATED: 'ANC',
     SUSPENDED: 'SAS',
     REMOVED: 'R',
-    WITHDRAWN: 'RD'
+    WITHDRAWN: 'RD',
+    ASSESSING: 'EVL',
+    WAITING_DSJ: 'DSJ'
   }
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
