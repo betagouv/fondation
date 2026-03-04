@@ -183,9 +183,9 @@ describe('Session E2E', () => {
         summary: null,
         reporters: [
           expect.objectContaining({
-            firstName: 'Côme',
+            firstName: 'côme',
             id: expect.any(String),
-            lastName: 'DURAND',
+            lastName: 'durand',
           }),
         ],
       });
@@ -235,13 +235,13 @@ describe('Session E2E', () => {
         reporters: expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(String),
-            firstName: 'Charles',
-            lastName: 'ANDOCHE',
+            firstName: 'charles',
+            lastName: 'andoche',
           }),
           expect.objectContaining({
             id: expect.any(String),
-            firstName: 'Côme',
-            lastName: 'DURAND',
+            firstName: 'côme',
+            lastName: 'durand',
           }),
         ]),
       });

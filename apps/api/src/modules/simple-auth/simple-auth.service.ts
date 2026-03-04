@@ -36,7 +36,9 @@ export class SimpleAuthService {
     email: string;
     password: string;
   }): Promise<AuthSession> {
-    const user = await this.userRepository.findByEmail(command.email);
+    const user = await this.userRepository.findByEmail(
+      command.email.toLowerCase(),
+    );
     const session = await user.authenticate({
       plainPassword: command.password,
       now: this.clock.now(),

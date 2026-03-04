@@ -100,12 +100,19 @@ export class AuthUser {
     gender: Gender;
   }) {
     const password = await AuthPassword.create(props.password);
-    const email = await z.email().parseAsync(props.email);
+    const email = await z.email().toLowerCase().parseAsync(props.email);
     const id = makeId('AuthUserId');
 
     const user = new AuthUser(id, password);
     user.#messages.push(
-      new AuthUserRegistered({ ...props, email, id, password }),
+      new AuthUserRegistered({
+        ...props,
+        id,
+        email,
+        password,
+        firstName: props.firstName.toLowerCase(),
+        lastName: props.lastName.toLowerCase(),
+      }),
     );
     return user;
   }
