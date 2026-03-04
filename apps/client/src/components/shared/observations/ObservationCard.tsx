@@ -23,7 +23,7 @@ export function ObservationCard({
   context,
   reportId
 }: ObservationCardProps) {
-  const hasUserComment = observation.hasUserComment;
+  const shouldDisplayCommentIcon = observation.hasDescription || observation.hasUserComment;
   const magistratName = observation.magistrat
     ? `${observation.magistrat.lastName.toUpperCase()} ${capitalize(observation.magistrat.firstName)}`
     : 'Magistrat inconnu';
@@ -41,12 +41,12 @@ export function ObservationCard({
   return (
     <Card
       title={
-        <div className="inline">
+        <span className="flex flex-row items-center">
           {magistratName}
-          {hasUserComment ? (
+          {shouldDisplayCommentIcon ? (
             <i className={clsx(cx('ri-message-3-line'), 'ml-1 before:size-5 before:content-[""]')} />
           ) : null}
-        </div>
+        </span>
       }
       desc={
         <div className={cx('fr-text--sm')}>

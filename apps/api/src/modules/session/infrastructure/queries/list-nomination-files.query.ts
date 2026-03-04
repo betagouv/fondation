@@ -135,6 +135,7 @@ export class ListNominationFilesQuery {
               id: true,
               followUp: true,
               followUpComment: true,
+              description: true,
               memberComments: {
                 where: { userId: query.user.id },
                 select: { comment: true },
@@ -222,6 +223,7 @@ export class ListNominationFilesQuery {
             followUp: obs.followUp,
             followUpComment: obs.followUp ? obs.followUpComment : null,
             date: DateOnly.fromDate(obs.dateReception).toJson(),
+            hasDescription: !!obs.description.trim(),
             hasUserComment: obs.memberComments.some(
               ({ comment }) => !!comment.trim(),
             ),
@@ -348,6 +350,7 @@ const NominationFileAffectationItemSchema = z.object({
       date: dateOnlyJsonSchema,
       followUp: z.enum(ObservationFollowUp.enum).nullable(),
       followUpComment: z.string().nullable(),
+      hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
       magistrat: z
         .object({ id: z.string(), firstName: z.string(), lastName: z.string() })

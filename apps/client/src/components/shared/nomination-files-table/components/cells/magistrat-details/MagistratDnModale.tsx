@@ -86,6 +86,7 @@ export function MagistratModaleProvider(
     <>
       <modalMagistratDnDetails.Component
         {...modalProps}
+        size="large"
         buttons={[
           {
             priority: 'tertiary',
@@ -123,7 +124,9 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
   const hasComment =
     !!props.nominationFile.memo ||
     !!props.nominationFile.summary?.canWrite ||
-    !!props.nominationFile.summary?.canRead;
+    !!props.nominationFile.summary?.canRead ||
+    (props.nominationFile.comment?.trim().length ?? 0) > 0 ||
+    props.nominationFile.observations.some((o) => o.hasUserComment || o.hasDescription);
 
   return (
     <Button
@@ -138,8 +141,7 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {props.nominationFile.content.nomMagistrat}
         {hasComment && (
           <i
-            className="ri-message-3-line ml-1 cursor-pointer"
-            style={{ fontSize: '10px' }}
+            className="ri-message-3-line ml-1 cursor-pointer before:size-5 before:content-['']"
             title="Commentaire présent"
             aria-label="Commentaire présent"
           />

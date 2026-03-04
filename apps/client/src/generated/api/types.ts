@@ -143,6 +143,7 @@ export type PaginatedNominationFiles = {
             };
             followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
             followUpComment: string | null;
+            hasDescription: boolean;
             hasUserComment: boolean;
             magistrat: {
                 id: string;
@@ -639,6 +640,7 @@ export type DetailedReportDto = {
             month: number;
             day: number;
         };
+        hasDescription: boolean;
         hasUserComment: boolean;
         magistrat: {
             id: string;
