@@ -46,12 +46,13 @@ export function NominationSessionAttachmentList(props: { sessionId: string }) {
   const { mutate: deleteAttachment, isPending: isDeletionPending } =
     useRemoveNominationSessionAttachmentMutation();
 
-  if (!attachments?.items?.length) return <div>Aucune pièce jointe.</div>;
+  if (!attachments?.items?.length)
+    return <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>;
 
   return (
-    <ul className={clsx('flex flex-col gap-2')}>
+    <ul className={clsx('m-0 flex flex-col gap-2 p-0')}>
       {(attachments?.items ?? []).map((file) => (
-        <li key={file.id} className="flex items-center gap-4">
+        <li key={file.id} className="flex items-center gap-4 pb-0">
           <Button
             priority="tertiary no outline"
             className="flex-grow text-ellipsis text-left"

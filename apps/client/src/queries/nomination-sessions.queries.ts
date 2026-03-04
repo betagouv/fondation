@@ -248,10 +248,12 @@ export function useUpdateNominationSessionObserversFromLodamMutation() {
 export function useAddNominationSessionAttachmentMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { sessionId: string; file: File }) => {
-      await $api.sessions.uploadSessionAttachment({
+    mutationFn: async (input: { sessionId: string; files: readonly File[] | FileList }) => {
+      if (input.files.length === 0) return;
+
+      await $api.sessions.uploadSessionAttachments({
         path: { sessionId: input.sessionId },
-        body: { file: input.file }
+        body: { files: [...input.files] }
       });
     },
     onSuccess: (_data, { sessionId }) =>

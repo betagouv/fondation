@@ -11,6 +11,7 @@ import z from 'zod';
 import type { $ZodType } from 'zod/v4/core';
 
 import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
 import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
 import { MultipartFile } from './multipart.file';
 import {
@@ -18,7 +19,6 @@ import {
   MulterFileSchema,
   MultipartDestinationFactory,
 } from './multipart.types';
-import { isDefined } from 'src/utils/is-defined';
 
 export class MultipartBodyInterceptor implements NestInterceptor {
   private readonly logger = new Logger(MultipartBodyInterceptor.name);
@@ -134,26 +134,38 @@ type ZodOptionalSchema<T extends z.ZodType> =
   | T
   | z.ZodOptional<T>
   | z.ZodNullable<T>
-  | z.ZodOptional<z.ZodNullable<T>>;
+  | z.ZodOptional<z.ZodNullable<T>>
+  | z.ZodPipe<z.ZodType, T>;
 
-type FileSchema = ZodOptionalSchema<z.ZodFile>;
-function isFileSchema(schema: z.ZodType | $ZodType): schema is FileSchema {
-  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
-    return isFileSchema(schema.unwrap());
+function unwrap(schema: z.ZodType): z.ZodType | $ZodType {
+  let innerSchema: z.ZodType | $ZodType = schema;
+
+  const instances = [z.ZodOptional, z.ZodNullable, z.ZodPipe];
+  while (instances.some((ctor) => innerSchema instanceof ctor)) {
+    if (
+      innerSchema instanceof z.ZodOptional ||
+      innerSchema instanceof z.ZodNullable
+    ) {
+      innerSchema = innerSchema.unwrap();
+    } else if (innerSchema instanceof z.ZodPipe) {
+      innerSchema = innerSchema.out;
+    }
   }
 
-  return schema instanceof z.ZodFile;
+  return innerSchema;
+}
+
+type FileSchema = ZodOptionalSchema<z.ZodFile>;
+function isFileSchema(schema: z.ZodType): schema is FileSchema {
+  return unwrap(schema) instanceof z.ZodFile;
 }
 
 type FileListSchema = ZodOptionalSchema<z.ZodArray<z.ZodFile>>;
-function isFileArraySchema(
-  schema: z.ZodType | $ZodType,
-): schema is FileListSchema {
-  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
-    return isFileArraySchema(schema.unwrap());
-  }
-
-  return schema instanceof z.ZodArray && schema.element instanceof z.ZodFile;
+function isFileArraySchema(schema: z.ZodType): schema is FileListSchema {
+  const unwrapped = unwrap(schema);
+  return (
+    unwrapped instanceof z.ZodArray && unwrapped.element instanceof z.ZodFile
+  );
 }
 
 function isMulterFile(file: unknown): file is MulterFile | MulterFile[] {
@@ -240,9 +252,9 @@ async function toMultipartFileList(props: {
     return props.files;
   }
 
-  let schema = props.schema;
-  while (!(schema instanceof z.ZodArray)) {
-    schema = schema.unwrap();
+  const schema = unwrap(props.schema);
+  if (!(schema instanceof z.ZodArray)) {
+    throw new BadRequestException(`not an array`);
   }
 
   const { destination, deleteOnFail, overrideFiles } = props;
@@ -254,7 +266,7 @@ async function toMultipartFileList(props: {
         destination,
         overrideFiles,
         request: props.request,
-        schema: schema.element,
+        schema: schema.element as FileSchema,
       }),
     ),
   );

@@ -63,49 +63,34 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
   const onSave = React.useCallback(async () => {
     if (!nominationFile) return;
 
-    const success: string[] = [];
-    for (const file of files) {
-      await addAttachment(
-        { sessionId: props.sessionId, file },
-        {
-          onSuccess() {
-            success.push(file.name);
-          },
+    await addAttachment(
+      { sessionId: props.sessionId, files },
+      {
+        onError() {
+          setError({
+            title: `Erreur pendant le téléchargement`,
+            description: (
+              <>
+                <p>
+                  Il y a eu une erreur pendant le téléchargement{' '}
+                  {files.length > 1 ? `des fichiers` : `du fichier`}
+                </p>
+                <p>Merci de réessayer.</p>
+              </>
+            )
+          });
 
-          onError() {
-            const list = new Intl.ListFormat('fr', { type: 'conjunction' }).format(
-              success.map((x) => `"${x}"`)
-            );
-
-            setError({
-              title: `Erreur pendant le téléchargement`,
-              description: (
-                <>
-                  <p>
-                    Il y a eu une erreur pendant le téléchargement du fichier "{file.name}".
-                    {success.length > 0
-                      ? success.length === 1
-                        ? ` ${list} s'est téléchargé correctement`
-                        : ` ${list} se sont téléchargés correctement.`
-                      : ''}
-                  </p>
-                  <p>Merci de réessayer.</p>
-                </>
-              )
-            });
-
-            setFiles([]);
-            if (inputRef.current) {
-              inputRef.current.files = null;
-              inputRef.current.value = '';
-            }
-          },
-          onSettled(_data, error) {
-            if (error) throw new Error(`Error while uploading`);
+          setFiles([]);
+          if (inputRef.current) {
+            inputRef.current.files = null;
+            inputRef.current.value = '';
           }
+        },
+        onSettled(_data, error) {
+          if (error) throw new Error(`Error while uploading`);
         }
-      );
-    }
+      }
+    );
 
     await deleteAlert({ nominationFileId: nominationFile.id });
     nominationFileTargetPositionModal.close();

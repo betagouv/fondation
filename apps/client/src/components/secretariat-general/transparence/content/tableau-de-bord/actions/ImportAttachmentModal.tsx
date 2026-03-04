@@ -1,9 +1,9 @@
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import clsx from 'clsx';
-import { useCallback, useState } from 'react';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import clsx from 'clsx';
+import { useCallback, useRef, useState } from 'react';
 
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
@@ -12,35 +12,40 @@ export const modal = createModal({
 
 export const ImportAttachmentModal = (props: { sessionId: string }) => {
   const alerts = useAlerts();
-  const title = 'Importer une pièce jointe';
 
-  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const { mutate: importAttachment, isPending } = useAddNominationSessionAttachmentMutation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [attachmentFiles, setAttachmentFiles] = useState<FileList | null>(null);
+  const { mutate: importAttachments, isPending } = useAddNominationSessionAttachmentMutation();
 
   const onChangeAttachmentFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
-      if (e.target.files && e.target.files.length === 1) {
-        setAttachmentFile(e.target.files[0]!);
+      if (e.target.files && e.target.files.length > 0) {
+        setAttachmentFiles(e.target.files);
       }
     },
-    [setAttachmentFile]
+    [setAttachmentFiles]
   );
 
   const handleImportAttachment = useCallback(() => {
-    if (!attachmentFile) {
-      return;
-    }
+    if (!attachmentFiles) return;
 
-    importAttachment(
+    importAttachments(
       {
-        file: attachmentFile,
+        files: attachmentFiles,
         sessionId: props.sessionId
       },
       {
+        onSettled() {
+          if (!inputRef.current) return;
+
+          inputRef.current.value = '';
+          inputRef.current.files = null;
+        },
         onSuccess: () => {
           alerts.pushAlert({ severity: 'success', title: 'Données actualisées' });
-          setAttachmentFile(null);
+
+          setAttachmentFiles(null);
           modal.close();
         },
         onError: (error: Error) => {
@@ -48,32 +53,33 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
         }
       }
     );
-  }, [attachmentFile, setAttachmentFile, props, importAttachment, alerts]);
+  }, [attachmentFiles, setAttachmentFiles, props, importAttachments, alerts, inputRef]);
 
   return (
     <modal.Component
-      title={title}
+      title={'Importer des pièces jointes'}
       buttons={[
         {
           doClosesModal: false,
           children: isPending ? 'Import en cours...' : 'Importer',
           nativeButtonProps: {
             onClick: handleImportAttachment,
-            disabled: !attachmentFile || isPending
+            disabled: !attachmentFiles || isPending
           }
         }
       ]}
     >
       <div className={clsx('gap-8', 'fr-grid-row')}>
         <Upload
+          multiple
           id="import-observations-transparence"
           nativeInputProps={{
+            ref: inputRef,
             onChange: onChangeAttachmentFile,
             disabled: isPending
           }}
           hint={null}
           label={null}
-          multiple={false}
         />
       </div>
     </modal.Component>

@@ -70,7 +70,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string; formati
             buttons={[
               {
                 priority: 'primary',
-                children: 'Importer une pièce jointe',
+                children: 'Importer des pièces jointes',
                 nativeButtonProps: importAttachments.modal.buttonProps
               },
               {

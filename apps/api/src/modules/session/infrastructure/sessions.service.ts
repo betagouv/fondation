@@ -284,15 +284,15 @@ export class SessionService {
     await this.nominationSessionRepository.persist(session);
   }
 
-  async addNominationSessionAttachment(command: {
+  async addNominationSessionAttachments(command: {
     sessionId: string;
-    file: { id: string };
+    files: { id: string }[];
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
     );
 
-    session.addAttachment({ file: command.file });
+    session.addAttachments({ files: command.files });
     await this.nominationSessionRepository.persist(session);
   }
 
