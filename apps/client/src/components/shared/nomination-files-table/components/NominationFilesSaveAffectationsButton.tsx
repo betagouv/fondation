@@ -19,10 +19,10 @@ export function NominationFilesSaveAffectationsButton() {
     saveAffectations(
       {
         sessionId,
-        affectations: getAffectations().map(({ reporterIds, priority, id }) => ({
+        affectations: getAffectations().map(({ reporterIds, priorities, id }) => ({
           reporterIds,
           nominationFileId: id,
-          priority: priority === NO_PRIORITY ? null : priority
+          priorities: priorities.includes(NO_PRIORITY) ? [] : priorities.filter((x) => x !== NO_PRIORITY)
         }))
       },
       {

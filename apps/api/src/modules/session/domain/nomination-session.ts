@@ -22,11 +22,11 @@ export class NominationSessionFileReportersAffected {
   ) {}
 }
 
-export class NominationSessionFilePriorityUpdated {
+export class NominationSessionFilePrioritiesUpdated {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
-    readonly priority: PrioriteEnum | null,
+    readonly priorities: readonly PrioriteEnum[],
   ) {}
 }
 
@@ -137,7 +137,7 @@ export class NominationFileAlertHidden {
 type NominationSessionEvent =
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
-  | NominationSessionFilePriorityUpdated
+  | NominationSessionFilePrioritiesUpdated
   | NominationSessionFileReportersAffected
   | NominationSessionFileCommentAccessGranted
   | NominationSessionCreated
@@ -295,17 +295,17 @@ export class NominationSession {
 
   setNominationFilePriority(props: {
     nominationFileId: string;
-    priority: PrioriteEnum | null;
+    priorities: PrioriteEnum[];
   }) {
     if (this.nominationFileHasOutcome(props.nominationFileId)) {
       throw new NominationFilesHaveOutcome([props.nominationFileId]);
     }
 
     this.#messages.push(
-      new NominationSessionFilePriorityUpdated(
+      new NominationSessionFilePrioritiesUpdated(
         this.id,
         props.nominationFileId,
-        props.priority,
+        props.priorities,
       ),
     );
   }

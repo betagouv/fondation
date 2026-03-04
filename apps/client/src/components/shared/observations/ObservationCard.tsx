@@ -49,9 +49,9 @@ export function ObservationCard({
         </span>
       }
       desc={
-        <div className={cx('fr-text--sm')}>
-          <p className={cx('fr-mb-0', 'fr-text--light')}>Observation du {DateOnly.fromDateOnly(dateObj)}</p>
-        </div>
+        <span className={clsx(cx('fr-mb-0', 'fr-text--light'), 'text-sm')}>
+          Observation du {DateOnly.fromDateOnly(dateObj)}
+        </span>
       }
       linkProps={{ to: linkWithReport }}
       enlargeLink

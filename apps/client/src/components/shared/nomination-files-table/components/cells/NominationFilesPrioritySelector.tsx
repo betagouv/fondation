@@ -13,12 +13,12 @@ const PRIORITY_SELECTOR_OPTIONS = [
 ];
 
 export function NominationFilesPrioritySelector(props: { fileId: string }) {
-  const { priority, prioritize } = useAffectationRow(props.fileId);
-  const selectedPriority = React.useMemo(() => priority ?? NO_PRIORITY, [priority]);
+  const { priorities, prioritize } = useAffectationRow(props.fileId);
+  const selectedPriority = React.useMemo(() => priorities?.[0] || NO_PRIORITY, [priorities]);
 
   const handleChange = React.useCallback(
     (value: string) => {
-      prioritize(value === NO_PRIORITY ? NO_PRIORITY : (value as PrioriteEnum));
+      prioritize(new Set([value === NO_PRIORITY ? NO_PRIORITY : (value as PrioriteEnum)]));
     },
     [prioritize]
   );

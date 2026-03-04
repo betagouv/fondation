@@ -9,8 +9,8 @@ import { useAffectations, type NoPriority } from '../contexts/files-affectations
 import { useSelectedFileIds } from '../contexts/files-selection.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
-import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
 import { NominationFilesPrioritySelector } from './NominationFilesPrioritySelector';
+import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
 
 const actionsGroupeesModal = createModal({
   id: 'actions-groupees-modal',
@@ -54,7 +54,9 @@ export function NominationFilesBatchOperationsButton() {
     }
 
     if (localPriorite !== undefined) {
-      prioritize(Object.fromEntries(selectedFileIds.map((fileId) => [fileId, localPriorite] as const)));
+      prioritize(
+        Object.fromEntries(selectedFileIds.map((fileId) => [fileId, new Set([localPriorite])] as const))
+      );
     }
 
     setLocalSelection([]);

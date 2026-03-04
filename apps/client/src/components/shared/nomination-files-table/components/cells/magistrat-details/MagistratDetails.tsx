@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { useMemo, type FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -20,6 +20,7 @@ import { UserAvatarList } from '@/components/shared/user-avatar';
 
 import clsx from 'clsx';
 
+import { PrioriteEnumLabels } from '@/types/enums.types';
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MagistratComment } from './magistrat-comment/MagistratComment';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -43,6 +44,15 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
     datePriseDeFonctionPosteActuel
   } = nominationFile.content;
 
+  const formattedPriorities = useMemo(
+    () =>
+      nominationFile.priorities.length > 0
+        ? new Intl.ListFormat('fr', { type: 'conjunction' }).format(
+            nominationFile.priorities.map((x) => PrioriteEnumLabels[x])
+          )
+        : null,
+    [nominationFile]
+  );
   const formattedBirthDate = dateDeNaissance ? formatBirthDate(dateDeNaissance, new Date()) : null;
   const formattedObservers = observants ? formatObservers(observants) : null;
   const formattedBiography = formatBiography(historique);
@@ -77,6 +87,12 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
         <MagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
       </div>
       <div>
+        {formattedPriorities && (
+          <TextValue
+            label={nominationFile.priorities.length > 1 ? 'Priorités' : 'Priorité'}
+            value={formattedPriorities}
+          />
+        )}
         <TextValue
           label={ReportVM.magistratIdentityLabels.currentPosition}
           value={`${posteActuel} - ${grade}`}

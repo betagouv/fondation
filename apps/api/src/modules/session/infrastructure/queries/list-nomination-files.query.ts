@@ -99,7 +99,7 @@ export class ListNominationFilesQuery {
 
         select: {
           id: true,
-          priorite: true,
+          priorities: true,
           comment: true,
           biography: true,
           birthDate: true,
@@ -195,8 +195,10 @@ export class ListNominationFilesQuery {
             : null,
           isAlertHidden: x.alertHidden,
         },
-        priority: x.priorite
-          ? prismaPrioriteEnumToPrioriteEnum(x.priorite)
+        priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
+        // TODO: remove
+        priority: x.priorities[0]
+          ? prismaPrioriteEnumToPrioriteEnum(x.priorities[0])
           : null,
         comment: x.comment,
         commentAccessUserIds: isSG ? commentAccessUserIds : undefined,
@@ -261,30 +263,29 @@ export class ListNominationFilesQuery {
     },
     lastVersion: OptionalAffectationVersion,
   ): Prisma.DossierDeNominationWhereInput {
-    const wherePriorities: Prisma.DossierDeNominationWhereInput[] = [];
+    const where: Prisma.DossierDeNominationWhereInput[] = [];
     if (filters.priorities.includes(null)) {
-      wherePriorities.push({ priorite: null });
+      where.push({ priorities: { equals: [] } });
     }
 
     if (filters.priorities.filter(isDefined).length > 0) {
-      wherePriorities.push({
-        priorite: {
-          in: filters.priorities
+      where.push({
+        priorities: {
+          hasSome: filters.priorities
             .filter(isDefined)
             .map(prioriteEnumToPrismaPrioriteEnum),
         },
       });
     }
 
-    const whereReporters: Prisma.DossierDeNominationWhereInput[] = [];
     if (filters.reporterIds.includes(null)) {
-      whereReporters.push({
+      where.push({
         reporterIds: { none: { versionId: lastVersion.optionalId } },
       });
     }
 
     if (filters.reporterIds.filter(isDefined).length > 0) {
-      whereReporters.push({
+      where.push({
         reporterIds: {
           some: {
             versionId: lastVersion.optionalId,
@@ -294,9 +295,7 @@ export class ListNominationFilesQuery {
       });
     }
 
-    return {
-      AND: [{ OR: wherePriorities }, { OR: whereReporters }],
-    };
+    return { OR: where.length > 0 ? where : undefined };
   }
 }
 
@@ -332,7 +331,8 @@ const NominationFileContentSchema = z.object({
 
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
-  priority: z.enum(PrioriteEnum).nullable(),
+  priorities: z.array(z.enum(PrioriteEnum)),
+  priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true }),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
   commentAccessUserIds: z.array(z.string()).optional(),

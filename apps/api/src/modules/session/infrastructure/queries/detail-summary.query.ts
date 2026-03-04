@@ -48,7 +48,7 @@ export class DetailSummaryQuery {
             targetedPosition: true,
             lastPositionDate: true,
             lastRankingDate: true,
-            priorite: true,
+            priorities: true,
             birthDate: true,
             careerInformation: true,
             currentPosition: true,
@@ -157,8 +157,11 @@ export class DetailSummaryQuery {
       lastPositionDate:
         DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ??
         null,
-      priority: nominationFile.priorite
-        ? prismaPrioriteEnumToPrioriteEnum(nominationFile.priorite)
+      priorities: nominationFile.priorities.map(
+        prismaPrioriteEnumToPrioriteEnum,
+      ),
+      priority: nominationFile.priorities[0]
+        ? prismaPrioriteEnumToPrioriteEnum(nominationFile.priorities[0])
         : null,
 
       observers: nominationFile.observers,
@@ -239,7 +242,11 @@ export class DetailedSummaryDto extends createZodDto(
     position: z.string().nullable(),
     targetedGrade: z.enum(Magistrat.Grade).nullable(),
     targetedPosition: z.string().nullable(),
-    priority: z.enum(PrioriteEnum).nullable(),
+    priorities: z.array(z.enum(PrioriteEnum)),
+    priority: z
+      .enum(PrioriteEnum)
+      .nullable()
+      .meta({ deprecated: true, description: 'prefer priorities' }),
     biography: z.string(),
     lastRankingDate: dateOnlyJsonSchema.nullable(),
     lastPositionDate: dateOnlyJsonSchema.nullable(),

@@ -11,7 +11,6 @@ import type {
 } from '@api/types';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
-import type { Override } from '@/types/utils.types';
 import { HttpException } from '@/utils/http-exception';
 import { getBaseUrl } from '@/utils/http.config';
 
@@ -109,7 +108,7 @@ export const useSessionNominationFilesQuery = (options: {
   });
 
 /** @warning there is an issue with the code generation here */
-type AffectationItem = Override<AffectReportersDto['items'][number], { priority: PrioriteEnum | null }>;
+type AffectationItem = AffectReportersDto['items'][number];
 
 export function useAffectNominationFilesReportersMutation() {
   const queryClient = useQueryClient();
