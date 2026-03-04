@@ -8,6 +8,8 @@ const NOMINATION_FILE_OUTCOMES = [
   'SUSPENDED',
   'REMOVED',
   'WITHDRAWN',
+  'ASSESSING',
+  'WAITING_DSJ',
 ] as const;
 
 export type NominationFileOutcomeEnum =
@@ -85,6 +87,10 @@ export function nominationFileOutcomeLabel(props: {
           return 'retrait';
         case 'WITHDRAWN':
           return 'retrait (désistement)';
+        case 'ASSESSING':
+          return 'En attente évaluation';
+        case 'WAITING_DSJ':
+          return 'En attente complément DSJ';
         default:
           return assertNever(props.outcome);
       }
@@ -101,6 +107,10 @@ export function nominationFileOutcomeLabel(props: {
           return 'retrait';
         case 'WITHDRAWN':
           return 'retrait (désistement)';
+        case 'ASSESSING':
+          return 'En attente évaluation';
+        case 'WAITING_DSJ':
+          return 'En attente complément DSJ';
         default:
           return assertNever(props.outcome);
       }

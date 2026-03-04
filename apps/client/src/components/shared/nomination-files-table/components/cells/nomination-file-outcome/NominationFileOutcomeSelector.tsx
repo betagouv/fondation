@@ -7,9 +7,9 @@ import {
   useDefineNominationFileOutcomeMutation,
   type SessionNominationFile
 } from '@queries/nomination-sessions.queries';
+import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 import { NominationFileOutcomeBadge, NominationFileOutcomeShortBadge } from './NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from './OutcomeCommentModalContext';
-import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 
 const NOMINATION_FILE_OUTCOME_OPTIONS = [
   '@@EMPTY',
@@ -17,7 +17,9 @@ const NOMINATION_FILE_OUTCOME_OPTIONS = [
   'NON_VALIDATED',
   'SUSPENDED',
   'REMOVED',
-  'WITHDRAWN'
+  'WITHDRAWN',
+  'ASSESSING',
+  'WAITING_DSJ'
 ] as const satisfies ('@@EMPTY' | NominationFileOutcomeEnum)[];
 
 export function NominationFileOutcomeSelector(props: { nominationFile: SessionNominationFile }) {
