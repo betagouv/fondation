@@ -1,7 +1,7 @@
 import Notice from '@codegouvfr/react-dsfr/Notice';
 
 import { useSummary } from '@/pages/summary/SummaryContext';
-import { outcomeLabels } from '@/types/enums.types';
+import { outcomeLabel } from '@/types/enums.types';
 import { useUser } from '@queries/auth.queries';
 
 export function SummaryOutcomeNotice() {
@@ -11,7 +11,7 @@ export function SummaryOutcomeNotice() {
 
   if (!outcome) return null;
 
-  const { label } = outcomeLabels({ formation: summary.formation, value: outcome });
+  const label = outcomeLabel({ formation: summary.formation, value: outcome });
 
   return (
     <Notice

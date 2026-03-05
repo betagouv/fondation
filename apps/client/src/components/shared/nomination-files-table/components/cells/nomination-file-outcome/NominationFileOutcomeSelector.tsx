@@ -8,19 +8,9 @@ import {
   type SessionNominationFile
 } from '@queries/nomination-sessions.queries';
 import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
-import { NominationFileOutcomeBadge, NominationFileOutcomeShortBadge } from './NominationFileOutcomeBadge';
+import { NominationFileOutcomeBadge } from './NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from './OutcomeCommentModalContext';
-
-const NOMINATION_FILE_OUTCOME_OPTIONS = [
-  '@@EMPTY',
-  'VALIDATED',
-  'NON_VALIDATED',
-  'SUSPENDED',
-  'REMOVED',
-  'WITHDRAWN',
-  'ASSESSING',
-  'WAITING_DSJ'
-] as const satisfies ('@@EMPTY' | NominationFileOutcomeEnum)[];
+import { useSortedNominationFileOutcomes } from './nomination-file-outcome-badge.utils';
 
 export function NominationFileOutcomeSelector(props: { nominationFile: SessionNominationFile }) {
   const nominationFileId = React.useMemo(() => props.nominationFile.id, [props]);
@@ -82,9 +72,10 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
     [setOutcome, onChange, reset, outcomeCommentDialog]
   );
 
+  const baseOptions = useSortedNominationFileOutcomes(formation);
   const options = useMemo(
     () =>
-      NOMINATION_FILE_OUTCOME_OPTIONS.map((value) =>
+      (['@@EMPTY', ...baseOptions] as const).map((value) =>
         value === '@@EMPTY'
           ? { value, label: <span className="text-xs">SANS ISSUE</span> }
           : {
@@ -97,7 +88,8 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
                 />
               ),
               selected: (
-                <NominationFileOutcomeShortBadge
+                <NominationFileOutcomeBadge
+                  short
                   formation={formation}
                   outcome={value}
                   key={`short_outcome_option_${value}`}
@@ -105,7 +97,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
               )
             }
       ),
-    [formation]
+    [baseOptions, formation]
   );
 
   return (
