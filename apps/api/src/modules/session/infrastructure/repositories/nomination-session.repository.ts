@@ -18,6 +18,7 @@ import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
+import { PrioriteEnum } from 'shared-models';
 import {
   NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
@@ -29,7 +30,7 @@ import {
   NominationSessionAttachmentRemoved,
   NominationSessionCreated,
   NominationSessionFileCommentAccessGranted,
-  NominationSessionFilePriorityUpdated,
+  NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
@@ -105,7 +106,7 @@ export class NominationSessionRepository {
             tx,
             message,
           );
-        } else if (message instanceof NominationSessionFilePriorityUpdated) {
+        } else if (message instanceof NominationSessionFilePrioritiesUpdated) {
           await this.persistNominationSessionFilesPriorityUpdated(tx, message);
         } else if (
           message instanceof NominationSessionAffectationVersionPublished
@@ -204,11 +205,11 @@ export class NominationSessionRepository {
 
   private persistNominationSessionFilesPriorityUpdated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionFilePriorityUpdated,
+    message: NominationSessionFilePrioritiesUpdated,
   ) {
     return tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
-      data: { priorite: message.priority },
+      data: { priorities: message.priorities as PrioriteEnum[] },
     });
   }
 

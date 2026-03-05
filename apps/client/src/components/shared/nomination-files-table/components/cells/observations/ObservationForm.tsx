@@ -101,7 +101,6 @@ export const ObservationForm: FC<{
   };
 
   const onSubmit = (data: FormSchema) => {
-    console.log('ONSUBMIT');
     if (isEditing) {
       updateObservation(
         {

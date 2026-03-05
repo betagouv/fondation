@@ -57,7 +57,9 @@ model DossierDeNomination {
   sessionId                   String                           @map("session_id") @db.Uuid
   /// @deprecated
   dossierDeNominationImportId String                           @unique(map: "dossier_de_nomination_dossier_de_nomination_import_id_unique") @map("dossier_de_nomination_import_id") @db.Uuid
-  priorite                    PrismaPrioriteEnum?
+  //// @deprecated
+  priorite                    PrismaPrioriteEnum?              @ignore
+  priorities                  PrismaPrioriteEnum[]             @default([])
   comment                     String?                          @map("comment") @db.Text
   outcome                     PrismaNominationFileOutcomeEnum?
   outcomeComment              String?                          @map("outcome_comment")

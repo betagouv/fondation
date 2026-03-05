@@ -38,7 +38,7 @@ export class ListNominationFilesAsExcelQuery {
               grade: true,
               targetedGrade: true,
               targetedPosition: true,
-              priorite: true,
+              priorities: true,
 
               outcome: true,
               outcomeComment: true,
@@ -94,7 +94,7 @@ export class ListNominationFilesAsExcelQuery {
         )
         .concat(nf.observers || [])
         .join(','),
-      nf.priorite ? PrioriteEnumLabels[nf.priorite] : '',
+      nf.priorities.map((x) => PrioriteEnumLabels[x]).join(', '),
       nf.outcome
         ? capitalize(
             nominationFileOutcomeLabel({

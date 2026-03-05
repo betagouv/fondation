@@ -179,6 +179,7 @@ describe('Session E2E', () => {
         observationMagistrats: [],
         observations: [],
         priority: null,
+        priorities: [],
         memo: null,
         summary: null,
         reporters: [
@@ -230,6 +231,7 @@ describe('Session E2E', () => {
           isAlertHidden: false,
         },
         priority: null,
+        priorities: [],
         memo: null,
         summary: null,
         reporters: expect.arrayContaining([

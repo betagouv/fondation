@@ -4,7 +4,7 @@ import React from 'react';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
-import { NO_PRIORITY, useAffectations } from '../contexts/files-affectations.context';
+import { useAffectations } from '../contexts/files-affectations.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
 export function NominationFilesSaveAffectationsButton() {
@@ -19,10 +19,10 @@ export function NominationFilesSaveAffectationsButton() {
     saveAffectations(
       {
         sessionId,
-        affectations: getAffectations().map(({ reporterIds, priority, id }) => ({
+        affectations: getAffectations().map(({ reporterIds, priorities, id }) => ({
           reporterIds,
           nominationFileId: id,
-          priority: priority === NO_PRIORITY ? null : priority
+          priorities: priorities
         }))
       },
       {

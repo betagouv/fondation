@@ -1,29 +1,26 @@
 import React from 'react';
 
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import type { PrioriteEnum } from '@/types/enums.types';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-export const NO_PRIORITY = 'NONE' as const;
-export type NoPriority = typeof NO_PRIORITY;
-
-type AffectationFile = { id: string; priority: PrioriteEnum | NoPriority; reporterIds: Set<string> };
+type AffectationFile = { id: string; priorities: PrioriteEnum[]; reporterIds: Set<string> };
 
 class SingleFileAffectation {
-  #priority?: PrioriteEnum | NoPriority;
+  #priorities?: Set<PrioriteEnum>;
   #reporterIds?: Set<string>;
 
   constructor(readonly original: AffectationFile) {}
 
-  toJSON(): { id: string; priority: PrioriteEnum | NoPriority; reporterIds: string[] } {
+  toJSON(): { id: string; priorities: PrioriteEnum[]; reporterIds: string[] } {
     return {
       id: this.original.id,
-      priority: this.#priority ?? this.original.priority,
+      priorities: [...(this.#priorities ?? this.original.priorities)],
       reporterIds: [...(this.#reporterIds ?? this.original.reporterIds)]
     };
   }
 
   get hasChanges(): boolean {
-    return this.#priority !== undefined || this.#reporterIds !== undefined;
+    return this.#priorities !== undefined || this.#reporterIds !== undefined;
   }
 
   setReporterIds(reporterIds: Set<string>) {
@@ -42,17 +39,24 @@ class SingleFileAffectation {
     this.#reporterIds = reporterIds;
   }
 
-  setPriority(value: PrioriteEnum | NoPriority): void {
-    if (this.original.priority === value) {
-      this.#priority = undefined;
+  setPriorities(priorities: Set<PrioriteEnum>): void {
+    if (priorities.size === this.original.priorities.length) {
+      for (const priority of this.original.priorities) {
+        if (!priorities.has(priority)) {
+          this.#priorities = new Set(priorities);
+          return;
+        }
+      }
+
+      this.#priorities = undefined;
       return;
     }
 
-    this.#priority = value ?? NO_PRIORITY;
+    this.#priorities = new Set(priorities);
   }
 
   reset(): void {
-    this.#priority = undefined;
+    this.#priorities = undefined;
     this.#reporterIds = undefined;
   }
 }
@@ -62,7 +66,7 @@ export class FilesAffectationsState
     Iterable<{
       id: string;
       reporterIds: string[];
-      priority: PrioriteEnum | NoPriority;
+      priorities: PrioriteEnum[];
     }>
 {
   readonly hasChanges: boolean = false;
@@ -87,9 +91,9 @@ export class FilesAffectationsState
     return new FilesAffectationsState(new Map(this.affectations));
   }
 
-  prioritize(priorities: Record<string, PrioriteEnum | NoPriority>): FilesAffectationsState {
+  prioritize(priorities: Record<string, Set<PrioriteEnum>>): FilesAffectationsState {
     for (const [id, priority] of Object.entries(priorities)) {
-      this.affectations.get(id)?.setPriority(priority);
+      this.affectations.get(id)?.setPriorities(priority);
     }
 
     return new FilesAffectationsState(new Map(this.affectations));
@@ -116,7 +120,7 @@ export class FilesAffectationsState
 
 type AffectationAction =
   | { type: 'affect'; affectations: Record<string, readonly string[]> }
-  | { type: 'prioritize'; priorities: Record<string, PrioriteEnum | NoPriority> }
+  | { type: 'prioritize'; priorities: Record<string, Set<PrioriteEnum>> }
   | { type: 'reset' }
   | { type: 'init'; files: readonly SessionNominationFile[] };
 
@@ -124,7 +128,7 @@ function stateInitializer(files: readonly SessionNominationFile[]): FilesAffecta
   return FilesAffectationsState.from(
     files.map((file) => ({
       id: file.id,
-      priority: file.priority,
+      priorities: file.priorities,
       reporterIds: new Set(file.reporters.map(({ id }) => id))
     }))
   );
@@ -146,10 +150,11 @@ function reducer(state: FilesAffectationsState, action: AffectationAction): File
 type FilesAffectationsContextType = {
   hasChanges: boolean;
   resetAffectations: () => void;
-  prioritize: (priorities: Record<string, PrioriteEnum | NoPriority>) => void;
+  prioritize: (priorities: Record<string, Set<PrioriteEnum>>) => void;
   affectReporters: (affectations: Record<string, readonly string[]>) => void;
-  getAffectations: () => { id: string; priority: PrioriteEnum | NoPriority; reporterIds: string[] }[];
+  getAffectations: () => { id: string; priorities: PrioriteEnum[]; reporterIds: string[] }[];
 };
+
 type InternalFilesAffectationsContextType = FilesAffectationsContextType & {
   root: FilesAffectationsState;
 };
@@ -172,7 +177,7 @@ export function useAffectationsModel(
   const getAffectations = React.useCallback(() => state.toJSON(), [state]);
 
   const prioritize = React.useCallback(
-    (priorities: Record<string, PrioriteEnum | NoPriority>) => dispatch({ type: 'prioritize', priorities }),
+    (priorities: Record<string, Set<PrioriteEnum>>) => dispatch({ type: 'prioritize', priorities }),
     [dispatch]
   );
 
@@ -195,8 +200,8 @@ export function useAffectations(): FilesAffectationsContextType {
 
 export function useAffectationRow(fileId: string): {
   reporterIds: string[] | undefined;
-  priority: PrioriteEnum | NoPriority | undefined;
-  prioritize: (priority: PrioriteEnum | NoPriority) => void;
+  priorities: PrioriteEnum[] | undefined;
+  prioritize: (priority: Set<PrioriteEnum>) => void;
   affectReporters: (reporterIds: readonly string[]) => void;
 } {
   const {
@@ -209,8 +214,8 @@ export function useAffectationRow(fileId: string): {
   const reporterIds = React.useMemo(() => (file ? [...file.reporterIds] : undefined), [file]);
 
   const prioritize = React.useCallback(
-    (priority: PrioriteEnum | NoPriority) => {
-      rootPrioritize({ [fileId]: priority });
+    (priorities: Set<PrioriteEnum>) => {
+      rootPrioritize({ [fileId]: priorities });
     },
     [fileId, rootPrioritize]
   );
@@ -222,5 +227,5 @@ export function useAffectationRow(fileId: string): {
     [fileId, rootAffectReporters]
   );
 
-  return { priority: file?.priority, reporterIds, prioritize, affectReporters };
+  return { priorities: file?.priorities, reporterIds, prioritize, affectReporters };
 }

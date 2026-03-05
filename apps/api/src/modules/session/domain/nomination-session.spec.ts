@@ -3,6 +3,10 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { NominationFile } from './nomination-file';
 import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from './nomination-file-outcome';
+import {
   NominationFileOutcomeDefined,
   NominationFilesHaveOutcome,
   NominationSession,
@@ -11,17 +15,13 @@ import {
   NominationSessionAffectationVersionPublished,
   NominationSessionCreated,
   NominationSessionFileCommentAccessGranted,
-  NominationSessionFilePriorityUpdated,
+  NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
 } from './nomination-session';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from './nomination-file-outcome';
 
 describe('NominationSession', () => {
   it('should affect reporters to nomination files', () => {
@@ -130,15 +130,15 @@ describe('NominationSession', () => {
 
     session.setNominationFilePriority({
       nominationFileId: 'nomination-file-id-1',
-      priority: PrioriteEnum.OUTRE_MER,
+      priorities: [PrioriteEnum.OUTRE_MER],
     });
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionFilePriorityUpdated(
+      new NominationSessionFilePrioritiesUpdated(
         'session-id',
         'nomination-file-id-1',
-        PrioriteEnum.OUTRE_MER,
+        [PrioriteEnum.OUTRE_MER],
       ),
     ]);
   });
@@ -154,7 +154,7 @@ describe('NominationSession', () => {
     expect(() =>
       session.setNominationFilePriority({
         nominationFileId: 'nomination-file-id-1',
-        priority: PrioriteEnum.OUTRE_MER,
+        priorities: [PrioriteEnum.OUTRE_MER],
       }),
     ).toThrow(NominationFilesHaveOutcome);
   });
@@ -169,15 +169,15 @@ describe('NominationSession', () => {
 
     session.setNominationFilePriority({
       nominationFileId: 'nomination-file-id-1',
-      priority: null,
+      priorities: [],
     });
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionFilePriorityUpdated(
+      new NominationSessionFilePrioritiesUpdated(
         'session-id',
         'nomination-file-id-1',
-        null,
+        [],
       ),
     ]);
   });
