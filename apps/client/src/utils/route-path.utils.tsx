@@ -3,6 +3,7 @@ import { generatePath } from 'react-router';
 export const ROUTE_PATHS = {
   LOGIN: '/login',
   HELP: '/aide',
+  USER_MANUAL: '/aide/manuel',
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,

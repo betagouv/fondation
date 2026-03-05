@@ -1,10 +1,10 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import React from 'react';
-import { useLocation, matchPath } from 'react-router';
+import { matchPath, useLocation } from 'react-router';
 
 import { useIsSg } from '@/hooks/roles.hook';
-import { HelpPageButton } from '@/pages/HelpPage';
+import { HelpPageButton } from '@/pages/help/HelpPage';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
