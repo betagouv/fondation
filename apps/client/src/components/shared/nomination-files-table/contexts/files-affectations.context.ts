@@ -3,18 +3,15 @@ import React from 'react';
 import type { PrioriteEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-export const NO_PRIORITY = 'NONE' as const;
-export type NoPriority = typeof NO_PRIORITY;
-
-type AffectationFile = { id: string; priorities: (PrioriteEnum | NoPriority)[]; reporterIds: Set<string> };
+type AffectationFile = { id: string; priorities: PrioriteEnum[]; reporterIds: Set<string> };
 
 class SingleFileAffectation {
-  #priorities?: Set<PrioriteEnum | NoPriority>;
+  #priorities?: Set<PrioriteEnum>;
   #reporterIds?: Set<string>;
 
   constructor(readonly original: AffectationFile) {}
 
-  toJSON(): { id: string; priorities: (PrioriteEnum | NoPriority)[]; reporterIds: string[] } {
+  toJSON(): { id: string; priorities: PrioriteEnum[]; reporterIds: string[] } {
     return {
       id: this.original.id,
       priorities: [...(this.#priorities ?? this.original.priorities)],
@@ -42,16 +39,11 @@ class SingleFileAffectation {
     this.#reporterIds = reporterIds;
   }
 
-  setPriorities(value: Set<PrioriteEnum | NoPriority>): void {
-    if (value.size === 0) {
-      this.#priorities = undefined;
-      return;
-    }
-
-    if (value.size === this.original.priorities.length) {
+  setPriorities(priorities: Set<PrioriteEnum>): void {
+    if (priorities.size === this.original.priorities.length) {
       for (const priority of this.original.priorities) {
-        if (!value.has(priority)) {
-          this.#priorities = new Set(value);
+        if (!priorities.has(priority)) {
+          this.#priorities = new Set(priorities);
           return;
         }
       }
@@ -60,7 +52,7 @@ class SingleFileAffectation {
       return;
     }
 
-    this.#priorities = new Set(value);
+    this.#priorities = new Set(priorities);
   }
 
   reset(): void {
@@ -74,7 +66,7 @@ export class FilesAffectationsState
     Iterable<{
       id: string;
       reporterIds: string[];
-      priorities: (PrioriteEnum | NoPriority)[];
+      priorities: PrioriteEnum[];
     }>
 {
   readonly hasChanges: boolean = false;
@@ -99,7 +91,7 @@ export class FilesAffectationsState
     return new FilesAffectationsState(new Map(this.affectations));
   }
 
-  prioritize(priorities: Record<string, Set<PrioriteEnum | NoPriority>>): FilesAffectationsState {
+  prioritize(priorities: Record<string, Set<PrioriteEnum>>): FilesAffectationsState {
     for (const [id, priority] of Object.entries(priorities)) {
       this.affectations.get(id)?.setPriorities(priority);
     }
@@ -128,7 +120,7 @@ export class FilesAffectationsState
 
 type AffectationAction =
   | { type: 'affect'; affectations: Record<string, readonly string[]> }
-  | { type: 'prioritize'; priorities: Record<string, Set<PrioriteEnum | NoPriority>> }
+  | { type: 'prioritize'; priorities: Record<string, Set<PrioriteEnum>> }
   | { type: 'reset' }
   | { type: 'init'; files: readonly SessionNominationFile[] };
 
@@ -158,9 +150,9 @@ function reducer(state: FilesAffectationsState, action: AffectationAction): File
 type FilesAffectationsContextType = {
   hasChanges: boolean;
   resetAffectations: () => void;
-  prioritize: (priorities: Record<string, Set<PrioriteEnum | NoPriority>>) => void;
+  prioritize: (priorities: Record<string, Set<PrioriteEnum>>) => void;
   affectReporters: (affectations: Record<string, readonly string[]>) => void;
-  getAffectations: () => { id: string; priorities: (PrioriteEnum | NoPriority)[]; reporterIds: string[] }[];
+  getAffectations: () => { id: string; priorities: PrioriteEnum[]; reporterIds: string[] }[];
 };
 
 type InternalFilesAffectationsContextType = FilesAffectationsContextType & {
@@ -185,8 +177,7 @@ export function useAffectationsModel(
   const getAffectations = React.useCallback(() => state.toJSON(), [state]);
 
   const prioritize = React.useCallback(
-    (priorities: Record<string, Set<PrioriteEnum | NoPriority>>) =>
-      dispatch({ type: 'prioritize', priorities }),
+    (priorities: Record<string, Set<PrioriteEnum>>) => dispatch({ type: 'prioritize', priorities }),
     [dispatch]
   );
 
@@ -209,8 +200,8 @@ export function useAffectations(): FilesAffectationsContextType {
 
 export function useAffectationRow(fileId: string): {
   reporterIds: string[] | undefined;
-  priorities: (PrioriteEnum | NoPriority)[] | undefined;
-  prioritize: (priority: Set<PrioriteEnum | NoPriority>) => void;
+  priorities: PrioriteEnum[] | undefined;
+  prioritize: (priority: Set<PrioriteEnum>) => void;
   affectReporters: (reporterIds: readonly string[]) => void;
 } {
   const {
@@ -223,7 +214,7 @@ export function useAffectationRow(fileId: string): {
   const reporterIds = React.useMemo(() => (file ? [...file.reporterIds] : undefined), [file]);
 
   const prioritize = React.useCallback(
-    (priorities: Set<PrioriteEnum | NoPriority>) => {
+    (priorities: Set<PrioriteEnum>) => {
       rootPrioritize({ [fileId]: priorities });
     },
     [fileId, rootPrioritize]

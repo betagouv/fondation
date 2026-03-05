@@ -67,7 +67,7 @@ export const useNominationFilesTableColumns = () => {
 
       h.accessor('priority', {
         enableSorting: false,
-        header: 'Priorité',
+        header: 'Priorité(s)',
         cell: ({ row }) => <NominationFilesPriorityCell nominationFile={row.original} />,
 
         meta: {
