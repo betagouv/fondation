@@ -66,6 +66,16 @@ export type NominationFileOutcomeEnum = NonNullable<
   PaginatedNominationFiles['items'][number]['content']['outcome']
 >['value'];
 
+export const NominationFileOutcomeEnum = {
+  VALIDATED: 'VALIDATED',
+  NON_VALIDATED: 'NON_VALIDATED',
+  SUSPENDED: 'SUSPENDED',
+  REMOVED: 'REMOVED',
+  WITHDRAWN: 'WITHDRAWN',
+  ASSESSING: 'ASSESSING',
+  WAITING_DSJ: 'WAITING_DSJ'
+} as const satisfies Record<NominationFileOutcomeEnum, NominationFileOutcomeEnum>;
+
 const NOMINATION_FILE_OUTCOME_LABELS = {
   PARQUET: {
     VALIDATED: 'avis favorable',
@@ -87,58 +97,11 @@ const NOMINATION_FILE_OUTCOME_LABELS = {
   }
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
-const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
-  PARQUET: {
-    VALIDATED: 'favorable',
-    NON_VALIDATED: 'défavorable',
-    SUSPENDED: 'sursis',
-    REMOVED: 'retrait',
-    WITHDRAWN: 'désistement',
-    ASSESSING: 'évaluation',
-    WAITING_DSJ: 'complément DSJ'
-  },
-  SIEGE: {
-    VALIDATED: 'conforme',
-    NON_VALIDATED: 'non conforme',
-    SUSPENDED: 'sursis',
-    REMOVED: 'retrait',
-    WITHDRAWN: 'désistement',
-    ASSESSING: 'évaluation',
-    WAITING_DSJ: 'complément DSJ'
-  }
-} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
-
-const NOMINATION_FILE_OUTCOME_ACRONYM = {
-  PARQUET: {
-    VALIDATED: 'AF',
-    NON_VALIDATED: 'AD',
-    SUSPENDED: 'SAS',
-    REMOVED: 'R',
-    WITHDRAWN: 'RD',
-    ASSESSING: 'EVL',
-    WAITING_DSJ: 'DSJ'
-  },
-  SIEGE: {
-    VALIDATED: 'AC',
-    NON_VALIDATED: 'ANC',
-    SUSPENDED: 'SAS',
-    REMOVED: 'R',
-    WITHDRAWN: 'RD',
-    ASSESSING: 'EVL',
-    WAITING_DSJ: 'DSJ'
-  }
-} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
-
-export function outcomeLabels(outcome: { formation: FormationEnum; value: NominationFileOutcomeEnum }): {
-  label: string;
-  badge: string;
-  acronym: string;
-} {
-  return {
-    label: NOMINATION_FILE_OUTCOME_LABELS[outcome.formation][outcome.value],
-    acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.value],
-    badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.value]
-  };
+export function outcomeLabel(outcome: {
+  formation: FormationEnum;
+  value: NominationFileOutcomeEnum;
+}): string {
+  return NOMINATION_FILE_OUTCOME_LABELS[outcome.formation][outcome.value];
 }
 
 export type ObservationFollowupEnum = NonNullable<FollowUpOnObservationDto['followUp']>;
