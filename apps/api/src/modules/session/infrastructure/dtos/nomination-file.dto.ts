@@ -8,11 +8,32 @@ import { createSortableDto } from 'src/modules/framework/sorting';
 export class AffectReportersDto extends createZodDto(
   z.object({
     items: z.array(
-      z.object({
-        nominationFileId: z.uuid(),
-        priority: z.enum(PrioriteEnum).nullable(),
-        reporterIds: z.array(z.uuid()),
-      }),
+      z
+        .object({
+          nominationFileId: z.uuid(),
+          priorities: z.array(z.enum(PrioriteEnum)).optional(),
+          priority: z
+            .enum(PrioriteEnum)
+            .nullish()
+            .meta({ deprecated: true, description: 'prefer priorities' }),
+          reporterIds: z.array(z.uuid()),
+        })
+        .transform(({ priorities, priority, ...dto }) => {
+          if (!priorities && priority) {
+            return { ...dto, priorities: [priority] };
+          } else if (!priorities && priority === null) {
+            return { ...dto, priorities: [] };
+          }
+
+          return { priorities, ...dto };
+        })
+        .pipe(
+          z.object({
+            nominationFileId: z.uuid(),
+            priorities: z.array(z.enum(PrioriteEnum)),
+            reporterIds: z.array(z.uuid()),
+          }),
+        ),
     ),
   }),
 ) {}

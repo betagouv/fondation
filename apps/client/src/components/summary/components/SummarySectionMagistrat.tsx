@@ -1,23 +1,39 @@
 import { differenceInMonths, differenceInYears } from 'date-fns';
+import React from 'react';
 
 import { DateOnly } from '@/models/date-only.model';
 
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { PrioriteEnumLabels } from '@/types/enums.types';
 import { SummarySectionCard } from './SummarySectionCard';
-import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 
 export function SummarySectionMagistrat() {
   const { summary, sessionId, nominationFileId } = useSummary();
 
+  const intlPriorities = React.useMemo(
+    () =>
+      summary.priorities.length > 0
+        ? new Intl.ListFormat('fr', { type: 'conjunction' }).format(
+            summary.priorities.map((x) => PrioriteEnumLabels[x])
+          )
+        : null,
+    [summary]
+  );
+
   return (
     <SummarySectionCard id="magistrat">
       <h1 className="flex flex-row items-center">
-        {summary.priority ? `${summary.name} (${PrioriteEnumLabels[summary.priority]})` : summary.name}
+        <span>{summary.name}</span>
         <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
       </h1>
 
       <List>
+        <List.Item className="mb-2" isVisible={summary.priorities.length > 0}>
+          <List.ItemTitle>Priorités</List.ItemTitle>
+          <List.ItemContent>{intlPriorities}</List.ItemContent>
+        </List.Item>
+
         <List.Item isVisible={!!summary.birthDate}>
           <List.ItemTitle>Date de naissance</List.ItemTitle>
           <List.ItemContent>

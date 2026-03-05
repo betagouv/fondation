@@ -76,7 +76,13 @@ export type UpdateNominationSessionFilesObserversDto = {
 export type AffectReportersDto = {
     items: Array<{
         nominationFileId: string;
-        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+        /**
+         * prefer priorities
+         *
+         * @deprecated
+         */
+        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
         reporterIds: Array<string>;
     }>;
 };
@@ -84,7 +90,11 @@ export type AffectReportersDto = {
 export type PaginatedNominationFiles = {
     items: Array<{
         id: string;
-        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+        /**
+         * @deprecated
+         */
+        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
         content: {
             /**
              * always 2
@@ -468,7 +478,13 @@ export type DetailedSummaryDto = {
     position: string | null;
     targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     targetedPosition: string | null;
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+    priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+    /**
+     * prefer priorities
+     *
+     * @deprecated
+     */
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
     biography: string;
     lastRankingDate: {
         year: number;
@@ -586,7 +602,13 @@ export type DetailedReportDto = {
     rank: string | null;
     observers: Array<string>;
     dureeDuPoste: string | null;
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+    priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+    /**
+     * prefer priorities
+     *
+     * @deprecated
+     */
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
     fileComment: string | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';

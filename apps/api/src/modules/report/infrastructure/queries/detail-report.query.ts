@@ -84,7 +84,7 @@ export class DetailReportQuery {
             observers: true,
             lastPositionDate: true,
             lastRankingDate: true,
-            priorite: true,
+            priorities: true,
             comment: true,
 
             summary: {
@@ -226,8 +226,11 @@ export class DetailReportQuery {
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
       targettedPosition: report.nominationFile.targetedPosition,
-      priority: report.nominationFile.priorite
-        ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorite)
+      priorities: report.nominationFile.priorities.map(
+        prismaPrioriteEnumToPrioriteEnum,
+      ),
+      priority: report.nominationFile.priorities[0]
+        ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorities[0])
         : null,
 
       dateTransparence: DateOnly.fromDate(
@@ -323,7 +326,11 @@ export class DetailedReportDto extends createZodDto(
     rank: z.string().nullable(),
     observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
-    priority: z.enum(PrioriteEnum).nullable(),
+    priorities: z.array(z.enum(PrioriteEnum)),
+    priority: z
+      .enum(PrioriteEnum)
+      .nullable()
+      .meta({ deprecated: true, description: 'prefer priorities' }),
     fileComment: z.string().nullable(),
 
     screenshots: z.array(

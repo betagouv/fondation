@@ -1,5 +1,4 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
-import { inspect } from 'node:util';
 
 import {
   Magistrat,
@@ -123,7 +122,7 @@ export class SessionService {
     sessionId: string;
     affectations: readonly {
       nominationFileId: string;
-      priority: PrioriteEnum | null;
+      priorities: PrioriteEnum[];
       reporterIds: readonly string[];
     }[];
   }): Promise<void> {
@@ -145,7 +144,7 @@ export class SessionService {
     for (const item of command.affectations) {
       session.setNominationFilePriority({
         nominationFileId: item.nominationFileId,
-        priority: item.priority,
+        priorities: item.priorities,
       });
     }
 
@@ -338,7 +337,6 @@ export class SessionService {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
     );
-    console.log(inspect(command.data));
     session.update(command.data);
     await this.nominationSessionRepository.persist(session);
   }

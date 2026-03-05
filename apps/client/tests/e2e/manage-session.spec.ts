@@ -36,7 +36,20 @@ test.describe('Gérer les sessions', () => {
   });
 
   test.describe('soit une session importée', () => {
+    let lastSession: string | undefined;
+
     test.beforeEach(async ({ app, registerUser }) => {
+      if (lastSession) {
+        await app.pages.manageSessions.goto();
+        if ((await app.pages.manageSessions.sessionRow(lastSession).count()) > 0) {
+          await app.pages.manageSessions.sessionRow(lastSession).click();
+          await app.pages.session.waitFor();
+
+          console.debug('SKIPPED');
+          return;
+        }
+      }
+
       const lodamExcel = await lodam`
         number | name                 | targetedPosition                   | birthDate                 | currentPosition         | lastPositionDate          | lastRankingDate           | movementType | observers | reporters | career | history
         ${1}   | ${'Pierre BOURDIEU'} | ${'Procureur CA  LYON - G3'}       | ${new Date('1930-08-01')} | ${'Président CA  LYON'} | ${new Date('2020-07-15')} | ${new Date('2020-07-20')} | ${'A'}       | ${''}     | ${''}     | ${''}  | ${''}
@@ -72,9 +85,11 @@ test.describe('Gérer les sessions', () => {
 
       await app.pages.manageSessions.sessionRow(name).click();
       await app.pages.session.waitFor();
+
+      lastSession = name;
     });
 
-    test(`j'affecte un rapporteur'`, async ({ app }) => {
+    test(`j'affecte un rapporteur`, async ({ app }) => {
       const page = app.pages.session;
 
       // Quand je bascule en édition
@@ -93,6 +108,71 @@ test.describe('Gérer les sessions', () => {
 
       // Alors "ANTONIO GRAMSCI" est désigné rapporteur de "Pierre BOURDIEU"
       await row.locator(app.page.getByRole('cell', { name: 'ANTONIO GRAMSCI' })).waitFor({ timeout: 800 });
+    });
+
+    test(`je définis des priorités à un dossier`, async ({ app }) => {
+      const page = app.pages.session;
+
+      // Quand je bascule en édition
+      await page.switchToEditModeButton.click();
+      await page.switchToReadModeButton.waitFor();
+
+      // Et que je sélectionne les priorités "Étoilé, Outre-mer" pour la proposition de "Perre BOURDIEU"
+      const row = page.sessionRow({ name: 'Pierre BOURDIEU' });
+
+      await row.locator(page.prioritiesSelectBox).click();
+      await page.priorityCheckbox({ name: 'Outre-mer' }).first().click({ force: true });
+      await page.priorityCheckbox({ name: 'Étoilé' }).first().click({ force: true });
+      await page.saveAffectationsButton.click();
+
+      // Et que je valide ma sélection
+      await page.switchToEditModeButton.waitFor();
+
+      // Alors les cellules "Priorité(s)" des lignes affectées doivent contenir "Étoilé, Outre-mer"
+      test.expect(await row.locator('td:nth-of-type(7)').textContent()).toBe('Outre-mer, Étoilé');
+    });
+
+    test(`je définis des priorités à plusieurs dossiers`, async ({ app }) => {
+      const page = app.pages.session;
+
+      // Quand je bascule en édition
+      await page.switchToEditModeButton.click();
+      await page.switchToReadModeButton.waitFor();
+
+      // Et que je sélectionne les 2 dernières lignes
+      await page.sessionRow({ name: 'Anna HARENDT' }).getByRole('checkbox').first().click({ force: true });
+      await page.sessionRow({ name: 'Michel FOUCAULT' }).getByRole('checkbox').first().click({ force: true });
+
+      // Et que j'ouvre la dialogue d'actions groupées
+      await page.batchActionsButton.click();
+      await app.page.getByRole('dialog').waitFor();
+
+      // Et que je sélectionne les priorités "Étoilé" et "Outre-mer"
+      await app.page.getByRole('checkbox', { name: 'Étoilé' }).click({ force: true });
+      await app.page.getByRole('checkbox', { name: 'Outre-mer' }).click({ force: true });
+
+      // Et que je valide ma sélection
+      await app.page.getByRole('button', { name: 'Appliquer' }).click();
+
+      // Alors les sélecteurs de priorités des lignes affectées doivent contenir "Étoilé, Outre-mer"
+      for (const name of ['Anna HARENDT', 'Michel FOUCAULT']) {
+        const selectBoxContent = await page
+          .sessionRow({ name })
+          .locator(page.prioritiesSelectBox)
+          .textContent();
+
+        test.expect(selectBoxContent).toBe('Étoilé, Outre-mer');
+      }
+
+      // Quand je quitte le mode édition
+      await page.saveAffectationsButton.click();
+      await page.switchToEditModeButton.waitFor();
+
+      // Alors les cellules "Priorité(s)" des lignes affectées doivent contenir "Étoilé, Outre-mer"
+      for (const name of ['Anna HARENDT', 'Michel FOUCAULT']) {
+        const cellContent = await page.sessionRow({ name }).locator('td:nth-of-type(7)').textContent();
+        test.expect(cellContent).toBe('Étoilé, Outre-mer');
+      }
     });
   });
 });

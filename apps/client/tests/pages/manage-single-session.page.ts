@@ -35,4 +35,16 @@ export class ManageSingleSessionPage {
   get saveAffectationsButton(): Locator {
     return this.app.page.getByRole('button', { name: 'Sauvegarder' });
   }
+
+  get prioritiesSelectBox(): Locator {
+    return this.app.page.getByTitle('Sélectionner les priorités');
+  }
+
+  priorityCheckbox(options?: { name: 'Étoilé' | 'Outre-mer' | 'Profilé' }): Locator {
+    return this.app.page.getByRole('checkbox', { name: options?.name });
+  }
+
+  get batchActionsButton(): Locator {
+    return this.app.page.getByRole('button', { name: 'Actions groupées' });
+  }
 }

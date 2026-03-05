@@ -2,20 +2,26 @@ import { Button } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useCallback, useMemo, useState } from 'react';
 
-import type { PrioriteEnum } from '@/types/enums.types';
+import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 
-import { useAffectations, type NoPriority } from '../contexts/files-affectations.context';
+import { useAffectations } from '../contexts/files-affectations.context';
 import { useSelectedFileIds } from '../contexts/files-selection.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
-import { NominationFilesPrioritySelector } from './NominationFilesPrioritySelector';
 
 const actionsGroupeesModal = createModal({
   id: 'actions-groupees-modal',
   isOpenedByDefault: false
 });
+
+type None = 'NONE';
+const PRIORITIES = ([] as (PrioriteEnum | None)[]).concat(Object.values(PrioriteEnum), 'NONE').map((x) => ({
+  value: x,
+  label: x === 'NONE' ? 'Aucune' : PrioriteEnumLabels[x]
+}));
 
 export function NominationFilesBatchOperationsButton() {
   const { formation } = useNominationFilesTable();
@@ -34,41 +40,65 @@ export function NominationFilesBatchOperationsButton() {
   const hasSelection = useMemo(() => selectedFileIds.length > 0, [selectedFileIds]);
 
   const [localSelection, setLocalSelection] = useState<string[]>([]);
-  const [localPriorite, setLocalPriorite] = useState<PrioriteEnum | NoPriority | undefined>(undefined);
+  const [localPriorities, setLocalPriorities] = useState<(PrioriteEnum | None)[]>([]);
 
   const handleOpenModal = useCallback(() => {
     setLocalSelection([]);
-    setLocalPriorite(undefined);
+    setLocalPriorities([]);
     actionsGroupeesModal.open();
-  }, [setLocalSelection, setLocalPriorite]);
+  }, [setLocalSelection, setLocalPriorities]);
 
   const handleCancel = useCallback(() => {
     setLocalSelection([]);
-    setLocalPriorite(undefined);
+    setLocalPriorities([]);
     actionsGroupeesModal.close();
-  }, [setLocalSelection, setLocalPriorite]);
+  }, [setLocalSelection, setLocalPriorities]);
 
   const handleApply = useCallback(() => {
     if (localSelection.length > 0) {
       affectReporters(Object.fromEntries(selectedFileIds.map((fileId) => [fileId, localSelection] as const)));
     }
 
-    if (localPriorite !== undefined) {
-      prioritize(Object.fromEntries(selectedFileIds.map((fileId) => [fileId, localPriorite] as const)));
+    if (localPriorities.length > 0) {
+      prioritize(
+        Object.fromEntries(
+          selectedFileIds.map(
+            (fileId) =>
+              [
+                fileId,
+                localPriorities.includes('NONE')
+                  ? new Set()
+                  : new Set(localPriorities.filter((x) => x !== 'NONE'))
+              ] as const
+          )
+        )
+      );
     }
 
     setLocalSelection([]);
-    setLocalPriorite(undefined);
+    setLocalPriorities([]);
     actionsGroupeesModal.close();
   }, [
     selectedFileIds,
     affectReporters,
     prioritize,
-    setLocalPriorite,
+    setLocalPriorities,
     setLocalSelection,
-    localPriorite,
+    localPriorities,
     localSelection
   ]);
+
+  const togglePriority = useCallback(
+    (priority: PrioriteEnum | None, e: React.ChangeEvent<HTMLInputElement>): void => {
+      if (e.target.checked) {
+        if (priority === 'NONE') return setLocalPriorities(['NONE']);
+        setLocalPriorities((p) => p.filter((x) => x !== 'NONE').concat(priority));
+      } else {
+        setLocalPriorities((p) => p.filter((x) => x !== priority));
+      }
+    },
+    []
+  );
 
   return (
     <>
@@ -97,10 +127,16 @@ export function NominationFilesBatchOperationsButton() {
       >
         <div className="flex flex-col gap-2">
           <div>
-            <h3 className="mb-2 text-base font-semibold">Définir une priorité</h3>
-            <NominationFilesPrioritySelector
-              selectedPriorite={localPriorite}
-              onPrioriteChange={setLocalPriorite}
+            <h3 className="mb-2 text-base font-semibold">Définir les priorités</h3>
+            <Checkbox
+              orientation="horizontal"
+              options={PRIORITIES.map((option) => ({
+                ...option,
+                nativeInputProps: {
+                  checked: localPriorities.includes(option.value),
+                  onChange: (e) => togglePriority(option.value, e)
+                }
+              }))}
             />
           </div>
 

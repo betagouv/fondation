@@ -49,7 +49,7 @@ export const TypeDeSaisineEnumLabels: Record<TypeDeSaisineEnum, string> = {
   TRANSPARENCE_GDS: 'Transparence'
 };
 
-export type PrioriteEnum = NonNullable<AffectReportersDto['items'][number]['priority']>;
+export type PrioriteEnum = NonNullable<AffectReportersDto['items'][number]['priorities']>[number];
 export const PrioriteEnum = {
   ETOILE: 'ETOILE',
   OUTRE_MER: 'OUTRE_MER',
