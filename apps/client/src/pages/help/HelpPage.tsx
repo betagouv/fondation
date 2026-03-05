@@ -11,8 +11,18 @@ export function HelpPage() {
 
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <article className="fr-container fr-py-5w mx-auto w-5/12">
-        <h1>Aide</h1>
+      <article className="fr-container fr-py-5w mx-auto w-5/12 min-w-[56rem]">
+        <h1 className="flex justify-between">
+          <span>Aide</span>
+          <Button
+            size="large"
+            priority="tertiary no outline"
+            linkProps={{ to: ROUTE_PATHS.USER_MANUAL }}
+            iconId="fr-icon-booklet-fill"
+          >
+            Manuel utilisateur
+          </Button>
+        </h1>
 
         <section>
           <h2>Règles d'analyse d'un dossier d'une transparence</h2>
@@ -178,12 +188,10 @@ export function HelpPage() {
                   <p>Date de prise de poste pressentie — Date de prise de poste ≥ 3 ans</p>
                 </blockquote>
 
-                <p>
-                  <ul>
-                    <li>Si OK pas d’erreur.</li>
-                    <li>Si KO erreur</li>
-                  </ul>
-                </p>
+                <ul>
+                  <li>Si OK pas d’erreur.</li>
+                  <li>Si KO erreur</li>
+                </ul>
                 <p>Non bloquant car exceptions possibles à justifier.</p>
               </li>
 

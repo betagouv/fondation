@@ -1,8 +1,9 @@
 import * as Sentry from '@sentry/react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
-import { HelpPage } from '@/pages/HelpPage';
 import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
+import { HelpPage } from '@/pages/help/HelpPage';
+import { UserManualPage } from '@/pages/help/UserManualPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
@@ -36,6 +37,14 @@ const router = sentryCreateBrowserRouter([
       {
         path: ROUTE_PATHS.LOGIN,
         element: <LoginPage />
+      },
+      {
+        path: ROUTE_PATHS.HELP,
+        element: <HelpPage />
+      },
+      {
+        path: ROUTE_PATHS.USER_MANUAL,
+        element: <UserManualPage />
       },
       {
         path: ROUTE_PATHS.HELP,
