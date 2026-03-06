@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { parse } from 'date-fns';
 import { XMLParser } from 'fast-xml-parser';
-import { z } from 'zod';
 import { PrismaService } from 'src/modules/framework/database';
+import { z } from 'zod';
 
 @Injectable()
 export class IngestXmlMagistrat {
@@ -38,7 +39,9 @@ export class IngestXmlMagistrat {
       current_position_id: m.num_emploi_cible ?? null,
       installation_date: m.date_installation ?? null,
       nomination_date: m.date_nomination ?? null,
-      advancement_year: m.tableau ?? null,
+      advancement_year: m.tableau
+        ? parse(m.tableau, 'dd/MM/yyyy', new Date()).getFullYear() || undefined
+        : null,
       career_history: m.historique ?? null,
       admin_position: m.posad ?? null,
       admin_position_prev: m.posad_prev ?? null,

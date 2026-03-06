@@ -13,7 +13,14 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   credentials: 'include',
   throwOnError: true,
   fetch: async (init) => {
-    const response = await globalThis.fetch(init);
+    const timeout =
+      init instanceof URL || (typeof init !== 'string' && [undefined, 'GET'].includes(init.method))
+        ? 10_000
+        : 60_000;
+
+    const response = await globalThis.fetch(init, {
+      signal: AbortSignal.timeout(timeout)
+    });
     if (!response.ok) throw new HttpException({ response });
 
     return response;
