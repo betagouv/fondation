@@ -16,7 +16,7 @@ import { ObservationFollowUpCommentProvider } from '../observations/follow-up-se
 import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationFollowUpReminderProvider } from './components/cells/observation-follow-up/ObservationFollowUpReminderProvider';
-import { ObservationsModalProvider } from './components/cells/observations/ObservationsModalContext';
+import { ObservationsModalProvider } from './components/cells/observations/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './components/cells/targeted-position/NominationFileTargetPositionProvider';
 import { NominationFilesTableActionsBar } from './components/NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './components/NominationFilesAffectationsStatus';

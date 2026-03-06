@@ -1,5 +1,4 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState, type FC } from 'react';
@@ -32,7 +31,8 @@ export const ObservationForm: FC<{
   nominationFileName: string;
   observation?: Observation;
   onSuccess?: () => void;
-}> = ({ sessionId, nominationFileId, observation, onSuccess }) => {
+  onPending: (isPending: boolean) => unknown;
+}> = ({ sessionId, nominationFileId, observation, onSuccess, onPending }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!observation;
 
@@ -62,8 +62,16 @@ export const ObservationForm: FC<{
   const [filesToDetach, setFilesToDetach] = useState<string[]>([]);
 
   const { data: displayedMagistrats, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
-  const { mutate: createObservation, reset: resetCreateMutation } = useCreateObservationMutation();
-  const { mutate: updateObservation, reset: resetUpdateMutation } = useUpdateObservationMutation();
+  const {
+    mutate: createObservation,
+    reset: resetCreateMutation,
+    error: createError
+  } = useCreateObservationMutation();
+  const {
+    mutate: updateObservation,
+    reset: resetUpdateMutation,
+    error: updateError
+  } = useUpdateObservationMutation();
 
   const files = watch('files') ?? [];
 
@@ -101,7 +109,7 @@ export const ObservationForm: FC<{
   };
 
   const onSubmit = (data: FormSchema) => {
-    console.log('ONSUBMIT');
+    onPending(true);
     if (isEditing) {
       updateObservation(
         {
@@ -115,6 +123,9 @@ export const ObservationForm: FC<{
           detachFileIds: filesToDetach
         },
         {
+          onSettled() {
+            onPending(false);
+          },
           onSuccess: () => {
             resetForm();
             onSuccess?.();
@@ -132,6 +143,9 @@ export const ObservationForm: FC<{
           files: data.files ?? []
         },
         {
+          onSettled() {
+            onPending(false);
+          },
           onSuccess: () => {
             resetForm();
             onSuccess?.();
@@ -156,14 +170,22 @@ export const ObservationForm: FC<{
 
   return (
     <form id="observation-form" onSubmit={handleFormSubmit(onSubmit)} className="flex flex-col gap-6">
+      {createError || updateError ? (
+        <p className="mb-0 text-red-600">
+          {createError?.message ||
+            updateError?.message ||
+            (isEditing ? `Erreur pendant la mise à jour` : `Erreur à la création`)}
+        </p>
+      ) : null}
       <Controller
         name="dateReception"
         control={control}
         render={({ field }) => (
           <Input
             label="Date de réception"
-            state={errors.dateReception ? 'error' : 'default'}
+            state={errors.dateReception || updateError || createError ? 'error' : 'default'}
             stateRelatedMessage={errors.dateReception?.message}
+            classes={{ root: '!mb-0' }}
             nativeInputProps={{
               type: 'date',
               value: field.value,
@@ -175,32 +197,38 @@ export const ObservationForm: FC<{
       />
 
       <div className="relative">
-        <label className="fr-label mb-2 block">
-          Magistrat observant <span className="text-red-500">*</span>
-        </label>
-        <SearchBar
-          renderInput={(props) => (
-            <input
-              {...props}
-              role="combobox"
-              aria-expanded={showResults && debouncedSearch.length >= 2}
-              aria-controls="magistrat-listbox"
-              aria-autocomplete="list"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setShowResults(true);
-                if (e.target.value === '') {
-                  setSelectedMagistrat(null);
-                  setValue('magistratId', '');
-                }
-              }}
-              onFocus={() => setShowResults(true)}
-              placeholder="Rechercher un magistrat..."
-            />
-          )}
+        <Input
+          label={
+            (
+              <>
+                Magistrat observant <span className="text-red-500">*</span>
+              </>
+            ) as unknown as string
+          }
+          classes={{ root: '!mb-0' }}
+          iconId="fr-icon-search-line"
+          hintText="Nom, Prénom ou Adresse email pro"
+          state={errors.magistratId || updateError || createError ? 'error' : 'default'}
+          stateRelatedMessage={errors.magistratId ? errors.magistratId.message : null}
+          nativeInputProps={{
+            type: 'search',
+            role: 'combobox',
+            value: searchTerm,
+            onFocus: () => setShowResults(true),
+            placeholder: 'Rechercher un magistrat',
+            'aria-expanded': showResults && debouncedSearch.length >= 2,
+            'aria-controls': 'magistrat-listbox',
+            'aria-autocomplete': 'list',
+            onChange: (e) => {
+              setSearchTerm(e.target.value);
+              setShowResults(true);
+              if (e.target.value === '') {
+                setSelectedMagistrat(null);
+                setValue('magistratId', '');
+              }
+            }
+          }}
         />
-        {errors.magistratId && <p className="fr-error-text mt-1">{errors.magistratId.message}</p>}
         {showResults && debouncedSearch.length >= 2 && (
           <div
             id="magistrat-listbox"
@@ -286,6 +314,7 @@ export const ObservationForm: FC<{
         render={({ field }) => (
           <Input
             textArea
+            classes={{ root: '!mb-0' }}
             label="Historique observant (optionnel)"
             nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
           />

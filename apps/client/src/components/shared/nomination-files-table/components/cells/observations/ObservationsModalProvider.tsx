@@ -1,7 +1,7 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import {
-  createContext,
+  useCallback,
   useContext,
   useLayoutEffect,
   useMemo,
@@ -15,16 +15,10 @@ import { useDeleteObservationMutation, type Observation } from '@queries/observa
 
 import { ObservationForm } from './ObservationForm';
 import { ObservationsList } from './ObservationsList';
+import { ObservationsModalContext } from './ObservationsModalContext';
 
 type ActiveFile = { sessionId: string; id: string; name: string };
 type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
-
-type ObservationsModalContextType = {
-  open: (file: ActiveFile, mode?: ModalMode) => void;
-  requestDelete: (observation: Observation) => void;
-};
-
-const ObservationsModalContext = createContext<ObservationsModalContextType | null>(null);
 
 const modalObservations = createModal({
   id: 'modal-observations',
@@ -46,6 +40,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
   const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
   const [deletingObservation, setDeletingObservation] = useState<Observation | null>(null);
   const modalRef = useRef<HTMLDialogElement | null>(null);
+  const [isPending, setIsPending] = useState<boolean>(false);
   const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
 
   const isOpen = useIsModalOpen(modalObservations, {
@@ -125,6 +120,13 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
 
   const modalProps = { ref: modalRef };
 
+  const onPendingChange = useCallback(
+    (pending: boolean) => {
+      setIsPending(pending);
+    },
+    [setIsPending]
+  );
+
   return (
     <ObservationsModalContext value={{ open, requestDelete }}>
       {children}
@@ -140,6 +142,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                 {
                   children: 'Ajouter',
                   priority: 'secondary' as const,
+                  disabled: isPending,
                   onClick: () => setModalMode('create'),
                   doClosesModal: false
                 },
@@ -153,12 +156,14 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                   {
                     doClosesModal: true,
                     priority: 'secondary' as const,
+                    disabled: isPending,
                     children: 'Annuler'
                   },
                   {
                     doClosesModal: false,
                     priority: 'primary' as const,
                     children: 'Créer',
+                    disabled: isPending,
                     nativeButtonProps: {
                       type: 'submit',
                       form: 'observation-form'
@@ -171,12 +176,14 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       doClosesModal: false,
                       priority: 'secondary' as const,
                       children: 'Annuler',
+                      disabled: isPending,
                       onClick: handleCancelDelete
                     },
                     {
                       doClosesModal: false,
                       priority: 'primary' as const,
                       children: 'Supprimer',
+                      disabled: isPending,
                       onClick: handleConfirmDelete,
                       nativeButtonProps: {
                         disabled: isDeleting
@@ -188,12 +195,14 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       doClosesModal: false,
                       priority: 'secondary' as const,
                       children: 'Retour',
+                      disabled: isPending,
                       onClick: handleBackToView
                     },
                     {
                       doClosesModal: false,
                       priority: 'primary' as const,
                       children: 'Enregistrer',
+                      disabled: isPending,
                       nativeButtonProps: {
                         type: 'submit',
                         form: 'observation-form'
@@ -221,6 +230,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
               nominationFileId={activeFile.id}
               nominationFileName={activeFile.name}
               observation={editingObservation ?? undefined}
+              onPending={onPendingChange}
               onSuccess={handleSuccess}
             />
           ))}

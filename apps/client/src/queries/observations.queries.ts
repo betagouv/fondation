@@ -1,4 +1,5 @@
 import type { ObservationFollowupEnum } from '@/types/enums.types';
+import { HttpException } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type {
   ListObservationsResponseDto,
@@ -82,15 +83,23 @@ export function useCreateObservationMutation() {
       description: string | undefined | null;
       files: File[];
     }): Promise<{ id: string } | null> => {
-      const { data } = await $api.observations.createObservation({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        body: {
-          files: mutation.files,
-          magistratId: mutation.magistratId,
-          dateReception: mutation.dateReception,
-          description: mutation.description
-        }
-      });
+      const { data } = await $api.observations
+        .createObservation({
+          path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
+          body: {
+            files: mutation.files,
+            magistratId: mutation.magistratId,
+            dateReception: mutation.dateReception,
+            description: mutation.description
+          }
+        })
+        .catch((err) => {
+          if (err instanceof HttpException && err.statusCode === 409) {
+            throw new Error(`Une autre observation de ce magistrat existe déjà`);
+          }
+
+          throw err;
+        });
       return data ?? null;
     },
     onSuccess: (_, { sessionId, nominationFileId }) =>
@@ -166,20 +175,28 @@ export function useUpdateObservationMutation() {
       files?: File[];
       detachFileIds?: string[];
     }): Promise<void> => {
-      await $api.observations.updateObservation({
-        path: {
-          sessionId: mutation.sessionId,
-          nominationFileId: mutation.nominationFileId,
-          observationId: mutation.observationId
-        },
-        body: {
-          magistratId: mutation.magistratId,
-          dateReception: mutation.dateReception,
-          detachFileIds: mutation.detachFileIds,
-          description: mutation.description,
-          files: mutation.files
-        }
-      });
+      await $api.observations
+        .updateObservation({
+          path: {
+            sessionId: mutation.sessionId,
+            nominationFileId: mutation.nominationFileId,
+            observationId: mutation.observationId
+          },
+          body: {
+            magistratId: mutation.magistratId,
+            dateReception: mutation.dateReception,
+            detachFileIds: mutation.detachFileIds,
+            description: mutation.description,
+            files: mutation.files
+          }
+        })
+        .catch((err) => {
+          if (err instanceof HttpException && err.statusCode === 409) {
+            throw new Error(`Une autre observation de ce magistrat existe déjà`);
+          }
+
+          throw err;
+        });
     },
     onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
