@@ -72,7 +72,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
     [setOutcome, onChange, reset, outcomeCommentDialog]
   );
 
-  const baseOptions = useSortedNominationFileOutcomes(formation);
+  const baseOptions = useSortedNominationFileOutcomes();
   const options = useMemo(
     () =>
       (['@@EMPTY', ...baseOptions] as const).map((value) =>

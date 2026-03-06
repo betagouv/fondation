@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { load } from 'cheerio';
 import z from 'zod';
 
 import {
@@ -227,7 +228,10 @@ export class ListNominationFilesQuery {
             date: DateOnly.fromDate(obs.dateReception).toJson(),
             hasDescription: !!obs.description.trim(),
             hasUserComment: obs.memberComments.some(
-              ({ comment }) => !!comment.trim(),
+              ({ comment }) =>
+                !!load(comment || '')
+                  ?.text()
+                  ?.trim(),
             ),
             magistrat: obs.magistrat
               ? {

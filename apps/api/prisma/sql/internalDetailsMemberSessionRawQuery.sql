@@ -34,9 +34,23 @@ FROM nominations_context.dossier_de_nomination ddn
   LEFT JOIN LATERAL (
     SELECT
       o.id,
-      JSONB_AGG(JSONB_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name)) AS "magistrat"
+      o.description,
+
+      COALESCE(
+        JSONB_AGG(JSONB_BUILD_OBJECT('userId', omc.user_id, 'comment', omc.comment))
+          FILTER (WHERE omc.user_id IS NOT NULL),
+          '[]'::JSONB
+      ) AS "userComments",
+
+      JSON_AGG(JSONB_BUILD_OBJECT(
+        'id', m.id,
+        'firstName', m.first_name,
+        'lastName', m.last_name
+      )) FILTER (WHERE m.id IS NOT NULL) AS "magistrat"
+
     FROM nominations_context.observation o
       LEFT JOIN nominations_context.magistrat m ON m.id = o.magistrat_id
+      LEFT JOIN nominations_context.observation_member_comment omc ON omc.observation_id = o.id AND omc.user_id = $4::UUID
     WHERE o.nomination_file_id = ddn.id
     GROUP BY o.id
   ) AS observations ON TRUE

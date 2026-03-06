@@ -53,7 +53,7 @@ const NOMINATION_FILE_OUTCOME_ICON = {
   REMOVED: 'fr-icon-warning-fill',
   WITHDRAWN: undefined,
   ASSESSING: 'ri-timer-fill',
-  WAITING_DSJ: 'fr-icon-scales-3-fill'
+  WAITING_DSJ: 'ri-timer-fill'
 } as const satisfies Record<NominationFileOutcomeEnum, IconClassName | undefined>;
 
 const NOMINATION_FILE_OUTCOME_SEVERITY = {
@@ -83,12 +83,17 @@ export const useNominationFileOutcome = (outcome: {
     [outcome]
   );
 
-export const useSortedNominationFileOutcomes = (formation: FormationEnum): NominationFileOutcomeEnum[] =>
+export const useSortedNominationFileOutcomes = (): readonly NominationFileOutcomeEnum[] =>
   React.useMemo(
     () =>
-      Object.values(NominationFileOutcomeEnum)
-        .map((o) => [o, NOMINATION_FILE_OUTCOME_BADGE_LABELS[formation][o]] as const)
-        .sort((a, b) => a[1].localeCompare(b[1]))
-        .map(([o]) => o),
-    [formation]
+      [
+        'VALIDATED',
+        'NON_VALIDATED',
+        'SUSPENDED',
+        'WAITING_DSJ',
+        'ASSESSING',
+        'WITHDRAWN',
+        'REMOVED'
+      ] as const satisfies NominationFileOutcomeEnum[],
+    []
   );

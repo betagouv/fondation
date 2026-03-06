@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { load } from 'cheerio';
 import z from 'zod';
 
 import {
@@ -25,15 +26,11 @@ import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InternalDetailMemberSessionQuery {
-  constructor(
-    private readonly prisma: PrismaService,
-    private versionFinder: AffectationVersionFinder,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
     user: { id: string; role: Role };
@@ -45,15 +42,6 @@ export class InternalDetailMemberSessionQuery {
   }): Promise<DetailedMemberSessionDto> {
     const [session, totalCount, files] = await this.prisma.$transaction(
       async (tx) => {
-        const version = await this.versionFinder
-          .lastPublished({
-            sessionId: query.sessionId,
-            tx,
-          })
-          .then((v) => v.getNullable());
-
-        if (!version) throw new NotFoundException();
-
         const formation = roleToFormation(query.user.role);
 
         const [total] = await tx.$queryRawTyped(
@@ -112,23 +100,32 @@ export class InternalDetailMemberSessionQuery {
                 state: z.enum(PrismaReportStateEnum),
               }),
             ),
-            observations: z.array(
-              z
-                .object({
-                  id: z.string(),
-                  magistrat: z.preprocess(
-                    (x) => (Array.isArray(x) ? x[0] : x),
-                    z
-                      .object({
-                        id: z.string(),
-                        firstName: z.string(),
-                        lastName: z.string(),
-                      })
-                      .nullish(),
-                  ),
-                })
-                .nullable(),
-            ),
+            observations: z
+              .array(
+                z
+                  .object({
+                    id: z.string(),
+                    description: z.string().trim(),
+                    userComments: z
+                      .array(
+                        z.object({ userId: z.string(), comment: z.string() }),
+                      )
+                      .nullable()
+                      .default([]),
+                    magistrat: z.preprocess(
+                      (x) => (Array.isArray(x) ? x[0] : x),
+                      z
+                        .object({
+                          id: z.string(),
+                          firstName: z.string(),
+                          lastName: z.string(),
+                        })
+                        .nullish(),
+                    ),
+                  })
+                  .nullable(),
+              )
+              .nullable(),
           })
           .parse(d);
         const { id, state } = assertIsDefined(reports[0]);
@@ -147,8 +144,29 @@ export class InternalDetailMemberSessionQuery {
           filePriority: d.priorite
             ? prismaPrioriteEnumToPrioriteEnum(d.priorite)
             : null,
+
+          observations: (observations || []).filter(isDefined).map((o) => ({
+            id: o.id,
+            hasDescription: o.description.length > 0,
+            hasUserComment: !!o.userComments?.some(
+              ({ comment }) =>
+                !!load(comment ?? '')
+                  .text()
+                  .trim(),
+            ),
+            magistrat: o.magistrat
+              ? {
+                  id: o.magistrat.id,
+                  firstName: o.magistrat.firstName,
+                  lastName: o.magistrat.lastName,
+                }
+              : null,
+          })),
+
+          /** @deprecated */
           observers: d.observers,
-          observationMagistrats: observations
+          /** @deprecated */
+          observationMagistrats: (observations ?? [])
             .filter((obs) => obs && obs.magistrat)
             .map((obs) => ({
               id: obs!.magistrat!.id,
@@ -190,13 +208,34 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     grade: z.string(),
     currentPosition: z.string().nullable(),
     targettedPosition: z.string(),
-    observers: z.array(z.string()),
-    observationMagistrats: z.array(
+    /** @deprecated legacy observations from LODAM. Prefer observations */
+    observers: z.array(z.string()).meta({
+      deprecated: true,
+      description: 'legacy observations from LODAM. Prefer observations',
+    }),
+    /** @deprecated prefer observations */
+    observationMagistrat: z
+      .array(
+        z.object({
+          id: z.string(),
+          firstName: z.string(),
+          lastName: z.string(),
+          observationId: z.string(),
+        }),
+      )
+      .meta({ deprecated: true, description: 'prefer observations' }),
+    observations: z.array(
       z.object({
         id: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
-        observationId: z.string(),
+        hasDescription: z.boolean(),
+        hasUserComment: z.boolean(),
+        magistrat: z
+          .object({
+            id: z.string(),
+            firstName: z.string(),
+            lastName: z.string(),
+          })
+          .nullable(),
       }),
     ),
   }),

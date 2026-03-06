@@ -125,8 +125,7 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
     !!props.nominationFile.memo ||
     !!props.nominationFile.summary?.canWrite ||
     !!props.nominationFile.summary?.canRead ||
-    (props.nominationFile.comment?.trim().length ?? 0) > 0 ||
-    props.nominationFile.observations.some((o) => o.hasUserComment || o.hasDescription);
+    (props.nominationFile.comment?.trim().length ?? 0) > 0;
 
   return (
     <Button

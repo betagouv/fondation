@@ -69,16 +69,19 @@ function useReportListColumns(sessionId: string) {
         cell: ({ getValue }) => getValue() ?? '-'
       }),
 
-      h.accessor('observationMagistrats', {
+      h.accessor('observations', {
         enableSorting: false,
         header: 'Observant(s)',
         cell: ({ row }) => (
           <ObservationLinks
             sessionId={sessionId}
-            nominationFileId={row.original.nominationFileId}
-            observations={row.original.observationMagistrats}
-            lodamObservants={row.original.observers}
             context="membre"
+            nominationFile={{
+              name: row.original.name,
+              id: row.original.nominationFileId,
+              observations: row.original.observations,
+              legacyObservers: row.original.observers
+            }}
           />
         )
       }),
