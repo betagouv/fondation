@@ -379,12 +379,32 @@ export type DetailedMemberSessionDto = {
         grade: string;
         currentPosition: string | null;
         targettedPosition: string;
+        /**
+         * legacy observations from LODAM. Prefer observations
+         *
+         * @deprecated
+         */
         observers: Array<string>;
-        observationMagistrats: Array<{
+        /**
+         * prefer observations
+         *
+         * @deprecated
+         */
+        observationMagistrat: Array<{
             id: string;
             firstName: string;
             lastName: string;
             observationId: string;
+        }>;
+        observations: Array<{
+            id: string;
+            hasDescription: boolean;
+            hasUserComment: boolean;
+            magistrat: {
+                id: string;
+                firstName: string;
+                lastName: string;
+            } | null;
         }>;
     }>;
     totalCount: number;

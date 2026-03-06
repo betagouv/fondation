@@ -1,5 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { type FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -8,43 +7,35 @@ import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { useObservationsModal } from './ObservationsModalContext';
 
-type ObservantsCellProps = {
-  nominationFile: SessionNominationFile;
-};
-
-export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile }) => {
+export function ObservantsCell({ nominationFile }: { nominationFile: SessionNominationFile }) {
   const isSg = useIsSgNavigation();
   const { sessionId, edition } = useNominationFilesTable();
 
-  const id = nominationFile.id;
-  const nominationFileName = nominationFile.content.nomMagistrat;
-  const observants = nominationFile.content.observants;
-  const observationCount = nominationFile.observationCount;
-  const observationMagistrats = nominationFile.observationMagistrats;
-
   const { open } = useObservationsModal();
 
-  const handleAdd = () => open({ id, sessionId, name: nominationFileName }, 'create');
-  const handleView = () => open({ id, sessionId, name: nominationFileName }, 'view');
+  const handleAdd = () =>
+    open({ id: nominationFile.id, sessionId, name: nominationFile.content.nomMagistrat }, 'create');
+  const handleView = () =>
+    open({ id: nominationFile.id, sessionId, name: nominationFile.content.nomMagistrat }, 'view');
 
   if (edition?.isEditing) {
     return (
       <div className="flex flex-col gap-2">
-        {observants && observants.length > 0 && (
+        {nominationFile.content.observants?.length ? (
           <div className="text-sm">
             <span className="font-medium text-gray-600">LODAM: </span>
-            <span>{observants.join(', ')}</span>
+            <span>{nominationFile.content.observants.join(', ')}</span>
           </div>
-        )}
+        ) : null}
 
         <div className="flex flex-wrap gap-2">
-          {observationCount === 0 ? (
+          {nominationFile.observations.length === 0 ? (
             <Button size="small" priority="secondary" iconId="ri-add-line" onClick={handleAdd}>
               Ajouter
             </Button>
           ) : (
             <Button size="small" priority="tertiary" iconId="ri-eye-line" onClick={handleView}>
-              Voir ({observationCount})
+              Voir ({nominationFile.observations.length})
             </Button>
           )}
         </div>
@@ -55,10 +46,12 @@ export const ObservantsCell: FC<ObservantsCellProps> = ({ nominationFile }) => {
   return (
     <ObservationLinks
       sessionId={sessionId}
-      nominationFileId={id}
-      observations={observationMagistrats}
-      lodamObservants={observants}
       context={isSg ? 'sg' : 'membre'}
+      nominationFile={{
+        ...nominationFile,
+        legacyObservers: nominationFile.content.observants ?? [],
+        name: nominationFile.content.nomMagistrat
+      }}
     />
   );
-};
+}
