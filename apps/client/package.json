@@ -70,6 +70,7 @@
     "@faker-js/faker": "catalog:",
     "@hey-api/openapi-ts": "^0.90.0",
     "@playwright/test": "^1.58.1",
+    "@sentry/vite-plugin": "^5.1.1",
     "@tanstack/eslint-plugin-query": "^5.81.2",
     "@types/node": "^24.10.0",
     "@types/react": "^19.1.2",
