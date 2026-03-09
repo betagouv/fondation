@@ -299,7 +299,7 @@ export class ListNominationFilesQuery {
       });
     }
 
-    return { OR: where.length > 0 ? where : undefined };
+    return { AND: where.length > 0 ? where : undefined };
   }
 }
 
