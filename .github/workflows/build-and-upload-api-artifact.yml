@@ -55,9 +55,8 @@ jobs:
 
       - name: Upload Source maps
         shell: bash
-        if: ${{ env.HAS_TOKEN == 'true' }}
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
         env:
-          HAS_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN != '' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN }}
         run: |
           if [[ -n $SENTRY_AUTH_TOKEN ]];
