@@ -49,7 +49,7 @@ export class DetailReportQuery {
         : undefined;
 
     const report = await this.prisma.report.findUnique({
-      where: { id: query.reportId, reporterId },
+      where: { id: query.reportId, reporterId, isDeleted: false },
       select: {
         reporterId: true,
         id: true,
