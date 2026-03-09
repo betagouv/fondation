@@ -13,6 +13,10 @@ on:
         required: false
       SCALINGO_API_TOKEN:
         required: false
+      SENTRY_API_AUTH_TOKEN:
+        required: false
+      SENTRY_CLIENT_AUTH_TOKEN:
+        required: false
 
 jobs:
   build-and-upload-api-artifact:

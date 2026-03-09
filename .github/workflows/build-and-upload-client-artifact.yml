@@ -12,6 +12,8 @@ on:
     secrets:
       VITE_SENTRY_DSN:
         required: false
+      SENTRY_CLIENT_AUTH_TOKEN:
+        required: false
 
 jobs:
   build-and-deploy-client-artifact:
@@ -21,6 +23,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           fetch-tags: true
+          fetch-depth: 200
 
       - uses: pnpm/action-setup@v4.2.0
         with:
@@ -52,6 +55,7 @@ jobs:
           VITE_DEPLOY_ENV: ${{ vars.VITE_DEPLOY_ENV }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_TAGGED_VERSION: ${{ steps.last-tag.outputs.tag }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_CLIENT_AUTH_TOKEN }}
 
       - name: Create Archive
         run: |

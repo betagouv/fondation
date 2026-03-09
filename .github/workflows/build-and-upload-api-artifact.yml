@@ -6,6 +6,9 @@ on:
       tag:
         type: string
         required: true
+    secrets:
+      SENTRY_API_AUTH_TOKEN:
+        required: false
 
 jobs:
   build-and-upload-api-artifact:
@@ -49,8 +52,27 @@ jobs:
         run: pnpm --filter api prisma generate --sql --config prisma.config.ts
       - name: Build api
         run: pnpm --filter api... build
+
+      - name: Upload Source maps
+        shell: bash
+        if: ${{ env.HAS_TOKEN == 'true' }}
+        env:
+          HAS_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN != '' }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN }}
+        run: |
+          if [[ -n $SENTRY_AUTH_TOKEN ]];
+            pnpm --filter api... sentry sourcemaps inject --org betagouv --project fondation_api ./dist
+            pnpm --filter api... sentry --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project fondation_api ./dist
+          fi
+
+      - name: Clean sourcemaps
+        shell: bash
+        run: |
+          find apps/api/dist -iname '*.d.ts' -or -iname '*.map' -type f -delete
+
       - name: Create Archive
         run: ./apps/api/scripts/build-for-scalingo.sh
+
       - name: Archive dist
         uses: actions/upload-artifact@v4
         with:
