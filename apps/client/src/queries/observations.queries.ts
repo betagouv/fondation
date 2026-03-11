@@ -2,6 +2,7 @@ import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type {
+  GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   PaginatedNominationFiles,
   SearchMagistratsResponseDto
@@ -37,9 +38,41 @@ export function useObservationDetailsQuery(props: {
         }
       });
 
-      return data;
+      return updateMemberCommentImages(data);
     }
   });
+}
+
+function updateMemberCommentImages(
+  response: GetObservationDetailsResponseDto | null | undefined
+): GetObservationDetailsResponseDto | null {
+  if (!response || !response.memberComment) return response ?? null;
+
+  const byId = new Map(response.memberComment.screenshots.map((s) => [s.id, s] as const));
+  const byName = new Map(response.memberComment.screenshots.map((s) => [s.name, s] as const));
+
+  const $div = document.createElement('div');
+  $div.innerHTML = response.memberComment.comment;
+
+  for (const $img of $div.querySelectorAll('img')) {
+    let file: { id: string; name: string; url: string } | undefined;
+    if ($img.dataset.fileId) {
+      file = byId.get($img.dataset.fileId);
+    }
+
+    if (!file && $img.dataset.fileName) {
+      file = byName.get($img.dataset.fileName);
+    }
+
+    if (file) {
+      $img.dataset.fileId = file.id;
+      $img.dataset.fileName = file.name;
+      $img.src = file.url;
+    }
+  }
+
+  response.memberComment.comment = $div.innerHTML;
+  return response;
 }
 
 export function useSearchMagistratsQuery(search: string) {
@@ -212,8 +245,6 @@ export function useUpdateObservationMutation() {
 }
 
 export function useAttachObservationMemberCommentScreenshotsMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: {
       sessionId: string;
@@ -232,22 +263,11 @@ export function useAttachObservationMemberCommentScreenshotsMutation() {
         }
       });
       return data ?? { items: [] };
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: observationKeys.observationDetails({
-          sessionId: variables.sessionId,
-          nominationFileId: variables.nominationFileId,
-          observationId: variables.observationId
-        })
-      });
     }
   });
 }
 
 export function useWriteObservationMemberCommentMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: {
       sessionId: string;
@@ -264,15 +284,6 @@ export function useWriteObservationMemberCommentMutation() {
         body: {
           comment: params.comment
         }
-      });
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: observationKeys.observationDetails({
-          sessionId: variables.sessionId,
-          nominationFileId: variables.nominationFileId,
-          observationId: variables.observationId
-        })
       });
     }
   });

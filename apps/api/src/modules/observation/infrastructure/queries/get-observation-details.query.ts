@@ -5,9 +5,11 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
 import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 @Injectable()
@@ -15,6 +17,7 @@ export class GetObservationDetailsQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly files: Files,
   ) {}
 
   async handle(query: {
@@ -159,13 +162,32 @@ export class GetObservationDetailsQuery {
         memberComment: observation.memberComments[0]
           ? {
               comment: observation.memberComments[0].comment,
-              screenshots: observation.memberComments[0].screenshots.map(
-                ({ file }) => ({ id: file.id, name: file.name }),
+              screenshots: await this.withUrls(
+                observation.memberComments[0].screenshots.map(
+                  ({ file }) => file,
+                ),
               ),
             }
           : null,
       };
     });
+  }
+
+  private async withUrls<T extends { id: string }>(
+    files: readonly T[],
+  ): Promise<(T & { url: string })[]> {
+    const byId = new Map(files.map((file) => [file.id, file] as const));
+    const ids = Array.from(byId.keys());
+
+    const urls = await this.files.getPublicUrls(ids);
+    return Object.entries(urls)
+      .map(([id, url]) => {
+        const screenshot = byId.get(id);
+        if (!screenshot) return null;
+
+        return { ...screenshot, url: url.toString() };
+      })
+      .filter(isDefined);
   }
 
   private async findRelatedNominationFiles(
@@ -264,7 +286,9 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     memberComment: z
       .object({
         comment: z.string(),
-        screenshots: z.array(ObservationFileSchema),
+        screenshots: z.array(
+          ObservationFileSchema.safeExtend({ url: z.url() }),
+        ),
       })
       .nullable(),
   }),
