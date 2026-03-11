@@ -787,6 +787,7 @@ export type GetObservationDetailsResponseDto = {
         screenshots: Array<{
             id: string;
             name: string;
+            url: string;
         }>;
     } | null;
 };

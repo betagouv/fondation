@@ -13,6 +13,10 @@ export default defineConfig({
       org: 'betagouv',
       project: 'fondation-client',
       url: 'https://sentry.incubateur.net/',
+      release: {
+        name: [`fondation-client`, process.env.VITE_TAGGED_VERSION].filter((x) => !!x?.trim()).join('@'),
+        inject: true
+      },
       sourcemaps: {
         disable: !process.env.CI,
         filesToDeleteAfterUpload: ['./**/*.map', './dist/**/*.d.ts']

@@ -19,6 +19,7 @@ import {
   StreamableFile,
   type OnApplicationBootstrap,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
 
 import { PrismaStorageProviderEnum } from 'src/generated/prisma/enums';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
@@ -114,6 +115,8 @@ export class Files implements OnApplicationBootstrap {
   async getPublicUrls(
     fileIds: readonly string[],
   ): Promise<{ [fileId: string]: URL }> {
+    if (fileIds.length === 0) return {};
+
     return this.prisma.$transaction(async (tx) => {
       const files = await tx.file.findMany({
         where: { id: { in: fileIds as string[] } },
@@ -137,9 +140,26 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
-  async create(files: readonly FondationFile[]): Promise<string[]> {
-    if (files.length === 0) return [];
+  create(files: readonly FondationFile[]): Promise<string[]> {
+    if (files.length === 0) return Promise.resolve([]);
 
+    return Sentry.startSpan(
+      {
+        name: 'fr.csm.fondation:files:create',
+        attributes: Object.fromEntries(
+          files
+            .flatMap((file, i) => [
+              [`file.${i}.size`, file.buffer.byteLength],
+              [`file.${i}.type`, file.mimeType],
+            ])
+            .concat([['objectsCount', files.length]]),
+        ),
+      },
+      () => this._create(files),
+    );
+  }
+
+  private async _create(files: readonly FondationFile[]): Promise<string[]> {
     try {
       const { fulfilled, rejected } = await Promise.allSettled(
         files.map((file) =>
@@ -223,7 +243,15 @@ export class Files implements OnApplicationBootstrap {
 
   /** this is a best effort request to delete the files */
   delete(files: readonly { id: string; path: readonly string[] }[]): void {
-    ignoreAsync(() => this._delete(files));
+    ignoreAsync(() =>
+      Sentry.startSpan(
+        {
+          name: 'fr.csm.fondation:files:delete',
+          attributes: { objectsCount: files.length },
+        },
+        () => this._delete(files),
+      ),
+    );
   }
 
   private async _delete(
