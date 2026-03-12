@@ -19,6 +19,7 @@ import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 import { PrioriteEnum } from 'shared-models';
+import { deleteReportsAfterAffectationPublicationRawQuery } from 'src/generated/prisma/sql';
 import {
   NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
@@ -242,40 +243,21 @@ export class NominationSessionRepository {
       throw new InternalServerErrorException();
     }
 
-    if (message.versionId) {
-      await tx.affectationVersion.update({
-        where: { id: message.versionId },
-        data: {
-          statut: 'PUBLIEE',
-          auteurPublicationId: message.userId,
-          datePublication: this.clock.now(),
-        },
-      });
-    } else {
-      await tx.affectationVersion.create({
-        data: {
-          statut: 'PUBLIEE',
-          auteurPublicationId: message.userId,
-          datePublication: this.clock.now(),
-          sessionId: message.sessionId,
-        },
-      });
-    }
-
-    const reporterIds = Array.from(
-      new Set(
-        session.affectationVersions.flatMap(({ affectations }) =>
-          affectations.map(({ userId }) => userId),
-        ),
-      ),
-    );
-
-    await tx.report.updateMany({
-      where: { sessionId: session.id },
-      data: { isDeleted: true },
+    const { id: versionId } = await tx.affectationVersion.upsert({
+      select: { id: true },
+      where: { id: message.versionId },
+      update: {
+        statut: 'PUBLIEE',
+        auteurPublicationId: message.userId,
+        datePublication: this.clock.now(),
+      },
+      create: {
+        statut: 'PUBLIEE',
+        auteurPublicationId: message.userId,
+        datePublication: this.clock.now(),
+        sessionId: message.sessionId,
+      },
     });
-
-    if (reporterIds.length === 0) return;
 
     const reportsToCreate = session.affectationVersions.flatMap(
       ({ affectations }) =>
@@ -293,15 +275,35 @@ export class NominationSessionRepository {
     );
 
     for (const reportToCreate of reportsToCreate) {
-      await tx.report.create({
-        data: {
-          ...reportToCreate,
-          reportRules: {
-            createMany: { data: getAllNominationSessionReportRules() },
-          },
+      const [existingReport] = await tx.report.updateManyAndReturn({
+        select: { id: true },
+        data: { isDeleted: false },
+        where: {
+          sessionId: reportToCreate.sessionId,
+          reporterId: reportToCreate.reporterId,
+          nominationFileId: reportToCreate.nominationFileId,
         },
       });
+
+      if (!existingReport) {
+        await tx.report.create({
+          data: {
+            ...reportToCreate,
+            reportRules: {
+              createMany: { data: getAllNominationSessionReportRules() },
+            },
+          },
+        });
+      }
     }
+
+    if (!versionId) return;
+    await tx.$queryRawTyped(
+      deleteReportsAfterAffectationPublicationRawQuery(
+        message.sessionId,
+        versionId,
+      ),
+    );
   }
 
   private async persistNominationSessionAffectationVersionCreated(
