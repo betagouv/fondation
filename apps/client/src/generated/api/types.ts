@@ -369,7 +369,13 @@ export type DetailedMemberSessionDto = {
         state: string;
         formation: string;
         folderNumber: number | null;
-        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE';
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+        /**
+         * prefer priorities
+         *
+         * @deprecated
+         */
+        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
         dueDate: {
             year: number;
             month: number;
