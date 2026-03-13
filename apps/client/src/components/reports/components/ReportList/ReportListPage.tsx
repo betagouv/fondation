@@ -8,7 +8,12 @@ import { useDetailedMemberGdsSession } from '@queries/members.queries';
 
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
-import type { FormationEnum, GradeEnum, ReportStatusEnum } from '@/types/enums.types';
+import {
+  PrioriteEnumLabels,
+  type FormationEnum,
+  type GradeEnum,
+  type ReportStatusEnum
+} from '@/types/enums.types';
 import type { DetailedMemberSessionDto } from '@api/types';
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -86,10 +91,13 @@ function useReportListColumns(sessionId: string) {
         )
       }),
 
-      h.accessor('filePriority', {
+      h.accessor('priorities', {
         enableSorting: false,
-        header: 'Priorité',
-        cell: ({ getValue }) => getValue() ?? '-'
+        header: 'Priorité(s)',
+        cell: ({ getValue }) => {
+          const priorities = getValue();
+          return priorities.length > 0 ? priorities.map((x) => PrioriteEnumLabels[x]).join(', ') : '-';
+        }
       }),
 
       h.accessor('state', {

@@ -21,7 +21,7 @@ SELECT
   ddn.observers,
   ddn.rank,
   ddn.targeted_position AS "targetedPosition",
-  ddn.priorite,
+  ARRAY_TO_JSON(priorities) AS "priorities",
 
   JSONB_AGG(observations) AS "observations",
   JSONB_AGG(

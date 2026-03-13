@@ -130,10 +130,20 @@ export class InternalDetailMemberSessionQuery {
           .parse(d);
         const { id, state } = assertIsDefined(reports[0]);
 
+        const priorities = Array.isArray(d.priorities)
+          ? d.priorities.map(prismaPrioriteEnumToPrioriteEnum)
+          : [];
+        // TODO: remove once filePriority removed
+        const filePriority = priorities[0] ?? null;
+
         return {
           id,
-          nominationFileId: d.id,
           state,
+          priorities,
+          /** @deprecated */
+          filePriority,
+
+          nominationFileId: d.id,
           formation: session.formation,
           folderNumber: d.number,
           currentPosition: d.currentPosition,
@@ -141,9 +151,6 @@ export class InternalDetailMemberSessionQuery {
           name: d.name ?? '',
           grade: d.grade ?? '',
           targettedPosition: d.targetedPosition ?? '',
-          filePriority: d.priorite
-            ? prismaPrioriteEnumToPrioriteEnum(d.priorite)
-            : null,
 
           observations: (observations || []).filter(isDefined).map((o) => ({
             id: o.id,
@@ -202,7 +209,12 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     state: z.string(),
     formation: z.string(),
     folderNumber: z.number().nullable(),
-    filePriority: z.enum(PrioriteEnum).nullable(),
+    priorities: z.array(z.enum(PrioriteEnum)),
+    /** @deprecated */
+    filePriority: z
+      .enum(PrioriteEnum)
+      .nullable()
+      .meta({ deprecated: true, description: 'prefer priorities' }),
     dueDate: dateOnlyJsonSchema.nullable(),
     name: z.string(),
     grade: z.string(),
