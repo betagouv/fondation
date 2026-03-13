@@ -4,6 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
 import { catchError, Observable, throwError } from 'rxjs';
 
@@ -66,7 +67,13 @@ export class StoreFileInterceptor implements NestInterceptor {
     await this.files.create(
       await Promise.all(
         multipartFiles.map(async (f) => {
-          const sanitized = await this.sanitizer.sanitize(f);
+          const sanitized = await Sentry.startSpan(
+            {
+              name: `fr.csm.fondation:files:sanitize`,
+              attributes: { 'file.type': f.mimeType, 'file.size': f.size },
+            },
+            () => this.sanitizer.sanitize(f),
+          );
 
           return {
             path: f.path as string,

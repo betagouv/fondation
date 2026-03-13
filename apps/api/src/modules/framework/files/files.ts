@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { inspect } from 'node:util';
 
 import {
   DeleteObjectsCommand,
@@ -20,19 +21,19 @@ import {
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
+import { lastValueFrom } from 'rxjs';
 
+import { HttpService } from '@nestjs/axios';
 import { PrismaStorageProviderEnum } from 'src/generated/prisma/enums';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
+import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled, partitionSettled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
-import axios from 'axios';
-import { inspect } from 'node:util';
-import { makeId } from 'src/utils/id';
 import { Clock } from '../clock';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
@@ -74,6 +75,7 @@ export class Files implements OnApplicationBootstrap {
   private readonly client: S3Client;
   private readonly bucketName: string;
   private readonly expiresInSeconds: number;
+  private readonly hasSse: boolean = false;
   private readonly sseHeaders:
     | {
         SSECustomerKey: string;
@@ -85,6 +87,7 @@ export class Files implements OnApplicationBootstrap {
   constructor(
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
+    private readonly http: HttpService,
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
   ) {
@@ -94,6 +97,7 @@ export class Files implements OnApplicationBootstrap {
         .update(Buffer.from(SSECustomerKey, 'base64'))
         .digest('base64');
 
+      this.hasSse = true;
       this.sseHeaders = {
         SSECustomerKey,
         SSECustomerKeyMD5,
@@ -120,20 +124,46 @@ export class Files implements OnApplicationBootstrap {
     return this.prisma.$transaction(async (tx) => {
       const files = await tx.file.findMany({
         where: { id: { in: fileIds as string[] } },
-        select: { id: true, name: true, path: true },
+        select: {
+          id: true,
+          name: true,
+          path: true,
+          filePublicUrls: {
+            where: { expiresAt: { gt: this.clock.now() } },
+            select: { id: true, url: true, expiresAt: true },
+            orderBy: [{ expiresAt: 'desc' }],
+            take: 1,
+          },
+        },
       });
 
       const publicUrls = await Promise.allSettled(
-        files.map((file) => this.generatePublicUrl(file)),
+        files.map((file) => {
+          const publicUrl = file.filePublicUrls[0];
+          if (publicUrl) {
+            return {
+              ...publicUrl,
+              fileId: file.id,
+              publicUrl: new URL(
+                `${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`,
+              ),
+              existing: true,
+            };
+          }
+
+          return this.generatePublicUrl(file);
+        }),
       ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
 
       await tx.filePublicUrl.createMany({
-        data: publicUrls.map((x) => ({
-          id: x.id,
-          url: x.url.toString(),
-          fileId: x.fileId,
-          expiresAt: x.expiresAt,
-        })),
+        data: publicUrls
+          .filter((x) => !('existing' in x))
+          .map((x) => ({
+            id: x.id,
+            url: x.url.toString(),
+            fileId: x.fileId,
+            expiresAt: x.expiresAt,
+          })),
       });
 
       return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
@@ -376,19 +406,20 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async getFileContent(fileUrlId: string): Promise<StreamableFile> {
+  async getFileContent(
+    fileUrlId: string,
+  ): Promise<{ file: StreamableFile; expiresAt: Date }> {
     const file = await this.prisma.filePublicUrl.findUnique({
       where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
-      select: { url: true, file: { select: { name: true } } },
+      select: { url: true, expiresAt: true, file: { select: { name: true } } },
     });
 
     if (!file) throw new NotFoundException();
 
     let headers: Record<string, string> = {};
-    const { sseHeaders } = this;
-    if (Object.keys(sseHeaders).length > 0) {
+    if (this.hasSse) {
       const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } =
-        sseHeaders;
+        this.sseHeaders;
 
       headers = {
         'x-amz-server-side-encryption-customer-key': SSECustomerKey,
@@ -397,15 +428,20 @@ export class Files implements OnApplicationBootstrap {
       };
     }
 
-    const response = await axios.get(file.url, {
-      headers,
-      responseType: 'stream',
-    });
+    const response = await lastValueFrom(
+      this.http.get(file.url, {
+        headers,
+        responseType: 'stream',
+      }),
+    );
 
-    return new StreamableFile(response.data, {
-      type: filenameToMimeType(file.file.name),
-      disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
-    });
+    return {
+      expiresAt: file.expiresAt,
+      file: new StreamableFile(response.data, {
+        type: filenameToMimeType(file.file.name),
+        disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
+      }),
+    };
   }
 
   private async generatePublicUrl(file: {
