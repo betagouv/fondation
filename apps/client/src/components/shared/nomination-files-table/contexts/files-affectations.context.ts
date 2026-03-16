@@ -61,14 +61,11 @@ class SingleFileAffectation {
   }
 }
 
-export class FilesAffectationsState
-  implements
-    Iterable<{
-      id: string;
-      reporterIds: string[];
-      priorities: PrioriteEnum[];
-    }>
-{
+export class FilesAffectationsState implements Iterable<{
+  id: string;
+  reporterIds: string[];
+  priorities: PrioriteEnum[];
+}> {
   readonly hasChanges: boolean = false;
   private constructor(readonly affectations: Map<string, SingleFileAffectation>) {
     for (const file of affectations.values()) {

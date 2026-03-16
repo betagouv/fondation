@@ -23,7 +23,7 @@ export class IngestController {
   constructor(private readonly ingest: IngestService) {}
 
   @Post('/lolfi')
-  @HasRole(Role.ADMIN)
+  @HasRole(Role.ADMIN, 'MACHINE')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -38,7 +38,11 @@ export class IngestController {
     FileInterceptor('file', {
       limits: { files: 1, fileSize: 30 * 1_024 * 1_024 /* Mb */ },
       fileFilter(_req, file, callback) {
-        callback(null, file.mimetype === FILE_MIME_TYPES.zip);
+        callback(
+          null,
+          file.mimetype === FILE_MIME_TYPES.zip ||
+            file.mimetype === FILE_MIME_TYPES.smime,
+        );
       },
     }),
   )
@@ -46,7 +50,10 @@ export class IngestController {
   async ingestLolfiArchive(
     @UploadedFile('file') file: MulterFile,
   ): Promise<IngestedLolfiArchiveDto> {
-    const result = await this.ingest.ingestLolfiArchive(file.buffer);
+    const result = await this.ingest.ingestLolfiArchive(file.buffer, {
+      type: file.mimetype,
+    });
+
     if (result.status === 'FAILED') {
       throw new BadRequestException({ errors: result.errors });
     }

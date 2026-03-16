@@ -19,14 +19,14 @@ import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 export const AuthedUserId = createParamDecorator((_, ctx: ExecutionContext) => {
   const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();
-  if (!user) throw new UnauthorizedException();
+  if (!user || user.type === 'machine') throw new UnauthorizedException();
 
   return user.id;
 });
 
 export const AuthedUser = createParamDecorator((_, ctx: ExecutionContext) => {
   const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();
-  if (!user) throw new UnauthorizedException();
+  if (!user || user.type === 'machine') throw new UnauthorizedException();
 
   return user;
 });
@@ -39,7 +39,7 @@ class HasRoleGuard implements CanActivate {
 
   canActivate(context: ExecutionContext) {
     const optionalRoles = this.reflector.getAllAndOverride<
-      readonly Role[] | undefined
+      readonly (Role | 'MACHINE')[] | undefined
     >(META_ROLES, [context.getHandler(), context.getClass()]);
 
     const roles = assertIsDefined(
@@ -54,6 +54,7 @@ class HasRoleGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
+    if (user.type === 'machine') return roles.includes('MACHINE');
     if (user.role === Role.ADMIN) return true;
 
     const userMissesAnyRequiredRole =
@@ -66,7 +67,9 @@ class HasRoleGuard implements CanActivate {
   }
 }
 
-export function HasRole(...roles: readonly Role[]): MethodDecorator {
+export function HasRole(
+  ...roles: readonly (Role | 'MACHINE')[]
+): MethodDecorator {
   return applyDecorators(
     SetMetadata(META_ROLES, roles),
     UseGuards(mixin(HasRoleGuard)),

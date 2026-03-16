@@ -21,6 +21,7 @@ export const FILE_MIME_TYPES = {
   bin: 'application/octet-stream',
   xml: 'text/xml',
   zip: 'application/zip',
+  smime: 'application/pkcs7-mime',
 } as const;
 
 export type FileMimeType =

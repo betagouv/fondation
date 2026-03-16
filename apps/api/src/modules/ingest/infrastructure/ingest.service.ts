@@ -31,7 +31,10 @@ export class IngestService {
     return this.lolfiFilesIngestor.ingest(jobId, signal);
   }
 
-  async ingestLolfiArchive(archive: Buffer): Promise<
+  async ingestLolfiArchive(
+    archive: Buffer,
+    options: { type: string | undefined },
+  ): Promise<
     | { id: number; status: 'STARTED' }
     | {
         id: number;
@@ -53,7 +56,7 @@ export class IngestService {
     }
 
     const start = this.clock.now();
-    const result = await this.lolfiArchiveIngestor.ingest(archive);
+    const result = await this.lolfiArchiveIngestor.ingest(archive, options);
 
     return this.prisma.$transaction(async (tx) => {
       const jobId = await this.prepareJob({ tx, result, start });

@@ -16,6 +16,7 @@ import { LolfiSessionsIngestor } from './services/ingestors/lolfi-sessions.inges
 import { LolfiTransparencesIngestor } from './services/ingestors/lolfi-transparences.ingestor';
 import { LolfiTypeJuridictionIngestor } from './services/ingestors/lolfi-type-juridiction.ingestor';
 import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
+import { LolfiCryptoService } from './services/lolfi-crypto.service';
 
 @Module({
   imports: [JobsModule],
@@ -26,17 +27,18 @@ import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
     LolfiArchiveIngestor,
     LolfiFilesIngestor,
     JobFileIngestor,
-    LolfiTypeJuridictionIngestor,
-    LolfiJuridictionIngestor,
-    LolfiGradesIngestor,
+    LolfiCandidatsIngestor,
+    LolfiCryptoService,
+    LolfiDesiderataIngestor,
     LolfiFonctionsIngestor,
+    LolfiGradesIngestor,
+    LolfiJuridictionIngestor,
+    LolfiMagistratsIngestor,
     LolfiPosadsIngestor,
     LolfiPostesIngestor,
     LolfiSessionsIngestor,
-    LolfiMagistratsIngestor,
     LolfiTransparencesIngestor,
-    LolfiCandidatsIngestor,
-    LolfiDesiderataIngestor,
+    LolfiTypeJuridictionIngestor,
   ],
 })
 export class IngestModule {}
