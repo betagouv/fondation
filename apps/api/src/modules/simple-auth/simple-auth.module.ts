@@ -1,11 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { SimpleAuthService } from './simple-auth.service';
-import { SimpleAuthMiddleware } from './simple-auth.middleware';
-import { SimpleAuthController } from './simple-auth.controller';
-import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
-import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
+import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListUsersQuery } from './infrastructure/queries/list-users.query';
+import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { SimpleAuthController } from './simple-auth.controller';
+import { SimpleAuthMiddleware } from './simple-auth.middleware';
+import { SimpleAuthService } from './simple-auth.service';
 
 @Module({
   controllers: [SimpleAuthController],
@@ -13,6 +14,7 @@ import { ListUsersQuery } from './infrastructure/queries/list-users.query';
     AuthUserRepository,
     DetailsUserFromSessionIdQuery,
     DetailsUserQuery,
+    FindMachineQuery,
     ListUsersQuery,
     SimpleAuthService,
   ],

@@ -10,6 +10,7 @@ import {
   DetailedUserResponseDto,
   DetailsUserQuery,
 } from './infrastructure/queries/details-user.query';
+import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import {
   ListedUsersDto,
   ListUsersQuery,
@@ -23,8 +24,13 @@ export class SimpleAuthService {
     private readonly detailsUserFromSessionQuery: DetailsUserFromSessionIdQuery,
     private readonly listUsersQuery: ListUsersQuery,
     private readonly userRepository: AuthUserRepository,
+    private readonly findMachineQuery: FindMachineQuery,
     private readonly clock: Clock,
   ) {}
+
+  findMachine(query: { bearer: string }): Promise<{ token: string } | null> {
+    return this.findMachineQuery.handle(query);
+  }
 
   async findUserFromValidSession(
     sessionId: string,

@@ -28,6 +28,29 @@ export const ConfigSchema = z.object({
     process.env.DATABASE_URL!,
   ),
 
+  lolfi: z.preprocess(
+    () => ({}),
+    z.object({
+      privateKeyPath: z.prefault(
+        z.string().trim().nonempty().optional(),
+        process.env.LOLFI_CRYPTO_PRIVKEY_PATH,
+      ),
+    }),
+  ),
+
+  apiTokens: z.prefault(
+    z
+      .string()
+      .transform((x) =>
+        x
+          .split(',')
+          .map((x) => x.trim())
+          .filter((x) => !!x),
+      )
+      .pipe(z.array(z.string().nonempty())),
+    process.env.INBOUND_ALLOWED_API_TOKENS ?? '',
+  ),
+
   scalingo: z.preprocess(
     () => ({}),
     z.object({
