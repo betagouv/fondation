@@ -24,7 +24,6 @@ import * as Sentry from '@sentry/node';
 import { lastValueFrom } from 'rxjs';
 
 import { HttpService } from '@nestjs/axios';
-import { PrismaStorageProviderEnum } from 'src/generated/prisma/enums';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -276,7 +275,6 @@ export class Files implements OnApplicationBootstrap {
         path: file.path.split('/'),
         id: file.meta?.id ?? makeId('FileId'),
         bucket: this.bucketName,
-        storageProvider: PrismaStorageProviderEnum.SCALEWAY,
       }));
 
       await this.prisma.file.createMany({ data: toCreate });

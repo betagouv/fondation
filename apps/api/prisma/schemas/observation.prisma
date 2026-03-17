@@ -20,7 +20,6 @@ model Observation {
   memberComments ObservationMemberComment[]
 
   @@unique([nominationFileId, magistratId])
-  @@index([nominationFileId])
   @@index([magistratId])
   @@map("observation")
   @@schema("nominations_context")

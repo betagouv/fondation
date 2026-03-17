@@ -4,8 +4,6 @@ import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
 
-import { ReportFileUsage } from 'shared-models';
-import z from 'zod';
 import {
   Report,
   ReportFilesAttached,
@@ -125,45 +123,6 @@ export class ReportRepository {
           reportId: message.id,
         })),
       });
-
-      // #region LEGACY BEHAVIOR
-
-      const existingReport = await tx.report.findUnique({
-        select: { attachedFiles: true },
-        where: { id: message.id },
-      });
-      if (!existingReport) return;
-
-      const result = await z
-        .array(
-          z.object({
-            usage: z.enum(ReportFileUsage),
-            name: z.string(),
-            fileId: z.string(),
-          }),
-        )
-        .safeParseAsync(existingReport.attachedFiles);
-      if (!result.success) return;
-
-      const files = await tx.file.findMany({
-        select: { name: true, id: true },
-        where: { id: { in: fileIds } },
-      });
-
-      const attachedFiles = result.data.concat(
-        files.map((f) => ({
-          name: f.name,
-          fileId: f.id,
-          usage: message.usage,
-        })),
-      );
-
-      await tx.report.update({
-        where: { id: message.id },
-        data: { attachedFiles },
-      });
-
-      // #endregion LEGACY BEHAVIOR
     });
   }
 

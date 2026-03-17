@@ -3,10 +3,10 @@ model File {
   createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
   name            String                    @db.VarChar
   path            String[]                  @db.VarChar
-  storageProvider PrismaStorageProviderEnum @map("storage_provider")
   bucket          String                    @db.VarChar
+  /// @deprecated
+  storageProvider PrismaStorageProviderEnum @default(SCALEWAY) @map("storage_provider") @ignore
 
-  transparenceFiles                   TransparenceFile[]
   attachedToReports                   ReportFile[]
   attachedToSessions                  SessionAttachment[]
   filePublicUrls                      FilePublicUrl[]
