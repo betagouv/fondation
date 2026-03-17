@@ -16,10 +16,13 @@ import { StatutAffectation } from 'src/modules/session/domain/statut-affectation
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { isDefined } from 'src/utils/is-defined';
 
 import { PrioriteEnum } from 'shared-models';
-import { deleteReportsAfterAffectationPublicationRawQuery } from 'src/generated/prisma/sql';
+import {
+  deleteReportsAfterAffectationPublicationRawQuery,
+  insertLodamNominationFilesRawQuery,
+} from 'src/generated/prisma/sql';
 import {
   NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
@@ -437,34 +440,21 @@ export class NominationSessionRepository {
       where: { id: message.sessionId },
       select: { dueDate: true },
     });
-    await tx.dossierDeNomination.createMany({
-      data: message.files.map(
-        (f) =>
-          ({
-            id: f.id,
-            name: f.name,
-            number: f.fileNumber,
-            sessionId: message.sessionId,
-            biography: f.biography,
-            birthDate: f.birthDate?.toDate(),
-            currentPosition: f.currentPosition,
-            grade: f.grade,
-            lastPositionDate: f.lastPositionDate?.toDate(),
-            lastRankingDate: f.lastRankingDate?.toDate(),
-            observers: f.observers,
-            rank: f.rank,
-            targetedPosition: f.targetedPosition,
-            targetedGrade: f.targetedGrade,
-            careerInformation: f.careerInformation,
-            dueDate: assertIsDefined(session).dueDate,
-
-            /** virtual field for sorting */
-            sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
-              f.targetedGrade,
-            ),
-          }) satisfies Prisma.DossierDeNominationCreateManyInput,
+    await tx.$queryRawTyped(
+      insertLodamNominationFilesRawQuery(
+        message.files.map((file) => ({
+          ...file,
+          birthDate: file.birthDate?.toDate() ?? null,
+          lastPositionDate: file.lastPositionDate?.toDate() ?? null,
+          lastRankingDate: file.lastRankingDate?.toDate() ?? null,
+          sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
+            file.targetedGrade,
+          ),
+        })),
+        message.sessionId,
+        session?.dueDate ?? null,
       ),
-    });
+    );
   }
 
   private async persistNominationSessionFilesObserversUpdated(

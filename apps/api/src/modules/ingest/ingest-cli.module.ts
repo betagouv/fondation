@@ -22,6 +22,9 @@ export class IngestLolfiCommand extends CommandRunner {
   }
 
   async run(_params: string[], options: { jobId: number }): Promise<void> {
+    // if running as a child process, we notify the main process we started
+    process.send?.('started');
+
     return IngestLolfiCommand.cancelable(async (signal) => {
       let success = true;
       try {

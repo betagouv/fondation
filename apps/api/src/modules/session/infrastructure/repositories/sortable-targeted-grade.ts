@@ -8,21 +8,21 @@ export function gradeEnumToSortableTargetedGrade(
 ): number {
   switch (grade) {
     case Magistrat.Grade.G3SUP:
-      return 35;
+      return 29;
     case Magistrat.Grade.G3:
       return 30;
     case Magistrat.Grade.G2:
-      return 20;
+      return 31;
     case Magistrat.Grade.G1:
-      return 10;
+      return 32;
 
     case Magistrat.Grade.HH:
     case Magistrat.Grade.III:
-      return 3;
+      return 10;
     case Magistrat.Grade.I:
-      return 2;
+      return 20;
     case Magistrat.Grade.II:
-      return 1;
+      return 30;
     default:
       return 0;
   }

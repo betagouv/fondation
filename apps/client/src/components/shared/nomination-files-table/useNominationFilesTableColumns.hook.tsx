@@ -56,6 +56,7 @@ export const useNominationFilesTableColumns = () => {
         enableSorting: true,
         id: 'targetedGrade',
         header: 'Grade cible',
+        sortDescFirst: true,
         cell: ({ cell }) => cell.getValue()
       }),
 

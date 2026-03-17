@@ -57,24 +57,36 @@ model DossierDeNomination {
   outcome        PrismaNominationFileOutcomeEnum?
   outcomeComment String?                          @map("outcome_comment")
 
-  number            Int?
+  number  Int?
+  dueDate DateTime? @map("due_date") @db.Date
+
+  // Nomination
+  rank             String?
+  targetedGrade    String? @map("targeted_grade")
+  currentPosition  String? @map("current_position")
+  targetedPosition String? @map("targeted_position")
+
+  /// @deprecated
+  observers String[] @default([])
+
+  // Magistrat
   name              String
-  rank              String?
-  targetedGrade     String?   @map("targeted_grade")
   grade             String?
-  observers         String[]  @default([])
   biography         String?
   birthDate         DateTime? @map("birth_date") @db.Date
-  currentPosition   String?   @map("current_position")
-  targetedPosition  String?   @map("targeted_position")
   lastRankingDate   DateTime? @map("last_ranking_date") @db.Date
   lastPositionDate  DateTime? @map("last_position_date") @db.Date
   careerInformation String?   @map("career_information")
+
   /// might be temporary
-  alertHidden       Boolean   @default(false) @map("alert_hidden")
-  dueDate           DateTime? @map("due_date") @db.Date
+  alertHidden Boolean @default(false) @map("alert_hidden")
 
   sortableTargetedGrade Int @map("sortable_targeted_grade") @db.SmallInt
+
+  detectedMagistratId        String? @map("detected_magistrat_id") @db.Uuid
+  detectedJurisdictionId     String? @map("detected_jurisdiction_id")
+  detectedTargetedFunctionId String? @map("detected_targeted_function_id")
+  detectedTargetedPositionId Int?    @map("detected_targeted_position_id")
 
   reports       Report[]
   reporterIds   NominationFileToReporter[]
@@ -83,6 +95,11 @@ model DossierDeNomination {
   observations  Observation[]
   memberMemos   MemberMemo[]
   summary       Summary?
+
+  detectedMagistrat        Magistrat?    @relation(fields: [detectedMagistratId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  detectedJurisdiction     Jurisdiction? @relation(fields: [detectedJurisdictionId], references: [codejur], onDelete: SetNull, onUpdate: NoAction)
+  detectedTargetedFunction Function?     @relation(fields: [detectedTargetedFunctionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  detectedTargetedPosition Position?     @relation(fields: [detectedTargetedPositionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@unique([sessionId, number], name: "sessionFileNumber")
   @@index([sessionId, sortableTargetedGrade])
