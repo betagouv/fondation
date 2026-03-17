@@ -117,7 +117,6 @@ class LolfiNodeBuilder {
 export class LolfiXmlSaxParser extends Transform {
   private readonly parser: sax.SAXParser;
   private readonly tag: string;
-  private readonly predicate: ((node: LolfiNode) => boolean) | undefined;
 
   /** LOLFI specific */
   private readonly stringDecoder = new StringDecoder('latin1');
@@ -127,16 +126,13 @@ export class LolfiXmlSaxParser extends Transform {
   constructor(props: {
     /** the tag you want to keep as _primary_ object (the rest will be considered _sub_ objects) */
     tag: string;
-    /** mainly when wanting to ignore duplicates */
-    predicate?: (row: LolfiNode) => boolean;
   }) {
     super({ readableObjectMode: true });
 
     this.tag = props.tag;
-    this.predicate = props.predicate;
 
     this.parser = sax.parser(true, {
-      normalize: true,
+      normalize: false,
       lowercase: true,
       position: true,
       trim: true,
@@ -167,8 +163,7 @@ export class LolfiXmlSaxParser extends Transform {
 
     const snapshot = node.close();
     if (this.currentNode === null) {
-      const shouldPush = this.predicate?.(node) ?? true;
-      if (shouldPush) this.push(snapshot);
+      this.push(snapshot);
     }
   }
 

@@ -1,6 +1,13 @@
-import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnApplicationShutdown,
+} from '@nestjs/common';
 import { spawn } from 'node:child_process';
 import * as path from 'node:path';
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { isDefined } from 'src/utils/is-defined';
 import z, { ZodSafeParseResult } from 'zod';
 import { FailedToStartJob } from './job-errors';
 
@@ -10,7 +17,12 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
   private readonly logger = new Logger(ChildProcessJobRunner.name);
   readonly isAvailable = true;
 
+  private readonly isProduction: boolean = false;
   private readonly controller = new AbortController();
+
+  constructor(@Inject(API_CONFIG_TOKEN) config: ApiConfig) {
+    this.isProduction = config.isProduction;
+  }
 
   async cancel(metadata: unknown): Promise<void> {
     const meta = await ChildProcessJobMetadata.from(metadata);
@@ -37,11 +49,12 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
     });
   }
 
-  private static readonly CWD = path.resolve(__dirname, '..', '..', '..');
+  private static readonly CWD = path.resolve(__dirname, '..', '..', '..', '..');
 
   private spawnChildProcess(jobId: number): Promise<ChildProcessJobMetadata> {
     const commandParts = [
       'node',
+      ...(this.isProduction ? [] : ['--env-file', '../../.env']),
       'cli',
       'lolfi-job',
       '--jobId',
@@ -52,15 +65,27 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
     this.logger.debug(`Starting "${command}" with node:child_process"`);
 
     return new Promise<ChildProcessJobMetadata>((resolve, reject) => {
+      this.logger.debug(`CWD: ${ChildProcessJobRunner.CWD}`);
+      let exited = false;
+
       const child = spawn(commandParts[0], commandParts.slice(1), {
         detached: true,
-        stdio: 'ignore',
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
         signal: this.controller.signal,
         cwd: ChildProcessJobRunner.CWD,
       });
 
-      child.on('spawn', () => {
-        if (!child.pid) {
+      child.on('message', (msg) => {
+        if (exited) return;
+
+        this.logger.debug(`Received message: "${msg}"`);
+        if (msg !== 'started') return;
+
+        exited = true;
+        child.disconnect();
+        child.unref();
+
+        if (!isDefined(child.pid)) {
           return reject(
             new FailedToStartJob(jobId, { message: `no PID available` }),
           );
@@ -69,12 +94,38 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
         resolve(new ChildProcessJobMetadata(child.pid));
       });
 
-      child.on('error', (err) => {
-        this.logger.error(`Child Process error`, err);
-        reject(err);
+      child.on('spawn', () => {
+        if (exited) return;
+
+        this.logger.debug(`Spawned`);
+        if (!child.pid) {
+          exited = true;
+          return reject(
+            new FailedToStartJob(jobId, { message: `no PID available` }),
+          );
+        }
       });
 
-      child.unref();
+      child.on('exit', (code, signal) => {
+        if (exited) return;
+
+        this.logger.debug(`Exited (code: ${code}, signal: ${signal})`);
+
+        if (isDefined(code) && code !== 0) {
+          exited = true;
+          this.logger.error(`Child Process exited with non zero code: ${code}`);
+          reject(
+            new FailedToStartJob(jobId, {
+              message: `exit status code: ${code}`,
+            }),
+          );
+        }
+      });
+
+      child.on('error', (err) => {
+        this.logger.error(`Error`, err);
+        reject(new FailedToStartJob(jobId, { cause: err }));
+      });
     });
   }
 

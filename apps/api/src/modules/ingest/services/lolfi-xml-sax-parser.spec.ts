@@ -60,21 +60,4 @@ describe('LOLFI XML Parser', () => {
       },
     ]);
   });
-
-  it('should ignore some data with predicate', async () => {
-    const parser = new LolfiXmlSaxParser({
-      tag: 'entity',
-      predicate: (item) =>
-        item.children.some(
-          ({ name, content }) => name === 'id' && content === '1002',
-        ),
-    });
-
-    const destination: LolfiNode[] = [];
-    await pipeline(Readable.from(xml), parser, collect(destination));
-
-    expect(destination).toEqual([
-      expect.objectContaining({ name: 'entity', attributes: { id: '2' } }),
-    ]);
-  });
 });

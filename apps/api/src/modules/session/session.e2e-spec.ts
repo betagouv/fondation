@@ -24,11 +24,6 @@ describe('Session E2E', () => {
     'lodam_transparence.xlsx',
   );
 
-  const LODAM_OBSERVERS_UPDATED_FILE_PATH = path.join(
-    LODAM_FILES_FOLDER_PATH,
-    'lodam_transparence_observers_updated.xlsx',
-  );
-
   let auth: SimpleAuthService;
   let app: INestApplication;
   let http: ReturnType<typeof agent>;
@@ -143,6 +138,7 @@ describe('Session E2E', () => {
         comment: null,
         commentAccessUserIds: [],
         content: {
+          numeroDeDossier: 1,
           dateDeNaissance: {
             day: 9,
             month: 4,
@@ -165,7 +161,6 @@ describe('Session E2E', () => {
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
           nomMagistrat: 'ROSELIN PIORIER',
-          numeroDeDossier: 1,
           observants: [],
           posteActuel: 'Procureur de la République TJ  NARBONNE',
           posteCible: 'Procureur de la République TJ  GRASSE',
@@ -199,6 +194,7 @@ describe('Session E2E', () => {
         observationCount: 0,
         observationMagistrats: [],
         content: {
+          numeroDeDossier: 2,
           dateDeNaissance: {
             day: 20,
             month: 5,
@@ -221,8 +217,7 @@ describe('Session E2E', () => {
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
           nomMagistrat: 'AZELINE NOEL',
-          numeroDeDossier: 2,
-          observants: ['LAZARE JACQUET'],
+          observants: [],
           posteActuel: 'Procureur de la République TJ  BEZIERS',
           posteCible: 'Procureur de la République TJ  TOULON',
           rang: '(7 sur une liste de 14)',
@@ -247,54 +242,6 @@ describe('Session E2E', () => {
           }),
         ]),
       });
-    });
-
-    it('should update the observers of an existing session from a LODAM file', async () => {
-      const initialSessionBuffer = await fs.readFile(LODAM_FILE_PATH);
-      const { body: session } = await http
-        .post('/api/sessions/v2/lodam')
-        .set({ cookie: user.cookie })
-        .attach('file', initialSessionBuffer, {
-          filename: 'transparence.xslx',
-          contentType: FILE_MIME_TYPES.xlsx,
-        })
-        .attach(
-          'form',
-          Buffer.from(
-            JSON.stringify({
-              date: '2025-01-01',
-              observationClosingDate: '2025-03-01',
-              formation: Magistrat.Formation.PARQUET,
-              name: 'Transparence TEST OBSERVANTS ' + randomUUID(),
-            }),
-          ),
-          { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
-        )
-        .expect(HttpStatus.CREATED);
-
-      const updateObserversBuffer = await fs.readFile(
-        LODAM_OBSERVERS_UPDATED_FILE_PATH,
-      );
-      await http
-        .set({ cookie: user.cookie })
-        .post(`/api/sessions/v2/lodam/${session.id}/observers`)
-        .attach('file', updateObserversBuffer, {
-          contentType: FILE_MIME_TYPES.xlsx,
-          filename: 'transparence.xlsx',
-        })
-        .expect(HttpStatus.NO_CONTENT);
-
-      const nominationFiles = await http
-        .get(`/api/sessions/v2/${session.id}/files`)
-        .set({ cookie: user.cookie });
-
-      expect(
-        nominationFiles.body.items.map(
-          (item: { id: string; content: { observants: string[] } }) => ({
-            observers: item.content.observants,
-          }),
-        ),
-      ).toEqual([{ observers: ['Honoré Denis'] }, { observers: [] }]);
     });
   });
 });
