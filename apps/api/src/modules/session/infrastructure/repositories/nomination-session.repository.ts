@@ -462,11 +462,6 @@ export class NominationSessionRepository {
             sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
               f.targetedGrade,
             ),
-
-            /** @deprecated */
-            dossierDeNominationImportId: randomUUID(),
-            /** @deprecated */
-            content: {},
           }) satisfies Prisma.DossierDeNominationCreateManyInput,
       ),
     });

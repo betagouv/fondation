@@ -22,12 +22,8 @@ model Report {
   version          Int                   @default(1)
   sessionId        String                @map("session_id") @db.Uuid
   reportRules      ReportRule[]
-  /// @deprecated
   formation        PrismaFormationEnum
   isDeleted        Boolean               @default(false) @map("is_deleted")
-
-  /// @deprecated use ReportFile
-  attachedFiles Json? @map("attached_files")
 
   files          ReportFile[]
   nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)

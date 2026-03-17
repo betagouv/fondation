@@ -1,11 +1,3 @@
-model UserFile {
-  fileId String             @id @map("file_id") @db.Uuid
-  type   PrismaFileTypeEnum
-
-  @@map("files")
-  @@schema("identity_and_access_context")
-}
-
 model AuthSession {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   expiresAt     DateTime  @map("expires_at") @db.Timestamp(6)
@@ -42,15 +34,6 @@ model User {
   followedUpObservations      Observation[]              @relation("user_to_observation_follow_up")
 
   @@map("users")
-  @@schema("identity_and_access_context")
-}
-
-enum PrismaFileTypeEnum {
-  PIECE_JOINTE_TRANSPARENCE
-  PIECE_JOINTE_TRANSPARENCE_POUR_PARQUET
-  PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE
-
-  @@map("file_type")
   @@schema("identity_and_access_context")
 }
 

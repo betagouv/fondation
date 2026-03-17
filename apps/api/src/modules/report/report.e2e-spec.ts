@@ -61,9 +61,7 @@ describe('Report E2E', () => {
         select: { id: true },
         data: {
           sessionId: session.id,
-          dossierDeNominationImportId: randomUUID(),
           name: faker.person.fullName(),
-          content: {},
           sortableTargetedGrade: 0,
         },
       });
