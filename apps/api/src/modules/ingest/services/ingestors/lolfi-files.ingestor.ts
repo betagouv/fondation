@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -9,6 +11,8 @@ import { inspect } from 'node:util';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
+import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
 import { dag } from '../../domain/requirements';
@@ -21,7 +25,7 @@ import { LolfiJuridictionIngestor } from './lolfi-juridiction.ingestor';
 import { LolfiMagistratsIngestor } from './lolfi-magistrats.ingestor';
 import { LolfiPosadsIngestor } from './lolfi-posads.ingestor';
 import { LolfiPostesIngestor } from './lolfi-postes.ingestor';
-import { LolfiSessionsIngestor } from './lolfi-sessions.ingestor';
+import { LolfiSessionsIngestor, RawSession } from './lolfi-sessions.ingestor';
 import { LolfiTransparencesIngestor } from './lolfi-transparences.ingestor';
 import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor';
 
@@ -43,19 +47,38 @@ export class LolfiFilesIngestor {
     private readonly candidatesIngestor: LolfiCandidatsIngestor,
     private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
     private readonly nominationsIngestor: LolfiTransparencesIngestor,
+    @Inject(forwardRef(() => SessionService))
+    private readonly sessions: SessionService,
   ) {}
 
   async ingest(
     jobId: number,
     signal: AbortSignal,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success: boolean; values?: RawSession[] }> {
     try {
-      const { success } = await this.ingestInternal(jobId, signal);
+      const { success, values } = await this.ingestInternal(jobId, signal);
 
       if (signal.aborted) return { success: true };
 
-      if (success) await this.succeedJob(jobId);
-      else await this.failJob(jobId);
+      if (!success) {
+        this.failJob(jobId);
+        return { success };
+      }
+
+      await this.succeedJob(jobId);
+      if (values) {
+        await this.sessions
+          .internalIngestLolfiSessions(
+            values.map((s) => ({
+              name: s.libelle,
+              id: s.num_session,
+              creationDate: DateOnly.fromDate(s.date_publication),
+            })),
+          )
+          .catch((err) => {
+            this.logger.error(`error while creating sessions`, err);
+          });
+      }
 
       return { success };
     } catch (e) {
@@ -100,7 +123,7 @@ export class LolfiFilesIngestor {
   private async ingestInternal(
     jobId: number,
     signal: AbortSignal,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success: boolean; values?: RawSession[] }> {
     const [lastSucceededJob, currentJob] = await this.prisma
       .$transaction(async (tx) => {
         const runningJob = await tx.ingestionJob.findFirst({
@@ -177,7 +200,9 @@ export class LolfiFilesIngestor {
       })),
     };
 
-    const result = { success: true };
+    const result: { success: boolean; values?: RawSession[] } = {
+      success: true,
+    };
     for (const file of job.files) {
       if (signal.aborted) {
         await this.cancel(jobId).catch(() => {});
@@ -187,6 +212,7 @@ export class LolfiFilesIngestor {
 
       const runResult = await this.ingestFile({ file, job });
       if (!runResult.success) result.success = false;
+      if ('values' in runResult) result.values = runResult.values;
     }
 
     return result;
@@ -195,7 +221,7 @@ export class LolfiFilesIngestor {
   private ingestFile(props: {
     job: { id: number };
     file: LolfiJob['files'][number];
-  }): Promise<{ success: boolean }> {
+  }): Promise<{ success: boolean } | { success: true; values: RawSession[] }> {
     if (this.gradeIngestor.handles(props.file)) {
       return this.gradeIngestor.ingest(props);
     }

@@ -13,6 +13,10 @@ export default defineConfig(
     files: ['{src,cli,test}/**/*.ts'],
     languageOptions: {
       globals: { ...globals.node, ...globals.jest },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       '@typescript-eslint/interface-name-prefix': 'off',

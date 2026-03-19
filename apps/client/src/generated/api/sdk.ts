@@ -56,6 +56,90 @@ export class auth {
     }
 }
 
+export class reports {
+    public static detachFiles<ThrowOnError extends boolean = false>(options: Options<DetachFilesData, ThrowOnError>) {
+        return (options.client ?? client).delete<DetachFilesResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files', ...options });
+    }
+    
+    public static attachFiles<ThrowOnError extends boolean = false>(options: Options<AttachFilesData, ThrowOnError>) {
+        return (options.client ?? client).post<AttachFilesResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/reports/v2/{reportId}/files',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static attachScreenshots<ThrowOnError extends boolean = false>(options: Options<AttachScreenshotsData, ThrowOnError>) {
+        return (options.client ?? client).post<AttachScreenshotsResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/reports/v2/{reportId}/screenshots',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static getReportFilesUrl<ThrowOnError extends boolean = false>(options: Options<GetReportFilesUrlData, ThrowOnError>) {
+        return (options.client ?? client).get<GetReportFilesUrlResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files/url', ...options });
+    }
+    
+    public static detailReport<ThrowOnError extends boolean = false>(options: Options<DetailReportData, ThrowOnError>) {
+        return (options.client ?? client).get<DetailReportResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}', ...options });
+    }
+    
+    public static updateReport<ThrowOnError extends boolean = false>(options: Options<UpdateReportData, ThrowOnError>) {
+        return (options.client ?? client).patch<UpdateReportResponses, unknown, ThrowOnError>({
+            url: '/api/reports/v2/{reportId}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static updateReportRuleValidation<ThrowOnError extends boolean = false>(options: Options<UpdateReportRuleValidationData, ThrowOnError>) {
+        return (options.client ?? client).put<UpdateReportRuleValidationResponses, unknown, ThrowOnError>({
+            url: '/api/reports/v2/{reportId}/rules/{ruleId}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class ingest {
+    public static ingestLolfiArchive<ThrowOnError extends boolean = false>(options: Options<IngestLolfiArchiveData, ThrowOnError>) {
+        return (options.client ?? client).post<IngestLolfiArchiveResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/ingest/v1/lolfi',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class jobs {
+    public static listJobs<ThrowOnError extends boolean = false>(options?: Options<ListJobsData, ThrowOnError>) {
+        return (options?.client ?? client).get<ListJobsResponses, unknown, ThrowOnError>({ url: '/api/jobs/v1', ...options });
+    }
+    
+    public static detailsJob<ThrowOnError extends boolean = false>(options: Options<DetailsJobData, ThrowOnError>) {
+        return (options.client ?? client).get<DetailsJobResponses, unknown, ThrowOnError>({ url: '/api/jobs/v1/{jobId}', ...options });
+    }
+}
+
 export class sessions {
     public static listSessionsOfTypeGardeDesSceaux<ThrowOnError extends boolean = false>(options?: Options<ListSessionsOfTypeGardeDesSceauxData, ThrowOnError>) {
         return (options?.client ?? client).get<ListSessionsOfTypeGardeDesSceauxResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/garde-des-sceaux', ...options });
@@ -150,6 +234,9 @@ export class sessions {
         return (options.client ?? client).get<GetCommentAccessResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access', ...options });
     }
     
+    /**
+     * @deprecated
+     */
     public static updateCommentAccess<ThrowOnError extends boolean = false>(options: Options<UpdateCommentAccessData, ThrowOnError>) {
         return (options.client ?? client).put<UpdateCommentAccessResponses, unknown, ThrowOnError>({
             url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access',
@@ -237,52 +324,6 @@ export class sessions {
     }
 }
 
-export class members {
-    public static listMembers<ThrowOnError extends boolean = false>(options: Options<ListMembersData, ThrowOnError>) {
-        return (options.client ?? client).get<ListMembersResponses, unknown, ThrowOnError>({ url: '/api/members/v1', ...options });
-    }
-    
-    public static detailsMember<ThrowOnError extends boolean = false>(options: Options<DetailsMemberData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailsMemberResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}', ...options });
-    }
-    
-    public static excludeJurisdictions<ThrowOnError extends boolean = false>(options: Options<ExcludeJurisdictionsData, ThrowOnError>) {
-        return (options.client ?? client).put<ExcludeJurisdictionsResponses, unknown, ThrowOnError>({
-            url: '/api/members/v1/{userId}/excluded-jurisdictions',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static listMemberSessions<ThrowOnError extends boolean = false>(options: Options<ListMemberSessionsData, ThrowOnError>) {
-        return (options.client ?? client).get<ListMemberSessionsResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux', ...options });
-    }
-    
-    public static detailsMemberSession<ThrowOnError extends boolean = false>(options: Options<DetailsMemberSessionData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailsMemberSessionResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}', ...options });
-    }
-    
-    public static writeNominationFileMemberMemo<ThrowOnError extends boolean = false>(options: Options<WriteNominationFileMemberMemoData, ThrowOnError>) {
-        return (options.client ?? client).put<WriteNominationFileMemberMemoResponses, unknown, ThrowOnError>({
-            url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/memo',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-}
-
-export class jurisdictions {
-    public static search<ThrowOnError extends boolean = false>(options?: Options<SearchData, ThrowOnError>) {
-        return (options?.client ?? client).get<SearchResponses, unknown, ThrowOnError>({ url: '/api/jurisdictions/v1', ...options });
-    }
-}
-
 export class summaries {
     public static detailSummary<ThrowOnError extends boolean = false>(options: Options<DetailSummaryData, ThrowOnError>) {
         return (options.client ?? client).get<DetailSummaryResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary', ...options });
@@ -351,46 +392,18 @@ export class summaries {
     }
 }
 
-export class reports {
-    public static detachFiles<ThrowOnError extends boolean = false>(options: Options<DetachFilesData, ThrowOnError>) {
-        return (options.client ?? client).delete<DetachFilesResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files', ...options });
+export class members {
+    public static listMembers<ThrowOnError extends boolean = false>(options: Options<ListMembersData, ThrowOnError>) {
+        return (options.client ?? client).get<ListMembersResponses, unknown, ThrowOnError>({ url: '/api/members/v1', ...options });
     }
     
-    public static attachFiles<ThrowOnError extends boolean = false>(options: Options<AttachFilesData, ThrowOnError>) {
-        return (options.client ?? client).post<AttachFilesResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/reports/v2/{reportId}/files',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
+    public static detailsMember<ThrowOnError extends boolean = false>(options: Options<DetailsMemberData, ThrowOnError>) {
+        return (options.client ?? client).get<DetailsMemberResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}', ...options });
     }
     
-    public static attachScreenshots<ThrowOnError extends boolean = false>(options: Options<AttachScreenshotsData, ThrowOnError>) {
-        return (options.client ?? client).post<AttachScreenshotsResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/reports/v2/{reportId}/screenshots',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static getReportFilesUrl<ThrowOnError extends boolean = false>(options: Options<GetReportFilesUrlData, ThrowOnError>) {
-        return (options.client ?? client).get<GetReportFilesUrlResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}/files/url', ...options });
-    }
-    
-    public static detailReport<ThrowOnError extends boolean = false>(options: Options<DetailReportData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailReportResponses, unknown, ThrowOnError>({ url: '/api/reports/v2/{reportId}', ...options });
-    }
-    
-    public static updateReport<ThrowOnError extends boolean = false>(options: Options<UpdateReportData, ThrowOnError>) {
-        return (options.client ?? client).patch<UpdateReportResponses, unknown, ThrowOnError>({
-            url: '/api/reports/v2/{reportId}',
+    public static excludeJurisdictions<ThrowOnError extends boolean = false>(options: Options<ExcludeJurisdictionsData, ThrowOnError>) {
+        return (options.client ?? client).put<ExcludeJurisdictionsResponses, unknown, ThrowOnError>({
+            url: '/api/members/v1/{userId}/excluded-jurisdictions',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -399,15 +412,29 @@ export class reports {
         });
     }
     
-    public static updateReportRuleValidation<ThrowOnError extends boolean = false>(options: Options<UpdateReportRuleValidationData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateReportRuleValidationResponses, unknown, ThrowOnError>({
-            url: '/api/reports/v2/{reportId}/rules/{ruleId}',
+    public static listMemberSessions<ThrowOnError extends boolean = false>(options: Options<ListMemberSessionsData, ThrowOnError>) {
+        return (options.client ?? client).get<ListMemberSessionsResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux', ...options });
+    }
+    
+    public static detailsMemberSession<ThrowOnError extends boolean = false>(options: Options<DetailsMemberSessionData, ThrowOnError>) {
+        return (options.client ?? client).get<DetailsMemberSessionResponses, unknown, ThrowOnError>({ url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}', ...options });
+    }
+    
+    public static writeNominationFileMemberMemo<ThrowOnError extends boolean = false>(options: Options<WriteNominationFileMemberMemoData, ThrowOnError>) {
+        return (options.client ?? client).put<WriteNominationFileMemberMemoResponses, unknown, ThrowOnError>({
+            url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/memo',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
         });
+    }
+}
+
+export class jurisdictions {
+    public static search<ThrowOnError extends boolean = false>(options?: Options<SearchData, ThrowOnError>) {
+        return (options?.client ?? client).get<SearchResponses, unknown, ThrowOnError>({ url: '/api/jurisdictions/v1', ...options });
     }
 }
 
@@ -494,29 +521,5 @@ export class magistrats {
     
     public static searchFullName<ThrowOnError extends boolean = false>(options: Options<SearchFullNameData, ThrowOnError>) {
         return (options.client ?? client).get<SearchFullNameResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1/fullname', ...options });
-    }
-}
-
-export class ingest {
-    public static ingestLolfiArchive<ThrowOnError extends boolean = false>(options: Options<IngestLolfiArchiveData, ThrowOnError>) {
-        return (options.client ?? client).post<IngestLolfiArchiveResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/ingest/v1/lolfi',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-}
-
-export class jobs {
-    public static listJobs<ThrowOnError extends boolean = false>(options?: Options<ListJobsData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListJobsResponses, unknown, ThrowOnError>({ url: '/api/jobs/v1', ...options });
-    }
-    
-    public static detailsJob<ThrowOnError extends boolean = false>(options: Options<DetailsJobData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailsJobResponses, unknown, ThrowOnError>({ url: '/api/jobs/v1/{jobId}', ...options });
     }
 }

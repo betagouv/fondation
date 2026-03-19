@@ -2,17 +2,17 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback } from 'react';
 
-import { useUser } from '@queries/auth.queries';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
   useRemoveNominationSessionAttachmentMutation
 } from '@queries/nomination-sessions.queries';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
 export function NominationSessionAttachmentList(props: { sessionId: string }) {
-  const { user } = useUser();
+  const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
     sessionId: props.sessionId
   });
@@ -62,7 +62,7 @@ export function NominationSessionAttachmentList(props: { sessionId: string }) {
             {file.name}
           </Button>
 
-          {user?.role === 'ADJOINT_SECRETAIRE_GENERAL' && (
+          {isSg && (
             <DeleteAttachmentModal
               fileName={file.name}
               onDelete={() => deleteAttachment({ fileId: file.id, sessionId: props.sessionId })}

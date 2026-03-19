@@ -1,3 +1,4 @@
+import { useIsSg } from '@/hooks/roles.hook';
 import './MemberMemo.css';
 
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -50,6 +51,7 @@ function ReadOnlyMemo(props: { value: string | null }) {
 }
 
 export function MemberMemo(props: { sessionId: string; nominationFileId: string; memo: string | null }) {
+  const isSg = useIsSg();
   const { user } = useUser();
   const { mutate } = useWriteNominationFileMemberMemoMutation();
   const writeMemo = React.useCallback(
@@ -71,7 +73,7 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
     setMode((m) => (m === 'edit' ? 'read' : 'edit'));
   }, [setMode]);
 
-  if (!user || user?.role === 'ADJOINT_SECRETAIRE_GENERAL') return null;
+  if (!user || isSg) return null;
 
   return (
     <div className="mb-4">

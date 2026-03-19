@@ -3,9 +3,8 @@ import { Tabs, type TabsProps } from '@codegouvfr/react-dsfr/Tabs';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 
-import { Magistrat, Role } from 'shared-models';
+import { Magistrat } from 'shared-models';
 
-import { useUser } from '@queries/auth.queries';
 import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
 
 import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
@@ -13,8 +12,6 @@ import { formationToLabel } from '../../labels/labels-mappers';
 import { SessionBlock } from './SessionBlock';
 
 export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTypeGardeDesSceaux[] }) {
-  const { user } = useUser();
-
   const sessionsByFormation = sessions.reduce(
     (byFormation, session) => {
       if (session.isAffected) {
@@ -98,14 +95,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
       title="Pouvoir de proposition du GDS"
       noTransparenciesText="Il n'y a pas de transparences actives."
     >
-      {user &&
-      (user.role === Role.ADJOINT_SECRETAIRE_GENERAL ||
-        user.role === Role.MEMBRE_COMMUN ||
-        tabs.length > 1) ? (
-        <Tabs tabs={tabs} style={{ height: 'auto' }} />
-      ) : (
-        tabs[0]?.content
-      )}
+      {tabs.length > 1 ? <Tabs tabs={tabs} style={{ height: 'auto' }} /> : tabs[0]?.content}
     </SessionBlock>
   );
 }

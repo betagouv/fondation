@@ -1,4 +1,5 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
 
 import {
   Magistrat,
@@ -15,7 +16,7 @@ import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { NominationFile } from '../domain/nomination-file';
+import { LodamNominationFile } from '../domain/nomination-file';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
@@ -24,6 +25,7 @@ import { NominationSession } from '../domain/nomination-session';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
+import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import {
   CountNominationFilesByStatusQuery,
@@ -76,6 +78,7 @@ import { NominationSessionRepository } from './repositories/nomination-session.r
 
 @Injectable()
 export class SessionService {
+  private readonly logger = new Logger(SessionService.name);
   constructor(
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
@@ -95,6 +98,7 @@ export class SessionService {
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
+    private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -128,18 +132,22 @@ export class SessionService {
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
-      {
-        memberIds: Array.from(
-          new Set(
-            command.affectations.flatMap(
-              (affectation) => affectation.reporterIds,
-            ),
-          ),
-        ),
-      },
     );
 
-    session.affectNominationFileReporters(command.affectations);
+    const memberIds = Array.from(
+      new Set(
+        command.affectations.flatMap((affectation) => affectation.reporterIds),
+      ),
+    );
+
+    const formationMemberIds = await this.members
+      .findMembers({
+        ids: memberIds,
+        formation: session.formation,
+      })
+      .then((ids) => new Set(ids));
+
+    session.affectNominationFileReporters({ ...command, formationMemberIds });
 
     for (const item of command.affectations) {
       session.setNominationFilePriority({
@@ -194,8 +202,17 @@ export class SessionService {
       nominationFileIds: command.nominationFileIds,
       excludedMemberIds: command.excludedMemberIds,
     });
+    const formationMemberIds = await this.members
+      .findMembers({
+        formation: session.formation,
+        ids: undefined,
+      })
+      .then((ids) => new Set(ids));
 
-    session.autoAffectNominationFileReporters(autoAffectations);
+    session.autoAffectNominationFileReporters({
+      autoAffectations,
+      formationMemberIds,
+    });
 
     await this.nominationSessionRepository.persist(session);
   }
@@ -221,6 +238,7 @@ export class SessionService {
     return this.getNominationFileWithCommentQuery.handle(query);
   }
 
+  /** @deprecated */
   async updateCommentAccess(command: {
     sessionId: string;
     nominationFileId: string;
@@ -230,22 +248,28 @@ export class SessionService {
       command.sessionId,
     );
 
+    const formationMemberIds = await this.members
+      .findMembers({ formation: session.formation, ids: command.userIds })
+      .then((ids) => new Set(ids));
+
     session.grantCommentAccess({
-      nominationFileId: command.nominationFileId,
+      formationMemberIds,
       userIds: command.userIds,
+      nominationFileId: command.nominationFileId,
     });
 
     await this.nominationSessionRepository.persist(session);
   }
 
   async createNominationSessionFromLodam(command: {
-    files: readonly NominationFile[];
+    files: readonly LodamNominationFile[];
     name: string;
     date: DateOnly;
     observationClosingDate: DateOnly;
     dueDate: DateOnly | null;
     positionStartDate: DateOnly | null;
     formation: Magistrat.Formation;
+    userId: string;
   }): Promise<{ id: string }> {
     const fullNames = command.files.flatMap(({ reporters }) => reporters);
     const members = await this.members.findMembersByFullName({
@@ -253,11 +277,13 @@ export class SessionService {
       formation: command.formation,
     });
 
-    const session = NominationSession.createNominationTreeAndAffectMembers({
-      ...command,
-      formationMembers: members,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-    });
+    const session = NominationSession.createLodamNominationTreeAndAffectMembers(
+      {
+        ...command,
+        formationMembers: members,
+        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      },
+    );
     await this.nominationSessionRepository.persist(session);
 
     return { id: session.id };
@@ -265,7 +291,7 @@ export class SessionService {
 
   async updateSessionNominationFileObservers(command: {
     sessionId: string;
-    files: readonly NominationFile[];
+    files: readonly LodamNominationFile[];
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
@@ -380,7 +406,6 @@ export class SessionService {
   }) {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
-      { memberIds: [command.userId] },
     );
 
     const { userId, nominationFileId, memo } = command;
@@ -430,5 +455,39 @@ export class SessionService {
     );
     session.hideAlert(command);
     await this.nominationSessionRepository.persist(session);
+  }
+
+  async internalIngestLolfiSessions(
+    sessions: readonly {
+      id: number;
+      creationDate: DateOnly;
+      name: string | null;
+    }[],
+  ): Promise<void> {
+    for (const session of sessions) {
+      const nominationSessions = await this.lolfiNominationSessionFinder
+        .find(session)
+        .catch((error) => {
+          Sentry.captureException(error);
+          this.logger.error(
+            `Errror while retrieving lolfi sessions ${session.id}`,
+            error,
+          );
+
+          return [] as NominationSession[];
+        });
+
+      for (const nominationSession of nominationSessions) {
+        await this.nominationSessionRepository
+          .persist(nominationSession)
+          .catch((error) => {
+            this.logger.error(
+              `Error while persisting session LOLFI ${session.id}, formation: ${nominationSession.formation}`,
+              error,
+            );
+            Sentry.captureException(error);
+          });
+      }
+    }
   }
 }

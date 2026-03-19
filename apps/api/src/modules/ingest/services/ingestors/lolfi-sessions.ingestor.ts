@@ -1,7 +1,8 @@
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 import { LolfiJob } from '../lolfi-job.type';
 import { JobFileIngestor } from './job-file-ingestor';
@@ -9,12 +10,20 @@ import { RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiSessionsIngestor {
+  private readonly FLAG_ENABLE_LOLFI_SESSIONS: true | Date;
   private readonly logger = new Logger(LolfiSessionsIngestor.name);
 
   constructor(
     private readonly ingestor: JobFileIngestor,
     private readonly prisma: PrismaService,
-  ) {}
+
+    @Inject(API_CONFIG_TOKEN)
+    config: ApiConfig,
+  ) {
+    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction
+      ? new Date(Date.UTC(2026, 3, 1))
+      : true;
+  }
 
   handles(file: LolfiJob['files'][number]): boolean {
     return file.name === 'SESSIONS.xml';
@@ -23,14 +32,14 @@ export class LolfiSessionsIngestor {
   async ingest(options: {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
-  }): Promise<{ success: boolean }> {
+  }): Promise<{ success: false } | { success: true; values: RawSession[] }> {
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
+    const accumulator: RawSession[] = [];
     async function* mapper(
       source: AsyncIterable<{ data: RawSession; success: boolean }>,
     ) {
-      const accumulator: RawSession[] = [];
       const ids = new Set<number>();
       for await (const { data, success } of source) {
         if (ids.has(data.num_session)) {
@@ -60,7 +69,12 @@ export class LolfiSessionsIngestor {
       file: options.file,
     });
 
-    return { success: success && mappingResult.success };
+    const finalSuccess = success && mappingResult.success;
+    if (finalSuccess) {
+      return { success: true, values: this.cleanResult(accumulator) };
+    }
+
+    return { success: finalSuccess };
   }
 
   private flush(props: {
@@ -76,6 +90,15 @@ export class LolfiSessionsIngestor {
         props.result.success = false;
       });
   }
+
+  private cleanResult(values: readonly RawSession[]): RawSession[] {
+    if (this.FLAG_ENABLE_LOLFI_SESSIONS === true) return [...values];
+
+    const flagDate = this.FLAG_ENABLE_LOLFI_SESSIONS.getTime();
+    return values.filter(
+      (value) => flagDate <= value.date_publication.getTime(),
+    );
+  }
 }
 
 const RawSessionSchema = z.object({
@@ -84,4 +107,4 @@ const RawSessionSchema = z.object({
   date_publication: RawLolfiDate,
 });
 
-type RawSession = z.infer<typeof RawSessionSchema>;
+export type RawSession = z.infer<typeof RawSessionSchema>;

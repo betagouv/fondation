@@ -1,3 +1,5 @@
+import { addWeeks } from 'date-fns';
+
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectation/auto-affectations';
@@ -5,7 +7,12 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
-import { NominationFile, NominationFileEntity } from './nomination-file';
+import {
+  LodamNominationFile,
+  LodamNominationFileEntity,
+  NominationFile,
+  NominationFileEntity,
+} from './nomination-file';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
@@ -55,10 +62,18 @@ export class NominationSessionCreated {
     readonly observationClosingDate: DateOnly,
     readonly dueDate: DateOnly | null,
     readonly positionStartDate: DateOnly | null,
+    readonly lolfiSessionId: number | null,
   ) {}
 }
 
-export class NominationSessionFilesCreated {
+export class LodamNominationSessionFilesCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly files: readonly LodamNominationFileEntity[],
+  ) {}
+}
+
+export class NominationFilesAssociated {
   constructor(
     readonly sessionId: string,
     readonly files: readonly NominationFileEntity[],
@@ -134,21 +149,38 @@ export class NominationFileAlertHidden {
   ) {}
 }
 
+export class NominationSessionIndicatorRemoved {
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string | null,
+  ) {}
+}
+
+export class NominationSessionValidated {
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string | null,
+  ) {}
+}
+
 type NominationSessionEvent =
+  | LodamNominationSessionFilesCreated
+  | NominationFileAlertHidden
+  | NominationFileMemberMemoWritten
+  | NominationFileOutcomeDefined
+  | NominationFilesAssociated
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
-  | NominationSessionFilePrioritiesUpdated
-  | NominationSessionFileReportersAffected
-  | NominationSessionFileCommentAccessGranted
-  | NominationSessionCreated
-  | NominationSessionFilesCreated
-  | NominationSessionFilesObserversUpdated
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
+  | NominationSessionCreated
+  | NominationSessionFileCommentAccessGranted
+  | NominationSessionFilePrioritiesUpdated
+  | NominationSessionFileReportersAffected
+  | NominationSessionFilesObserversUpdated
+  | NominationSessionIndicatorRemoved
   | NominationSessionUpdated
-  | NominationFileOutcomeDefined
-  | NominationFileMemberMemoWritten
-  | NominationFileAlertHidden;
+  | NominationSessionValidated;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -192,34 +224,45 @@ export class NominationFilesHaveOutcome extends Error {
 export class NominationSession {
   private constructor(
     readonly id: string,
+    readonly formation: Magistrat.Formation,
     private readonly version: NominationSessionAffectationVersion | null,
-    private readonly formationMemberIds: Set<string>,
     private readonly nominationFileIdsWithOutcome: Set<string>,
   ) {}
 
   static from(props: {
     id: string;
+    formation: Magistrat.Formation;
     version: NominationSessionAffectationVersion | null;
-    formationMemberIds: Set<string> | null;
     nominationFileIdsWithOutcome: Set<string> | null;
   }) {
     return new NominationSession(
       props.id,
+      props.formation,
       props.version,
-      props.formationMemberIds ?? new Set<string>(),
       props.nominationFileIdsWithOutcome ?? new Set<string>(),
     );
   }
 
-  static createNominationTreeAndAffectMembers(
-    command: CreateNominationSessionCommand,
-  ): NominationSession {
+  static create(command: {
+    name: string;
+    typeDeSaisine: TypeDeSaisine;
+    formation: Magistrat.Formation;
+    date: DateOnly;
+    observationClosingDate: DateOnly | null;
+    dueDate: DateOnly | null;
+    positionStartDate: DateOnly | null;
+    lolfiSessionId: number | null;
+  }): NominationSession {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
+      formation: command.formation,
       version: null,
-      formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
       nominationFileIdsWithOutcome: null,
     });
+
+    const observationClosingDate =
+      command.observationClosingDate ??
+      DateOnly.fromDate(addWeeks(command.date.toDate(), 1));
 
     session.#messages.push(
       new NominationSessionCreated(
@@ -228,19 +271,29 @@ export class NominationSession {
         command.typeDeSaisine,
         command.formation,
         command.date,
-        command.observationClosingDate,
+        observationClosingDate,
         command.dueDate,
         command.positionStartDate,
+        command.lolfiSessionId,
       ),
     );
+
+    return session;
+  }
+
+  static createLodamNominationTreeAndAffectMembers(
+    command: CreateLodamNominationSessionCommand,
+  ): NominationSession {
+    const session = this.create({ ...command, lolfiSessionId: null });
+    session.removeIndicator({ userId: command.userId });
+    session.validate({ userId: command.userId });
 
     const memberPerFullName = new Map(
       command.formationMembers.map(
         (member) => [member.fullName.toLowerCase(), member] as const,
       ),
     );
-
-    const nominationFileEntities: NominationFileEntity[] = [];
+    const nominationFileEntities: LodamNominationFileEntity[] = [];
     const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
     const affectations: {
       nominationFileId: string;
@@ -283,14 +336,36 @@ export class NominationSession {
     }
 
     session.#messages.push(
-      new NominationSessionFilesCreated(session.id, nominationFileEntities),
+      new LodamNominationSessionFilesCreated(
+        session.id,
+        nominationFileEntities,
+      ),
     );
 
     if (affectations.length > 0) {
-      session.affectNominationFileReporters(affectations);
+      session.affectNominationFileReporters({
+        affectations,
+        formationMemberIds: new Set(
+          command.formationMembers.map(({ id }) => id),
+        ),
+      });
     }
 
     return session;
+  }
+
+  associateNominationFiles(command: {
+    files: readonly NominationFile[];
+  }): void {
+    this.#messages.push(
+      new NominationFilesAssociated(
+        this.id,
+        command.files.map((file) => ({
+          ...file,
+          id: makeId('NominationFileId'),
+        })),
+      ),
+    );
   }
 
   setNominationFilePriority(props: {
@@ -310,13 +385,14 @@ export class NominationSession {
     );
   }
 
-  affectNominationFileReporters(
+  affectNominationFileReporters(command: {
+    formationMemberIds: Set<string>;
     affectations: readonly {
       nominationFileId: string;
       reporterIds: readonly string[];
-    }[],
-  ) {
-    const nominationFileIdsWithOutcome = affectations.filter(
+    }[];
+  }) {
+    const nominationFileIdsWithOutcome = command.affectations.filter(
       ({ nominationFileId }) => this.nominationFileHasOutcome(nominationFileId),
     );
 
@@ -341,11 +417,11 @@ export class NominationSession {
     }
 
     const allReporterIds = Array.from(
-      new Set(affectations.flatMap(({ reporterIds }) => reporterIds)),
+      new Set(command.affectations.flatMap(({ reporterIds }) => reporterIds)),
     );
 
     const allReportersAreFormationMembers = allReporterIds.every((reporterId) =>
-      this.formationMemberIds.has(reporterId),
+      command.formationMemberIds.has(reporterId),
     );
 
     if (!allReportersAreFormationMembers) {
@@ -356,7 +432,7 @@ export class NominationSession {
       new NominationSessionFileReportersAffected(
         this.id,
         versionId ?? null,
-        affectations,
+        command.affectations,
       ),
     );
   }
@@ -373,17 +449,24 @@ export class NominationSession {
     );
   }
 
-  autoAffectNominationFileReporters(autoAffectations: AutoAffectations) {
-    const affectations = autoAffectations.distribute();
-    this.affectNominationFileReporters(affectations);
+  autoAffectNominationFileReporters(command: {
+    autoAffectations: AutoAffectations;
+    formationMemberIds: Set<string>;
+  }) {
+    const affectations = command.autoAffectations.distribute();
+    this.affectNominationFileReporters({
+      affectations,
+      formationMemberIds: command.formationMemberIds,
+    });
   }
 
   grantCommentAccess(command: {
+    formationMemberIds: Set<string>;
     nominationFileId: string;
     userIds: readonly string[];
   }) {
     const allUsersAreFormationMembers = command.userIds.every((userId) =>
-      this.formationMemberIds.has(userId),
+      command.formationMemberIds.has(userId),
     );
 
     if (!allUsersAreFormationMembers) {
@@ -500,6 +583,18 @@ export class NominationSession {
     );
   }
 
+  removeIndicator(command: { userId: string | null }): void {
+    this.#messages.push(
+      new NominationSessionIndicatorRemoved(this.id, command.userId),
+    );
+  }
+
+  validate(command: { userId: string | null }): void {
+    this.#messages.push(
+      new NominationSessionValidated(this.id, command.userId),
+    );
+  }
+
   private nominationFileHasOutcome(nominationFileId: string): boolean {
     return this.nominationFileIdsWithOutcome.has(nominationFileId);
   }
@@ -510,9 +605,9 @@ export class NominationSession {
   }
 }
 
-export type CreateNominationSessionCommand = {
+export type CreateLodamNominationSessionCommand = {
   typeDeSaisine: TypeDeSaisine;
-  files: readonly NominationFile[];
+  files: readonly LodamNominationFile[];
   name: string;
   date: DateOnly;
   observationClosingDate: DateOnly;
@@ -520,4 +615,5 @@ export type CreateNominationSessionCommand = {
   positionStartDate: DateOnly | null;
   formation: Magistrat.Formation;
   formationMembers: readonly { id: string; fullName: string }[];
+  userId: string | null;
 };

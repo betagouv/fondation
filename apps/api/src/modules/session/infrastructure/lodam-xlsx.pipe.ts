@@ -4,11 +4,11 @@ import { BadRequestException, PipeTransform } from '@nestjs/common';
 
 import { DateOnly } from 'src/utils/date-only';
 import { lodamXlsxToNominationFiles } from '../domain/lodam-xlsx-to-nomination-session';
-import { NominationFile } from '../domain/nomination-file';
+import { LodamNominationFile } from '../domain/nomination-file';
 
 export class LodamXlsxPipe implements PipeTransform<
   { file: File; form?: { date: DateOnly } },
-  Promise<NominationFile[]>
+  Promise<LodamNominationFile[]>
 > {
   async transform(value: { file: File; form?: { date: DateOnly } }) {
     const { file } = value;

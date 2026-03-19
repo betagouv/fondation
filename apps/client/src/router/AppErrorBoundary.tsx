@@ -5,13 +5,14 @@ import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 
 import { useUser } from '@queries/auth.queries';
 
-import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
+import { useIsSg } from '@/hooks/roles.hook';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function AppErrorBoundary() {
   const { user } = useUser();
-  const isSg = user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
+  const isSg = useIsSg();
 
   const buttons: ButtonProps[] = [];
 

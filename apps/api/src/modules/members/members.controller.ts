@@ -20,7 +20,7 @@ import {
   Pagination,
   QueryPagination,
 } from 'src/modules/framework/pagination';
-import { SessionService } from 'src/modules/session';
+import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
