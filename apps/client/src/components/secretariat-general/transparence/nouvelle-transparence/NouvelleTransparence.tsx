@@ -11,6 +11,9 @@ import { z } from 'zod';
 
 import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
 
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import Notice from '@codegouvfr/react-dsfr/Notice';
+import clsx from 'clsx';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { formationToLabel } from '../../../reports/labels/labels-mappers';
@@ -96,6 +99,26 @@ const NouvelleTransparence: FC = () => {
         id="sg-nouvelle-transparence-breadcrumb"
         ariaLabel="Fil d'Ariane du secrétariat général"
         breadcrumb={breadcrumb}
+      />
+
+      <Notice
+        className="mx-auto mb-6 max-w-[480px]"
+        title="Risque de doublons"
+        severity="warning"
+        description={
+          <>
+            L'application est directement connecté à LOLFI. L'import depuis une extract LODAM après le{' '}
+            <span
+              className={clsx(
+                cx('ri-calendar-2-fill'),
+                'font-medium underline before:mb-1 before:mr-1 before:size-4 before:align-middle before:content-[""]'
+              )}
+            >
+              1<sup>er</sup> avril
+            </span>{' '}
+            risque de créer des doublons.
+          </>
+        }
       />
 
       {transparenceUploadError ? (
