@@ -1,8 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
 
-import { useMemberListQuery } from '@queries/members.queries';
 import type { PaginatedMemberListItemDto } from '@api/types';
+import { useMemberListQuery } from '@queries/members.queries';
 
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { RoleEnumLabels } from '@/types/enums.types';
@@ -64,7 +64,8 @@ const columns = [
     cell: ({ row }) => (
       <Button
         priority="tertiary no outline"
-        iconId="fr-icon-edit-line"
+        className="rounded-full"
+        iconId="fr-icon-edit-fill"
         title={`Éditer ${capitalize(row.original.firstName)} ${row.original.lastName.toUpperCase()}`}
         linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', row.original.id) }}
       />

@@ -674,6 +674,8 @@ export type DetailedMemberDto = {
     lastName: string;
     role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
     gender: string;
+    displayTitle: string | null;
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET';
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -687,6 +689,14 @@ export type DetailedMemberDto = {
 
 export type ExcludeJurisdictionsDto = {
     jurisdictionIds: Array<string>;
+};
+
+export type UpdateMemberDisplayTitleDto = {
+    displayTitle: string | null;
+};
+
+export type UpdateMemberTitleDto = {
+    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
 };
 
 export type ListedMemberSessionsDto = {
@@ -1789,6 +1799,36 @@ export type ExcludeJurisdictionsResponses = {
 };
 
 export type ExcludeJurisdictionsResponse = ExcludeJurisdictionsResponses[keyof ExcludeJurisdictionsResponses];
+
+export type UpdateDisplayTitleData = {
+    body: UpdateMemberDisplayTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/display-title';
+};
+
+export type UpdateDisplayTitleResponses = {
+    204: void;
+};
+
+export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
+
+export type UpdateTitleData = {
+    body: UpdateMemberTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/title';
+};
+
+export type UpdateTitleResponses = {
+    204: void;
+};
+
+export type UpdateTitleResponse = UpdateTitleResponses[keyof UpdateTitleResponses];
 
 export type ListMemberSessionsData = {
     body?: never;
