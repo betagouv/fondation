@@ -149,13 +149,6 @@ export class NominationFileAlertHidden {
   ) {}
 }
 
-export class NominationSessionIndicatorRemoved {
-  constructor(
-    readonly sessionId: string,
-    readonly userId: string | null,
-  ) {}
-}
-
 export class NominationSessionValidated {
   constructor(
     readonly sessionId: string,
@@ -178,7 +171,6 @@ type NominationSessionEvent =
   | NominationSessionFilePrioritiesUpdated
   | NominationSessionFileReportersAffected
   | NominationSessionFilesObserversUpdated
-  | NominationSessionIndicatorRemoved
   | NominationSessionUpdated
   | NominationSessionValidated;
 
@@ -285,7 +277,6 @@ export class NominationSession {
     command: CreateLodamNominationSessionCommand,
   ): NominationSession {
     const session = this.create({ ...command, lolfiSessionId: null });
-    session.removeIndicator({ userId: command.userId });
     session.validate({ userId: command.userId });
 
     const memberPerFullName = new Map(
@@ -580,12 +571,6 @@ export class NominationSession {
   hideAlert(command: { nominationFileId: string }) {
     this.#messages.push(
       new NominationFileAlertHidden(this.id, command.nominationFileId),
-    );
-  }
-
-  removeIndicator(command: { userId: string | null }): void {
-    this.#messages.push(
-      new NominationSessionIndicatorRemoved(this.id, command.userId),
     );
   }
 

@@ -21,7 +21,6 @@ import {
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
-  NominationSessionIndicatorRemoved,
   NominationSessionValidated,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
@@ -357,11 +356,7 @@ describe('NominationSession', () => {
         new NominationSessionValidated(session.id, expect.any(String)),
       );
 
-      expect(session.messages[1]).toEqual(
-        new NominationSessionIndicatorRemoved(session.id, expect.any(String)),
-      );
-
-      expect(session.messages[3]).toEqual(
+      expect(session.messages[2]).toEqual(
         new LodamNominationSessionFilesCreated(
           session.id,
           // prettier-ignore
@@ -372,7 +367,7 @@ describe('NominationSession', () => {
         ),
       );
 
-      expect(session.messages[4]).toEqual(
+      expect(session.messages[3]).toEqual(
         new NominationSessionFileReportersAffected(
           session.id,
           null,

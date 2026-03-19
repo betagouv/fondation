@@ -4,13 +4,18 @@ import clsx from 'clsx';
 import { useState } from 'react';
 
 import type { DetailedNominationSessionDto } from '@api/types';
-import { useUpdateNominationSessionMutation } from '@queries/nomination-sessions.queries';
+import {
+  useUpdateNominationSessionMutation,
+  useValidateSessionMutation
+} from '@queries/nomination-sessions.queries';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useUser } from '@queries/auth.queries';
 import { TableauDeBordEditTransparence } from './TableauDeBordEditTransparence';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
+  const { user } = useUser();
   const alerts = useAlerts();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -19,6 +24,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
   };
 
   const { mutateAsync: updateNominationSessionAsync } = useUpdateNominationSessionMutation();
+  const { mutate: validateSession } = useValidateSessionMutation();
 
   const onSubmit = async (data: {
     name: string;
@@ -30,7 +36,18 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     await updateNominationSessionAsync(
       { sessionId: transparence.id, data },
       {
-        onSuccess: () => alerts.pushAlert({ severity: 'success', title: 'Données actualisées' }),
+        onSuccess: () => {
+          const alert = { severity: 'success', title: 'Données actualisée' } as const;
+          if (transparence.isValidated || !user) {
+            alerts.pushAlert(alert);
+            return;
+          }
+
+          validateSession(
+            { userId: user.id, sessionId: transparence.id },
+            { onSettled: () => alerts.pushAlert(alert) }
+          );
+        },
         onError: () =>
           alerts.pushAlert({ severity: 'error', title: 'Erreur lors de la modification de la transparence' })
       }

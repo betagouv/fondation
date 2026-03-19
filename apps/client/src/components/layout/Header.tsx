@@ -8,6 +8,7 @@ import { HelpPageButton } from '@/pages/help/HelpPage';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
+import { ManageSessionsLink } from './ManageSessionsLink';
 
 function useRouteMatcher() {
   const { pathname } = useLocation();
@@ -41,7 +42,7 @@ export const AppHeader = () => {
       isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE])
     },
     {
-      text: 'Gérer une session',
+      text: <ManageSessionsLink />,
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID])
     },

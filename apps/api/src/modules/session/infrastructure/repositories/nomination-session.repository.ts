@@ -18,7 +18,7 @@ import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 
-import { Magistrat, PrioriteEnum, Role } from 'shared-models';
+import { Magistrat, PrioriteEnum } from 'shared-models';
 import {
   deleteReportsAfterAffectationPublicationRawQuery,
   insertLodamNominationFilesRawQuery,
@@ -39,7 +39,6 @@ import {
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
-  NominationSessionIndicatorRemoved,
   NominationSessionUpdated,
   NominationSessionValidated,
 } from '../../domain/nomination-session';
@@ -190,8 +189,6 @@ export class NominationSessionRepository {
           await this.persistNominationFileAlertHidden(tx, message);
         } else if (message instanceof NominationFilesAssociated) {
           await this.persistNominationFilesAssociated(tx, message);
-        } else if (message instanceof NominationSessionIndicatorRemoved) {
-          await this.persistNominationSessionIndicatorRemoved(tx, message);
         } else if (message instanceof NominationSessionValidated) {
           await this.persistNominationSessionValidated(tx, message);
         } else {
@@ -458,11 +455,6 @@ export class NominationSessionRepository {
       );
     }
 
-    const admins = await tx.user.findMany({
-      where: { role: { in: [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN] } },
-      select: { id: true },
-    });
-
     await tx.session.create({
       data: {
         id: message.sessionId,
@@ -477,10 +469,6 @@ export class NominationSessionRepository {
 
         /** @deprecated */
         sessionImportId: randomUUID(),
-
-        indicators: {
-          createMany: { data: admins.map(({ id: userId }) => ({ userId })) },
-        },
       },
     });
   }
@@ -609,18 +597,6 @@ export class NominationSessionRepository {
     await tx.dossierDeNomination.update({
       where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { alertHidden: true },
-    });
-  }
-
-  private async persistNominationSessionIndicatorRemoved(
-    tx: Prisma.TransactionClient,
-    message: NominationSessionIndicatorRemoved,
-  ) {
-    await tx.sessionIndicator.deleteMany({
-      where: {
-        sessionId: message.sessionId,
-        userId: message.userId ?? undefined,
-      },
     });
   }
 

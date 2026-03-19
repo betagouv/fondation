@@ -51,8 +51,6 @@ export const getGdsReportPath = (id: string) => {
   return generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id });
 };
 
-export const getSgSessionPath = (sessionId: string) => generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId });
-
 export const getObservationDetailsPath = (props: {
   sessionId: string;
   nominationFileId: string;

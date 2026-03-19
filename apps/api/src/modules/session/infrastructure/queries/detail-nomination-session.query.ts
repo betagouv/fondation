@@ -13,6 +13,7 @@ export class DetailNominationSessionQuery {
 
   async handle(query: {
     sessionId: string;
+    userId: string;
   }): Promise<DetailedNominationSessionDto> {
     const session = await this.prisma.session.findUnique({
       where: { id: query.sessionId },
@@ -25,6 +26,7 @@ export class DetailNominationSessionQuery {
         positionStartDate: true,
         formation: true,
         typeDeSaisine: true,
+        isValidated: true,
       },
     });
 
@@ -47,6 +49,7 @@ export class DetailNominationSessionQuery {
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(
         session.typeDeSaisine,
       ),
+      isValidated: session.isValidated,
     };
   }
 }
@@ -61,5 +64,6 @@ export class DetailedNominationSessionDto extends createZodDto(
     dueDate: dateOnlyJsonSchema.nullable(),
     positionStartDate: dateOnlyJsonSchema.nullable(),
     typeDeSaisine: z.enum(TypeDeSaisine),
+    isValidated: z.boolean(),
   }),
 ) {}
