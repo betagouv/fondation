@@ -1,20 +1,23 @@
-import { transparencyToLabel } from '@/components/reports/labels/labels-mappers';
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { useSummary } from '@/pages/summary/SummaryContext';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useUser } from '@queries/auth.queries';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 import { useNavigate } from 'react-router';
 
+import { transparencyToLabel } from '@/components/reports/labels/labels-mappers';
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { useIsSg } from '@/hooks/roles.hook';
+import { useSummary } from '@/pages/summary/SummaryContext';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
+
 export function SummaryBreadcrumb() {
-  const { user } = useUser();
-
-  if (!user) return null;
-
-  if (user?.role === 'ADJOINT_SECRETAIRE_GENERAL') return <SgSummaryBreadcrumb />;
-
-  return <MemberSummaryBreadcrumb />;
+  const isSg = useIsSg(true);
+  switch (isSg) {
+    case null:
+      return null;
+    case true:
+      return <SgSummaryBreadcrumb />;
+    case false:
+      return <MemberSummaryBreadcrumb />;
+  }
 }
 
 function SgSummaryBreadcrumb() {

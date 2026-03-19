@@ -168,34 +168,6 @@ export function useUpdateNominationFileCommentMutation() {
   });
 }
 
-export function useUpdateCommentAccessMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (mutation: { sessionId: string; nominationFileId: string; userIds: string[] }) => {
-      await $api.sessions.updateCommentAccess({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        body: { userIds: mutation.userIds }
-      });
-    },
-    onSuccess: (_, { sessionId, nominationFileId, userIds }) => {
-      queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: { items: { id: string; commentAccessUserIds?: string[] }[] } | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((file) =>
-              file.id === nominationFileId ? { ...file, commentAccessUserIds: userIds } : file
-            )
-          };
-        }
-      );
-    }
-  });
-}
-
 export function useWriteNominationFileMemberMemoMutation() {
   const queryClient = useQueryClient();
   return useMutation({

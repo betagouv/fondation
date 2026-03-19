@@ -2,8 +2,11 @@ import { Module, forwardRef } from '@nestjs/common';
 
 import { MembersModule } from '../members';
 
+import { IngestModule } from '../ingest/ingest.module';
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
+import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
+import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
@@ -28,7 +31,11 @@ import { SummaryModule } from './summary.module';
 @Module({
   exports: [SessionService, SummaryModule, AffectationVersionFinder],
   controllers: [SessionController],
-  imports: [forwardRef(() => MembersModule), SummaryModule],
+  imports: [
+    SummaryModule,
+    forwardRef(() => MembersModule),
+    forwardRef(() => IngestModule),
+  ],
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,
@@ -46,10 +53,12 @@ import { SummaryModule } from './summary.module';
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,
     ListNominationSessionsQuery,
+    LolfiNominationFilesFinder,
+    LolfiNominationSessionFinder,
     NominationSessionFileFinder,
     NominationSessionRepository,
-    UnaffectedFilesFinder,
     SessionService,
+    UnaffectedFilesFinder,
   ],
 })
 export class SessionModule {}

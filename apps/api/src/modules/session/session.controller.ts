@@ -22,7 +22,7 @@ import { Role, TypeDeSaisine } from 'shared-models';
 
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
-import { type NominationFile } from './domain/nomination-file';
+import { LodamNominationFile } from './domain/nomination-file';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { SessionExceptionFilter } from './infrastructure/session.filter';
 import { SessionService } from './infrastructure/sessions.service';
@@ -108,14 +108,16 @@ export class SessionController {
     status: HttpStatus.CREATED,
   })
   async createSessionFromLodam(
+    @AuthedUser() user: { id: string },
     @Body(LodamXlsxPipe)
-    files: NominationFile[],
+    files: LodamNominationFile[],
     @Body()
     { form }: ImportNominationSessionFromLodamXlsxDto,
   ): Promise<CreatedNominationSessionDto> {
     return this.sessions.createNominationSessionFromLodam({
       ...form,
       files,
+      userId: user.id,
       dueDate: form.dueDate ?? null,
       positionStartDate: form.positionStartDate ?? null,
     });
@@ -134,7 +136,7 @@ export class SessionController {
   async updateSessionObservers(
     @Param('sessionId') sessionId: string,
     @Body(LodamXlsxPipe)
-    files: NominationFile[],
+    files: LodamNominationFile[],
   ) {
     await this.sessions.updateSessionNominationFileObservers({
       sessionId,
@@ -306,6 +308,7 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @ApiOperation({ deprecated: true })
   @Put('/:sessionId/files/:nominationFileId/comment-access')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)

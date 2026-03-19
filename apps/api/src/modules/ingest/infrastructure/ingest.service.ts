@@ -11,6 +11,10 @@ import {
   IngestedLolfiArchiveFailed,
   LolfiArchiveIngestor,
 } from '../services/lolfi-archive-ingest';
+import {
+  DetailedLolfiSession,
+  InternalDetailsLolfiSessionQuery,
+} from './queries/internal-details-lolfi-session.query';
 
 @Injectable()
 export class IngestService {
@@ -22,6 +26,7 @@ export class IngestService {
     private readonly prisma: PrismaService,
     private readonly lolfiArchiveIngestor: LolfiArchiveIngestor,
     private readonly lolfiFilesIngestor: LolfiFilesIngestor,
+    private readonly internalDetailsLolfiSessionQuery: InternalDetailsLolfiSessionQuery,
   ) {}
 
   async ingestLolfiFiles(
@@ -145,5 +150,11 @@ export class IngestService {
     }
 
     return job.id;
+  }
+
+  internalDetailsLolfiSession(
+    sessionId: number,
+  ): Promise<DetailedLolfiSession> {
+    return this.internalDetailsLolfiSessionQuery.handle(sessionId);
   }
 }

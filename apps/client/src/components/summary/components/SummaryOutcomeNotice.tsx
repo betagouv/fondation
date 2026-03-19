@@ -1,11 +1,11 @@
 import Notice from '@codegouvfr/react-dsfr/Notice';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { outcomeLabel } from '@/types/enums.types';
-import { useUser } from '@queries/auth.queries';
 
 export function SummaryOutcomeNotice() {
-  const { user } = useUser();
+  const isSg = useIsSg();
   const { summary } = useSummary();
   const outcome = summary.outcome?.value;
 
@@ -23,7 +23,7 @@ export function SummaryOutcomeNotice() {
         </>
       }
       description={
-        user?.role === 'ADJOINT_SECRETAIRE_GENERAL'
+        isSg
           ? `une synthèse n'est probablement plus nécessaire`
           : `cette synthèse n'est peut-être plus d'actualité`
       }

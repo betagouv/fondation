@@ -32,6 +32,7 @@ model User {
   authorOfSummaries           Summary[]
   readerOfSummaries           SummaryReader[]
   followedUpObservations      Observation[]              @relation("user_to_observation_follow_up")
+  validatedSessions           Session[]
 
   @@map("users")
   @@schema("identity_and_access_context")

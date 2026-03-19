@@ -4,7 +4,7 @@ import { setTimeout } from 'node:timers/promises';
 
 import { Magistrat } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
-import { NominationFile } from './nomination-file';
+import { LodamNominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');
 export function lodamXlsxToNominationFiles(input: {
@@ -12,7 +12,7 @@ export function lodamXlsxToNominationFiles(input: {
   file: Buffer;
 }): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
-  | { success: true; files: NominationFile[] }
+  | { success: true; files: LodamNominationFile[] }
 > {
   const [result] = xlsx.parse<RawLodamLine>(input.file, {
     raw: false,
@@ -31,7 +31,7 @@ export async function lodamToNominationFiles(
   date: Date,
 ): Promise<
   | { success: false; errors: LineResultFailure['error'][] }
-  | { success: true; files: NominationFile[] }
+  | { success: true; files: LodamNominationFile[] }
 > {
   const lineResults: LineResult[] = [];
   let parsedLinesCount = 0;
@@ -278,7 +278,7 @@ export type RawLodamLine = Record<LodamHeader, string | undefined>;
 
 type LineResultSuccess = {
   success: true;
-  value: NominationFile;
+  value: LodamNominationFile;
 };
 
 type LineResultFailure = {

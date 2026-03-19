@@ -1,25 +1,34 @@
-import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
-import z from 'zod';
 
-export class NominationFile extends createZodDto(
-  z.object({
-    fileNumber: z.number(),
-    name: z.string(),
-    rank: z.string().nullable(),
-    grade: z.enum(Magistrat.Grade),
-    targetedGrade: z.enum(Magistrat.Grade),
-    targetedPosition: z.string(),
-    birthDate: z.instanceof(DateOnly).nullable(),
-    currentPosition: z.string(),
-    lastPositionDate: z.instanceof(DateOnly).nullable(),
-    lastRankingDate: z.instanceof(DateOnly).nullable(),
-    observers: z.array(z.string()),
-    reporters: z.array(z.string()),
-    biography: z.string().nullable(),
-    careerInformation: z.string().nullable(),
-  }),
-) {}
+type InternalNominationFile = {
+  fileNumber: number;
+  name: string;
+  rank: string | null;
+  grade: Magistrat.Grade;
+  targetedGrade: Magistrat.Grade;
+  targetedPosition: string;
+  birthDate: DateOnly | null;
+  currentPosition: string;
+  lastPositionDate: DateOnly | null;
+  lastRankingDate: DateOnly | null;
+  biography: string | null;
+  careerInformation: string | null;
+};
 
-export type NominationFileEntity = { id: string } & NominationFile;
+export type LodamNominationFile = InternalNominationFile & {
+  observers: string[];
+  reporters: string[];
+};
+
+export type LodamNominationFileEntity = LodamNominationFile & { id: string };
+
+export type NominationFile = InternalNominationFile & {
+  sortableTargetedGrade: number;
+  detectedMagistratId: string | null;
+  detectedJurisdictionId: string | null;
+  detectedTargetedFunctionId: string | null;
+  detectedTargetedPositionId: number | null;
+};
+
+export type NominationFileEntity = NominationFile & { id: string };

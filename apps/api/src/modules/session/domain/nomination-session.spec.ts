@@ -1,12 +1,15 @@
+import { randomUUID } from 'node:crypto';
+
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
-import { NominationFile } from './nomination-file';
+import { LodamNominationFile } from './nomination-file';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from './nomination-file-outcome';
 import {
+  LodamNominationSessionFilesCreated,
   NominationFileOutcomeDefined,
   NominationFilesHaveOutcome,
   NominationSession,
@@ -17,8 +20,9 @@ import {
   NominationSessionFileCommentAccessGranted,
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
-  NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
+  NominationSessionIndicatorRemoved,
+  NominationSessionValidated,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
 } from './nomination-session';
@@ -27,17 +31,20 @@ describe('NominationSession', () => {
   it('should affect reporters to nomination files', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       nominationFileIdsWithOutcome: new Set(),
     });
 
-    session.affectNominationFileReporters([
-      {
-        nominationFileId: 'nomination-file-id-1',
-        reporterIds: ['reporter-1', 'reporter-2'],
-      },
-    ]);
+    session.affectNominationFileReporters({
+      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      affectations: [
+        {
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: ['reporter-1', 'reporter-2'],
+        },
+      ],
+    });
 
     const { messages } = session;
     expect(messages).toEqual([
@@ -53,35 +60,41 @@ describe('NominationSession', () => {
   it('should throw when trying to affect on files with outcome', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
     });
 
     expect(() =>
-      session.affectNominationFileReporters([
-        {
-          nominationFileId: 'nomination-file-id-1',
-          reporterIds: ['reporter-1', 'reporter-2'],
-        },
-      ]),
+      session.affectNominationFileReporters({
+        formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+        affectations: [
+          {
+            nominationFileId: 'nomination-file-id-1',
+            reporterIds: ['reporter-1', 'reporter-2'],
+          },
+        ],
+      }),
     ).toThrow(NominationFilesHaveOutcome);
   });
 
   it('should create a new version when the version is already published', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: false },
-      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       nominationFileIdsWithOutcome: new Set(),
     });
 
-    session.affectNominationFileReporters([
-      {
-        nominationFileId: 'nomination-file-id-1',
-        reporterIds: ['reporter-1', 'reporter-2'],
-      },
-    ]);
+    session.affectNominationFileReporters({
+      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      affectations: [
+        {
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: ['reporter-1', 'reporter-2'],
+        },
+      ],
+    });
 
     const { messages } = session;
     expect(messages).toEqual([
@@ -105,26 +118,29 @@ describe('NominationSession', () => {
   it('should throw when trying to affect a non formation member', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set(['reporter-1']),
       nominationFileIdsWithOutcome: new Set(),
     });
 
     expect(() =>
-      session.affectNominationFileReporters([
-        {
-          nominationFileId: 'nomination-file-id-1',
-          reporterIds: ['reporter-1', 'reporter-2'],
-        },
-      ]),
+      session.affectNominationFileReporters({
+        formationMemberIds: new Set(['reporter-1']),
+        affectations: [
+          {
+            nominationFileId: 'nomination-file-id-1',
+            reporterIds: ['reporter-1', 'reporter-2'],
+          },
+        ],
+      }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
   });
 
   it('should define a nomination file priority', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
@@ -146,8 +162,8 @@ describe('NominationSession', () => {
   it('should throw when defining a priority on a file with outcome', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
     });
 
@@ -162,8 +178,8 @@ describe('NominationSession', () => {
   it('should unset a nomination file priority', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
@@ -185,8 +201,8 @@ describe('NominationSession', () => {
   it('should publish a draft version', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
@@ -205,8 +221,8 @@ describe('NominationSession', () => {
   it('should NOT publish a published version', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: false },
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
@@ -219,8 +235,8 @@ describe('NominationSession', () => {
   it('should publish an unknown version', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: null,
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
@@ -239,12 +255,13 @@ describe('NominationSession', () => {
   it('should grant comment access to users', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: null,
-      formationMemberIds: new Set(['user-1', 'user-2']),
       nominationFileIdsWithOutcome: new Set(),
     });
 
     session.grantCommentAccess({
+      formationMemberIds: new Set(['user-1', 'user-2']),
       nominationFileId: 'nomination-file-id-1',
       userIds: ['user-1', 'user-2'],
     });
@@ -262,12 +279,13 @@ describe('NominationSession', () => {
   it('should grant comment access with empty user list', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: null,
-      formationMemberIds: new Set<string>(),
       nominationFileIdsWithOutcome: new Set(),
     });
 
     session.grantCommentAccess({
+      formationMemberIds: new Set<string>(),
       nominationFileId: 'nomination-file-id-1',
       userIds: [],
     });
@@ -285,13 +303,14 @@ describe('NominationSession', () => {
   it('should throw when trying to grant comment access to non formation members', () => {
     const session = NominationSession.from({
       id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
       version: null,
-      formationMemberIds: new Set(['user-1']),
       nominationFileIdsWithOutcome: new Set(),
     });
 
     expect(() =>
       session.grantCommentAccess({
+        formationMemberIds: new Set(['user-1']),
         nominationFileId: 'nomination-file-id-1',
         userIds: ['user-1', 'user-2'],
       }),
@@ -300,23 +319,25 @@ describe('NominationSession', () => {
 
   describe('NominationSession tree creation (LODAM)', () => {
     it('should create a nomination session tree', () => {
-      const session = NominationSession.createNominationTreeAndAffectMembers({
-        name: 'TEST transparence LODAM PARQUET',
-        date: new DateOnly(2025, 1, 1),
-        observationClosingDate: new DateOnly(2025, 2, 1),
-        formation: Magistrat.Formation.PARQUET,
-        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-        dueDate: null,
-        positionStartDate: null,
+      const session =
+        NominationSession.createLodamNominationTreeAndAffectMembers({
+          name: 'TEST transparence LODAM PARQUET',
+          date: new DateOnly(2025, 1, 1),
+          observationClosingDate: new DateOnly(2025, 2, 1),
+          formation: Magistrat.Formation.PARQUET,
+          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          dueDate: null,
+          positionStartDate: null,
+          userId: randomUUID(),
 
-        // prettier-ignore
-        formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
-        // prettier-ignore
-        files: [
+          // prettier-ignore
+          formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
+          // prettier-ignore
+          files: [
           { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
           { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
         ],
-      });
+        });
 
       expect(session.messages[0]).toEqual(
         new NominationSessionCreated(
@@ -328,11 +349,20 @@ describe('NominationSession', () => {
           new DateOnly(2025, 2, 1),
           null,
           null,
+          null,
         ),
       );
 
       expect(session.messages[1]).toEqual(
-        new NominationSessionFilesCreated(
+        new NominationSessionValidated(session.id, expect.any(String)),
+      );
+
+      expect(session.messages[1]).toEqual(
+        new NominationSessionIndicatorRemoved(session.id, expect.any(String)),
+      );
+
+      expect(session.messages[3]).toEqual(
+        new LodamNominationSessionFilesCreated(
           session.id,
           // prettier-ignore
           [
@@ -342,7 +372,7 @@ describe('NominationSession', () => {
         ),
       );
 
-      expect(session.messages[2]).toEqual(
+      expect(session.messages[4]).toEqual(
         new NominationSessionFileReportersAffected(
           session.id,
           null,
@@ -357,7 +387,7 @@ describe('NominationSession', () => {
 
     it('should throw, when affecting an unknown reporter', () => {
       const act = () =>
-        NominationSession.createNominationTreeAndAffectMembers({
+        NominationSession.createLodamNominationTreeAndAffectMembers({
           name: 'TEST transparence LODAM PARQUET',
           date: new DateOnly(2025, 1, 1),
           observationClosingDate: new DateOnly(2025, 2, 1),
@@ -365,6 +395,7 @@ describe('NominationSession', () => {
           typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
           dueDate: null,
           positionStartDate: null,
+          userId: randomUUID(),
 
           // prettier-ignore
           formationMembers: [],
@@ -372,7 +403,7 @@ describe('NominationSession', () => {
           files: [
             { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
             { fileNumber: 2, reporters: ['BOURDIEU Pierre'] }
-          ] as NominationFile[],
+          ] as LodamNominationFile[],
         });
 
       expect(act).toThrow(NominationSessionAffectationHasUnknownReporter);
@@ -390,7 +421,7 @@ describe('NominationSession', () => {
   it('should update observers', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(),
     });
@@ -411,7 +442,7 @@ describe('NominationSession', () => {
   it('should throw when updating observers, but file number is unknown', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(),
     });
@@ -427,7 +458,7 @@ describe('NominationSession', () => {
   it('should throw when updating observers on files with outcome', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
     });
@@ -445,7 +476,7 @@ describe('NominationSession', () => {
   it('should define the nomination file outcome', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(),
     });
@@ -471,7 +502,7 @@ describe('NominationSession', () => {
   it('should define another nomination file outcome', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
     });
@@ -497,7 +528,7 @@ describe('NominationSession', () => {
   it('should reset the nomination file outcome', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
-      formationMemberIds: new Set(),
+      formation: Magistrat.Formation.SIEGE,
       version: null,
       nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
     });

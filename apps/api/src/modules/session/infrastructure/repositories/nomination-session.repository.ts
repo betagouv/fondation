@@ -18,15 +18,17 @@ import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 
-import { PrioriteEnum } from 'shared-models';
+import { Magistrat, PrioriteEnum, Role } from 'shared-models';
 import {
   deleteReportsAfterAffectationPublicationRawQuery,
   insertLodamNominationFilesRawQuery,
 } from 'src/generated/prisma/sql';
 import {
+  LodamNominationSessionFilesCreated,
   NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
   NominationFileOutcomeDefined,
+  NominationFilesAssociated,
   NominationSession,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
@@ -36,9 +38,10 @@ import {
   NominationSessionFileCommentAccessGranted,
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
-  NominationSessionFilesCreated,
   NominationSessionFilesObserversUpdated,
+  NominationSessionIndicatorRemoved,
   NominationSessionUpdated,
+  NominationSessionValidated,
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
@@ -58,47 +61,81 @@ export class NominationSessionRepository {
 
   async find(
     id: string,
-    options: { memberIds?: readonly string[] } = {},
+    options: {
+      tx?: Prisma.TransactionClient;
+    } = {},
   ): Promise<NominationSession> {
-    return this.prisma.$transaction(async (tx) => {
-      const session = await tx.session.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          formation: true,
-          dossierDeNominations: {
-            select: { id: true },
-            where: { outcome: { not: null } },
-          },
+    if (!options.tx) {
+      return this.prisma.$transaction((tx) =>
+        this.find(id, { ...options, tx }),
+      );
+    }
+
+    const { tx } = options;
+
+    const session = await tx.session.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        formation: true,
+        dossierDeNominations: {
+          select: { id: true },
+          where: { outcome: { not: null } },
         },
-      });
+      },
+    });
 
-      if (!session) throw new NotFoundException();
+    if (!session) throw new NotFoundException();
 
-      const optionalVersion = await this.affectationVersionFinder.last({
-        tx,
-        sessionId: id,
-      });
+    const optionalVersion = await this.affectationVersionFinder.last({
+      tx,
+      sessionId: id,
+    });
 
-      const formationMemberIds = await this.members
-        .findMembers({
-          ids: options.memberIds,
-          formation: prismaFormationEnumToFormationEnum(session.formation),
-        })
-        .then((ids) => new Set(ids));
-
-      return NominationSession.from({
+    return NominationSession.from({
+      id,
+      formation: prismaFormationEnumToFormationEnum(session.formation),
+      nominationFileIdsWithOutcome: new Set(
+        session.dossierDeNominations.map(({ id }) => id),
+      ),
+      version: optionalVersion.map(({ id, status, version }) => ({
         id,
-        formationMemberIds,
-        nominationFileIdsWithOutcome: new Set(
-          session.dossierDeNominations.map(({ id }) => id),
-        ),
-        version: optionalVersion.map(({ id, status, version }) => ({
-          id,
-          version,
-          isDraft: status === StatutAffectation.BROUILLON,
-        })),
+        version,
+        isDraft: status === StatutAffectation.BROUILLON,
+      })),
+    });
+  }
+
+  async findByLolfiSessionId(
+    lolfiSessionId: number,
+  ): Promise<Partial<Record<Magistrat.Formation, NominationSession>>> {
+    return this.prisma.$transaction(async (tx) => {
+      const ids = await tx.session.findMany({
+        select: { id: true },
+        where: { lolfiSessionId },
       });
+
+      if (ids.length > 2) {
+        this.logger.error(
+          `More than 2 sessions found for lolfiSessionId: ${lolfiSessionId}`,
+        );
+
+        throw new InternalServerErrorException();
+      }
+
+      if (ids.length === 0) return {};
+
+      const entries = await Promise.all(
+        ids.map(({ id }) =>
+          this.find(id, { tx }).then((s) =>
+            s ? ([s.formation, s] as const) : undefined,
+          ),
+        ),
+      );
+
+      return Object.fromEntries(entries.filter(isDefined)) as Partial<
+        Record<Magistrat.Formation, NominationSession>
+      >;
     });
   }
 
@@ -135,7 +172,7 @@ export class NominationSessionRepository {
           );
         } else if (message instanceof NominationSessionCreated) {
           await this.persistNominationSessionCreated(tx, message);
-        } else if (message instanceof NominationSessionFilesCreated) {
+        } else if (message instanceof LodamNominationSessionFilesCreated) {
           await this.persistNominationSessionFilesCreated(tx, message);
         } else if (message instanceof NominationSessionFilesObserversUpdated) {
           await this.persistNominationSessionFilesObserversUpdated(tx, message);
@@ -151,6 +188,12 @@ export class NominationSessionRepository {
           await this.persistNominationFileMemberMemoWritten(tx, message);
         } else if (message instanceof NominationFileAlertHidden) {
           await this.persistNominationFileAlertHidden(tx, message);
+        } else if (message instanceof NominationFilesAssociated) {
+          await this.persistNominationFilesAssociated(tx, message);
+        } else if (message instanceof NominationSessionIndicatorRemoved) {
+          await this.persistNominationSessionIndicatorRemoved(tx, message);
+        } else if (message instanceof NominationSessionValidated) {
+          await this.persistNominationSessionValidated(tx, message);
         } else {
           assertNever(message);
         }
@@ -415,6 +458,11 @@ export class NominationSessionRepository {
       );
     }
 
+    const admins = await tx.user.findMany({
+      where: { role: { in: [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN] } },
+      select: { id: true },
+    });
+
     await tx.session.create({
       data: {
         id: message.sessionId,
@@ -425,16 +473,21 @@ export class NominationSessionRepository {
         observationsClosingDate: message.observationClosingDate.toDate(),
         dueDate: message.dueDate?.toDate() ?? null,
         positionStartDate: message.positionStartDate?.toDate() ?? null,
+        lolfiSessionId: message.lolfiSessionId,
 
         /** @deprecated */
         sessionImportId: randomUUID(),
+
+        indicators: {
+          createMany: { data: admins.map(({ id: userId }) => ({ userId })) },
+        },
       },
     });
   }
 
   private async persistNominationSessionFilesCreated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionFilesCreated,
+    message: LodamNominationSessionFilesCreated,
   ) {
     const session = await tx.session.findUnique({
       where: { id: message.sessionId },
@@ -556,6 +609,101 @@ export class NominationSessionRepository {
     await tx.dossierDeNomination.update({
       where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { alertHidden: true },
+    });
+  }
+
+  private async persistNominationSessionIndicatorRemoved(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionIndicatorRemoved,
+  ) {
+    await tx.sessionIndicator.deleteMany({
+      where: {
+        sessionId: message.sessionId,
+        userId: message.userId ?? undefined,
+      },
+    });
+  }
+
+  private async persistNominationFilesAssociated(
+    tx: Prisma.TransactionClient,
+    message: NominationFilesAssociated,
+  ) {
+    const session = await tx.session.findFirst({
+      where: { id: message.sessionId },
+      select: { dueDate: true },
+    });
+
+    if (!session) {
+      this.logger.error(
+        `Tried reading due date from unknown session: ${message.sessionId}`,
+      );
+      throw new InternalServerErrorException();
+    }
+
+    for (const file of message.files) {
+      await tx.dossierDeNomination.upsert({
+        where: {
+          sessionFileNumber: {
+            sessionId: message.sessionId,
+            number: file.fileNumber,
+          },
+        },
+        create: {
+          number: file.fileNumber,
+          sessionId: message.sessionId,
+
+          biography: file.biography,
+          birthDate: file.birthDate?.toDate(),
+          currentPosition: file.currentPosition,
+          detectedJurisdictionId: file.detectedJurisdictionId,
+          detectedMagistratId: file.detectedMagistratId,
+          detectedTargetedFunctionId: file.detectedTargetedFunctionId,
+          detectedTargetedPositionId: file.detectedTargetedPositionId,
+          dueDate: session.dueDate,
+          grade: file.grade,
+          id: file.id,
+          lastPositionDate: file.lastPositionDate?.toDate(),
+          lastRankingDate: file.lastRankingDate?.toDate(),
+          name: file.name,
+          rank: file.rank,
+          sortableTargetedGrade: file.sortableTargetedGrade,
+          targetedGrade: file.targetedGrade,
+          targetedPosition: file.targetedPosition,
+        },
+        update: {
+          biography: file.biography,
+          birthDate: file.birthDate?.toDate(),
+          currentPosition: file.currentPosition,
+          detectedJurisdictionId: file.detectedJurisdictionId,
+          detectedMagistratId: file.detectedMagistratId,
+          detectedTargetedFunctionId: file.detectedTargetedFunctionId,
+          detectedTargetedPositionId: file.detectedTargetedPositionId,
+          dueDate: session.dueDate,
+          grade: file.grade,
+          id: file.id,
+          lastPositionDate: file.lastPositionDate?.toDate(),
+          lastRankingDate: file.lastRankingDate?.toDate(),
+          name: file.name,
+          rank: file.rank,
+          sortableTargetedGrade: file.sortableTargetedGrade,
+          targetedGrade: file.targetedGrade,
+          targetedPosition: file.targetedPosition,
+        },
+      });
+    }
+  }
+
+  private async persistNominationSessionValidated(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionValidated,
+  ) {
+    await tx.session.update({
+      where: { id: message.sessionId },
+      data: {
+        isValidated: true,
+        validatedBy: message.userId,
+        validatedAt: this.clock.now(),
+      },
     });
   }
 }
