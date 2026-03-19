@@ -23,6 +23,7 @@ import {
 } from '../domain/nomination-file-outcome';
 import { NominationSession } from '../domain/nomination-session';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
+import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
 import { FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
@@ -35,6 +36,10 @@ import {
   CountedUnaffectedFilesDto,
   CountUnaffectedFilesQuery,
 } from './queries/count-unaffected-files.query';
+import {
+  CountUsersNewSessionsDto,
+  CountUsersNewSessionsQuery,
+} from './queries/count-users-new-sessions.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -97,6 +102,7 @@ export class SessionService {
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
+    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly prisma: PrismaService,
@@ -346,7 +352,10 @@ export class SessionService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+  details(query: {
+    sessionId: string;
+    userId: string;
+  }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 
@@ -368,7 +377,10 @@ export class SessionService {
   }
 
   listNominationSessions(query: {
+    pagination: Pagination;
     typeDeSaisine: TypeDeSaisine;
+    formations: readonly Magistrat.Formation[] | undefined;
+    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
   }): Promise<ListedNominationSessionsDto> {
     return this.listNominationSessionsQuery.handle(query);
   }
@@ -444,6 +456,21 @@ export class SessionService {
     sessionId: string;
   }): Promise<NominationFilesStatusCountDto> {
     return this.countNominationFilesByStatusQuery.handle(query);
+  }
+
+  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
+    return this.countUsersNewSessionsQuery.handle();
+  }
+
+  async validateSession(command: {
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(
+      command.sessionId,
+    );
+    session.validate({ userId: command.userId });
+    await this.nominationSessionRepository.persist(session);
   }
 
   async hideAlert(command: {

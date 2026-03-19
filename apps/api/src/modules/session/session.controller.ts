@@ -59,6 +59,7 @@ import {
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListCommentAccessDto,
+  ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadSessionAttachmentDto,
@@ -71,6 +72,7 @@ import {
 } from './infrastructure/finders/affectation-version.finder';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
+import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
@@ -85,13 +87,38 @@ import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomin
 export class SessionController {
   constructor(private readonly sessions: SessionService) {}
 
-  @HasRole()
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/garde-des-sceaux')
+  @UsePipes(ZodValidationPipe)
+  @ApiPaginated()
   @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
-  listSessionsOfTypeGardeDesSceaux(): Promise<ListedNominationSessionsDto> {
+  listSessionsOfTypeGardeDesSceaux(
+    @QueryPagination() pagination: Pagination,
+    @Query() query: ListGdsNominationSessionsQueryDto,
+  ): Promise<ListedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
+      pagination,
+      formations: query.formations,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/new/count')
+  @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
+  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
+    return this.sessions.countUsersNewSessions();
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/:sessionId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async validateSession(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @AuthedUserId() userId: string,
+  ): Promise<void> {
+    await this.sessions.validateSession({ sessionId, userId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -436,8 +463,9 @@ export class SessionController {
   @ZodResponse({ type: DetailedNominationSessionDto, status: HttpStatus.OK })
   async detailsNominationSession(
     @Param('sessionId') sessionId: string,
+    @AuthedUser() user: { id: string },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ sessionId });
+    return this.sessions.details({ sessionId, userId: user.id });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

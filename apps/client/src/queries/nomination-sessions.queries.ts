@@ -7,6 +7,7 @@ import type {
   ImportNominationSessionFromLodamXlsxDto,
   ListNominationFilesAsExcelData,
   ListNominationFilesData,
+  ListSessionsOfTypeGardeDesSceauxData,
   NoneAffectationVersion,
   PaginatedNominationFiles,
   SomeAffectationVersion
@@ -44,7 +45,14 @@ export const sessionKeys = {
   },
   detailSession: (props?: { sessionId: string | undefined }) =>
     key('sessions', 'detailSession', props?.sessionId),
-  listGdsSessions: () => key('sessions', 'listGdsSessions'),
+  listGdsSessions: (props?: {
+    pagination: { pageIndex: number; pageSize: number } | undefined;
+    sorting:
+      | []
+      | [{ id: NonNullable<ListSessionsOfTypeGardeDesSceauxData['query']>['sortBy']; desc: boolean }]
+      | undefined;
+    filters: { formations?: FormationEnum[] } | undefined;
+  }) => key('sessions', 'listGdsSessions', props),
   listSessionAttachments: (props: { sessionId: string }) =>
     key('sessions', 'listSessionAttachments', props.sessionId),
   lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId: string }) =>
@@ -54,7 +62,8 @@ export const sessionKeys = {
   countUnaffectedFiles: (props?: { sessionId: string; nominationFileIds?: readonly string[] }) =>
     key('sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds),
   nominationFilesStatusCounts: (props?: { sessionId: string }) =>
-    key('sessions', 'nominationFilesStatusCounts', props?.sessionId)
+    key('sessions', 'nominationFilesStatusCounts', props?.sessionId),
+  countUsersNewSessions: () => key('sessions', 'countUsersNewSessions')
 };
 
 type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
@@ -341,10 +350,27 @@ export const useDetailedNominationSessionQuery = (input: { sessionId: string | u
         .then(({ data = null }) => data)
   });
 
-export const useListedGdsNominationSessionsQuery = () =>
+export const useListedGdsNominationSessionsQuery = (options: {
+  pagination: { pageIndex: number; pageSize: number } | undefined;
+  sorting: [] | [{ id: 'date' | 'dueDate'; desc: boolean }] | undefined;
+  filters: { formations?: FormationEnum[] } | undefined;
+}) =>
   useQuery({
-    queryKey: sessionKeys.listGdsSessions(),
-    queryFn: () => $api.sessions.listSessionsOfTypeGardeDesSceaux().then(({ data = null }) => data)
+    placeholderData: (prev) => prev,
+    queryKey: sessionKeys.listGdsSessions(options),
+    queryFn: () =>
+      $api.sessions
+        .listSessionsOfTypeGardeDesSceaux({
+          query: {
+            page:
+              (options.pagination?.pageIndex ?? 0) > 0 ? (options.pagination?.pageIndex ?? 0) + 1 : undefined,
+            limit: options.pagination?.pageSize,
+            sortBy: options.sorting?.[0]?.id,
+            sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
+            formations: options.filters?.formations
+          }
+        })
+        .then(({ data = null }) => data)
   });
 
 export function useDefineNominationFileOutcomeMutation(input: {
@@ -471,6 +497,33 @@ export const useNominationFilesStatusCountsQuery = (options: { sessionId: string
       return data ?? null;
     }
   });
+
+export const useCountUsersNewSessionsQuery = () =>
+  useQuery({
+    staleTime: 600_000, // 10 * 60 * 1_000,
+    queryKey: sessionKeys.countUsersNewSessions(),
+    queryFn: async () => {
+      const { data } = await $api.sessions.countUsersNewSessions();
+      return data ?? null;
+    }
+  });
+
+export function useValidateSessionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: { sessionId: string; userId: string }) =>
+      $api.sessions.validateSession({ path: { sessionId: mutation.sessionId } }),
+
+    onSuccess: (_data, { sessionId }) =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesAny(
+          sessionKeys.detailSession({ sessionId }),
+          sessionKeys.countUsersNewSessions()
+        )
+      })
+  });
+}
 
 export function useNominationFilesAlertMutation(input: { sessionId: string }) {
   const queryClient = useQueryClient();

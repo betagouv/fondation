@@ -1,117 +1,106 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import Table from '@codegouvfr/react-dsfr/Table';
-import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
-import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router';
+import { createColumnHelper } from '@tanstack/react-table';
+import { generatePath, Link, useLocation } from 'react-router';
 
-import { TypeDeSaisineLabels } from 'shared-models';
-
-import { useTable } from '../../../hooks/useTable.hook';
-import { DateOnly } from '../../../models/date-only.model';
-
-import type { BreadcrumbVM } from '../../../models/breadcrumb-vm.model';
-
-import { Breadcrumb } from '../../shared/Breadcrumb';
-import { SortButton } from '../../shared/SortButton';
-import { TableControl } from '../../shared/TableControl';
-
+import type { ListedNominationSessionsDto } from '@api/types';
 import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
 
-import { getSgSessionPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
-import { FiltresSessions, type SessionFiltersState } from './FiltresSessions';
-import type { ListedNominationSessionsDto } from '@api/types';
+import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
+import { DateOnly } from '@/models/date-only.model';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-function applySessionFilters(
-  sessions: ListedNominationSessionsDto['items'],
-  filters: SessionFiltersState
-): ListedNominationSessionsDto['items'] {
-  return sessions.filter((session) => {
-    if (filters.formations.length > 0) {
-      if (!filters.formations.includes(session.formation)) {
-        return false;
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
+import { SessionStatusBadge } from './SessionStatusBadge';
+
+const h = createColumnHelper<ListedNominationSessionsDto['items'][number]>();
+const columns = [
+  h.accessor('name', {
+    id: 'name',
+    enableSorting: false,
+    enableHiding: false,
+    header: 'Intitulé de la session',
+    cell: ({ row }) => (
+      <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
+        {row.original.name}
+      </Link>
+    )
+  }),
+
+  h.accessor('formation', {
+    id: 'formation',
+    enableSorting: false,
+    header: 'Formation',
+    meta: {
+      filters: {
+        type: 'enum',
+        filterId: 'formation',
+        label: 'Formation',
+        values: [
+          { id: 'PARQUET', label: 'Parquet' },
+          { id: 'SIEGE', label: 'Siège' }
+        ]
       }
     }
+  }),
 
-    if (filters.typeDeSaisine.length > 0) {
-      if (!filters.typeDeSaisine.includes(session.typeDeSaisine)) {
-        return false;
-      }
+  h.accessor('date', {
+    id: 'date',
+    enableSorting: true,
+    sortDescFirst: false,
+    header: 'Date de publication',
+    cell: ({ cell }) => DateOnly.fromDateOnly(cell.getValue())
+  }),
+
+  h.accessor('dueDate', {
+    id: 'dueDate',
+    enableSorting: true,
+    header: "Date d'échéance",
+    cell: ({ cell }) => {
+      const val = cell.getValue();
+      return val ? DateOnly.fromDateOnly(val) : null;
     }
+  }),
 
-    return true;
-  });
-}
+  h.accessor('status', {
+    id: 'status',
+    enableSorting: false,
+    header: 'Statut',
+    cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />
+  })
+];
 
-export const ManageSession = () => {
+const breadcrumb: BreadcrumbVM = {
+  currentPageLabel: 'Gérer une session',
+  segments: [{ label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD }]
+};
+
+export function ManageSession() {
   const location = useLocation();
-  const { data: sessions } = useListedGdsNominationSessionsQuery();
-
   const successSessionImportTitle = location.state?.success ?? undefined;
 
-  const [filters, setFilters] = useQueryStates({
-    formations: parseAsArrayOf(parseAsString).withDefault([]),
-    typeDeSaisine: parseAsArrayOf(parseAsString).withDefault([])
+  const [tableState, setTableState] = useQueryDataTableState({
+    pagination: { pageIndex: 0, pageSize: 50 },
+    columnFilters: [] as { id: 'formation'; value: ('PARQUET' | 'SIEGE')[] }[],
+    sorting: [] as [{ id: 'date' | 'dueDate'; desc: boolean }] | []
   });
 
-  const breadcrumb: BreadcrumbVM = {
-    currentPageLabel: 'Gérer une session',
-    segments: [
-      {
-        label: 'Secrétariat général',
-        to: ROUTE_PATHS.SG.DASHBOARD
-      }
-    ]
-  };
+  const formations = tableState.columnFilters?.find(({ id }) => id === 'formation')?.value;
 
-  const {
-    data: paginatedData,
-    totalPages,
-    currentPage,
-    totalItems,
-    displayedItems,
-    itemsPerPage,
-    setCurrentPage,
-    setItemsPerPage,
-    handleSort,
-    getSortIcon
-  } = useTable(sessions?.items ?? [], {
-    filters,
-    applyFilters: applySessionFilters,
-    itemsPerPage: 50
+  const { data, isLoading } = useListedGdsNominationSessionsQuery({
+    pagination: tableState.pagination,
+    sorting: tableState.sorting,
+    filters: { formations }
   });
 
-  const HEADERS_COLUMNS = [
-    { field: 'typeDeSaisine', label: 'Type de session' },
-    { field: 'name', label: 'Intitulé de la session' },
-    { field: 'formation', label: 'Formation' },
-    { field: 'date', label: 'Date de publication' },
-    { field: 'dueDate', label: "Date d'écheance" },
-    { field: 'status', label: 'Statut' }
-  ];
-
-  const headers: ReactNode[] = HEADERS_COLUMNS.map((header) => (
-    <span className="flex items-center gap-1">
-      {header.label}
-      {['date', 'dueDate'].includes(header.field) ? (
-        <SortButton
-          iconId={getSortIcon(header.field) as 'fr-icon-arrow-down-line' | 'fr-icon-arrow-up-line'}
-          onClick={() => handleSort(header.field)}
-          label={header.label}
-        />
-      ) : null}
-    </span>
-  ));
-
-  const sessionRows = (paginatedData || []).map((session) => {
-    const href = getSgSessionPath(session.id);
-    return [
-      TypeDeSaisineLabels[session.typeDeSaisine],
-      <Link to={href}>{session.name.toUpperCase()}</Link>,
-      session.formation,
-      DateOnly.fromDateOnly(session.date),
-      session.dueDate && DateOnly.fromDateOnly(session.dueDate),
-      ''
-    ];
+  const table = useDataTable({
+    columns,
+    data: data?.items,
+    getRowId: (row) => row.id,
+    rowCount: data?.totalCount,
+    meta: { paginationItemLabel: { one: 'session', other: 'sessions' } },
+    state: tableState,
+    onStateChange: setTableState
   });
 
   return (
@@ -131,32 +120,12 @@ export const ManageSession = () => {
         />
       )}
 
-      <FiltresSessions filters={filters} onFiltersChange={setFilters} />
-
-      <div className="mb-4 flex flex-col justify-center">
-        <Table
-          bordered
-          fixed
-          className="mb-0 w-full"
-          id="all-sessions-table"
-          headers={headers}
-          data={sessionRows}
-        />
-        {sessionRows.length === 0 ? (
-          <p className="mb-0 border border-t-0 border-solid border-[#808080] bg-fr-gray-bg py-4 text-center text-gray-600">
-            Aucun résultat ne correspond aux valeurs filtrées
-          </p>
-        ) : null}
-      </div>
-      <TableControl
-        onChange={setItemsPerPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalItems}
-        displayedItems={displayedItems}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+      <DataTable
+        table={table}
+        classNames={{ content: 'fr-container' }}
+        placeholder={isLoading ? 'Chargement...' : 'Aucune données ne correspond aux filtres fournis'}
+        caption="Liste des sessions"
       />
     </>
   );
-};
+}

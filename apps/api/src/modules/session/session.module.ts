@@ -11,6 +11,7 @@ import { NominationSessionFileFinder } from './infrastructure/finders/nomination
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
+import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
@@ -40,6 +41,7 @@ import { SummaryModule } from './summary.module';
     AffectationVersionFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
+    CountUsersNewSessionsQuery,
     CountUnaffectedFilesQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,

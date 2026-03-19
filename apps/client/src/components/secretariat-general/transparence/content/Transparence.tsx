@@ -1,18 +1,21 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { useCallback, type FC } from 'react';
+import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
-import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
+import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
-import type { BreadcrumbVM } from '../../../../models/breadcrumb-vm.model';
-import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
-import { Breadcrumb } from '../../../shared/Breadcrumb';
+
+import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
+import { TableauDeBordValidationCallOut } from './tableau-de-bord/resume/TableauDeBordValidationCallOut';
 
-export const Transparence: FC = () => {
+export function Transparence() {
   const { sessionId } = useParams();
   const alertRef = useCallback((ref: HTMLUListElement | null) => {
     ref?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -25,7 +28,7 @@ export const Transparence: FC = () => {
   }
 
   if (!transparence || isError) {
-    return <div>Session de type Transparence non trouvée.</div>;
+    return <div className="fr-container pt-5">Session de type Transparence non trouvée.</div>;
   }
 
   const breadcrumb: BreadcrumbVM = {
@@ -51,6 +54,8 @@ export const Transparence: FC = () => {
           breadcrumb={breadcrumb}
         />
 
+        <TableauDeBordValidationCallOut session={transparence} />
+
         <AlertsProvider.Alerts ref={alertRef} />
       </div>
 
@@ -65,4 +70,4 @@ export const Transparence: FC = () => {
       </div>
     </AlertsProvider>
   );
-};
+}

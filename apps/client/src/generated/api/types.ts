@@ -255,7 +255,20 @@ export type ListedNominationSessionsDto = {
             day: number;
         } | null;
         typeDeSaisine: 'TRANSPARENCE_GDS';
+        status: 'TO_VALIDATE' | 'READY';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type CountUsersNewSessionsDto = {
+    count: number;
 };
 
 export type ImportNominationSessionFromLodamXlsxDto = {
@@ -497,6 +510,7 @@ export type DetailedNominationSessionDto = {
         day: number;
     } | null;
     typeDeSaisine: 'TRANSPARENCE_GDS';
+    isValidated: boolean;
 };
 
 export type UpdateNominationSessionDto = {
@@ -1149,7 +1163,16 @@ export type DetailsJobResponse = DetailsJobResponses[keyof DetailsJobResponses];
 export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        sortBy?: 'date' | 'dueDate';
+        formations?: Array<'PARQUET' | 'SIEGE'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
     url: '/api/sessions/v2/garde-des-sceaux';
 };
 
@@ -1158,6 +1181,34 @@ export type ListSessionsOfTypeGardeDesSceauxResponses = {
 };
 
 export type ListSessionsOfTypeGardeDesSceauxResponse = ListSessionsOfTypeGardeDesSceauxResponses[keyof ListSessionsOfTypeGardeDesSceauxResponses];
+
+export type CountUsersNewSessionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sessions/v2/new/count';
+};
+
+export type CountUsersNewSessionsResponses = {
+    200: CountUsersNewSessionsDto;
+};
+
+export type CountUsersNewSessionsResponse = CountUsersNewSessionsResponses[keyof CountUsersNewSessionsResponses];
+
+export type ValidateSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/validation';
+};
+
+export type ValidateSessionResponses = {
+    204: void;
+};
+
+export type ValidateSessionResponse = ValidateSessionResponses[keyof ValidateSessionResponses];
 
 export type CreateSessionFromLodamData = {
     body: ImportNominationSessionFromLodamXlsxDto;

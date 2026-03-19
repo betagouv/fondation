@@ -1,7 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { createSortableDto } from 'src/modules/framework/sorting';
 import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 import z from 'zod';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
@@ -74,6 +76,18 @@ export class DefineNominationFileOutcomeDto extends createZodDto(
   z.object({
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     comment: z.string().trim().nonempty().nullable(),
+  }),
+) {}
+
+export class ListGdsNominationSessionsQueryDto extends createSortableDto(
+  z.object({
+    sortBy: z.enum(['date', 'dueDate']).optional(),
+    formations: z
+      .preprocess(
+        (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
+        z.array(z.enum(Magistrat.Formation)).optional(),
+      )
+      .optional(),
   }),
 ) {}
 
