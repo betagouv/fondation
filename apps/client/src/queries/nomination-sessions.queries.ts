@@ -492,7 +492,8 @@ export const useNominationFilesStatusCountsQuery = (options: { sessionId: string
     queryKey: sessionKeys.nominationFilesStatusCounts(options),
     queryFn: async () => {
       const { data } = await $api.sessions.countNominationFilesByStatus({
-        path: { sessionId: options.sessionId }
+        path: { sessionId: options.sessionId },
+        priority: 'low'
       });
       return data ?? null;
     }
@@ -503,7 +504,7 @@ export const useCountUsersNewSessionsQuery = () =>
     staleTime: 600_000, // 10 * 60 * 1_000,
     queryKey: sessionKeys.countUsersNewSessions(),
     queryFn: async () => {
-      const { data } = await $api.sessions.countUsersNewSessions();
+      const { data } = await $api.sessions.countUsersNewSessions({ priority: 'low' });
       return data ?? null;
     }
   });
