@@ -41,24 +41,54 @@ export class UserRepository {
     });
   }
 
-  async persist(user: User): Promise<void> {
-    await this.prisma.$transaction(
-      user.messages.flatMap((message: UserEvent) => {
-        if (message instanceof UserEmailUpdated)
-          return this.persistEmailUpdated(message);
-        if (message instanceof UserPasswordUpdated)
-          return this.persistPasswordUpdated(message);
-        if (message instanceof UserRoleUpdated)
-          return this.persistRoleUpdated(message);
-        if (message instanceof UserDutyUpdated)
-          return this.persistDutyUpdated(message);
-        if (message instanceof UserDisplayTitleUpdated)
-          return this.persistDisplayTitleUpdated(message);
-        if (message instanceof UserTitleUpdated)
-          return this.persistTitleUpdated(message);
-        return assertNever(message);
-      }),
+  async findManyByLastName(
+    lastNames: readonly string[],
+  ): Promise<Map<string, User>> {
+    const users = await this.prisma.user.findMany({
+      where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
+      select: { id: true, lastName: true, role: true, title: true, duty: true },
+    });
+
+    return new Map(
+      users.map((user) => [
+        user.lastName.toUpperCase(),
+        User.from({
+          id: user.id,
+          title: user.title,
+          duty: user.duty,
+          role: prismaRoleEnumToRoleEnum(user.role),
+        }),
+      ]),
     );
+  }
+
+  async persistMany(users: User[]): Promise<void> {
+    await this.prisma.$transaction(
+      users.flatMap((user) => this.persistUser(user)),
+    );
+  }
+
+  async persist(user: User): Promise<void> {
+    await this.prisma.$transaction(this.persistUser(user));
+  }
+
+  private persistUser(user: User) {
+    return user.messages.flatMap((message: UserEvent) => {
+      if (message instanceof UserEmailUpdated)
+        return this.persistEmailUpdated(message);
+      if (message instanceof UserPasswordUpdated)
+        return this.persistPasswordUpdated(message);
+      if (message instanceof UserRoleUpdated)
+        return this.persistRoleUpdated(message);
+      if (message instanceof UserDutyUpdated)
+        return this.persistDutyUpdated(message);
+      if (message instanceof UserDisplayTitleUpdated)
+        return this.persistDisplayTitleUpdated(message);
+      if (message instanceof UserTitleUpdated)
+        return this.persistTitleUpdated(message);
+
+      return assertNever(message);
+    });
   }
 
   private persistEmailUpdated(message: UserEmailUpdated) {
@@ -107,7 +137,7 @@ export class UserRepository {
     }
 
     return [
-      this.prisma.user.updateMany({
+      this.prisma.user.update({
         where: { title: message.title },
         data: { title: null, duty: null },
       }),

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Role } from 'shared-models';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { User } from './domain/user';
 import { UserDuty, UserTitle } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
 import {
@@ -81,5 +82,31 @@ export class AdministrationService {
     const user = await this.userRepository.findById(command.userId);
     user.updateDisplayTitle(command.displayTitle);
     await this.userRepository.persist(user);
+  }
+
+  async batchUpdateDisplayTitles(
+    entries: readonly { lastName: string; displayTitle: string | null }[],
+  ): Promise<{ notFound: string[]; updatedCount: number }> {
+    const lastNames = entries.map(({ lastName }) => lastName);
+    const usersByLastName =
+      await this.userRepository.findManyByLastName(lastNames);
+
+    const toUpdate: User[] = [];
+    const notFound: string[] = [];
+
+    for (const { lastName, displayTitle } of entries) {
+      const user = usersByLastName.get(lastName.toUpperCase());
+      if (!user) {
+        notFound.push(lastName);
+        continue;
+      }
+
+      user.updateDisplayTitle(displayTitle);
+      toUpdate.push(user);
+    }
+
+    if (toUpdate.length > 0) await this.userRepository.persistMany(toUpdate);
+
+    return { notFound, updatedCount: toUpdate.length };
   }
 }

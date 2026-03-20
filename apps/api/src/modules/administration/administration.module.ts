@@ -13,5 +13,6 @@ import { UserRepository } from './infrastructure/repositories/user.repository';
     DetailsUserQuery,
   ],
   controllers: [AdministrationController],
+  exports: [AdministrationService],
 })
 export class AdministrationModule {}
