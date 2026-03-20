@@ -30,7 +30,11 @@ import {
   ListMembersQueryDto,
   WriteNominationFileMemberMemoDto,
 } from './infrastructure/dtos/members.dto';
-import { ExcludeJurisdictionsDto } from './infrastructure/member.dto';
+import {
+  ExcludeJurisdictionsDto,
+  UpdateMemberDisplayTitleDto,
+  UpdateMemberTitleDto,
+} from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 import { PaginatedMemberListItemDto } from './infrastructure/queries/list-members.query';
@@ -79,6 +83,28 @@ export class MembersController {
     @Body() { jurisdictionIds }: ExcludeJurisdictionsDto,
   ): Promise<void> {
     return this.members.excludeJurisdictions({ userId, jurisdictionIds });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:userId/display-title')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateDisplayTitle(
+    @Param('userId') userId: string,
+    @Body() { displayTitle }: UpdateMemberDisplayTitleDto,
+  ): Promise<void> {
+    return this.members.updateDisplayTitle({ userId, displayTitle });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:userId/title')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateTitle(
+    @Param('userId') userId: string,
+    @Body() { title }: UpdateMemberTitleDto,
+  ): Promise<void> {
+    return this.members.updateTitle({ userId, title });
   }
 
   @HasRole()

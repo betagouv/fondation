@@ -19,6 +19,8 @@ SELECT
   u.first_name AS "firstName",
   u.last_name AS "lastName",
   u.gender,
+  u.display_title AS "displayTitle",
+  u.title,
 
   COALESCE(excluded.jurisdictions, ARRAY[]::JSONB[])::JSONB[] AS "excludedJurisdictions",
 

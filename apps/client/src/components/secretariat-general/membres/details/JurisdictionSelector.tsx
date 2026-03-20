@@ -103,6 +103,7 @@ export function JurisdictionSelector(props: {
       <JurisdictionSelectorSelected selected={selected} />
       <Button
         size="small"
+        className="rounded-full"
         iconId="fr-icon-edit-fill"
         priority="tertiary no outline"
         title="Éditer les juridictions exclues"

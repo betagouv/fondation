@@ -2,8 +2,11 @@ import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
-import { JurisdictionSelector } from './JurisdictionSelector';
+import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { DetailsMemberStats } from './DetailsMemberStats';
+import { JurisdictionSelector } from './JurisdictionSelector';
+import { MemberDisplayTitle } from './MemberDisplayTitle';
+import { MemberTitle } from './MemberTitle';
 
 export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({
@@ -53,13 +56,21 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
                     : 'Parquet'}
               </dd>
             </div>
+
+            <AlertsProvider>
+              <AlertsProvider.Alerts />
+
+              <MemberTitle member={props.member} />
+            </AlertsProvider>
+
+            <MemberDisplayTitle member={props.member} />
           </dl>
         </section>
         <section>
           <h2 className="fr-display-xs">Conditions d'attribution des rapports</h2>
 
           <dl className="flex flex-col gap-y-2">
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row items-center justify-between">
               <dt className="font-bold">Juridictions exclues</dt>
               <dd className="text-right">
                 <JurisdictionSelector
@@ -69,7 +80,7 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
               </dd>
             </div>
 
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row items-center justify-between">
               <dt className="font-bold">Personnes exclues</dt>
               <dd className="text-right font-bold text-gray-300">n/a</dd>
             </div>

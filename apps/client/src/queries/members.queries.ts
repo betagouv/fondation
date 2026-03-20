@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
-import type { ListedMemberSessionsDto, ListMembersData, PaginatedNominationFiles } from '@api/types';
+import type {
+  DetailedMemberDto,
+  ListedMemberSessionsDto,
+  ListMembersData,
+  PaginatedNominationFiles
+} from '@api/types';
 import type { NominationFile } from 'shared-models';
 import { sessionKeys } from './nomination-sessions.queries';
 
@@ -71,6 +76,40 @@ export const useDetailedMember = (options: { userId: string | undefined }) =>
     queryKey: memberKeys.detailsMember({ userId: options.userId }),
     queryFn: () =>
       $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data)
+  });
+
+export function useUpdateTitleMutation(options: { userId: string }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null) =>
+      $api.members.updateTitle({
+        path: { userId: options.userId },
+        body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' }
+      }),
+
+    onSuccess: (_data, title) =>
+      queryClient.setQueryData(
+        memberKeys.detailsMember({ userId: options.userId }),
+        (data: DetailedMemberDto | undefined) => {
+          if (!data) return data;
+
+          return {
+            ...data,
+            title
+          };
+        }
+      )
+  });
+}
+
+export const useUpdateDisplayTitleMutation = (options: { userId: string }) =>
+  useMutation({
+    mutationFn: (displayTitle: string | null) =>
+      $api.members.updateDisplayTitle({
+        path: { userId: options.userId },
+        body: { displayTitle }
+      })
   });
 
 export function useExcludedJurisdictionsMutation(options: { userId: string }) {

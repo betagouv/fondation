@@ -674,6 +674,8 @@ export type DetailedMemberDto = {
     lastName: string;
     role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
     gender: string;
+    displayTitle: string | null;
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET';
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -687,6 +689,14 @@ export type DetailedMemberDto = {
 
 export type ExcludeJurisdictionsDto = {
     jurisdictionIds: Array<string>;
+};
+
+export type UpdateMemberDisplayTitleDto = {
+    displayTitle: string | null;
+};
+
+export type UpdateMemberTitleDto = {
+    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
 };
 
 export type ListedMemberSessionsDto = {
@@ -933,6 +943,61 @@ export type SearchMagistratsResponseDto = {
         next?: string;
         previous?: string;
     };
+};
+
+export type PaginatedAdminUserListItemDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type DetailedAdminUserDto = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    gender: 'MALE' | 'FEMALE';
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
+    duty: 'PRESIDENT' | 'SECRETARY' | 'OFFICER';
+    displayTitle: string | null;
+};
+
+export type UpdateUserEmailDto = {
+    email: string;
+};
+
+export type UpdateUserPasswordDto = {
+    password: string;
+};
+
+export type UpdateUserRoleDto = {
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+};
+
+export type UpdateUserTitleDto = {
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
+};
+
+export type UpdateUserDutyDto = {
+    duty: 'PRESIDENT' | 'SECRETARY' | 'OFFICER';
+};
+
+export type UpdateUserDisplayTitleDto = {
+    displayTitle: string | null;
 };
 
 export type GetFileByFileUrlData = {
@@ -1790,6 +1855,36 @@ export type ExcludeJurisdictionsResponses = {
 
 export type ExcludeJurisdictionsResponse = ExcludeJurisdictionsResponses[keyof ExcludeJurisdictionsResponses];
 
+export type UpdateDisplayTitleData = {
+    body: UpdateMemberDisplayTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/display-title';
+};
+
+export type UpdateDisplayTitleResponses = {
+    204: void;
+};
+
+export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
+
+export type UpdateTitleData = {
+    body: UpdateMemberTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/title';
+};
+
+export type UpdateTitleResponses = {
+    204: void;
+};
+
+export type UpdateTitleResponse = UpdateTitleResponses[keyof UpdateTitleResponses];
+
 export type ListMemberSessionsData = {
     body?: never;
     path: {
@@ -2044,3 +2139,131 @@ export type SearchFullNameData = {
 export type SearchFullNameResponses = {
     200: unknown;
 };
+
+export type ListUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sortBy?: 'firstName' | 'lastName' | 'email';
+        search?: string;
+        roles?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | Array<'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/administration/users';
+};
+
+export type ListUsersResponses = {
+    200: PaginatedAdminUserListItemDto;
+};
+
+export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
+
+export type DetailsUserData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}';
+};
+
+export type DetailsUserResponses = {
+    200: DetailedAdminUserDto;
+};
+
+export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type UpdateEmailData = {
+    body: UpdateUserEmailDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/email';
+};
+
+export type UpdateEmailResponses = {
+    204: void;
+};
+
+export type UpdateEmailResponse = UpdateEmailResponses[keyof UpdateEmailResponses];
+
+export type UpdatePasswordData = {
+    body: UpdateUserPasswordDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/password';
+};
+
+export type UpdatePasswordResponses = {
+    204: void;
+};
+
+export type UpdatePasswordResponse = UpdatePasswordResponses[keyof UpdatePasswordResponses];
+
+export type UpdateRoleData = {
+    body: UpdateUserRoleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/role';
+};
+
+export type UpdateRoleResponses = {
+    204: void;
+};
+
+export type UpdateRoleResponse = UpdateRoleResponses[keyof UpdateRoleResponses];
+
+export type UpdateTitle2Data = {
+    body: UpdateUserTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/title';
+};
+
+export type UpdateTitle2Responses = {
+    204: void;
+};
+
+export type UpdateTitle2Response = UpdateTitle2Responses[keyof UpdateTitle2Responses];
+
+export type UpdateDutyData = {
+    body: UpdateUserDutyDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/duty';
+};
+
+export type UpdateDutyResponses = {
+    204: void;
+};
+
+export type UpdateDutyResponse = UpdateDutyResponses[keyof UpdateDutyResponses];
+
+export type UpdateDisplayTitle2Data = {
+    body: UpdateUserDisplayTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/users/{userId}/display-title';
+};
+
+export type UpdateDisplayTitle2Responses = {
+    204: void;
+};
+
+export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];

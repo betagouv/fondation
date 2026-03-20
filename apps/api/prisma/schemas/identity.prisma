@@ -21,6 +21,10 @@ model User {
   gender    PrismaGenderEnum
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
 
+  title        PrismaUserTitleEnum? @unique()
+  duty         PrismaUserDutyEnum?
+  displayTitle String?              @map("display_title")
+
   sessions                    AuthSession[]
   excludedJurisdictionIds     ExcludedJurisdiction[]
   reporterOnNominationFileIds NominationFileToReporter[]
@@ -55,4 +59,22 @@ enum PrismaRoleEnum {
 
   @@map("role")
   @@schema("identity_and_access_context")
+}
+
+enum PrismaUserTitleEnum {
+  PRESIDENT_SIEGE
+  PRESIDENT_PARQUET
+  FIRST_SECRETARY
+
+  @@map("user_title_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaUserDutyEnum {
+  PRESIDENT
+  SECRETARY
+  OFFICER
+
+  @@map("user_duty_enum")
+  @@schema("nominations_context")
 }

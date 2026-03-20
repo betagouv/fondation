@@ -63,7 +63,9 @@ export const AppHeader = () => {
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
-        ROUTE_PATHS.ADMIN.INGEST_LOLFI
+        ROUTE_PATHS.ADMIN.INGEST_LOLFI,
+        ROUTE_PATHS.ADMIN.USERS,
+        ROUTE_PATHS.ADMIN.USER_DETAIL
       ]),
       menuLinks: [
         {
@@ -83,6 +85,15 @@ export const AppHeader = () => {
             </span>
           ),
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB])
+        },
+        {
+          linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
+          text: (
+            <span className="ri-user-settings-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+              Gestion des utilisateurs
+            </span>
+          ),
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL])
         }
       ]
     });

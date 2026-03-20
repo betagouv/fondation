@@ -6,6 +6,7 @@ import { Magistrat } from 'shared-models';
 
 import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
 import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
@@ -26,6 +27,8 @@ export class DetailsMemberQuery {
       firstName: user.firstName,
       lastName: user.lastName,
       gender: user.gender,
+      displayTitle: user.displayTitle ?? null,
+      title: toMemberTitle(user.title),
       excludedJurisdictions: (user.excludedJurisdictions ?? []).map(
         (j: { id: string; label: string }) => ({
           id: j.id,
@@ -47,25 +50,27 @@ export class DetailsMemberQuery {
   }
 }
 
-export const DetailedMemberDtoSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.enum(MEMBER_ROLES),
-  gender: z.string(),
+export class DetailedMemberDto extends createZodDto(
+  z.object({
+    id: z.string(),
+    email: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    role: z.enum(MEMBER_ROLES),
+    gender: z.string(),
+    displayTitle: z.string().nullable(),
+    title: z.enum(MEMBER_TITLES).nullable(),
 
-  excludedJurisdictions: z.array(
-    z.object({ id: z.string(), label: z.string().nullable() }),
-  ),
+    excludedJurisdictions: z.array(
+      z.object({ id: z.string(), label: z.string().nullable() }),
+    ),
 
-  stats: z.array(
-    z.object({
-      count: z.number().int().gte(0),
-      year: z.number().int().gte(1900),
-      targetedGrade: z.enum(Magistrat.Grade),
-    }),
-  ),
-});
-
-export class DetailedMemberDto extends createZodDto(DetailedMemberDtoSchema) {}
+    stats: z.array(
+      z.object({
+        count: z.number().int().gte(0),
+        year: z.number().int().gte(1900),
+        targetedGrade: z.enum(Magistrat.Grade),
+      }),
+    ),
+  }),
+) {}
