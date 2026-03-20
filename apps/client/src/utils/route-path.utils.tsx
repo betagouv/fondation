@@ -26,7 +26,9 @@ export const ROUTE_PATHS = {
     ROOT: '/admin',
     LIST_JOBS: '/admin/jobs',
     DETAILS_JOB: '/admin/jobs/:jobId',
-    INGEST_LOLFI: '/admin/lolfi'
+    INGEST_LOLFI: '/admin/lolfi',
+    USERS: '/admin/users',
+    USER_DETAIL: '/admin/users/:userId'
   },
 
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
