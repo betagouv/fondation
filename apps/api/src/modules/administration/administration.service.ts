@@ -2,10 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { Role } from 'shared-models';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
-import { UserDuty, UserTitle } from './domain/user';
+import { UserDuty, UserTitle } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
-import { DetailedAdminUserDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
-import { ListUsersQuery, PaginatedAdminUserListItemDto } from './infrastructure/queries/list-users.query';
+import {
+  DetailedAdminUserDto,
+  DetailsUserQuery,
+} from './infrastructure/queries/details-user.query';
+import {
+  ListUsersQuery,
+  PaginatedAdminUserListItemDto,
+} from './infrastructure/queries/list-users.query';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 
 @Injectable()
@@ -18,6 +24,7 @@ export class AdministrationService {
 
   listUsers(query: {
     search?: string;
+    roles?: Role[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
@@ -34,7 +41,10 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updatePassword(command: { userId: string; password: string }): Promise<void> {
+  async updatePassword(command: {
+    userId: string;
+    password: string;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     await user.updatePassword(command.password);
     await this.userRepository.persist(user);
@@ -46,19 +56,28 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updateTitle(command: { userId: string; title: UserTitle | null }): Promise<void> {
+  async updateTitle(command: {
+    userId: string;
+    title: UserTitle | null;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateTitle(command.title);
     await this.userRepository.persist(user);
   }
 
-  async updateDuty(command: { userId: string; duty: UserDuty | null }): Promise<void> {
+  async updateDuty(command: {
+    userId: string;
+    duty: UserDuty | null;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateDuty(command.duty);
     await this.userRepository.persist(user);
   }
 
-  async updateDisplayTitle(command: { userId: string; displayTitle: string | null }): Promise<void> {
+  async updateDisplayTitle(command: {
+    userId: string;
+    displayTitle: string | null;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateDisplayTitle(command.displayTitle);
     await this.userRepository.persist(user);

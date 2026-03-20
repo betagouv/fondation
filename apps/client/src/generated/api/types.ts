@@ -970,6 +970,7 @@ export type DetailedAdminUserDto = {
     lastName: string;
     email: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    gender: 'MALE' | 'FEMALE';
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
     duty: 'PRESIDENT' | 'SECRETARY' | 'OFFICER';
     displayTitle: string | null;
@@ -2145,6 +2146,7 @@ export type ListUsersData = {
     query?: {
         sortBy?: 'firstName' | 'lastName' | 'email';
         search?: string;
+        roles?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | Array<'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN'>;
         /**
          * true
          */

@@ -5,27 +5,23 @@ import { generatePath } from 'react-router';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
 import { useAdminUsersQuery } from '@queries/administration.queries';
 
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { RoleEnumLabels, type RoleEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { UserTitleEnumLabels } from './admin-user-enum';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
-
-const TITLE_LABELS: Record<string, string> = {
-  PRESIDENT_SIEGE: 'Président Siège',
-  PRESIDENT_PARQUET: 'Président Parquet',
-  FIRST_SECRETARY: 'Premier Secrétaire'
-};
-
 const h = createColumnHelper<AdminUserItem>();
 
 const columns = [
   h.accessor('lastName', {
     id: 'lastName',
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
     header: 'Nom',
+    sortDescFirst: true,
     cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
   }),
 
@@ -53,13 +49,7 @@ const columns = [
         type: 'enum',
         filterId: 'role',
         label: 'Rôle',
-        values: [
-          { id: 'ADMIN', label: 'Administrateur' },
-          { id: 'ADJOINT_SECRETAIRE_GENERAL', label: 'Secrétariat général' },
-          { id: 'MEMBRE_COMMUN', label: 'Membre commun' },
-          { id: 'MEMBRE_DU_PARQUET', label: 'Membre du parquet' },
-          { id: 'MEMBRE_DU_SIEGE', label: 'Membre du siège' }
-        ]
+        values: Object.entries(RoleEnumLabels).map(([id, label]) => ({ id, label }))
       }
     }
   }),
@@ -70,7 +60,7 @@ const columns = [
     header: 'Titre',
     cell: ({ cell }) => {
       const value = cell.getValue();
-      return value ? (TITLE_LABELS[value] ?? value) : '';
+      return value ? UserTitleEnumLabels[value] : '-';
     }
   }),
 
@@ -104,8 +94,9 @@ export function AdminUserListPage() {
 
   const { data, isLoading } = useAdminUsersQuery({
     search: tableState.globalFilter ?? '',
-    page: (tableState.pagination?.pageIndex ?? 0) + 1,
-    pageSize: tableState.pagination?.pageSize
+    pagination: tableState.pagination,
+    sorting: tableState.sorting,
+    roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value
   });
 
   const table = useDataTable({
@@ -120,16 +111,23 @@ export function AdminUserListPage() {
   });
 
   return (
-    <div className="flex flex-col justify-center gap-4">
+    <div className="fr-container flex flex-col justify-center pt-10">
+      <Breadcrumb
+        id="administration-breadcrumb"
+        ariaLabel="Fil d'Ariane pour l'Administration"
+        breadcrumb={{
+          currentPageLabel: 'Utilisateurs',
+          segments: [{ label: 'Administration', to: {} }]
+        }}
+      />
+
       <div className="flex flex-col gap-4 lg:mx-auto lg:w-[80%]">
         <h1 className="fr-container">Utilisateurs</h1>
 
         <DataTable
           table={table}
           classNames={{ content: 'fr-container' }}
-          placeholder={
-            isLoading ? 'Chargement...' : 'Aucun utilisateur ne correspond aux filtres fournis'
-          }
+          placeholder={isLoading ? 'Chargement...' : 'Aucun utilisateur ne correspond aux filtres fournis'}
           caption="Liste des utilisateurs"
         />
       </div>

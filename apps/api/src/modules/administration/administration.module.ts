@@ -6,7 +6,12 @@ import { ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 
 @Module({
-  providers: [AdministrationService, UserRepository, ListUsersQuery, DetailsUserQuery],
+  providers: [
+    AdministrationService,
+    UserRepository,
+    ListUsersQuery,
+    DetailsUserQuery,
+  ],
   controllers: [AdministrationController],
 })
 export class AdministrationModule {}

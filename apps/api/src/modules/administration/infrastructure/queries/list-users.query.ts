@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Role } from 'shared-models';
-import z from 'zod';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   createPaginatedZodDto,
@@ -9,7 +9,8 @@ import {
 } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { USER_TITLES } from '../../domain/user';
+import z from 'zod';
+import { USER_TITLES } from '../../domain/user-enum';
 import { ListUsersQueryDto } from '../dto/administration.dto';
 
 @Injectable()
@@ -18,38 +19,36 @@ export class ListUsersQuery {
 
   async handle(query: {
     search?: string;
+    roles?: Role[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
-    const where = query.search
-      ? {
-          OR: [
+    const where: Prisma.UserWhereInput = {
+      role: (query.roles?.length ?? 0) > 0 ? { in: query.roles } : undefined,
+      OR: query.search
+        ? // prettier-ignore
+          [
             { email: { contains: query.search, mode: 'insensitive' as const } },
             { firstName: { contains: query.search, mode: 'insensitive' as const } },
             { lastName: { contains: query.search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
+          ]
+        : undefined,
+    };
 
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
-    const orderBy = (() => {
-      switch (query.sorting.sortBy) {
-        case 'firstName':
-          return { firstName: direction } as const;
-        case 'email':
-          return { email: direction } as const;
-        default:
-        case 'lastName':
-          return { lastName: direction } as const;
-      }
-    })();
-
     const [totalCount, items] = await this.prisma.$transaction([
       this.prisma.user.count({ where }),
       this.prisma.user.findMany({
-        select: { id: true, firstName: true, lastName: true, email: true, role: true, title: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          title: true,
+        },
         where,
-        orderBy,
+        orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
         skip: (query.pagination.page - 1) * query.pagination.limit,
         take: query.pagination.limit,
       }),
@@ -76,4 +75,6 @@ const AdminUserListItemSchema = z.object({
   title: z.enum(USER_TITLES).nullable(),
 });
 
-export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(AdminUserListItemSchema) {}
+export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
+  AdminUserListItemSchema,
+) {}

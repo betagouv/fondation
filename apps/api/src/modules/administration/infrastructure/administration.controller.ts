@@ -12,7 +12,11 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { Role } from 'shared-models';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import {
+  ApiPaginated,
+  Pagination,
+  QueryPagination,
+} from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
 import { AdministrationService } from '../administration.service';
 import {
@@ -41,9 +45,10 @@ export class AdministrationController {
     @Query() query: ListUsersQueryDto,
   ): Promise<PaginatedAdminUserListItemDto> {
     return this.administration.listUsers({
-      search: query.search,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       pagination,
+      search: query.search,
+      roles: query.roles,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
     });
   }
 
