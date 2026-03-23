@@ -6,7 +6,14 @@ export const ConfigSchema = z.object({
   appName: z.string().default('fondation-api'),
   appVersion: z.prefault(z.string().optional(), process.env.APP_VERSION),
 
-  port: z.prefault(z.number(), Number(process.env.PORT) || 3000),
+  port: z.prefault(
+    z.union([z.coerce.number(), z.string()]).default(3_000),
+    process.env.SOCKET_PATH ||
+      // FIXME: PORT is the default envvar provided
+      // to the web process from Scalingo. We can't use it
+      // to bind on deployed environments.
+      process.env.PORT,
+  ),
 
   cookieSecret: z.prefault(z.string().min(32), process.env.COOKIE_SECRET!),
 

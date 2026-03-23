@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
-process.env.VITE_FAVICON = process.env.VITE_DEPLOY_ENV === 'production' ? 'favicon' : 'favicon.staging';
+process.env.VITE_FAVICON ||= process.env.VITE_DEPLOY_ENV === 'production' ? 'favicon' : 'favicon.staging';
 
 // https://vite.dev/config/
 export default defineConfig({

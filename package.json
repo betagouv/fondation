@@ -9,8 +9,8 @@
     "test:all": "pnpm run -r test:all",
     "build": "pnpm run -r build",
     "prepush": "pnpm --filter shared-models build; pnpm lint:check; pnpm format:check; pnpm types:check",
-    "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
-    "heroku-postbuild": "echo 'App already built'"
+    "scalingo-postbuild": "scalingo/build.sh",
+    "heroku-postbuild": "scalingo/build.sh"
   },
   "devDependencies": {
     "husky": "^9.1.6",

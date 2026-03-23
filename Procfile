@@ -1,0 +1,1 @@
+web: scalingo/start.sh

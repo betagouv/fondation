@@ -1,4 +1,24 @@
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+
+upstream api {
+  server unix:/var/run/fondation_api.sock;
+}
+
 root /app/dist;
+
+location /api/ {
+  limit_req zone=api burst=20 nodelay;
+
+  proxy_pass http://api;
+  proxy_http_version 1.1;
+
+  proxy_set_header Host              $host;
+  proxy_set_header X-Real-IP         $remote_addr;
+  proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Request-Id      $request_id;
+  proxy_set_header Connection        "";
+}
 
 location / {
   add_header X-Content-Type-Options "nosniff";

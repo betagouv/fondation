@@ -3,8 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "Shared models between the API and the Web App",
+  "types": "./models/index.d.ts",
   "main": "./dist/models/index.js",
-  "types": "./models/index.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rimraf dist/ && tsc",
     "build:watch": "tsc --watch",
