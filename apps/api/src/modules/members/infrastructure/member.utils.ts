@@ -6,22 +6,7 @@ export const MEMBER_ROLES = [
   'MEMBRE_DU_PARQUET',
   'MEMBRE_DU_SIEGE',
 ] as const satisfies Role[keyof Role][];
-type MemberRole = (typeof MEMBER_ROLES)[number];
-
-export function formationToMemberRole(
-  formation?: Magistrat.Formation,
-): MemberRole[] {
-  switch (formation) {
-    case Magistrat.Formation.PARQUET:
-      return ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET'];
-    case Magistrat.Formation.SIEGE:
-      return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE'];
-    case undefined:
-      return [...MEMBER_ROLES];
-    default:
-      return assertNever(formation);
-  }
-}
+export type MemberRole = (typeof MEMBER_ROLES)[number];
 
 /** @return undefined means no restriction on the formation */
 export function roleToFormation(role: Role): Magistrat.Formation | undefined {
