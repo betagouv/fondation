@@ -1,9 +1,9 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useMemo, type FC } from 'react';
+import { type FC } from 'react';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
+import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { labels } from '@/constants/labels.constants';
-import { PrioriteEnumLabels } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 import { Card } from './Card';
 import { formatBirthDate } from './formatters';
@@ -34,20 +34,16 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   sessionId,
   nominationFileId
 }) => {
-  const intlPriorities = useMemo(
-    () =>
-      new Intl.ListFormat('fr', { type: 'conjunction' }).format(priorities.map((p) => PrioriteEnumLabels[p])),
-    [priorities]
-  );
-
   const formattedBirthDate = formatBirthDate(birthDate!, new Date());
   return (
     <Card label="Identité du magistrat">
-      <h1 className="flex flex-row items-center">
-        <span>{name}</span>
-        <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={name} />
-      </h1>
-      {priorities.length > 0 ? <p>{intlPriorities}</p> : null}
+      <header className="mb-6">
+        <h1 className="mb-0 flex flex-row items-center">
+          <span>{name}</span>
+          <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={name} />
+        </h1>
+        <PriorityBadgeList priorities={priorities} small={false} />
+      </header>
       <div>
         <span className={cx('fr-text--bold')}>{`${labels.magistrat.currentPosition} : `}</span>
         <span>{`${currentPosition} - ${grade}`}</span>

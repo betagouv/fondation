@@ -25,7 +25,7 @@ export class ManageSingleSessionPage {
   }
 
   get selectReporterButton(): Locator {
-    return this.app.page.getByRole('button', { name: 'Sélectionner' });
+    return this.app.page.locator('button[title="Sélectionner des rapporteurs"]');
   }
 
   get searchReporterInput(): Locator {
@@ -37,7 +37,7 @@ export class ManageSingleSessionPage {
   }
 
   get prioritiesSelectBox(): Locator {
-    return this.app.page.getByTitle('Sélectionner les priorités');
+    return this.app.page.locator('button[title="Sélectionner les priorités"]');
   }
 
   priorityCheckbox(options?: { name: 'Étoilé' | 'Outre-mer' | 'Profilé' }): Locator {
