@@ -1,11 +1,12 @@
-import { PrioriteEnumLabels } from '@/types/enums.types';
+import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useNominationFilesTable } from '../../contexts/files-table.context';
 import { NominationFilesPrioritySelectorCell } from './NominationFilesPrioritySelectorCell';
 
-const NominationFilesPriorityReadOnly = ({ file: { priorities } }: { file: SessionNominationFile }) =>
-  priorities.length > 0 ? priorities.map((p) => PrioriteEnumLabels[p]).join(', ') : '-';
+const NominationFilesPriorityReadOnly = ({ file: { priorities } }: { file: SessionNominationFile }) => (
+  <PriorityBadgeList priorities={priorities} />
+);
 
 export function NominationFilesPriorityCell(props: { nominationFile: SessionNominationFile }) {
   const { edition } = useNominationFilesTable();

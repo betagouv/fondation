@@ -1,20 +1,11 @@
 import React from 'react';
 
 import { DropdownSelectMultiple } from '@/components/shared/DropdownSelectMultiple';
-import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { PriorityBadge, PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { PrioriteEnum } from '@/types/enums.types';
 import { useAffectationRow } from '../../contexts/files-affectations.context';
 
 const PRIORITY_SELECTOR_ITEMS = Object.values(PrioriteEnum);
-
-function labelizePriority(value: PrioriteEnum | readonly PrioriteEnum[]): string {
-  if (Array.isArray(value)) {
-    if (value.length === 0) return 'Aucune';
-
-    return value.map((x) => labelizePriority(x)).join(', ');
-  }
-
-  return PrioriteEnumLabels[value as PrioriteEnum];
-}
 
 export function NominationFilesPrioritySelectorCell(props: { fileId: string }) {
   const { priorities, prioritize } = useAffectationRow(props.fileId);
@@ -25,18 +16,20 @@ export function NominationFilesPrioritySelectorCell(props: { fileId: string }) {
     [prioritize]
   );
 
-  const selectedLabel = labelizePriority(selected);
-
   return (
     <DropdownSelectMultiple
       items={PRIORITY_SELECTOR_ITEMS}
-      renderItem={(item) => <span className="text-sm">{labelizePriority(item)}</span>}
+      renderItem={(item) => <PriorityBadge priority={item} />}
       value={selected}
       onChange={setSelected}
       buttonProps={{ size: 'small', priority: 'tertiary no outline' }}
       title="Sélectionner les priorités"
     >
-      {selectedLabel}
+      {selected.length === 0 ? (
+        <span className="text-sm">Priorités</span>
+      ) : (
+        <PriorityBadgeList priorities={selected} acronym />
+      )}
     </DropdownSelectMultiple>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, type FC } from 'react';
+import { type FC } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -19,8 +19,8 @@ import { UserAvatarList } from '@/components/shared/user-avatar';
 
 import clsx from 'clsx';
 
+import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { labels } from '@/constants/labels.constants';
-import { PrioriteEnumLabels } from '@/types/enums.types';
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MagistratComment } from './magistrat-comment/MagistratComment';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -44,15 +44,6 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
     datePriseDeFonctionPosteActuel
   } = nominationFile.content;
 
-  const formattedPriorities = useMemo(
-    () =>
-      nominationFile.priorities.length > 0
-        ? new Intl.ListFormat('fr', { type: 'conjunction' }).format(
-            nominationFile.priorities.map((x) => PrioriteEnumLabels[x])
-          )
-        : null,
-    [nominationFile]
-  );
   const formattedBirthDate = dateDeNaissance ? formatBirthDate(dateDeNaissance, new Date()) : null;
   const formattedObservers = observants ? formatObservers(observants) : null;
   const formattedBiography = formatBiography(historique);
@@ -71,28 +62,25 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-semibold">
-            {nomMagistrat}
-            <LolfiMagistratLink
-              small
-              name={nomMagistrat}
-              sessionId={sessionId}
-              nominationFileId={nominationFile.id}
-            />
-          </span>
-          {<UserAvatarList users={nominationFile.reporters} max={2} />}
+      <div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-semibold">
+              {nomMagistrat}
+              <LolfiMagistratLink
+                small
+                name={nomMagistrat}
+                sessionId={sessionId}
+                nominationFileId={nominationFile.id}
+              />
+            </span>
+            {<UserAvatarList users={nominationFile.reporters} max={2} />}
+          </div>
+          <MagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
         </div>
-        <MagistratSummaryButton sessionId={sessionId} nominationFile={nominationFile} />
+        <PriorityBadgeList priorities={nominationFile.priorities} />
       </div>
       <div>
-        {formattedPriorities && (
-          <TextValue
-            label={nominationFile.priorities.length > 1 ? 'Priorités' : 'Priorité'}
-            value={formattedPriorities}
-          />
-        )}
         <TextValue label={labels.magistrat.currentPosition} value={`${posteActuel} - ${grade}`} />
         {dureeDuPoste && <TextValue label={labels.magistrat.dureeDuPoste} value={dureeDuPoste} />}
         <TextValue label={labels.magistrat.targettedPosition} value={posteCible!} />

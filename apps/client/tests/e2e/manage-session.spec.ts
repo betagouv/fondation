@@ -129,7 +129,9 @@ test.describe('Gérer les sessions', () => {
       await page.switchToEditModeButton.waitFor();
 
       // Alors les cellules "Priorité(s)" des lignes affectées doivent contenir "Étoilé, Outre-mer"
-      test.expect(await row.locator('td:nth-of-type(7)').textContent()).toBe('Outre-mer, Étoilé');
+      const textContent = await row.locator('td:nth-of-type(7)').textContent();
+      test.expect(textContent).toContain('Outre-mer');
+      test.expect(textContent).toContain('Étoilé');
     });
 
     test(`je définis des priorités à plusieurs dossiers`, async ({ app }) => {
@@ -161,7 +163,8 @@ test.describe('Gérer les sessions', () => {
           .locator(page.prioritiesSelectBox)
           .textContent();
 
-        test.expect(selectBoxContent).toBe('Étoilé, Outre-mer');
+        test.expect(selectBoxContent).toContain('E');
+        test.expect(selectBoxContent).toContain('OM');
       }
 
       // Quand je quitte le mode édition
@@ -171,7 +174,9 @@ test.describe('Gérer les sessions', () => {
       // Alors les cellules "Priorité(s)" des lignes affectées doivent contenir "Étoilé, Outre-mer"
       for (const name of ['Anna HARENDT', 'Michel FOUCAULT']) {
         const cellContent = await page.sessionRow({ name }).locator('td:nth-of-type(7)').textContent();
-        test.expect(cellContent).toBe('Étoilé, Outre-mer');
+
+        test.expect(cellContent).toContain('Étoilé');
+        test.expect(cellContent).toContain('Outre-mer');
       }
     });
   });

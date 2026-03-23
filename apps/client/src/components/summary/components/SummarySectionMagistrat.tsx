@@ -4,36 +4,24 @@ import React from 'react';
 import { DateOnly } from '@/models/date-only.model';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
+import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { useSummary } from '@/pages/summary/SummaryContext';
-import { PrioriteEnumLabels } from '@/types/enums.types';
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionMagistrat() {
   const { summary, sessionId, nominationFileId } = useSummary();
 
-  const intlPriorities = React.useMemo(
-    () =>
-      summary.priorities.length > 0
-        ? new Intl.ListFormat('fr', { type: 'conjunction' }).format(
-            summary.priorities.map((x) => PrioriteEnumLabels[x])
-          )
-        : null,
-    [summary]
-  );
-
   return (
     <SummarySectionCard id="magistrat">
-      <h1 className="flex flex-row items-center">
-        <span>{summary.name}</span>
-        <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
-      </h1>
+      <header className="mb-6">
+        <h1 className="mb-0 flex flex-row items-center">
+          <span>{summary.name}</span>
+          <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
+        </h1>
+        <PriorityBadgeList priorities={summary.priorities} small={false} />
+      </header>
 
       <List>
-        <List.Item className="mb-2" isVisible={summary.priorities.length > 0}>
-          <List.ItemTitle>Priorités</List.ItemTitle>
-          <List.ItemContent>{intlPriorities}</List.ItemContent>
-        </List.Item>
-
         <List.Item isVisible={!!summary.birthDate}>
           <List.ItemTitle>Date de naissance</List.ItemTitle>
           <List.ItemContent>
