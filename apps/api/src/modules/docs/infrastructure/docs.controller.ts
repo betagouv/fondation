@@ -16,6 +16,7 @@ import { Role } from 'shared-models';
 
 import { DocsService } from '../docs.service';
 import { CreateAgendaDto, CreatedAgendaDto } from './docs.dto';
+import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
 import {
   FoundChairmenDto,
   SearchChairmenQueryDto,
@@ -48,8 +49,20 @@ export class DocsController {
   ): Promise<CreatedAgendaDto> {
     return this.docs.createAgenda({
       sessionId,
+      date: body.date,
       authorId: authUser.id,
+      chairmanId: body.chairmanId,
       nominationFileIds: body.nominationFileIds,
+      sessionMeetingDate: body.sessionMeetingDate,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/files')
+  @ZodResponse({ type: FoundAgendaNominationFiles, status: HttpStatus.OK })
+  findAgendaNominationFiles(
+    @Param('sessionId') sessionId: string,
+  ): Promise<FoundAgendaNominationFiles> {
+    return this.docs.findAgendaNominationFiles({ sessionId });
   }
 }

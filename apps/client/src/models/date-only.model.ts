@@ -3,7 +3,7 @@ import { fr } from 'date-fns/locale';
 import type { DateOnlyJson } from 'shared-models';
 import { z } from 'zod';
 
-export type DateOnlyStoreModel = {
+type DateOnlyStoreModel = {
   year: number;
   month: number;
   day: number;
@@ -15,10 +15,35 @@ export const dateOnlyJsonSchema = z.object({
   day: z.number().min(1).max(31)
 });
 
+function validDate<T, U>(
+  message: string,
+  mapper: (value: T) => U
+): (value: T, ctx: z.core.ParsePayload) => U {
+  return (input: T, ctx) => {
+    try {
+      return mapper(input);
+    } catch {
+      ctx.issues.push({ code: 'custom', input, message });
+      return z.NEVER;
+    }
+  };
+}
+
 export class DateOnly {
   private readonly value: Date;
 
   static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
+
+  static codec(message?: string) {
+    return z.codec(z.iso.date('Date invalide'), dateOnlyJsonSchema, {
+      decode: validDate(message || 'Date invalide', (value) =>
+        DateOnly.fromDateOnlyString(value, 'yyyy-MM-dd').toStoreModel()
+      ),
+      encode: validDate(message || 'Date invalide', (value) =>
+        DateOnly.fromStoreModel(value).toFormattedString('yyyy-MM-dd')
+      )
+    });
+  }
 
   constructor(year: number, month: number, day: number) {
     // Month is 0-indexed in JS Date

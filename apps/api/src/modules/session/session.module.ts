@@ -18,6 +18,7 @@ import { DetailNominationSessionQuery } from './infrastructure/queries/detail-no
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { GetNominationFileWithCommentQuery } from './infrastructure/queries/get-nomination-file-with-comment.query';
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
+import { InternalFindAgendaNominationFilesQuery } from './infrastructure/queries/internal-find-agenda-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
@@ -41,14 +42,15 @@ import { SummaryModule } from './summary.module';
     AffectationVersionFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
-    CountUsersNewSessionsQuery,
     CountUnaffectedFilesQuery,
+    CountUsersNewSessionsQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     GetLolfiMagistratUrlQuery,
     GetNominationFileWithCommentQuery,
     InternalDetailMemberSessionQuery,
+    InternalFindAgendaNominationFilesQuery,
     InternalListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,
     ListNominationFilesAsExcelQuery,

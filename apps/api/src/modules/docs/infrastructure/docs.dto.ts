@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 export class CreateAgendaDto extends createZodDto(
   z.object({
-    meetingDate: dateOnlyJsonSchema,
+    sessionMeetingDate: dateOnlyJsonSchema,
     date: dateOnlyJsonSchema,
     chairmanId: z.string(),
     nominationFileIds: z.array(z.string()).nonempty(),

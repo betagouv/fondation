@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { Agenda, AgendaCreated } from '../../domain/agenda';
@@ -14,6 +13,7 @@ export class AgendaRepository {
         if (message instanceof AgendaCreated) {
           return this.persistAgendaCreated(message);
         }
+
         return assertNever(message);
       }),
     );
@@ -23,13 +23,27 @@ export class AgendaRepository {
     return this.prisma.agenda.create({
       data: {
         id: message.agendaId,
+        chairmanFirstName: message.chairman.firstName,
+        chairmanLastName: message.chairman.lastName,
+        chairmanGender: message.chairman.gender,
+        date: message.date,
+        sessionMeetingDate: message.sessionMeetingDate,
+        createdBy: message.authorId,
+        chairmanId: message.chairman.id,
+        chairmanTitle: message.chairman.title,
         sessionId: message.sessionId,
-        authorId: message.authorId,
         nominationFiles: {
           createMany: {
-            skipDuplicates: true,
-            data: message.nominationFileIds.map((nominationFileId) => ({
-              nominationFileId,
+            data: message.nominationFiles.map((file) => ({
+              grade: file.grade,
+              name: file.name,
+              position: file.currentPosition,
+              number: file.number,
+              targetedGrade: file.targetedGrade,
+              targetedPosition: file.targetedPosition,
+              nominationFileId: file.id,
+              outcome: file.outcome.value,
+              outcomeComment: file.outcome.comment,
             })),
           },
         },

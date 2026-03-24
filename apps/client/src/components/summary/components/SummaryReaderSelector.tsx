@@ -1,14 +1,16 @@
-import { useSummary } from '@/pages/summary/SummaryContext';
-import { capitalize } from '@/utils/string.utils';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { Button } from '@codegouvfr/react-dsfr/Button';
+import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
+import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
+import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
 import { useDebounce } from 'use-debounce';
+
+import { Marked } from '@/components/shared/Marked';
+import { useSummary } from '@/pages/summary/SummaryContext';
+import { capitalize } from '@/utils/string.utils';
+import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 
 const summaryReadersModal = createModal({
   id: `summaryReadersModal`,
@@ -207,25 +209,5 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         }))}
       />
     </div>
-  );
-}
-
-function Marked(props: { search: string; value: string }) {
-  const trimmed = React.useMemo(() => props.search.trim(), [props.search]);
-  const re = React.useMemo(
-    () => new RegExp('^(?<pre>.*)(?<search>' + trimmed.replace(/\W/g, '.') + ')(?<post>.*)$', 'i'),
-    [trimmed]
-  );
-
-  const result = React.useMemo(() => re.exec(props.value), [re, props.value]);
-
-  if (!trimmed || !result || !result.groups) return props.value;
-
-  return (
-    <span>
-      {result.groups.pre.replace(/\s/g, '\u00A0') || ''}
-      <mark className="rounded-sm bg-light-blue py-1">{result.groups.search || ''}</mark>
-      {result.groups.post.replace(/\s/g, '\u00A0') || ''}
-    </span>
   );
 }

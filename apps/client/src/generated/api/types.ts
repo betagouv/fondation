@@ -1012,12 +1012,40 @@ export type FoundChairmenDto = {
 };
 
 export type CreateAgendaDto = {
-    sessionId: string;
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    chairmanId: string;
     nominationFileIds: Array<string>;
 };
 
 export type CreatedAgendaDto = {
     id: string;
+};
+
+export type FoundAgendaNominationFiles = {
+    items: Array<{
+        agendaCount: number;
+        currentPosition: string;
+        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        id: string;
+        magistratId: string | null;
+        name: string;
+        number: number;
+        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        targetedPosition: string;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
+            comment: string | null;
+        };
+    }>;
 };
 
 export type GetFileByFileUrlData = {
@@ -2305,9 +2333,11 @@ export type SearchChairmenResponse = SearchChairmenResponses[keyof SearchChairme
 
 export type CreateAgendaData = {
     body: CreateAgendaDto;
-    path?: never;
+    path: {
+        sessionId: string;
+    };
     query?: never;
-    url: '/api/docs/v1/agendas';
+    url: '/api/docs/v1/sessions/{sessionId}/agendas';
 };
 
 export type CreateAgendaResponses = {
@@ -2315,3 +2345,18 @@ export type CreateAgendaResponses = {
 };
 
 export type CreateAgendaResponse = CreateAgendaResponses[keyof CreateAgendaResponses];
+
+export type FindAgendaNominationFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/files';
+};
+
+export type FindAgendaNominationFilesResponses = {
+    200: FoundAgendaNominationFiles;
+};
+
+export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];

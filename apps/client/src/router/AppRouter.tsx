@@ -21,6 +21,7 @@ import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleT
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
+import { NewAgendaPage } from '../pages/secretariat-general/agenda/NewAgendaPage';
 import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
 import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
 import { SessionsPage } from '../pages/transparence/SessionsPage';
@@ -117,6 +118,10 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
             element: <DetailsMemberPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.NEW_AGENDA,
+            element: <NewAgendaPage />
           }
         ]
       },
