@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { RoleEnum } from '@/types/enums.types';
+import type { AdminUserRoleEnum } from '@/pages/admin/users/admin-user-enum';
 import * as $api from '@api/sdk';
 import type { DetailedAdminUserDto } from '@api/types';
 
@@ -12,7 +12,7 @@ export const adminKeys = {
 
 export function useAdminUsersQuery(params: {
   search?: string;
-  roles?: RoleEnum[];
+  roles?: AdminUserRoleEnum[];
   pagination: { pageIndex: number; pageSize: number };
   sorting: [{ sortBy: 'lastName'; sortDesc: boolean }] | [];
 }) {
@@ -72,34 +72,9 @@ export function useUpdateUserPasswordMutation(userId: string) {
 export function useUpdateUserRoleMutation(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { role: RoleEnum }) => $api.administration.updateRole({ path: { userId }, body }),
+    mutationFn: (body: { role: AdminUserRoleEnum }) =>
+      $api.administration.updateRole({ path: { userId }, body }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) })
-  });
-}
-
-export function useUpdateUserTitleMutation(userId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: { title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null }) =>
-      $api.administration.updateTitle({
-        path: { userId },
-        body: { title: body.title as DetailedAdminUserDto['title'] }
-      }),
-
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) })
-  });
-}
-
-export function useUpdateUserDutyMutation(userId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: { duty: 'PRESIDENT' | 'SECRETARY' | 'OFFICER' | null }) =>
-      $api.administration.updateDuty({
-        path: { userId },
-        body: { duty: body.duty as DetailedAdminUserDto['duty'] }
-      }),
-    onSuccess: (_, { duty }) =>
-      updateUser(queryClient, userId, { duty: duty as DetailedAdminUserDto['duty'] })
   });
 }
 
@@ -109,5 +84,23 @@ export function useUpdateUserDisplayTitleMutation(userId: string) {
     mutationFn: (body: { displayTitle: string | null }) =>
       $api.administration.updateDisplayTitle({ path: { userId }, body }),
     onSuccess: (_, { displayTitle }) => updateUser(queryClient, userId, { displayTitle })
+  });
+}
+
+export function usePromoteUserToAdmin(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.promoteToAdmin({ path: { userId } }),
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: true })
+  });
+}
+
+export function useDemoteUserFromAdmin(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.demoteFromAdmin({ path: { userId } }),
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: false })
   });
 }

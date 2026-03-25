@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -8,6 +9,7 @@ import {
   ParseUUIDPipe,
   Put,
   Query,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
@@ -19,19 +21,19 @@ import {
 } from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
 import { AdministrationService } from '../administration.service';
+import { AdministrationErrorMapper } from './administration.filter';
 import {
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
-  UpdateUserDutyDto,
   UpdateUserEmailDto,
   UpdateUserPasswordDto,
   UpdateUserRoleDto,
-  UpdateUserTitleDto,
 } from './dto/administration.dto';
 import { DetailedAdminUserDto } from './queries/details-user.query';
 import { PaginatedAdminUserListItemDto } from './queries/list-users.query';
 
-@Controller('/api/administration')
+@Controller('/api/administration/v1')
+@UseInterceptors(AdministrationErrorMapper)
 export class AdministrationController {
   constructor(private readonly administration: AdministrationService) {}
 
@@ -91,29 +93,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { role }: UpdateUserRoleDto,
   ): Promise<void> {
-    return this.administration.updateRole({ userId, role: role as Role });
-  }
-
-  @HasRole(Role.ADMIN)
-  @Put('/users/:userId/title')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  updateTitle(
-    @Param('userId', ParseUUIDPipe) userId: string,
-    @Body() { title }: UpdateUserTitleDto,
-  ): Promise<void> {
-    return this.administration.updateTitle({ userId, title });
-  }
-
-  @HasRole(Role.ADMIN)
-  @Put('/users/:userId/duty')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  updateDuty(
-    @Param('userId', ParseUUIDPipe) userId: string,
-    @Body() { duty }: UpdateUserDutyDto,
-  ): Promise<void> {
-    return this.administration.updateDuty({ userId, duty });
+    return this.administration.updateTole({ userId, role });
   }
 
   @HasRole(Role.ADMIN)
@@ -125,5 +105,23 @@ export class AdministrationController {
     @Body() { displayTitle }: UpdateUserDisplayTitleDto,
   ): Promise<void> {
     return this.administration.updateDisplayTitle({ userId, displayTitle });
+  }
+
+  @HasRole(Role.ADMIN)
+  @Put('/users/:userId/promotion')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  promoteToAdmin(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.promoteToAdmin({ userId });
+  }
+
+  @HasRole(Role.ADMIN)
+  @Delete('/users/:userId/promotion')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  demoteFromAdmin(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.demoteFromAdmin({ userId });
   }
 }

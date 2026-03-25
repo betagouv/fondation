@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Role } from 'shared-models';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import {
@@ -9,8 +8,16 @@ import {
 } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { assertIsDefined } from 'src/utils/is-defined';
 import z from 'zod';
-import { USER_TITLES } from '../../domain/user-enum';
+import { AdminUserRole } from '../../domain/admin-user-role';
+import {
+  ADMIN_USER_ROLES_ENUM,
+  AdminUserRoleEnum,
+  adminUserRoleEnumToDuty,
+  adminUserRoleEnumToIdentityRoles,
+  adminUserRoleEnumToTitle,
+} from '../../domain/user-enum';
 import { ListUsersQueryDto } from '../dto/administration.dto';
 
 @Injectable()
@@ -19,20 +26,44 @@ export class ListUsersQuery {
 
   async handle(query: {
     search?: string;
-    roles?: Role[];
+    roles?: AdminUserRoleEnum[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
+    const roles: Prisma.UserWhereInput[] | undefined = query.roles?.map(
+      (role) => {
+        const idRoles = adminUserRoleEnumToIdentityRoles(role);
+        return {
+          title: adminUserRoleEnumToTitle(role),
+          duty: adminUserRoleEnumToDuty(role),
+
+          role: idRoles.length === 1 ? idRoles[0] : undefined,
+          OR:
+            idRoles.length > 1 ? idRoles.map((role) => ({ role })) : undefined,
+        } satisfies Prisma.UserWhereInput;
+      },
+    );
+
+    const whereRole: Prisma.UserWhereInput = roles
+      ? roles.length === 1
+        ? assertIsDefined(roles[0], 'no role condition available')
+        : { OR: roles }
+      : {};
+
     const where: Prisma.UserWhereInput = {
-      role: (query.roles?.length ?? 0) > 0 ? { in: query.roles } : undefined,
-      OR: query.search
-        ? // prettier-ignore
-          [
-            { email: { contains: query.search, mode: 'insensitive' as const } },
-            { firstName: { contains: query.search, mode: 'insensitive' as const } },
-            { lastName: { contains: query.search, mode: 'insensitive' as const } },
-          ]
-        : undefined,
+      AND: [
+        whereRole,
+        {
+          OR: query.search
+            ? // prettier-ignore
+              [
+              { email: { contains: query.search, mode: 'insensitive' as const } },
+              { firstName: { contains: query.search, mode: 'insensitive' as const } },
+              { lastName: { contains: query.search, mode: 'insensitive' as const } },
+            ]
+            : undefined,
+        },
+      ],
     };
 
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
@@ -46,6 +77,7 @@ export class ListUsersQuery {
           email: true,
           role: true,
           title: true,
+          duty: true,
         },
         where,
         orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
@@ -56,25 +88,25 @@ export class ListUsersQuery {
 
     return paginate({
       totalCount,
-      items: items.map((u) => ({
+      items: items.map(({ role, title, duty, ...u }) => ({
         ...u,
-        title: u.title ?? null,
-        role: prismaRoleEnumToRoleEnum(u.role),
+        role: AdminUserRole.from({
+          role: prismaRoleEnumToRoleEnum(role),
+          title: title ?? null,
+          duty: duty ?? null,
+        }).toString(),
       })),
       pagination: query.pagination,
     });
   }
 }
 
-const AdminUserListItemSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string(),
-  role: z.enum(Role),
-  title: z.enum(USER_TITLES).nullable(),
-});
-
 export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
-  AdminUserListItemSchema,
+  z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+    role: z.enum(ADMIN_USER_ROLES_ENUM),
+  }),
 ) {}

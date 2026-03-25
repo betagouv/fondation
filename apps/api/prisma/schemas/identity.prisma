@@ -67,6 +67,8 @@ enum PrismaUserTitleEnum {
   PRESIDENT_SIEGE
   PRESIDENT_PARQUET
   FIRST_SECRETARY
+  DEPUTY_PRESIDENT_SIEGE
+  DEPUTY_PRESIDENT_PARQUET
 
   @@map("user_title_enum")
   @@schema("nominations_context")
@@ -74,6 +76,7 @@ enum PrismaUserTitleEnum {
 
 enum PrismaUserDutyEnum {
   PRESIDENT
+  DEPUTY_PRESIDENT
   SECRETARY
   OFFICER
 
