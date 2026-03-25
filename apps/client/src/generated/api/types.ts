@@ -1000,6 +1000,54 @@ export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
 };
 
+export type FoundChairmenDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        duty: 'PRESIDENT';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
+        displayTitle: string | null;
+    }>;
+};
+
+export type CreateAgendaDto = {
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    chairmanId: string;
+    nominationFileIds: Array<string>;
+};
+
+export type CreatedAgendaDto = {
+    id: string;
+};
+
+export type FoundAgendaNominationFiles = {
+    items: Array<{
+        agendaCount: number;
+        currentPosition: string;
+        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        id: string;
+        magistratId: string | null;
+        name: string;
+        number: number;
+        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        targetedPosition: string;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
+            comment: string | null;
+        };
+    }>;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     path: {
@@ -2144,7 +2192,7 @@ export type ListUsersData = {
     body?: never;
     path?: never;
     query?: {
-        sortBy?: 'firstName' | 'lastName' | 'email';
+        sortBy?: 'lastName';
         search?: string;
         roles?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | Array<'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN'>;
         /**
@@ -2267,3 +2315,48 @@ export type UpdateDisplayTitle2Responses = {
 };
 
 export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
+
+export type SearchChairmenData = {
+    body?: never;
+    path?: never;
+    query?: {
+        formation?: 'PARQUET' | 'SIEGE';
+    };
+    url: '/api/docs/v1/chairmen';
+};
+
+export type SearchChairmenResponses = {
+    200: FoundChairmenDto;
+};
+
+export type SearchChairmenResponse = SearchChairmenResponses[keyof SearchChairmenResponses];
+
+export type CreateAgendaData = {
+    body: CreateAgendaDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/agendas';
+};
+
+export type CreateAgendaResponses = {
+    201: CreatedAgendaDto;
+};
+
+export type CreateAgendaResponse = CreateAgendaResponses[keyof CreateAgendaResponses];
+
+export type FindAgendaNominationFilesData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/files';
+};
+
+export type FindAgendaNominationFilesResponses = {
+    200: FoundAgendaNominationFiles;
+};
+
+export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];

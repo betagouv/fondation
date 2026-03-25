@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AdministrationModule } from './administration/administration.module';
+import { DocsModule } from './docs/docs.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
@@ -20,6 +21,7 @@ import { SimpleAuthModule } from './simple-auth';
     MaintenanceModule,
     ObservationModule,
     AdministrationModule,
+    DocsModule,
   ],
 })
 class FondationModule {}

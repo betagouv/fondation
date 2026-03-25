@@ -10,6 +10,10 @@ import {
 import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
 import { InternalFindMembersQuery } from './queries/internal-find-members.query';
 import {
+  InternalGetMemberQuery,
+  InternalMemberDto,
+} from './queries/internal-get-member.query';
+import {
   ListMembersQuery,
   PaginatedMemberListItemDto,
 } from './queries/list-members.query';
@@ -22,6 +26,7 @@ export class MembersService {
     private readonly detailsMemberQuery: DetailsMemberQuery,
     private readonly internalFindMembersQuery: InternalFindMembersQuery,
     private readonly internalFindMembersByFullName: InternalFindMembersByFullNameQuery,
+    private readonly internalGetMemberQuery: InternalGetMemberQuery,
   ) {}
 
   listMembers(query: {
@@ -81,5 +86,10 @@ export class MembersService {
     { fullName: string; id: string; firstName: string; lastName: string }[]
   > {
     return this.internalFindMembersByFullName.handle(query);
+  }
+
+  /** @internal */
+  internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
+    return this.internalGetMemberQuery.handle(query);
   }
 }

@@ -1,42 +1,9 @@
 import type { RiIconClassName } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { flexRender, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import React from 'react';
-
-function IndeterminateCheckbox(
-  props: React.PropsWithChildren<{
-    checked: boolean;
-    indeterminate: boolean;
-    small: boolean;
-    onChange: React.ChangeEventHandler<HTMLInputElement>;
-  }>
-) {
-  const checkboxRef = React.useRef<HTMLInputElement | null>(null);
-  React.useEffect(() => {
-    if (checkboxRef.current) {
-      checkboxRef.current.indeterminate = props.checked && props.indeterminate;
-    }
-  }, [checkboxRef, props.indeterminate, props.checked]);
-
-  return (
-    <Checkbox
-      small
-      options={[
-        {
-          label: props.children,
-          nativeInputProps: {
-            checked: props.checked,
-            onChange: props.onChange,
-            ref: checkboxRef
-          }
-        }
-      ]}
-    ></Checkbox>
-  );
-}
+import { IndeterminateCheckbox } from '../indeterminate-checkbox/IndeterminateCheckbox';
 
 /** @internal */
 export function ReactTableHead<Data extends RowData>(props: { table: Table<Data> }) {

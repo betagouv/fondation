@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
-import { formationToMemberRole } from '../member.utils';
+import { formationToMemberRole } from '../../../shared/formation-to-member-role';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {

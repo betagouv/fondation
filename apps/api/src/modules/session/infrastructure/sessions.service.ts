@@ -59,6 +59,10 @@ import {
   InternalDetailMemberSessionQuery,
 } from './queries/internal-detail-member-session.query';
 import {
+  InternalFindAgendaNominationFilesQuery,
+  InternalFoundAgendaNominationFiles,
+} from './queries/internal-find-agenda-nomination-files.query';
+import {
   InternalListMemberSessionsQuery,
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
@@ -94,6 +98,7 @@ export class SessionService {
     private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+    private readonly internalFindAgendaNominationFilesQuery: InternalFindAgendaNominationFilesQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
@@ -516,5 +521,12 @@ export class SessionService {
           });
       }
     }
+  }
+
+  async internalFindAgendaNominationFiles(query: {
+    sessionId: string;
+    ids?: readonly string[] | undefined;
+  }): Promise<InternalFoundAgendaNominationFiles> {
+    return this.internalFindAgendaNominationFilesQuery.handle(query);
   }
 }

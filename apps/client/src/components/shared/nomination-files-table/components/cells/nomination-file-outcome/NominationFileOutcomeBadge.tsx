@@ -16,7 +16,7 @@ function InnerNominationFileOutcomeBadge(props: {
   if (props.outcome === null) return '-';
 
   return (
-    <Badge small severity={severity} noIcon>
+    <Badge small severity={severity} noIcon as="span">
       {icon && (
         <i className={`mr-1 leading-3 before:size-3 before:align-middle before:content-[""] ${icon}`} />
       )}

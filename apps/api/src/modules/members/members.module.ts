@@ -6,6 +6,7 @@ import { MembersService } from './infrastructure/members.service';
 import { DetailsMemberQuery } from './infrastructure/queries/details-member.query';
 import { InternalFindMembersByFullNameQuery } from './infrastructure/queries/internal-find-members-by-full-name.query';
 import { InternalFindMembersQuery } from './infrastructure/queries/internal-find-members.query';
+import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-member.query';
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
 import { JurisdictionsController } from './jurisdictions.controller';
@@ -17,13 +18,14 @@ import { MembersController } from './members.controller';
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,
+    InternalFindMembersByFullNameQuery,
     InternalFindMembersQuery,
+    InternalGetMemberQuery,
     JurisdictionsService,
     ListMembersQuery,
     MemberRepository,
     MembersService,
     SearchJurisdictionsQuery,
-    InternalFindMembersByFullNameQuery,
   ],
 })
 export class MembersModule {}
