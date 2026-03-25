@@ -26,6 +26,7 @@
     "@sentry/react": "^10.40.0",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/core": "^3.20.0",
     "@tiptap/extension-bold": "^3.20.0",
     "@tiptap/extension-bullet-list": "^3.20.0",

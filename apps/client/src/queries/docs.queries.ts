@@ -1,6 +1,7 @@
 import type { FormationEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { DateOnlyJson } from 'shared-models';
 import { sessionKeys } from './nomination-sessions.queries';
 
 const agendaKeys = {
@@ -19,7 +20,12 @@ export function useCreateAgendaMutation() {
   return useMutation({
     mutationFn: (command: {
       sessionId: string;
-      body: { sessionMeetingDate: string; date: string; chairmanId: string; nominationFileIds: string[] };
+      body: {
+        sessionMeetingDate: DateOnlyJson;
+        date: DateOnlyJson;
+        chairmanId: string;
+        nominationFileIds: string[];
+      };
     }) =>
       $api.docs
         .createAgenda({ path: { sessionId: command.sessionId }, body: command.body })

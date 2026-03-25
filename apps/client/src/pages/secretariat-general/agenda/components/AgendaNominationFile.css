@@ -1,0 +1,3 @@
+.anf.fr-checkbox-group--sm input[type='checkbox'] + label::before {
+  margin-top: 1.25rem;
+}
