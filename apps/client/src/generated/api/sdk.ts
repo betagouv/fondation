@@ -6,7 +6,7 @@
 
 import { client } from './client.ts';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.ts';
-import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AttachMemberCommentScreenshotsData, AttachMemberCommentScreenshotsResponses, AttachScreenshotsData, AttachScreenshotsResponses, AttachSummaryFilesData, AttachSummaryFilesResponses, AutoAffectationData, AutoAffectationResponses, CountNominationFilesByStatusData, CountNominationFilesByStatusResponses, CountUnaffectedNominationFilesData, CountUnaffectedNominationFilesResponses, CountUsersNewSessionsData, CountUsersNewSessionsResponses, CreateAgendaData, CreateAgendaResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DetachFilesData, DetachFilesResponses, DetachSummaryFilesData, DetachSummaryFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsJobData, DetailsJobResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailSummaryData, DetailSummaryResponses, DetailsUserData, DetailsUserResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, FindAgendaNominationFilesData, FindAgendaNominationFilesResponses, FollowUpOnObservationData, FollowUpOnObservationResponses, GenerateAttachmentPublicUrlData, GenerateAttachmentPublicUrlResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetHealthData, GetHealthResponses, GetLolfiMagistratUrlData, GetLolfiMagistratUrlResponses, GetObservationDetailsData, GetObservationDetailsResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, HideNominationFileAlertData, HideNominationFileAlertResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IngestLolfiArchiveData, IngestLolfiArchiveResponses, IntrospectSessionData, IntrospectSessionResponses, ListCurrentlyAffectedReportersData, ListCurrentlyAffectedReportersResponses, ListJobsData, ListJobsResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesAsExcelData, ListNominationFilesAsExcelResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, ListUsersData, ListUsersResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchChairmenData, SearchChairmenResponses, SearchData, SearchFullNameData, SearchFullNameResponses, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, SearchSummaryReadersData, SearchSummaryReadersResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateDisplayTitle2Data, UpdateDisplayTitle2Responses, UpdateDisplayTitleData, UpdateDisplayTitleResponses, UpdateDutyData, UpdateDutyResponses, UpdateEmailData, UpdateEmailResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdatePasswordData, UpdatePasswordResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateRoleData, UpdateRoleResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UpdateSummaryReadersListData, UpdateSummaryReadersListResponses, UpdateTitle2Data, UpdateTitle2Responses, UpdateTitleData, UpdateTitleResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses, UploadSessionAttachmentsData, UploadSessionAttachmentsResponses, ValidateSessionData, ValidateSessionResponses, WriteMemberCommentData, WriteMemberCommentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
+import type { AffectReportersData, AffectReportersResponses, AttachFilesData, AttachFilesResponses, AttachMemberCommentScreenshotsData, AttachMemberCommentScreenshotsResponses, AttachScreenshotsData, AttachScreenshotsResponses, AttachSummaryFilesData, AttachSummaryFilesResponses, AutoAffectationData, AutoAffectationResponses, CountNominationFilesByStatusData, CountNominationFilesByStatusResponses, CountUnaffectedNominationFilesData, CountUnaffectedNominationFilesResponses, CountUsersNewSessionsData, CountUsersNewSessionsResponses, CreateAgendaData, CreateAgendaResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteObservationData, DeleteObservationResponses, DemoteFromAdminData, DemoteFromAdminResponses, DetachFilesData, DetachFilesResponses, DetachSummaryFilesData, DetachSummaryFilesResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsJobData, DetailsJobResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailSummaryData, DetailSummaryResponses, DetailsUserData, DetailsUserResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, FindAgendaNominationFilesData, FindAgendaNominationFilesResponses, FollowUpOnObservationData, FollowUpOnObservationResponses, GenerateAttachmentPublicUrlData, GenerateAttachmentPublicUrlResponses, GetCommentAccessData, GetCommentAccessResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetHealthData, GetHealthResponses, GetLolfiMagistratUrlData, GetLolfiMagistratUrlResponses, GetObservationDetailsData, GetObservationDetailsResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, HideNominationFileAlertData, HideNominationFileAlertResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IngestLolfiArchiveData, IngestLolfiArchiveResponses, IntrospectSessionData, IntrospectSessionResponses, ListCurrentlyAffectedReportersData, ListCurrentlyAffectedReportersResponses, ListJobsData, ListJobsResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFilesAsExcelData, ListNominationFilesAsExcelResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, ListUsersData, ListUsersResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PromoteToAdminData, PromoteToAdminResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, SearchChairmenData, SearchChairmenResponses, SearchData, SearchFullNameData, SearchFullNameResponses, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, SearchSummaryReadersData, SearchSummaryReadersResponses, UpdateCommentAccessData, UpdateCommentAccessResponses, UpdateDisplayTitle2Data, UpdateDisplayTitle2Responses, UpdateDisplayTitleData, UpdateDisplayTitleResponses, UpdateEmailData, UpdateEmailResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdatePasswordData, UpdatePasswordResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateRoleData, UpdateRoleResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UpdateSummaryReadersListData, UpdateSummaryReadersListResponses, UpdateTitleData, UpdateTitleResponses, UploadSessionAttachmentData, UploadSessionAttachmentResponses, UploadSessionAttachmentsData, UploadSessionAttachmentsResponses, ValidateSessionData, ValidateSessionResponses, WriteMemberCommentData, WriteMemberCommentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -556,16 +556,16 @@ export class magistrats {
 
 export class administration {
     public static listUsers<ThrowOnError extends boolean = false>(options?: Options<ListUsersData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListUsersResponses, unknown, ThrowOnError>({ url: '/api/administration/users', ...options });
+        return (options?.client ?? client).get<ListUsersResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users', ...options });
     }
     
     public static detailsUser<ThrowOnError extends boolean = false>(options: Options<DetailsUserData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailsUserResponses, unknown, ThrowOnError>({ url: '/api/administration/users/{userId}', ...options });
+        return (options.client ?? client).get<DetailsUserResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}', ...options });
     }
     
     public static updateEmail<ThrowOnError extends boolean = false>(options: Options<UpdateEmailData, ThrowOnError>) {
         return (options.client ?? client).put<UpdateEmailResponses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/email',
+            url: '/api/administration/v1/users/{userId}/email',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -576,7 +576,7 @@ export class administration {
     
     public static updatePassword<ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>) {
         return (options.client ?? client).put<UpdatePasswordResponses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/password',
+            url: '/api/administration/v1/users/{userId}/password',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -587,29 +587,7 @@ export class administration {
     
     public static updateRole<ThrowOnError extends boolean = false>(options: Options<UpdateRoleData, ThrowOnError>) {
         return (options.client ?? client).put<UpdateRoleResponses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/role',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static updateTitle<ThrowOnError extends boolean = false>(options: Options<UpdateTitle2Data, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateTitle2Responses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/title',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static updateDuty<ThrowOnError extends boolean = false>(options: Options<UpdateDutyData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateDutyResponses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/duty',
+            url: '/api/administration/v1/users/{userId}/role',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -620,13 +598,21 @@ export class administration {
     
     public static updateDisplayTitle<ThrowOnError extends boolean = false>(options: Options<UpdateDisplayTitle2Data, ThrowOnError>) {
         return (options.client ?? client).put<UpdateDisplayTitle2Responses, unknown, ThrowOnError>({
-            url: '/api/administration/users/{userId}/display-title',
+            url: '/api/administration/v1/users/{userId}/display-title',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
         });
+    }
+    
+    public static demoteFromAdmin<ThrowOnError extends boolean = false>(options: Options<DemoteFromAdminData, ThrowOnError>) {
+        return (options.client ?? client).delete<DemoteFromAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
+    }
+    
+    public static promoteToAdmin<ThrowOnError extends boolean = false>(options: Options<PromoteToAdminData, ThrowOnError>) {
+        return (options.client ?? client).put<PromoteToAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
     }
 }
 

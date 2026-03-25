@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AdminUserTitle should always map to the same values 1`] = `
+[
+  {
+    "duty": "SECRETARY",
+    "input": "FIRST_SECRETARY",
+    "title": "FIRST_SECRETARY",
+  },
+  {
+    "duty": "SECRETARY",
+    "input": "SECRETARY",
+    "title": null,
+  },
+  {
+    "duty": "OFFICER",
+    "input": "OFFICER",
+    "title": null,
+  },
+  {
+    "duty": "PRESIDENT",
+    "input": "PRESIDENT_SIEGE",
+    "title": "PRESIDENT_SIEGE",
+  },
+  {
+    "duty": "DEPUTY_PRESIDENT",
+    "input": "DEPUTY_PRESIDENT_SIEGE",
+    "title": "DEPUTY_PRESIDENT_SIEGE",
+  },
+  {
+    "duty": "PRESIDENT",
+    "input": "PRESIDENT_PARQUET",
+    "title": "PRESIDENT_PARQUET",
+  },
+  {
+    "duty": "DEPUTY_PRESIDENT",
+    "input": "DEPUTY_PRESIDENT_PARQUET",
+    "title": "DEPUTY_PRESIDENT_PARQUET",
+  },
+  {
+    "duty": null,
+    "input": "MEMBRE_PARQUET",
+    "title": null,
+  },
+  {
+    "duty": null,
+    "input": "MEMBRE_SIEGE",
+    "title": null,
+  },
+  {
+    "duty": null,
+    "input": "MEMBRE_COMMUN",
+    "title": null,
+  },
+]
+`;

@@ -49,7 +49,7 @@ model AgendaNominationFile {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   agenda         Agenda               @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id])
+  nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@map("agenda_nomination_file")
   @@schema("docs")

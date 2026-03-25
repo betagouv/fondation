@@ -2,33 +2,31 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import React from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { generatePath, useNavigate, useParams } from 'react-router';
 
 import type { DetailedAdminUserDto } from '@api/types';
 import {
   useAdminUserDetailQuery,
+  useDemoteUserFromAdmin,
+  usePromoteUserToAdmin,
   useUpdateUserDisplayTitleMutation,
-  useUpdateUserDutyMutation,
   useUpdateUserEmailMutation,
   useUpdateUserPasswordMutation,
-  useUpdateUserRoleMutation,
-  useUpdateUserTitleMutation
+  useUpdateUserRoleMutation
 } from '@queries/administration.queries';
-import { useLogout, useUser } from '@queries/auth.queries';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { RoleEnumLabels, type RoleEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
+import { authKeys, useUser } from '@queries/auth.queries';
+import { useQueryClient } from '@tanstack/react-query';
 import {
+  AdminUserRoleLabel,
+  PROMOTABLE_ROLES,
   ROLE_OPTIONS,
-  USER_DUTY_ENUM_OPTIONS,
-  USER_TITLE_ENUM_OPTIONS,
-  UserDutyEnumLabels,
-  UserTitleEnumLabels,
-  type UserDutyEnum,
-  type UserTitleEnum
+  type AdminUserRoleEnum
 } from './admin-user-enum';
 
 function EmailField(props: { user: DetailedAdminUserDto }) {
@@ -255,49 +253,85 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function RoleField(props: { user: DetailedAdminUserDto }) {
-  const confirmation = useConfirmation();
+function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className?: string }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const confirmation = useConfirmation();
+  const { user: currentUser } = useUser();
+  const promote = usePromoteUserToAdmin(props.user.id);
+  const demote = useDemoteUserFromAdmin(props.user.id);
+
+  const onChange = React.useCallback(
+    async (checked: boolean) => {
+      if (checked) {
+        promote.mutate();
+      } else {
+        if (props.user.id === currentUser?.id) {
+          const { isConfirmed } = await confirmation.waitForConfirmation({
+            title: `Vous allez changer vos droits`,
+            content: (
+              <>
+                <p>
+                  En confirmant, vous allez vous retirer les droits d'administration. Vous ne pourrez plus
+                  accéder à cette page ensuite.
+                </p>
+                <p className="font-bold">Êtes-vous sûr de vouloir continuer ?</p>
+              </>
+            )
+          });
+
+          if (!isConfirmed) return;
+        }
+
+        demote.mutate(undefined, {
+          onSuccess() {
+            if (props.user.id === currentUser?.id) {
+              queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
+              return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
+            }
+          }
+        });
+      }
+    },
+    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate]
+  );
+
+  if (!PROMOTABLE_ROLES.includes(props.user.role)) return null;
+
+  return (
+    <ToggleSwitch
+      classes={{ label: 'before:!mr-1' }}
+      className={props.className}
+      checked={props.user.isAdmin}
+      disabled={promote.isPending || demote.isPending}
+      onChange={onChange}
+      label="Administrateur"
+      showCheckedHint={false}
+    />
+  );
+}
+
+function RoleField(props: { user: DetailedAdminUserDto }) {
   const [isEditing, setEditing] = React.useState(false);
 
-  const { user: currentUser } = useUser();
-  const { mutate: logout } = useLogout();
   const { mutate: updateRole, isPending, error } = useUpdateUserRoleMutation(props.user.id);
 
   const handleChange = React.useCallback(
     async (e: React.ChangeEvent<HTMLSelectElement>) => {
       e.preventDefault();
-      const newRole = e.target.value as unknown as RoleEnum;
-
+      const newRole = e.target.value as unknown as AdminUserRoleEnum;
       if (newRole === props.user.role) return;
-
-      const isSelfDemotion = currentUser?.id === props.user.id && newRole !== 'ADMIN';
-      if (isSelfDemotion) {
-        const { isConfirmed } = await confirmation.waitForConfirmation({
-          title: 'Vous allez perdre vos droits administrateur',
-          content: 'Cette action modifie votre rôle. Vous serez déconnecté immédiatement.'
-        });
-
-        if (!isConfirmed) {
-          setEditing(false);
-          return;
-        }
-      }
 
       updateRole(
         { role: newRole },
         {
           onSuccess: () => {
             setEditing(false);
-
-            if (isSelfDemotion) {
-              logout(undefined, { onSuccess: () => navigate(ROUTE_PATHS.LOGIN) });
-            }
           }
         }
       );
     },
-    [props, confirmation, currentUser, setEditing, logout, navigate, updateRole]
+    [props, setEditing, updateRole]
   );
 
   return (
@@ -334,107 +368,22 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           stateRelatedMessage={error ? 'Erreur à la mise à jour du rôle' : undefined}
           nativeSelectProps={{ autoFocus: true, onChange: handleChange, defaultValue: props.user.role }}
         >
-          {ROLE_OPTIONS.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
-            </option>
+          {ROLE_OPTIONS.map(({ name, options }) => (
+            <optgroup label={name}>
+              {options.map(({ id, label }) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </Select>
       ) : (
         <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
-          {RoleEnumLabels[props.user.role]}
+          {AdminUserRoleLabel[props.user.role]}
         </dd>
       )}
-    </div>
-  );
-}
-
-function TitleField(props: { user: DetailedAdminUserDto }) {
-  const confirmation = useConfirmation();
-  const [isEditing, setEditing] = React.useState(false);
-  const { mutate, isPending, error } = useUpdateUserTitleMutation(props.user.id);
-
-  const handleChange = React.useCallback(
-    async (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newTitle = (e.target.value || null) as unknown as UserTitleEnum | null;
-
-      if (newTitle === props.user.title) {
-        setEditing(false);
-        return;
-      }
-
-      if (newTitle) {
-        const fullName = toFullName(props.user);
-        const { isConfirmed } = await confirmation.waitForConfirmation({
-          title: `Remplacement du ${UserTitleEnumLabels[newTitle]}`,
-          content: `${fullName} remplacera le ${UserTitleEnumLabels[newTitle]} actuel`
-        });
-
-        if (!isConfirmed) {
-          setEditing(false);
-          return;
-        }
-      }
-
-      mutate({ title: newTitle }, { onSuccess: () => setEditing(false) });
-    },
-    [confirmation, props, mutate]
-  );
-
-  return (
-    <div>
-      <div className="mb-2 flex justify-between">
-        <dt className="font-bold">Distinction</dt>
-        {isEditing ? (
-          <Button
-            size="small"
-            disabled={isPending}
-            onClick={() => setEditing(false)}
-            type="button"
-            priority="primary"
-            iconId="ri-check-line"
-          >
-            Ok
-          </Button>
-        ) : (
-          <Button
-            onClick={() => setEditing(true)}
-            disabled={isPending}
-            title="Modifier la distinction"
-            priority="tertiary no outline"
-            size="small"
-            className="rounded-full"
-            iconId="fr-icon-edit-fill"
-          />
-        )}
-      </div>
-      {isEditing ? (
-        <Select
-          label=""
-          state={error ? 'error' : undefined}
-          stateRelatedMessage={error ? 'Erreur à la mise à jour de la distinction' : undefined}
-          nativeSelectProps={{
-            defaultValue: props.user.title,
-            autoFocus: true,
-            onChange: handleChange
-          }}
-        >
-          <option value="">Aucune</option>
-          {USER_TITLE_ENUM_OPTIONS.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
-            </option>
-          ))}
-        </Select>
-      ) : (
-        <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
-          {props.user.title ? (
-            UserTitleEnumLabels[props.user.title]
-          ) : (
-            <span className="text-gray-400">Aucun</span>
-          )}
-        </dd>
-      )}
+      <AdminUserPromotionToggle className="ml-4 mt-2" user={props.user} />
     </div>
   );
 }
@@ -516,116 +465,22 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function DutyField(props: { user: DetailedAdminUserDto }) {
-  const [isEditing, setEditing] = React.useState(false);
-  const { mutate, isPending, error } = useUpdateUserDutyMutation(props.user.id);
-
-  const handleChange = React.useCallback(
-    async (e: React.ChangeEvent<HTMLSelectElement>) => {
-      e.preventDefault();
-
-      const newDuty = (e.target.value || null) as unknown as UserDutyEnum | null;
-      if (newDuty === props.user.duty) {
-        setEditing(false);
-        return;
-      }
-
-      mutate({ duty: newDuty }, { onSuccess: () => setEditing(false) });
-    },
-    [props, setEditing, mutate]
-  );
-
-  return (
-    <div>
-      <div className="mb-2 flex justify-between">
-        <dt className="font-bold">Fonction</dt>
-        {isEditing ? (
-          <Button
-            size="small"
-            disabled={isPending}
-            onClick={() => setEditing(false)}
-            type="button"
-            priority="primary"
-            iconId="ri-check-line"
-          >
-            Ok
-          </Button>
-        ) : (
-          <Button
-            onClick={() => setEditing(true)}
-            disabled={isPending}
-            title="Modifier la fonction"
-            priority="tertiary no outline"
-            size="small"
-            className="rounded-full"
-            iconId="fr-icon-edit-fill"
-          />
-        )}
-      </div>
-      {isEditing ? (
-        <Select
-          label=""
-          state={error ? 'error' : undefined}
-          stateRelatedMessage={error ? 'Erreur à la mise à jour de la fonction' : undefined}
-          nativeSelectProps={{
-            defaultValue: props.user.duty,
-            autoFocus: true,
-            onChange: handleChange
-          }}
-        >
-          <option value="">Aucune</option>
-          {USER_DUTY_ENUM_OPTIONS.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
-            </option>
-          ))}
-        </Select>
-      ) : (
-        <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
-          {props.user.duty ? (
-            UserDutyEnumLabels[props.user.duty]
-          ) : (
-            <span className="text-gray-400">Aucune</span>
-          )}
-        </dd>
-      )}
-    </div>
-  );
-}
-
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
   const fullName = toFullName(user);
 
   return (
-    <div className="fr-container max-w-2xl pb-12">
+    <div className="admin-user-detail-page mx-auto max-w-2xl pb-12">
       <h1 className="fr-display-xl text-center">{fullName}</h1>
 
-      <article className="mt-16 flex flex-col gap-y-8">
-        <section>
-          <h2 className="fr-display-xs">Compte</h2>
-          <dl className="flex flex-col gap-y-4">
-            <EmailField user={user} />
-            <PasswordField user={user} />
-          </dl>
-        </section>
-
-        <section>
-          <h2 className="fr-display-xs">Rôle</h2>
-          <dl className="flex flex-col gap-y-4">
-            <RoleField user={user} />
-          </dl>
-        </section>
-
-        <section>
-          <h2 className="fr-display-xs">Titre</h2>
-          <dl className="flex flex-col gap-y-4">
-            <TitleField user={user} />
-            <DutyField user={user} />
-            <DisplayTitleField user={user} />
-          </dl>
-        </section>
-      </article>
+      <section className="mt-16 flex flex-col gap-y-8">
+        <dl className="flex flex-col gap-y-4">
+          <EmailField user={user} />
+          <PasswordField user={user} />
+          <RoleField user={user} />
+          <DisplayTitleField user={user} />
+        </dl>
+      </section>
     </div>
   );
 }

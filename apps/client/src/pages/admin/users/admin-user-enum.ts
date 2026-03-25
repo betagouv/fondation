@@ -1,32 +1,51 @@
-import { RoleEnumLabels, type RoleEnum } from '@/types/enums.types';
 import type { DetailedAdminUserDto } from '@api/types';
 
-export type UserTitleEnum = DetailedAdminUserDto['title'];
-export type UserDutyEnum = DetailedAdminUserDto['duty'];
+export type AdminUserRoleEnum = DetailedAdminUserDto['role'];
+export const AdminUserRoleLabel = {
+  PRESIDENT_SIEGE: 'Président(e) du Siège',
+  PRESIDENT_PARQUET: 'Président(e) du Parquet',
+  FIRST_SECRETARY: 'Secrétaire Général(e)',
+  DEPUTY_PRESIDENT_PARQUET: 'Président(e) du Parquet suppléant(e)',
+  DEPUTY_PRESIDENT_SIEGE: 'Président(e) du Siège suppléant(e)',
+  MEMBRE_COMMUN: 'Membre commun',
+  MEMBRE_PARQUET: 'Membre du Parquet',
+  MEMBRE_SIEGE: 'Membre du Siège',
+  OFFICER: 'Agent Pôle Nomination',
+  SECRETARY: 'Secrétaire Adjoint(e)'
+} as const satisfies Record<AdminUserRoleEnum, string>;
 
-export const UserTitleEnumLabels = {
-  PRESIDENT_SIEGE: 'Président du Siège',
-  PRESIDENT_PARQUET: 'Président du Parquet',
-  FIRST_SECRETARY: 'Secrétaire Général'
-} as const satisfies Record<UserTitleEnum, string>;
+type Labelize<
+  Ids extends readonly AdminUserRoleEnum[],
+  Labelized extends { id: AdminUserRoleEnum; label: string }[] = []
+> = Ids extends never[]
+  ? Labelized
+  : Ids extends [infer Head extends AdminUserRoleEnum, ...infer Tail extends AdminUserRoleEnum[]]
+    ? Labelize<Tail, [...Labelized, { id: Head; label: (typeof AdminUserRoleLabel)[Head] }]>
+    : Labelized;
 
-export const USER_TITLE_ENUM_OPTIONS: { id: UserTitleEnum; label: string }[] = Object.entries(
-  UserTitleEnumLabels
-).map(([id, label]) => ({ id: id as UserTitleEnum, label }));
+function labelize<const Ids extends AdminUserRoleEnum[]>(...ids: Ids): Labelize<Ids> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ids.map((id) => ({ id, label: AdminUserRoleLabel[id] })) as any;
+}
 
-export const UserDutyEnumLabels = {
-  PRESIDENT: 'Président',
-  SECRETARY: 'Secrétaire',
-  OFFICER: 'Agent'
-} as const satisfies Record<UserDutyEnum, string>;
+export const ROLE_OPTIONS = [
+  {
+    name: 'Présidents / Suppléants',
+    options: labelize(
+      'PRESIDENT_PARQUET',
+      'PRESIDENT_SIEGE',
+      'DEPUTY_PRESIDENT_PARQUET',
+      'DEPUTY_PRESIDENT_SIEGE'
+    )
+  },
+  {
+    name: 'Membre',
+    options: labelize('MEMBRE_COMMUN', 'MEMBRE_PARQUET', 'MEMBRE_SIEGE')
+  },
+  {
+    name: 'Secrétariat Général',
+    options: labelize('FIRST_SECRETARY', 'SECRETARY', 'OFFICER')
+  }
+] as const;
 
-export const USER_DUTY_ENUM_OPTIONS: { id: UserDutyEnum; label: string }[] = Object.entries(
-  UserDutyEnumLabels
-).map(([id, label]) => ({
-  id: id as UserDutyEnum,
-  label
-}));
-
-export const ROLE_OPTIONS: { id: RoleEnum; label: string }[] = Object.entries(RoleEnumLabels).map(
-  ([id, label]) => ({ id: id as RoleEnum, label })
-);
+export const PROMOTABLE_ROLES: AdminUserRoleEnum[] = ['FIRST_SECRETARY', 'SECRETARY', 'OFFICER'];

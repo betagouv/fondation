@@ -1,17 +1,22 @@
 import { createZodDto } from 'nestjs-zod';
-import { Role } from 'shared-models';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import z from 'zod';
-import { USER_DUTIES, USER_TITLES } from '../../domain/user-enum';
+import {
+  ADMIN_USER_ROLES_ENUM,
+  AdminUserRoleEnum,
+} from '../../domain/user-enum';
 
 export class ListUsersQueryDto extends createSortableDto(
   z.object({
     sortBy: z.enum(['lastName']).optional(),
     search: z.string().trim().optional(),
     roles: z
-      .union([z.enum(Role), z.array(z.enum(Role))])
+      .union([
+        z.enum(ADMIN_USER_ROLES_ENUM),
+        z.array(z.enum(ADMIN_USER_ROLES_ENUM)),
+      ])
       .optional()
-      .transform((x) => (x ? ([] as Role[]).concat(x) : x)),
+      .transform((x) => (x ? ([] as AdminUserRoleEnum[]).concat(x) : x)),
   }),
 ) {}
 
@@ -24,15 +29,7 @@ export class UpdateUserPasswordDto extends createZodDto(
 ) {}
 
 export class UpdateUserRoleDto extends createZodDto(
-  z.object({ role: z.enum(Role) }),
-) {}
-
-export class UpdateUserTitleDto extends createZodDto(
-  z.object({ title: z.enum(USER_TITLES).nullable() }),
-) {}
-
-export class UpdateUserDutyDto extends createZodDto(
-  z.object({ duty: z.enum(USER_DUTIES).nullable() }),
+  z.object({ role: z.enum(ADMIN_USER_ROLES_ENUM) }),
 ) {}
 
 export class UpdateUserDisplayTitleDto extends createZodDto(

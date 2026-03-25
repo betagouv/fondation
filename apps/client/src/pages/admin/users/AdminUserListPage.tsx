@@ -7,10 +7,9 @@ import { useAdminUsersQuery } from '@queries/administration.queries';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
-import { RoleEnumLabels, type RoleEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import { UserTitleEnumLabels } from './admin-user-enum';
+import { AdminUserRoleLabel, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
 const h = createColumnHelper<AdminUserItem>();
@@ -43,24 +42,14 @@ const columns = [
     id: 'role',
     enableSorting: false,
     header: 'Rôle',
-    cell: ({ cell }) => RoleEnumLabels[cell.getValue()],
+    cell: ({ cell }) => AdminUserRoleLabel[cell.getValue()],
     meta: {
       filters: {
         type: 'enum',
         filterId: 'role',
         label: 'Rôle',
-        values: Object.entries(RoleEnumLabels).map(([id, label]) => ({ id, label }))
+        values: ROLE_OPTIONS.flatMap((group) => group.options as { id: string; label: string }[])
       }
-    }
-  }),
-
-  h.accessor('title', {
-    id: 'title',
-    enableSorting: false,
-    header: 'Titre',
-    cell: ({ cell }) => {
-      const value = cell.getValue();
-      return value ? UserTitleEnumLabels[value] : '-';
     }
   }),
 
@@ -87,7 +76,7 @@ function EditButton(props: { row: AdminUserItem }) {
 export function AdminUserListPage() {
   const [tableState, setTableState] = useQueryDataTableState({
     pagination: { pageIndex: 0, pageSize: 50 },
-    columnFilters: [] as { id: 'role'; value: RoleEnum[] }[],
+    columnFilters: [] as { id: 'role'; value: AdminUserRoleEnum[] }[],
     sorting: [] as [],
     globalFilter: ''
   });

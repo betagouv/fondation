@@ -1,16 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { Gender, Role } from 'shared-models';
+import { Gender } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import z from 'zod';
-import {
-  USER_DUTIES,
-  USER_TITLES,
-  UserDuty,
-  UserTitle,
-} from '../../domain/user-enum';
+import { AdminUserRole } from '../../domain/admin-user-role';
+import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -39,9 +35,12 @@ export class DetailsUserQuery {
       lastName: user.lastName,
       email: user.email,
       gender: prismaGenderEnumToGenderEnum(user.gender),
-      role: prismaRoleEnumToRoleEnum(user.role),
-      title: (user.title ?? null) as UserTitle | null,
-      duty: (user.duty ?? null) as UserDuty | null,
+      isAdmin: user.role === 'ADMIN',
+      role: AdminUserRole.from({
+        role: prismaRoleEnumToRoleEnum(user.role),
+        title: user.title,
+        duty: user.duty,
+      }).toString(),
       displayTitle: user.displayTitle ?? null,
     };
   }
@@ -53,10 +52,9 @@ export class DetailedAdminUserDto extends createZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
-    role: z.enum(Role),
+    role: z.enum(ADMIN_USER_ROLES_ENUM),
     gender: z.enum(Gender),
-    title: z.enum(USER_TITLES).nullable(),
-    duty: z.enum(USER_DUTIES).nullable(),
     displayTitle: z.string().nullable(),
+    isAdmin: z.boolean(),
   }),
 ) {}

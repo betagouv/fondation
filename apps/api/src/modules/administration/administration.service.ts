@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Role } from 'shared-models';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { User } from './domain/user';
-import { UserDuty, UserTitle } from './domain/user-enum';
+import { AdminUserRoleEnum } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
 import {
   DetailedAdminUserDto,
@@ -25,7 +24,7 @@ export class AdministrationService {
 
   listUsers(query: {
     search?: string;
-    roles?: Role[];
+    roles?: AdminUserRoleEnum[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
@@ -51,27 +50,12 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updateRole(command: { userId: string; role: Role }): Promise<void> {
+  async updateTole(command: {
+    userId: string;
+    role: AdminUserRoleEnum;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateRole(command.role);
-    await this.userRepository.persist(user);
-  }
-
-  async updateTitle(command: {
-    userId: string;
-    title: UserTitle | null;
-  }): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
-    user.updateTitle(command.title);
-    await this.userRepository.persist(user);
-  }
-
-  async updateDuty(command: {
-    userId: string;
-    duty: UserDuty | null;
-  }): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
-    user.updateDuty(command.duty);
     await this.userRepository.persist(user);
   }
 
@@ -108,5 +92,17 @@ export class AdministrationService {
     if (toUpdate.length > 0) await this.userRepository.persistMany(toUpdate);
 
     return { notFound, updatedCount: toUpdate.length };
+  }
+
+  async promoteToAdmin(command: { userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    user.promoteAdmin();
+    await this.userRepository.persist(user);
+  }
+
+  async demoteFromAdmin(command: { userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    user.demoteAdmin();
+    await this.userRepository.persist(user);
   }
 }

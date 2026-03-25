@@ -1,20 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
   roleEnumToPrismaRoleEnum,
 } from 'src/modules/shared/mappers/role-enum.mapper';
 import { assertNever } from 'src/utils/assert-never';
+import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   User,
+  UserDemotedFromAdmin,
   UserDisplayTitleUpdated,
-  UserDutyUpdated,
   UserEmailUpdated,
   UserEvent,
   UserPasswordUpdated,
+  UserPromotedToAdmin,
   UserRoleUpdated,
-  UserTitleUpdated,
+  UsersUntitled,
 } from '../../domain/user';
 
 @Injectable()
@@ -35,9 +36,11 @@ export class UserRepository {
 
     return User.from({
       id: user.id,
-      title: user.title,
-      duty: user.duty,
-      role: prismaRoleEnumToRoleEnum(user.role),
+      role: AdminUserRole.from({
+        role: prismaRoleEnumToRoleEnum(user.role),
+        title: user.title,
+        duty: user.duty,
+      }),
     });
   }
 
@@ -54,9 +57,11 @@ export class UserRepository {
         user.lastName.toUpperCase(),
         User.from({
           id: user.id,
-          title: user.title,
-          duty: user.duty,
-          role: prismaRoleEnumToRoleEnum(user.role),
+          role: AdminUserRole.from({
+            role: prismaRoleEnumToRoleEnum(user.role),
+            title: user.title,
+            duty: user.duty,
+          }),
         }),
       ]),
     );
@@ -73,19 +78,21 @@ export class UserRepository {
   }
 
   private persistUser(user: User) {
-    return user.messages.flatMap((message: UserEvent) => {
+    return user.messages.map((message: UserEvent) => {
       if (message instanceof UserEmailUpdated)
         return this.persistEmailUpdated(message);
       if (message instanceof UserPasswordUpdated)
         return this.persistPasswordUpdated(message);
       if (message instanceof UserRoleUpdated)
         return this.persistRoleUpdated(message);
-      if (message instanceof UserDutyUpdated)
-        return this.persistDutyUpdated(message);
       if (message instanceof UserDisplayTitleUpdated)
         return this.persistDisplayTitleUpdated(message);
-      if (message instanceof UserTitleUpdated)
-        return this.persistTitleUpdated(message);
+      if (message instanceof UsersUntitled)
+        return this.persistUsersUntitled(message);
+      if (message instanceof UserPromotedToAdmin)
+        return this.persistUserPromotedToAdmin(message);
+      if (message instanceof UserDemotedFromAdmin)
+        return this.persistUserDemotedFromAdmin(message);
 
       return assertNever(message);
     });
@@ -108,14 +115,18 @@ export class UserRepository {
   private persistRoleUpdated(message: UserRoleUpdated) {
     return this.prisma.user.update({
       where: { id: message.userId },
-      data: { role: roleEnumToPrismaRoleEnum(message.role) },
+      data: {
+        role: roleEnumToPrismaRoleEnum(message.role.role),
+        duty: message.role.duty,
+        title: message.role.title,
+      },
     });
   }
 
-  private persistDutyUpdated(message: UserDutyUpdated) {
-    return this.prisma.user.update({
-      where: { id: message.userId },
-      data: { duty: message.duty as PrismaUserDutyEnum | null },
+  private persistUsersUntitled(message: UsersUntitled) {
+    return this.prisma.user.updateMany({
+      where: { title: message.sourceTitle },
+      data: { title: message.targetRole.title, duty: message.targetRole.duty },
     });
   }
 
@@ -126,25 +137,17 @@ export class UserRepository {
     });
   }
 
-  private persistTitleUpdated(message: UserTitleUpdated) {
-    if (message.title === null) {
-      return [
-        this.prisma.user.update({
-          where: { id: message.userId },
-          data: { title: null },
-        }),
-      ];
-    }
+  private persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
+    return this.prisma.user.update({
+      where: { id: message.userId },
+      data: { role: 'ADMIN' },
+    });
+  }
 
-    return [
-      this.prisma.user.update({
-        where: { title: message.title },
-        data: { title: null, duty: null },
-      }),
-      this.prisma.user.update({
-        where: { id: message.userId },
-        data: { title: message.title },
-      }),
-    ];
+  private persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
+    return this.prisma.user.update({
+      where: { id: message.userId },
+      data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    });
   }
 }
