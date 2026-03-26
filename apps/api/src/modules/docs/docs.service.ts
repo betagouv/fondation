@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -14,6 +14,7 @@ import {
   FindChairmenQuery,
   FoundChairmenDto,
 } from './infrastructure/queries/find-chairmen.query';
+import { GenerateAgendaPdfQuery } from './infrastructure/queries/generate-agenda-pdf.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class DocsService {
     private readonly findChairmenQuery: FindChairmenQuery,
     private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
+    private readonly generateAgendaPdfQuery: GenerateAgendaPdfQuery,
     private readonly members: MembersService,
   ) {}
 
@@ -67,5 +69,13 @@ export class DocsService {
     await this.agendaRepository.persist(agenda);
 
     return { id: agenda.id };
+  }
+
+  generateAgendaHtml(query: { agendaId: string }): Promise<string> {
+    return this.generateAgendaPdfQuery.handle(query);
+  }
+
+  generateAgendaPdf(query: { agendaId: string }): Promise<StreamableFile> {
+    return this.generateAgendaPdfQuery.handle(query);
   }
 }

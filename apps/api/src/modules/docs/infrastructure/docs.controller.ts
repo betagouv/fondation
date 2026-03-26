@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  StreamableFile,
   UsePipes,
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
@@ -64,5 +65,21 @@ export class DocsController {
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAgendaNominationFiles> {
     return this.docs.findAgendaNominationFiles({ sessionId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/agendas/:agendaId.html')
+  generateAgendaHtml(
+    @Param('agendaId') agendaId: string,
+  ): Promise<StreamableFile> {
+    return this.docs.generateAgendaPdf({ agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/agendas/:agendaId.pdf')
+  generateAgendaPdf(
+    @Param('agendaId') agendaId: string,
+  ): Promise<StreamableFile> {
+    return this.docs.generateAgendaPdf({ agendaId });
   }
 }
