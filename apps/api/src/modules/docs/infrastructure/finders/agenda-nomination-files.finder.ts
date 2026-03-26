@@ -65,6 +65,7 @@ export class FoundAgendaNominationFiles extends createZodDto(
         number: z.number(),
         targetedGrade: z.enum(Magistrat.Grade),
         targetedPosition: z.string(),
+        reporters: z.array(z.string()),
         outcome: z.object({
           value: z.enum(AGENDA_NOMINATION_FILE_OUTCOME_ENUM),
           comment: z.string().nullable(),

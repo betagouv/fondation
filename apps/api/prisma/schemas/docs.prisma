@@ -1,8 +1,9 @@
 model Agenda {
-  id                 String   @id @db.Uuid
-  sessionId          String   @map("session_id") @db.Uuid
-  sessionMeetingDate DateTime @map("session_meeting_date") @db.Date
-  date               DateTime @db.Date
+  id                 String              @id @db.Uuid
+  sessionId          String              @map("session_id") @db.Uuid
+  formation          PrismaFormationEnum
+  sessionMeetingDate DateTime            @map("session_meeting_date") @db.Date
+  date               DateTime            @db.Date
 
   chairmanId        String?          @map("chairman_id") @db.Uuid
   chairmanFirstName String           @map("chairman_first_name")
@@ -48,6 +49,7 @@ model AgendaNominationFile {
   targetedGrade    String                      @map("targeted_grade")
   outcome          PrismaAgendaFileOutcomeEnum
   outcomeComment   String?                     @map("outcome_comment")
+  reporters        String[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

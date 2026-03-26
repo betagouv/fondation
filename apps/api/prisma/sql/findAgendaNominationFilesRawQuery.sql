@@ -1,5 +1,6 @@
 -- @param {String} $1:sessionId
--- @param $2:ids?
+-- @param $2:versionId
+-- @param $3:ids?
 
 SELECT
   ddn.id,
@@ -7,6 +8,7 @@ SELECT
   ddn.outcome,
   ddn.outcome_comment AS "outcomeComment",
   m.magistrat,
+  reporter.users AS reporters,
 
   JSON_BUILD_OBJECT(
     'grade', p.grade_id,
@@ -56,9 +58,27 @@ FROM nominations_context.dossier_de_nomination ddn
   INNER JOIN data_administration_context."function" AS f ON f.id = p.function_id
   INNER JOIN data_administration_context."jurisdictions" AS j ON j.codejur = p.jurisdiction_id
 
+  LEFT JOIN LATERAL (
+    SELECT
+      nfr.nomination_file_id,
+      ARRAY_AGG(
+        JSON_BUILD_OBJECT(
+          'id', u.id,
+          'firstName', u.first_name,
+          'lastName', u.last_name,
+          'gender', u.gender
+        )
+      ) AS users
+
+    FROM nominations_context.nomination_file_to_reporter AS nfr
+      LEFT JOIN identity_and_access_context.users AS u ON u.id = nfr.user_id
+    WHERE (nfr.version_id = $2::UUID AND nfr.nomination_file_id = ddn.id)
+    GROUP BY nfr.nomination_file_id
+  ) AS reporter ON TRUE
+
 WHERE (
   ddn.session_id = $1::UUID
-  AND ($2::UUID[] IS NULL OR ddn.id = ANY($2::UUID[]))
+  AND ($3::UUID[] IS NULL OR ddn.id = ANY($3::UUID[]))
   AND outcome IS NOT NULL
 )
 

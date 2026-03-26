@@ -11,6 +11,16 @@ export function fullname(props: {
   return `${capitalize(props.firstName)}\u00A0${props.lastName.toUpperCase()}`;
 }
 
+export function titled(props: {
+  title: string | null;
+  firstName: string;
+  lastName: string;
+}): string {
+  if (!props.title) return fullname(props);
+
+  return `${props.title}, ${fullname(props)}`;
+}
+
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
 export function date(
   date: Date | DateOnly | DateOnlyJson,
@@ -34,7 +44,7 @@ export function date(
 const conjunctionListFormatter = new Intl.ListFormat('fr', {
   type: 'conjunction',
 });
-export function conjuctionList<T extends string | { toString(): string }>(
+export function conjunctionList<T extends string | { toString(): string }>(
   items: readonly T[],
 ) {
   return conjunctionListFormatter.format(items.map((x) => `${x}`));

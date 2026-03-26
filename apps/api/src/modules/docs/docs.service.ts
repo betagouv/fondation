@@ -14,11 +14,11 @@ import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
+import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
   FindChairmenQuery,
   FoundChairmenDto,
 } from './infrastructure/queries/find-chairmen.query';
-import { GenerateAgendaPdfQuery } from './infrastructure/queries/generate-agenda-pdf.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 
 @Injectable()
@@ -27,8 +27,8 @@ export class DocsService {
     private readonly findChairmenQuery: FindChairmenQuery,
     private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
-    private readonly generateAgendaPdfQuery: GenerateAgendaPdfQuery,
     private readonly members: MembersService,
+    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
   ) {}
 
   searchChairmen(query: {
@@ -62,7 +62,7 @@ export class DocsService {
       });
 
     const agenda = Agenda.create({
-      chairman,
+      chairman: { ...chairman, title: chairman.displayTitle },
       nominationFiles,
       sessionId: command.sessionId,
       authorId: command.authorId,
@@ -75,11 +75,14 @@ export class DocsService {
     return { id: agenda.id };
   }
 
-  /* eslint-disable */
-  generateAgendaHtml(_query: { agendaId: string }): Promise<string> {
-    throw new NotImplementedException();
+  findAgendaDocument(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<string> {
+    return this.findAgendaDocumentQuery.handle(query);
   }
 
+  /* eslint-disable */
   generateAgendaPdf(_query: { agendaId: string }): Promise<StreamableFile> {
     throw new NotImplementedException();
   }

@@ -1,11 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { render } from 'pug';
+import { Injectable, Logger } from '@nestjs/common';
 
-import { AbstractTemplateContext, Template } from './templates/templates.types';
+import { Template } from './templates/templates.types';
 
 @Injectable()
-export class HtmlRenderer<Context extends AbstractTemplateContext> {
-  render(template: Template<Context>, context: Context): Promise<string> {
-    return Promise.resolve(render(template.toString(), context));
+export class HtmlRenderer {
+  private readonly logger = new Logger(HtmlRenderer.name);
+
+  render<Context extends Record<string, unknown>>(
+    template: Template<Context>,
+    context: Context,
+  ): Promise<string> {
+    const rendered = template.render(context);
+    this.logger.debug(rendered);
+
+    return Promise.resolve(rendered);
   }
 }

@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { Magistrat } from 'shared-models';
+import { Gender, Magistrat } from 'shared-models';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { capitalize } from 'src/utils/capitalize';
 import z from 'zod';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class InternalFindAgendaNominationFilesQuery {
@@ -12,7 +14,10 @@ export class InternalFindAgendaNominationFilesQuery {
     InternalFindAgendaNominationFilesQuery.name,
   );
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly version: AffectationVersionFinder,
+  ) {}
 
   async handle(query: {
     sessionId: string;
@@ -25,12 +30,20 @@ export class InternalFindAgendaNominationFilesQuery {
       throw new BadRequestException();
     }
 
-    const rows = await this.prisma.$queryRawTyped(
-      findAgendaNominationFilesRawQuery(
-        query.sessionId,
-        (query.ids as string[] | null) ?? null,
-      ),
-    );
+    const rows = await this.prisma.$transaction(async (tx) => {
+      const maybeVersion = await this.version.lastPublished({
+        sessionId: query.sessionId,
+        tx,
+      });
+
+      return tx.$queryRawTyped(
+        findAgendaNominationFilesRawQuery(
+          query.sessionId,
+          maybeVersion.id,
+          (query.ids as string[] | null) ?? null,
+        ),
+      );
+    });
 
     return { items: await z.array(SqlNominationFilesSchema).parseAsync(rows) };
   }
@@ -74,6 +87,17 @@ const SqlNominationFilesSchema = z
         function: SqlFunctionSchema,
       }),
     }),
+    reporters: z.preprocess(
+      (x) => x ?? [],
+      z.array(
+        z.object({
+          id: z.uuid(),
+          firstName: z.string().trim().nonempty(),
+          lastName: z.string().trim().nonempty(),
+          gender: z.enum(Gender),
+        }),
+      ),
+    ),
   })
   .transform((item) => {
     const currentPosition = buildPosition({
@@ -91,7 +115,17 @@ const SqlNominationFilesSchema = z
       comment: item.outcomeComment,
     });
 
+    const reporters = item.reporters.map((u) =>
+      buildName({
+        civility: u.gender === Gender.M ? 'M.' : 'MME',
+        firstName: u.firstName,
+        lastName: u.lastName,
+        usedName: null,
+      }),
+    );
+
     return {
+      reporters,
       currentPosition,
       targetedPosition,
       id: item.id,
@@ -113,7 +147,7 @@ function buildName(options: {
   lastName: string;
   usedName: string | null;
 }): string {
-  return `${options.civility === 'MME' ? 'Mme' : 'M.'} ${options.firstName}\u00A0${options.usedName || options.lastName}`;
+  return `${options.civility === 'MME' ? 'Mme' : 'M.'} ${capitalize(options.firstName)}\u00A0${(options.usedName || options.lastName).toUpperCase()}`;
 }
 
 function buildPosition(options: {
@@ -166,6 +200,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
         number: z.number(),
         targetedGrade: z.enum(Magistrat.Grade),
         targetedPosition: z.string(),
+        reporters: z.array(z.string()),
         outcome: z.object({
           value: z.enum(NominationFileOutcome.enum),
           comment: z.string().nullable(),

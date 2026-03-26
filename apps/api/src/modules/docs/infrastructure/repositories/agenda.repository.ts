@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { Agenda, AgendaCreated } from '../../domain/agenda';
@@ -8,20 +9,29 @@ export class AgendaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   persist(agenda: Agenda) {
-    return this.prisma.$transaction(
-      agenda.messages.map((message) => {
+    return this.prisma.$transaction(async (tx) => {
+      for (const message of agenda.messages) {
         if (message instanceof AgendaCreated) {
-          return this.persistAgendaCreated(message);
+          await this.persistAgendaCreated(tx, message);
+        } else {
+          assertNever(message);
         }
-
-        return assertNever(message);
-      }),
-    );
+      }
+    });
   }
 
-  private persistAgendaCreated(message: AgendaCreated) {
+  private async persistAgendaCreated(
+    tx: Prisma.TransactionClient,
+    message: AgendaCreated,
+  ) {
+    const { formation } = await tx.session.findUniqueOrThrow({
+      where: { id: message.sessionId },
+      select: { formation: true },
+    });
+
     return this.prisma.agenda.create({
       data: {
+        formation,
         id: message.agendaId,
         chairmanFirstName: message.chairman.firstName,
         chairmanLastName: message.chairman.lastName,
@@ -44,9 +54,7 @@ export class AgendaRepository {
               nominationFileId: file.id,
               outcome: file.outcome.value,
               outcomeComment: file.outcome.comment,
-              magistratCivilite: file.magistratCivilite ?? null,
-              magistratCurrentPosition: file.magistratCurrentPosition ?? null,
-              magistratCurrentGrade: file.magistratCurrentGrade ?? null,
+              reporters: file.reporters as string[],
             })),
           },
         },

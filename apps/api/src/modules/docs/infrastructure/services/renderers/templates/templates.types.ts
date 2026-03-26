@@ -1,14 +1,13 @@
-export type AbstractTemplateContext = Record<
-  string,
-  string | Record<string, string>[]
->;
+export type TemplateFunction<Ctx extends Record<string, unknown>> = (
+  ctx: Ctx,
+) => string;
 
-export class Template<Context extends AbstractTemplateContext> {
-  private readonly _context: Context = {} as unknown as Context;
+export class Template<Context extends Record<string, unknown>> {
+  $type: Context;
 
-  constructor(private readonly template: string) {}
+  constructor(private readonly template: TemplateFunction<Context>) {}
 
-  toString(): string {
-    return this.template;
+  render(ctx: Context): string {
+    return this.template(ctx);
   }
 }

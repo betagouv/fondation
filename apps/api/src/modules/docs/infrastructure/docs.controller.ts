@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   HttpStatus,
   Param,
+  ParseBoolPipe,
   Post,
   Query,
   StreamableFile,
@@ -67,16 +69,21 @@ export class DocsController {
     return this.docs.findAgendaNominationFiles({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Get('/sessions/:sessionId/agendas/:agendaId.html')
+  @Get('/agendas/:agendaId.html')
   generateAgendaHtml(
     @Param('agendaId') agendaId: string,
-  ): Promise<StreamableFile> {
-    return this.docs.generateAgendaPdf({ agendaId });
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
+  ): Promise<string> {
+    return this.docs.findAgendaDocument({ id: agendaId, forceNew });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Get('/sessions/:sessionId/agendas/:agendaId.pdf')
+  @Get('/agendas/:agendaId.pdf')
   generateAgendaPdf(
     @Param('agendaId') agendaId: string,
   ): Promise<StreamableFile> {
