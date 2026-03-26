@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { Magistrat } from 'shared-models';
+import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import z from 'zod';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
@@ -25,71 +25,133 @@ export class InternalFindAgendaNominationFilesQuery {
       throw new BadRequestException();
     }
 
-    const nominationFiles = await this.prisma.dossierDeNomination.findMany({
-      orderBy: [{ number: 'asc' }],
-      where: {
-        outcome: { not: null },
-        sessionId: 'sessionId' in query ? query.sessionId : undefined,
-        id: 'ids' in query ? { in: query.ids as string[] } : undefined,
-      },
-      select: {
-        currentPosition: true,
-        detectedMagistratId: true,
-        grade: true,
-        id: true,
-        name: true,
-        number: true,
-        outcome: true,
-        outcomeComment: true,
-        targetedGrade: true,
-        targetedPosition: true,
-      },
+    const rows = await this.prisma.$queryRawTyped(
+      findAgendaNominationFilesRawQuery(
+        query.sessionId,
+        (query.ids as string[] | null) ?? null,
+      ),
+    );
+
+    return { items: await z.array(SqlNominationFilesSchema).parseAsync(rows) };
+  }
+}
+
+const SqlJurisdictionSchema = z.object({
+  id: z.string().trim().nonempty(),
+  label: z.string().nonempty(),
+});
+
+const SqlFunctionSchema = z.object({
+  id: z.string().trim().nonempty(),
+  label: z.string().trim().nonempty(),
+  labelOneMale: z.string().nullable(),
+  labelOneFemale: z.string().nullable(),
+  addition: z.string().nullable(),
+});
+
+const SqlNominationFilesSchema = z
+  .object({
+    id: z.uuid(),
+    number: z.number().int(),
+    outcome: z.enum(NominationFileOutcome.enum),
+    outcomeComment: z.string().trim().nullable(),
+    targetPosition: z.object({
+      grade: z.enum(Magistrat.Grade),
+      jurisdiction: SqlJurisdictionSchema,
+      function: SqlFunctionSchema,
+    }),
+    magistrat: z.object({
+      id: z.string().nonempty(),
+      civility: z.enum(['M.', 'MME']),
+      firstName: z.string().trim().nonempty(),
+      lastName: z.string().trim().nonempty(),
+      marriedName: z.string().trim().nullable(),
+      usedName: z.string().trim().nullable(),
+
+      position: z.object({
+        grade: z.enum(Magistrat.Grade),
+        jurisdiction: SqlJurisdictionSchema,
+        function: SqlFunctionSchema,
+      }),
+    }),
+  })
+  .transform((item) => {
+    const currentPosition = buildPosition({
+      civility: item.magistrat.civility,
+      position: item.magistrat.position,
     });
 
-    const items: InternalFoundAgendaNominationFiles['items'] = [];
-    for (const item of nominationFiles) {
-      const {
-        currentPosition,
-        grade,
-        id,
-        name,
-        number,
-        outcome,
-        outcomeComment,
-        targetedGrade,
-        targetedPosition,
-        detectedMagistratId: magistratId,
-      } = item;
+    const targetedPosition = buildPosition({
+      civility: item.magistrat.civility,
+      position: item.targetPosition,
+    });
 
-      if (!isGrade(grade) || !isGrade(targetedGrade)) continue;
-      if (!outcome || !currentPosition || !targetedPosition) continue;
-      if (typeof number !== 'number' || !Number.isFinite(number)) {
-        continue;
-      }
+    const nominationFileOutcome = NominationFileOutcome.from({
+      outcome: item.outcome,
+      comment: item.outcomeComment,
+    });
 
-      const nominationFileOutcome = NominationFileOutcome.from({
-        outcome,
-        comment: outcomeComment,
-      });
+    return {
+      currentPosition,
+      targetedPosition,
+      id: item.id,
+      number: item.number,
+      magistratId: item.magistrat.id,
+      name: buildName(item.magistrat),
+      grade: item.magistrat.position.grade,
+      targetedGrade: item.targetPosition.grade,
+      outcome: {
+        value: nominationFileOutcome.outcome,
+        comment: nominationFileOutcome.comment,
+      },
+    };
+  });
 
-      items.push({
-        currentPosition,
-        grade,
-        id,
-        magistratId,
-        name,
-        number,
-        targetedGrade,
-        targetedPosition,
-        outcome: {
-          value: nominationFileOutcome.outcome,
-          comment: nominationFileOutcome.comment,
-        },
-      });
-    }
+function buildName(options: {
+  civility: 'M.' | 'MME';
+  firstName: string;
+  lastName: string;
+  usedName: string | null;
+}): string {
+  return `${options.civility === 'MME' ? 'Mme' : 'M.'} ${options.firstName}\u00A0${options.usedName || options.lastName}`;
+}
 
-    return { items };
+function buildPosition(options: {
+  civility: 'M.' | 'MME';
+  position: {
+    jurisdiction: { label: string };
+    function: {
+      label: string;
+      labelOneMale: string | null;
+      labelOneFemale: string | null;
+      addition: string | null;
+    };
+  };
+}): string {
+  const { civility, position } = options;
+  if (
+    (civility === 'M.' && !position.function.labelOneMale) ||
+    (civility === 'MME' && !position.function.labelOneFemale)
+  ) {
+    return `${position.function.label}, ${position.jurisdiction.label}`;
   }
+
+  let label: string;
+  if (civility === 'M.') {
+    label = position.function.labelOneMale!;
+  } else {
+    label = position.function.labelOneFemale!;
+  }
+
+  const codejur =
+    position.jurisdiction.label[0]!.toLowerCase() +
+    position.jurisdiction.label.slice(1);
+
+  const jurisdiction = position.function.addition
+    ? ' ' + position.function.addition.replace('{codejur}', codejur)
+    : `, ${position.jurisdiction.label}`;
+
+  return label[0]!.toUpperCase() + label.slice(1) + jurisdiction;
 }
 
 export class InternalFoundAgendaNominationFiles extends createZodDto(

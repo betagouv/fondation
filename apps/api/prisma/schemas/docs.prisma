@@ -13,9 +13,13 @@ model Agenda {
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
 
+  html      String?
+  pdfFileId String? @map("pdf_file_id") @db.Uuid
+
   nominationFiles AgendaNominationFile[]
   chairman        User?                  @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   author          User?                  @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_author")
+  pdf             File?                  @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@map("agenda")
   @@schema("docs")

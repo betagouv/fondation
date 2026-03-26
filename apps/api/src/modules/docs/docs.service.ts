@@ -1,4 +1,8 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import {
+  Injectable,
+  NotImplementedException,
+  StreamableFile,
+} from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -71,11 +75,13 @@ export class DocsService {
     return { id: agenda.id };
   }
 
-  generateAgendaHtml(query: { agendaId: string }): Promise<string> {
-    return this.generateAgendaPdfQuery.handle(query);
+  /* eslint-disable */
+  generateAgendaHtml(_query: { agendaId: string }): Promise<string> {
+    throw new NotImplementedException();
   }
 
-  generateAgendaPdf(query: { agendaId: string }): Promise<StreamableFile> {
-    return this.generateAgendaPdfQuery.handle(query);
+  generateAgendaPdf(_query: { agendaId: string }): Promise<StreamableFile> {
+    throw new NotImplementedException();
   }
+  /* eslint-enable */
 }

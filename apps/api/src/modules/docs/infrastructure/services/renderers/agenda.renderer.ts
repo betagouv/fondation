@@ -32,7 +32,14 @@ export class AgendaRenderer {
     private readonly pdfRenderer: PdfRenderer,
   ) {}
 
-  html(query: { id: string }): Promise<string> {}
+  /* eslint-disable */
+  html(_query: { id: string }): Promise<string> {
+    throw new NotImplementedException();
+  }
+  pdf(context: any): Promise<Buffer> {
+    throw new NotImplementedException();
+  }
+  /* eslint-enable */
 
   private static toTemplateContext(
     _context: AgendaRenderContext, // eslint-disable-line @typescript-eslint/no-unused-vars

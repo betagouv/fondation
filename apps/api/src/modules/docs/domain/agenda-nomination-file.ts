@@ -10,4 +10,8 @@ export type AgendaNominationFile = {
   currentPosition: string;
   targetedPosition: string;
   outcome: { value: AgendaNominationFileOutcomeEnum; comment: string | null };
+  // enriched from detectedMagistrat / detectedTargetedPosition
+  magistratCivilite?: string;
+  magistratCurrentPosition?: string;
+  magistratCurrentGrade?: string;
 };

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -26,14 +27,19 @@ export class AgendaNominationFilesFinder {
       (await this.sessions.internalFindAgendaNominationFiles(query)) as any;
     if (items.length === 0) return { items: [] };
 
-    const perId = await this.prisma
-      .$queryRawTyped(
-        findNominationFilesWithAgendaCountRawQuery(items.map(({ id }) => id)),
-      )
-      .then(
-        (rows) =>
-          new Map(rows.map(({ id, count }) => [id, Number(count)] as const)),
-      );
+    const rows = await Sentry.startSpan(
+      {
+        name: 'fr.csm.fondation:docs:findNominationFilesWithAgendaCountRawQuery',
+      },
+      () =>
+        this.prisma.$queryRawTyped(
+          findNominationFilesWithAgendaCountRawQuery(items.map(({ id }) => id)),
+        ),
+    );
+
+    const perId = new Map(
+      rows.map(({ id, count }) => [id, Number(count)] as const),
+    );
 
     for (const item of items) {
       item.agendaCount = perId.get(item.id) ?? 0;
