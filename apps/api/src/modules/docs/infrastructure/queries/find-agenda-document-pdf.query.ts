@@ -58,7 +58,7 @@ export class FindAgendaDocumentPdfQuery {
     const html = await this.findAgendaDocumentQuery.handle(query);
     const buffer = await this.agendaRenderer.pdf(html);
 
-    const name = `Ordre du jour - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} ${formatDate(file.date, 'dd/MM/yyyy')}.pdf`;
+    const name = `Ordre du jour - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
     const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
 
     const [pdfFileId] = await this.files.create([

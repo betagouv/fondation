@@ -29,7 +29,7 @@ export class AgendaRepository {
       select: { formation: true },
     });
 
-    return this.prisma.agenda.create({
+    return tx.agenda.create({
       data: {
         formation,
         id: message.agendaId,

@@ -2,7 +2,7 @@ BEGIN;
 
 -- AlterTable
 ALTER TABLE "docs"."agenda"
-  ADD COLUMN     "formation" formation
+  ADD COLUMN     "formation" formation,
   ADD COLUMN     "html" TEXT,
   ADD COLUMN     "pdf_file_id" UUID;
 

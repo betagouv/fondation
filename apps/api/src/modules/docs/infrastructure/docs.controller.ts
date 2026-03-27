@@ -3,6 +3,7 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Header,
   HttpStatus,
   Param,
   ParseBoolPipe,
@@ -17,6 +18,8 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { Role } from 'shared-models';
 
+import { ApiOkResponse, ApiProduces, ApiQuery } from '@nestjs/swagger';
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
 import { CreateAgendaDto, CreatedAgendaDto } from './docs.dto';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
@@ -69,7 +72,12 @@ export class DocsController {
     return this.docs.findAgendaNominationFiles({ sessionId });
   }
 
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/agendas/:agendaId.html')
+  @ApiProduces('text/html')
+  @ApiOkResponse({ content: { 'text/html': {} } })
+  @Header('content-type', 'text/html')
+  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
   generateAgendaHtml(
     @Param('agendaId') agendaId: string,
     @Query(
@@ -82,7 +90,10 @@ export class DocsController {
     return this.docs.getOrCreateAgendaDocument({ id: agendaId, forceNew });
   }
 
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/agendas/:agendaId.pdf')
+  @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
+  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
   generateAgendaPdf(
     @Param('agendaId') agendaId: string,
     @Query(
