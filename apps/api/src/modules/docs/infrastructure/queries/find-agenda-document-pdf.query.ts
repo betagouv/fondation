@@ -5,6 +5,7 @@ import {
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
+import { formatDate } from 'date-fns';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
@@ -21,16 +22,24 @@ export class FindAgendaDocumentPdfQuery {
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
   ) {}
 
-  async handle(query: { id: string }): Promise<StreamableFile> {
+  async handle(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<StreamableFile> {
     const file = await this.prisma.$transaction(async (tx) => {
       const agenda = await tx.agenda.findUnique({
         where: { id: query.id },
-        select: { sessionId: true, pdf: { select: { id: true, name: true } } },
+        select: {
+          sessionId: true,
+          formation: true,
+          date: true,
+          pdf: { select: { id: true, name: true } },
+        },
       });
 
       if (!agenda) throw new NotFoundException();
 
-      if (!agenda.pdf || !agenda.pdf.id) return agenda;
+      if (query.forceNew || !agenda.pdf || !agenda.pdf.id) return agenda;
 
       const file$ = await this.files.getFile({ fileId: agenda.pdf.id, tx });
       if (!file$) {
@@ -49,12 +58,26 @@ export class FindAgendaDocumentPdfQuery {
     const html = await this.findAgendaDocumentQuery.handle(query);
     const buffer = await this.agendaRenderer.pdf(html);
 
-    const filename = 'msdqlkfjdsmq.pdf';
-    /* TODO: implement*/
-    await this.files.create([{ buffer, name }]);
+    const name = `Ordre du jour - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} ${formatDate(file.date, 'dd/MM/yyyy')}.pdf`;
+    const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
+
+    const [pdfFileId] = await this.files.create([
+      { buffer, name, path, mimeType: FILE_MIME_TYPES.pdf },
+    ]);
+
+    if (pdfFileId) {
+      await this.prisma.$transaction([
+        this.prisma.agenda.update({
+          where: { id: query.id },
+          data: { pdfFileId },
+        }),
+      ]);
+    } else {
+      this.logger.warn(`Failed storing the PDF file`);
+    }
 
     return new StreamableFile(buffer, {
-      disposition: `inline; filename=${encodeURIComponent(filename)}`,
+      disposition: `inline; filename=${encodeURIComponent(name)}`,
       type: FILE_MIME_TYPES.pdf,
     });
   }

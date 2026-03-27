@@ -20,7 +20,8 @@ export class PdfRenderer implements OnModuleInit, OnModuleDestroy {
     await this.pool.destroy();
   }
 
-  render(html: string): Promise<Buffer> {
-    return this.pool.run(html);
+  async render(html: string): Promise<Buffer> {
+    const result: Uint8Array = await this.pool.run(html);
+    return Buffer.from(result);
   }
 }

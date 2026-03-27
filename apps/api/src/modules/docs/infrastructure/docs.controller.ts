@@ -79,14 +79,19 @@ export class DocsController {
     )
     forceNew: boolean,
   ): Promise<string> {
-    return this.docs.findAgendaDocument({ id: agendaId, forceNew });
+    return this.docs.getOrCreateAgendaDocument({ id: agendaId, forceNew });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/agendas/:agendaId.pdf')
   generateAgendaPdf(
     @Param('agendaId') agendaId: string,
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
   ): Promise<StreamableFile> {
-    return this.docs.generateAgendaPdf({ agendaId });
+    return this.docs.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
   }
 }

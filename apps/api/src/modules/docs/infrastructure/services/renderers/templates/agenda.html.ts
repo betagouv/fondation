@@ -439,6 +439,12 @@ function layout<const T extends LayoutContext>({
       <!doctype html>
       <html lang="fr">
         <head>
+          <script
+            defer
+            integrity="y6+mefdjvGUaOPOrIMXHgP6Wwpza9G0N1QW1YUteLiwb50olbeI7H909UwZTMuVX"
+            src="https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.min.js"
+          ></script>
+
           <style>
             ${css(ctx)}
           </style>
@@ -449,10 +455,14 @@ function layout<const T extends LayoutContext>({
           <main>
             <div class="header">${header(ctx)}</div>
 
-            <article>${content(ctx)}</article>
+            <footer>
+              <div class="drapeau"></div>
+            </footer>
+
+            ${content(ctx)}
           </main>
 
-          <footer>${footer(ctx)}</footer>
+          <div class="footer">${footer(ctx)}</div>
         </body>
       </html>
     `;
@@ -470,25 +480,31 @@ function agendaHeader(ctx: {
         : `Formation compétente à l'égard des magistrats du parquet`}
     </p>
     <h1>Avis du conseil supérieur de la magistrature</h1>
-    <p class="subtitle">Ordre du jour</p>
-    <p class="date">
-      Séance du ${date(ctx.sessionMeetingDate, 'do MMMM yyyy')}
-    </p>
+    <div class="subtitle-row">
+      <p class="subtitle">Ordre du jour</p>
+      <p class="date">
+        Séance du ${date(ctx.sessionMeetingDate, 'do MMMM yyyy')}
+      </p>
+    </div>
   `;
 }
 
-function agendaNominationParagraph(ctx: {
-  name: string;
-  currentPosition: string;
-  currentGrade: string;
-  targetedPosition: string;
-  targetedGrade: string;
-  reporters: readonly string[];
-}): string {
+function agendaNominationParagraph(
+  ctx: {
+    name: string;
+    currentPosition: string;
+    currentGrade: string;
+    targetedPosition: string;
+    targetedGrade: string;
+    reporters: readonly string[];
+  },
+  index: number,
+): string {
   return html`
-    <p>
-      ${ctx.name}, actuellement ${ctx.currentPosition}, (${ctx.currentGrade}),
-      pour la proposition au poste de ${ctx.targetedPosition}
+    <p data-file="${index}">
+      <strong>${ctx.name}</strong>, actuellement ${ctx.currentPosition},
+      (${ctx.currentGrade}), pour la proposition au poste de
+      ${ctx.targetedPosition}
       (${ctx.targetedGrade})${ctx.reporters.length > 0
         ? `, au rapport de ${conjunctionList(ctx.reporters)}`
         : ''}.
@@ -504,7 +520,11 @@ function agendaContent(ctx: {
     <p class="introduction">
       Sur la proposition du garde des Sceaux de nommer&nbsp;:
     </p>
-    ${ctx.nominationFiles.map((n) => agendaNominationParagraph(n)).join('\n')}
+    <article>
+      ${ctx.nominationFiles
+        .map((n, i) => agendaNominationParagraph(n, i + 1))
+        .join('\n')}
+    </article>
   `;
 }
 
@@ -527,68 +547,150 @@ function agendaFooter(ctx: {
 
 function agendaCss(): string {
   return /*css */ `
-    :root { --deep-blue: rgb(0 28 74); }
+    :root {
+      --bleu-france: rgb(0 0 145);
+      --rouge-marianne: rgb(225 0 15);
+
+      --deep-blue: rgb(51 75 111);
+      --gray: rgb(153 165 183);
+      --gold: rgb(197 171 103);
+      --gold-light: rgb(214 188 129);
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 3cm 3cm 4cm 3cm;
+
+      @bottom-center {
+        content: element(footer);
+      }
+
+      @bottom-right {
+        font-size: 0.8rem;
+        font-weight: bold;
+        content: counter(page);
+      }
+    }
 
     body {
       font-family: 'Noto Sans', sans-serif;
       font-size: 16px;
-      width: 21cm;
-      min-height: 29.7cm;
-      padding: 2cm 1cm;
     }
 
-    @media screen {
-      body {
-        margin: 5rem 0;
-        background: white;
-        margin: 0 auto;
-        box-shadow: 0 10px 10px rgba(0 0 0 / 10%)
-      }
-    }
-
-    body > header {
+    header {
       text-align: center;
-      svg { width: 5cm; }
+      svg {
+        width: 2.5cm;
+      }
     }
 
     main {
       margin-top: 2rem;
 
-      article {
-        margin-top: 2rem;
+      p {
+        font-size: 0.8rem;
 
-        p.introduction { font-weight: bold; }
-        p:not(.introduction) {
+        &.introduction {
+          margin-top: 3rem;
+          font-weight: bold;
+        }
+      }
+
+      article {
+        margin-top: 1.5rem;
+
+        p {
           text-indent: 2rem;
           text-align: justify;
           text-wrap: pretty;
           line-height: 1.5rem;
+          break-inside: avoid;
+
+          strong {
+            font-weight: 500;
+          }
         }
       }
 
       .header {
-        text-align: center; 
+        text-align: center;
 
         .formation {
-          font-style: italic;
-          font-variant-caps: small-caps;
-          font-size: 1.1rem;
           margin: 0;
-          padding: 0; 
+          padding: 0;
+          font-style: italic;
+          font-size: 0.8rem;
         }
 
         h1 {
-          font-weight: 600;
+          font-family: "Montserrat";
+          text-transform: uppercase;
+          font-weight: 900;
+          font-size: 1.2rem;
           color: var(--deep-blue);
+        }
+
+        .subtitle-row {
+          margin-top: 3rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .subtitle {
+          font-family: 'Montserrat';
+          margin: 0;
+          text-align: left;
+          text-transform: uppercase;
+          color: var(--gold);
+          font-size: 1rem;
+          font-weight: 900;
+        }
+
+        .date {
+          font-size: 0.9rem;
+          margin: 0;
+          text-align: left;
         }
       }
     }
 
-    footer {
+    .footer {
       margin-top: 3rem;
+      font-size: 0.8rem;
 
       .signature {
         text-align: right;
+        
+      }
+    }
+
+    footer {
+      position: running(footer);
+      height: 1px;
+      width:80%;
+      margin: 0 auto;
+
+      .drapeau {
+        height: 100%;
+        width: 100%;
+        display: flex;
+
+        &::after,
+        &::before {
+          width: 33%;
+          content: '';
+          height: 100%;
+          display: block;
+        }
+
+        &::before {
+          background: var(--bleu-france);
+        }
+        &::after {
+          background: var(--rouge-marianne);
+          margin-left: 33%;
+        }
       }
     }
   `;

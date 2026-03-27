@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotImplementedException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -14,6 +10,7 @@ import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
+import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
   FindChairmenQuery,
@@ -29,6 +26,7 @@ export class DocsService {
     private readonly agendaRepository: AgendaRepository,
     private readonly members: MembersService,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
   ) {}
 
   searchChairmen(query: {
@@ -75,16 +73,17 @@ export class DocsService {
     return { id: agenda.id };
   }
 
-  findAgendaDocument(query: {
+  getOrCreateAgendaDocument(query: {
     id: string;
     forceNew?: boolean;
   }): Promise<string> {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  /* eslint-disable */
-  generateAgendaPdf(_query: { agendaId: string }): Promise<StreamableFile> {
-    throw new NotImplementedException();
+  getOrCreateAgendaDocumentPdf(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<StreamableFile> {
+    return this.findAgendaDocumentPdfQuery.handle(query);
   }
-  /* eslint-enable */
 }
