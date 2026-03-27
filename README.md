@@ -2,14 +2,81 @@
 
 Donner au CSM (Conseil Supérieur de la Magistrature) les moyens d'un travail efficace et de qualité afin de concourir à la continuité du fonctionnement de l'institution judiciaire et de contribuer à une RH vertueuse du corps de la magistrature.
 
-## Technologies
+## Architecture
 
-|         |      |
-| ------- | ---- |
-| node    | >=20 |
-| pnpm    | >=10 |
-| nestjs  | >=11 |
-| reactjs | >=19 |
+```mermaid
+---
+config:
+  theme: base
+  themeCSS: |
+    .node rect,
+    .node polygon {
+      fill: #ffffff !important;
+      rx: 4px !important;
+      ry: 4px !important;
+      filter:
+        drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))
+        drop-shadow(0 1px 2px rgba(0, 0, 0, 0.24));
+    }
+
+    .cluster rect {
+      fill: rgb(0 0 0 / 0.5%);
+    }
+
+    .node .label {
+      font-weight: 500;
+      fill: rgba(0, 0, 0, 0.87) !important;
+      font-size: 14px;
+    }
+
+  themeVariables:
+    background: '#ffffff'
+    primaryColor: '#ffffff'
+    primaryTextColor: 'rgba(0, 0, 0, 0.87)'
+    primaryBorderColor: '#e0e0e0'
+    lineColor: '#757575'
+    secondaryColor: '#ffffff'
+    tertiaryColor: '#ffffff'
+
+  flowchart:
+    curve: stepBefore
+---
+flowchart LR
+  direction LR
+  user[fa:fa-user Utilisateur]
+
+  user -- https --> client
+  user -- https --> api
+  RIE -- https --> api
+
+  subgraph client[Scalingo NGINX]
+    nginx[React.js]
+  end
+
+  subgraph RIE
+    SDV[serveur SDV]
+  end
+
+
+  subgraph api[Scalingo Node.js]
+    back[Nest.js]
+    db[PG Scalingo]
+
+    back -- prisma --> db
+    back <-- piscina --> graph_pdf
+    back --> graph_oneoff
+    graph_oneoff --> db
+
+    subgraph graph_oneoff[One-off scalingo]
+      oneoff[Ingestion XML]
+    end
+
+    subgraph graph_pdf[PDF]
+      pdf_1@{shape: subproc, label: "PDF puppeteer #1" }
+      pdf_2@{shape: subproc, label: "PDF puppeteer #2" }
+    end
+  end
+```
 
 ## Bonnes pratiques
 
@@ -29,6 +96,13 @@ Ces options visent à protéger l'installation de dépendances d'attaques par su
 > Chaque installation de dépendance doit être justifiée.
 
 ## Contribution
+
+> [!NOTE]
+> Le fichier [CLAUDE.md](./CLAUDE.md) contient de nombreuses informations relatives au style
+> utilisé dans le projet. Il est valable pour les LLMs, mais aussi très utile pour les humains.
+>
+> Autrement, ne pas hésiter à se référer à ce document:
+> [https://github.com/zakirullin/cognitive-load/blob/main/README.md](https://github.com/zakirullin/cognitive-load/blob/main/README.md)
 
 Les projets front et back utilisent des conventions légèrement différentes. Pour les expliciter
 eslint et prettier ont chacun une configuration définie dans chaque projet.

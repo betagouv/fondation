@@ -24,7 +24,7 @@ Le projet est organisé dans un mono-repository pnpm où l'on retrouve le back-e
 2. Préférer la composition à l'héritage
 3. Ne pas créer des interfaces trop rapidement, et globalement éviter les abstractions trop rapides
 4. Nommer les choses telles qu'elles sont, plutôt que d'essayer de les généraliser (voir le point 3.)
-5. Préférer des types forts en entrée, mais des types plus souples en sorte: `readonly [string, ...string[]]` en entrée mais `string[]` en sortie.
+5. Préférer des types forts en entrée, mais des types plus souples en sortie: `readonly [string, ...string[]]` en entrée mais `string[]` en sortie.
 6. Ne pas immédiatement proposer une solution générique
 7. Se reposer sur des socles solide pour le nommage: [Zod](https://zod.dev), [RxJs](https://rxjs.dev).
 8. Exploiter les API standards ESNEXT
