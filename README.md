@@ -97,7 +97,7 @@ Ces options visent à protéger l'installation de dépendances d'attaques par su
 
 ## Contribution
 
-> [!INFO]
+> [!NOTE]
 > Le fichier [CLAUDE.md](./CLAUDE.md) contient de nombreuses informations relatives au style
 > utilisé dans le projet. Il est valable pour les LLMs, mais aussi très utile pour les humains.
 >
