@@ -10,4 +10,5 @@ export type AgendaNominationFile = {
   currentPosition: string;
   targetedPosition: string;
   outcome: { value: AgendaNominationFileOutcomeEnum; comment: string | null };
+  reporters: readonly string[];
 };

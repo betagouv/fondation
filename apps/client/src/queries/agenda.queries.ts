@@ -14,6 +14,8 @@ const agendaKeys = {
 
 export const useSearchChairmenQuery = (props: { formation: FormationEnum | undefined }) =>
   useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryKey: agendaKeys.searchChairmen(props.formation),
     queryFn: () =>
       $api.docs.searchChairmen({ query: { formation: props.formation } }).then(({ data = null }) => data)
@@ -47,6 +49,8 @@ export function useCreateAgendaMutation() {
 
 export const useFindAgendaNominationFilesQuery = (query: { sessionId: string }) =>
   useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryKey: agendaKeys.findAgendaNominationFiles(),
     queryFn: () =>
       $api.docs

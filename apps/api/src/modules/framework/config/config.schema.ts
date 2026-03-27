@@ -51,6 +51,11 @@ export const ConfigSchema = z.object({
     process.env.INBOUND_ALLOWED_API_TOKENS ?? '',
   ),
 
+  chromiumExecutablePath: z.prefault(
+    z.string().optional(),
+    process.env.CHROMIUM_EXECUTABLE_PATH,
+  ),
+
   scalingo: z.preprocess(
     () => ({}),
     z.object({

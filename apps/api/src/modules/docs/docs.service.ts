@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -10,6 +10,8 @@ import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
+import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
+import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
   FindChairmenQuery,
   FoundChairmenDto,
@@ -23,6 +25,8 @@ export class DocsService {
     private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
     private readonly members: MembersService,
+    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
   ) {}
 
   searchChairmen(query: {
@@ -56,7 +60,7 @@ export class DocsService {
       });
 
     const agenda = Agenda.create({
-      chairman,
+      chairman: { ...chairman, title: chairman.displayTitle },
       nominationFiles,
       sessionId: command.sessionId,
       authorId: command.authorId,
@@ -67,5 +71,19 @@ export class DocsService {
     await this.agendaRepository.persist(agenda);
 
     return { id: agenda.id };
+  }
+
+  getOrCreateAgendaDocument(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<string> {
+    return this.findAgendaDocumentQuery.handle(query);
+  }
+
+  getOrCreateAgendaDocumentPdf(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<StreamableFile> {
+    return this.findAgendaDocumentPdfQuery.handle(query);
   }
 }

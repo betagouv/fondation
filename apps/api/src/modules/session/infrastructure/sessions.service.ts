@@ -527,6 +527,9 @@ export class SessionService {
     sessionId: string;
     ids?: readonly string[] | undefined;
   }): Promise<InternalFoundAgendaNominationFiles> {
-    return this.internalFindAgendaNominationFilesQuery.handle(query);
+    return Sentry.startSpan(
+      { name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' },
+      () => this.internalFindAgendaNominationFilesQuery.handle(query),
+    );
   }
 }

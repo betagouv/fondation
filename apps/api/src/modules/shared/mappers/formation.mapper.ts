@@ -27,3 +27,19 @@ export function formationEnumToPrismaFormationEnum(
       return assertNever(value);
   }
 }
+
+export function formationLabel(
+  value: Magistrat.Formation | PrismaFormationEnum,
+): string {
+  switch (value) {
+    case PrismaFormationEnum.PARQUET:
+    case Magistrat.Formation.PARQUET:
+      return 'Parquet';
+    case PrismaFormationEnum.SIEGE:
+    case Magistrat.Formation.SIEGE:
+      return 'Siège';
+
+    default:
+      return assertNever(value);
+  }
+}
