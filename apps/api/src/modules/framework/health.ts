@@ -1,7 +1,8 @@
 import { Controller, DynamicModule, Get, Module } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiExcludeController, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Health')
+@ApiExcludeController()
 @Controller('_health')
 export class HealthController {
   @Get()

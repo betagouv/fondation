@@ -7,12 +7,16 @@ import { Gender, Role } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailsUserQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: { userId: string }): Promise<DetailedUserResponseDto> {
+  async handle(query: {
+    userId: string;
+    impersonationId: string | undefined;
+  }): Promise<DetailedUserResponseDto> {
     const maybeUser = await this.prisma.user.findUnique({
       where: { id: query.userId },
       select: {
@@ -30,20 +34,20 @@ export class DetailsUserQuery {
     return {
       ...user,
       userId,
+      isImpersonated: isDefined(query.impersonationId),
       role: prismaRoleEnumToRoleEnum(user.role),
       gender: prismaGenderEnumToGenderEnum(user.gender),
     };
   }
 }
 
-const DetailedUserResponseDtoSchema = z.object({
-  userId: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.enum(Role),
-  gender: z.enum(Gender),
-});
-
 export class DetailedUserResponseDto extends createZodDto(
-  DetailedUserResponseDtoSchema,
+  z.object({
+    userId: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    role: z.enum(Role),
+    gender: z.enum(Gender),
+    isImpersonated: z.boolean(),
+  }),
 ) {}

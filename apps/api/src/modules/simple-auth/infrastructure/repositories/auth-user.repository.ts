@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import {
+  AuthImpersonationRevoked,
+  AuthImpersonationStarted,
   AuthUser,
   AuthUserAuthenticated,
   AuthUserRegistered,
@@ -49,6 +51,14 @@ export class AuthUserRepository {
           return this.persistAuthUserUnAuthenticated(event);
         }
 
+        if (event instanceof AuthImpersonationStarted) {
+          return this.persistImpersonationStarted(event);
+        }
+
+        if (event instanceof AuthImpersonationRevoked) {
+          return this.persistImpersonationRevoked(event);
+        }
+
         return assertNever(event);
       }),
     );
@@ -80,6 +90,28 @@ export class AuthUserRepository {
         role: event.role,
         gender: event.gender,
       },
+    });
+  }
+
+  private persistImpersonationStarted({
+    impersonation,
+  }: AuthImpersonationStarted) {
+    return this.prisma.authImpersonation.create({
+      data: {
+        id: impersonation.id,
+        createdAt: impersonation.startedAt,
+        expiresAt: impersonation.expiresAt,
+        sessionId: impersonation.authSessionId,
+        impersonatedUserId: impersonation.impersonateId,
+      },
+    });
+  }
+
+  private persistImpersonationRevoked({
+    impersonationId,
+  }: AuthImpersonationRevoked) {
+    return this.prisma.authImpersonation.deleteMany({
+      where: { id: impersonationId },
     });
   }
 

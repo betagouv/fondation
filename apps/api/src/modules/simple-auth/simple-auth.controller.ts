@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  Param,
   Post,
   Req,
   Res,
@@ -31,6 +32,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
 
+import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
 import {
@@ -40,7 +42,7 @@ import {
 } from './infrastructure/dto/auth.dto';
 import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
-import { AuthedUserId, HasRole } from './simple-auth.decorator';
+import { AuthedUser, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
 @ApiTags('Auth')
@@ -90,34 +92,51 @@ export class SimpleAuthController {
     }
 
     const session = await this.auth.login(body);
-    this.decorateResponse({ res, session }).end();
+    this.decorateResponse(res, session).end();
   }
 
   @Get('introspect')
   @HasRole()
   @ZodResponse({ type: DetailedUserResponseDto, status: HttpStatus.OK })
   introspectSession(
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; impersonation?: { id: string } },
   ): Promise<DetailedUserResponseDto> {
-    return this.auth.detailsUser({ userId });
+    return this.auth.detailsUser({
+      userId: user.id,
+      impersonationId: user.impersonation?.id,
+    });
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @HasRole()
   async logout(
-    @AuthedUserId() userId: string,
-    @Req() request: ExpressRequest,
+    @AuthedUser()
+    user: {
+      id: string;
+      sessionId: string;
+      impersonation?: { id: string; impersonatorId: string };
+    },
     @Res() response: ExpressResponse,
   ): Promise<void> {
-    const sessionId = request.signedCookies['sessionId'];
-
-    if (!sessionId) {
+    if (!user.sessionId && !user.impersonation) {
       throw new NotFoundException();
     }
 
+    const { id: userId, sessionId, impersonation } = user;
+
+    if (impersonation) {
+      const { id: impersonationId, impersonatorId: userId } = impersonation;
+      await this.auth.unImpersonate({
+        userId,
+        impersonationId,
+      });
+      this.unDecorateResponse(response, 'impersonationId').end();
+      return;
+    }
+
     await this.auth.unAuthenticate({ userId, sessionId });
-    this.unDecorateResponse(response).end();
+    this.unDecorateResponse(response, 'sessionId').end();
   }
 
   @Post('register')
@@ -132,17 +151,40 @@ export class SimpleAuthController {
     });
   }
 
-  private decorateResponse(props: {
-    res: ExpressResponse;
-    session: AuthSession;
-  }): ExpressResponse {
-    return props.res.cookie('sessionId', props.session.id, {
+  @Post('users/:userId/impersonations')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @HasRole(Role.ADMIN)
+  async impersonate(
+    @Param('userId') targetUserId: string,
+    @Res() res: ExpressResponse,
+    @AuthedUser() user: { id: string; sessionId: string },
+  ): Promise<void> {
+    const impersonation = await this.auth.impersonate({
+      authSessionId: user.sessionId,
+      userId: user.id,
+      targetUserId,
+    });
+
+    this.decorateResponse(res, impersonation).end();
+  }
+
+  private decorateResponse(
+    res: ExpressResponse,
+    data: AuthSession | AuthImpersonation,
+  ): ExpressResponse {
+    const key =
+      data instanceof AuthImpersonation ? 'impersonationId' : 'sessionId';
+
+    return res.cookie(key, data.id, {
       ...SimpleAuthController.COOKIE_OPTIONS,
-      expires: props.session.expiresAt,
+      expires: data.expiresAt,
     });
   }
 
-  private unDecorateResponse(res: ExpressResponse): ExpressResponse {
-    return res.clearCookie('sessionId', SimpleAuthController.COOKIE_OPTIONS);
+  private unDecorateResponse(
+    res: ExpressResponse,
+    key: 'sessionId' | 'impersonationId',
+  ): ExpressResponse {
+    return res.clearCookie(key, SimpleAuthController.COOKIE_OPTIONS);
   }
 }

@@ -1,6 +1,6 @@
+import * as $api from '@api/sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Gender } from 'shared-models';
-import * as $api from '@api/sdk';
 import { HttpException } from '../utils/http-exception';
 
 export const authKeys = {
@@ -23,6 +23,7 @@ export const useUser = () => {
                 role: data.role,
                 firstName: data.firstName,
                 lastName: data.lastName,
+                isImpersonated: data.isImpersonated,
                 civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`
               }
             : null
@@ -54,5 +55,11 @@ export function useLogin() {
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() })
+  });
+}
+
+export function useImpersonateMutation(props: { userId: string }) {
+  return useMutation({
+    mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } })
   });
 }

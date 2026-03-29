@@ -3,6 +3,7 @@ import z from 'zod';
 
 import { makeId } from 'src/utils/id';
 
+import { AuthImpersonation } from './auth-impersonation';
 import { AuthPassword } from './auth-password';
 import { AuthSession } from './auth-session';
 
@@ -55,10 +56,26 @@ export class AuthUserAuthenticated {
   ) {}
 }
 
+export class AuthImpersonationStarted {
+  constructor(
+    readonly id: string,
+    readonly impersonation: AuthImpersonation,
+  ) {}
+}
+
+export class AuthImpersonationRevoked {
+  constructor(
+    readonly id: string,
+    readonly impersonationId: string,
+  ) {}
+}
+
 type AuthUserEvent =
   | AuthUserRegistered
   | AuthUserAuthenticated
-  | AuthUserUnAuthenticated;
+  | AuthUserUnAuthenticated
+  | AuthImpersonationStarted
+  | AuthImpersonationRevoked;
 
 export class AuthUser {
   constructor(
@@ -115,6 +132,28 @@ export class AuthUser {
       }),
     );
     return user;
+  }
+
+  impersonate(props: {
+    authSessionId: string;
+    userId: string;
+    now: Date;
+  }): AuthImpersonation {
+    const impersonation = AuthImpersonation.start({
+      authSessionId: props.authSessionId,
+      impersonateId: props.userId,
+      now: props.now,
+    });
+
+    this.#messages.push(new AuthImpersonationStarted(this.id, impersonation));
+
+    return impersonation;
+  }
+
+  unImpersonate(props: { impersonationId: string }): void {
+    this.#messages.push(
+      new AuthImpersonationRevoked(this.id, props.impersonationId),
+    );
   }
 
   readonly #messages: AuthUserEvent[] = [];
