@@ -1,11 +1,23 @@
-export class HttpException extends Error {
+export abstract class HttpException extends Error {
+  abstract readonly response: Response;
+  abstract readonly statusCode: number;
+}
+
+class HttpExceptionImpl extends HttpException {
   readonly statusCode: number;
-  readonly response: Response;
 
-  constructor(props: { response: Response }) {
-    super(`HTTP Request failed with status ${props.response.status}`);
+  constructor(readonly response: Response) {
+    super(`HTTP Request failed with status ${response.status}`);
 
-    this.statusCode = props.response.status;
-    this.response = props.response;
+    this.statusCode = response.status;
   }
+}
+
+class UnauthorizedHttpException extends HttpExceptionImpl {}
+
+export function httpAssert(response: Response): Response {
+  if (response.ok) return response;
+
+  const Exception = response.status == 401 ? UnauthorizedHttpException : HttpExceptionImpl;
+  throw new Exception(response);
 }
