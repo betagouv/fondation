@@ -5,9 +5,24 @@ model AuthSession {
   userId        String    @map("user_id") @db.Uuid
   invalidatedAt DateTime? @map("invalidated_at") @db.Timestamp(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sessions_user_id_users_id_fk")
+  user           User                @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sessions_user_id_users_id_fk")
+  impersonations AuthImpersonation[]
 
   @@map("sessions")
+  @@schema("identity_and_access_context")
+}
+
+model AuthImpersonation {
+  id                 String   @id @db.Uuid
+  createdAt          DateTime @map("created_at")
+  expiresAt          DateTime @map("expires_at")
+  sessionId          String   @db.Uuid
+  impersonatedUserId String   @map("impersonated_user_id") @db.Uuid
+
+  session          AuthSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade, onUpdate: NoAction)
+  impersonatedUser User        @relation(fields: [impersonatedUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("impersonation")
   @@schema("identity_and_access_context")
 }
 
@@ -39,6 +54,7 @@ model User {
   validatedSessions           Session[]
   agendas                     Agenda[]
   agendasAuthor               Agenda[]                   @relation("agenda_author")
+  authImpersonations          AuthImpersonation[]
 
   @@map("users")
   @@schema("identity_and_access_context")

@@ -17,10 +17,11 @@ import {
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useTab } from '@/hooks/useTab';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import { authKeys, useUser } from '@queries/auth.queries';
+import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AdminUserRoleLabel,
@@ -468,10 +469,38 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
   const fullName = toFullName(user);
+  const isUserImpersonable = !(
+    ['FIRST_SECRETARY', 'OFFICER', 'SECRETARY'] satisfies DetailedAdminUserDto['role'][]
+  ).includes(user.role as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  const tab = useTab();
+  const { mutate: impersonate, isPending } = useImpersonateMutation({ userId: props.user.id });
+  const onClick = React.useCallback(() => {
+    impersonate(undefined, {
+      onSuccess() {
+        const url = new URL(generatePath(ROUTE_PATHS.TRANSPARENCES.DASHBOARD), window.location.href);
+        tab.open(url);
+      }
+    });
+  }, [tab, impersonate]);
 
   return (
     <div className="admin-user-detail-page mx-auto max-w-2xl pb-12">
       <h1 className="fr-display-xl text-center">{fullName}</h1>
+      {isUserImpersonable && (
+        <p className="text-center">
+          <Button
+            size="small"
+            onClick={onClick}
+            className="rounded-full"
+            disabled={isPending}
+            priority="secondary"
+            iconId="ri-user-shared-fill"
+          >
+            Se connecter
+          </Button>
+        </p>
+      )}
 
       <section className="mt-16 flex flex-col gap-y-8">
         <dl className="flex flex-col gap-y-4">

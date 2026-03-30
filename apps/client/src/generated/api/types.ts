@@ -32,6 +32,7 @@ export type DetailedUserResponseDto = {
     lastName: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     gender: 'MALE' | 'FEMALE';
+    isImpersonated: boolean;
 };
 
 export type AttachReportFileDto = {
@@ -1031,6 +1032,7 @@ export type FoundAgendaNominationFiles = {
         number: number;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
         targetedPosition: string;
+        reporters: Array<string>;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
             comment: string | null;
@@ -1048,17 +1050,6 @@ export type GetFileByFileUrlData = {
 };
 
 export type GetFileByFileUrlResponses = {
-    200: unknown;
-};
-
-export type GetHealthData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/_health';
-};
-
-export type GetHealthResponses = {
     200: unknown;
 };
 
@@ -1100,6 +1091,21 @@ export type LogoutResponses = {
 };
 
 export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
+
+export type ImpersonateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/auth/v2/users/{userId}/impersonations';
+};
+
+export type ImpersonateResponses = {
+    204: void;
+};
+
+export type ImpersonateResponse = ImpersonateResponses[keyof ImpersonateResponses];
 
 export type DetachFilesData = {
     body?: never;
@@ -2350,3 +2356,35 @@ export type FindAgendaNominationFilesResponses = {
 };
 
 export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];
+
+export type GenerateAgendaHtmlData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/agendas/{agendaId}.html';
+};
+
+export type GenerateAgendaHtmlResponses = {
+    200: unknown;
+};
+
+export type GenerateAgendaPdfData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/agendas/{agendaId}.pdf';
+};
+
+export type GenerateAgendaPdfResponses = {
+    200: Blob | File;
+};
+
+export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];

@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
@@ -13,6 +14,7 @@ import { SimpleAuthService } from './simple-auth.service';
   providers: [
     AuthUserRepository,
     DetailsUserFromSessionIdQuery,
+    DetailsUserFromImpersonationQuery,
     DetailsUserQuery,
     FindMachineQuery,
     ListUsersQuery,

@@ -1,14 +1,14 @@
 import type { PropsWithChildren } from 'react';
 
+import { ConfirmationProvider } from '../../hooks/useConfirmation.hook';
+import { BanneredLayout } from '../shared/layouts/BanneredLayout';
 import { AppFooter } from './AppFooter';
 import { AppHeader } from './Header';
-import { StagingAppLayout } from '../shared/StagingAppLayout';
-import { ConfirmationProvider } from '../../hooks/useConfirmation.hook';
 
 export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <ConfirmationProvider>
-      <StagingAppLayout>
+      <BanneredLayout>
         <div className={`flex h-screen flex-col`}>
           <AppHeader />
           <main className="flex flex-grow">
@@ -16,7 +16,7 @@ export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
           </main>
           <AppFooter />
         </div>
-      </StagingAppLayout>
+      </BanneredLayout>
     </ConfirmationProvider>
   );
 };
