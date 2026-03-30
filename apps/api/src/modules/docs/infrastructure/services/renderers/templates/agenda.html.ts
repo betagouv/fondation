@@ -441,7 +441,8 @@ function layout<const T extends LayoutContext>({
         <head>
           <script
             defer
-            integrity="y6+mefdjvGUaOPOrIMXHgP6Wwpza9G0N1QW1YUteLiwb50olbeI7H909UwZTMuVX"
+            crossorigin="anonymous"
+            integrity="sha384-y6+mefdjvGUaOPOrIMXHgP6Wwpza9G0N1QW1YUteLiwb50olbeI7H909UwZTMuVX"
             src="https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.min.js"
           ></script>
 
@@ -623,7 +624,7 @@ function agendaCss(): string {
         }
 
         h1 {
-          font-family: "Montserrat";
+          font-family: Montserrat, sans-serif;
           text-transform: uppercase;
           font-weight: 900;
           font-size: 1.2rem;
@@ -638,7 +639,7 @@ function agendaCss(): string {
         }
 
         .subtitle {
-          font-family: 'Montserrat';
+          font-family: Montserrat, sans-serif;
           margin: 0;
           text-align: left;
           text-transform: uppercase;

@@ -28,6 +28,7 @@ cp -rv \
 cp -v \
   apps/api/scalingo/.buildpacks \
   apps/api/scalingo/Procfile \
+  apps/api/scalingo/AptFile \
   .tmp-build/
 
 # Make archive to upload the packaged built api

@@ -65,7 +65,7 @@ export class DocsService {
       sessionId: command.sessionId,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
-      sessionMeetingDate: DateOnly.fromJson(command.date),
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
     });
 
     await this.agendaRepository.persist(agenda);

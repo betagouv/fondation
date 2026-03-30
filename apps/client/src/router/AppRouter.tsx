@@ -10,6 +10,7 @@ import { AdminUserDetailPage } from '@/pages/admin/users/AdminUserDetailPage';
 import { AdminUserListPage } from '@/pages/admin/users/AdminUserListPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UserManualPage } from '@/pages/help/UserManualPage';
+import { PreviewAgendaPage } from '@/pages/secretariat-general/agenda/PreviewAgendaPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
@@ -122,6 +123,10 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.NEW_AGENDA,
             element: <NewAgendaPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
+            element: <PreviewAgendaPage />
           }
         ]
       },
