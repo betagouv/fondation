@@ -1,5 +1,5 @@
 import type { CreateClientConfig } from '../generated/api/client/types';
-import { HttpException } from './http-exception';
+import { httpAssert } from './http-exception';
 
 export function getBaseUrl() {
   if (!import.meta.env.PROD) return '';
@@ -18,11 +18,7 @@ export const createClientConfig: CreateClientConfig = (config) => ({
         ? 10_000
         : 60_000;
 
-    const response = await globalThis.fetch(init, {
-      signal: AbortSignal.timeout(timeout)
-    });
-    if (!response.ok) throw new HttpException({ response });
-
-    return response;
+    const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeout) });
+    return httpAssert(response);
   }
 });
