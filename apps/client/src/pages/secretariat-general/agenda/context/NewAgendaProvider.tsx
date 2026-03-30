@@ -57,9 +57,8 @@ export function NewAgendaProvider(props: React.PropsWithChildren) {
           sessionMeetingDate: state.metadata.sessionMeetingDate
         },
         {
-          onSuccess: () =>
-            // TODO: replace with navigation to Agenda Preview
-            navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }))
+          onSuccess: ({ id: agendaId }) =>
+            navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId }))
         }
       );
     },
