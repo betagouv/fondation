@@ -44,8 +44,8 @@ model AgendaNominationFile {
   number           Int
   name             String
   grade            String
-  position         String
-  targetedPosition String                      @map("targeted_position")
+  position         String?
+  targetedPosition String?                     @map("targeted_position")
   targetedGrade    String                      @map("targeted_grade")
   outcome          PrismaAgendaFileOutcomeEnum
   outcomeComment   String?                     @map("outcome_comment")

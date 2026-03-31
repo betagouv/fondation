@@ -7,8 +7,8 @@ export type AgendaNominationFile = {
   number: number;
   grade: Magistrat.Grade;
   targetedGrade: Magistrat.Grade;
-  currentPosition: string;
-  targetedPosition: string;
+  currentPosition: string | null;
+  targetedPosition: string | null;
   outcome: { value: AgendaNominationFileOutcomeEnum; comment: string | null };
   reporters: readonly string[];
 };

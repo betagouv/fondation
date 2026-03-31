@@ -47,10 +47,10 @@ export function PreviewAgendaPage() {
               disabled={generatePdf.isPending}
               iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
               iconPosition="right"
-              className={clsx({ 'animate-spin': generatePdf.isPending })}
+              className={clsx({ 'before:animate-spin': generatePdf.isPending })}
               onClick={() =>
                 generatePdf.mutate(
-                  { agendaId: agendaId! },
+                  { sessionId: sessionId!, agendaId: agendaId! },
                   {
                     onSuccess: () =>
                       navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }))
