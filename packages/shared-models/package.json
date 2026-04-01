@@ -5,6 +5,9 @@
   "description": "Shared models between the API and the Web App",
   "main": "./dist/models/index.js",
   "types": "./models/index.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rimraf dist/ && tsc",
     "build:watch": "tsc --watch",

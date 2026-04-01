@@ -20,13 +20,10 @@ jobs:
     needs: [release]
     runs-on: ubuntu-latest
     env:
+      tags_current: ${{ needs.release.outputs.tags_current }}
+      tags_previous: ${{ needs.release.outputs.tags_previous }}
       MATTERMOST_WEBHOOK: ${{ secrets.MATTERMOST_WEBHOOK }}
     steps:
-      - uses: actions/checkout@v6.0.2
-        with:
-          fetch-tags: true
-          fetch-depth: 200
-
       - uses: pnpm/action-setup@v4.2.0
         with:
           version: 10
@@ -41,11 +38,10 @@ jobs:
       - shell: bash
         id: changelog
         run: |
-          last_tags=$(git tag --merged HEAD --sort=-creatordate | /usr/bin/head -n2)
-          echo "$last_tags"
+          echo "${{ env.tags_current }}" ${{ env.tags_previous }}
           {
             echo 'markdown<<EOF'
-            node scripts/changelog $last_tags
+            node scripts/changelog ${{ env.tags_current }} ${{ env.tags_previous }}
             echo EOF
           } >> "$GITHUB_OUTPUT"
 

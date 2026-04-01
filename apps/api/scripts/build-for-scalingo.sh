@@ -1,35 +1,19 @@
 #!/usr/bin/env bash
 
-# Create folder to package the API production code
-mkdir .tmp-build/
+temp=(mktemp) && \
+  pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
+  pnpm --filter api prisma migrate --config prisma.config.ts deploy && \
+  pnpm --filter api prisma generate --config prisma.config.ts --generator client --sql && \
+  pnpm run --filter api... build
 
-# Copy monorepo root files
-cp -v \
-  package.json \
-  pnpm-lock.yaml \
-  pnpm-workspace.yaml \
-  .tmp-build/
+[[ -n "$SENTRY_AUTH_TOKEN" ]] && \
+  pnpm run --filter api sentry \
+    sourcemaps inject --org betagouv --project fondation_api ./dist && \
+  pnpm run --filter api sentry \
+    sourcemaps upload --org betagouv --project fondation_api ./dist
 
-# Copy shared packages
-mkdir -v .tmp-build/packages/
-cp -rv \
-  packages/shared-models/ \
-  .tmp-build/packages/shared-models/
-
-# Copy api files needed for production
-mkdir -pv .tmp-build/apps/api
-cp -rv \
-  apps/api/package.json \
-  apps/api/prisma.config.ts \
-  apps/api/prisma \
-  apps/api/dist \
-  .tmp-build/apps/api/
-
-cp -v \
-  apps/api/scalingo/.buildpacks \
-  apps/api/scalingo/Procfile \
-  apps/api/scalingo/Aptfile \
-  .tmp-build/
-
-# Make archive to upload the packaged built api
-tar -czf api-scalingo.tar.gz .tmp-build
+find apps/api/dist -iname '*.d.ts' -type f -or -iname '*.map' -type f -delete && \
+  pnpm deploy --filter api --prod "$temp" && \
+  mv "$temp"/scalingo/{.buildpacks,Procfile,Aptfile} "$temp" && \
+  rmdir "$temp/scalingo" && \
+  tar -czf api-scalingo.tar.gz "$temp"

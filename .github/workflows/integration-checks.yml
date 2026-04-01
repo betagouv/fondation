@@ -75,7 +75,7 @@ jobs:
         run: pnpm run --filter api prisma migrate deploy
 
       - name: Generate prisma
-        run: pnpm --filter api prisma generate --sql --config prisma.config.ts
+        run: pnpm --filter api prisma generate --generator client --sql --config prisma.config.ts
 
       - name: Types check
         run: pnpm types:check

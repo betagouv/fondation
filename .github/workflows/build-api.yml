@@ -11,11 +11,12 @@ on:
         required: false
 
 jobs:
-  build-and-upload-api-artifact:
+  build-api:
     runs-on: ubuntu-latest
     env:
       TZ: Etc/UTC
       DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN }}
     services:
       postgres:
         image: postgres:13.2
@@ -44,36 +45,14 @@ jobs:
           node-version: "24.12.0"
           cache: "pnpm"
 
-      - name: Install dependencies
-        run: pnpm --filter api... install --frozen-lockfile --ignore-scripts
-      - name: Migrate Prisma for generation
-        run: pnpm --filter api prisma migrate --config prisma.config.ts deploy
-      - name: Build prisma
-        run: pnpm --filter api prisma generate --sql --config prisma.config.ts
-      - name: Build api
-        run: pnpm --filter api... build
-
-      - name: Upload Source maps
-        shell: bash
-        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+      - name: Build Archive
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN }}
-        run: |
-          if [[ -n $SENTRY_AUTH_TOKEN ]];
-            pnpm --filter api... sentry sourcemaps inject --org betagouv --project fondation_api ./dist
-            pnpm --filter api... sentry --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project fondation_api ./dist
-          fi
-
-      - name: Clean sourcemaps
-        shell: bash
-        run: |
-          find apps/api/dist -iname '*.d.ts' -or -iname '*.map' -type f -delete
-
-      - name: Create Archive
         run: ./apps/api/scripts/build-for-scalingo.sh
 
-      - name: Archive dist
+      - name: Upload as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: api-scalingo-${{ inputs.tag }}
           path: api-scalingo.tar.gz
+          retention-days: 1
