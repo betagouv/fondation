@@ -84,7 +84,7 @@ const SqlNominationFilesSchema = z
       position: z.object({
         grade: z.enum(Magistrat.Grade),
         jurisdiction: SqlJurisdictionSchema,
-        function: SqlFunctionSchema,
+        function: SqlFunctionSchema.nullable(),
       }),
     }),
     reporters: z.preprocess(
@@ -153,16 +153,25 @@ function buildName(options: {
 function buildPosition(options: {
   civility: 'M.' | 'MME';
   position: {
-    jurisdiction: { label: string };
+    jurisdiction: { id: string; label: string };
     function: {
       label: string;
       labelOneMale: string | null;
       labelOneFemale: string | null;
       addition: string | null;
-    };
+    } | null;
   };
-}): string {
+}): string | null {
   const { civility, position } = options;
+
+  if (position.function === null) {
+    if (position.jurisdiction.id === 'SANS AFFECTATION')
+      return 'sans affectation';
+    if (position.jurisdiction.id === 'DETACHEMENT') return 'en détachement';
+
+    return null;
+  }
+
   if (
     (civility === 'M.' && !position.function.labelOneMale) ||
     (civility === 'MME' && !position.function.labelOneFemale)
@@ -192,14 +201,14 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
   z.object({
     items: z.array(
       z.looseObject({
-        currentPosition: z.string(),
+        currentPosition: z.string().nullable(),
         grade: z.enum(Magistrat.Grade),
         id: z.string(),
         magistratId: z.string().nullable(),
         name: z.string(),
         number: z.number(),
         targetedGrade: z.enum(Magistrat.Grade),
-        targetedPosition: z.string(),
+        targetedPosition: z.string().nullable(),
         reporters: z.array(z.string()),
         outcome: z.object({
           value: z.enum(NominationFileOutcome.enum),

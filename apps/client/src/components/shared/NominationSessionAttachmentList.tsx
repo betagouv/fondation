@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useCallback } from 'react';
+import { useCallback, type ReactNode } from 'react';
 
 import {
   useCreateNominationSessionAttachmentUrlMutation,
@@ -11,7 +11,7 @@ import {
 import { useIsSg } from '@/hooks/roles.hook';
 import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
-export function NominationSessionAttachmentList(props: { sessionId: string }) {
+export function NominationSessionAttachmentList(props: { sessionId: string; placeholder?: ReactNode }) {
   const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
     sessionId: props.sessionId
@@ -47,7 +47,11 @@ export function NominationSessionAttachmentList(props: { sessionId: string }) {
     useRemoveNominationSessionAttachmentMutation();
 
   if (!attachments?.items?.length)
-    return <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>;
+    return props.placeholder !== undefined ? (
+      props.placeholder
+    ) : (
+      <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
+    );
 
   return (
     <ul className={clsx('m-0 flex flex-col gap-2 p-0')}>

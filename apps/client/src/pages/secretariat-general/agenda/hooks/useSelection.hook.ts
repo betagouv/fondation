@@ -3,11 +3,11 @@ import React from 'react';
 type Falsy = '' | false | undefined | 0;
 export function useSelection<T, Key extends string>(props: {
   items: readonly T[] | undefined;
-  select: (item: T) => Key | Falsy;
+  toString: (item: T) => Key | Falsy;
 }) {
   const [selection, setSelection] = React.useState(new Set<Key>());
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const selectItem = React.useCallback((item: T) => props.select(item), []);
+  const selectItem = React.useCallback((item: T) => props.toString(item), []);
 
   React.useEffect(() => {
     const init = new Set<Key>();

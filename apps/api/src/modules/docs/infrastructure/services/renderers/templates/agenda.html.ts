@@ -493,22 +493,29 @@ function agendaHeader(ctx: {
 function agendaNominationParagraph(
   ctx: {
     name: string;
-    currentPosition: string;
+    currentPosition: string | null;
     currentGrade: string;
-    targetedPosition: string;
+    targetedPosition: string | null;
     targetedGrade: string;
     reporters: readonly string[];
   },
   index: number,
 ): string {
+  const currentPosition = !!ctx.currentPosition
+    ? `, actuellement ${ctx.currentPosition} (${ctx.currentGrade})`
+    : '';
+  const targetPosition = !!ctx.targetedPosition
+    ? `, pour la proposition au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
+    : '';
+  const reporters =
+    ctx.reporters.length > 0
+      ? `, au rapport de ${conjunctionList(ctx.reporters)}`
+      : '';
+
   return html`
     <p data-file="${index}">
-      <strong>${ctx.name}</strong>, actuellement ${ctx.currentPosition},
-      (${ctx.currentGrade}), pour la proposition au poste de
-      ${ctx.targetedPosition}
-      (${ctx.targetedGrade})${ctx.reporters.length > 0
-        ? `, au rapport de ${conjunctionList(ctx.reporters)}`
-        : ''}.
+      <strong>${ctx.name}</strong
+      >${currentPosition}${targetPosition}${reporters}.
     </p>
   `;
 }

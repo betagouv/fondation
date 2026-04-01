@@ -34,7 +34,10 @@ export function NewAgendaProvider(props: React.PropsWithChildren) {
     [setState]
   );
 
-  const cancel = React.useCallback(() => navigate(-1), [navigate]);
+  const cancel = React.useCallback(
+    () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId })),
+    [navigate, sessionId]
+  );
 
   const submit = React.useCallback(
     async (nominationFileIds: string[]) => {

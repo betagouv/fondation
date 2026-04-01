@@ -1024,20 +1024,36 @@ export type CreatedAgendaDto = {
 export type FoundAgendaNominationFiles = {
     items: Array<{
         agendaCount: number;
-        currentPosition: string;
+        currentPosition: string | null;
         grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
         id: string;
         magistratId: string | null;
         name: string;
         number: number;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        targetedPosition: string;
+        targetedPosition: string | null;
         reporters: Array<string>;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
             comment: string | null;
         };
     }>;
+};
+
+export type FoundSessionDocsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+    }>;
+};
+
+export type DetailedSessionDoc = {
+    id: string;
+    url: string;
+};
+
+export type DocGenerationSessionReadinessDto = {
+    isReady: boolean;
 };
 
 export type GetFileByFileUrlData = {
@@ -2356,6 +2372,52 @@ export type FindAgendaNominationFilesResponses = {
 };
 
 export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];
+
+export type FindSessionDocsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/docs';
+};
+
+export type FindSessionDocsResponses = {
+    200: FoundSessionDocsDto;
+};
+
+export type FindSessionDocsResponse = FindSessionDocsResponses[keyof FindSessionDocsResponses];
+
+export type DetailsSessionDocData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/docs/{agendaId}';
+};
+
+export type DetailsSessionDocResponses = {
+    200: DetailedSessionDoc;
+};
+
+export type DetailsSessionDocResponse = DetailsSessionDocResponses[keyof DetailsSessionDocResponses];
+
+export type IsSessionReadyForDocGenerationData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/readiness';
+};
+
+export type IsSessionReadyForDocGenerationResponses = {
+    200: DocGenerationSessionReadinessDto;
+};
+
+export type IsSessionReadyForDocGenerationResponse = IsSessionReadyForDocGenerationResponses[keyof IsSessionReadyForDocGenerationResponses];
 
 export type GenerateAgendaHtmlData = {
     body?: never;

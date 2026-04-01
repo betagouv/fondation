@@ -23,10 +23,13 @@ import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
 import { CreateAgendaDto, CreatedAgendaDto } from './docs.dto';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
+import { DetailedSessionDoc } from './queries/details-session-doc.query';
 import {
   FoundChairmenDto,
   SearchChairmenQueryDto,
 } from './queries/find-chairmen.query';
+import { FoundSessionDocsDto } from './queries/find-session-docs.query';
+import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
 
 @Controller('/api/docs/v1')
 export class DocsController {
@@ -70,6 +73,37 @@ export class DocsController {
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAgendaNominationFiles> {
     return this.docs.findAgendaNominationFiles({ sessionId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/docs')
+  @ZodResponse({ type: FoundSessionDocsDto, status: HttpStatus.OK })
+  findSessionDocs(
+    @Param('sessionId') sessionId: string,
+  ): Promise<FoundSessionDocsDto> {
+    return this.docs.findSessionDocs({ sessionId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/docs/:agendaId')
+  @ZodResponse({ type: DetailedSessionDoc, status: HttpStatus.OK })
+  detailsSessionDoc(
+    @Param('sessionId') sessionId: string,
+    @Param('agendaId') agendaId: string,
+  ): Promise<DetailedSessionDoc> {
+    return this.docs.detailsSessionDoc({ sessionId, agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/readiness')
+  @ZodResponse({
+    type: DocGenerationSessionReadinessDto,
+    status: HttpStatus.OK,
+  })
+  isSessionReadyForDocGeneration(
+    @Param('sessionId') sessionId: string,
+  ): Promise<DocGenerationSessionReadinessDto> {
+    return this.docs.isSessionReadyForDocGeneration({ sessionId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

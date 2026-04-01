@@ -64,7 +64,7 @@ jobs:
           cp -r apps/client/dist "$_"
           cp -r apps/client/scalingo/* "$_"
           cp apps/client/scalingo/.buildpacks "$_"
-          cp apps/client/scalingo/AptFile "$_"
+          cp apps/client/scalingo/Aptfile "$_"
           cp apps/client/scalingo/run.sh "$_"
           tar -czf client-scalingo.tar.gz scalingo
 

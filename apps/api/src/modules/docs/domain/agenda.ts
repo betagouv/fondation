@@ -9,7 +9,7 @@ export class AgendaCreated {
     readonly sessionId: Id<'SessionId'>,
     readonly authorId: Id<'AuthorId'>,
     readonly chairman: {
-      id: Id<'ChairmandId'>;
+      id: Id<'ChairmanId'>;
       firstName: string;
       lastName: string;
       gender: Gender;
@@ -52,7 +52,7 @@ export class Agenda {
         agenda.id,
         makeId('SessionId', props.sessionId),
         makeId('AuthorId', props.authorId),
-        { ...props.chairman, id: makeId('ChairmandId', props.chairman.id) },
+        { ...props.chairman, id: makeId('ChairmanId', props.chairman.id) },
         props.date.toDate(),
         props.sessionMeetingDate.toDate(),
         props.nominationFiles,

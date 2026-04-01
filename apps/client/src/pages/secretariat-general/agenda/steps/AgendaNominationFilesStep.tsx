@@ -22,11 +22,28 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
 
   const { data } = useFindAgendaNominationFilesQuery({ sessionId: session.id });
 
-  const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
+  const nominationFiles = React.useMemo(
+    () => (data?.items ?? []).filter((item) => item.agendaCount === 0 || item.outcome.value === 'SUSPENDED'),
+    [data]
+  );
+
   const selection = useSelection({
-    items: data?.items,
-    select: (item) => (item.agendaCount === 0 || item.outcome.value === 'SUSPENDED') && item.id
+    items: nominationFiles,
+    toString: ({ id }) => id
   });
+
+  const filtered = React.useMemo(() => {
+    const term = new RegExp(search.trim().replace(/ /g, '\\s'), 'i');
+    return nominationFiles.filter((item) => {
+      const result = !term || term.test(item.name);
+
+      if (item.name.startsWith('M. ARTHUR')) {
+        console.log({ item, search, term, result });
+      }
+
+      return result;
+    });
+  }, [nominationFiles, search]);
 
   const selectionLabel = selection.hasNone
     ? `Aucune proposition sélectionnée`
@@ -46,24 +63,12 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     [selection]
   );
 
-  const items = React.useMemo(
-    () =>
-      nominationFiles.filter((item) => {
-        const isReady = item.agendaCount === 0 || item.outcome.value === 'SUSPENDED';
-        const trimmed = search.trim().toLowerCase();
-
-        if (!trimmed) return isReady;
-        return isReady && item.name.toLowerCase().includes(trimmed);
-      }),
-    [nominationFiles, search]
-  );
-
   const onSelectAll = React.useCallback(() => {
     selection.toggleAll();
   }, [selection]);
 
   const virtualizer = useVirtualizer({
-    count: items.length,
+    count: filtered.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 72,
     overscan: 5
@@ -91,12 +96,12 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
         )}
       </div>
       <div ref={scrollRef} className="mt-2 h-[42vh] min-h-64 overflow-y-scroll">
-        {items.length === 0 && <p className="pt-4 text-center text-gray-500">Aucune donnée disponible</p>}
-        {items.length > 0 && (
+        {filtered.length === 0 && <p className="pt-4 text-center text-gray-500">Aucune donnée disponible</p>}
+        {filtered.length > 0 && (
           <>
             <div className="relative" style={{ height: virtualizer.getTotalSize() }}>
               {virtualizer.getVirtualItems().map((virtualItem) => {
-                const file = items[virtualItem.index];
+                const file = filtered[virtualItem.index];
                 return (
                   <div
                     key={virtualItem.key}

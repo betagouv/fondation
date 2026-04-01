@@ -37,14 +37,15 @@ export function AgendaNominationFile(props: {
                   className="truncate text-xs"
                   title={[props.file.grade, props.file.currentPosition].join(' - ')}
                 >
-                  {[props.file.grade, props.file.currentPosition].join(' - ')}
+                  {[props.file.grade, props.file.currentPosition].filter((x) => !!x).join(' - ') || '-'}
                 </div>
               </div>
               <i
                 className={clsx(cx('ri-arrow-right-line'), 'flex-shrink-0 before:size-5 before:content-[""]')}
               />
               <div className="text-wrap px-2 pt-1 text-sm">
-                {props.file.targetedGrade} - {props.file.targetedPosition}
+                {[props.file.targetedGrade, props.file.targetedPosition].filter((x) => !!x).join(' - ') ||
+                  '-'}
               </div>
             </div>
           )

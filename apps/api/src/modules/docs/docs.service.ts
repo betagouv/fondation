@@ -10,12 +10,24 @@ import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
+import {
+  DetailedSessionDoc,
+  DetailsSessionDocQuery,
+} from './infrastructure/queries/details-session-doc.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
   FindChairmenQuery,
   FoundChairmenDto,
 } from './infrastructure/queries/find-chairmen.query';
+import {
+  FindSessionDocsQuery,
+  FoundSessionDocsDto,
+} from './infrastructure/queries/find-session-docs.query';
+import {
+  DocGenerationSessionReadinessDto,
+  IsSessionReadyForDocGenerationQuery,
+} from './infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 
 @Injectable()
@@ -27,6 +39,9 @@ export class DocsService {
     private readonly members: MembersService,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
+    private readonly findSessionDocsQuery: FindSessionDocsQuery,
+    private readonly detailsSessionDocQuery: DetailsSessionDocQuery,
+    private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
   ) {}
 
   searchChairmen(query: {
@@ -85,5 +100,22 @@ export class DocsService {
     forceNew?: boolean;
   }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
+  }
+
+  findSessionDocs(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
+    return this.findSessionDocsQuery.handle(query);
+  }
+
+  detailsSessionDoc(query: {
+    sessionId: string;
+    agendaId: string;
+  }): Promise<DetailedSessionDoc> {
+    return this.detailsSessionDocQuery.handle(query);
+  }
+
+  isSessionReadyForDocGeneration(query: {
+    sessionId: string;
+  }): Promise<DocGenerationSessionReadinessDto> {
+    return this.isSessionReadyForDocGenerationQuery.handle(query);
   }
 }
