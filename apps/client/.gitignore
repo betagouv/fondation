@@ -33,3 +33,6 @@ dist-ssr
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Fonts (downloaded separately, not tracked in git)
+src/assets/fonts/

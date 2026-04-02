@@ -8,6 +8,12 @@ on:
         required: true
         type: string
 
+    outputs:
+      tags_current:
+        value: ${{ jobs.tags.outputs.current }}
+      tags_previous:
+        value: ${{ jobs.tags.outputs.previous }}
+
     secrets:
       VITE_SENTRY_DSN:
         required: false
@@ -17,25 +23,44 @@ on:
         required: false
       SENTRY_CLIENT_AUTH_TOKEN:
         required: false
+      SCALINGO_SSH_KEY:
+        required: false
 
 jobs:
-  build-and-upload-api-artifact:
-    uses: ./.github/workflows/build-and-upload-api-artifact.yml
+  tags:
+    uses: ./.github/workflows/tags.yml
     with:
-      tag: "v${{ github.run_number }}"
+      environment: ${{ inputs.environment }}
 
-  build-and-upload-client-artifact:
-    uses: ./.github/workflows/build-and-upload-client-artifact.yml
+  build-api:
+    needs: [tags]
+    uses: ./.github/workflows/build-api.yml
+    with:
+      tag: ${{ needs.tags.outputs.current }}
+
+  build-client:
+    needs: [tags]
+    uses: ./.github/workflows/build-client.yml
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-      tag: "v${{ github.run_number }}"
+      tag: ${{ needs.tags.outputs.current }}
+
+  migrate:
+    needs: [tags, build-api, build-client]
+    uses: ./.github/workflows/migrate.yml
+    secrets: inherit
+    with:
+      tags_current: ${{ needs.tags.outputs.current }}
+      tags_previous: ${{ needs.tags.outputs.previous }}
+      environment: ${{ inputs.environment }}
 
   deploy:
     name: Deploy scalingo
-    needs: [build-and-upload-api-artifact, build-and-upload-client-artifact]
+    needs: [tags, migrate]
     uses: ./.github/workflows/deploy-to-scalingo.yml
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-      tag: "v${{ github.run_number }}"
+      tags_current: ${{ needs.tags.outputs.current }}
+      tags_previous: ${{ needs.tags.outputs.previous }}

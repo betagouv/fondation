@@ -13,7 +13,6 @@ function injectFonts(html: string): string {
   return html.replace('<head>', `<head><style>${fontsCss}`).replace(
     `</head>`,
     `<style>
-        .pagedjs_pages { background-color: red; }
         .pagedjs_page { margin: 12px; }
       </style>
     </head>`

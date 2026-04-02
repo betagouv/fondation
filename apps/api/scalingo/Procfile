@@ -1,2 +1,1 @@
 web: ./bin/api.sh
-postdeploy: cd apps/api && pnpm run prisma migrate deploy

@@ -1,0 +1,38 @@
+name: Find last git tags
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+    outputs:
+      current:
+        description: The current tagged version
+        value: ${{ jobs.tags.outputs.current }}
+      previous:
+        description: The n-1 tagged version
+        value: ${{ jobs.tags.outputs.previous }}
+
+jobs:
+  tags:
+    outputs:
+      current: ${{ steps.tag.outputs.current }}
+      previous: ${{ steps.tag.outputs.previous }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-tags: true
+          fetch-depth: 200
+
+      - id: tag
+        shell: bash
+        env:
+          environment: ${{ inputs.environment }}
+        run: |
+          tags=($(git tag --merged HEAD --sort=-creatordate | /usr/bin/head -n2))
+          echo "current=${tags[0]:-$environment}" >> $GITHUB_OUTPUT
+          echo "previous=${tags[1]}" >> $GITHUB_OUTPUT

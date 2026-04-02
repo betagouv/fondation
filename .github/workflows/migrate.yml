@@ -1,0 +1,70 @@
+name: Migrate Db
+
+on:
+  workflow_call:
+    secrets:
+      SCALINGO_API_TOKEN:
+        required: false
+      SCALINGO_SSH_KEY:
+        required: false
+
+    inputs:
+      environment:
+        type: string
+        required: true
+      tags_current:
+        type: string
+        required: true
+      tags_previous:
+        type: string
+        required: false
+
+jobs:
+  migrate:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 200
+          fetch-tags: true
+
+      - uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323
+        id: changed-files
+        with:
+          sha: ${{ inputs.tags_current }}
+          base_sha: ${{ inputs.tags_previous }}
+          files: |
+            apps/api/prisma/migrations/**/*.sql
+
+      - uses: pnpm/action-setup@v4.2.0
+        if: steps.changed-files.outputs.any_changed == 'true'
+        with:
+          version: 10
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6.1.0
+        if: steps.changed-files.outputs.any_changed == 'true'
+        with:
+          node-version: "24.12.0"
+          cache: "pnpm"
+
+      - name: Install scalingo CLI
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          token: ${{ secrets.SCALINGO_API_TOKEN }}
+        run: |
+          curl -O https://cli-dl.scalingo.com/install && bash install
+          echo "$HOME/bin" >> $GITHUB_PATH
+          scalingo login --api-token ${{ env.token }}
+
+      - name: Run migration
+        if: steps.changed-files.outputs.any_changed == 'true'
+        shell: bash
+        env:
+          SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
+          SCALINGO_API_APP_NAME: ${{ vars.SCALINGO_API_APP_NAME }}
+          SCALINGO_SSH_KEY: ${{ secrets.SCALINGO_SSH_KEY }}
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+        run: ./apps/api/scripts/migrate.sh

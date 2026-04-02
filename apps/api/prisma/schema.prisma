@@ -5,6 +5,10 @@ generator client {
   engineType      = "client"
 }
 
+generator rotateRoles {
+  provider = "node ./prisma/generators/group-role"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

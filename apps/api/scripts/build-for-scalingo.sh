@@ -1,35 +1,36 @@
 #!/usr/bin/env bash
 
-# Create folder to package the API production code
-mkdir .tmp-build/
+[[ -n "$DATABASE_URL" ]] || { echo "Missing DATABASE_URL"; exit 1; }
 
-# Copy monorepo root files
-cp -v \
-  package.json \
-  pnpm-lock.yaml \
-  pnpm-workspace.yaml \
-  .tmp-build/
+pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
+  pnpm --filter api exec prisma migrate --config prisma.config.ts deploy && \
+  pnpm --filter api exec prisma generate --config prisma.config.ts --generator client --sql && \
+  pnpm --filter api... run build
 
-# Copy shared packages
-mkdir -v .tmp-build/packages/
-cp -rv \
-  packages/shared-models/ \
-  .tmp-build/packages/shared-models/
+[[ -n "$SENTRY_AUTH_TOKEN" ]] && \
+  pnpm run --filter api sentry \
+    sourcemaps inject --org betagouv --project fondation_api ./dist && \
+  pnpm run --filter api sentry \
+    sourcemaps upload --org betagouv --project fondation_api ./dist
 
-# Copy api files needed for production
-mkdir -pv .tmp-build/apps/api
-cp -rv \
-  apps/api/package.json \
-  apps/api/prisma.config.ts \
-  apps/api/prisma \
-  apps/api/dist \
-  .tmp-build/apps/api/
-
-cp -v \
-  apps/api/scalingo/.buildpacks \
-  apps/api/scalingo/Procfile \
-  apps/api/scalingo/Aptfile \
-  .tmp-build/
-
-# Make archive to upload the packaged built api
-tar -czf api-scalingo.tar.gz .tmp-build
+## @see apps/api/package.json#scripts.postinstall
+postinstall="node apps/api/node_modules/puppeteer/install.mjs && \
+ mv /usr/share/fonts/truetype/noto/NotoSans-*.ttf /usr/share/fonts/truetype && \
+ rm /usr/share/fonts/truetype/noto/*.ttf && \
+ mv /usr/share/fonts/truetype/NotoSans-*.ttf /usr/share/fonts/truetype/noto" && \
+temp=$(basename $(mktemp -d)) && \
+  mkdir -p "$temp" && \
+  find {apps/api,packages/shared-models}/dist \
+    -iname '*.d.ts' -type f -delete \
+    -or -iname '*.map' -type f -delete \
+    -or -iname '*.tsbuildinfo' -type f -delete && \
+  mv bin pnpm-lock.yaml pnpm-workspace.yaml "$temp" && \
+  mkdir -p "$temp/apps/api" && \
+  mv apps/api/dist "$temp/apps/api" && \
+  mkdir -p "$temp/packages/shared-models" && \
+  mv packages/shared-models/dist "$temp/packages/shared-models" && \
+  jq ".scripts = {build: \"$postinstall\"} | del(.jest)" package.json > "$temp/package.json" && \
+  jq 'del(.scripts,.jest)' apps/api/package.json > "$temp/apps/api/package.json" && \
+  jq 'del(.scripts,.types)' packages/shared-models/package.json > "$temp/packages/shared-models/package.json" && \
+  mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile} "$temp" && \
+  tar -czf api-scalingo.tar.gz "$temp"
