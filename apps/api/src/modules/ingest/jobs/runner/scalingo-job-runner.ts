@@ -52,7 +52,7 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
       throw new FailedToStartJob(jobId);
     }
 
-    const command = `node apps/api/dist/src/cli lolfi-job --jobId ${jobId}`;
+    const command = `node apps/api/dist/cli lolfi-job --jobId ${jobId}`;
     this.logger.debug(`Starting "${command}" with scalingo job runner`);
 
     const result = await this.scalingo.withAuthentication((http) =>
