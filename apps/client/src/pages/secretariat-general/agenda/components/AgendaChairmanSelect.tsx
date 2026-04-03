@@ -1,5 +1,6 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 
+import { toFullName } from '@/utils/user.utils';
 import { useSearchChairmenQuery } from '@queries/agenda.queries';
 import React from 'react';
 import { useNewAgenda } from '../context/NewAgendaContext';
@@ -44,7 +45,7 @@ export function AgendaChairmanSelect(props: {
       </option>
       {chairmen.map((c) => (
         <option key={c.id} value={c.id}>
-          {[c.displayTitle, c.lastName.toUpperCase()].join(' ')}
+          {c.displayTitle ? [c.displayTitle, c.lastName.toUpperCase()].join(' ') : toFullName(c)}
         </option>
       ))}
     </Select>
