@@ -14,10 +14,7 @@ pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
     sourcemaps upload --org betagouv --project fondation_api ./dist
 
 ## @see apps/api/package.json#scripts.postinstall
-postinstall="node apps/api/node_modules/puppeteer/install.mjs && \
- mv /usr/share/fonts/truetype/noto/NotoSans-*.ttf /usr/share/fonts/truetype && \
- rm /usr/share/fonts/truetype/noto/*.ttf && \
- mv /usr/share/fonts/truetype/NotoSans-*.ttf /usr/share/fonts/truetype/noto" && \
+postinstall="bash apps/api/scripts/postinstall.sh" && \
 temp=$(basename $(mktemp -d)) && \
   mkdir -p "$temp" && \
   find {apps/api,packages/shared-models}/dist \
