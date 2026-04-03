@@ -9,8 +9,7 @@ import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import fontsCss from './PreviewAgendaPage.css?inline';
 
 function injectFonts(html: string): string {
-  if (import.meta.env.DEV) return html;
-  return html.replace('<head>', `<head><style>${fontsCss}`).replace(
+  return html.replace('<head>', `<head><style data-pagedjs-ignore>${fontsCss}</style>`).replace(
     `</head>`,
     `<style>
         .pagedjs_page { margin: 12px; }
@@ -35,7 +34,9 @@ export function PreviewAgendaPage() {
             <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
           ) : (
             <iframe
-              style={{ flex: 1, border: 'none' }}
+              className="flex-1 border border-solid border-gray-100"
+              style={{ flex: 1 }}
+              src={window.location.origin}
               srcDoc={injectFonts(html)}
               title="Aperçu de l'ordre du jour"
             />
@@ -46,7 +47,9 @@ export function PreviewAgendaPage() {
               disabled={generatePdf.isPending}
               iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
               iconPosition="right"
-              className={clsx({ 'before:animate-spin': generatePdf.isPending })}
+              className={clsx({
+                'after:size-5 after:animate-spin after:content-[""]': generatePdf.isPending
+              })}
               onClick={() =>
                 generatePdf.mutate(
                   { sessionId: sessionId!, agendaId: agendaId! },

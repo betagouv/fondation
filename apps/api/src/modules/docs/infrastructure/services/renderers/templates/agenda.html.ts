@@ -664,6 +664,8 @@ function agendaCss(): string {
     }
 
     .footer {
+      break-before: avoid;
+      break-inside: avoid;
       margin-top: 3rem;
       font-size: 0.8rem;
 
