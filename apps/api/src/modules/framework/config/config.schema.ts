@@ -64,6 +64,11 @@ export const ConfigSchema = z.object({
     }),
   ),
 
+  mattermostWebhook: z.prefault(
+    z.url().nullish(),
+    process.env.MATTERMOST_WEBHOOK,
+  ),
+
   s3: z.preprocess(
     () => ({}),
     z.object({
