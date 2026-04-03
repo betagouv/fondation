@@ -5,6 +5,7 @@ import { ConfigModule } from './config';
 import { DatabaseModule } from './database';
 import { ExceptionModule } from './exception';
 import { FilesModule } from './files';
+import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
 import { ObservabilityModule } from './observability';
@@ -17,6 +18,7 @@ import { ObservabilityModule } from './observability';
     DatabaseModule,
     ExceptionModule,
     FilesModule,
+    ForwardsModule,
     HealthModule.register(),
     HttpModule.register(),
     ObservabilityModule,
