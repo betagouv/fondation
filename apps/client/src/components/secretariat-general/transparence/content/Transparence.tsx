@@ -1,5 +1,4 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import clsx from 'clsx';
 import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
@@ -7,6 +6,7 @@ import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
+import * as importAttachments from './tableau-de-bord/actions/ImportAttachmentModal';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
@@ -60,9 +60,11 @@ export function Transparence() {
       </div>
 
       <div className={'flex flex-col gap-8'}>
-        <div className={clsx('gap-8', cx('fr-grid-row', 'fr-container'))}>
-          <TableauDeBordActions sessionId={sessionId!} formation={transparence.formation} />
+        <div className="fr-container flex justify-between gap-x-6">
+          <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
+
           <TableauDeBordResume {...transparence} />
+          <TableauDeBordActions sessionId={sessionId!} />
         </div>
         <div className="mb-8">
           <NominationFilesTable sessionId={sessionId!} formation={transparence.formation} />

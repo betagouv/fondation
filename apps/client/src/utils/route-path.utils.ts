@@ -15,6 +15,7 @@ export const ROUTE_PATHS = {
     DASHBOARD: '/secretariat-general',
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     SESSION_ID: '/secretariat-general/session/:sessionId',
+    SESSION_ID_EDIT: '/secretariat-general/session/:sessionId/edit',
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     MANAGE_SESSION: '/secretariat-general/sessions',

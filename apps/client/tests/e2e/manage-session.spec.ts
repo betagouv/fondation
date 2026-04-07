@@ -30,7 +30,7 @@ test.describe('Gérer les sessions', () => {
 
     // Alors la session importée est visible sur la page dédiée
     await app.pages.manageSessions.sessionRow(sessionName).click();
-    await app.pages.session.waitFor();
+    await app.pages.session.waitFor(sessionName);
 
     await app.page.getByRole('cell', { name: 'Pierre BOURDIEU' }).waitFor();
   });
@@ -43,7 +43,7 @@ test.describe('Gérer les sessions', () => {
         await app.pages.manageSessions.goto();
         if ((await app.pages.manageSessions.sessionRow(lastSession).count()) > 0) {
           await app.pages.manageSessions.sessionRow(lastSession).click();
-          await app.pages.session.waitFor();
+          await app.pages.session.waitFor(lastSession);
 
           console.debug('SKIPPED');
           return;
@@ -84,7 +84,7 @@ test.describe('Gérer les sessions', () => {
       }
 
       await app.pages.manageSessions.sessionRow(name).click();
-      await app.pages.session.waitFor();
+      await app.pages.session.waitFor(name);
 
       lastSession = name;
     });

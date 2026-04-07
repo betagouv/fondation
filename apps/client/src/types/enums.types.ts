@@ -42,6 +42,11 @@ export const FormationEnum: Record<FormationEnum, FormationEnum> = {
   SIEGE: 'SIEGE'
 };
 
+export const FormationEnumLabel = {
+  PARQUET: 'parquet',
+  SIEGE: 'siège'
+} as const satisfies Record<FormationEnum, string>;
+
 export type TypeDeSaisineEnum = NonNullable<DetailedNominationSessionDto['typeDeSaisine']>;
 export const TypeDeSaisineEnum = {
   TRANSPARENCE_GDS: 'TRANSPARENCE_GDS'
