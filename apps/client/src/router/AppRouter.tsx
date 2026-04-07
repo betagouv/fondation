@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
+import { TableauDeBordEditTransparencePage } from '@/components/secretariat-general/transparence/content/tableau-de-bord/resume/TableauDeBordEditTransparence';
 import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
 import { AdminLayout } from '@/pages/admin/AdminLayout';
 import { IngestLolfiArchivePage } from '@/pages/admin/ingest/IngestLolfiArchivePage';
@@ -103,6 +104,10 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.SESSION_ID,
             element: <TransparencePage />
+          },
+          {
+            path: ROUTE_PATHS.SG.SESSION_ID_EDIT,
+            element: <TableauDeBordEditTransparencePage />
           },
           {
             path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
