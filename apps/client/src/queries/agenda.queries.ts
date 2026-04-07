@@ -6,7 +6,7 @@ import type { FormationEnum } from '@/types/enums.types';
 
 import type { DateOnlyJson } from 'shared-models';
 
-const agendaKeys = {
+export const agendaKeys = {
   searchChairmen: (formation: FormationEnum | undefined) => ['agenda', 'searchChairmen', formation] as const,
   findAgendaNominationFiles: (sessionId: string) =>
     ['agenda', 'findAgendaNominationFiles', sessionId] as const,

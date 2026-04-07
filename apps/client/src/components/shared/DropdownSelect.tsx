@@ -46,7 +46,6 @@ export const DropdownSelect = <T extends string = string>({
         size={buttonSize}
         iconId={isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
         iconPosition="right"
-        title={placeholder}
       >
         {selectedOption ? (selectedOption.selected ?? selectedOption.label) : placeholder}
       </Button>
