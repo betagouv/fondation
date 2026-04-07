@@ -16,6 +16,7 @@ import type {
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import { getBaseUrl } from '@/utils/http.config';
+import { agendaKeys } from './agenda.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
   ? Rest
@@ -66,11 +67,9 @@ export const sessionKeys = {
   countUsersNewSessions: () => key('sessions', 'countUsersNewSessions')
 };
 
-type NominationSessionQueryKey = ReturnType<(typeof sessionKeys)[keyof typeof sessionKeys]>;
-
 const doesQueryKey = {
   matchesAny:
-    (...keys: readonly NominationSessionQueryKey[]) =>
+    (...keys: (readonly unknown[])[]) =>
     ({ queryKey }: { queryKey: readonly unknown[] }) =>
       keys.some((key) =>
         key.every((x, i) =>
@@ -416,7 +415,8 @@ export function useDefineNominationFileOutcomeMutation(input: {
         queryClient.invalidateQueries({
           predicate: doesQueryKey.matchesAny(
             sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
-            sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId })
+            sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
+            agendaKeys.isSessionReadyForDocGeneration(input.sessionId)
           )
         })
       ])
