@@ -286,21 +286,32 @@ export class NominationSessionRepository {
       throw new InternalServerErrorException();
     }
 
-    const { id: versionId } = await tx.affectationVersion.upsert({
-      select: { id: true },
-      where: { id: message.versionId },
-      update: {
-        statut: 'PUBLIEE',
-        auteurPublicationId: message.userId,
-        datePublication: this.clock.now(),
-      },
-      create: {
-        statut: 'PUBLIEE',
-        auteurPublicationId: message.userId,
-        datePublication: this.clock.now(),
-        sessionId: message.sessionId,
-      },
-    });
+    let versionId: string;
+    // We can't use upsert, since `message.versionId` is nullable. It doesn't appear in prisma TS error but at runtime
+    if (message.versionId) {
+      const affectationVersion = await tx.affectationVersion.update({
+        select: { id: true },
+        where: { id: message.versionId },
+        data: {
+          statut: 'PUBLIEE',
+          auteurPublicationId: message.userId,
+          datePublication: this.clock.now(),
+          sessionId: message.sessionId,
+        },
+      });
+      versionId = affectationVersion.id;
+    } else {
+      const affectationVersion = await tx.affectationVersion.create({
+        select: { id: true },
+        data: {
+          statut: 'PUBLIEE',
+          auteurPublicationId: message.userId,
+          datePublication: this.clock.now(),
+          sessionId: message.sessionId,
+        },
+      });
+      versionId = affectationVersion.id;
+    }
 
     const reportsToCreate = session.affectationVersions.flatMap(
       ({ affectations }) =>
