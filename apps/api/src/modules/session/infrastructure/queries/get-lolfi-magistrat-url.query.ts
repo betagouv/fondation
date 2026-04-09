@@ -15,21 +15,27 @@ export class GetLolfiMagistratUrlQuery {
     nominationFileId: string;
   }): Promise<LolfiMagistratUrlDto> {
     const id = await this.prisma.$transaction(async (tx) => {
-      const session = await tx.session.findUnique({
-        where: { id: query.sessionId },
+      const nominationFile = await tx.dossierDeNomination.findUnique({
+        where: { id: query.nominationFileId, sessionId: query.sessionId },
         select: {
-          dossierDeNominations: {
-            where: { id: query.nominationFileId },
-            take: 1,
-            select: { name: true },
-          },
+          name: true,
+          detectedMagistrat: { select: { externalId: true } },
         },
       });
 
-      const [nominationFile] = session?.dossierDeNominations ?? [];
       if (!nominationFile) return null;
 
-      const search = unaccent(nominationFile.name).toLowerCase();
+      if (nominationFile.detectedMagistrat?.externalId) {
+        return nominationFile.detectedMagistrat.externalId;
+      }
+
+      const search = unaccent(
+        nominationFile.name
+          .toLowerCase()
+          .replace(/\s*\(vivier: .+\)\s*$/, '')
+          .trim(),
+      );
+
       const [{ externalId } = {}] = await tx.$queryRawTyped(
         findMagistratExternalIdByFullName(search),
       );
