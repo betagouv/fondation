@@ -8,24 +8,24 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
-import { useNewAgenda } from '../context/NewAgendaContext';
+import { useAgenda } from '../context/AgendaContext';
 import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
 import { useSelection } from '../hooks/useSelection.hook';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
-  const { session, isSubmitting: isPending, submit, goToMetadata } = useNewAgenda();
+  const { session, isSubmitting: isPending, submit, goToMetadata, agendaId } = useAgenda();
 
   const [search, setSearch] = React.useState('');
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const down = useScrollDownIndicator({ root: scrollRef });
 
-  const { data } = useFindAgendaNominationFilesQuery({ sessionId: session.id });
+  const { data } = useFindAgendaNominationFilesQuery({
+    sessionId: session.id,
+    ignoreAgendaId: agendaId
+  });
 
-  const nominationFiles = React.useMemo(
-    () => (data?.items ?? []).filter((item) => item.agendaCount === 0 || item.outcome.value === 'SUSPENDED'),
-    [data]
-  );
+  const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 
   const selection = useSelection({
     items: nominationFiles,
@@ -33,16 +33,10 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
   });
 
   const filtered = React.useMemo(() => {
-    const term = new RegExp(search.trim().replace(/ /g, '\\s'), 'i');
-    return nominationFiles.filter((item) => {
-      const result = !term || term.test(item.name);
+    const trimmed = search.trim();
+    const term = trimmed ? new RegExp(trimmed.replace(/ /g, '\\s'), 'i') : undefined;
 
-      if (item.name.startsWith('M. ARTHUR')) {
-        console.log({ item, search, term, result });
-      }
-
-      return result;
-    });
+    return nominationFiles.filter((item) => !term || term.test(item.name));
   }, [nominationFiles, search]);
 
   const selectionLabel = selection.hasNone
@@ -141,15 +135,19 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
           { children: 'Retour', priority: 'secondary', onClick: goToMetadata, type: 'button' },
           {
             type: 'button',
+            onClick: onSubmit,
+            disabled: selection.hasNone || isPending,
+            className: clsx({ 'before:animate-spin': isPending }),
             iconId: selection.hasNone ? undefined : isPending ? 'ri-loader-4-line' : 'ri-file-pdf-2-line',
             children: selection.hasNone
               ? 'En attente de sélection'
               : selection.size === 1
-                ? `Générer l'ODJ avec la proposition sélectionnée`
-                : `Générer l'ODJ avec les ${selectionLabel}`,
-            className: clsx({ 'before:animate-spin': isPending }),
-            onClick: onSubmit,
-            disabled: selection.hasNone || isPending
+                ? agendaId
+                  ? `Modifier l'ODJ avec la proposition sélectionnée`
+                  : `Générer l'ODJ avec la proposition sélectionnée`
+                : agendaId
+                  ? `Modifier l'ODJ avec les ${selectionLabel}`
+                  : `Générer l'ODJ avec les ${selectionLabel}`
           }
         ]}
       />

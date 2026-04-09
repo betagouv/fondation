@@ -11,6 +11,10 @@ import {
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
 import {
+  DetailedAgendaMetadata,
+  DetailsAgendaMetadataQuery,
+} from './infrastructure/queries/details-agenda-metadata.query';
+import {
   DetailedSessionDoc,
   DetailsSessionDocQuery,
 } from './infrastructure/queries/details-session-doc.query';
@@ -42,6 +46,7 @@ export class DocsService {
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
     private readonly detailsSessionDocQuery: DetailsSessionDocQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
   ) {}
 
   searchChairmen(query: {
@@ -52,6 +57,7 @@ export class DocsService {
 
   findAgendaNominationFiles(query: {
     sessionId: string;
+    ignoreAgendaId?: string;
   }): Promise<FoundAgendaNominationFiles> {
     return this.agendaNominationFilesFinder.find(query);
   }
@@ -88,6 +94,46 @@ export class DocsService {
     return { id: agenda.id };
   }
 
+  async updateAgenda(command: {
+    agendaId: string;
+    authorId: string;
+    chairmanId: string;
+    date: DateOnlyJson;
+    sessionMeetingDate: DateOnlyJson;
+    nominationFileIds: readonly string[];
+  }): Promise<void> {
+    const agenda = await this.agendaRepository.find({
+      agendaId: command.agendaId,
+    });
+
+    const chairman = await this.members.internalGetMember({
+      id: command.chairmanId,
+    });
+
+    const { items: nominationFiles } =
+      await this.agendaNominationFilesFinder.find({
+        sessionId: agenda.sessionId,
+        ids: command.nominationFileIds,
+        ignoreAgendaId: command.agendaId,
+      });
+
+    agenda.update({
+      chairman: { ...chairman, title: chairman.displayTitle },
+      nominationFiles,
+      authorId: command.authorId,
+      date: DateOnly.fromJson(command.date),
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+    });
+
+    await this.agendaRepository.persist(agenda);
+  }
+
+  async deleteAgenda(command: { agendaId: string }): Promise<void> {
+    const agenda = await this.agendaRepository.find(command);
+    agenda.delete();
+    await this.agendaRepository.persist(agenda);
+  }
+
   getOrCreateAgendaDocument(query: {
     id: string;
     forceNew?: boolean;
@@ -117,5 +163,11 @@ export class DocsService {
     sessionId: string;
   }): Promise<DocGenerationSessionReadinessDto> {
     return this.isSessionReadyForDocGenerationQuery.handle(query);
+  }
+
+  detailsAgendaMetadata(query: {
+    agendaId: string;
+  }): Promise<DetailedAgendaMetadata> {
+    return this.detailsAgendaMetadataQuery.handle(query);
   }
 }

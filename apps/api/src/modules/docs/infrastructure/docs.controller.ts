@@ -2,12 +2,15 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Header,
+  HttpCode,
   HttpStatus,
   Param,
   ParseBoolPipe,
   Post,
+  Put,
   Query,
   StreamableFile,
   UsePipes,
@@ -21,8 +24,13 @@ import { Role } from 'shared-models';
 import { ApiOkResponse, ApiProduces, ApiQuery } from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
-import { CreateAgendaDto, CreatedAgendaDto } from './docs.dto';
+import {
+  CreateOrUpdateAgendaDto,
+  CreatedAgendaDto,
+  FindAgendaNominationFilesQueryDto,
+} from './docs.dto';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
+import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedSessionDoc } from './queries/details-session-doc.query';
 import {
   FoundChairmenDto,
@@ -54,10 +62,29 @@ export class DocsController {
   createAgenda(
     @AuthedUser() authUser: { id: string },
     @Param('sessionId') sessionId: string,
-    @Body() body: CreateAgendaDto,
+    @Body() body: CreateOrUpdateAgendaDto,
   ): Promise<CreatedAgendaDto> {
     return this.docs.createAgenda({
       sessionId,
+      date: body.date,
+      authorId: authUser.id,
+      chairmanId: body.chairmanId,
+      nominationFileIds: body.nominationFileIds,
+      sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/agendas/:agendaId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgenda(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: CreateOrUpdateAgendaDto,
+  ): Promise<void> {
+    return this.docs.updateAgenda({
+      agendaId,
       date: body.date,
       authorId: authUser.id,
       chairmanId: body.chairmanId,
@@ -71,8 +98,9 @@ export class DocsController {
   @ZodResponse({ type: FoundAgendaNominationFiles, status: HttpStatus.OK })
   findAgendaNominationFiles(
     @Param('sessionId') sessionId: string,
+    @Query() { ignoreAgendaId }: FindAgendaNominationFilesQueryDto,
   ): Promise<FoundAgendaNominationFiles> {
-    return this.docs.findAgendaNominationFiles({ sessionId });
+    return this.docs.findAgendaNominationFiles({ sessionId, ignoreAgendaId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -138,5 +166,21 @@ export class DocsController {
     forceNew: boolean,
   ): Promise<StreamableFile> {
     return this.docs.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/agendas/:agendaId')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaMetadata })
+  detailsAgendaMetadata(
+    @Param('agendaId') agendaId: string,
+  ): Promise<DetailedAgendaMetadata> {
+    return this.docs.detailsAgendaMetadata({ agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/agendas/:agendaId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteAgenda(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.docs.deleteAgenda({ agendaId });
   }
 }

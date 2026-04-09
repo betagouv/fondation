@@ -9,7 +9,7 @@ import { DateOnly } from '@/models/date-only.model';
 import clsx from 'clsx';
 import type { DateOnlyJson } from 'shared-models';
 import { AgendaChairmanSelect } from '../components/AgendaChairmanSelect';
-import { useNewAgenda } from '../context/NewAgendaContext';
+import { useAgenda } from '../context/AgendaContext';
 
 const AgendaMetadataSchema = z.object({
   date: DateOnly.codec(),
@@ -22,7 +22,7 @@ function dateOnlyString(json: DateOnlyJson): string {
 }
 
 export function AgendaMetadataStep(props: { className?: string }) {
-  const { metadata, goToNominationFiles, cancel } = useNewAgenda();
+  const { metadata, goToNominationFiles, cancel } = useAgenda();
   const defaultValues = React.useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',

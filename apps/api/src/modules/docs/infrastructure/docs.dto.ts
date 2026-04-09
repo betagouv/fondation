@@ -2,7 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { dateOnlyJsonSchema } from 'shared-models';
 import { z } from 'zod';
 
-export class CreateAgendaDto extends createZodDto(
+export class CreateOrUpdateAgendaDto extends createZodDto(
   z.object({
     sessionMeetingDate: dateOnlyJsonSchema,
     date: dateOnlyJsonSchema,
@@ -13,4 +13,8 @@ export class CreateAgendaDto extends createZodDto(
 
 export class CreatedAgendaDto extends createZodDto(
   z.object({ id: z.uuid() }),
+) {}
+
+export class FindAgendaNominationFilesQueryDto extends createZodDto(
+  z.object({ ignoreAgendaId: z.string().optional() }),
 ) {}

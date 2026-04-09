@@ -8,12 +8,14 @@ import type { DateOnlyJson } from 'shared-models';
 
 export const agendaKeys = {
   searchChairmen: (formation: FormationEnum | undefined) => ['agenda', 'searchChairmen', formation] as const,
-  findAgendaNominationFiles: (sessionId: string) =>
-    ['agenda', 'findAgendaNominationFiles', sessionId] as const,
+  findAgendaNominationFiles: (query: { sessionId: string; ignoreAgendaId?: string }) =>
+    ['agenda', 'findAgendaNominationFiles', query.sessionId, query.ignoreAgendaId] as const,
   agendaHtml: (id: string) => ['agenda', 'agendaHtml', id] as const,
   findSessionDocs: (sessionId: string) => ['agenda', 'findSessionDocs', sessionId] as const,
   isSessionReadyForDocGeneration: (sessionId: string) =>
-    ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const
+    ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const,
+  detailsAgendaMetadata: (query: { agendaId: string | undefined | null }) =>
+    ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const
 };
 
 export const useSearchChairmenQuery = (props: { formation: FormationEnum | undefined }) =>
@@ -48,11 +50,52 @@ export function useCreateAgendaMutation() {
         .then(({ data }) => data!),
 
     onSuccess: (_, { sessionId }) => {
-      return queryClient.invalidateQueries({
-        predicate: ({ queryKey }) =>
-          [agendaKeys.findSessionDocs(sessionId), agendaKeys.findAgendaNominationFiles(sessionId)].some(
-            (parts) => queryKey.length === parts.length && queryKey.every((x, i) => parts[i] === x)
-          )
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId })
+      });
+    }
+  });
+}
+
+export const useDetailsAgendaMetadataQuery = (query: { agendaId: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.agendaId,
+    queryKey: agendaKeys.detailsAgendaMetadata(query),
+    queryFn: async () => {
+      if (!query.agendaId) return;
+
+      const { data = null } = await $api.docs.detailsAgendaMetadata({ path: { agendaId: query.agendaId } });
+      return data;
+    }
+  });
+
+export function useUpdateAgendaMutation(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: {
+      agendaId: string;
+      sessionMeetingDate: DateOnlyJson;
+      date: DateOnlyJson;
+      nominationFileIds: string[];
+      chairmanId: string;
+    }) =>
+      $api.docs
+        .updateAgenda({
+          path: { agendaId: command.agendaId },
+          body: {
+            nominationFileIds: command.nominationFileIds,
+            date: command.date,
+            sessionMeetingDate: command.sessionMeetingDate,
+            chairmanId: command.chairmanId
+          }
+        })
+        .then(({ data }) => data!),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId })
       });
     }
   });
@@ -87,14 +130,23 @@ export function useGenerateAgendaPdfMutation() {
   });
 }
 
-export const useFindAgendaNominationFilesQuery = (query: { sessionId: string }) =>
+export const useFindAgendaNominationFilesQuery = (query: {
+  sessionId: string;
+  ignoreAgendaId: string | null;
+}) =>
   useQuery({
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    queryKey: agendaKeys.findAgendaNominationFiles(query.sessionId),
+    queryKey: agendaKeys.findAgendaNominationFiles({
+      sessionId: query.sessionId,
+      ignoreAgendaId: query.ignoreAgendaId ?? undefined
+    }),
     queryFn: () =>
       $api.docs
-        .findAgendaNominationFiles({ path: { sessionId: query.sessionId } })
+        .findAgendaNominationFiles({
+          path: { sessionId: query.sessionId },
+          query: { ignoreAgendaId: query.ignoreAgendaId ?? undefined }
+        })
         .then(({ data = null }) => data)
   });
 
@@ -123,3 +175,16 @@ export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: strin
         .isSessionReadyForDocGeneration({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data)
   });
+
+export function useDeleteAgenda(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { agendaId: string }) =>
+      $api.docs.deleteAgenda({ path: { agendaId: mutation.agendaId } }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({ queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId) });
+    }
+  });
+}
