@@ -1002,7 +1002,7 @@ export type FoundChairmenDto = {
     }>;
 };
 
-export type CreateAgendaDto = {
+export type CreateOrUpdateAgendaDto = {
     sessionMeetingDate: {
         year: number;
         month: number;
@@ -1023,6 +1023,9 @@ export type CreatedAgendaDto = {
 
 export type FoundAgendaNominationFiles = {
     items: Array<{
+        /**
+         * @deprecated
+         */
         agendaCount: number;
         currentPosition: string | null;
         grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
@@ -1054,6 +1057,21 @@ export type DetailedSessionDoc = {
 
 export type DocGenerationSessionReadinessDto = {
     isReady: boolean;
+};
+
+export type DetailedAgendaMetadata = {
+    id: string;
+    chairmanId: string | null;
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
 };
 
 export type GetFileByFileUrlData = {
@@ -2344,7 +2362,7 @@ export type SearchChairmenResponses = {
 export type SearchChairmenResponse = SearchChairmenResponses[keyof SearchChairmenResponses];
 
 export type CreateAgendaData = {
-    body: CreateAgendaDto;
+    body: CreateOrUpdateAgendaDto;
     path: {
         sessionId: string;
     };
@@ -2358,12 +2376,59 @@ export type CreateAgendaResponses = {
 
 export type CreateAgendaResponse = CreateAgendaResponses[keyof CreateAgendaResponses];
 
+export type DeleteAgendaData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}';
+};
+
+export type DeleteAgendaResponses = {
+    204: void;
+};
+
+export type DeleteAgendaResponse = DeleteAgendaResponses[keyof DeleteAgendaResponses];
+
+export type DetailsAgendaMetadataData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}';
+};
+
+export type DetailsAgendaMetadataResponses = {
+    200: DetailedAgendaMetadata;
+};
+
+export type DetailsAgendaMetadataResponse = DetailsAgendaMetadataResponses[keyof DetailsAgendaMetadataResponses];
+
+export type UpdateAgendaData = {
+    body: CreateOrUpdateAgendaDto;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}';
+};
+
+export type UpdateAgendaResponses = {
+    204: void;
+};
+
+export type UpdateAgendaResponse = UpdateAgendaResponses[keyof UpdateAgendaResponses];
+
 export type FindAgendaNominationFilesData = {
     body?: never;
     path: {
         sessionId: string;
     };
-    query?: never;
+    query?: {
+        ignoreAgendaId?: string;
+    };
     url: '/api/docs/v1/sessions/{sessionId}/files';
 };
 

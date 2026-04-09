@@ -3,14 +3,14 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { toFullName } from '@/utils/user.utils';
 import { useSearchChairmenQuery } from '@queries/agenda.queries';
 import React from 'react';
-import { useNewAgenda } from '../context/NewAgendaContext';
+import { useAgenda } from '../context/AgendaContext';
 
 export function AgendaChairmanSelect(props: {
   value: string;
   onChange: (id: string) => void;
   error?: string;
 }) {
-  const { session } = useNewAgenda();
+  const { session } = useAgenda();
 
   const { data, isPending } = useSearchChairmenQuery({ formation: session.formation });
   const chairmen = data?.items ?? [];

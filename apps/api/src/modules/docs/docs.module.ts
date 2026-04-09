@@ -5,6 +5,7 @@ import { MembersModule } from '../members';
 import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
 import { AgendaNominationFilesFinder } from './infrastructure/finders/agenda-nomination-files.finder';
+import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailsSessionDocQuery } from './infrastructure/queries/details-session-doc.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
@@ -23,6 +24,7 @@ import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-rendere
     AgendaNominationFilesFinder,
     AgendaRenderer,
     AgendaRepository,
+    DetailsAgendaMetadataQuery,
     DetailsSessionDocQuery,
     DocRenderer,
     DocsService,

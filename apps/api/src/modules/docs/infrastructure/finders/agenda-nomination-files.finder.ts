@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Magistrat } from 'shared-models';
-import { findNominationFilesWithAgendaCountRawQuery } from 'src/generated/prisma/sql';
+import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import {
@@ -22,9 +22,13 @@ export class AgendaNominationFilesFinder {
   async find(query: {
     sessionId: string;
     ids?: readonly string[];
+    ignoreAgendaId?: string;
   }): Promise<FoundAgendaNominationFiles> {
-    const { items }: FoundAgendaNominationFiles =
-      (await this.sessions.internalFindAgendaNominationFiles(query)) as any;
+    const { items } = (await this.sessions.internalFindAgendaNominationFiles({
+      ids: query.ids,
+      sessionId: query.sessionId,
+    })) as FoundAgendaNominationFiles;
+
     if (items.length === 0) return { items: [] };
 
     const rows = await Sentry.startSpan(
@@ -33,22 +37,27 @@ export class AgendaNominationFilesFinder {
       },
       () =>
         this.prisma.$queryRawTyped(
-          findNominationFilesWithAgendaCountRawQuery(items.map(({ id }) => id)),
+          findNominationFilesNotInAgendaRawQuery(
+            items.map(({ id }) => id),
+            query.ignoreAgendaId ?? null,
+          ),
         ),
     );
 
-    const perId = new Map(
-      rows.map(({ id, count }) => [id, Number(count)] as const),
-    );
-
-    for (const item of items) {
-      item.agendaCount = perId.get(item.id) ?? 0;
-      item.outcome.value = nominationFileOutcomeToAgendaNominationFileOutcome(
+    const ids = new Set(rows.map(({ id }) => id));
+    const output = items.flatMap((item) => {
+      const outcomeValue = nominationFileOutcomeToAgendaNominationFileOutcome(
         item.outcome.value,
       );
-    }
 
-    return { items };
+      if (!ids.has(item.id) && outcomeValue !== 'SUSPENDED') return [];
+
+      item.agendaCount = 0;
+      item.outcome.value = outcomeValue;
+      return [item];
+    });
+
+    return { items: output };
   }
 }
 
@@ -56,7 +65,7 @@ export class FoundAgendaNominationFiles extends createZodDto(
   z.object({
     items: z.array(
       z.object({
-        agendaCount: z.number(),
+        agendaCount: z.number().meta({ deprecated: true }),
         currentPosition: z.string().nullable(),
         grade: z.enum(Magistrat.Grade),
         id: z.string(),

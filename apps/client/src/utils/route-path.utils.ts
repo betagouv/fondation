@@ -22,6 +22,7 @@ export const ROUTE_PATHS = {
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
     NEW_AGENDA: '/secretariat-general/session/:sessionId/docs/ordre-du-jour',
+    UPDATE_AGENDA: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId',
     AGENDA_PREVIEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation'
   },
 

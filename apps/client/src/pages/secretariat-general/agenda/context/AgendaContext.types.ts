@@ -13,8 +13,9 @@ export type AgendaMetadata = {
   chairmanId: string;
 };
 
-export type NewAgendaContextType = {
+export type AgendaContextType = {
   step: AgendaStep;
+  agendaId: string | null;
   session: { id: string; dueDate: DateOnlyJson | null; formation: FormationEnum };
   metadata: AgendaMetadata | null;
   isSubmitting: boolean;

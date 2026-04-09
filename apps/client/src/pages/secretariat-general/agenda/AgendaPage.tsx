@@ -1,13 +1,13 @@
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 import clsx from 'clsx';
-import { useNewAgenda } from './context/NewAgendaContext';
-import { NewAgendaProvider } from './context/NewAgendaProvider';
+import { useAgenda } from './context/AgendaContext';
+import { AgendaProvider } from './context/AgendaProvider';
 import { AgendaMetadataStep } from './steps/AgendaMetadataStep';
 import { AgendaNominationFilesStep } from './steps/AgendaNominationFilesStep';
 
-function NewAgendaContent() {
-  const { step } = useNewAgenda();
+function AgendaContent() {
+  const { step } = useAgenda();
 
   return (
     <div className="fr-container fr-py-2w">
@@ -18,10 +18,10 @@ function NewAgendaContent() {
   );
 }
 
-export function NewAgendaPage() {
+export function CreateOrUpdateAgendaPage() {
   return (
-    <NewAgendaProvider>
-      <NewAgendaContent />
-    </NewAgendaProvider>
+    <AgendaProvider>
+      <AgendaContent />
+    </AgendaProvider>
   );
 }
