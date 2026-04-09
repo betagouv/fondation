@@ -18,18 +18,16 @@ export const TableauDeBordResumeDetails = (transparence: DetailedNominationSessi
         <Label nom="Délai d'observation" />
         <div className="text-sm lining-nums">{DateOnly.fromDateOnly(observationsClosingDate)}</div>
       </div>
-
       <div>
         <Label nom="Date d'écheance" />
-        <div className="text-sm lining-nums">{dueDate && DateOnly.fromDateOnly(dueDate)}</div>
+        <div className="text-sm lining-nums">{dueDate ? DateOnly.fromDateOnly(dueDate) : '-'}</div>
       </div>
-
-      {positionStartDate && (
-        <div>
-          <Label nom="Date de prise de poste" />
-          <div className="text-sm lining-nums">{DateOnly.fromDateOnly(positionStartDate)}</div>
+      <div>
+        <Label nom="Date de prise de poste" />
+        <div className="text-sm lining-nums">
+          {positionStartDate ? DateOnly.fromDateOnly(positionStartDate, 'dd/MM/yyyy') : '-'}
         </div>
-      )}
+      </div>
     </div>
   );
 };
