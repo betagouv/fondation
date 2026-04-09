@@ -16,13 +16,13 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
   const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
 
   return (
-    <div className="flex flex-col gap-y-2">
+    <div className="flex max-w-[67%] flex-col gap-y-2 px-2">
       <h1 className="mb-0 flex items-center justify-between gap-2">
-        <span>{transparence.name}</span>
+        <span className="hyphens-auto">{transparence.name}</span>
         <MenuRoot>
           <MenuTrigger
             iconId="ri-menu-fill"
-            className="rounded-full"
+            className="flex-shrink-0 flex-grow-0 rounded-full"
             priority="tertiary no outline"
             title={`Actions sur la transparence "${transparence.name}"`}
           />
@@ -52,7 +52,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
       </h1>
 
       <div className="flex max-w-xl flex-col gap-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6">
           <p className="m-0 text-sm text-gray-600">Transparence du {date}</p>
           <span className="rounded bg-gray-100 p-1 text-xs font-semibold uppercase text-gray-600">
             {FormationEnumLabel[transparence.formation]}

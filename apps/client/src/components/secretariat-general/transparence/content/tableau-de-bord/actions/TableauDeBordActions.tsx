@@ -11,7 +11,7 @@ import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 import { TableauDeBordActionList } from './TableauDeBordActionsList';
 
-export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
+export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { data: docs } = useFindSessionDocsQuery({ sessionId });
 
@@ -21,7 +21,7 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
         titleAs="h2"
         label={
           <>
-            Pièces jointes <Badge>{(attachments?.items ?? []).length}</Badge>
+            Pièces jointes <Badge className="ml-1">{(attachments?.items ?? []).length}</Badge>
           </>
         }
       >
@@ -45,22 +45,24 @@ export const TableauDeBordActions = ({ sessionId }: { sessionId: string }) => {
         </div>
       </Accordion>
 
-      <Accordion
-        titleAs="h2"
-        label={
-          <>
-            Documents <Badge>{(docs?.items ?? []).length}</Badge>
-          </>
-        }
-      >
-        {(docs?.items ?? []).length === 0 && (
-          <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
-        )}
+      {(docs?.items ?? []).length > 0 && (
+        <Accordion
+          titleAs="h2"
+          label={
+            <>
+              Documents <Badge className="ml-1">{(docs?.items ?? []).length}</Badge>
+            </>
+          }
+        >
+          {(docs?.items ?? []).length === 0 && (
+            <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
+          )}
 
-        <NominationSessionDocsList sessionId={sessionId} />
-      </Accordion>
+          <NominationSessionDocsList sessionId={sessionId} />
+        </Accordion>
+      )}
 
       <TableauDeBordActionList className="mt-2" sessionId={sessionId} />
     </div>
   );
-};
+}
