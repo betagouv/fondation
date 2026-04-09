@@ -58,10 +58,16 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
   if (!isDraft && !hasNoVersionYet && !docGenerationReadiness?.isReady) return null;
 
   return (
-    <ul className={clsx('m-0 flex basis-1/2 list-none flex-wrap justify-end gap-4 p-0', props.className)}>
+    <ul
+      className={clsx(
+        'm-0 flex list-none flex-row-reverse flex-wrap items-center gap-4 p-0',
+        props.className
+      )}
+    >
       {(isDraft || hasNoVersionYet) && (
         <li>
           <Button
+            size="small"
             priority="primary"
             iconId="ri-megaphone-fill"
             onClick={onPublishAffectations}
@@ -73,13 +79,16 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
       )}
 
       {!!docGenerationReadiness?.isReady && (
-        <Button
-          priority="secondary"
-          iconId="fr-icon-folder-2-line"
-          linkProps={{ to: docGenerationLinkProps }}
-        >
-          Générer la documentation
-        </Button>
+        <li>
+          <Button
+            size="small"
+            priority="secondary"
+            iconId="fr-icon-folder-2-line"
+            linkProps={{ to: docGenerationLinkProps }}
+          >
+            Générer la documentation
+          </Button>
+        </li>
       )}
     </ul>
   );

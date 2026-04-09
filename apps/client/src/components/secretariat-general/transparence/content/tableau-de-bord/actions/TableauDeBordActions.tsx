@@ -16,7 +16,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
   const { data: docs } = useFindSessionDocsQuery({ sessionId });
 
   return (
-    <div className="flex min-w-[33%] max-w-md flex-col">
+    <div className="flex min-w-[37%] max-w-md flex-col">
       <Accordion
         titleAs="h2"
         label={

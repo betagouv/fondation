@@ -77,7 +77,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
     () =>
       (['@@EMPTY', ...baseOptions] as const).map((value) =>
         value === '@@EMPTY'
-          ? { value, label: <span className="text-xs">SANS ISSUE</span> }
+          ? { value, label: <span className="pl-1 text-xs">AUCUNE</span>, selected: 'Issue' }
           : {
               value,
               label: (
@@ -100,15 +100,5 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
     [baseOptions, formation]
   );
 
-  return (
-    <>
-      <DropdownSelect
-        options={options}
-        placeholder="SANS ISSUE"
-        disabled={isPending}
-        value={outcome}
-        onChange={onOutcomeChange}
-      />
-    </>
-  );
+  return <DropdownSelect options={options} disabled={isPending} value={outcome} onChange={onOutcomeChange} />;
 }
