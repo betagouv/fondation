@@ -24,7 +24,7 @@ export const EditorButton: FC<EditorButtonProps> = (props) => {
   return (
     <Button
       onClick={onClick}
-      size="medium"
+      size="small"
       priority={markPriority}
       title={title}
       disabled={isDisabled}

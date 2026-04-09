@@ -1,5 +1,4 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import clsx from 'clsx';
 
 import { BoldButton } from './buttons/BoldButton';
 import { BulletListButton } from './buttons/BulletListButton';
@@ -19,7 +18,7 @@ import { headingLevels } from './extensions/constant';
 export const MenuBar = () => {
   return (
     <div className="sticky top-2 z-10 mb-1 bg-white px-4 pb-3 pt-4">
-      <div className={clsx('gap-3', cx('fr-grid-row'))}>
+      <div className={cx('fr-grid-row')}>
         <UndoButton />
         <RedoButton />
         <TextColorButton />
