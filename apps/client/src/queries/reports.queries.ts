@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
@@ -52,7 +52,7 @@ function updateCommentScreenshots(
   return $div.innerHTML;
 }
 
-export const useReportById = (reportId: string) =>
+export const useReportQuery = (reportId: string) =>
   useQuery({
     queryKey: reportKeys.reportById({ reportId }),
     queryFn: async () => {
@@ -80,39 +80,55 @@ export const useReportById = (reportId: string) =>
     }
   });
 
-export const useUpdateReport = () =>
-  useMutation({
+export function useUpdateReportMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    retry: 3,
+
     mutationFn: async (props: {
       reportId: string;
       data: { comment?: string; status?: ReportStatusEnum };
     }): Promise<void> => {
       const { reportId, data: body } = props;
       await $api.reports.updateReport({ path: { reportId }, body });
-    }
-  });
+    },
 
-export const useUpdateReportRuleValidation = () =>
-  useMutation({
+    onSuccess: (_, { reportId }) =>
+      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) })
+  });
+}
+
+export function useUpdateReportRuleValidationMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (props: { reportId: string; ruleId: string; isValidated: boolean }): Promise<void> => {
       const { reportId, ruleId, isValidated } = props;
       await $api.reports.updateReportRuleValidation({
         path: { reportId, ruleId },
         body: { isValidated }
       });
-    }
+    },
+    onSuccess: (_, { reportId }) =>
+      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) })
   });
+}
 
-export const useDetachReportFiles = () =>
-  useMutation({
+export function useDetachReportFilesMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: (props: { reportId: string; fileNames: readonly string[] }) =>
       $api.reports.detachFiles({
         path: { reportId: props.reportId },
         query: { fileNames: props.fileNames as string[] }
-      })
+      }),
+    onSuccess: (_, { reportId }) =>
+      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) })
   });
+}
 
-export const useAttachReportFiles = () =>
-  useMutation({
+export function useAttachReportFilesMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (mutation: {
       files: File[];
       reportId: string;
@@ -128,46 +144,15 @@ export const useAttachReportFiles = () =>
         body: { files: files as File[] },
         query: { usage }
       });
-    }
+    },
+    onSuccess: (_, { reportId }) =>
+      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) })
   });
-
-async function getReportImageUrls(props: {
-  reportId: string;
-  files: readonly File[];
-}): Promise<{ file: File; name: string; signedUrl: string; fileId: string }[]> {
-  const result = await generateReportFilePublicUrl({
-    reportId: props.reportId,
-    fileNames: props.files.map(({ name }) => name)
-  });
-
-  if (!result) return [];
-
-  const fileByName = new Map(props.files.map((file) => [file.name, file]));
-  return result.items
-    .map(({ id: fileId, name, url: signedUrl }) => {
-      const file = fileByName.get(name);
-      if (!file) return undefined;
-
-      return { file, name, signedUrl, fileId };
-    })
-    .filter((x): x is NonNullable<typeof x> => Boolean(x));
 }
 
-export const useInsertImagesWithSignedUrls = () =>
-  useMutation({
-    mutationFn: async ({ reportId, files }: { reportId: string; files: readonly File[] }) => {
-      await $api.reports.attachFiles({
-        path: { reportId },
-        body: { files: files as File[] },
-        query: { usage: 'EMBEDDED_SCREENSHOT' }
-      });
-
-      return getReportImageUrls({ reportId, files });
-    }
-  });
-
-export const useAttachScreenshotMutation = () =>
-  useMutation({
+export function useAttachScreenshotMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (mutation: { reportId: string; files: readonly File[] }) => {
       const { data } = await $api.reports.attachScreenshots({
         path: { reportId: mutation.reportId },
@@ -175,5 +160,8 @@ export const useAttachScreenshotMutation = () =>
       });
 
       return data ?? null;
-    }
+    },
+    onSuccess: (_, { reportId }) =>
+      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) })
   });
+}

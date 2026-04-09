@@ -2,6 +2,8 @@ import { EditorContent, EditorContext, useEditor, type EditorContextValue } from
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { useBeforeUnloadOrUnmount } from '@/hooks/useBeforeUnload';
+import clsx from 'clsx';
 import type { FilesUploader } from './extensions/editor-file-uploader';
 import { useTipTapExtensions } from './extensions/useTipTapExtensions';
 import { MenuBar } from './MenuBar';
@@ -16,13 +18,28 @@ type TipTapEditorProps = {
 export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps) => {
   const extensions = useTipTapExtensions({ uploadFiles });
 
-  const onChangeDebounced = useDebouncedCallback(onChange, 600);
+  const onChangeDebounced = useDebouncedCallback(onChange, 2_000);
+  const [html, setHtml] = React.useState<string>(value ?? '');
+  const onUpdate = React.useCallback(
+    (value: string) => {
+      setHtml(value);
+      onChangeDebounced(value);
+    },
+    [setHtml, onChangeDebounced]
+  );
+
+  const isDirty = React.useMemo(() => value !== html, [value, html]);
+
   const editor = useEditor({
     content: value,
     extensions,
     onUpdate: ({ editor }) => {
-      onChangeDebounced(editor.getHTML());
+      onUpdate(editor.getHTML());
     }
+  });
+
+  useBeforeUnloadOrUnmount(() => {
+    onChangeDebounced.flush();
   });
 
   const providerValue = React.useMemo((): EditorContextValue => ({ editor }), [editor]);
@@ -32,6 +49,14 @@ export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps
       <div className="tiptap-editor-wrapper">
         <MenuBar />
         <EditorContent editor={editor} />
+        <div
+          className={clsx("flex items-center p-2 text-xs before:mr-1 before:size-4 before:content-['']", {
+            'ri-loop-left-line': isDirty,
+            'fr-icon-success-line': !isDirty
+          })}
+        >
+          {isDirty ? `Enregistrement…` : `Enregistré`}
+        </div>
       </div>
     </EditorContext.Provider>
   );

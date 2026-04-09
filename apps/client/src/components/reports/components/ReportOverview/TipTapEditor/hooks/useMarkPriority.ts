@@ -7,9 +7,9 @@ export const useMarkPriority = (mark?: string, options?: { level: HeadingLevel }
   const priority = useEditorState({
     editor,
     selector: (ctx) => {
-      if (!mark) return 'tertiary';
+      if (!mark) return 'tertiary no outline';
 
-      return ctx.editor ? markPriorityFactory(ctx.editor, mark, options) : 'tertiary';
+      return ctx.editor ? markPriorityFactory(ctx.editor, mark, options) : 'tertiary no outline';
     }
   });
 
