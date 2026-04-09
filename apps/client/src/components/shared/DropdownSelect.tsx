@@ -52,27 +52,23 @@ export const DropdownSelect = <T extends string = string>({
     </div>
   );
 
-  const content = (
-    <div className="min-w-[200px] overflow-hidden rounded border border-gray-300 bg-white shadow-lg">
-      <div className="max-h-64 space-y-1 overflow-y-auto p-2">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => handleSelect(option.value)}
-            className={`w-full rounded px-4 py-2 text-left hover:bg-gray-100 ${
-              value === option.value ? 'bg-blue-50 font-semibold' : ''
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <DropdownMenu trigger={trigger} isOpen={isOpen} onOpenChange={setIsOpen}>
-      {content}
+      <div className="min-w-[200px] overflow-hidden rounded border border-gray-300 bg-[canvas] shadow-lg">
+        <div className="max-h-64 space-y-1 overflow-y-auto p-2">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleSelect(option.value)}
+              className={`w-full rounded px-4 py-2 text-left hover:bg-gray-100 ${
+                value === option.value ? 'bg-blue-50 font-semibold' : ''
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </DropdownMenu>
   );
 };

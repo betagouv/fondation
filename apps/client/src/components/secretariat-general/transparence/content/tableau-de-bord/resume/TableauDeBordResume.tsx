@@ -16,7 +16,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
   const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
 
   return (
-    <div className="flex max-w-[67%] flex-col gap-y-2 px-2">
+    <div className="flex max-w-[63%] flex-col gap-y-2 px-2">
       <h1 className="mb-0 flex items-center justify-between gap-2">
         <span className="hyphens-auto">{transparence.name}</span>
         <MenuRoot>
