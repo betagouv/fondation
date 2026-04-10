@@ -5,12 +5,7 @@ const jestConfig: JestConfigWithTsJest = {
   modulePaths: ['<rootDir>'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.(ts)$': [
-      'ts-jest',
-      {
-        isolatedModules: true,
-      },
-    ],
+    '^.+\\.(ts)$': 'ts-jest',
   },
   testMatch: ['**/{src,cli}/**/*.e2e-spec.(ts)'],
   testEnvironment: 'node',

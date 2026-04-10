@@ -32,6 +32,7 @@ FROM nominations_context.dossier_de_nomination ddn
         'lastName', mm.last_name,
         'marriedName', mm.married_name,
         'usedName', mm.used_name,
+        'externalId', mm.external_id::INT,
 
         'position', JSON_BUILD_OBJECT(
           'grade', mm.grade,

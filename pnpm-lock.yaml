@@ -175,9 +175,6 @@ importers:
       '@types/node':
         specifier: ^24.10.15
         version: 24.10.15
-      '@types/pdfkit':
-        specifier: ^0.17.3
-        version: 0.17.3
       '@types/pg':
         specifier: ^8.16.0
         version: 8.16.0
@@ -3214,9 +3211,6 @@ packages:
 
   '@types/node@24.10.15':
     resolution: {integrity: sha512-BgjLoRuSr0MTI5wA6gMw9Xy0sFudAaUuvrnjgGx9wZ522fYYLA5SYJ+1Y30vTcJEG+DRCyDHx/gzQVfofYzSdg==}
-
-  '@types/pdfkit@0.17.3':
-    resolution: {integrity: sha512-E4tp2qFaghqfS4K5TR4Gn1uTIkg0UAkhUgvVIszr5cS6ZmbioPWEkvhNDy3GtR9qdKC8DLQAnaaMlTcf346VsA==}
 
   '@types/pg-pool@2.0.7':
     resolution: {integrity: sha512-U4CwmGVQcbEuqpyju8/ptOKg6gEC+Tqsvj2xS9o1g71bUh8twxnC6ZL5rZKCsGN0iyH0CwgUyc9VR5owNQF9Ng==}
@@ -10281,10 +10275,6 @@ snapshots:
   '@types/node@24.10.15':
     dependencies:
       undici-types: 7.16.0
-
-  '@types/pdfkit@0.17.3':
-    dependencies:
-      '@types/node': 24.10.15
 
   '@types/pg-pool@2.0.7':
     dependencies:

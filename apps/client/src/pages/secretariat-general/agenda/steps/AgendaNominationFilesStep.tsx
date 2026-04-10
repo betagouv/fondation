@@ -22,7 +22,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
 
   const { data } = useFindAgendaNominationFilesQuery({
     sessionId: session.id,
-    ignoreAgendaId: agendaId
+    ignoreAgendaId: agendaId ?? null
   });
 
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
