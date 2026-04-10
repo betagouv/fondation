@@ -81,7 +81,7 @@ export class DocsService {
       });
 
     const agenda = Agenda.create({
-      chairman: { ...chairman, title: chairman.displayTitle },
+      chairman,
       nominationFiles,
       sessionId: command.sessionId,
       authorId: command.authorId,
@@ -118,7 +118,7 @@ export class DocsService {
       });
 
     agenda.update({
-      chairman: { ...chairman, title: chairman.displayTitle },
+      chairman,
       nominationFiles,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),

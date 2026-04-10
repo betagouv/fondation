@@ -94,10 +94,21 @@ export class AgendaRepository {
       where: { agendaId: message.agendaId },
     });
 
-    await tx.agenda.update({
+    const agenda = await tx.agenda.findFirst({
+      select: { pdf: { select: { id: true } } },
       where: { id: message.agendaId },
-      data: { pdf: { delete: {} } },
     });
+
+    if (agenda?.pdf?.id) {
+      await tx.agenda.update({
+        where: { id: message.agendaId },
+        data: { pdfFileId: null },
+      });
+
+      await tx.file.deleteMany({
+        where: { id: agenda.pdf.id },
+      });
+    }
 
     await tx.agenda.update({
       where: { id: message.agendaId },

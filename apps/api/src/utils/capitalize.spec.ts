@@ -6,6 +6,7 @@ describe('string utils', () => {
       input              | expected
       ${'jean-baptiste'} | ${'Jean-Baptiste'}
       ${'jérémie'}       | ${'Jérémie'}
+      ${'JÉRÉMIE'}       | ${'JÉRÉMIE'}
     `(`should convert "$input" into "$expected"`, ({ input, expected }) => {
       expect(capitalize(input)).toBe(expected);
     });

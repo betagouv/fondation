@@ -147,7 +147,7 @@ function buildName(options: {
   lastName: string;
   usedName: string | null;
 }): string {
-  return `${options.civility === 'MME' ? 'Mme' : 'M.'} ${capitalize(options.firstName)}\u00A0${(options.usedName || options.lastName).toUpperCase()}`;
+  return `${options.civility === 'MME' ? 'Mme' : 'M.'} ${capitalize(options.firstName.toLowerCase())}\u00A0${(options.usedName || options.lastName).toUpperCase()}`;
 }
 
 function buildPosition(options: {
@@ -190,11 +190,14 @@ function buildPosition(options: {
     position.jurisdiction.label[0]!.toLowerCase() +
     position.jurisdiction.label.slice(1);
 
-  const jurisdiction = position.function.addition
-    ? ' ' + position.function.addition.replace('{codejur}', codejur)
-    : `, ${position.jurisdiction.label}`;
+  const jurisdiction =
+    position.jurisdiction.id !== 'AC  PARIS'
+      ? position.function.addition
+        ? ' ' + position.function.addition.replace('{codejur}', codejur)
+        : `, ${position.jurisdiction.label}`
+      : '';
 
-  return label[0]!.toUpperCase() + label.slice(1) + jurisdiction;
+  return label + jurisdiction;
 }
 
 export class InternalFoundAgendaNominationFiles extends createZodDto(

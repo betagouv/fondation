@@ -51,7 +51,9 @@ export class ListNominationFilesQuery {
       priorities: readonly (PrioriteEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const isSG = query.user.role === Role.ADJOINT_SECRETAIRE_GENERAL;
+    const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(
+      query.user.role,
+    );
 
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
     const orderBy = (() => {
