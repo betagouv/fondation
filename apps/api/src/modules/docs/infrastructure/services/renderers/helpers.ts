@@ -1,6 +1,7 @@
 import { formatDate } from 'date-fns';
 import { fr as dateLocaleFr } from 'date-fns/locale/fr';
-import { DateOnlyJson } from 'shared-models';
+import { DateOnlyJson, Gender } from 'shared-models';
+import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { capitalize } from 'src/utils/capitalize';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -12,13 +13,25 @@ export function fullname(props: {
 }
 
 export function titled(props: {
-  title: string | null;
+  title: UserTitleEnum | null;
   firstName: string;
   lastName: string;
+  gender: Gender;
 }): string {
-  if (!props.title) return fullname(props);
+  if (!props.title || props.title === 'FIRST_SECRETARY') return fullname(props);
 
-  return `${props.title}, ${fullname(props)}`;
+  if (
+    props.title === 'PRESIDENT_PARQUET' ||
+    props.title === 'PRESIDENT_SIEGE'
+  ) {
+    return props.gender === Gender.M
+      ? `Le président, ${fullname(props)}`
+      : `La présidente, ${fullname(props)}`;
+  }
+
+  return props.gender === Gender.M
+    ? `Le président suppléant, ${fullname(props)}`
+    : `La présidente suppléante, ${fullname(props)}`;
 }
 
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';

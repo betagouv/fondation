@@ -1,4 +1,5 @@
 import { Gender } from 'shared-models';
+import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { AgendaNominationFile } from './agenda-nomination-file';
@@ -79,7 +80,7 @@ export class Agenda {
       firstName: string;
       lastName: string;
       gender: Gender;
-      title: string | null;
+      title: UserTitleEnum | null;
     };
   }): void {
     if (command.nominationFiles.length === 0) throw new EmptyAgenda(this.id);
@@ -108,7 +109,7 @@ export class Agenda {
       firstName: string;
       lastName: string;
       gender: Gender;
-      title: string | null;
+      title: UserTitleEnum | null;
     };
     date: DateOnly;
     sessionMeetingDate: DateOnly;

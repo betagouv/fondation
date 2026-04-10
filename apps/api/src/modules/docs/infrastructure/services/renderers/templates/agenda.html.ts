@@ -1,5 +1,6 @@
 import { stripIndent } from 'common-tags';
 import { Gender, Magistrat } from 'shared-models';
+import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import type { Pretty, UnionToIntersection } from 'src/utils/types';
 import { conjunctionList, date, titled } from '../helpers';
 import { Template, TemplateFunction } from './templates.types';
@@ -461,9 +462,9 @@ function layout<const T extends LayoutContext>({
             </footer>
 
             ${content(ctx)}
-          </main>
 
-          <div class="footer">${footer(ctx)}</div>
+            <div class="footer">${footer(ctx)}</div>
+          </main>
         </body>
       </html>
     `;
@@ -475,12 +476,12 @@ function agendaHeader(ctx: {
   formation: Magistrat.Formation;
 }): string {
   return html`
+    <h1>Avis du conseil supérieur de la magistrature</h1>
     <p class="formation">
       ${ctx.formation === Magistrat.Formation.SIEGE
         ? `Formation compétente à l'égard des magistrats du siège`
         : `Formation compétente à l'égard des magistrats du parquet`}
     </p>
-    <h1>Avis du conseil supérieur de la magistrature</h1>
     <div class="subtitle-row">
       <p class="subtitle">Ordre du jour</p>
       <p class="date">
@@ -505,7 +506,7 @@ function agendaNominationParagraph(
     ? `, actuellement ${ctx.currentPosition} (${ctx.currentGrade})`
     : '';
   const targetPosition = !!ctx.targetedPosition
-    ? `, pour la proposition au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
+    ? `, au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
     : '';
   const reporters =
     ctx.reporters.length > 0
@@ -513,7 +514,7 @@ function agendaNominationParagraph(
       : '';
 
   return html`
-    <p data-file="${index}">
+    <p class="article" data-file="${index}">
       <strong>${ctx.name}</strong
       >${currentPosition}${targetPosition}${reporters}.
     </p>
@@ -528,11 +529,9 @@ function agendaContent(ctx: {
     <p class="introduction">
       Sur la proposition du garde des Sceaux de nommer&nbsp;:
     </p>
-    <article>
-      ${ctx.nominationFiles
-        .map((n, i) => agendaNominationParagraph(n, i + 1))
-        .join('\n')}
-    </article>
+    ${ctx.nominationFiles
+      .map((n, i) => agendaNominationParagraph(n, i + 1))
+      .join('\n')}
   `;
 }
 
@@ -541,7 +540,7 @@ function agendaFooter(ctx: {
   chairman: {
     firstName: string;
     lastName: string;
-    title: string | null;
+    title: UserTitleEnum | null;
     gender: Gender;
   };
 }): string {
@@ -600,22 +599,19 @@ function agendaCss(): string {
 
         &.introduction {
           margin-top: 3rem;
+          margin-bottom: 1.5rem;
           font-weight: bold;
         }
-      }
 
-      article {
-        margin-top: 1.5rem;
-
-        p {
+        &.article {
           text-indent: 2rem;
           text-align: justify;
           text-wrap: pretty;
           line-height: 1.5rem;
           break-inside: avoid;
-
+  
           strong {
-            font-weight: 500;
+            font-weight: 600;
           }
         }
       }
@@ -661,7 +657,6 @@ function agendaCss(): string {
           text-align: left;
         }
       }
-    }
 
     .footer {
       break-before: avoid;
@@ -673,6 +668,8 @@ function agendaCss(): string {
         text-align: right;
         
       }
+    }
+
     }
 
     footer {
