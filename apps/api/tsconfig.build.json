@@ -1,19 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": [
-      "bcrypt",
-      "common",
-      "cookie",
-      "express",
-      "inquirer",
-      "multer",
-      "node",
-      "pg",
-      "sax",
-      "supertest",
-      "unzipper"
-    ]
-  },
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }

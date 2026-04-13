@@ -77,20 +77,20 @@ export class FoundAgendaNominationFiles extends createZodDto(
           id: z.string(),
           externalId: z.number().int().gt(0),
           name: z.string(),
-          position: {
+          position: z.object({
             grade: z.enum(Magistrat.Grade),
             label: z.string(),
             functionId: z.string().nullable(),
             jurisdictionId: z.string().nullable(),
-          },
+          }),
         }),
 
-        targetPosition: {
+        targetPosition: z.object({
           grade: z.enum(Magistrat.Grade),
           label: z.string(),
           functionId: z.string().nullable(),
           jurisdictionId: z.string().nullable(),
-        },
+        }),
 
         agendaCount: z.number().meta({ deprecated: true }),
         currentPosition: z.string().nullable().meta({ deprecated: true }),

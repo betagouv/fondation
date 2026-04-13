@@ -36,7 +36,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     const trimmed = search.trim();
     const term = trimmed ? new RegExp(trimmed.replace(/ /g, '\\s'), 'i') : undefined;
 
-    return nominationFiles.filter((item) => !term || term.test(item.name));
+    return nominationFiles.filter((item) => !term || term.test(item.magistrat.name));
   }, [nominationFiles, search]);
 
   const selectionLabel = selection.hasNone
