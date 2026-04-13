@@ -33,9 +33,5 @@
     "sourceRoot": "/"
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts", "cli/**/*.ts"],
-  "references": [{ "path": "../../packages/shared-models" }],
-  "ts-node": {
-    // Can't have Express types override recognised
-    "transpileOnly": true
-  }
+  "references": [{ "path": "../../packages/shared-models" }]
 }

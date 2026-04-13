@@ -1023,23 +1023,58 @@ export type CreatedAgendaDto = {
 
 export type FoundAgendaNominationFiles = {
     items: Array<{
-        /**
-         * @deprecated
-         */
-        agendaCount: number;
-        currentPosition: string | null;
-        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
         id: string;
-        magistratId: string | null;
-        name: string;
         number: number;
-        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        targetedPosition: string | null;
         reporters: Array<string>;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
             comment: string | null;
         };
+        magistrat: {
+            id: string;
+            externalId: number;
+            name: string;
+            position: {
+                grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+                label: string;
+                functionId: string | null;
+                jurisdictionId: string | null;
+            };
+        };
+        targetPosition: {
+            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+            label: string;
+            functionId: string | null;
+            jurisdictionId: string | null;
+        };
+        /**
+         * @deprecated
+         */
+        agendaCount: number;
+        /**
+         * @deprecated
+         */
+        currentPosition: string | unknown;
+        /**
+         * @deprecated
+         */
+        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        /**
+         * @deprecated
+         */
+        magistratId: string | unknown;
+        /**
+         * @deprecated
+         */
+        name: string;
+        /**
+         * @deprecated
+         */
+        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        /**
+         * @deprecated
+         */
+        targetedPosition: string | unknown;
     }>;
 };
 

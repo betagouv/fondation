@@ -29,23 +29,43 @@ export function AgendaNominationFile(props: {
               <div>
                 <NominationFileOutcomeBadge formation={props.formation} outcome={props.file.outcome.value} />
               </div>
-              <div className="w-1/3 flex-shrink-0 pl-2">
+              <div
+                className="w-1/3 flex-shrink-0 cursor-help pl-2"
+                title={[props.file.magistrat.position.grade, props.file.magistrat.position.label].join(' - ')}
+              >
                 <div className="truncate">
-                  <Marked value={props.file.name} search={props.search} />
+                  <Marked value={props.file.magistrat.name} search={props.search} />
                 </div>
-                <div
-                  className="truncate text-xs"
-                  title={[props.file.grade, props.file.currentPosition].join(' - ')}
-                >
-                  {[props.file.grade, props.file.currentPosition].filter((x) => !!x).join(' - ') || '-'}
+                <div className="cursor-help truncate text-xs">
+                  {[
+                    props.file.magistrat.position.grade,
+                    [props.file.magistrat.position.functionId, props.file.magistrat.position.jurisdictionId]
+                      .filter((x) => !!x)
+                      .join(' ')
+                  ]
+                    .filter((x) => !!x)
+                    .join(' - ') || '-'}
                 </div>
               </div>
               <i
                 className={clsx(cx('ri-arrow-right-line'), 'flex-shrink-0 before:size-5 before:content-[""]')}
               />
-              <div className="text-wrap px-2 pt-1 text-sm">
-                {[props.file.targetedGrade, props.file.targetedPosition].filter((x) => !!x).join(' - ') ||
-                  '-'}
+              <div
+                className="cursor-help text-wrap px-2 pt-1 text-sm"
+                title={
+                  [props.file.magistrat.position.grade, props.file.targetPosition.label]
+                    .filter((x) => !!x)
+                    .join(' - ') || '-'
+                }
+              >
+                {[
+                  props.file.targetPosition.grade,
+                  [props.file.targetPosition.functionId, props.file.targetPosition.jurisdictionId]
+                    .filter((x) => !!x)
+                    .join(' ')
+                ]
+                  .filter((x) => !!x)
+                  .join(' - ') || '-'}
               </div>
             </div>
           )

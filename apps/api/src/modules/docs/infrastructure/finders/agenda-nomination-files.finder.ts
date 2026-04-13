@@ -65,20 +65,40 @@ export class FoundAgendaNominationFiles extends createZodDto(
   z.object({
     items: z.array(
       z.object({
-        agendaCount: z.number().meta({ deprecated: true }),
-        currentPosition: z.string().nullable(),
-        grade: z.enum(Magistrat.Grade),
         id: z.string(),
-        magistratId: z.string().nullable(),
-        name: z.string(),
         number: z.number(),
-        targetedGrade: z.enum(Magistrat.Grade),
-        targetedPosition: z.string().nullable(),
         reporters: z.array(z.string()),
         outcome: z.object({
           value: z.enum(AGENDA_NOMINATION_FILE_OUTCOME_ENUM),
           comment: z.string().nullable(),
         }),
+
+        magistrat: z.object({
+          id: z.string(),
+          externalId: z.number().int().gt(0),
+          name: z.string(),
+          position: z.object({
+            grade: z.enum(Magistrat.Grade),
+            label: z.string(),
+            functionId: z.string().nullable(),
+            jurisdictionId: z.string().nullable(),
+          }),
+        }),
+
+        targetPosition: z.object({
+          grade: z.enum(Magistrat.Grade),
+          label: z.string(),
+          functionId: z.string().nullable(),
+          jurisdictionId: z.string().nullable(),
+        }),
+
+        agendaCount: z.number().meta({ deprecated: true }),
+        currentPosition: z.string().nullable().meta({ deprecated: true }),
+        grade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
+        magistratId: z.string().nullable().meta({ deprecated: true }),
+        name: z.string().meta({ deprecated: true }),
+        targetedGrade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
+        targetedPosition: z.string().nullable().meta({ deprecated: true }),
       }),
     ),
   }),
