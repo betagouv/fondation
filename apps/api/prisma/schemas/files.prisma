@@ -15,7 +15,8 @@ model File {
   attachedToSummaries                 SummaryAttachment[]
   includedInSummariesContent          SummaryScreenshot[]
   ingestionJobFile                    IngestionJobFile[]
-  agendaPdf                           Agenda[]           @relation("agenda_pdf_file")
+  agendaPdf                           Agenda[]                             @relation("agenda_pdf_file")
+  officialReportPdf                   OfficialReport[]                     @relation("official_report_pdf_file")
 
   @@map("files")
   @@schema("files_context")

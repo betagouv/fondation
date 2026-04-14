@@ -13,6 +13,7 @@ import {
   Put,
   Query,
   StreamableFile,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
@@ -25,21 +26,31 @@ import { ApiOkResponse, ApiProduces, ApiQuery } from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
 import {
+  CreateOfficialReportDto,
   CreateOrUpdateAgendaDto,
   CreatedAgendaDto,
+  CreatedOfficialReportDto,
   FindAgendaNominationFilesQueryDto,
 } from './docs.dto';
+import { DocsFilter } from './docs.filter';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedSessionDoc } from './queries/details-session-doc.query';
+import { FoundAgendasForNewOfficialReportDto } from './queries/find-agendas-for-new-official-report.query';
 import {
   FoundChairmenDto,
   SearchChairmenQueryDto,
 } from './queries/find-chairmen.query';
+import {
+  FoundJusticeContactsDto,
+  SearchJusticeContactsQueryDto,
+} from './queries/find-justice-contacts.query';
+import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-new-official-report.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
 
 @Controller('/api/docs/v1')
+@UseInterceptors(DocsFilter)
 export class DocsController {
   constructor(private readonly docs: DocsService) {}
 
@@ -182,5 +193,62 @@ export class DocsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAgenda(@Param('agendaId') agendaId: string): Promise<void> {
     return this.docs.deleteAgenda({ agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/sessions/:sessionId/official-reports')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: CreatedOfficialReportDto, status: HttpStatus.CREATED })
+  createOfficialReport(
+    @Param('sessionId') sessionId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: CreateOfficialReportDto,
+  ): Promise<CreatedOfficialReportDto> {
+    return this.docs.createOfficialReport({
+      sessionId,
+      authorId: authUser.id,
+      sessionMeetingDate: body.sessionMeetingDate,
+      sessionMeetingTime: body.sessionMeetingTime,
+      hasRenunciation: body.hasRenunciation,
+      justiceDepartmentContactId: body.justiceDepartmentContactId,
+      chairmanId: body.chairmanId,
+      secretaryId: body.secretaryId,
+      agendaIds: body.agendas,
+      memberIds: body.members,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/official-reports/justice-contacts')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: FoundJusticeContactsDto, status: HttpStatus.OK })
+  searchOfficialReportJusticeContact(
+    @Query() query: SearchJusticeContactsQueryDto,
+  ): Promise<FoundJusticeContactsDto> {
+    return this.docs.searchJusticeContacts({ search: query.search });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/new-official-reports/agendas')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: FoundAgendasForNewOfficialReportDto,
+  })
+  listAgendasForNewOfficialReport(
+    @Param('sessionId') sessionId: string,
+  ): Promise<FoundAgendasForNewOfficialReportDto> {
+    return this.docs.listAgendasForNewOfficialReport({ sessionId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/new-official-reports/members')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: FoundMembersForNewOfficialReportDto,
+  })
+  listMembersForNewOfficialReport(
+    @Param('sessionId') sessionId: string,
+  ): Promise<FoundMembersForNewOfficialReportDto> {
+    return this.docs.listMembersForNewOfficialReport({ sessionId });
   }
 }

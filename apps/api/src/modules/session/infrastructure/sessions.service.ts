@@ -357,10 +357,7 @@ export class SessionService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: {
-    sessionId: string;
-    userId: string;
-  }): Promise<DetailedNominationSessionDto> {
+  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 

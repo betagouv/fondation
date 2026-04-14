@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { SessionModule } from 'src/modules/session/session.module';
 import { MembersModule } from '../members';
+import { SimpleAuthModule } from '../simple-auth';
 import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
 import { AgendaNominationFilesFinder } from './infrastructure/finders/agenda-nomination-files.finder';
@@ -9,16 +10,20 @@ import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-age
 import { DetailsSessionDocQuery } from './infrastructure/queries/details-session-doc.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
+import { FindAgendasForNewOfficialReportQuery } from './infrastructure/queries/find-agendas-for-new-official-report.query';
 import { FindChairmenQuery } from './infrastructure/queries/find-chairmen.query';
+import { FindJusticeContactsQuery } from './infrastructure/queries/find-justice-contacts.query';
+import { FindMembersForNewOfficialReportQuery } from './infrastructure/queries/find-members-for-new-official-report.query';
 import { FindSessionDocsQuery } from './infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
+import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
 import { DocRenderer } from './infrastructure/services/doc-renderer.service';
 import { AgendaRenderer } from './infrastructure/services/renderers/agenda.renderer';
 import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-renderer.service';
 
 @Module({
-  imports: [SessionModule, MembersModule],
+  imports: [SessionModule, SimpleAuthModule, MembersModule],
   controllers: [DocsController],
   providers: [
     AgendaNominationFilesFinder,
@@ -34,6 +39,10 @@ import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-rendere
     FindSessionDocsQuery,
     IsSessionReadyForDocGenerationQuery,
     PdfRenderer,
+    OfficialReportRepository,
+    FindJusticeContactsQuery,
+    FindAgendasForNewOfficialReportQuery,
+    FindMembersForNewOfficialReportQuery,
   ],
   exports: [DocsService],
 })

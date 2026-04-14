@@ -40,21 +40,25 @@ model User {
   duty         PrismaUserDutyEnum?
   displayTitle String?              @map("display_title")
 
-  sessions                    AuthSession[]
-  excludedJurisdictionIds     ExcludedJurisdiction[]
-  reporterOnNominationFileIds NominationFileToReporter[]
-  publishedVersions           AffectationVersion[]
-  commentAccess               CommentAccess[]
-  createdObservations         Observation[]              @relation("user_to_observation")
-  observationMemberComments   ObservationMemberComment[]
-  memos                       MemberMemo[]
-  authorOfSummaries           Summary[]
-  readerOfSummaries           SummaryReader[]
-  followedUpObservations      Observation[]              @relation("user_to_observation_follow_up")
-  validatedSessions           Session[]
-  agendas                     Agenda[]
-  agendasAuthor               Agenda[]                   @relation("agenda_author")
-  authImpersonations          AuthImpersonation[]
+  sessions                          AuthSession[]
+  excludedJurisdictionIds           ExcludedJurisdiction[]
+  reporterOnNominationFileIds       NominationFileToReporter[]
+  publishedVersions                 AffectationVersion[]
+  commentAccess                     CommentAccess[]
+  createdObservations               Observation[]              @relation("user_to_observation")
+  observationMemberComments         ObservationMemberComment[]
+  memos                             MemberMemo[]
+  authorOfSummaries                 Summary[]
+  readerOfSummaries                 SummaryReader[]
+  followedUpObservations            Observation[]              @relation("user_to_observation_follow_up")
+  validatedSessions                 Session[]
+  agendas                           Agenda[]
+  agendasAuthor                     Agenda[]                   @relation("agenda_author")
+  authImpersonations                AuthImpersonation[]
+  authorOfJusticeDepartmentContacts JusticeDepartmentContact[]
+  chairmanOfOfficialReports         OfficialReport[]           @relation("official_reports_chairman")
+  secretaryOfOfficialReports        OfficialReport[]           @relation("official_reports_secretary")
+  authorOfOfficialReports           OfficialReport[]           @relation("official_reports_author")
 
   @@map("users")
   @@schema("identity_and_access_context")
