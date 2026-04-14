@@ -2669,3 +2669,18 @@ export type ListMembersForNewOfficialReportResponses = {
 };
 
 export type ListMembersForNewOfficialReportResponse = ListMembersForNewOfficialReportResponses[keyof ListMembersForNewOfficialReportResponses];
+
+export type ListSecretariesForNewOfficialReportData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/secretaries-general';
+};
+
+export type ListSecretariesForNewOfficialReportResponses = {
+    200: FoundMembersForNewOfficialReportDto;
+};
+
+export type ListSecretariesForNewOfficialReportResponse = ListSecretariesForNewOfficialReportResponses[keyof ListSecretariesForNewOfficialReportResponses];

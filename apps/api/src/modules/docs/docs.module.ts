@@ -16,6 +16,7 @@ import { FindJusticeContactsQuery } from './infrastructure/queries/find-justice-
 import { FindMembersForNewOfficialReportQuery } from './infrastructure/queries/find-members-for-new-official-report.query';
 import { FindSessionDocsQuery } from './infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
+import { ListSecretariesGeneralForNewOfficialReportQuery } from './infrastructure/queries/list-secretaries-general-for-new-official-report.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
 import { DocRenderer } from './infrastructure/services/doc-renderer.service';
@@ -35,14 +36,15 @@ import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-rendere
     DocsService,
     FindAgendaDocumentPdfQuery,
     FindAgendaDocumentQuery,
+    FindAgendasForNewOfficialReportQuery,
     FindChairmenQuery,
+    FindJusticeContactsQuery,
+    FindMembersForNewOfficialReportQuery,
     FindSessionDocsQuery,
     IsSessionReadyForDocGenerationQuery,
-    PdfRenderer,
+    ListSecretariesGeneralForNewOfficialReportQuery,
     OfficialReportRepository,
-    FindJusticeContactsQuery,
-    FindAgendasForNewOfficialReportQuery,
-    FindMembersForNewOfficialReportQuery,
+    PdfRenderer,
   ],
   exports: [DocsService],
 })

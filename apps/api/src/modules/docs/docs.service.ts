@@ -51,6 +51,10 @@ import {
   DocGenerationSessionReadinessDto,
   IsSessionReadyForDocGenerationQuery,
 } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
+import {
+  ListedSecretariesGeneralForNewOfficialReportDto,
+  ListSecretariesGeneralForNewOfficialReportQuery,
+} from './infrastructure/queries/list-secretaries-general-for-new-official-report.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
 
@@ -71,6 +75,7 @@ export class DocsService {
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
     private readonly findAgendasForNewOfficialReportQuery: FindAgendasForNewOfficialReportQuery,
     private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
+    private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
   ) {}
@@ -213,6 +218,10 @@ export class DocsService {
     sessionId: string;
   }): Promise<FoundMembersForNewOfficialReportDto> {
     return this.findMembersForNewOfficialReportQuery.handle(query);
+  }
+
+  listSecretariesGeneralForNewOfficialReport(): Promise<ListedSecretariesGeneralForNewOfficialReportDto> {
+    return this.listSecretariesGeneralForNewOfficialReportQuery.handle();
   }
 
   async createOfficialReport(command: {

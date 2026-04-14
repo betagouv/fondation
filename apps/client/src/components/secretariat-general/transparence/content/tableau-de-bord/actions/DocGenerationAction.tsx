@@ -10,12 +10,13 @@ import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries'
 export function DocGenerationAction(props: { sessionId: string }) {
   const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId: props.sessionId });
 
-  const agendaPath = React.useMemo(
-    () => generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId: props.sessionId }),
+  const [agendaPath, officialReportPath] = React.useMemo(
+    () => [
+      generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId: props.sessionId }),
+      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId })
+    ],
     [props.sessionId]
   );
-
-  // TODO: add official report route path when the page exists
 
   if (!readiness?.isReady) return null;
 
@@ -30,10 +31,7 @@ export function DocGenerationAction(props: { sessionId: string }) {
           <MenuContent>
             <MenuItem linkProps={{ to: agendaPath }}>Ordre du jour</MenuItem>
 
-            <MenuItem>
-              {/* TODO: link to official report page once it exists */}
-              Procès verbal
-            </MenuItem>
+            <MenuItem linkProps={{ to: officialReportPath }}>Procès verbal</MenuItem>
           </MenuContent>
         </MenuRoot>
       </li>
@@ -57,8 +55,12 @@ export function DocGenerationAction(props: { sessionId: string }) {
 
   return (
     <li>
-      {/* TODO: link to official report page once it exists */}
-      <Button size="small" priority="secondary" iconId="fr-icon-folder-2-line">
+      <Button
+        size="small"
+        priority="secondary"
+        iconId="fr-icon-folder-2-line"
+        linkProps={{ to: officialReportPath }}
+      >
         Procès verbal
       </Button>
     </li>

@@ -251,4 +251,17 @@ export class DocsController {
   ): Promise<FoundMembersForNewOfficialReportDto> {
     return this.docs.listMembersForNewOfficialReport({ sessionId });
   }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/new-official-reports/secretaries-general')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: FoundMembersForNewOfficialReportDto,
+  })
+  listSecretariesForNewOfficialReport(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Param('sessionId') _sessionId: string,
+  ): Promise<FoundMembersForNewOfficialReportDto> {
+    return this.docs.listSecretariesGeneralForNewOfficialReport();
+  }
 }

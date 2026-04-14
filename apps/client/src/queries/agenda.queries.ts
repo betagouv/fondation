@@ -188,3 +188,71 @@ export function useDeleteAgenda(sessionId: string) {
     }
   });
 }
+
+export const officialReportKeys = {
+  listAgendas: (sessionId: string) => ['officialReport', 'listAgendas', sessionId] as const,
+  listMembers: (sessionId: string) => ['officialReport', 'listMembers', sessionId] as const,
+  listSecretaries: () => ['officialReport', 'listSecretaries'] as const
+};
+
+export const useListAgendasForNewOfficialReportQuery = (query: { sessionId: string }) =>
+  useQuery({
+    queryKey: officialReportKeys.listAgendas(query.sessionId),
+    queryFn: () =>
+      $api.docs
+        .listAgendasForNewOfficialReport({ path: { sessionId: query.sessionId } })
+        .then(({ data = null }) => data)
+  });
+
+export const useListMembersForNewOfficialReportQuery = (query: { sessionId: string }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.listMembers(query.sessionId),
+    queryFn: () =>
+      $api.docs
+        .listMembersForNewOfficialReport({ path: { sessionId: query.sessionId } })
+        .then(({ data = null }) => data)
+  });
+
+export const useListSecretariesForNewOfficialReportQuery = (query: { sessionId: string }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.listSecretaries(),
+    queryFn: () =>
+      $api.docs
+        .listSecretariesForNewOfficialReport({ path: { sessionId: query.sessionId } })
+        .then(({ data = null }) => data)
+  });
+
+export function useCreateOfficialReportMutation() {
+  return useMutation({
+    mutationFn: (command: {
+      sessionId: string;
+      sessionMeetingDate: { year: number; month: number; day: number };
+      sessionMeetingTime: { hours: number; minutes?: number };
+      hasRenunciation: boolean;
+      justiceDepartmentContactId: number;
+      chairmanId: string;
+      secretaryId: string;
+      agendas: string[];
+      members: string[];
+    }) =>
+      $api.docs
+        .createOfficialReport({
+          path: { sessionId: command.sessionId },
+          body: {
+            sessionMeetingDate: command.sessionMeetingDate,
+            sessionMeetingTime: command.sessionMeetingTime,
+            hasRenunciation: command.hasRenunciation,
+            justiceDepartmentContactId: command.justiceDepartmentContactId,
+            chairmanId: command.chairmanId,
+            secretaryId: command.secretaryId,
+            agendas: command.agendas as [string, ...string[]],
+            members: command.members as [string, ...string[]]
+          }
+        })
+        .then(({ data }) => data!)
+  });
+}
