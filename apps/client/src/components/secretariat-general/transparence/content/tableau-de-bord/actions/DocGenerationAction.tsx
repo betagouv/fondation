@@ -24,15 +24,13 @@ export function DocGenerationAction(props: { sessionId: string }) {
       <li>
         <MenuRoot>
           <MenuTrigger size="small" priority="secondary" iconId="fr-icon-folder-2-line">
-            Générer la documentation <i className={cx('ri-arrow-down-wide-line')} />
+            Générer la documentation <i className={cx('ri-arrow-down-s-line')} />
           </MenuTrigger>
 
           <MenuContent>
-            <MenuItem iconId="fr-icon-folder-2-line" linkProps={{ to: agendaPath }}>
-              Ordre du jour
-            </MenuItem>
+            <MenuItem linkProps={{ to: agendaPath }}>Ordre du jour</MenuItem>
 
-            <MenuItem iconId="fr-icon-folder-2-line">
+            <MenuItem>
               {/* TODO: link to official report page once it exists */}
               Procès verbal
             </MenuItem>
