@@ -6,7 +6,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useAgendaHtmlQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
 
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
-import fontsCss from './PreviewAgendaPage.css?inline';
+import fontsCss from '../document-fonts.css?inline';
 
 function injectFonts(html: string): string {
   return html.replace('<head>', `<head><style data-pagedjs-ignore>${fontsCss}</style>`).replace(

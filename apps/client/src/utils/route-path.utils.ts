@@ -21,9 +21,11 @@ export const ROUTE_PATHS = {
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
-    NEW_AGENDA: '/secretariat-general/session/:sessionId/docs/ordre-du-jour',
-    UPDATE_AGENDA: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId',
-    AGENDA_PREVIEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation'
+    AGENDA_NEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour',
+    AGENDA_UPDATE: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId',
+    AGENDA_PREVIEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
+    OFFICIAL_REPORT_NEW: '/secretariat-general/session/:sessionId/docs/pv',
+    OFFICIAL_REPORT_PREVIEW: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation'
   },
 
   ADMIN: {
@@ -46,7 +48,7 @@ export type FondationPath<Node = RoutePath> = Node extends string ? Node : Fonda
 export type RoutePathSecretariat = RoutePath['SG'][keyof RoutePath['SG']];
 
 export const getNewAgendaPath = (sessionId: string): string =>
-  generatePath(ROUTE_PATHS.SG.NEW_AGENDA, { sessionId });
+  generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId });
 
 export function getDetailSessionGdsPath(props: {
   sessionId: string;

@@ -72,7 +72,7 @@ export function NominationSessionDocsList(props: { sessionId: string }) {
                   (isPending || isDeleting
                     ? undefined
                     : {
-                        to: generatePath(ROUTE_PATHS.SG.UPDATE_AGENDA, {
+                        to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE, {
                           sessionId: props.sessionId,
                           agendaId: doc.id
                         })

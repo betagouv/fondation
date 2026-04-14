@@ -11,7 +11,7 @@ export function DocGenerationAction(props: { sessionId: string }) {
   const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId: props.sessionId });
 
   const agendaPath = React.useMemo(
-    () => generatePath(ROUTE_PATHS.SG.NEW_AGENDA, { sessionId: props.sessionId }),
+    () => generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId: props.sessionId }),
     [props.sessionId]
   );
 
