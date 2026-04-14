@@ -1095,6 +1095,8 @@ export type DetailedSessionDoc = {
 
 export type DocGenerationSessionReadinessDto = {
     isReady: boolean;
+    canCreateAgenda: boolean;
+    canCreateOfficialReport: boolean;
 };
 
 export type DetailedAgendaMetadata = {
