@@ -12,6 +12,7 @@ import { useNominationFilesTable } from './contexts/files-table.context';
 import { useNominationFilesTableColumns } from './useNominationFilesTableColumns.hook';
 
 import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { defineMessage } from 'react-intl';
 import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
@@ -65,8 +66,8 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     onStateChange: setTableState,
     meta: {
       paginationItemLabel: isSg
-        ? { one: 'proposition', other: 'propositions' }
-        : { one: 'dossier', other: 'dossiers' }
+        ? defineMessage({ defaultMessage: '{count, plural, one {proposition} other {propositions}}' })
+        : defineMessage({ defaultMessage: '{count, plural, one {dossier} other {dossiers}}' })
     }
   });
 

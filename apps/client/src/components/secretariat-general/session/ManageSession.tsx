@@ -1,5 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { createColumnHelper } from '@tanstack/react-table';
+import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
 import type { ListedNominationSessionsDto } from '@api/types';
@@ -98,7 +99,11 @@ export function ManageSession() {
     data: data?.items,
     getRowId: (row) => row.id,
     rowCount: data?.totalCount,
-    meta: { paginationItemLabel: { one: 'session', other: 'sessions' } },
+    meta: {
+      paginationItemLabel: defineMessage({
+        defaultMessage: '{count, plural, one {session} other {sessions}}'
+      })
+    },
     state: tableState,
     onStateChange: setTableState
   });

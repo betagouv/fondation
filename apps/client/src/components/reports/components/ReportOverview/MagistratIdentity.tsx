@@ -4,9 +4,9 @@ import { type FC } from 'react';
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { labels } from '@/constants/labels.constants';
+import { FormattedBirthDate } from '@/i18n/components';
 import type { DetailedReportDto } from '@api/types';
 import { Card } from './Card';
-import { formatBirthDate } from './formatters';
 
 export type MagistratIdentityProps = Pick<
   DetailedReportDto,
@@ -34,7 +34,6 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   sessionId,
   nominationFileId
 }) => {
-  const formattedBirthDate = formatBirthDate(birthDate!, new Date());
   return (
     <Card label="Identité du magistrat">
       <header className="mb-6">
@@ -64,7 +63,9 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
       </div>
       <div>
         <span className={cx('fr-text--bold')}>{`${labels.magistrat.birthDate} : `}</span>
-        <span>{`${formattedBirthDate}`}</span>
+        <span>
+          <FormattedBirthDate value={birthDate} />
+        </span>
       </div>
     </Card>
   );

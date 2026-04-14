@@ -23,6 +23,7 @@ import { toFullName } from '@/utils/user.utils';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
 import { useQueryClient } from '@tanstack/react-query';
+import { FormattedMessage, useIntl } from 'react-intl';
 import {
   AdminUserRoleLabel,
   PROMOTABLE_ROLES,
@@ -117,6 +118,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
 }
 
 function PasswordField(props: { user: DetailedAdminUserDto }) {
+  const { $t } = useIntl();
   const confirmation = useConfirmation();
   const [isEditing, setEditing] = React.useState(false);
   const [password, setPassword] = React.useState('');
@@ -160,19 +162,32 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 
             const fullName = toFullName(props.user);
             const { isConfirmed } = await confirmation.waitForConfirmation({
-              title: `Notifier l'utilisateur de son nouveau mot de passe ?`,
-              i18n: { confirm: `Notifier ${fullName}` },
+              title: $t({ defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?` }),
+              i18n: { confirm: $t({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
               content: (
                 <p>
-                  Le mot de passe de <em>{fullName}</em> a été mis à jour. Voulez-vous{' '}
-                  {props.user.gender === 'MALE' ? 'le' : 'la'} notifier par mail&nbsp;?
+                  <FormattedMessage
+                    values={{ fullName, gender: props.user.gender, italic: (chunk) => <em>{chunk}</em> }}
+                    defaultMessage={`Le mot de passe de <italic>{fullName}</italic> a été mis à jour. Voulez-vous {gender, select, MALE {le} other {la}} notifier par mail\u00A0?`}
+                  />
                 </p>
               )
             });
 
             if (isConfirmed) {
               const subject = `Mot de passe FONDATION mis à jour`;
-              const content = `Bonjour ${props.user.gender == 'MALE' ? 'M.' : 'Mme'} ${props.user.lastName.toUpperCase()}.\nVotre mot de passe FONDATION vient d'être mis à jour:\n\n        ${password}\n\nMerci de le conserver dans votre coffre Vaultwarden, et de supprimer ce mail.\n\nCordialement,\nl'équipe d'administration FONDATION.`;
+              const intro = $t(
+                { defaultMessage: `Bonjour {gender, select, MALE {M.} other {Mme}}\u00A0{lastName},` },
+                { gender: props.user.gender, lastName: props.user.lastName.toUpperCase() }
+              );
+
+              /** @warning formatjs discards line breaks */
+              const nonDynamicContent =
+                `votre mot de passe FONDATION vient d'être mis à jour:\n\n        ${password}\n\n` +
+                `Merci de le conserver dans votre coffre Vaultwarden, et de supprimer ce mail.\n\n` +
+                `Cordialement,\nl'équipe d'administration FONDATION.`;
+
+              const content = intro + `\n${nonDynamicContent}`;
               const link = `mailto:${props.user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
 
               const $a = document.createElement('a');
@@ -187,7 +202,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
         }
       );
     },
-    [password, confirmation, props, changeEdition, updatePassword, reset]
+    [password, confirmation, props, changeEdition, updatePassword, reset, $t]
   );
 
   return (

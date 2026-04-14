@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import '@tanstack/react-table';
+import type { MessageDescriptor } from 'react-intl';
 
 export type TableMetaFilterEnum = {
   type: 'enum';
@@ -42,6 +43,6 @@ declare module '@tanstack/react-table' {
     allRowsSelectionEnabled?: boolean;
     columnVisibilityEnabled?: boolean;
     paginationEnabled?: boolean;
-    paginationItemLabel?: { one: string; other: string } | string;
+    paginationItemLabel?: MessageDescriptor;
   }
 }

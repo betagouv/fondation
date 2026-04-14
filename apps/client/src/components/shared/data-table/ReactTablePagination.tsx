@@ -4,28 +4,27 @@ import React from 'react';
 import { ITEMS_PAR_PAGE } from '@/types/table.types';
 import Pagination from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
+import { FormattedMessage } from 'react-intl';
+import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
 
 function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }) {
   const totalItemsCount = props.table.getRowCount();
   const displayedItemsCount = props.table.getPaginationRowModel().rows.length;
-
-  const template = props.table.options.meta?.paginationItemLabel;
-  const itemLabel =
-    template !== undefined && template !== null
-      ? typeof template === 'string'
-        ? ` ${template}`
-        : displayedItemsCount > 1
-          ? ` ${template.other}`
-          : ` ${template.one}`
-      : undefined;
+  const itemLabel = useDataTablePaginationItemLabel(props.table);
 
   return (
     <div className="test-gray-600 text-nowrap text-xs">
       <span className="md:hidden">
-        {displayedItemsCount} / {totalItemsCount} {itemLabel}
+        <FormattedMessage
+          defaultMessage={`{displayedItemsCount, number} / {totalItemsCount, number} {itemLabel}`}
+          values={{ displayedItemsCount, totalItemsCount, itemLabel }}
+        />
       </span>
       <span className="hidden md:block">
-        Affichage de {displayedItemsCount} sur {totalItemsCount} {itemLabel}
+        <FormattedMessage
+          defaultMessage={`Affichage de {displayedItemsCount, number} sur {totalItemsCount, number} {itemLabel}`}
+          values={{ displayedItemsCount, totalItemsCount, itemLabel }}
+        />
       </span>
     </div>
   );

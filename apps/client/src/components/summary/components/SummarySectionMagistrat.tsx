@@ -1,10 +1,11 @@
-import { differenceInMonths, differenceInYears } from 'date-fns';
+import { differenceInYears } from 'date-fns';
 import React from 'react';
 
 import { DateOnly } from '@/models/date-only.model';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { FormattedPositionDuration } from '@/i18n/components';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { SummarySectionCard } from './SummarySectionCard';
 
@@ -37,7 +38,7 @@ export function SummarySectionMagistrat() {
         <List.Item isVisible={!!summary.lastPositionDate}>
           <List.ItemTitle>Durée sur le poste</List.ItemTitle>
           <List.ItemContent>
-            <Duration date={summary.lastPositionDate} />
+            <FormattedPositionDuration value={summary.lastPositionDate} />
           </List.ItemContent>
         </List.Item>
 
@@ -69,25 +70,6 @@ function BirthDate(props: { date: { day: number; month: number; year: number } |
     <span>
       {str} ({age}&nbsp;ans)
     </span>
-  );
-}
-
-function Duration(props: { date: { day: number; month: number; year: number } | null }) {
-  if (!props.date) return null;
-
-  const date = DateOnly.fromStoreModel(props.date).toDate();
-  const now = new Date();
-
-  const totalMonths = differenceInMonths(now, date);
-
-  const years = Math.round(totalMonths / 12);
-  const months = Math.round((totalMonths / 12 - years) * 12);
-
-  const yearStr = years < 1 ? undefined : years > 1 ? `${years} ans` : `${years} an`;
-  const monthStr = months < 1 ? undefined : `${months} mois`;
-
-  return new Intl.ListFormat('fr-FR', { type: 'conjunction' }).format(
-    [yearStr, monthStr].filter((x): x is string => !!x)
   );
 }
 

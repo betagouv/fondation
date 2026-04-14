@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { defineMessage } from 'react-intl';
 import { AdminUserRoleLabel, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
@@ -93,7 +94,11 @@ export function AdminUserListPage() {
     data: data?.items,
     getRowId: (row) => row.id,
     rowCount: data?.totalCount,
-    meta: { paginationItemLabel: { one: 'utilisateur', other: 'utilisateurs' } },
+    meta: {
+      paginationItemLabel: defineMessage({
+        defaultMessage: `{count, plural, one {utilisateur} other {utilisateurs}}`
+      })
+    },
     state: tableState,
     onStateChange: setTableState,
     enableGlobalFilter: true

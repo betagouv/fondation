@@ -1,11 +1,11 @@
-import clsx from 'clsx';
-import { UserAvatar } from './UserAvatar';
+import { toFullName } from '@/utils/user.utils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import { capitalize } from '@/utils/string.utils';
+import clsx from 'clsx';
+import { useIntl } from 'react-intl';
 import { userAvatarSizes } from './user-avatar.utils';
+import { UserAvatar } from './UserAvatar';
 
-const listFormatter = new Intl.ListFormat('fr-FR', { type: 'conjunction' });
 export function UserAvatarList(props: {
   size?: 'sm' | 'md' | 'lg';
   max?: number;
@@ -13,6 +13,7 @@ export function UserAvatarList(props: {
   users: readonly { firstName: string; lastName: string }[];
   enableTooltip?: false;
 }) {
+  const intl = useIntl();
   if (props.users.length === 0) return null;
 
   const users = props.users.toSorted((a, b) => a.lastName.localeCompare(b.lastName));
@@ -44,15 +45,6 @@ export function UserAvatarList(props: {
     </ul>
   );
 
-  return props.enableTooltip !== false ? (
-    <Tooltip
-      title={listFormatter.format(
-        users.map(({ firstName, lastName }) => `${capitalize(firstName)} ${lastName.toUpperCase()}`)
-      )}
-    >
-      {content}
-    </Tooltip>
-  ) : (
-    content
-  );
+  const tooltipTitle = intl.formatList(users.map(toFullName), { type: 'conjunction' });
+  return props.enableTooltip !== false ? <Tooltip title={tooltipTitle}>{content}</Tooltip> : content;
 }
