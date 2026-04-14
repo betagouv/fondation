@@ -8,9 +8,11 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { IntlProvider } from 'react-intl';
 import { Link } from 'react-router';
 
 import { authKeys } from '@queries/auth.queries.ts';
+import { frFormat } from './i18n/formats.ts';
 import { AppRouter } from './router/AppRouter.tsx';
 import { HttpException } from './utils/http-exception.ts';
 
@@ -41,7 +43,9 @@ createRoot(document.getElementById('root')!, {
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <NuqsAdapter>
-        <AppRouter />
+        <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
+          <AppRouter />
+        </IntlProvider>
       </NuqsAdapter>
     </QueryClientProvider>
   </StrictMode>

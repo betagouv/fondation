@@ -1,15 +1,9 @@
-import { differenceInYears, format, isValid, parse } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { DateOnlyJson } from 'shared-models';
 import { z } from 'zod';
 
-type DateOnlyStoreModel = {
-  year: number;
-  month: number;
-  day: number;
-};
-
-export const dateOnlyJsonSchema = z.object({
+const dateOnlyJsonSchema = z.object({
   year: z.number(),
   month: z.number().min(1).max(12),
   day: z.number().min(1).max(31)
@@ -29,15 +23,18 @@ function validDate<T, U>(
   };
 }
 
-export class DateOnly {
-  private readonly value: Date;
+function assertIsValidDate(date: Date, message?: string): Date {
+  if (!isValid(date)) throw new Error(message ?? `Invalid date`);
+  return date;
+}
 
+export class DateOnly {
   static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
 
   static codec(message?: string) {
     return z.codec(z.iso.date('Date invalide'), dateOnlyJsonSchema, {
       decode: validDate(message || 'Date invalide', (value) =>
-        DateOnly.fromDateOnlyString(value, 'yyyy-MM-dd').toStoreModel()
+        DateOnly.fromString(value, 'yyyy-MM-dd').toStoreModel()
       ),
       encode: validDate(message || 'Date invalide', (value) =>
         DateOnly.fromStoreModel(value).toFormattedString('yyyy-MM-dd')
@@ -45,84 +42,45 @@ export class DateOnly {
     });
   }
 
-  constructor(year: number, month: number, day: number) {
-    // Month is 0-indexed in JS Date
-    this.value = new Date(Date.UTC(year, month - 1, day));
-  }
-
-  timeDiff(otherDate: DateOnly): number {
-    return this.value.getTime() - otherDate.value.getTime();
-  }
-
-  equal(otherDate: DateOnly): unknown {
-    return (
-      this.getYear() === otherDate.getYear() &&
-      this.getMonth() === otherDate.getMonth() &&
-      this.getDay() === otherDate.getDay()
-    );
-  }
+  private constructor(private readonly value: Date) {}
 
   toDate(): Date {
     return this.value;
   }
+
+  // TODO: rename to `format`
   toFormattedString(template: 'dd-MM-yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
     return format(this.value, template);
   }
-  toStoreModel(): DateOnlyStoreModel {
-    return {
-      year: this.getYear(),
-      month: this.getMonth(),
-      day: this.getDay()
-    };
+
+  // TODO: rename to `toJSON`
+  toStoreModel(): DateOnlyJson {
+    const year = this.value.getFullYear();
+    const month = this.value.getMonth() + 1;
+    const day = this.value.getDate();
+
+    return { year, month, day };
   }
 
-  getAge(today: DateOnly): number {
-    return this.yearsDiffWithLaterDate(today);
+  // TODO: rename to `fromJSON`
+  static fromStoreModel(date: DateOnlyJson): DateOnly {
+    return new DateOnly(assertIsValidDate(new Date(Date.UTC(date.year, date.month - 1, date.day))));
   }
 
-  private yearsDiffWithLaterDate(today: DateOnly): number {
-    return differenceInYears(today.toDate(), this.value);
-  }
-
-  private getYear(): number {
-    return this.value.getFullYear();
-  }
-  private getMonth(): number {
-    return this.value.getMonth() + 1;
-  }
-  private getDay(): number {
-    return this.value.getDate();
-  }
-
-  static fromDate(date: Date): DateOnly {
-    return new DateOnly(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  }
-  static fromStoreModel(date: DateOnlyStoreModel): DateOnly {
-    return new DateOnly(date.year, date.month, date.day);
-  }
-  static now(): DateOnly {
-    return DateOnly.fromDate(new Date());
-  }
-
+  // FIXME: remove, this method does too many things
   static fromDateOnly(dateOnly: DateOnlyJson, format: 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
-    return new DateOnly(dateOnly.year, dateOnly.month, dateOnly.day).toFormattedString(format);
+    return this.fromStoreModel(dateOnly).toFormattedString(format);
   }
 
-  static fromDateOnlyString = (
+  private static fromString(
     dateString: string,
-    format: 'dd-MM-yyyy' | 'yyyy-MM-dd' = 'dd-MM-yyyy'
-  ): DateOnly => {
-    return this.fromString(dateString, format);
-  };
-
-  private static fromString(dateString: string, format: string, locale = 'fr'): DateOnly {
+    format: 'dd-MM-yyyy' | 'yyyy-MM-dd' = 'dd-MM-yyyy',
+    locale = 'fr'
+  ): DateOnly {
     const date = parse(dateString, format, new Date(), {
       locale: locale === 'fr' ? fr : undefined
     });
-    if (!isValid(date)) {
-      throw new Error('Invalid date: ' + dateString);
-    }
 
-    return new this(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    return new DateOnly(assertIsValidDate(date, `Date invalide: "${dateString}"`));
   }
 }

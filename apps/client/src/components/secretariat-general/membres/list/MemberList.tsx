@@ -8,6 +8,7 @@ import { DataTable, useDataTable, useQueryDataTableState } from '@/components/sh
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { defineMessage } from 'react-intl';
 import { MemberListStatCell } from './MemberListStateCell';
 
 const h = createColumnHelper<PaginatedMemberListItemDto['items'][number]>();
@@ -95,7 +96,9 @@ export function MemberList() {
     data: data?.items,
     getRowId: (row) => row.id,
     rowCount: data?.totalCount,
-    meta: { paginationItemLabel: { one: 'membre', other: 'membres' } },
+    meta: {
+      paginationItemLabel: defineMessage({ defaultMessage: '{count, plural, one {membre} other {membres}}' })
+    },
     state: tableState,
     onStateChange: setTableState,
 

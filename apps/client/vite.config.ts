@@ -1,3 +1,4 @@
+import formatjs from '@formatjs/unplugin/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
@@ -21,7 +22,8 @@ export default defineConfig({
         disable: !process.env.CI,
         filesToDeleteAfterUpload: ['./**/*.map', './dist/**/*.d.ts']
       }
-    })
+    }),
+    formatjs({ ast: true })
   ],
   optimizeDeps: {
     include: ['shared-models']

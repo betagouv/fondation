@@ -1,0 +1,5 @@
+{
+  "80P1eB": "{count, plural, =0 {Aucune proposition sélectionnée} one {1 proposition sélectionnée} other {{count, number} propositions sélectionnées}}",
+  "MxDlqK": "{count, plural, =0 {En attente de sélection} one {Générer l'ODJ avec la proposition sélectionnée} other {Générer l'ODJ avec les {count} propositions sélectionnées}}",
+  "isGtrE": "{count, plural, =0 {En attente de sélection} one {Modifier l'ODJ avec la proposition sélectionnée} other {Modifier l'ODJ avec les {count} propositions sélectionnées}}"
+}

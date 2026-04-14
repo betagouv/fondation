@@ -1,8 +1,10 @@
 import type { TableMetaFilterEnum } from '@/tanstack-react-table';
 import type { RowData, Table } from '@tanstack/react-table';
-import { DropdownFilter } from '../DropdownFilter';
 import React from 'react';
+import { useIntl } from 'react-intl';
+import { DropdownFilter } from '../DropdownFilter';
 import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
+import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
 
 function ReactTableFilterEnum<Data extends RowData>(props: {
   table: Table<Data>;
@@ -43,6 +45,7 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 }
 
 export function ReactTableFilterColumn<Data extends RowData>(props: { table: Table<Data> }) {
+  const intl = useIntl();
   const hasFilterActive = props.table
     .getState()
     .columnFilters.some(
@@ -50,16 +53,12 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
         (Array.isArray(value) && value.length > 0) || (typeof value === 'string' && value.trim().length > 0)
     );
 
-  const paginationLabel = props.table.options.meta?.paginationItemLabel;
   const rowsCount = props.table.getRowCount();
+  const itemLabel = useDataTablePaginationItemLabel(props.table);
   const label =
-    hasFilterActive && !!paginationLabel
-      ? typeof paginationLabel === 'string'
-        ? `${rowsCount} ${paginationLabel}:`
-        : rowsCount > 1
-          ? `${rowsCount} ${paginationLabel.other}:`
-          : `${rowsCount} ${paginationLabel.one}:`
-      : 'Filtrer par:';
+    hasFilterActive && itemLabel
+      ? `${rowsCount} ${itemLabel}`
+      : intl.formatMessage({ defaultMessage: `Filtrer par:` });
 
   return (
     <div className="flex items-center gap-4">

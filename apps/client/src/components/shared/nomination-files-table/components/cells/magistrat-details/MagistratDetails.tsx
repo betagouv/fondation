@@ -5,12 +5,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { reportHtmlIds } from '@/components/reports/dom/html-ids';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 
-import {
-  formatBiography,
-  formatBirthDate,
-  formatDurationFromDate,
-  formatObservers
-} from '@/components/reports/components/ReportOverview/formatters';
+import { formatBiography, formatObservers } from '@/components/reports/components/ReportOverview/formatters';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { TextValue } from '@/components/shared/TextValue';
@@ -21,6 +16,8 @@ import clsx from 'clsx';
 
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { labels } from '@/constants/labels.constants';
+import { FormattedBirthDate } from '@/i18n/components';
+import { useIntlPositionDuration } from '@/i18n/hooks';
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MagistratComment } from './magistrat-comment/MagistratComment';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -44,20 +41,14 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
     datePriseDeFonctionPosteActuel
   } = nominationFile.content;
 
-  const formattedBirthDate = dateDeNaissance ? formatBirthDate(dateDeNaissance, new Date()) : null;
   const formattedObservers = observants ? formatObservers(observants) : null;
   const formattedBiography = formatBiography(historique);
 
   const observersCount = (observants?.length ?? 0) + (nominationFile.observations?.length ?? 0);
 
-  const dureeDuPoste = datePriseDeFonctionPosteActuel
-    ? formatDurationFromDate(
-        new Date(
-          datePriseDeFonctionPosteActuel.year,
-          datePriseDeFonctionPosteActuel.month - 1,
-          datePriseDeFonctionPosteActuel.day
-        )
-      )
+  const formatDuration = useIntlPositionDuration();
+  const positionDuration = datePriseDeFonctionPosteActuel
+    ? formatDuration(datePriseDeFonctionPosteActuel)
     : null;
 
   return (
@@ -82,10 +73,13 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
       </div>
       <div>
         <TextValue label={labels.magistrat.currentPosition} value={`${posteActuel} - ${grade}`} />
-        {dureeDuPoste && <TextValue label={labels.magistrat.dureeDuPoste} value={dureeDuPoste} />}
+        {positionDuration && <TextValue label={labels.magistrat.dureeDuPoste} value={positionDuration} />}
         <TextValue label={labels.magistrat.targettedPosition} value={posteCible!} />
         <TextValue label={labels.magistrat.rank} value={rang!} />
-        <TextValue label={labels.magistrat.birthDate} value={formattedBirthDate!} />
+        <TextValue
+          label={labels.magistrat.birthDate}
+          value={<FormattedBirthDate value={dateDeNaissance} />}
+        />
       </div>
       <div>
         <label className="text-xl font-semibold" id={reportHtmlIds.overview.biography}>

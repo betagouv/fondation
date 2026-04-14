@@ -1,5 +1,8 @@
+import { colors } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { type FC } from 'react';
+import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -15,8 +18,6 @@ import {
   type ReportStatusEnum
 } from '@/types/enums.types';
 import type { DetailedMemberSessionDto } from '@api/types';
-import { colors } from '@codegouvfr/react-dsfr';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { NominationFile } from 'shared-models';
 import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { gradeToLabel } from '../../labels/labels-mappers';
@@ -157,7 +158,9 @@ export const ReportListPage: FC = () => {
     onStateChange: setTableState,
 
     meta: {
-      paginationItemLabel: { one: 'rapport', other: 'rapports' }
+      paginationItemLabel: defineMessage({
+        defaultMessage: `{count, plural, one {rapport} other {rapports}}`
+      })
     }
   });
 

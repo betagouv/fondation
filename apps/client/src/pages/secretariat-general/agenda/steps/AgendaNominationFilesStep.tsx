@@ -6,6 +6,7 @@ import React from 'react';
 import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
+import { FormattedMessage } from 'react-intl';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
 import { useAgenda } from '../context/AgendaContext';
@@ -39,12 +40,6 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     return nominationFiles.filter((item) => !term || term.test(item.magistrat.name));
   }, [nominationFiles, search]);
 
-  const selectionLabel = selection.hasNone
-    ? `Aucune proposition sélectionnée`
-    : selection.size > 1
-      ? `${selection.size} propositions sélectionnées`
-      : `${selection.size} proposition sélectionnée`;
-
   const onSubmit = React.useCallback(() => {
     if (selection.size === 0) return;
     submit(selection.list());
@@ -77,7 +72,15 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
           indeterminate={selection.hasSome && !selection.hasAll}
           onChange={onSelectAll}
         >
-          <span className="font-bold">{selectionLabel}</span>
+          <span className="font-bold">
+            <FormattedMessage
+              values={{ count: selection.size }}
+              defaultMessage={`{count, plural,
+                =0 {Aucune proposition sélectionnée}
+                one {1 proposition sélectionnée}
+                other {{count, number} propositions sélectionnées}}`}
+            />
+          </span>
         </IndeterminateCheckbox>
 
         {nominationFiles.length > 0 && (
@@ -90,7 +93,11 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
         )}
       </div>
       <div ref={scrollRef} className="mt-2 h-[42vh] min-h-64 overflow-y-scroll">
-        {filtered.length === 0 && <p className="pt-4 text-center text-gray-500">Aucune donnée disponible</p>}
+        {filtered.length === 0 && (
+          <p className="pt-4 text-center text-gray-500">
+            <FormattedMessage defaultMessage="Aucune donnée disponible" />
+          </p>
+        )}
         {filtered.length > 0 && (
           <>
             <div className="relative" style={{ height: virtualizer.getTotalSize() }}>
@@ -139,15 +146,23 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
             disabled: selection.hasNone || isPending,
             className: clsx({ 'before:animate-spin': isPending }),
             iconId: selection.hasNone ? undefined : isPending ? 'ri-loader-4-line' : 'ri-file-pdf-2-line',
-            children: selection.hasNone
-              ? 'En attente de sélection'
-              : selection.size === 1
-                ? agendaId
-                  ? `Modifier l'ODJ avec la proposition sélectionnée`
-                  : `Générer l'ODJ avec la proposition sélectionnée`
-                : agendaId
-                  ? `Modifier l'ODJ avec les ${selectionLabel}`
-                  : `Générer l'ODJ avec les ${selectionLabel}`
+            children: agendaId ? (
+              <FormattedMessage
+                values={{ count: selection.size }}
+                defaultMessage={`{count, plural,
+                    =0 {En attente de sélection}
+                    one {Modifier l'ODJ avec la proposition sélectionnée}
+                    other {Modifier l'ODJ avec les {count} propositions sélectionnées}}`}
+              />
+            ) : (
+              <FormattedMessage
+                values={{ count: selection.size }}
+                defaultMessage={`{count, plural,
+                  =0 {En attente de sélection}
+                  one {Générer l'ODJ avec la proposition sélectionnée}
+                  other {Générer l'ODJ avec les {count} propositions sélectionnées}}`}
+              />
+            )
           }
         ]}
       />
