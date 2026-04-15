@@ -37,25 +37,8 @@ export class FindJusticeContactsQuery {
   }
 }
 
-export class SearchJusticeContactsQueryDto extends createZodDto(
-  z.object({ search: z.string().default('') }),
-) {}
-
 export class FoundJusticeContactsDto extends createZodDto(
   z.object({
     items: z.array(z.object({ id: z.string(), name: z.string() })),
-  }),
-) {}
-
-export class CreateOfficialReportJusticeContactDto extends createZodDto(
-  z.object({
-    name: z.string().trim().nonempty(),
-  }),
-) {}
-
-export class CreatedOfficialReportJusticeContactDto extends createZodDto(
-  z.object({
-    id: z.string(),
-    name: z.string(),
   }),
 ) {}

@@ -26,9 +26,17 @@ import {
   DetailsAgendaMetadataQuery,
 } from './infrastructure/queries/details-agenda-metadata.query';
 import {
+  DetailedOfficialReportMetadataDto,
+  DetailsOfficialReportQuery,
+} from './infrastructure/queries/details-official-report.query';
+import {
   DetailedSessionAgenda,
   DetailsSessionAgendaQuery,
 } from './infrastructure/queries/details-session-agenda.query';
+import {
+  DetailedSessionOfficialReportDto,
+  DetailsSessionOfficialReportQuery,
+} from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
@@ -76,6 +84,7 @@ export class DocsService {
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
+    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
@@ -84,6 +93,7 @@ export class DocsService {
     private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
+    private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
@@ -199,6 +209,12 @@ export class DocsService {
     return this.detailsSessionAgendaQuery.handle(query);
   }
 
+  detailsSessionOfficialReport(query: {
+    officialReportId: string;
+  }): Promise<DetailedSessionOfficialReportDto> {
+    return this.detailsSessionOfficialReportQuery.handle(query);
+  }
+
   isSessionReadyForDocGeneration(query: {
     sessionId: string;
   }): Promise<DocGenerationSessionReadinessDto> {
@@ -230,6 +246,7 @@ export class DocsService {
 
   listAgendasForNewOfficialReport(query: {
     sessionId: string;
+    ignoreOfficialReportId?: string;
   }): Promise<FoundAgendasForNewOfficialReportDto> {
     return this.findAgendasForNewOfficialReportQuery.handle(query);
   }
@@ -249,7 +266,7 @@ export class DocsService {
     sessionMeetingDate: DateOnlyJson;
     sessionMeetingTime: { hours: number; minutes: number; seconds: number };
     hasRenunciation: boolean;
-    justiceDepartmentContactId: number;
+    justiceDepartmentContactId: string;
     chairmanId: string;
     secretaryId: string;
     agendaIds: readonly string[];
@@ -304,8 +321,69 @@ export class DocsService {
     });
 
     await this.officialReportRepository.persist(report);
-
     return { id: report.id };
+  }
+
+  // TODO: refactor
+  async updateOfficialReport(command: {
+    id: string;
+    authorId: string;
+    sessionMeetingDate: DateOnlyJson;
+    sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    hasRenunciation: boolean;
+    justiceDepartmentContactId: string;
+    chairmanId: string;
+    secretaryId: string;
+    agendaIds: readonly string[];
+    memberIds: readonly string[];
+  }): Promise<void> {
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    const [chairman, members] = await Promise.all([
+      this.members.internalGetMember({ id: command.chairmanId }),
+      this.members.internalFindMembersByIds({ ids: command.memberIds }),
+    ]);
+
+    const toOfficialReportUser = (m: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      gender: Gender;
+      title: UserTitleEnum | null;
+      displayTitle: string | null;
+      duty: UserDutyEnum | null;
+      role: Role;
+    }) => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      gender: m.gender,
+      title: m.title,
+      displayTitle: m.displayTitle,
+      duty: m.duty ?? null,
+      role: m.role,
+    });
+
+    const report = await this.officialReportRepository.find({
+      id: command.id,
+    });
+
+    report.update({
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionMeetingStartingTime: command.sessionMeetingTime,
+      hasRenunciation: command.hasRenunciation,
+      justiceDepartmentContactId: command.justiceDepartmentContactId,
+      chairman: toOfficialReportUser(chairman),
+      secretary: toOfficialReportUser({ ...secretary, id: secretary.userId }),
+      agendaIds: command.agendaIds,
+      members: members.map(toOfficialReportUser),
+      authorId: command.authorId,
+    });
+
+    await this.officialReportRepository.persist(report);
   }
 
   getOrCreateOfficialReportDocument(query: {
@@ -320,5 +398,17 @@ export class DocsService {
     forceNew?: boolean;
   }): Promise<StreamableFile> {
     return this.findOfficialReportDocumentPdfQuery.handle(query);
+  }
+
+  detailsOfficialReportMetadata(query: {
+    officialReportId: string;
+  }): Promise<DetailedOfficialReportMetadataDto> {
+    return this.detailsOfficialReportMetadataQuery.handle(query);
+  }
+
+  async deleteOfficialReport(command: { id: string }): Promise<void> {
+    const officialReport = await this.officialReportRepository.find(command);
+    officialReport.delete();
+    this.officialReportRepository.persist(officialReport);
   }
 }

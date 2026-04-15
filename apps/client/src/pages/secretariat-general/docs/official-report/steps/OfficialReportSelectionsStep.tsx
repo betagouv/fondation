@@ -12,12 +12,19 @@ import { useSelection } from '../../agenda/hooks/useSelection.hook';
 import { useOfficialReport } from '../context/OfficialReportContext';
 
 export function OfficialReportSelectionsStep(props: { className?: string }) {
-  const { session, isSubmitting, submit, goToMetadata } = useOfficialReport();
+  const { session, isSubmitting, submit, goToMetadata, officialReportId, agendaIds } = useOfficialReport();
 
-  const { data: agendasData } = useListAgendasForNewOfficialReportQuery({ sessionId: session.id });
+  const { data: agendasData } = useListAgendasForNewOfficialReportQuery({
+    sessionId: session.id,
+    ignoreOfficialReportId: officialReportId ?? undefined
+  });
   const agendas = React.useMemo(() => agendasData?.items ?? [], [agendasData]);
 
-  const agendaSelection = useSelection({ items: agendas, toString: ({ id }) => id });
+  const agendaSelection = useSelection({
+    items: agendas,
+    toString: ({ id }) => id,
+    defaultSelection: agendaIds
+  });
 
   const onAgendaChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

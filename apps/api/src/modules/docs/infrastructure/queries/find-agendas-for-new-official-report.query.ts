@@ -12,6 +12,7 @@ export class FindAgendasForNewOfficialReportQuery {
 
   async handle(query: {
     sessionId: string;
+    ignoreOfficialReportId?: string;
   }): Promise<FoundAgendasForNewOfficialReportDto> {
     const session = await this.prisma.session.findUnique({
       where: { id: query.sessionId },
@@ -20,7 +21,15 @@ export class FindAgendasForNewOfficialReportQuery {
     if (!session) throw new NotFoundException();
 
     const agendas = await this.prisma.agenda.findMany({
-      where: { sessionId: query.sessionId, officialReportId: null },
+      where: query.ignoreOfficialReportId
+        ? {
+            sessionId: query.sessionId,
+            OR: [
+              { officialReportId: null },
+              { officialReportId: query.ignoreOfficialReportId },
+            ],
+          }
+        : { sessionId: query.sessionId, officialReportId: null },
       select: { id: true, date: true, formation: true },
       orderBy: { date: 'asc' },
     });

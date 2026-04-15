@@ -11,8 +11,9 @@ import { AdminUserDetailPage } from '@/pages/admin/users/AdminUserDetailPage';
 import { AdminUserListPage } from '@/pages/admin/users/AdminUserListPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UserManualPage } from '@/pages/help/UserManualPage';
-import { PreviewAgendaPage } from '@/pages/secretariat-general/docs/agenda/PreviewAgendaPage';
+import { AgendaPreviewPage } from '@/pages/secretariat-general/docs/agenda/AgendaPreviewPage';
 import { CreateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
+import { OfficialReportPreviewPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
@@ -136,11 +137,19 @@ const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
-            element: <PreviewAgendaPage />
+            element: <AgendaPreviewPage />
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
             element: <CreateOfficialReportPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
+            element: <CreateOfficialReportPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
+            element: <OfficialReportPreviewPage />
           }
         ]
       },

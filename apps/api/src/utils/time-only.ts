@@ -13,3 +13,11 @@ export function timeOnlyToDate(time: TimeOnly): Date {
     Date.UTC(2026, 0, 10, time.hours, time.minutes, time.seconds, 0),
   );
 }
+
+export function dateToTimeOnly(date: Date): TimeOnly {
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const seconds = date.getUTCSeconds();
+
+  return { hours, minutes, seconds };
+}

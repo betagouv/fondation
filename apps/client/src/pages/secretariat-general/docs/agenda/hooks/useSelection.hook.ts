@@ -3,9 +3,10 @@ import React from 'react';
 type Falsy = '' | false | undefined | 0;
 export function useSelection<T, Key extends string>(props: {
   items: readonly T[] | undefined;
+  defaultSelection?: Key[];
   toString: (item: T) => Key | Falsy;
 }) {
-  const [selection, setSelection] = React.useState(new Set<Key>());
+  const [selection, setSelection] = React.useState(new Set<Key>(props.defaultSelection));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectItem = React.useCallback((item: T) => props.toString(item), []);
 

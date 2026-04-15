@@ -7,7 +7,9 @@ import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
 import { AgendaNominationFilesFinder } from './infrastructure/finders/agenda-nomination-files.finder';
 import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-agenda-metadata.query';
+import { DetailsOfficialReportQuery } from './infrastructure/queries/details-official-report.query';
 import { DetailsSessionAgendaQuery } from './infrastructure/queries/details-session-agenda.query';
+import { DetailsSessionOfficialReportQuery } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import { FindAgendasForNewOfficialReportQuery } from './infrastructure/queries/find-agendas-for-new-official-report.query';
@@ -33,7 +35,9 @@ import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-rendere
     AgendaRenderer,
     AgendaRepository,
     DetailsAgendaMetadataQuery,
+    DetailsOfficialReportQuery,
     DetailsSessionAgendaQuery,
+    DetailsSessionOfficialReportQuery,
     DocsService,
     FindAgendaDocumentPdfQuery,
     FindAgendaDocumentQuery,

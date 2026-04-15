@@ -33,28 +33,29 @@ import { DocsService } from '../docs.service';
 import {
   CreatedAgendaDto,
   CreatedOfficialReportDto,
-  CreateOfficialReportDto,
+  CreatedOfficialReportJusticeContactDto,
+  CreateOfficialReportJusticeContactDto,
   CreateOrUpdateAgendaDto,
+  CreateOrUpdateOfficialReportDto,
   FindAgendaNominationFilesQueryDto,
+  ListAgendasForNewOfficialReportQueryDto,
+  SearchJusticeContactsQueryDto,
 } from './docs.dto';
 import { DocsFilter } from './docs.filter';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
+import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
 import {
   DetailedSessionAgenda,
   DetailedSessionDoc,
 } from './queries/details-session-agenda.query';
+import { DetailedSessionOfficialReportDto } from './queries/details-session-official-report.query';
 import { FoundAgendasForNewOfficialReportDto } from './queries/find-agendas-for-new-official-report.query';
 import {
   FoundChairmenDto,
   SearchChairmenQueryDto,
 } from './queries/find-chairmen.query';
-import {
-  CreatedOfficialReportJusticeContactDto,
-  CreateOfficialReportJusticeContactDto,
-  FoundJusticeContactsDto,
-  SearchJusticeContactsQueryDto,
-} from './queries/find-justice-contacts.query';
+import { FoundJusticeContactsDto } from './queries/find-justice-contacts.query';
 import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-new-official-report.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
@@ -143,6 +144,19 @@ export class DocsController {
     return this.docs.detailsSessionAgenda({ sessionId, agendaId });
   }
 
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/official-reports/:officialReportId')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: DetailedSessionOfficialReportDto,
+  })
+  detailsSessionOfficialReport(
+    @Param('sessionId') _sessionId: string,
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<DetailedSessionAgenda> {
+    return this.docs.detailsSessionOfficialReport({ officialReportId });
+  }
+
   // TODO: Remove
   @ApiOperation({ deprecated: true })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -224,7 +238,7 @@ export class DocsController {
   createOfficialReport(
     @Param('sessionId') sessionId: string,
     @AuthedUser() authUser: { id: string },
-    @Body() body: CreateOfficialReportDto,
+    @Body() body: CreateOrUpdateOfficialReportDto,
   ): Promise<CreatedOfficialReportDto> {
     return this.docs.createOfficialReport({
       sessionId,
@@ -272,8 +286,12 @@ export class DocsController {
   })
   listAgendasForNewOfficialReport(
     @Param('sessionId') sessionId: string,
+    @Query() query: ListAgendasForNewOfficialReportQueryDto,
   ): Promise<FoundAgendasForNewOfficialReportDto> {
-    return this.docs.listAgendasForNewOfficialReport({ sessionId });
+    return this.docs.listAgendasForNewOfficialReport({
+      sessionId,
+      ignoreOfficialReportId: query.ignoreOfficialReportId,
+    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -339,5 +357,48 @@ export class DocsController {
       forceNew,
       id: officialReportId,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/official-reports/:officialReportId')
+  @ZodResponse({
+    type: DetailedOfficialReportMetadataDto,
+    status: HttpStatus.OK,
+  })
+  detailsOfficialReport(
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<DetailedOfficialReportMetadataDto> {
+    return this.docs.detailsOfficialReportMetadata({ officialReportId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/official-reports/:officialReportId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateOfficialReport(
+    @Param('officialReportId') officialReportId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: CreateOrUpdateOfficialReportDto,
+  ): Promise<void> {
+    await this.docs.updateOfficialReport({
+      id: officialReportId,
+      authorId: authUser.id,
+      sessionMeetingDate: body.sessionMeetingDate,
+      sessionMeetingTime: body.sessionMeetingTime,
+      hasRenunciation: body.hasRenunciation,
+      justiceDepartmentContactId: body.justiceDepartmentContactId,
+      chairmanId: body.chairmanId,
+      secretaryId: body.secretaryId,
+      agendaIds: body.agendas,
+      memberIds: body.members,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/official-reports/:officialReportId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteOfficialReport(
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<void> {
+    await this.docs.deleteOfficialReport({ id: officialReportId });
   }
 }

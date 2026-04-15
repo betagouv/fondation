@@ -25,6 +25,7 @@ export const ROUTE_PATHS = {
     AGENDA_UPDATE: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId',
     AGENDA_PREVIEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
     OFFICIAL_REPORT_NEW: '/secretariat-general/session/:sessionId/docs/pv',
+    OFFICIAL_REPORT_UPDATE: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId',
     OFFICIAL_REPORT_PREVIEW: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation'
   },
 

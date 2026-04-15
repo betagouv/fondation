@@ -19,8 +19,10 @@ export type OfficialReportMetadata = {
 
 export type OfficialReportContextType = {
   step: OfficialReportStep;
+  officialReportId: string | null;
   session: { id: string; formation: FormationEnum };
   metadata: OfficialReportMetadata | null;
+  agendaIds: string[] | undefined;
   isSubmitting: boolean;
   goToSelections(values: OfficialReportMetadata): void;
   goToMetadata(): void;
