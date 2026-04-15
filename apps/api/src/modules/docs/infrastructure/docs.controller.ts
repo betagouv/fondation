@@ -304,6 +304,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
+  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.html')
   generateOfficialReportHtml(
     @Param('officialReportId') officialReportId: string,
@@ -315,6 +316,26 @@ export class DocsController {
     forceNew: boolean,
   ): Promise<string> {
     return this.docs.getOrCreateOfficialReportDocument({
+      forceNew,
+      id: officialReportId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @ApiProduces(FILE_MIME_TYPES.pdf)
+  @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
+  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
+  @Get('/official-reports/:officialReportId.pdf')
+  generateOfficialReportPdf(
+    @Param('officialReportId') officialReportId: string,
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
+  ): Promise<StreamableFile> {
+    return this.docs.getOrCreateOfficialReportDocumentPdf({
       forceNew,
       id: officialReportId,
     });

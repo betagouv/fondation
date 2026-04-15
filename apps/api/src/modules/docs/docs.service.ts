@@ -47,6 +47,7 @@ import {
   FindMembersForNewOfficialReportQuery,
   FoundMembersForNewOfficialReportDto,
 } from './infrastructure/queries/find-members-for-new-official-report.query';
+import { FindOfficialReportDocumentPdfQuery } from './infrastructure/queries/find-official-report-document-pdf.query';
 import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-official-report-document.query';
 import {
   FindSessionDocsQuery,
@@ -82,6 +83,7 @@ export class DocsService {
     private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
     private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
+    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
@@ -184,13 +186,6 @@ export class DocsService {
     forceNew?: boolean;
   }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
-  }
-
-  getOrCreateOfficialReportDocument(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<string> {
-    return this.findOfficialReportDocumentQuery.handle(query);
   }
 
   findSessionDocs(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
@@ -311,5 +306,19 @@ export class DocsService {
     await this.officialReportRepository.persist(report);
 
     return { id: report.id };
+  }
+
+  getOrCreateOfficialReportDocument(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<string> {
+    return this.findOfficialReportDocumentQuery.handle(query);
+  }
+
+  getOrCreateOfficialReportDocumentPdf(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<StreamableFile> {
+    return this.findOfficialReportDocumentPdfQuery.handle(query);
   }
 }

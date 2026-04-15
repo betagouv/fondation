@@ -200,7 +200,7 @@ function content(ctx: {
 
     ${ctx.hasRenouncement
       ? html`<p>
-          ${ctx.justiceDepartmentContact} indique renonce au délai de
+          ${ctx.justiceDepartmentContact} indique renoncer au délai de
           convocation de huit jours prévus par l'article 35 du décret n°94-199
           du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
           magistrature.
