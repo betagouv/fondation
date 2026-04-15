@@ -75,7 +75,8 @@ model OfficialReport {
   authorId  String?  @map("author_id") @db.Uuid
   updatedAt DateTime @updatedAt
 
-  justiceDepartmentContactId BigInt @map("justice_department_contact_id")
+  justiceDepartmentContactId   BigInt? @map("justice_department_contact_id")
+  justiceDepartmentContactName String  @map("justice_department_contact_name")
 
   chairmanId        String?          @map("chairman_id") @db.Uuid
   chairmanFirstName String           @map("chairman_first_name")
@@ -91,11 +92,11 @@ model OfficialReport {
 
   agendas                  Agenda[]
   members                  OfficialReportMember[]
-  chairman                 User?                    @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_chairman")
-  secretary                User?                    @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_secretary")
-  author                   User?                    @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_author")
-  justiceDepartmentContact JusticeDepartmentContact @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  pdf                      File?                    @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
+  chairman                 User?                     @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_chairman")
+  secretary                User?                     @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_secretary")
+  author                   User?                     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_author")
+  justiceDepartmentContact JusticeDepartmentContact? @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  pdf                      File?                     @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
 
   @@map("official_report")
   @@schema("docs")

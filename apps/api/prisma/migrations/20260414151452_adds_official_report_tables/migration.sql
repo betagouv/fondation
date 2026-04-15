@@ -14,7 +14,8 @@ CREATE TABLE "docs"."official_report" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "justice_department_contact_id" BIGINT NOT NULL,
+    "justice_department_contact_id" BIGINT,
+    "justice_department_contact_name" TEXT NOT NULL,
     "chairman_id" UUID,
     "chairman_first_name" TEXT NOT NULL,
     "chairman_last_name" TEXT NOT NULL,
@@ -65,7 +66,7 @@ ALTER TABLE "docs"."official_report" ADD CONSTRAINT "official_report_secretary_i
 ALTER TABLE "docs"."official_report" ADD CONSTRAINT "official_report_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "identity_and_access_context"."users"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "docs"."official_report" ADD CONSTRAINT "official_report_justice_department_contact_id_fkey" FOREIGN KEY ("justice_department_contact_id") REFERENCES "docs"."justice_department_contact"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+ALTER TABLE "docs"."official_report" ADD CONSTRAINT "official_report_justice_department_contact_id_fkey" FOREIGN KEY ("justice_department_contact_id") REFERENCES "docs"."justice_department_contact"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "docs"."official_report" ADD CONSTRAINT "official_report_pdf_id_fkey" FOREIGN KEY ("pdf_id") REFERENCES "files_context"."files"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;

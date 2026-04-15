@@ -1139,9 +1139,18 @@ export type CreatedOfficialReportDto = {
 
 export type FoundJusticeContactsDto = {
     items: Array<{
-        id: number;
+        id: string;
         name: string;
     }>;
+};
+
+export type CreateOfficialReportJusticeContactDto = {
+    name: string;
+};
+
+export type CreatedOfficialReportJusticeContactDto = {
+    id: string;
+    name: string;
 };
 
 export type FoundAgendasForNewOfficialReportDto = {
@@ -2639,6 +2648,19 @@ export type SearchOfficialReportJusticeContactResponses = {
 };
 
 export type SearchOfficialReportJusticeContactResponse = SearchOfficialReportJusticeContactResponses[keyof SearchOfficialReportJusticeContactResponses];
+
+export type CreateOfficialReportJusticeContactData = {
+    body: CreateOfficialReportJusticeContactDto;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/official-reports/justice-contacts';
+};
+
+export type CreateOfficialReportJusticeContactResponses = {
+    201: CreatedOfficialReportJusticeContactDto;
+};
+
+export type CreateOfficialReportJusticeContactResponse = CreateOfficialReportJusticeContactResponses[keyof CreateOfficialReportJusticeContactResponses];
 
 export type ListAgendasForNewOfficialReportData = {
     body?: never;

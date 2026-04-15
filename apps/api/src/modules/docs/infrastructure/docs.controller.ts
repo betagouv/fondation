@@ -26,10 +26,10 @@ import { ApiOkResponse, ApiProduces, ApiQuery } from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
 import {
-  CreateOfficialReportDto,
-  CreateOrUpdateAgendaDto,
   CreatedAgendaDto,
   CreatedOfficialReportDto,
+  CreateOfficialReportDto,
+  CreateOrUpdateAgendaDto,
   FindAgendaNominationFilesQueryDto,
 } from './docs.dto';
 import { DocsFilter } from './docs.filter';
@@ -42,6 +42,8 @@ import {
   SearchChairmenQueryDto,
 } from './queries/find-chairmen.query';
 import {
+  CreatedOfficialReportJusticeContactDto,
+  CreateOfficialReportJusticeContactDto,
   FoundJusticeContactsDto,
   SearchJusticeContactsQueryDto,
 } from './queries/find-justice-contacts.query';
@@ -226,6 +228,20 @@ export class DocsController {
     @Query() query: SearchJusticeContactsQueryDto,
   ): Promise<FoundJusticeContactsDto> {
     return this.docs.searchJusticeContacts({ search: query.search });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/official-reports/justice-contacts')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({
+    status: HttpStatus.CREATED,
+    type: CreatedOfficialReportJusticeContactDto,
+  })
+  createOfficialReportJusticeContact(
+    @AuthedUser() user: { id: string },
+    @Body() { name }: CreateOfficialReportJusticeContactDto,
+  ): Promise<CreatedOfficialReportJusticeContactDto> {
+    return this.docs.createJusticeContact({ name, authorId: user.id });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

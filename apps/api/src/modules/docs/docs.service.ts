@@ -4,6 +4,7 @@ import { DateOnlyJson, Gender, Magistrat, Role } from 'shared-models';
 
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { DateOnly } from 'src/utils/date-only';
+import { PrismaService } from '../framework/database';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
@@ -78,6 +79,7 @@ export class DocsService {
     private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
+    private readonly prisma: PrismaService,
   ) {}
 
   searchChairmen(query: {
@@ -206,6 +208,17 @@ export class DocsService {
     search: string;
   }): Promise<FoundJusticeContactsDto> {
     return this.findJusticeContactsQuery.handle(query);
+  }
+
+  async createJusticeContact(command: {
+    name: string;
+    authorId: string;
+  }): Promise<{ id: string; name: string }> {
+    const result = await this.prisma.justiceDepartmentContact.create({
+      data: { name: command.name, authorId: command.authorId },
+    });
+
+    return { id: String(result.id), name: result.name };
   }
 
   listAgendasForNewOfficialReport(query: {

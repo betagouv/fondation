@@ -18,13 +18,14 @@ import { Mandatory } from '@/components/shared/Mandatory';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage } from 'react-intl';
+import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { useOfficialReport } from '../context/OfficialReportContext';
 
 const OfficialReportMetadataSchema = z.object({
   sessionMeetingDate: DateOnly.codec(),
   sessionMeetingTime: z.string().regex(/^\d{2}:\d{2}$/, 'Format HH:MM requis'),
   hasRenunciation: z.boolean(),
-  justiceDepartmentContactId: z.coerce.number().int().gt(0, 'Valeur invalide'),
+  justiceDepartmentContactId: z.string(),
   chairmanId: z.uuid('Veuillez sélectionner un président'),
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
   memberIds: z.array(z.uuid()).nonempty('Veuillez sélectionner au moins un membre')
@@ -54,8 +55,8 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
         ? DateOnly.fromStoreModel(metadata.sessionMeetingDate).toFormattedString('yyyy-MM-dd')
         : new Date().toISOString().split('T')[0]!,
       sessionMeetingTime: metadata?.sessionMeetingTime ?? '',
-      hasRenunciation: metadata?.hasRenunciation ?? false,
-      justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? ('' as unknown as number),
+      hasRenunciation: metadata?.hasRenunciation ?? true,
+      justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? '',
       chairmanId: metadata?.chairmanId ?? '',
       secretaryId: metadata?.secretaryId ?? '',
       memberIds: metadata?.memberIds ?? ([] as string[])
@@ -65,8 +66,9 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
 
   const {
     control,
-    handleSubmit,
     setValue,
+    getValues,
+    handleSubmit,
     formState: { errors, isValid }
   } = useForm({
     mode: 'all',
@@ -84,11 +86,11 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
   }, [chairmen, session.formation, metadata, setValue]);
 
   React.useEffect(() => {
-    if (members.length > 0 && !metadata?.secretaryId) {
-      const secretary = members.find((m) => m.title === 'FIRST_SECRETARY');
+    if (secretaries.length > 0 && !metadata?.secretaryId) {
+      const secretary = secretaries.find((m) => m.title === 'FIRST_SECRETARY');
       if (secretary) setValue('secretaryId', secretary.id);
     }
-  }, [members, metadata, setValue]);
+  }, [secretaries, metadata, setValue]);
 
   const memberIdsInitialized = React.useRef(false);
   React.useEffect(() => {
@@ -103,6 +105,21 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
     }
   }, [members, metadata, setValue]);
 
+  const onMemberChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const currentMemberIds = getValues('memberIds');
+      if (event.target.checked) {
+        setValue('memberIds', currentMemberIds.concat(event.target.value));
+      } else {
+        setValue(
+          'memberIds',
+          currentMemberIds.filter((x) => x !== event.target.value)
+        );
+      }
+    },
+    [getValues, setValue]
+  );
+
   return (
     <form onSubmit={handleSubmit(goToSelections)} className={clsx('mx-auto max-w-2xl', props.className)}>
       <Controller
@@ -112,7 +129,7 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
           <Input
             label={
               <FormattedMessage
-                defaultMessage={`Date de la séance`}
+                defaultMessage={`<mandatory>Date de la séance</mandatory>`}
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
@@ -130,7 +147,7 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
           <Input
             label={
               <FormattedMessage
-                defaultMessage={`Heure de la séance`}
+                defaultMessage={`<mandatory>Heure de la séance</mandatory>`}
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
@@ -200,16 +217,21 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
         control={control}
         render={({ field }) => (
           <Checkbox
-            className="grid grid-cols-3 gap-x-4"
             legend={
               <FormattedMessage
                 defaultMessage={`<mandatory>Membres présents</mandatory>`}
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
+            classes={{ content: 'grid grid-cols-3 gap-x-4 items-start', inputGroup: `first:!mt-0` }}
             options={members.map((member) => ({
               label: toFullName(member),
-              nativeInputProps: { ...field, checked: field.value.includes(member.id), value: member.id }
+              nativeInputProps: {
+                ...field,
+                value: member.id,
+                onChange: onMemberChange,
+                checked: field.value.includes(member.id)
+              }
             }))}
             state={errors.memberIds && 'error'}
             stateRelatedMessage={errors.memberIds?.message}
@@ -220,17 +242,16 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
       <Controller
         name="justiceDepartmentContactId"
         control={control}
-        render={() => (
-          <Input
+        render={({ field }) => (
+          <JusticeContactSelector
             label={
               <FormattedMessage
-                defaultMessage={`<mandatory>Contact Justice</mandatory>`}
+                defaultMessage={`<mandatory>Représentant DSJ</mandatory>`}
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
-            // nativeInputProps={{ type: 'number', min: 1, ...field }}
-            state={errors.justiceDepartmentContactId ? 'error' : 'default'}
-            stateRelatedMessage={errors.justiceDepartmentContactId?.message}
+            value={field.value}
+            onChange={field.onChange}
           />
         )}
       />
@@ -254,6 +275,7 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
       />
 
       <ButtonsGroup
+        className="mt-6"
         alignment="right"
         inlineLayoutWhen="md and up"
         buttons={[

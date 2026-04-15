@@ -32,7 +32,7 @@ export class FindJusticeContactsQuery {
             (b.officialReports[0]?.createdAt.getTime() ?? Infinity) -
             (a.officialReports[0]?.createdAt.getTime() ?? Infinity),
         )
-        .map((c) => ({ id: Number(c.id), name: c.name })),
+        .map((c) => ({ id: String(c.id), name: c.name })),
     };
   }
 }
@@ -43,6 +43,19 @@ export class SearchJusticeContactsQueryDto extends createZodDto(
 
 export class FoundJusticeContactsDto extends createZodDto(
   z.object({
-    items: z.array(z.object({ id: z.number().int(), name: z.string() })),
+    items: z.array(z.object({ id: z.string(), name: z.string() })),
+  }),
+) {}
+
+export class CreateOfficialReportJusticeContactDto extends createZodDto(
+  z.object({
+    name: z.string().trim().nonempty(),
+  }),
+) {}
+
+export class CreatedOfficialReportJusticeContactDto extends createZodDto(
+  z.object({
+    id: z.string(),
+    name: z.string(),
   }),
 ) {}

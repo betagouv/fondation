@@ -11,7 +11,7 @@ export type OfficialReportMetadata = {
   sessionMeetingDate: DateOnlyJson;
   sessionMeetingTime: string;
   hasRenunciation: boolean;
-  justiceDepartmentContactId: number;
+  justiceDepartmentContactId: string;
   chairmanId: string;
   secretaryId: string;
   memberIds: string[];

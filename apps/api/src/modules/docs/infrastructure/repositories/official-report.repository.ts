@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { timeOnlyToDate } from 'src/utils/time-only';
@@ -9,21 +14,45 @@ import {
 
 @Injectable()
 export class OfficialReportRepository {
+  private readonly logger = new Logger(OfficialReportRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 
   persist(report: OfficialReport): Promise<unknown> {
-    return this.prisma.$transaction(
-      report.messages.map((message) => {
+    return this.prisma.$transaction(async (tx) => {
+      for (const message of report.messages) {
         if (message instanceof OfficialReportCreated) {
-          return this.persistOfficialReportCreated(message);
+          await this.persistOfficialReportCreated(tx, message);
         } else {
-          return assertNever(message);
+          assertNever(message);
         }
-      }),
-    );
+      }
+    });
   }
 
-  private persistOfficialReportCreated(message: OfficialReportCreated) {
+  private async persistOfficialReportCreated(
+    tx: Prisma.TransactionClient,
+    message: OfficialReportCreated,
+  ) {
+    const justiceContact = await tx.justiceDepartmentContact.findUnique({
+      where: { id: message.justiceDepartmentContactId },
+      select: { name: true },
+    });
+
+    if (!justiceContact) {
+      this.logger.error(
+        `Unknown justice contact "${message.justiceDepartmentContactId}"`,
+      );
+      throw new InternalServerErrorException();
+    }
+
+    const justiceContactName = justiceContact.name.trim();
+    if (!justiceContactName) {
+      this.logger.error(
+        `justice contact "${message.justiceDepartmentContactId}" name is empty`,
+      );
+      throw new InternalServerErrorException();
+    }
+
     return this.prisma.officialReport.create({
       data: {
         id: message.id,
@@ -33,6 +62,7 @@ export class OfficialReportRepository {
         ),
         hasRenunciation: message.hasRenunciation,
         justiceDepartmentContactId: message.justiceDepartmentContactId,
+        justiceDepartmentContactName: justiceContact.name,
         chairmanId: message.chairman.id,
         chairmanFirstName: message.chairman.firstName,
         chairmanLastName: message.chairman.lastName,

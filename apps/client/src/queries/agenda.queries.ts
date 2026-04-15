@@ -4,6 +4,7 @@ import * as $api from '@api/sdk';
 
 import type { FormationEnum } from '@/types/enums.types';
 
+import type { FoundJusticeContactsDto } from '@api/types';
 import type { DateOnlyJson } from 'shared-models';
 
 export const agendaKeys = {
@@ -192,7 +193,12 @@ export function useDeleteAgenda(sessionId: string) {
 export const officialReportKeys = {
   listAgendas: (sessionId: string) => ['officialReport', 'listAgendas', sessionId] as const,
   listMembers: (sessionId: string) => ['officialReport', 'listMembers', sessionId] as const,
-  listSecretaries: () => ['officialReport', 'listSecretaries'] as const
+  listSecretaries: () => ['officialReport', 'listSecretaries'] as const,
+  findJusticeContacts: (query: { search?: string } = {}) => [
+    'officialReport',
+    'findJusticeContact',
+    query.search ? { search: query.search } : undefined
+  ]
 };
 
 export const useListAgendasForNewOfficialReportQuery = (query: { sessionId: string }) =>
@@ -225,6 +231,47 @@ export const useListSecretariesForNewOfficialReportQuery = (query: { sessionId: 
         .listSecretariesForNewOfficialReport({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data)
   });
+
+export const useFindJusticeContacts = (query: { search: string | undefined }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.findJusticeContacts(query),
+    queryFn: () =>
+      $api.docs
+        .searchOfficialReportJusticeContact({
+          query: { search: query.search }
+        })
+        .then(({ data = null }) => data)
+  });
+
+export function useCreateJusticeContactMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { name: string }) =>
+      $api.docs
+        .createOfficialReportJusticeContact({ body: { name: command.name } })
+        .then(({ data = null }) => data),
+
+    onSuccess(data) {
+      if (!data) return;
+
+      return queryClient.setQueryData(
+        officialReportKeys.findJusticeContacts(),
+        (justiceContacts: FoundJusticeContactsDto) => {
+          if (!justiceContacts) return undefined;
+
+          const { items } = justiceContacts;
+          if (!items.some((item) => item.id === data.id)) {
+            return { items: items.concat(data) };
+          }
+
+          return { items: items.map((item) => (item.id === data.id ? data : item)) };
+        }
+      );
+    }
+  });
+}
 
 export function useCreateOfficialReportMutation() {
   return useMutation({
