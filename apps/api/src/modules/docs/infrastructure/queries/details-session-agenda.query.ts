@@ -5,7 +5,7 @@ import { Files } from 'src/modules/framework/files';
 import z from 'zod';
 
 @Injectable()
-export class DetailsSessionDocQuery {
+export class DetailsSessionAgendaQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: Files,
@@ -32,9 +32,13 @@ export class DetailsSessionDocQuery {
   }
 }
 
-export class DetailedSessionDoc extends createZodDto(
+export class DetailedSessionAgenda extends createZodDto(
   z.object({
     id: z.string(),
     url: z.url(),
   }),
 ) {}
+
+export const DetailedSessionDoc = createZodDto(
+  DetailedSessionAgenda.schema.meta({ deprecated: true }),
+);

@@ -34,6 +34,22 @@ export function titled(props: {
     : `La présidente suppléante, ${fullname(props)}`;
 }
 
+export function displayTitled(props: {
+  firstName: string;
+  lastName: string;
+  displayTitle: string | null;
+  gender: Gender;
+}): string {
+  const title = props.displayTitle?.trim() || null;
+  const output =
+    props.gender === Gender.M
+      ? `M. ${fullname(props)}`
+      : `Mme ${fullname(props)}`;
+
+  if (!title) return output;
+  return `${output}, ${title[0]!.toLowerCase() + title.slice(1)}`;
+}
+
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
 export function date(
   date: Date | DateOnly | DateOnlyJson,

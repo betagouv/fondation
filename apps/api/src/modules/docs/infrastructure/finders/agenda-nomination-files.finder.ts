@@ -8,9 +8,9 @@ import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import {
-  AGENDA_NOMINATION_FILE_OUTCOME_ENUM,
-  nominationFileOutcomeToAgendaNominationFileOutcome,
-} from '../../domain/agenda-nomination-file-outcome';
+  DOC_NOMINATION_FILE_OUTCOME_ENUM,
+  nominationFileOutcomeToDocNominationFileOutcome,
+} from '../../domain/doc-nomination-file-outcome';
 
 @Injectable()
 export class AgendaNominationFilesFinder {
@@ -46,7 +46,7 @@ export class AgendaNominationFilesFinder {
 
     const ids = new Set(rows.map(({ id }) => id));
     const output = items.flatMap((item) => {
-      const outcomeValue = nominationFileOutcomeToAgendaNominationFileOutcome(
+      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(
         item.outcome.value,
       );
 
@@ -69,7 +69,7 @@ export class FoundAgendaNominationFiles extends createZodDto(
         number: z.number(),
         reporters: z.array(z.string()),
         outcome: z.object({
-          value: z.enum(AGENDA_NOMINATION_FILE_OUTCOME_ENUM),
+          value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),
           comment: z.string().nullable(),
         }),
 

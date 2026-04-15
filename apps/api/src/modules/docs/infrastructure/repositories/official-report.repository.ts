@@ -68,11 +68,13 @@ export class OfficialReportRepository {
         chairmanLastName: message.chairman.lastName,
         chairmanGender: message.chairman.gender,
         chairmanTitle: message.chairman.title,
+        chairmanDisplayTitle: message.chairman.displayTitle,
         secretaryId: message.secretary.id,
         secretaryFirstName: message.secretary.firstName,
         secretaryLastName: message.secretary.lastName,
         secretaryGender: message.secretary.gender,
         secretaryTitle: message.secretary.title,
+        secretaryDisplayTitle: message.secretary.displayTitle,
         authorId: message.authorId,
         agendas: { connect: message.agendaIds.map((id) => ({ id })) },
         members: {

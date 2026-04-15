@@ -1,18 +1,18 @@
 import { NominationFileOutcomeEnum } from 'src/modules/session/domain/nomination-file-outcome';
 import { assertNever } from 'src/utils/assert-never';
 
-export const AGENDA_NOMINATION_FILE_OUTCOME_ENUM = [
+export const DOC_NOMINATION_FILE_OUTCOME_ENUM = [
   'VALIDATED',
   'NON_VALIDATED',
   'SUSPENDED',
   'WITHDRAWN',
 ] as const;
-export type AgendaNominationFileOutcomeEnum =
-  (typeof AGENDA_NOMINATION_FILE_OUTCOME_ENUM)[number];
+export type DocNominationFileOutcomeEnum =
+  (typeof DOC_NOMINATION_FILE_OUTCOME_ENUM)[number];
 
-export function nominationFileOutcomeToAgendaNominationFileOutcome(
+export function nominationFileOutcomeToDocNominationFileOutcome(
   value: NominationFileOutcomeEnum,
-): AgendaNominationFileOutcomeEnum {
+): DocNominationFileOutcomeEnum {
   switch (value) {
     case 'ASSESSING':
     case 'WAITING_DSJ':

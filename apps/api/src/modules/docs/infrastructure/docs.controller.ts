@@ -22,7 +22,12 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { Role } from 'shared-models';
 
-import { ApiOkResponse, ApiProduces, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { DocsService } from '../docs.service';
 import {
@@ -35,7 +40,10 @@ import {
 import { DocsFilter } from './docs.filter';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
-import { DetailedSessionDoc } from './queries/details-session-doc.query';
+import {
+  DetailedSessionAgenda,
+  DetailedSessionDoc,
+} from './queries/details-session-agenda.query';
 import { FoundAgendasForNewOfficialReportDto } from './queries/find-agendas-for-new-official-report.query';
 import {
   FoundChairmenDto,
@@ -126,13 +134,25 @@ export class DocsController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/sessions/:sessionId/agendas/:agendaId')
+  @ZodResponse({ type: DetailedSessionAgenda, status: HttpStatus.OK })
+  detailsSessionAgenda(
+    @Param('sessionId') sessionId: string,
+    @Param('agendaId') agendaId: string,
+  ): Promise<DetailedSessionAgenda> {
+    return this.docs.detailsSessionAgenda({ sessionId, agendaId });
+  }
+
+  // TODO: Remove
+  @ApiOperation({ deprecated: true })
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/docs/:agendaId')
   @ZodResponse({ type: DetailedSessionDoc, status: HttpStatus.OK })
   detailsSessionDoc(
     @Param('sessionId') sessionId: string,
     @Param('agendaId') agendaId: string,
-  ): Promise<DetailedSessionDoc> {
-    return this.docs.detailsSessionDoc({ sessionId, agendaId });
+  ): Promise<DetailedSessionAgenda> {
+    return this.detailsSessionAgenda(sessionId, agendaId);
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -279,5 +299,24 @@ export class DocsController {
     @Param('sessionId') _sessionId: string,
   ): Promise<FoundMembersForNewOfficialReportDto> {
     return this.docs.listSecretariesGeneralForNewOfficialReport();
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @ApiProduces('text/html')
+  @ApiOkResponse({ content: { 'text/html': {} } })
+  @Get('/official-reports/:officialReportId.html')
+  generateOfficialReportHtml(
+    @Param('officialReportId') officialReportId: string,
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
+  ): Promise<string> {
+    return this.docs.getOrCreateOfficialReportDocument({
+      forceNew,
+      id: officialReportId,
+    });
   }
 }

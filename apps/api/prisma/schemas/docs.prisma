@@ -6,11 +6,12 @@ model Agenda {
   date               DateTime            @db.Date
   officialReportId   String?             @map("official_report_id") @db.Uuid
 
-  chairmanId        String?          @map("chairman_id") @db.Uuid
-  chairmanFirstName String           @map("chairman_first_name")
-  chairmanLastName  String           @map("chairman_last_name")
-  chairmanTitle     String?          @map("chairman_title")
-  chairmanGender    PrismaGenderEnum @map("chairman_gender")
+  chairmanId           String?              @map("chairman_id") @db.Uuid
+  chairmanFirstName    String               @map("chairman_first_name")
+  chairmanLastName     String               @map("chairman_last_name")
+  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
+  chairmanDisplayTitle String?              @map("chairman_display_title")
+  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
@@ -78,17 +79,19 @@ model OfficialReport {
   justiceDepartmentContactId   BigInt? @map("justice_department_contact_id")
   justiceDepartmentContactName String  @map("justice_department_contact_name")
 
-  chairmanId        String?          @map("chairman_id") @db.Uuid
-  chairmanFirstName String           @map("chairman_first_name")
-  chairmanLastName  String           @map("chairman_last_name")
-  chairmanTitle     String?          @map("chairman_title")
-  chairmanGender    PrismaGenderEnum @map("chairman_gender")
+  chairmanId           String?              @map("chairman_id") @db.Uuid
+  chairmanFirstName    String               @map("chairman_first_name")
+  chairmanLastName     String               @map("chairman_last_name")
+  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
+  chairmanDisplayTitle String?              @map("chairman_display_title")
+  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
 
-  secretaryId        String?          @map("secretary_id") @db.Uuid
-  secretaryFirstName String           @map("secretary_first_name")
-  secretaryLastName  String           @map("secretary_last_name")
-  secretaryTitle     String?          @map("secretary_title")
-  secretaryGender    PrismaGenderEnum @map("secretary_gender")
+  secretaryId           String?              @map("secretary_id") @db.Uuid
+  secretaryFirstName    String               @map("secretary_first_name")
+  secretaryLastName     String               @map("secretary_last_name")
+  secretaryTitle        PrismaUserTitleEnum? @map("secretary_title")
+  secretaryDisplayTitle String?              @map("secretary_display_title")
+  secretaryGender       PrismaGenderEnum     @map("secretary_gender")
 
   agendas                  Agenda[]
   members                  OfficialReportMember[]

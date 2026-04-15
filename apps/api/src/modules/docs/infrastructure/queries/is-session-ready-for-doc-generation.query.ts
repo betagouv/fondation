@@ -14,7 +14,7 @@ export class IsSessionReadyForDocGenerationQuery {
       await this.prisma.$transaction(async (tx) => {
         const hasAnyAgendaWithoutOfficialReport = await tx.agenda.findFirst({
           select: { id: true },
-          where: { officialReportId: null },
+          where: { officialReportId: null, sessionId: query.sessionId },
         });
 
         const hasAnySuspendedFile = await tx.dossierDeNomination.findFirst({

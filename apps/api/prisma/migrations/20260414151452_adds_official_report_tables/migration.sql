@@ -1,7 +1,28 @@
 BEGIN;
 
 -- AlterTable
-ALTER TABLE "docs"."agenda" ADD COLUMN     "official_report_id" UUID;
+ALTER TABLE "docs"."agenda" RENAME "chairman_title" TO "old_chairman_title";
+ALTER TABLE "docs"."agenda"
+    ADD COLUMN "official_report_id" UUID,
+    ADD COLUMN "chairman_title" "nominations_context"."user_title_enum",
+    ADD COLUMN "chairman_display_title" TEXT;
+
+UPDATE "docs"."agenda"
+SET "chairman_title" = "old_chairman_title"::"nominations_context"."user_title_enum"
+WHERE "old_chairman_title" IN (
+    -- explicitely ignore chairman that would be FIRST_SECRETARY
+    'PRESIDENT_SIEGE',
+    'PRESIDENT_PARQUET',
+    'DEPUTY_PRESIDENT_SIEGE',
+    'DEPUTY_PRESIDENT_PARQUET'
+);
+
+ALTER TABLE "docs"."agenda" DROP COLUMN old_chairman_title;
+
+UPDATE "docs"."agenda"
+SET "chairman_display_title" = u."display_title"
+FROM "identity_and_access_context"."users" AS u
+WHERE "chairman_id" IS NOT NULL AND u.id = "docs"."agenda"."chairman_id";
 
 -- CreateTable
 CREATE TABLE "docs"."official_report" (
@@ -19,12 +40,14 @@ CREATE TABLE "docs"."official_report" (
     "chairman_id" UUID,
     "chairman_first_name" TEXT NOT NULL,
     "chairman_last_name" TEXT NOT NULL,
-    "chairman_title" TEXT,
+    "chairman_title" "nominations_context"."user_title_enum",
+    "chairman_display_title" "nominations_context"."user_title_enum",
     "chairman_gender" "identity_and_access_context"."gender" NOT NULL,
     "secretary_id" UUID,
     "secretary_first_name" TEXT NOT NULL,
     "secretary_last_name" TEXT NOT NULL,
-    "secretary_title" TEXT,
+    "secretary_title" "nominations_context"."user_title_enum",
+    "secretary_display_title" TEXT,
     "secretary_gender" "identity_and_access_context"."gender" NOT NULL,
 
     CONSTRAINT "official_report_pkey" PRIMARY KEY ("id")

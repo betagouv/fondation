@@ -65,6 +65,7 @@ export class AgendaRepository {
         createdBy: message.authorId,
         chairmanId: message.chairman.id,
         chairmanTitle: message.chairman.title,
+        chairmanDisplayTitle: message.chairman.displayTitle,
         sessionId: message.sessionId,
         nominationFiles: {
           createMany: {
@@ -123,6 +124,7 @@ export class AgendaRepository {
         createdBy: message.authorId,
         chairmanId: message.chairman.id,
         chairmanTitle: message.chairman.title,
+        chairmanDisplayTitle: message.chairman.displayTitle,
         nominationFiles: {
           createMany: {
             data: message.nominationFiles.map((file) => ({

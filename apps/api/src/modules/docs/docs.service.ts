@@ -2,8 +2,11 @@ import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { DateOnlyJson, Gender, Magistrat, Role } from 'shared-models';
 
-import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { DateOnly } from 'src/utils/date-only';
+import {
+  UserDutyEnum,
+  UserTitleEnum,
+} from '../administration/domain/user-enum';
 import { PrismaService } from '../framework/database';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
@@ -23,9 +26,9 @@ import {
   DetailsAgendaMetadataQuery,
 } from './infrastructure/queries/details-agenda-metadata.query';
 import {
-  DetailedSessionDoc,
-  DetailsSessionDocQuery,
-} from './infrastructure/queries/details-session-doc.query';
+  DetailedSessionAgenda,
+  DetailsSessionAgendaQuery,
+} from './infrastructure/queries/details-session-agenda.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import {
@@ -44,6 +47,7 @@ import {
   FindMembersForNewOfficialReportQuery,
   FoundMembersForNewOfficialReportDto,
 } from './infrastructure/queries/find-members-for-new-official-report.query';
+import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-official-report-document.query';
 import {
   FindSessionDocsQuery,
   FoundSessionDocsDto,
@@ -70,13 +74,14 @@ export class DocsService {
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
-    private readonly detailsSessionDocQuery: DetailsSessionDocQuery,
+    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
     private readonly findAgendasForNewOfficialReportQuery: FindAgendasForNewOfficialReportQuery,
     private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
     private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
+    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
@@ -181,15 +186,22 @@ export class DocsService {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 
+  getOrCreateOfficialReportDocument(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<string> {
+    return this.findOfficialReportDocumentQuery.handle(query);
+  }
+
   findSessionDocs(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
     return this.findSessionDocsQuery.handle(query);
   }
 
-  detailsSessionDoc(query: {
+  detailsSessionAgenda(query: {
     sessionId: string;
     agendaId: string;
-  }): Promise<DetailedSessionDoc> {
-    return this.detailsSessionDocQuery.handle(query);
+  }): Promise<DetailedSessionAgenda> {
+    return this.detailsSessionAgendaQuery.handle(query);
   }
 
   isSessionReadyForDocGeneration(query: {
@@ -268,15 +280,17 @@ export class DocsService {
       firstName: string;
       lastName: string;
       gender: Gender;
+      title: UserTitleEnum | null;
       displayTitle: string | null;
-      duty: PrismaUserDutyEnum | null;
+      duty: UserDutyEnum | null;
       role: Role;
     }) => ({
       id: m.id,
       firstName: m.firstName,
       lastName: m.lastName,
       gender: m.gender,
-      title: m.displayTitle,
+      title: m.title,
+      displayTitle: m.displayTitle,
       duty: m.duty ?? null,
       role: m.role,
     });

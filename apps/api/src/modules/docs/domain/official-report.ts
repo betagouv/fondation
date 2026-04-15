@@ -1,5 +1,9 @@
 import { Gender, Magistrat, Role } from 'shared-models';
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
+import {
+  UserDutyEnum,
+  UserTitleEnum,
+} from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -10,10 +14,12 @@ export type OfficialReportUser = {
   lastName: string;
   gender: Gender;
   role: Role;
-  title: string | null;
-  duty: PrismaUserDutyEnum | null;
+  displayTitle: string | null;
+  title: UserTitleEnum | null;
+  duty: UserDutyEnum | null;
 };
 
+export class ChairmanIsNotMember extends Error {}
 export class InvalidChairmanDuty extends Error {}
 export class InvalidChairmanFormation extends Error {}
 export class InvalidSecretaryDuty extends Error {}
@@ -28,7 +34,13 @@ export class OfficialReportCreated {
     readonly chairman: OfficialReportUser,
     readonly secretary: OfficialReportUser,
     readonly agendaIds: readonly string[],
-    readonly members: readonly OfficialReportUser[],
+    readonly members: readonly {
+      id: string;
+      firstName: string;
+      lastName: string;
+      gender: Gender;
+      title: string | null;
+    }[],
     readonly authorId: string,
   ) {}
 }
@@ -61,6 +73,13 @@ export class OfficialReport {
     }
 
     if (
+      props.chairman.role === Role.ADMIN ||
+      props.chairman.role === Role.ADJOINT_SECRETAIRE_GENERAL
+    ) {
+      throw new ChairmanIsNotMember();
+    }
+
+    if (
       (props.chairman.role === Role.MEMBRE_DU_PARQUET &&
         props.formation === Magistrat.Formation.SIEGE) ||
       (props.chairman.role === Role.MEMBRE_DU_SIEGE &&
@@ -69,7 +88,11 @@ export class OfficialReport {
       throw new InvalidChairmanFormation();
     }
 
-    if (props.secretary.duty !== PrismaUserDutyEnum.SECRETARY) {
+    if (
+      props.secretary.duty !== PrismaUserDutyEnum.SECRETARY ||
+      (props.secretary.role !== Role.ADJOINT_SECRETAIRE_GENERAL &&
+        props.secretary.role !== Role.ADMIN)
+    ) {
       throw new InvalidSecretaryDuty();
     }
 
@@ -85,7 +108,13 @@ export class OfficialReport {
         props.chairman,
         props.secretary,
         props.agendaIds,
-        props.members,
+        props.members.map(
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          ({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
+            ...m,
+            title: displayTitle,
+          }),
+        ),
         props.authorId,
       ),
     );

@@ -14,7 +14,8 @@ export class AgendaCreated {
       firstName: string;
       lastName: string;
       gender: Gender;
-      title: string | null;
+      title: UserTitleEnum | null;
+      displayTitle: string | null;
     },
     readonly date: Date,
     readonly sessionMeetingDate: Date,
@@ -31,7 +32,8 @@ export class AgendaUpdated {
       firstName: string;
       lastName: string;
       gender: Gender;
-      title: string | null;
+      title: UserTitleEnum | null;
+      displayTitle: string | null;
     },
     readonly date: Date,
     readonly sessionMeetingDate: Date,
@@ -81,6 +83,7 @@ export class Agenda {
       lastName: string;
       gender: Gender;
       title: UserTitleEnum | null;
+      displayTitle: string | null;
     };
   }): void {
     if (command.nominationFiles.length === 0) throw new EmptyAgenda(this.id);
@@ -110,6 +113,7 @@ export class Agenda {
       lastName: string;
       gender: Gender;
       title: UserTitleEnum | null;
+      displayTitle: string | null;
     };
     date: DateOnly;
     sessionMeetingDate: DateOnly;

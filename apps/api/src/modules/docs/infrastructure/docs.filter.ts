@@ -8,6 +8,7 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { EmptyAgenda } from '../domain/agenda';
 import {
+  ChairmanIsNotMember,
   InvalidChairmanDuty,
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
@@ -43,6 +44,12 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof InvalidChairmanFormation) {
             return new BadRequestException({
               validationError: `Le président n'appartient pas à une formation compatible avec la session`,
+            });
+          }
+
+          if (err instanceof ChairmanIsNotMember) {
+            throw new BadRequestException({
+              validationError: `Le président n'est pas un membre`,
             });
           }
 
