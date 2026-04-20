@@ -13,6 +13,7 @@ SELECT
   JSON_BUILD_OBJECT(
     'grade', p.grade_id,
     'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
+    'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, label, arr.libelle) END,
     'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
       'id', f.id,
       'label', f.label,
@@ -37,6 +38,7 @@ FROM nominations_context.dossier_de_nomination ddn
         'position', JSON_BUILD_OBJECT(
           'grade', mm.grade,
           'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
+          'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, label, arr.libelle) END,
           'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
             'id', f.id,
             'label', f.label,
@@ -50,6 +52,7 @@ FROM nominations_context.dossier_de_nomination ddn
     FROM nominations_context.magistrat mm
       INNER JOIN data_administration_context."position" p ON p.id = mm.current_position_id::INT
       INNER JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id
+      LEFT JOIN data_administration_context."jurisdictions" arr ON arr.codejur = j.arrondissement AND j.arrondissement != j.codejur
       LEFT JOIN data_administration_context."function" f ON f.id = p.function_id
 
     WHERE mm.id = ddn.detected_magistrat_id
@@ -58,6 +61,7 @@ FROM nominations_context.dossier_de_nomination ddn
   INNER JOIN data_administration_context."position" AS p ON p.id = ddn.detected_targeted_position_id
   INNER JOIN data_administration_context."function" AS f ON f.id = p.function_id
   INNER JOIN data_administration_context."jurisdictions" AS j ON j.codejur = p.jurisdiction_id
+  LEFT JOIN data_administration_context."jurisdictions" AS arr ON arr.codejur = j.arrondissement AND j.arrondissement != j.codejur
 
   LEFT JOIN LATERAL (
     SELECT

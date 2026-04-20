@@ -71,6 +71,7 @@ const SqlNominationFilesSchema = z
     targetPosition: z.object({
       grade: z.enum(Magistrat.Grade),
       jurisdiction: SqlJurisdictionSchema,
+      arrondissement: SqlJurisdictionSchema.nullable(),
       function: SqlFunctionSchema,
     }),
     magistrat: z.object({
@@ -85,6 +86,7 @@ const SqlNominationFilesSchema = z
       position: z.object({
         grade: z.enum(Magistrat.Grade),
         jurisdiction: SqlJurisdictionSchema,
+        arrondissement: SqlJurisdictionSchema.nullable(),
         function: SqlFunctionSchema.nullable(),
       }),
     }),
