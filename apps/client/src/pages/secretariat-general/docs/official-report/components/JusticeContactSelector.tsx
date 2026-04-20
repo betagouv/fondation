@@ -45,7 +45,9 @@ export function JusticeContactSelector(props: {
 
   const onSelect = React.useCallback(
     (item: ViewItem | null) => {
-      setSearch('');
+      if (item === null) setSearch('');
+      else setSearch(item.name);
+
       props.onChange(item?.id ?? null);
     },
     [setSearch, props]
