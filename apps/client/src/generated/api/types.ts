@@ -738,6 +738,7 @@ export type DetailedMemberSessionDto = {
         grade: string;
         currentPosition: string | null;
         targettedPosition: string;
+        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
         /**
          * legacy observations from LODAM. Prefer observations
          *
@@ -2124,7 +2125,8 @@ export type DetailsMemberSessionData = {
         sessionId: string;
     };
     query?: {
-        sortBy?: 'number' | 'name' | 'targetedPosition' | 'status';
+        sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
+        priorities?: string;
         status?: string | unknown;
         /**
          * true

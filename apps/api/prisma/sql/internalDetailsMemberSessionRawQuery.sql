@@ -7,6 +7,7 @@
 -- @param {String} $7:sortBy?
 -- @param {Int} $8:limit
 -- @param {Int} $9:offset
+-- @param $10:priorities?
 
 SELECT
   ddn.session_id,
@@ -21,6 +22,7 @@ SELECT
   ddn.observers,
   ddn.rank,
   ddn.targeted_position AS "targetedPosition",
+  ddn.targeted_grade AS "targetedGrade",
   ARRAY_TO_JSON(priorities) AS "priorities",
 
   JSONB_AGG(observations) AS "observations",
@@ -62,6 +64,12 @@ WHERE (
   AND r.reporter_id = $4::UUID
   AND r.is_deleted = FALSE
   AND ($5::report_state[] IS NULL OR r.state = ANY($5::"report_state"[]))
+  AND (
+    $10::nominations_context.priorite_enum[] IS NULL OR (
+      (ARRAY_POSITION($10, NULL) IS NOT NULL AND ddn.priorities = '{}')
+      OR ddn.priorities && $10::nominations_context.priorite_enum[]
+    )
+  )
 )
 
 GROUP BY ddn.id
@@ -69,13 +77,21 @@ GROUP BY ddn.id
 ORDER BY 
   (CASE WHEN $6::TEXT = 'desc' AND $7::TEXT = 'name' THEN ddn.name END) DESC,
   (CASE WHEN $6::TEXT = 'desc' AND $7::TEXT = 'targetedPosition' THEN ddn.targeted_position END) DESC,
-  (CASE WHEN $6::TEXT = 'desc' AND $7::TEXT = 'number' THEN ddn.number END) DESC,
+  (CASE WHEN $6::TEXT = 'desc' AND $7::TEXT = 'fileNumber' THEN ddn.number END) DESC,
+  (CASE WHEN $6::TEXT = 'desc' AND $7::TEXT = 'targetedGrade' THEN ddn.sortable_targeted_grade END) DESC,
   (
     CASE
       WHEN $6::TEXT IS NULL OR $6::TEXT = 'asc' AND $7::TEXT = 'targetedPosition' THEN ddn.targeted_position
       WHEN $6::TEXT IS NULL OR $6::TEXT = 'asc' AND $7::TEXT = 'name' THEN ddn.name
     END
   ) ASC,
-  (CASE WHEN ($6 IS NULL OR $6::TEXT = 'asc') AND ($7 IS NULL OR $7::TEXT = 'number') THEN ddn.number END) ASC
+  (CASE WHEN $6::TEXT IS NULL OR $6::TEXT = 'asc' AND $7::TEXT = 'targetedGrade' THEN ddn.sortable_targeted_grade END) ASC,
+  (CASE WHEN $7::TEXT = 'targetedGrade' THEN ddn.number END) ASC, 
+  (CASE
+      WHEN (
+        $7::TEXT = 'targetedGrade'
+        OR (($6 IS NULL OR $6::TEXT = 'asc') AND ($7 IS NULL OR $7::TEXT = 'fileNumber'))
+      ) THEN ddn.number
+  END) ASC
 
 LIMIT $8::INT OFFSET $9::INT

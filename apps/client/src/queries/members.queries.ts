@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { PrioriteEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
@@ -156,8 +157,9 @@ export function useDetailedMemberGdsSession(input: {
   sessionId: string | undefined;
 
   status: NominationFile.ReportState[] | undefined;
+  priorities: (PrioriteEnum | null)[] | undefined;
   pagination: { pageIndex: number; pageSize: number };
-  sorting: { id: 'name' | 'number' | 'targetedPosition'; desc: boolean }[];
+  sorting: { id: 'name' | 'fileNumber' | 'targetedPosition' | 'targetedGrade'; desc: boolean }[];
 }) {
   return useQuery({
     queryKey: memberKeys.detailMemberGdsSession(input),
@@ -171,6 +173,7 @@ export function useDetailedMemberGdsSession(input: {
           path: { userId: input.userId, sessionId: input.sessionId },
           query: {
             status: input.status?.join(','),
+            priorities: input.priorities?.join(','),
             page: input.pagination.pageIndex + 1,
             limit: input.pagination.pageSize,
             sortBy: input.sorting[0]?.id,

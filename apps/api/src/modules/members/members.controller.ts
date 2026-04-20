@@ -137,6 +137,7 @@ export class MembersController {
 
     return this.sessions.detailMemberSession({
       user: authUser,
+      priorities: query.priorities,
       status: query.status ?? undefined,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
