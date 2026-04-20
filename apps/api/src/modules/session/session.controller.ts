@@ -215,6 +215,7 @@ export class SessionController {
       filters: {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
+        outcomes: query.outcomes,
       },
     });
   }

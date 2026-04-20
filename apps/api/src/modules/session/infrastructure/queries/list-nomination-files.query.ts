@@ -23,7 +23,7 @@ import {
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+import { partition } from 'src/utils/iterables';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
@@ -49,6 +49,7 @@ export class ListNominationFilesQuery {
     filters: {
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
+      outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
     const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(
@@ -266,38 +267,77 @@ export class ListNominationFilesQuery {
     filters: {
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
+      outcomes: readonly (NominationFileOutcomeEnum | null)[];
     },
     lastVersion: OptionalAffectationVersion,
   ): Prisma.DossierDeNominationWhereInput {
     const where: Prisma.DossierDeNominationWhereInput[] = [];
-    if (filters.priorities.includes(null)) {
-      where.push({ priorities: { equals: [] } });
-    }
 
-    if (filters.priorities.filter(isDefined).length > 0) {
-      where.push({
-        priorities: {
-          hasSome: filters.priorities
-            .filter(isDefined)
-            .map(prioriteEnumToPrismaPrioriteEnum),
-        },
-      });
-    }
+    if (filters.priorities.length > 0) {
+      const [hasNoPriority, priorities] = partition(
+        filters.priorities,
+        (x) => x === null,
+      );
 
-    if (filters.reporterIds.includes(null)) {
+      // WHERE priorities = ARRAY[] OR priorities && ${priorities}::priorite_enum[]
       where.push({
-        reporterIds: { none: { versionId: lastVersion.optionalId } },
-      });
-    }
-
-    if (filters.reporterIds.filter(isDefined).length > 0) {
-      where.push({
-        reporterIds: {
-          some: {
-            versionId: lastVersion.optionalId,
-            userId: { in: filters.reporterIds.filter(isDefined) },
+        OR: [
+          { priorities: hasNoPriority.length > 0 ? { equals: [] } : undefined },
+          {
+            priorities:
+              priorities.length > 0
+                ? { hasSome: priorities.map(prioriteEnumToPrismaPrioriteEnum) }
+                : undefined,
           },
-        },
+        ],
+      });
+    }
+
+    if (filters.reporterIds.length > 0) {
+      const [hasNoReporter, reporterIds] = partition(
+        filters.reporterIds,
+        (x) => x === null,
+      );
+
+      // WHERE (
+      //   NOT EXISTS (select id from nomination_file_to_reporter nfr WHERE nfr.version_id = ${lastVersion.optionalId})
+      //   OR (version_id = ${lastVersion.optionalId} AND nfr.user_id IN (${reporterIds}))
+      // )
+      where.push({
+        OR: [
+          {
+            reporterIds:
+              hasNoReporter.length > 0
+                ? { none: { versionId: lastVersion.optionalId } }
+                : undefined,
+          },
+          {
+            reporterIds:
+              reporterIds.length > 0
+                ? {
+                    some: {
+                      userId: { in: reporterIds },
+                      versionId: lastVersion.optionalId,
+                    },
+                  }
+                : undefined,
+          },
+        ],
+      });
+    }
+
+    if (filters.outcomes.length > 0) {
+      const [hasNoOutcome, withOutcome] = partition(
+        filters.outcomes,
+        (x) => x === null,
+      );
+
+      // WHERE outcome IS NULL OR outcome IN (...${outcomes})
+      where.push({
+        OR: [
+          { outcome: hasNoOutcome.length > 0 ? null : undefined },
+          { outcome: withOutcome.length > 0 ? { in: withOutcome } : undefined },
+        ],
       });
     }
 

@@ -1556,6 +1556,7 @@ export type ListNominationFilesData = {
     };
     query?: {
         sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
+        outcomes?: string;
         priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown>;
         reporterIds?: Array<string | unknown>;
         /**

@@ -3,7 +3,7 @@ import './NominationFilesTable.css';
 import React from 'react';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
-import type { FormationEnum, PrioriteEnum } from '@/types/enums.types';
+import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
@@ -35,7 +35,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     globalFilter: '',
     pagination: { pageIndex: 0, pageSize: 50 },
     sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedGrade'; desc: boolean }],
-    columnFilters: [] as { id: 'priorities' | 'reporters'; value: string[] }[],
+    columnFilters: [] as { id: 'priorities' | 'reporters' | 'outcomes'; value: string[] }[],
     rowSelection: {}
   });
 
@@ -51,7 +51,9 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     pagination: tableState.pagination,
     filters: {
       priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
-      reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[]
+      reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
+      outcomes: tableState.columnFilters.find(({ id }) => id === 'outcomes')
+        ?.value as (NominationFileOutcomeEnum | null)[]
     }
   });
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);

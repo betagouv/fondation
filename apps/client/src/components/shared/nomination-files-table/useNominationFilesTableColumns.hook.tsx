@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
-import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { outcomeLabel, PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import {
   getListCurrentlyAffectedReportersQueryOptions,
@@ -12,6 +12,7 @@ import { useNominationFilesTable } from './contexts/files-table.context';
 
 import { toFullName } from '@/utils/user.utils';
 import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
+import { useSortedNominationFileOutcomes } from './components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
 import { NominationFilesOutcomeCell } from './components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from './components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
@@ -20,7 +21,8 @@ import { NominationFileTargetPositionCell } from './components/cells/targeted-po
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
-  const { sessionId } = useNominationFilesTable();
+  const { sessionId, formation } = useNominationFilesTable();
+  const outcomes = useSortedNominationFileOutcomes();
 
   return React.useMemo(
     () => [
@@ -107,10 +109,25 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.outcome', {
         enableSorting: false,
         header: 'Issue',
-        cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />
+        cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />,
+        meta: {
+          filters: {
+            type: 'enum',
+            filterId: 'outcomes',
+            label: 'Issue(s)',
+            values: [{ id: 'null', label: 'Aucune' }].concat(
+              outcomes.map((value) => {
+                let label = outcomeLabel({ value, formation });
+                label = label[0].toUpperCase() + label.slice(1);
+
+                return { id: value, label };
+              })
+            )
+          }
+        }
       })
     ],
-    [sessionId]
+    [sessionId, formation, outcomes]
   );
 };
 

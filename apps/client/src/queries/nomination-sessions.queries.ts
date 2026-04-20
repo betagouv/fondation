@@ -95,7 +95,13 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
 export const useSessionNominationFilesQuery = (options: {
   sessionId: string;
-  filters: { reporterIds?: (string | 'null')[]; priorities?: (PrioriteEnum | 'null')[] } | undefined;
+  filters:
+    | {
+        reporterIds?: (string | 'null')[];
+        priorities?: (PrioriteEnum | 'null')[];
+        outcomes?: (NominationFileOutcomeEnum | null)[];
+      }
+    | undefined;
   pagination: { pageIndex: number; pageSize: number } | undefined;
   sorting: [] | [{ id: NonNullable<ListNominationFilesData['query']>['sortBy']; desc: boolean }] | undefined;
 }) =>
@@ -113,7 +119,8 @@ export const useSessionNominationFilesQuery = (options: {
             sortBy: options.sorting?.[0]?.id,
             sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
             priorities: options.filters?.priorities,
-            reporterIds: options.filters?.reporterIds
+            reporterIds: options.filters?.reporterIds,
+            outcomes: options.filters?.outcomes?.join(',')
           }
         })
         .then(({ data = null }) => data);
