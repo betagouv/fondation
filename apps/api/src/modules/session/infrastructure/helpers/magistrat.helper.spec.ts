@@ -15,6 +15,7 @@ describe('magistrat helpers', () => {
     const base = {
       civility: 'M.' as const,
       position: {
+        arrondissement: null,
         jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
         function: {
           id: 'PP',
@@ -66,6 +67,7 @@ describe('magistrat helpers', () => {
         ...base,
         position: {
           function: null,
+          arrondissement: null,
           jurisdiction: { id: 'SANS AFFECTATION', label: 'Sans affectation' },
         },
       });
@@ -78,6 +80,7 @@ describe('magistrat helpers', () => {
         ...base,
         position: {
           function: null,
+          arrondissement: null,
           jurisdiction: { id: 'DETACHEMENT', label: 'Personnels détachés' },
         },
       });
@@ -89,6 +92,7 @@ describe('magistrat helpers', () => {
       const got = buildPosition({
         civility: 'MME',
         position: {
+          arrondissement: null,
           jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
           function: {
             addition: null,
@@ -119,6 +123,7 @@ describe('magistrat helpers', () => {
         const got = buildPosition({
           civility,
           position: {
+            arrondissement: null,
             function: positionFunction,
             jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
           },
@@ -132,6 +137,7 @@ describe('magistrat helpers', () => {
       const got = buildPosition({
         civility: 'M.',
         position: {
+          arrondissement: null,
           jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
           function: {
             id: '1AG',
@@ -150,6 +156,7 @@ describe('magistrat helpers', () => {
       const got = buildPosition({
         civility: 'MME',
         position: {
+          arrondissement: null,
           jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
           function: {
             addition: null,
@@ -168,13 +175,17 @@ describe('magistrat helpers', () => {
       );
     });
 
-    it('should feminize the addition "affecté à"', () => {
+    it('should build a male JCP position', () => {
       const got = buildPosition({
-        civility: 'MME',
+        civility: 'M.',
         position: {
+          arrondissement: {
+            id: 'TJ  CLERMONT FERRAND',
+            label: 'Tribunal judiciaire de Clermont-Ferrand',
+          },
           jurisdiction: {
-            id: 'TJ  LYON',
-            label: 'Tribunal judiciaire de Lyon',
+            id: 'TPR  RIOM',
+            label: 'Tribunal de proximité de Riom',
           },
           function: {
             id: 'JCP',
@@ -187,7 +198,118 @@ describe('magistrat helpers', () => {
       });
 
       expect(got).toBe(
-        `juge des contentieux de la protection affectée au tribunal judiciaire de Lyon`,
+        `juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand, affecté au tribunal de proximité de Riom`,
+      );
+    });
+
+    it('should build a female JCP position', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: {
+            id: 'TJ  CLERMONT FERRAND',
+            label: 'Tribunal judiciaire de Clermont-Ferrand',
+          },
+          jurisdiction: {
+            id: 'TPR  RIOM',
+            label: 'Tribunal de proximité de Riom',
+          },
+          function: {
+            id: 'JCP',
+            addition: 'affecté au {codejur}',
+            label: 'Juge des contentieux de la protection',
+            labelOneMale: 'juge des contentieux de la protection',
+            labelOneFemale: 'juge des contentieux de la protection',
+          },
+        },
+      });
+
+      expect(got).toBe(
+        `juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand, affectée au tribunal de proximité de Riom`,
+      );
+    });
+
+    it('should build a female VPCP position', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: {
+            id: 'TJ  CLERMONT FERRAND',
+            label: 'Tribunal judiciaire de Clermont-Ferrand',
+          },
+          jurisdiction: {
+            id: 'TPR  RIOM',
+            label: 'Tribunal de proximité de Riom',
+          },
+          function: {
+            id: 'VPCP',
+            addition: 'affecté au {codejur}',
+            label:
+              'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneMale:
+              'vice-président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale:
+              'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+          },
+        },
+      });
+
+      expect(got).toBe(
+        `vice-présidente chargée des fonctions de juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand, affectée au tribunal de proximité de Riom`,
+      );
+    });
+
+    it('should build a male VPCP position', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: {
+            id: 'TJ  CLERMONT FERRAND',
+            label: 'Tribunal judiciaire de Clermont-Ferrand',
+          },
+          jurisdiction: {
+            id: 'TPR  RIOM',
+            label: 'Tribunal de proximité de Riom',
+          },
+          function: {
+            id: 'VPCP',
+            addition: 'affecté au {codejur}',
+            label:
+              'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneMale:
+              'vice-président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale:
+              'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+          },
+        },
+      });
+
+      expect(got).toBe(
+        `vice-président chargé des fonctions de juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand, affecté au tribunal de proximité de Riom`,
+      );
+    });
+
+    it('should build a JCP position without arrondissement', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          jurisdiction: {
+            id: 'TPR  CLERMONT FERRAND',
+            label: 'Tribunal judiciaire de Clermont-Ferrand',
+          },
+          function: {
+            id: 'JCP',
+            addition: 'affecté au {codejur}',
+            label: 'Juge des contentieux de la protection',
+            labelOneMale: 'juge des contentieux de la protection',
+            labelOneFemale: 'juge des contentieux de la protection',
+          },
+        },
+      });
+
+      expect(got).toBe(
+        `juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand`,
       );
     });
   });

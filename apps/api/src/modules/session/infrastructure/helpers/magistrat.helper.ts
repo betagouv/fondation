@@ -15,6 +15,7 @@ export function buildPosition(options: {
   civility: CivilityEnum;
   position: {
     jurisdiction: { id: string; label: string };
+    arrondissement: { id: string; label: string } | null;
     function: {
       id: string;
       label: string;
@@ -49,6 +50,21 @@ export function buildPosition(options: {
     label = position.function.labelOneMale!;
   } else {
     label = position.function.labelOneFemale!;
+  }
+
+  if (
+    position.function.id === 'JCP' ||
+    position.function.id === 'VPCP' ||
+    position.function.id === '1VPCP'
+  ) {
+    if (position.arrondissement) {
+      const arrondissement =
+        position.arrondissement!.label[0]!.toLowerCase() +
+        position.arrondissement!.label.slice(1);
+      label += ` au ${arrondissement},`;
+    } else {
+      return label + ` au ${codejur}`;
+    }
   }
 
   if (position.jurisdiction.id === 'AC  PARIS') {
