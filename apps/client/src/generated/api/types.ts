@@ -33,6 +33,9 @@ export type DetailedUserResponseDto = {
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
+    displayTitle: string | null;
+    duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
 };
 
 export type AttachReportFileDto = {
@@ -1080,18 +1083,36 @@ export type FoundAgendaNominationFiles = {
 
 export type FoundSessionDocsDto = {
     items: Array<{
+        type: 'agenda';
+        id: string;
+        name: string;
+        isLinkedToOfficialReport: boolean;
+    } | {
+        type: 'officialReport';
         id: string;
         name: string;
     }>;
 };
 
-export type DetailedSessionDoc = {
+export type DetailedSessionAgenda = {
+    id: string;
+    url: string;
+};
+
+export type DetailedSessionOfficialReportDto = {
+    id: string;
+    url: string;
+};
+
+export type AugmentedZodDto = {
     id: string;
     url: string;
 };
 
 export type DocGenerationSessionReadinessDto = {
     isReady: boolean;
+    canCreateAgenda: boolean;
+    canCreateOfficialReport: boolean;
 };
 
 export type DetailedAgendaMetadata = {
@@ -1107,6 +1128,89 @@ export type DetailedAgendaMetadata = {
         month: number;
         day: number;
     };
+};
+
+export type CreateOrUpdateOfficialReportDto = {
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    sessionMeetingTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    };
+    hasRenunciation: boolean;
+    justiceDepartmentContactId: string;
+    chairmanId: string;
+    secretaryId: string;
+    agendas: Array<string>;
+    members: Array<string>;
+};
+
+export type CreatedOfficialReportDto = {
+    id: string;
+};
+
+export type FoundJusticeContactsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+    }>;
+};
+
+export type CreateOfficialReportJusticeContactDto = {
+    name: string;
+};
+
+export type CreatedOfficialReportJusticeContactDto = {
+    id: string;
+    name: string;
+};
+
+export type FoundAgendasForNewOfficialReportDto = {
+    items: Array<{
+        id: string;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        formation: 'PARQUET' | 'SIEGE';
+    }>;
+};
+
+export type FoundMembersForNewOfficialReportDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        gender: 'MALE' | 'FEMALE';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        displayTitle: string | null;
+        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
+    }>;
+};
+
+export type DetailedOfficialReportMetadataDto = {
+    id: string;
+    hasRenunciation: boolean;
+    members: Array<string>;
+    agendas: Array<string>;
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    sessionMeetingStartingTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    };
+    chairmanId: string | null;
+    secretaryId: string | null;
+    justiceDepartmentContactId: string | null;
 };
 
 export type GetFileByFileUrlData = {
@@ -2488,6 +2592,38 @@ export type FindSessionDocsResponses = {
 
 export type FindSessionDocsResponse = FindSessionDocsResponses[keyof FindSessionDocsResponses];
 
+export type DetailsSessionAgendaData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/agendas/{agendaId}';
+};
+
+export type DetailsSessionAgendaResponses = {
+    200: DetailedSessionAgenda;
+};
+
+export type DetailsSessionAgendaResponse = DetailsSessionAgendaResponses[keyof DetailsSessionAgendaResponses];
+
+export type DetailsSessionOfficialReportData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/official-reports/{officialReportId}';
+};
+
+export type DetailsSessionOfficialReportResponses = {
+    200: DetailedSessionOfficialReportDto;
+};
+
+export type DetailsSessionOfficialReportResponse = DetailsSessionOfficialReportResponses[keyof DetailsSessionOfficialReportResponses];
+
 export type DetailsSessionDocData = {
     body?: never;
     path: {
@@ -2499,7 +2635,7 @@ export type DetailsSessionDocData = {
 };
 
 export type DetailsSessionDocResponses = {
-    200: DetailedSessionDoc;
+    200: AugmentedZodDto;
 };
 
 export type DetailsSessionDocResponse = DetailsSessionDocResponses[keyof DetailsSessionDocResponses];
@@ -2550,3 +2686,170 @@ export type GenerateAgendaPdfResponses = {
 };
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
+
+export type CreateOfficialReportData = {
+    body: CreateOrUpdateOfficialReportDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/official-reports';
+};
+
+export type CreateOfficialReportResponses = {
+    201: CreatedOfficialReportDto;
+};
+
+export type CreateOfficialReportResponse = CreateOfficialReportResponses[keyof CreateOfficialReportResponses];
+
+export type SearchOfficialReportJusticeContactData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+    };
+    url: '/api/docs/v1/official-reports/justice-contacts';
+};
+
+export type SearchOfficialReportJusticeContactResponses = {
+    200: FoundJusticeContactsDto;
+};
+
+export type SearchOfficialReportJusticeContactResponse = SearchOfficialReportJusticeContactResponses[keyof SearchOfficialReportJusticeContactResponses];
+
+export type CreateOfficialReportJusticeContactData = {
+    body: CreateOfficialReportJusticeContactDto;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/official-reports/justice-contacts';
+};
+
+export type CreateOfficialReportJusticeContactResponses = {
+    201: CreatedOfficialReportJusticeContactDto;
+};
+
+export type CreateOfficialReportJusticeContactResponse = CreateOfficialReportJusticeContactResponses[keyof CreateOfficialReportJusticeContactResponses];
+
+export type ListAgendasForNewOfficialReportData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        ignoreOfficialReportId?: string;
+    };
+    url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/agendas';
+};
+
+export type ListAgendasForNewOfficialReportResponses = {
+    200: FoundAgendasForNewOfficialReportDto;
+};
+
+export type ListAgendasForNewOfficialReportResponse = ListAgendasForNewOfficialReportResponses[keyof ListAgendasForNewOfficialReportResponses];
+
+export type ListMembersForNewOfficialReportData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/members';
+};
+
+export type ListMembersForNewOfficialReportResponses = {
+    200: FoundMembersForNewOfficialReportDto;
+};
+
+export type ListMembersForNewOfficialReportResponse = ListMembersForNewOfficialReportResponses[keyof ListMembersForNewOfficialReportResponses];
+
+export type ListSecretariesForNewOfficialReportData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/secretaries-general';
+};
+
+export type ListSecretariesForNewOfficialReportResponses = {
+    200: FoundMembersForNewOfficialReportDto;
+};
+
+export type ListSecretariesForNewOfficialReportResponse = ListSecretariesForNewOfficialReportResponses[keyof ListSecretariesForNewOfficialReportResponses];
+
+export type GenerateOfficialReportHtmlData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/official-reports/{officialReportId}.html';
+};
+
+export type GenerateOfficialReportHtmlResponses = {
+    200: unknown;
+};
+
+export type GenerateOfficialReportPdfData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/official-reports/{officialReportId}.pdf';
+};
+
+export type GenerateOfficialReportPdfResponses = {
+    200: Blob | File;
+};
+
+export type GenerateOfficialReportPdfResponse = GenerateOfficialReportPdfResponses[keyof GenerateOfficialReportPdfResponses];
+
+export type DeleteOfficialReportData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}';
+};
+
+export type DeleteOfficialReportResponses = {
+    204: void;
+};
+
+export type DeleteOfficialReportResponse = DeleteOfficialReportResponses[keyof DeleteOfficialReportResponses];
+
+export type DetailsOfficialReportData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}';
+};
+
+export type DetailsOfficialReportResponses = {
+    200: DetailedOfficialReportMetadataDto;
+};
+
+export type DetailsOfficialReportResponse = DetailsOfficialReportResponses[keyof DetailsOfficialReportResponses];
+
+export type UpdateOfficialReportData = {
+    body: CreateOrUpdateOfficialReportDto;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}';
+};
+
+export type UpdateOfficialReportResponses = {
+    204: void;
+};
+
+export type UpdateOfficialReportResponse = UpdateOfficialReportResponses[keyof UpdateOfficialReportResponses];

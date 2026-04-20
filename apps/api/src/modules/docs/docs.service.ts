@@ -1,11 +1,22 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 
-import { DateOnlyJson, Magistrat } from 'shared-models';
+import { DateOnlyJson, Gender, Magistrat, Role } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
+import {
+  UserDutyEnum,
+  UserTitleEnum,
+} from '../administration/domain/user-enum';
+import { PrismaService } from '../framework/database';
 import { MembersService } from '../members';
+import { SessionService } from '../session/infrastructure/sessions.service';
+import { SimpleAuthService } from '../simple-auth';
 import { Agenda } from './domain/agenda';
-import { CreatedAgendaDto } from './infrastructure/docs.dto';
+import { OfficialReport } from './domain/official-report';
+import {
+  CreatedAgendaDto,
+  CreatedOfficialReportDto,
+} from './infrastructure/docs.dto';
 import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
@@ -15,15 +26,37 @@ import {
   DetailsAgendaMetadataQuery,
 } from './infrastructure/queries/details-agenda-metadata.query';
 import {
-  DetailedSessionDoc,
-  DetailsSessionDocQuery,
-} from './infrastructure/queries/details-session-doc.query';
+  DetailedOfficialReportMetadataDto,
+  DetailsOfficialReportQuery,
+} from './infrastructure/queries/details-official-report.query';
+import {
+  DetailedSessionAgenda,
+  DetailsSessionAgendaQuery,
+} from './infrastructure/queries/details-session-agenda.query';
+import {
+  DetailedSessionOfficialReportDto,
+  DetailsSessionOfficialReportQuery,
+} from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
+import {
+  FindAgendasForNewOfficialReportQuery,
+  FoundAgendasForNewOfficialReportDto,
+} from './infrastructure/queries/find-agendas-for-new-official-report.query';
 import {
   FindChairmenQuery,
   FoundChairmenDto,
 } from './infrastructure/queries/find-chairmen.query';
+import {
+  FindJusticeContactsQuery,
+  FoundJusticeContactsDto,
+} from './infrastructure/queries/find-justice-contacts.query';
+import {
+  FindMembersForNewOfficialReportQuery,
+  FoundMembersForNewOfficialReportDto,
+} from './infrastructure/queries/find-members-for-new-official-report.query';
+import { FindOfficialReportDocumentPdfQuery } from './infrastructure/queries/find-official-report-document-pdf.query';
+import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-official-report-document.query';
 import {
   FindSessionDocsQuery,
   FoundSessionDocsDto,
@@ -32,7 +65,12 @@ import {
   DocGenerationSessionReadinessDto,
   IsSessionReadyForDocGenerationQuery,
 } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
+import {
+  ListedSecretariesGeneralForNewOfficialReportDto,
+  ListSecretariesGeneralForNewOfficialReportQuery,
+} from './infrastructure/queries/list-secretaries-general-for-new-official-report.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
+import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
 
 @Injectable()
 export class DocsService {
@@ -40,13 +78,25 @@ export class DocsService {
     private readonly findChairmenQuery: FindChairmenQuery,
     private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
+    private readonly officialReportRepository: OfficialReportRepository,
     private readonly members: MembersService,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
-    private readonly detailsSessionDocQuery: DetailsSessionDocQuery,
+    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
+    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
+    private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
+    private readonly findAgendasForNewOfficialReportQuery: FindAgendasForNewOfficialReportQuery,
+    private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
+    private readonly listSecretariesGeneralForNewOfficialReportQuery: ListSecretariesGeneralForNewOfficialReportQuery,
+    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
+    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
+    private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
+    private readonly auth: SimpleAuthService,
+    private readonly sessions: SessionService,
+    private readonly prisma: PrismaService,
   ) {}
 
   searchChairmen(query: {
@@ -152,11 +202,17 @@ export class DocsService {
     return this.findSessionDocsQuery.handle(query);
   }
 
-  detailsSessionDoc(query: {
+  detailsSessionAgenda(query: {
     sessionId: string;
     agendaId: string;
-  }): Promise<DetailedSessionDoc> {
-    return this.detailsSessionDocQuery.handle(query);
+  }): Promise<DetailedSessionAgenda> {
+    return this.detailsSessionAgendaQuery.handle(query);
+  }
+
+  detailsSessionOfficialReport(query: {
+    officialReportId: string;
+  }): Promise<DetailedSessionOfficialReportDto> {
+    return this.detailsSessionOfficialReportQuery.handle(query);
   }
 
   isSessionReadyForDocGeneration(query: {
@@ -169,5 +225,190 @@ export class DocsService {
     agendaId: string;
   }): Promise<DetailedAgendaMetadata> {
     return this.detailsAgendaMetadataQuery.handle(query);
+  }
+
+  searchJusticeContacts(query: {
+    search: string;
+  }): Promise<FoundJusticeContactsDto> {
+    return this.findJusticeContactsQuery.handle(query);
+  }
+
+  async createJusticeContact(command: {
+    name: string;
+    authorId: string;
+  }): Promise<{ id: string; name: string }> {
+    const result = await this.prisma.justiceDepartmentContact.create({
+      data: { name: command.name, authorId: command.authorId },
+    });
+
+    return { id: String(result.id), name: result.name };
+  }
+
+  listAgendasForNewOfficialReport(query: {
+    sessionId: string;
+    ignoreOfficialReportId?: string;
+  }): Promise<FoundAgendasForNewOfficialReportDto> {
+    return this.findAgendasForNewOfficialReportQuery.handle(query);
+  }
+
+  listMembersForNewOfficialReport(query: {
+    sessionId: string;
+  }): Promise<FoundMembersForNewOfficialReportDto> {
+    return this.findMembersForNewOfficialReportQuery.handle(query);
+  }
+
+  listSecretariesGeneralForNewOfficialReport(): Promise<ListedSecretariesGeneralForNewOfficialReportDto> {
+    return this.listSecretariesGeneralForNewOfficialReportQuery.handle();
+  }
+
+  async createOfficialReport(command: {
+    authorId: string;
+    sessionMeetingDate: DateOnlyJson;
+    sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    hasRenunciation: boolean;
+    justiceDepartmentContactId: string;
+    chairmanId: string;
+    secretaryId: string;
+    agendaIds: readonly string[];
+    memberIds: readonly string[];
+    sessionId: string;
+  }): Promise<CreatedOfficialReportDto> {
+    const session = await this.sessions.details({
+      sessionId: command.sessionId,
+    });
+
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    const [chairman, members] = await Promise.all([
+      this.members.internalGetMember({ id: command.chairmanId }),
+      this.members.internalFindMembersByIds({ ids: command.memberIds }),
+    ]);
+
+    const toOfficialReportUser = (m: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      gender: Gender;
+      title: UserTitleEnum | null;
+      displayTitle: string | null;
+      duty: UserDutyEnum | null;
+      role: Role;
+    }) => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      gender: m.gender,
+      title: m.title,
+      displayTitle: m.displayTitle,
+      duty: m.duty ?? null,
+      role: m.role,
+    });
+
+    const report = OfficialReport.create({
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionMeetingStartingTime: command.sessionMeetingTime,
+      hasRenunciation: command.hasRenunciation,
+      justiceDepartmentContactId: command.justiceDepartmentContactId,
+      chairman: toOfficialReportUser(chairman),
+      secretary: toOfficialReportUser({ ...secretary, id: secretary.userId }),
+      agendaIds: command.agendaIds,
+      members: members.map(toOfficialReportUser),
+      authorId: command.authorId,
+      formation: session.formation,
+    });
+
+    await this.officialReportRepository.persist(report);
+    return { id: report.id };
+  }
+
+  // TODO: refactor
+  async updateOfficialReport(command: {
+    id: string;
+    authorId: string;
+    sessionMeetingDate: DateOnlyJson;
+    sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    hasRenunciation: boolean;
+    justiceDepartmentContactId: string;
+    chairmanId: string;
+    secretaryId: string;
+    agendaIds: readonly string[];
+    memberIds: readonly string[];
+  }): Promise<void> {
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    const [chairman, members] = await Promise.all([
+      this.members.internalGetMember({ id: command.chairmanId }),
+      this.members.internalFindMembersByIds({ ids: command.memberIds }),
+    ]);
+
+    const toOfficialReportUser = (m: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      gender: Gender;
+      title: UserTitleEnum | null;
+      displayTitle: string | null;
+      duty: UserDutyEnum | null;
+      role: Role;
+    }) => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      gender: m.gender,
+      title: m.title,
+      displayTitle: m.displayTitle,
+      duty: m.duty ?? null,
+      role: m.role,
+    });
+
+    const report = await this.officialReportRepository.find({
+      id: command.id,
+    });
+
+    report.update({
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionMeetingStartingTime: command.sessionMeetingTime,
+      hasRenunciation: command.hasRenunciation,
+      justiceDepartmentContactId: command.justiceDepartmentContactId,
+      chairman: toOfficialReportUser(chairman),
+      secretary: toOfficialReportUser({ ...secretary, id: secretary.userId }),
+      agendaIds: command.agendaIds,
+      members: members.map(toOfficialReportUser),
+      authorId: command.authorId,
+    });
+
+    await this.officialReportRepository.persist(report);
+  }
+
+  getOrCreateOfficialReportDocument(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<string> {
+    return this.findOfficialReportDocumentQuery.handle(query);
+  }
+
+  getOrCreateOfficialReportDocumentPdf(query: {
+    id: string;
+    forceNew?: boolean;
+  }): Promise<StreamableFile> {
+    return this.findOfficialReportDocumentPdfQuery.handle(query);
+  }
+
+  detailsOfficialReportMetadata(query: {
+    officialReportId: string;
+  }): Promise<DetailedOfficialReportMetadataDto> {
+    return this.detailsOfficialReportMetadataQuery.handle(query);
+  }
+
+  async deleteOfficialReport(command: { id: string }): Promise<void> {
+    const officialReport = await this.officialReportRepository.find(command);
+    officialReport.delete();
+    this.officialReportRepository.persist(officialReport);
   }
 }

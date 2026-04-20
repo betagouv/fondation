@@ -11,7 +11,9 @@ import { AdminUserDetailPage } from '@/pages/admin/users/AdminUserDetailPage';
 import { AdminUserListPage } from '@/pages/admin/users/AdminUserListPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UserManualPage } from '@/pages/help/UserManualPage';
-import { PreviewAgendaPage } from '@/pages/secretariat-general/agenda/PreviewAgendaPage';
+import { AgendaPreviewPage } from '@/pages/secretariat-general/docs/agenda/AgendaPreviewPage';
+import { CreateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
+import { OfficialReportPreviewPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage';
 import { SummaryPage } from '@/pages/summary/SummaryPage';
 import { HomePage } from '../HomePage';
 import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
@@ -23,7 +25,7 @@ import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleT
 import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
 import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
 import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
-import { CreateOrUpdateAgendaPage } from '../pages/secretariat-general/agenda/AgendaPage';
+import { CreateOrUpdateAgendaPage } from '../pages/secretariat-general/docs/agenda/AgendaPage';
 import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
 import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
 import { SessionsPage } from '../pages/transparence/SessionsPage';
@@ -126,16 +128,28 @@ const router = sentryCreateBrowserRouter([
             element: <DetailsMemberPage />
           },
           {
-            path: ROUTE_PATHS.SG.NEW_AGENDA,
+            path: ROUTE_PATHS.SG.AGENDA_NEW,
             element: <CreateOrUpdateAgendaPage />
           },
           {
-            path: ROUTE_PATHS.SG.UPDATE_AGENDA,
+            path: ROUTE_PATHS.SG.AGENDA_UPDATE,
             element: <CreateOrUpdateAgendaPage />
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
-            element: <PreviewAgendaPage />
+            element: <AgendaPreviewPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
+            element: <CreateOfficialReportPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
+            element: <CreateOfficialReportPage />
+          },
+          {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
+            element: <OfficialReportPreviewPage />
           }
         ]
       },

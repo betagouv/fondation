@@ -5,18 +5,15 @@ import { Files } from 'src/modules/framework/files';
 import z from 'zod';
 
 @Injectable()
-export class DetailsSessionDocQuery {
+export class DetailsSessionOfficialReportQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: Files,
   ) {}
 
-  async handle(query: { sessionId: string; agendaId: string }) {
-    const file = await this.prisma.agenda.findUnique({
-      where: {
-        id: query.agendaId,
-        sessionId: query.sessionId,
-      },
+  async handle(query: { officialReportId: string }) {
+    const file = await this.prisma.officialReport.findUnique({
+      where: { id: query.officialReportId },
       select: { id: true, pdf: { select: { id: true } } },
     });
 
@@ -32,7 +29,7 @@ export class DetailsSessionDocQuery {
   }
 }
 
-export class DetailedSessionDoc extends createZodDto(
+export class DetailedSessionOfficialReportDto extends createZodDto(
   z.object({
     id: z.string(),
     url: z.url(),

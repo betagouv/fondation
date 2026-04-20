@@ -13,7 +13,6 @@ export class DetailNominationSessionQuery {
 
   async handle(query: {
     sessionId: string;
-    userId: string;
   }): Promise<DetailedNominationSessionDto> {
     const session = await this.prisma.session.findUnique({
       where: { id: query.sessionId },

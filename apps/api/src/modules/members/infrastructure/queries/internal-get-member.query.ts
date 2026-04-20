@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { Gender, Role } from 'shared-models';
-import { PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import {
+  PrismaUserDutyEnum,
+  PrismaUserTitleEnum,
+} from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import z from 'zod';
-import { isMember } from '../member.utils';
+import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
 export class InternalGetMemberQuery {
@@ -14,7 +17,7 @@ export class InternalGetMemberQuery {
 
   async handle(query: { id: string }): Promise<InternalMemberDto> {
     const member = await this.prisma.user.findUnique({
-      where: { id: query.id },
+      where: { id: query.id, role: { in: MEMBER_ROLES } },
       select: {
         id: true,
         firstName: true,
@@ -23,6 +26,7 @@ export class InternalGetMemberQuery {
         role: true,
         displayTitle: true,
         title: true,
+        duty: true,
       },
     });
 
@@ -32,6 +36,7 @@ export class InternalGetMemberQuery {
       ...member,
       role: prismaRoleEnumToRoleEnum(member.role),
       gender: prismaGenderEnumToGenderEnum(member.gender),
+      duty: member.duty ?? null,
     };
   }
 }
@@ -45,5 +50,6 @@ export class InternalMemberDto extends createZodDto(
     role: z.enum(Role),
     displayTitle: z.string().nullable(),
     title: z.enum(PrismaUserTitleEnum).nullable(),
+    duty: z.enum(PrismaUserDutyEnum).nullable(),
   }),
 ) {}

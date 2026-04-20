@@ -4,6 +4,7 @@ import * as $api from '@api/sdk';
 
 import type { FormationEnum } from '@/types/enums.types';
 
+import type { FoundJusticeContactsDto } from '@api/types';
 import type { DateOnlyJson } from 'shared-models';
 
 export const agendaKeys = {
@@ -159,11 +160,21 @@ export const useFindSessionDocsQuery = (query: { sessionId: string }) =>
         .then(({ data = null }) => data)
   });
 
-export const useDetailsSessionDocMutation = () =>
+export const useDetailsSessionAgendaMutation = () =>
   useMutation({
     mutationFn: (command: { sessionId: string; agendaId: string }) =>
       $api.docs
-        .detailsSessionDoc({ path: { sessionId: command.sessionId, agendaId: command.agendaId } })
+        .detailsSessionAgenda({ path: { sessionId: command.sessionId, agendaId: command.agendaId } })
+        .then(({ data }) => data!)
+  });
+
+export const useDetailsSessionOfficialReportsMutation = () =>
+  useMutation({
+    mutationFn: (command: { sessionId: string; officialReportId: string }) =>
+      $api.docs
+        .detailsSessionOfficialReport({
+          path: { sessionId: command.sessionId, officialReportId: command.officialReportId }
+        })
         .then(({ data }) => data!)
   });
 
@@ -185,6 +196,226 @@ export function useDeleteAgenda(sessionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId) });
+    }
+  });
+}
+
+export const officialReportKeys = {
+  listAgendas: (sessionId: string) => ['officialReport', 'listAgendas', sessionId] as const,
+  listMembers: (sessionId: string) => ['officialReport', 'listMembers', sessionId] as const,
+  listSecretaries: () => ['officialReport', 'listSecretaries'] as const,
+  findJusticeContacts: (query: { search?: string } = {}) => [
+    'officialReport',
+    'findJusticeContact',
+    query.search ? { search: query.search } : undefined
+  ],
+  officialReportHtml: (id: string) => ['officialReport', 'officialReportHtml', id] as const,
+  details: (officialReportId: string | undefined | null) =>
+    ['officialReport', 'details', officialReportId ?? undefined] as const
+};
+
+export const useListAgendasForNewOfficialReportQuery = (query: {
+  sessionId: string;
+  ignoreOfficialReportId?: string;
+}) =>
+  useQuery({
+    queryKey: officialReportKeys.listAgendas(query.sessionId),
+    queryFn: () =>
+      $api.docs
+        .listAgendasForNewOfficialReport({
+          path: { sessionId: query.sessionId },
+          query: { ignoreOfficialReportId: query.ignoreOfficialReportId }
+        })
+        .then(({ data = null }) => data)
+  });
+
+export const useListMembersForNewOfficialReportQuery = (query: { sessionId: string }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.listMembers(query.sessionId),
+    queryFn: () =>
+      $api.docs
+        .listMembersForNewOfficialReport({ path: { sessionId: query.sessionId } })
+        .then(({ data = null }) => data)
+  });
+
+export const useListSecretariesForNewOfficialReportQuery = (query: { sessionId: string }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.listSecretaries(),
+    queryFn: () =>
+      $api.docs
+        .listSecretariesForNewOfficialReport({ path: { sessionId: query.sessionId } })
+        .then(({ data = null }) => data)
+  });
+
+export const useFindJusticeContacts = (query: { search: string | undefined }) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryKey: officialReportKeys.findJusticeContacts(query),
+    queryFn: () =>
+      $api.docs
+        .searchOfficialReportJusticeContact({
+          query: { search: query.search }
+        })
+        .then(({ data = null }) => data)
+  });
+
+export function useCreateJusticeContactMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { name: string }) =>
+      $api.docs
+        .createOfficialReportJusticeContact({ body: { name: command.name } })
+        .then(({ data = null }) => data),
+
+    onSuccess(data) {
+      if (!data) return;
+
+      return queryClient.setQueryData(
+        officialReportKeys.findJusticeContacts(),
+        (justiceContacts: FoundJusticeContactsDto) => {
+          if (!justiceContacts) return undefined;
+
+          const { items } = justiceContacts;
+          if (!items.some((item) => item.id === data.id)) {
+            return { items: items.concat(data) };
+          }
+
+          return { items: items.map((item) => (item.id === data.id ? data : item)) };
+        }
+      );
+    }
+  });
+}
+
+export function useCreateOfficialReportMutation() {
+  return useMutation({
+    mutationFn: (command: {
+      sessionId: string;
+      sessionMeetingDate: { year: number; month: number; day: number };
+      sessionMeetingTime: { hours: number; minutes?: number };
+      hasRenunciation: boolean;
+      justiceDepartmentContactId: string;
+      chairmanId: string;
+      secretaryId: string;
+      agendas: string[];
+      members: string[];
+    }) =>
+      $api.docs
+        .createOfficialReport({
+          path: { sessionId: command.sessionId },
+          body: {
+            sessionMeetingDate: command.sessionMeetingDate,
+            sessionMeetingTime: command.sessionMeetingTime,
+            hasRenunciation: command.hasRenunciation,
+            justiceDepartmentContactId: command.justiceDepartmentContactId,
+            chairmanId: command.chairmanId,
+            secretaryId: command.secretaryId,
+            agendas: command.agendas as [string, ...string[]],
+            members: command.members as [string, ...string[]]
+          }
+        })
+        .then(({ data }) => data!)
+  });
+}
+
+export const useOfficialReportHtmlQuery = (query: { id: string | undefined; force?: boolean }) =>
+  useQuery({
+    enabled: !!query.id,
+    queryKey: officialReportKeys.officialReportHtml(query.id ?? ''),
+    queryFn: () =>
+      $api.docs
+        .generateOfficialReportHtml({
+          path: { officialReportId: query.id! },
+          query: { force: query.force },
+          parseAs: 'text'
+        })
+        .then(({ data }) => (data ?? null) as string | null)
+  });
+
+export function useGenerateOfficialReportPdfMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { officialReportId: string; sessionId: string; force?: boolean }) =>
+      $api.docs
+        .generateOfficialReportPdf({
+          path: { officialReportId: command.officialReportId },
+          query: { force: command.force },
+          parseAs: 'stream'
+        })
+        .then(({ response }) => response.body?.cancel()),
+
+    onSuccess: (_, { sessionId }) =>
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.findSessionDocs(sessionId)
+      })
+  });
+}
+
+export function useDeleteOfficialReportMutation(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { officialReportId: string }) =>
+      $api.docs.deleteOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({ queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId) });
+    }
+  });
+}
+
+export const useDetailsOfficialReportQuery = (query: { officialReportId: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.officialReportId,
+    queryKey: officialReportKeys.details(query.officialReportId),
+    queryFn: async () => {
+      if (!query.officialReportId) return;
+
+      const { data = null } = await $api.docs.detailsOfficialReport({
+        path: { officialReportId: query.officialReportId }
+      });
+      return data;
+    }
+  });
+
+export function useUpdateOfficialReportMutation(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: {
+      officialReportId: string;
+      sessionMeetingDate: { year: number; month: number; day: number };
+      sessionMeetingTime: { hours: number; minutes?: number };
+      hasRenunciation: boolean;
+      justiceDepartmentContactId: string;
+      chairmanId: string;
+      secretaryId: string;
+      agendas: string[];
+      members: string[];
+    }) =>
+      $api.docs
+        .updateOfficialReport({
+          path: { officialReportId: command.officialReportId },
+          body: {
+            sessionMeetingDate: command.sessionMeetingDate,
+            sessionMeetingTime: command.sessionMeetingTime,
+            hasRenunciation: command.hasRenunciation,
+            justiceDepartmentContactId: command.justiceDepartmentContactId,
+            chairmanId: command.chairmanId,
+            secretaryId: command.secretaryId,
+            agendas: command.agendas as [string, ...string[]],
+            members: command.members as [string, ...string[]]
+          }
+        })
+        .then(({ data }) => data!),
+
+    onSuccess: (_, { officialReportId }) => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
     }
   });
 }

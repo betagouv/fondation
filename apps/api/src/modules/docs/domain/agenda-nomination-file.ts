@@ -1,5 +1,5 @@
 import { Magistrat } from 'shared-models';
-import { AgendaNominationFileOutcomeEnum } from './agenda-nomination-file-outcome';
+import { DocNominationFileOutcomeEnum } from './doc-nomination-file-outcome';
 
 export type AgendaNominationFile = {
   id: string;
@@ -9,6 +9,6 @@ export type AgendaNominationFile = {
   targetedGrade: Magistrat.Grade;
   currentPosition: string | null;
   targetedPosition: string | null;
-  outcome: { value: AgendaNominationFileOutcomeEnum; comment: string | null };
+  outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
   reporters: readonly string[];
 };

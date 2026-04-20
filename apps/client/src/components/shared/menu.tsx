@@ -16,13 +16,14 @@ export const MenuTrigger = React.memo((props: ButtonProps) => (
 
 export const MenuContent = React.memo((props: React.PropsWithChildren) => (
   <BaseMenu.Portal>
-    <BaseMenu.Positioner className="outline-none" sideOffset={8}>
+    <BaseMenu.Positioner className="outline-none" sideOffset={8} align="end">
       <BaseMenu.Popup
         className={clsx(
           'flex origin-[var(--transform-origin)] flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg',
           'transition-[transform,scale,opacity]',
           'data-[ending-style]:scale-90 data-[starting-style]:scale-90 data-[ending-style]:opacity-0',
-          'data-[starting-style]:opacity-0'
+          'data-[starting-style]:opacity-0',
+          'min-w-[var(--anchor-width)]'
         )}
       >
         {props.children}

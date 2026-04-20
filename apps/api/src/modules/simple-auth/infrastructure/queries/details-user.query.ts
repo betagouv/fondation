@@ -4,6 +4,10 @@ import z from 'zod';
 
 import { Gender, Role } from 'shared-models';
 
+import {
+  USER_DUTIES,
+  USER_TITLES,
+} from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
@@ -25,6 +29,9 @@ export class DetailsUserQuery {
         lastName: true,
         role: true,
         gender: true,
+        duty: true,
+        title: true,
+        displayTitle: true,
       },
     });
 
@@ -49,5 +56,8 @@ export class DetailedUserResponseDto extends createZodDto(
     role: z.enum(Role),
     gender: z.enum(Gender),
     isImpersonated: z.boolean(),
+    displayTitle: z.string().nullable(),
+    duty: z.enum(USER_DUTIES).nullable(),
+    title: z.enum(USER_TITLES).nullable(),
   }),
 ) {}

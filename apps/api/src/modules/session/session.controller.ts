@@ -463,9 +463,8 @@ export class SessionController {
   @ZodResponse({ type: DetailedNominationSessionDto, status: HttpStatus.OK })
   async detailsNominationSession(
     @Param('sessionId') sessionId: string,
-    @AuthedUser() user: { id: string },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ sessionId, userId: user.id });
+    return this.sessions.details({ sessionId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
