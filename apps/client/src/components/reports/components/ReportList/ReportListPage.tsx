@@ -11,7 +11,9 @@ import { useDetailedMemberGdsSession } from '@queries/members.queries';
 
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
+import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import {
+  PrioriteEnum,
   PrioriteEnumLabels,
   type FormationEnum,
   type GradeEnum,
@@ -33,7 +35,7 @@ function useReportListColumns(sessionId: string) {
     const h = createColumnHelper<DetailedMemberSessionDto['items'][number]>();
     return [
       h.accessor('folderNumber', {
-        id: 'number',
+        id: 'fileNumber',
         enableSorting: true,
         header: 'N°',
         cell: ({ getValue }) => getValue(),
@@ -69,10 +71,16 @@ function useReportListColumns(sessionId: string) {
       }),
 
       h.accessor('targettedPosition', {
-        enableSorting: true,
         id: 'targetedPosition',
+        enableSorting: false,
         header: 'Poste cible',
         cell: ({ getValue }) => getValue() ?? '-'
+      }),
+
+      h.accessor('targetedGrade', {
+        enableSorting: true,
+        header: 'Grade cible',
+        cell: ({ getValue }) => gradeToLabel(getValue())
       }),
 
       h.accessor('observations', {
@@ -95,9 +103,19 @@ function useReportListColumns(sessionId: string) {
       h.accessor('priorities', {
         enableSorting: false,
         header: 'Priorité(s)',
-        cell: ({ getValue }) => {
-          const priorities = getValue();
-          return priorities.length > 0 ? priorities.map((x) => PrioriteEnumLabels[x]).join(', ') : '-';
+        cell: ({ getValue }) => <PriorityBadgeList priorities={getValue()} />,
+        meta: {
+          filters: {
+            type: 'enum',
+            filterId: 'priorities',
+            label: 'Priorités',
+            values: [{ id: 'null', label: 'Aucune' }].concat(
+              ([PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER, PrioriteEnum.PROFILE] as const).map((id) => ({
+                id,
+                label: PrioriteEnumLabels[id]
+              }))
+            )
+          }
         }
       }),
 
@@ -133,14 +151,19 @@ export const ReportListPage: FC = () => {
   const columns = useReportListColumns(sessionId);
   const [tableState, setTableState] = useQueryDataTableState({
     pagination: { pageIndex: 0, pageSize: 50 },
-    sorting: [] as [] | [{ id: 'number' | 'name' | 'targetedPosition'; desc: boolean }],
-    columnFilters: [] as { id: 'status'; value: string[] }[]
+    sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade'; desc: boolean }],
+    columnFilters: [] as (
+      | { id: 'status'; value: string[] }
+      | { id: 'priorities'; value: (PrioriteEnum | 'null')[] }
+    )[]
   });
 
   const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedMemberGdsSession({
     sorting: tableState.sorting,
     pagination: tableState.pagination,
     status: tableState.columnFilters.find(({ id }) => id === 'status')?.value as NominationFile.ReportState[],
+    priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')
+      ?.value as (PrioriteEnum | null)[],
 
     sessionId: sessionId!,
     userId: user?.id

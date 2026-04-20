@@ -4,6 +4,7 @@ import z from 'zod';
 
 import {
   dateOnlyJsonSchema,
+  Magistrat,
   NominationFile,
   PrioriteEnum,
   Role,
@@ -35,6 +36,7 @@ export class InternalDetailMemberSessionQuery {
   async handle(query: {
     user: { id: string; role: Role };
     status: NominationFile.ReportState[] | undefined;
+    priorities: (PrioriteEnum | null)[] | undefined;
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
     pagination: Pagination;
@@ -81,6 +83,9 @@ export class InternalDetailMemberSessionQuery {
             query.sorting.sortBy ?? null,
             query.pagination.limit,
             (query.pagination.page - 1) * query.pagination.limit,
+            (query.priorities ?? []).length > 0
+              ? (query.priorities as string[])
+              : null,
           ),
         );
 
@@ -151,6 +156,7 @@ export class InternalDetailMemberSessionQuery {
           name: d.name ?? '',
           grade: d.grade ?? '',
           targettedPosition: d.targetedPosition ?? '',
+          targetedGrade: d.targetedGrade,
 
           observations: (observations || []).filter(isDefined).map((o) => ({
             id: o.id,
@@ -220,6 +226,8 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     grade: z.string(),
     currentPosition: z.string().nullable(),
     targettedPosition: z.string(),
+    targetedGrade: z.enum(Magistrat.Grade),
+
     /** @deprecated legacy observations from LODAM. Prefer observations */
     observers: z.array(z.string()).meta({
       deprecated: true,

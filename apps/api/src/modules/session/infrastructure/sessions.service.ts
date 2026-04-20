@@ -129,6 +129,7 @@ export class SessionService {
     typeDeSaisine: TypeDeSaisine;
     status: Reports.ReportState[] | undefined;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
+    priorities: (PrioriteEnum | null)[] | undefined;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
   }
