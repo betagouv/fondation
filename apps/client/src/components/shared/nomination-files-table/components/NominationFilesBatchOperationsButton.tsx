@@ -103,6 +103,7 @@ export function NominationFilesBatchOperationsButton() {
   return (
     <>
       <Button
+        size="small"
         priority="secondary"
         iconId="fr-icon-menu-fill"
         disabled={!hasSelection}
