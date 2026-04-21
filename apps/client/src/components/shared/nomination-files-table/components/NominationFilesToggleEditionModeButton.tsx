@@ -19,12 +19,19 @@ export function NominationFilesToggleEditionModeButton() {
 
   if (!edition?.isEditing) {
     return (
-      <Button priority="secondary" iconId="fr-icon-edit-fill" title="Éditer les dossiers" onClick={onClick} />
+      <Button
+        size="small"
+        priority="secondary"
+        iconId="fr-icon-edit-fill"
+        title="Éditer les dossiers"
+        onClick={onClick}
+      />
     );
   }
 
   return (
     <Button
+      size="small"
       priority="secondary"
       iconId="fr-icon-close-line"
       title={hasChanges ? 'Annuler les modifications' : 'Revenir au mode lecture'}

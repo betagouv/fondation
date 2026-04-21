@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, type FC } from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import clsx from 'clsx';
+import { useEffect, useRef, useState, type FC } from 'react';
 
 export interface FilterOption {
   value: string;
@@ -64,6 +64,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
   return (
     <div className={clsx('relative', className)} ref={dropdownRef}>
       <Button
+        size="small"
         priority="secondary"
         className={clsx('rounded-full transition-colors duration-200')}
         style={

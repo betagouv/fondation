@@ -9,6 +9,7 @@ import * as React from 'react';
 
 export const ComboboxRoot = BaseCombobox.Root;
 export const ComboboxList = BaseCombobox.List;
+export type ComboboxChangeEventDetails = BaseCombobox.Root.ChangeEventDetails;
 
 export function ComboboxInputGroup(props: React.PropsWithChildren) {
   return (

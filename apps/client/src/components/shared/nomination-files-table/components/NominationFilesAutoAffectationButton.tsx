@@ -107,6 +107,7 @@ export function NominationFilesAutoAffectationButton() {
   return (
     <Button
       {...confirmation.buttonProps}
+      size="small"
       priority="primary"
       onClick={onAutoAffectation}
       disabled={isAutoAffecting || !unaffectedFilesCount}

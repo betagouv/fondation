@@ -8,7 +8,8 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-  ComboboxRoot
+  ComboboxRoot,
+  type ComboboxChangeEventDetails
 } from '@/components/shared/combobox';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { unaccent } from '@/utils/string.utils';
@@ -45,8 +46,7 @@ export function JusticeContactSelector(props: {
 
   const onSelect = React.useCallback(
     (item: ViewItem | null) => {
-      if (item === null) setSearch('');
-      else setSearch(item.name);
+      setSearch(item?.name ?? '');
 
       props.onChange(item?.id ?? null);
     },
@@ -58,6 +58,15 @@ export function JusticeContactSelector(props: {
     items: viewItems,
     defaultValueId: props.value
   });
+
+  const onValueChange = React.useCallback(
+    (item: ViewItem | null, details: ComboboxChangeEventDetails) => {
+      if (details.reason === 'input-clear') return;
+
+      select(item);
+    },
+    [select]
+  );
 
   const { mutate: createJusticeContactMutation, isPending: isCreating } = useCreateJusticeContactMutation();
   const createJusticeContact = React.useCallback(async () => {
@@ -96,7 +105,7 @@ export function JusticeContactSelector(props: {
       items={viewItems}
       inputValue={search}
       value={selection}
-      onValueChange={select}
+      onValueChange={onValueChange}
       onInputValueChange={setSearch}
       itemToStringLabel={(value: ViewItem) => value.name}
     >

@@ -68,6 +68,7 @@ export function NominationFilesSaveAffectationsButton() {
 
   return (
     <Button
+      size="small"
       priority="primary"
       iconId="fr-icon-save-line"
       title="Sauvegarder les affectations"
