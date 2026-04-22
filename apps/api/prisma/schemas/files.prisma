@@ -17,6 +17,7 @@ model File {
   ingestionJobFile                    IngestionJobFile[]
   agendaPdf                           Agenda[]                             @relation("agenda_pdf_file")
   officialReportPdf                   OfficialReport[]                     @relation("official_report_pdf_file")
+  justicePresentationPdf              JusticePresentationPlan[]            @relation("justice_presentation_pdf")
 
   @@map("files")
   @@schema("files_context")

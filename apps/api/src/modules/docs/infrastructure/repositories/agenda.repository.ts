@@ -48,14 +48,15 @@ export class AgendaRepository {
     tx: Prisma.TransactionClient,
     message: AgendaCreated,
   ) {
-    const { formation } = await tx.session.findUniqueOrThrow({
+    const { formation, name } = await tx.session.findUniqueOrThrow({
       where: { id: message.sessionId },
-      select: { formation: true },
+      select: { formation: true, name: true },
     });
 
     return tx.agenda.create({
       data: {
         formation,
+        sessionName: name.trim(),
         id: message.agendaId,
         chairmanFirstName: message.chairman.firstName,
         chairmanLastName: message.chairman.lastName,

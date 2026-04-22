@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
-const { PrismaClient } = require('../dist/src/generated/prisma/client');
+const { PrismaClient } = require('../dist/generated/prisma/client');
 
 /** @type {PrismaClient} */
 global.getPrisma = async function getPrisma() {

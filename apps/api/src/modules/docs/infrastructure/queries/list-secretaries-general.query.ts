@@ -14,10 +14,10 @@ import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-
 import z from 'zod';
 
 @Injectable()
-export class ListSecretariesGeneralForNewOfficialReportQuery {
+export class ListSecretariesGeneralQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(): Promise<ListedSecretariesGeneralForNewOfficialReportDto> {
+  async handle(): Promise<ListedSecretariesGeneralDto> {
     const secretaries = await this.prisma.user.findMany({
       where: { duty: 'SECRETARY' },
       select: {
@@ -33,7 +33,7 @@ export class ListSecretariesGeneralForNewOfficialReportQuery {
 
     return {
       items: secretaries
-        .filter(ListSecretariesGeneralForNewOfficialReportQuery.isSecretary)
+        .filter(ListSecretariesGeneralQuery.isSecretary)
         .map(({ gender, ...s }) => ({
           ...s,
           gender: prismaGenderEnumToGenderEnum(gender),
@@ -59,7 +59,7 @@ export class ListSecretariesGeneralForNewOfficialReportQuery {
   }
 }
 
-export class ListedSecretariesGeneralForNewOfficialReportDto extends createZodDto(
+export class ListedSecretariesGeneralDto extends createZodDto(
   z.object({
     items: z.array(
       z.object({

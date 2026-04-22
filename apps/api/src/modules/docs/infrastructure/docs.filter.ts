@@ -8,10 +8,17 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { EmptyAgenda } from '../domain/agenda';
 import {
+  AgendaIsNotCompatibleWithPresentationPlan,
+  EmptyAgendaList,
+  UnknownPresentationPlanChairman,
+  UnknownPresentationPlanSecretary,
+} from '../domain/justice-presentation-plan';
+import {
   ChairmanIsNotMember,
   InvalidChairmanDuty,
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
+  MixedFormationAgendas,
 } from '../domain/official-report';
 
 @Injectable()
@@ -48,8 +55,38 @@ export class DocsFilter implements NestInterceptor {
           }
 
           if (err instanceof ChairmanIsNotMember) {
-            throw new BadRequestException({
+            return new BadRequestException({
               validationError: `Le président n'est pas un membre`,
+            });
+          }
+
+          if (err instanceof MixedFormationAgendas) {
+            return new BadRequestException({
+              validationError: `Les ordres du jour doivent concerner la même formation`,
+            });
+          }
+
+          if (err instanceof UnknownPresentationPlanChairman) {
+            return new BadRequestException({
+              validationError: `Le président n'est pas un member`,
+            });
+          }
+
+          if (err instanceof UnknownPresentationPlanSecretary) {
+            return new BadRequestException({
+              validationError: `Le secrétaire n'existe pas`,
+            });
+          }
+
+          if (err instanceof EmptyAgendaList) {
+            return new BadRequestException({
+              validationError: `Au moins un ordre du jour doit être sélectionné`,
+            });
+          }
+
+          if (err instanceof AgendaIsNotCompatibleWithPresentationPlan) {
+            return new BadRequestException({
+              validationError: `Tous les ordre du jour doivent concerner la même formation`,
             });
           }
 
