@@ -13,7 +13,7 @@ SELECT
   JSON_BUILD_OBJECT(
     'grade', p.grade_id,
     'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
-    'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, label, arr.libelle) END,
+    'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
     'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
       'id', f.id,
       'label', f.label,
@@ -38,7 +38,7 @@ FROM nominations_context.dossier_de_nomination ddn
         'position', JSON_BUILD_OBJECT(
           'grade', mm.grade,
           'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
-          'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, label, arr.libelle) END,
+          'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
           'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
             'id', f.id,
             'label', f.label,
