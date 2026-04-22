@@ -15,6 +15,8 @@ import {
   JusticePresentationPlan,
   JusticePresentationPlanCreated,
   JusticePresentationPlanDeleted,
+  JusticePresentationPlanPresented,
+  JusticePresentationPlanUnPresented,
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
 
@@ -55,6 +57,10 @@ export class JusticePresentationPlanRepository {
           await this.persistJusticePresentationPlanUpserted(tx, message);
         } else if (message instanceof JusticePresentationPlanDeleted) {
           await this.persistJusticePresentationPlanDeleted(tx, message);
+        } else if (message instanceof JusticePresentationPlanPresented) {
+          await this.persistJusticePresentationPlanPresented(tx, message);
+        } else if (message instanceof JusticePresentationPlanUnPresented) {
+          await this.persistJusticePresentationPlanUnPresented(tx, message);
         } else {
           assertNever(message);
         }
@@ -145,6 +151,26 @@ export class JusticePresentationPlanRepository {
 
     await tx.justicePresentationPlan.delete({
       where: { id: message.id },
+    });
+  }
+
+  private async persistJusticePresentationPlanPresented(
+    tx: Prisma.TransactionClient,
+    message: JusticePresentationPlanPresented,
+  ) {
+    await tx.justicePresentationPlan.update({
+      where: { id: message.id },
+      data: { isPresented: true },
+    });
+  }
+
+  private async persistJusticePresentationPlanUnPresented(
+    tx: Prisma.TransactionClient,
+    message: JusticePresentationPlanUnPresented,
+  ) {
+    await tx.justicePresentationPlan.update({
+      where: { id: message.id },
+      data: { isPresented: false },
     });
   }
 }

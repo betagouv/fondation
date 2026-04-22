@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { dateOnlyJsonSchema } from 'shared-models';
+import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
 import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 import z from 'zod';
 
@@ -24,7 +26,11 @@ export class DetailsPresentationPlanMetadataQuery {
         isPresented: true,
         justiceDepartmentContactId: true,
         agendas: {
-          select: { agendaId: true },
+          select: {
+            agendaId: true,
+            comment: true,
+            agenda: { select: { formation: true } },
+          },
         },
       },
     });
@@ -38,7 +44,13 @@ export class DetailsPresentationPlanMetadataQuery {
       isPresented: plan.isPresented,
       date: DateOnly.fromDate(plan.date).toJson(),
       time: dateToTimeOnly(plan.time),
-      agendas: plan.agendas.map(({ agendaId }) => agendaId),
+      formation: prismaFormationEnumToFormationEnum(
+        assertIsDefined(plan.agendas[0]).agenda.formation,
+      ),
+      agendas: plan.agendas.map(({ agendaId, comment }) => ({
+        comment,
+        id: agendaId,
+      })),
       justiceDepartmentContactId:
         plan.justiceDepartmentContactId?.toString() ?? null,
     };
@@ -51,7 +63,10 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     time: timeOnlySchema,
     date: dateOnlyJsonSchema,
     isPresented: z.boolean(),
-    agendas: z.array(z.string()),
+    formation: z.enum(Magistrat.Formation),
+    agendas: z.array(
+      z.object({ id: z.string(), comment: z.string().nullable() }),
+    ),
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

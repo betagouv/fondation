@@ -176,6 +176,7 @@ model JusticePresentationPlan {
   justiceContact JusticeDepartmentContact?         @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pdf            File?                             @relation(fields: [pdfId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_pdf")
 
+  @@index([isPresented])
   @@map("justice_presentation_plan")
   @@schema("docs")
 }

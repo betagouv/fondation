@@ -6,11 +6,13 @@ export function useSelection<T, Key extends string>(props: {
   defaultSelection?: Key[];
   toString: (item: T) => Key | Falsy;
 }) {
-  const [selection, setSelection] = React.useState(new Set<Key>(props.defaultSelection));
+  const [selection, setSelection] = React.useState(new Set(props.defaultSelection));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectItem = React.useCallback((item: T) => props.toString(item), []);
 
   React.useEffect(() => {
+    if (props.defaultSelection) return;
+
     const init = new Set<Key>();
     for (const item of props.items ?? []) {
       const key = selectItem(item);
@@ -18,16 +20,16 @@ export function useSelection<T, Key extends string>(props: {
     }
 
     setSelection(init);
-  }, [props.items, selectItem]);
+  }, [props.items, props.defaultSelection, selectItem]);
 
-  const list = React.useCallback(() => Array.from(selection.values()), [selection]);
+  const list = React.useCallback(() => Array.from(selection?.values() ?? []), [selection]);
 
   const has = React.useCallback(
     (item: T) => {
       const key = selectItem(item);
 
       if (!key) return false;
-      return selection.has(key);
+      return !!selection?.has(key);
     },
     [selectItem, selection]
   );
@@ -36,6 +38,8 @@ export function useSelection<T, Key extends string>(props: {
     (key: Key, select?: boolean) => {
       if (typeof select === 'boolean') {
         setSelection((s) => {
+          if (!s) return s;
+
           if (select) s.add(key);
           else s.delete(key);
 
@@ -44,6 +48,8 @@ export function useSelection<T, Key extends string>(props: {
       }
 
       setSelection((s) => {
+        if (!s) return s;
+
         if (s.has(key)) s.delete(key);
         else s.add(key);
 
@@ -55,10 +61,10 @@ export function useSelection<T, Key extends string>(props: {
 
   const apiProps = React.useMemo(
     () => ({
-      size: selection.size,
-      hasAll: selection.size > 0 && (props.items?.length ?? 0) === selection.size,
-      hasSome: selection.size > 0,
-      hasNone: selection.size === 0
+      size: selection?.size ?? 0,
+      hasAll: (selection?.size ?? 0) > 0 && (props.items?.length ?? 0) === selection?.size,
+      hasSome: (selection?.size ?? 0) > 0,
+      hasNone: (selection?.size ?? 0) === 0
     }),
     [props.items, selection]
   );

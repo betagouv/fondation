@@ -8,7 +8,7 @@ import { DateOnly } from '@/models/date-only.model';
 import { useListAgendasForNewOfficialReportQuery } from '@queries/agenda.queries';
 
 import { FormationEnumLabel } from '@/types/enums.types';
-import { useSelection } from '../../agenda/hooks/useSelection.hook';
+import { useSelection } from '../../../../../hooks/useSelection.hook';
 import { useOfficialReport } from '../context/OfficialReportContext';
 
 export function OfficialReportSelectionsStep(props: { className?: string }) {

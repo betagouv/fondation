@@ -29,7 +29,8 @@ export const ROUTE_PATHS = {
     OFFICIAL_REPORT_PREVIEW: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation',
 
     PRESENTATIONS_READY: '/secretariat-general/restitutions/a-restituer',
-    PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees'
+    PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees',
+    PRESENTATIONS_NEW: '/secretariat-general/restitutions/nouvelle-notice'
   },
 
   ADMIN: {

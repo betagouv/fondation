@@ -28,10 +28,20 @@ export class JusticePresentationPlanDeleted {
   constructor(readonly id: Id<'JusticePresentationPlanId'>) {}
 }
 
+export class JusticePresentationPlanPresented {
+  constructor(readonly id: Id<'JusticePresentationPlanId'>) {}
+}
+
+export class JusticePresentationPlanUnPresented {
+  constructor(readonly id: Id<'JusticePresentationPlanId'>) {}
+}
+
 export type JusticePresentationPlanMessage =
   | JusticePresentationPlanCreated
   | JusticePresentationPlanUpdated
-  | JusticePresentationPlanDeleted;
+  | JusticePresentationPlanDeleted
+  | JusticePresentationPlanPresented
+  | JusticePresentationPlanUnPresented;
 
 export class UnknownPresentationPlanSecretary extends Error {}
 export class UnknownPresentationPlanChairman extends Error {}
@@ -92,6 +102,14 @@ export class JusticePresentationPlan {
 
   delete(): void {
     this.#messages.push(new JusticePresentationPlanDeleted(this.id));
+  }
+
+  present(): void {
+    this.#messages.push(new JusticePresentationPlanPresented(this.id));
+  }
+
+  unPresent(): void {
+    this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
   }
 
   private buildState(

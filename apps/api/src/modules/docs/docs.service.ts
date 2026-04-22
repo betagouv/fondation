@@ -69,6 +69,10 @@ import {
   IsSessionReadyForDocGenerationQuery,
 } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
 import {
+  ListedNonPresentedPlansDto,
+  ListNonPresentedPlansQuery,
+} from './infrastructure/queries/list-non-presented-plans.query';
+import {
   ListedSecretariesGeneralDto,
   ListSecretariesGeneralQuery,
 } from './infrastructure/queries/list-secretaries-general.query';
@@ -102,6 +106,7 @@ export class DocsService {
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
+    private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
@@ -533,5 +538,25 @@ export class DocsService {
     forceNew?: boolean;
   }): Promise<StreamableFile> {
     return this.findPresentationPlanDocumentPdfQuery.handle(query);
+  }
+
+  listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {
+    return this.listNonPresentedPlansQuery.handle();
+  }
+
+  async presentPlan(command: { id: string }): Promise<void> {
+    const plan = await this.justicePresentationPlanRepository.find({
+      id: command.id,
+    });
+    plan.present();
+    await this.justicePresentationPlanRepository.persist(plan);
+  }
+
+  async unPresentPlan(command: { id: string }): Promise<void> {
+    const plan = await this.justicePresentationPlanRepository.find({
+      id: command.id,
+    });
+    plan.unPresent();
+    await this.justicePresentationPlanRepository.persist(plan);
   }
 }

@@ -64,6 +64,7 @@ import { FoundJusticeContactsDto } from './queries/find-justice-contacts.query';
 import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-new-official-report.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
+import { ListedNonPresentedPlansDto } from './queries/list-non-presented-plans.query';
 import { ListedSecretariesGeneralDto } from './queries/list-secretaries-general.query';
 
 @Controller('/api/docs/v1')
@@ -435,7 +436,7 @@ export class DocsController {
   @ApiProduces('text/html')
   @ApiResponse({ content: { 'text/html': {} } })
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
-  findPresentationPlanDocument(
+  generatePresentationPlanHtml(
     @Param('planId') planId: string,
     @Query(
       'force',
@@ -454,7 +455,7 @@ export class DocsController {
   @Get('/presentation-plans/:planId.pdf')
   @ApiProduces(FILE_MIME_TYPES.pdf)
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
-  findPresentationPlanDocumentPdf(
+  generatePresentationPlanPdf(
     @Param('planId') planId: string,
     @Query(
       'force',
@@ -489,8 +490,9 @@ export class DocsController {
   })
   createJusticePresentationPlan(
     @Body() body: CreateOrUpdateJusticePresentationPlanDto,
+    @AuthedUser() user: { id: string },
   ): Promise<CreatedJusticePresentationPlanDto> {
-    return this.docs.createPresentationPlan(body);
+    return this.docs.createPresentationPlan({ ...body, authorId: user.id });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -499,8 +501,13 @@ export class DocsController {
   updateJusticePresentationPlan(
     @Param('planId') planId: string,
     @Body() body: CreateOrUpdateJusticePresentationPlanDto,
+    @AuthedUser() user: { id: string },
   ): Promise<void> {
-    return this.docs.updatePresentationPlan({ ...body, id: planId });
+    return this.docs.updatePresentationPlan({
+      ...body,
+      id: planId,
+      authorId: user.id,
+    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -510,5 +517,26 @@ export class DocsController {
     @Param('planId') planId: string,
   ): Promise<void> {
     return this.docs.deletePresentationPlan({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans')
+  @ZodResponse({ type: ListedNonPresentedPlansDto, status: HttpStatus.OK })
+  listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {
+    return this.docs.listNonPresentedPlans();
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/presentation-plans/:planId/presentation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  presentPlan(@Param('planId') planId: string): Promise<void> {
+    return this.docs.presentPlan({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/presentation-plans/:planId/presentation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unPresentPlan(@Param('planId') planId: string): Promise<void> {
+    return this.docs.unPresentPlan({ id: planId });
   }
 }

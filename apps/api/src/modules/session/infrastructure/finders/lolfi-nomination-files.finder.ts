@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 import { IngestService } from 'src/modules/ingest/infrastructure/ingest.service';
 import { DateOnly } from 'src/utils/date-only';
@@ -7,7 +7,10 @@ import { NominationFile } from '../../domain/nomination-file';
 
 @Injectable()
 export class LolfiNominationFilesFinder {
-  constructor(private readonly ingest: IngestService) {}
+  constructor(
+    @Inject(forwardRef(() => IngestService))
+    private readonly ingest: IngestService,
+  ) {}
 
   async find(
     sessionId: number,

@@ -7,11 +7,11 @@ import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbo
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import { FormattedMessage } from 'react-intl';
+import { useSelection } from '../../../../../hooks/useSelection.hook';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
 import { useAgenda } from '../context/AgendaContext';
 import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
-import { useSelection } from '../hooks/useSelection.hook';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
   const { session, isSubmitting: isPending, submit, goToMetadata, agendaId } = useAgenda();

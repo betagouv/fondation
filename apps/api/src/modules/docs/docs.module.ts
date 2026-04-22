@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 
+import { MembersModule } from 'src/modules/members';
 import { SessionModule } from 'src/modules/session/session.module';
-import { MembersModule } from '../members';
-import { SimpleAuthModule } from '../simple-auth';
+import { SimpleAuthModule } from 'src/modules/simple-auth';
+
 import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
 import { AgendaNominationFilesFinder } from './infrastructure/finders/agenda-nomination-files.finder';
@@ -23,8 +24,10 @@ import { FindPresentationPlanDocumentPdfQuery } from './infrastructure/queries/f
 import { FindPresentationPlanDocumentQuery } from './infrastructure/queries/find-presentation-plan-document.query';
 import { FindSessionDocsQuery } from './infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
+import { ListNonPresentedPlansQuery } from './infrastructure/queries/list-non-presented-plans.query';
 import { ListSecretariesGeneralQuery } from './infrastructure/queries/list-secretaries-general.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
+import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
 import { AgendaRenderer } from './infrastructure/services/renderers/agenda.renderer';
 import { OfficialReportRenderer } from './infrastructure/services/renderers/official-report.renderer';
@@ -56,11 +59,13 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
     IsSessionReadyForDocGenerationQuery,
+    JusticePresentationPlanRepository,
     ListSecretariesGeneralQuery,
     OfficialReportRenderer,
     OfficialReportRepository,
     PdfRenderer,
     PresentationPlanRenderer,
+    ListNonPresentedPlansQuery,
   ],
   exports: [DocsService],
 })

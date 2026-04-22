@@ -1006,6 +1006,18 @@ export type FoundChairmenDto = {
     }>;
 };
 
+export type ListedSecretariesGeneralDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        displayTitle: string | null;
+        title: 'FIRST_SECRETARY';
+        duty: 'SECRETARY';
+        gender: 'MALE' | 'FEMALE';
+    }>;
+};
+
 export type CreateOrUpdateAgendaDto = {
     sessionMeetingDate: {
         year: number;
@@ -1170,7 +1182,7 @@ export type CreatedOfficialReportJusticeContactDto = {
     name: string;
 };
 
-export type FoundAgendasForNewOfficialReportDto = {
+export type FoundAgendasDto = {
     items: Array<{
         id: string;
         date: {
@@ -1178,7 +1190,16 @@ export type FoundAgendasForNewOfficialReportDto = {
             month: number;
             day: number;
         };
+        sessionMeetingDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
         formation: 'PARQUET' | 'SIEGE';
+        session: {
+            id: string | null;
+            name: string;
+        };
     }>;
 };
 
@@ -1212,6 +1233,70 @@ export type DetailedOfficialReportMetadataDto = {
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
+};
+
+export type DetailedPresentationPlanMetadataDto = {
+    id: string;
+    time: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    };
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    isPresented: boolean;
+    formation: 'PARQUET' | 'SIEGE';
+    agendas: Array<{
+        id: string;
+        comment: string | null;
+    }>;
+    chairmanId: string | null;
+    secretaryId: string | null;
+    justiceDepartmentContactId: string | null;
+};
+
+export type CreateOrUpdateJusticePresentationPlanDto = {
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    time: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    };
+    chairmanId: string;
+    secretaryId: string;
+    justiceContactId: string;
+    agendas: Array<{
+        id: string;
+        comment: string | null;
+    }>;
+};
+
+export type CreatedJusticePresentationPlanDto = {
+    id: string;
+};
+
+export type ListedNonPresentedPlansDto = {
+    items: Array<{
+        id: string;
+        time: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        };
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        formation: 'PARQUET' | 'SIEGE';
+    }>;
 };
 
 export type GetFileByFileUrlData = {
@@ -2503,6 +2588,19 @@ export type SearchChairmenResponses = {
 
 export type SearchChairmenResponse = SearchChairmenResponses[keyof SearchChairmenResponses];
 
+export type ListSecretariesGeneralData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/secretaries-general';
+};
+
+export type ListSecretariesGeneralResponses = {
+    200: ListedSecretariesGeneralDto;
+};
+
+export type ListSecretariesGeneralResponse = ListSecretariesGeneralResponses[keyof ListSecretariesGeneralResponses];
+
 export type CreateAgendaData = {
     body: CreateOrUpdateAgendaDto;
     path: {
@@ -2745,7 +2843,7 @@ export type ListAgendasForNewOfficialReportData = {
 };
 
 export type ListAgendasForNewOfficialReportResponses = {
-    200: FoundAgendasForNewOfficialReportDto;
+    200: FoundAgendasDto;
 };
 
 export type ListAgendasForNewOfficialReportResponse = ListAgendasForNewOfficialReportResponses[keyof ListAgendasForNewOfficialReportResponses];
@@ -2765,7 +2863,7 @@ export type ListMembersForNewOfficialReportResponses = {
 
 export type ListMembersForNewOfficialReportResponse = ListMembersForNewOfficialReportResponses[keyof ListMembersForNewOfficialReportResponses];
 
-export type ListSecretariesForNewOfficialReportData = {
+export type ListSecretariesGeneralForNewOfficialReportData = {
     body?: never;
     path: {
         sessionId: string;
@@ -2774,11 +2872,11 @@ export type ListSecretariesForNewOfficialReportData = {
     url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/secretaries-general';
 };
 
-export type ListSecretariesForNewOfficialReportResponses = {
+export type ListSecretariesGeneralForNewOfficialReportResponses = {
     200: FoundMembersForNewOfficialReportDto;
 };
 
-export type ListSecretariesForNewOfficialReportResponse = ListSecretariesForNewOfficialReportResponses[keyof ListSecretariesForNewOfficialReportResponses];
+export type ListSecretariesGeneralForNewOfficialReportResponse = ListSecretariesGeneralForNewOfficialReportResponses[keyof ListSecretariesGeneralForNewOfficialReportResponses];
 
 export type GenerateOfficialReportHtmlData = {
     body?: never;
@@ -2856,3 +2954,149 @@ export type UpdateOfficialReportResponses = {
 };
 
 export type UpdateOfficialReportResponse = UpdateOfficialReportResponses[keyof UpdateOfficialReportResponses];
+
+export type ListPresentationPlanAgendasData = {
+    body?: never;
+    path?: never;
+    query?: {
+        ignore?: string;
+    };
+    url: '/api/docs/v1/presentation-plans/agendas';
+};
+
+export type ListPresentationPlanAgendasResponses = {
+    200: FoundAgendasDto;
+};
+
+export type ListPresentationPlanAgendasResponse = ListPresentationPlanAgendasResponses[keyof ListPresentationPlanAgendasResponses];
+
+export type GeneratePresentationPlanHtmlData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/presentation-plans/{planId}.html';
+};
+
+export type GeneratePresentationPlanHtmlResponses = {
+    default: unknown;
+};
+
+export type GeneratePresentationPlanPdfData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: {
+        force?: boolean;
+    };
+    url: '/api/docs/v1/presentation-plans/{planId}.pdf';
+};
+
+export type GeneratePresentationPlanPdfResponses = {
+    200: unknown;
+};
+
+export type DeleteJusticePresentationPlanData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}';
+};
+
+export type DeleteJusticePresentationPlanResponses = {
+    204: void;
+};
+
+export type DeleteJusticePresentationPlanResponse = DeleteJusticePresentationPlanResponses[keyof DeleteJusticePresentationPlanResponses];
+
+export type DetailsPresentationPlanMetadataData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}';
+};
+
+export type DetailsPresentationPlanMetadataResponses = {
+    200: DetailedPresentationPlanMetadataDto;
+};
+
+export type DetailsPresentationPlanMetadataResponse = DetailsPresentationPlanMetadataResponses[keyof DetailsPresentationPlanMetadataResponses];
+
+export type UpdateJusticePresentationPlanData = {
+    body: CreateOrUpdateJusticePresentationPlanDto;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}';
+};
+
+export type UpdateJusticePresentationPlanResponses = {
+    204: void;
+};
+
+export type UpdateJusticePresentationPlanResponse = UpdateJusticePresentationPlanResponses[keyof UpdateJusticePresentationPlanResponses];
+
+export type ListNonPresentedPlansData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/presentation-plans';
+};
+
+export type ListNonPresentedPlansResponses = {
+    200: ListedNonPresentedPlansDto;
+};
+
+export type ListNonPresentedPlansResponse = ListNonPresentedPlansResponses[keyof ListNonPresentedPlansResponses];
+
+export type CreateJusticePresentationPlanData = {
+    body: CreateOrUpdateJusticePresentationPlanDto;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/presentation-plans';
+};
+
+export type CreateJusticePresentationPlanResponses = {
+    201: CreatedJusticePresentationPlanDto;
+};
+
+export type CreateJusticePresentationPlanResponse = CreateJusticePresentationPlanResponses[keyof CreateJusticePresentationPlanResponses];
+
+export type UnPresentPlanData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/presentation';
+};
+
+export type UnPresentPlanResponses = {
+    204: void;
+};
+
+export type UnPresentPlanResponse = UnPresentPlanResponses[keyof UnPresentPlanResponses];
+
+export type PresentPlanData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/presentation';
+};
+
+export type PresentPlanResponses = {
+    204: void;
+};
+
+export type PresentPlanResponse = PresentPlanResponses[keyof PresentPlanResponses];
