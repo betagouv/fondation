@@ -36,35 +36,6 @@ type OfficialReportNominationFile = {
   outcome: DocNominationFileOutcomeEnum;
 };
 
-function displayOutcome(ctx: {
-  formation: Magistrat.Formation;
-  outcome: DocNominationFileOutcomeEnum;
-}): string {
-  switch (ctx.outcome) {
-    case 'NON_VALIDATED':
-      switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
-          return 'Avis défavorable(s)';
-        default:
-          return 'Avis non conforme(s)';
-      }
-
-    case 'VALIDATED':
-      switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
-          return 'Avis favorable(s)';
-        default:
-          return 'Avis conforme(s)';
-      }
-
-    case 'WITHDRAWN':
-      return 'Retrait(s)';
-
-    case 'SUSPENDED':
-      return 'Sursis';
-  }
-}
-
 function officialReportNominationParagraph(ctx: {
   formation: Magistrat.Formation;
   file: OfficialReportNominationFile;
@@ -159,7 +130,7 @@ function content(ctx: {
     .map(([outcome, files]) => ({
       outcome,
       html: html`<h2>
-          ${displayOutcome({ formation: ctx.formation, outcome })}
+          ${displayOutcomeTitle({ formation: ctx.formation, outcome })}
         </h2>
         ${files
           .map((file) =>
@@ -332,3 +303,32 @@ export const officialReportTemplate = documentLayout({
   content,
   footer,
 });
+
+function displayOutcomeTitle(ctx: {
+  formation: Magistrat.Formation;
+  outcome: DocNominationFileOutcomeEnum;
+}): string {
+  switch (ctx.outcome) {
+    case 'NON_VALIDATED':
+      switch (ctx.formation) {
+        case Magistrat.Formation.PARQUET:
+          return 'Avis défavorable(s)';
+        default:
+          return 'Avis non conforme(s)';
+      }
+
+    case 'VALIDATED':
+      switch (ctx.formation) {
+        case Magistrat.Formation.PARQUET:
+          return 'Avis favorable(s)';
+        default:
+          return 'Avis conforme(s)';
+      }
+
+    case 'WITHDRAWN':
+      return 'Retrait(s)';
+
+    case 'SUSPENDED':
+      return 'Sursis';
+  }
+}

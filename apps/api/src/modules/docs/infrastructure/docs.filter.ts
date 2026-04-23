@@ -68,7 +68,7 @@ export class DocsFilter implements NestInterceptor {
 
           if (err instanceof UnknownPresentationPlanChairman) {
             return new BadRequestException({
-              validationError: `Le président n'est pas un member`,
+              validationError: `Le président n'est pas un membre`,
             });
           }
 

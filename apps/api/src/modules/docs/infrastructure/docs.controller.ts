@@ -393,6 +393,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   async updateOfficialReport(
     @Param('officialReportId') officialReportId: string,
     @AuthedUser() authUser: { id: string },
@@ -488,6 +489,7 @@ export class DocsController {
     status: HttpStatus.CREATED,
     type: CreatedJusticePresentationPlanDto,
   })
+  @UsePipes(ZodValidationPipe)
   createJusticePresentationPlan(
     @Body() body: CreateOrUpdateJusticePresentationPlanDto,
     @AuthedUser() user: { id: string },
@@ -497,6 +499,7 @@ export class DocsController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/presentation-plans/:planId')
+  @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   updateJusticePresentationPlan(
     @Param('planId') planId: string,

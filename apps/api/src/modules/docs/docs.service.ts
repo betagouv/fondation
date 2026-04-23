@@ -464,7 +464,7 @@ export class DocsService {
 
     await this.justicePresentationPlanRepository.persist(plan);
 
-    return plan;
+    return { id: plan.id };
   }
 
   async updatePresentationPlan(command: {

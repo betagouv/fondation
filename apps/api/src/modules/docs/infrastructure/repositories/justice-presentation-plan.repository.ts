@@ -113,6 +113,18 @@ export class JusticePresentationPlanRepository {
       justiceDepartmentContactName: justiceContact.name,
     } satisfies Prisma.JusticePresentationPlanUncheckedUpdateInput;
 
+    if (message instanceof JusticePresentationPlanUpdated) {
+      await tx.agenda.updateMany({
+        data: { justicePresentationPlanId: null },
+        where: { justicePresentationPlanId: message.id },
+      });
+    }
+
+    await tx.agenda.updateMany({
+      data: { justicePresentationPlanId: message.id },
+      where: { id: { in: message.state.agendas.map(({ id }) => id) } },
+    });
+
     await tx.justicePresentationPlan.upsert({
       where: { id: message.id },
 
@@ -138,6 +150,11 @@ export class JusticePresentationPlanRepository {
   ) {
     await tx.justicePresentationPlanToAgenda.deleteMany({
       where: { planId: message.id },
+    });
+
+    await tx.agenda.updateMany({
+      data: { justicePresentationPlanId: null },
+      where: { justicePresentationPlanId: message.id },
     });
 
     const file = await tx.justicePresentationPlan.findUnique({

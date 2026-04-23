@@ -45,7 +45,7 @@ export class FindPresentationPlanDocumentPdfQuery {
       });
 
       if (!plan || !plan.agendas.length) throw new NotFoundException();
-      if (!plan.pdf)
+      if (!plan.pdf || query.forceNew)
         return {
           date: plan.date,
           formation: assertIsDefined(plan.agendas[0]).agenda.formation,
