@@ -1304,6 +1304,31 @@ export type ListedNonPresentedPlansDto = {
     }>;
 };
 
+export type ListedPresentedPlansDto = {
+    items: Array<{
+        id: string;
+        time: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        };
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        formation: 'PARQUET' | 'SIEGE';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     path: {
@@ -3090,6 +3115,22 @@ export type DetailsJusticePresentationPlanPdfDocumentResponses = {
 };
 
 export type DetailsJusticePresentationPlanPdfDocumentResponse = DetailsJusticePresentationPlanPdfDocumentResponses[keyof DetailsJusticePresentationPlanPdfDocumentResponses];
+
+export type ListPresentedPlansData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/docs/v1/presentation-plans/presented';
+};
+
+export type ListPresentedPlansResponses = {
+    200: ListedPresentedPlansDto;
+};
+
+export type ListPresentedPlansResponse = ListPresentedPlansResponses[keyof ListPresentedPlansResponses];
 
 export type UnPresentPlanData = {
     body?: never;

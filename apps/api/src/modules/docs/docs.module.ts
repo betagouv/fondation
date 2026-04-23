@@ -26,6 +26,7 @@ import { FindPresentationPlanDocumentQuery } from './infrastructure/queries/find
 import { FindSessionDocsQuery } from './infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { ListNonPresentedPlansQuery } from './infrastructure/queries/list-non-presented-plans.query';
+import { ListPresentedPlansQuery } from './infrastructure/queries/list-presented-plans.query';
 import { ListSecretariesGeneralQuery } from './infrastructure/queries/list-secretaries-general.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
@@ -63,6 +64,7 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,
+    ListPresentedPlansQuery,
     ListSecretariesGeneralQuery,
     OfficialReportRenderer,
     OfficialReportRepository,

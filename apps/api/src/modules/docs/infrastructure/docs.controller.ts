@@ -31,6 +31,11 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import {
+  ApiPaginated,
+  Pagination,
+  QueryPagination,
+} from 'src/modules/framework/pagination';
 import { DocsService } from '../docs.service';
 import {
   CreatedAgendaDto,
@@ -66,6 +71,7 @@ import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
 import { ListedNonPresentedPlansDto } from './queries/list-non-presented-plans.query';
+import { ListedPresentedPlansDto } from './queries/list-presented-plans.query';
 import { ListedSecretariesGeneralDto } from './queries/list-secretaries-general.query';
 
 @Controller('/api/docs/v1')
@@ -470,6 +476,16 @@ export class DocsController {
       forceNew,
       id: planId,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/presented')
+  @ApiPaginated()
+  @ZodResponse({ type: ListedPresentedPlansDto, status: HttpStatus.OK })
+  listPresentedPlans(
+    @QueryPagination() pagination: Pagination,
+  ): Promise<ListedPresentedPlansDto> {
+    return this.docs.listPresentedPlans({ pagination });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

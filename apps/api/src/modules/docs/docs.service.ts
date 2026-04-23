@@ -4,6 +4,7 @@ import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { DateOnly } from 'src/utils/date-only';
 import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
+import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
@@ -74,6 +75,10 @@ import {
   ListNonPresentedPlansQuery,
 } from './infrastructure/queries/list-non-presented-plans.query';
 import {
+  ListedPresentedPlansDto,
+  ListPresentedPlansQuery,
+} from './infrastructure/queries/list-presented-plans.query';
+import {
   ListedSecretariesGeneralDto,
   ListSecretariesGeneralQuery,
 } from './infrastructure/queries/list-secretaries-general.query';
@@ -108,6 +113,7 @@ export class DocsService {
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
+    private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
@@ -544,6 +550,12 @@ export class DocsService {
 
   listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {
     return this.listNonPresentedPlansQuery.handle();
+  }
+
+  listPresentedPlans(query: {
+    pagination: Pagination;
+  }): Promise<ListedPresentedPlansDto> {
+    return this.listPresentedPlansQuery.handle(query);
   }
 
   async presentPlan(command: { id: string }): Promise<void> {

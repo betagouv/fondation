@@ -425,7 +425,9 @@ export const presentationPlanKeys = {
     ['justicePresentationPlan', 'html', query.id ?? undefined] as const,
   planAgendas: (query: { ignore: string | null | undefined }) =>
     ['justicePresentationPlan', 'agendas', query.ignore || undefined] as const,
-  nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const
+  nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const,
+  presented: (query: { pageIndex?: number; pageSize?: number } = {}) =>
+    ['justicePresentationPlan', 'presented', query.pageIndex, query.pageSize] as const
 };
 
 export const useListPresentationPlansAgendasQuery = (
@@ -559,6 +561,7 @@ export function usePresentPlanMutation() {
       $api.docs.presentPlan({ path: { planId: mutation.presentationPlanId } }),
     onSuccess: () =>
       Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
       ])
@@ -573,6 +576,7 @@ export function useUnPresentPlanMutation() {
 
     onSuccess: () =>
       Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
       ])
@@ -588,6 +592,22 @@ export const useListNonPresentedPlansQuery = () =>
     queryKey: presentationPlanKeys.nonPresented(),
     queryFn: async () => {
       const { data = null } = await $api.docs.listNonPresentedPlans();
+      return data;
+    }
+  });
+
+export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+
+    queryKey: presentationPlanKeys.presented(query),
+    queryFn: async () => {
+      const { data = null } = await $api.docs.listPresentedPlans({
+        query: { page: (query.pageIndex ?? 0) + 1, limit: query.pageSize }
+      });
+
       return data;
     }
   });
