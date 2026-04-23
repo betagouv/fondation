@@ -49,8 +49,8 @@ export function PresentationAgendaSelectionList(props: {
     if (selection.size === 0 || isNavigating) return;
 
     setIsNavigating(true);
-    initPlanCreation({ agendaIds: selection.list() });
-  }, [selection, isNavigating, setIsNavigating, initPlanCreation]);
+    initPlanCreation({ agendaIds: selection.list(), formation });
+  }, [selection, formation, isNavigating, setIsNavigating, initPlanCreation]);
 
   return (
     <>

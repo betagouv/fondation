@@ -16,7 +16,7 @@ export type PresentationPlanContextType = {
 
   goToMetadata(): void;
   createPlan(options: { agendas: Record<string, string | null> }): void;
-  initPlanCreation(options: { agendaIds: string[] }): void;
+  initPlanCreation(options: { agendaIds: string[]; formation: 'PARQUET' | 'SIEGE' }): void;
   setMetadata(options: {
     chairmanId: string;
     secretaryId: string;

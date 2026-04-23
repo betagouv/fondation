@@ -59,9 +59,10 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
   }, []);
 
   const initPlanCreation = React.useCallback(
-    (options: { agendaIds: string[] }) => {
+    (options: { agendaIds: string[]; formation: 'PARQUET' | 'SIEGE' }) => {
       setState((s) => ({
         ...s,
+        formation: options.formation,
         agendas: Object.fromEntries(options.agendaIds.map((id) => [id, null]))
       }));
       navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_NEW));
@@ -102,20 +103,22 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         }))
       };
 
+      const onSuccess = () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY));
+
       if (planId) {
-        update({ ...payload, id: planId });
+        update({ ...payload, id: planId }, { onSuccess });
       } else {
-        create(payload);
+        create(payload, { onSuccess });
       }
     },
-    [state, setState, planId, update, create]
+    [state, setState, planId, update, create, navigate]
   );
 
   return (
     <PresentationPlanContext
       value={{ planId, state, isDisabled, goToMetadata, initPlanCreation, setMetadata, createPlan }}
     >
-      {props.children}
+      {!isFetchingMeta && props.children}
     </PresentationPlanContext>
   );
 }

@@ -11,7 +11,7 @@ import { DateOnly } from '@/models/date-only.model';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListMembersForNewOfficialReportQuery,
-  useListSecretariesForNewOfficialReportQuery
+  useListSecretariesGeneralQuery
 } from '@queries/agenda.queries';
 
 import { Mandatory } from '@/components/shared/Mandatory';
@@ -35,7 +35,7 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
   const { session, metadata, goToSelections, cancel } = useOfficialReport();
 
   const { data: membersData } = useListMembersForNewOfficialReportQuery({ sessionId: session.id });
-  const { data: secretariesData } = useListSecretariesForNewOfficialReportQuery({ sessionId: session.id });
+  const { data: secretariesData } = useListSecretariesGeneralQuery();
 
   const secretaries = React.useMemo(() => secretariesData?.items ?? [], [secretariesData]);
   const members = React.useMemo(() => membersData?.items ?? [], [membersData]);

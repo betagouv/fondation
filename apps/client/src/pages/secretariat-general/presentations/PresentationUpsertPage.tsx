@@ -18,7 +18,7 @@ import { capitalize } from '@/utils/string.utils';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListPresentationPlansAgendasQuery,
-  useListSecretariesForNewOfficialReportQuery,
+  useListSecretariesGeneralQuery,
   useSearchChairmenQuery
 } from '@queries/agenda.queries';
 import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
@@ -39,8 +39,7 @@ function MetadataStep(props: { className?: string }) {
   const { data: chairmenData, isFetching: isFetchingChairmen } = useSearchChairmenQuery({
     formation: state.formation ?? undefined
   });
-  const { data: secretariesData, isFetching: isFetchingSecretaries } =
-    useListSecretariesForNewOfficialReportQuery();
+  const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
   const chairmen = chairmenData?.items ?? [];
   const secretaries = secretariesData?.items ?? [];
@@ -294,7 +293,7 @@ const STEPS = {
   AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' }
 } as const;
 
-export function PresentationNewPage() {
+export function PresentationUpsertPage() {
   const { state } = usePresentationPlan();
 
   const step = STEPS[state.step];

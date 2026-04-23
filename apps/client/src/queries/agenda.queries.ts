@@ -240,7 +240,7 @@ export const useListMembersForNewOfficialReportQuery = (query: { sessionId: stri
         .then(({ data = null }) => data)
   });
 
-export const useListSecretariesForNewOfficialReportQuery = () =>
+export const useListSecretariesGeneralQuery = () =>
   useQuery({
     refetchOnMount: false,
     refetchOnWindowFocus: false,

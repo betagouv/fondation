@@ -14,7 +14,7 @@ import { UserManualPage } from '@/pages/help/UserManualPage';
 import { AgendaPreviewPage } from '@/pages/secretariat-general/docs/agenda/AgendaPreviewPage';
 import { CreateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
 import { OfficialReportPreviewPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage';
-import { PresentationNewPage } from '@/pages/secretariat-general/presentations/PresentationNewPage';
+import { PresentationUpsertPage } from '@/pages/secretariat-general/presentations/PresentationUpsertPage';
 import { PresentationsLayout } from '@/pages/secretariat-general/presentations/PresentationsLayout';
 import { PresentationsTabPast } from '@/pages/secretariat-general/presentations/PresentationsTabPast';
 import { PresentationsTabReady } from '@/pages/secretariat-general/presentations/PresentationsTabReady';
@@ -166,7 +166,8 @@ const router = sentryCreateBrowserRouter([
                   { path: ROUTE_PATHS.SG.PRESENTATIONS_READY, element: <PresentationsTabReady /> }
                 ]
               },
-              { path: ROUTE_PATHS.SG.PRESENTATIONS_NEW, element: <PresentationNewPage /> }
+              { path: ROUTE_PATHS.SG.PRESENTATIONS_NEW, element: <PresentationUpsertPage /> },
+              { path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, element: <PresentationUpsertPage /> }
             ]
           }
         ]
