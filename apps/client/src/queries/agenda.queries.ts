@@ -22,8 +22,8 @@ export const agendaKeys = {
 
 export const useSearchChairmenQuery = (props: { formation: FormationEnum | undefined }) =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+
     queryKey: agendaKeys.searchChairmen(props.formation),
     queryFn: () =>
       $api.docs.searchChairmen({ query: { formation: props.formation } }).then(({ data = null }) => data)
@@ -585,9 +585,7 @@ export function useUnPresentPlanMutation() {
 
 export const useListNonPresentedPlansQuery = () =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
+    staleTime: Infinity,
 
     queryKey: presentationPlanKeys.nonPresented(),
     queryFn: async () => {
@@ -598,9 +596,7 @@ export const useListNonPresentedPlansQuery = () =>
 
 export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
+    staleTime: Infinity,
 
     queryKey: presentationPlanKeys.presented(query),
     queryFn: async () => {
