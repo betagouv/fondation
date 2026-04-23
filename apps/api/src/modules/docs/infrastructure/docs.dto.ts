@@ -59,3 +59,23 @@ export class ListAgendasForNewOfficialReportQueryDto extends createZodDto(
     ignoreOfficialReportId: z.string().optional(),
   }),
 ) {}
+
+export class CreatedJusticePresentationPlanDto extends createZodDto(
+  z.object({ id: z.string() }),
+) {}
+
+export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
+  z.object({
+    date: dateOnlyJsonSchema,
+    time: timeOnlySchema,
+    chairmanId: z.string(),
+    secretaryId: z.string(),
+    justiceContactId: z.string(),
+    agendas: z.array(
+      z.object({
+        id: z.string(),
+        comment: z.string().trim().nonempty().nullable(),
+      }),
+    ),
+  }),
+) {}

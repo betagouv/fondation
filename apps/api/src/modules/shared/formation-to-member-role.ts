@@ -10,7 +10,7 @@ export function formationToMemberRole(
     case Magistrat.Formation.SIEGE:
       return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE'];
     case undefined:
-      return ['MEMBRE_COMMUN', 'MEMBRE_DU°SIEGE', 'MEMBRE_DU_PARQUET'];
+      return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE', 'MEMBRE_DU_PARQUET'];
     default:
       return assertNever(formation);
   }

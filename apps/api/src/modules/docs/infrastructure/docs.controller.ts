@@ -9,6 +9,7 @@ import {
   HttpStatus,
   Param,
   ParseBoolPipe,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -27,15 +28,23 @@ import {
   ApiOperation,
   ApiProduces,
   ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import {
+  ApiPaginated,
+  Pagination,
+  QueryPagination,
+} from 'src/modules/framework/pagination';
 import { DocsService } from '../docs.service';
 import {
   CreatedAgendaDto,
+  CreatedJusticePresentationPlanDto,
   CreatedOfficialReportDto,
   CreatedOfficialReportJusticeContactDto,
   CreateOfficialReportJusticeContactDto,
   CreateOrUpdateAgendaDto,
+  CreateOrUpdateJusticePresentationPlanDto,
   CreateOrUpdateOfficialReportDto,
   FindAgendaNominationFilesQueryDto,
   ListAgendasForNewOfficialReportQueryDto,
@@ -43,14 +52,16 @@ import {
 } from './docs.dto';
 import { DocsFilter } from './docs.filter';
 import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
+import { FoundAgendasDto } from './finders/agenda.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
+import { DetailedPresentationPlanMetadataDto } from './queries/details-presentation-plan-metadata.query';
+import { DetailedPresentationPlanPdfDocumentDto } from './queries/details-presentation-plan-pdf-document.query';
 import {
   DetailedSessionAgenda,
   DetailedSessionDoc,
 } from './queries/details-session-agenda.query';
 import { DetailedSessionOfficialReportDto } from './queries/details-session-official-report.query';
-import { FoundAgendasForNewOfficialReportDto } from './queries/find-agendas-for-new-official-report.query';
 import {
   FoundChairmenDto,
   SearchChairmenQueryDto,
@@ -59,6 +70,9 @@ import { FoundJusticeContactsDto } from './queries/find-justice-contacts.query';
 import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-new-official-report.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
+import { ListedNonPresentedPlansDto } from './queries/list-non-presented-plans.query';
+import { ListedPresentedPlansDto } from './queries/list-presented-plans.query';
+import { ListedSecretariesGeneralDto } from './queries/list-secretaries-general.query';
 
 @Controller('/api/docs/v1')
 @UseInterceptors(DocsFilter)
@@ -75,6 +89,16 @@ export class DocsController {
     return this.docs.searchChairmen({
       formation: query.formation,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/secretaries-general')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: ListedSecretariesGeneralDto,
+  })
+  listSecretariesGeneral(): Promise<ListedSecretariesGeneralDto> {
+    return this.docs.listSecretariesGeneral();
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -282,12 +306,12 @@ export class DocsController {
   @Get('/sessions/:sessionId/new-official-reports/agendas')
   @ZodResponse({
     status: HttpStatus.OK,
-    type: FoundAgendasForNewOfficialReportDto,
+    type: FoundAgendasDto,
   })
   listAgendasForNewOfficialReport(
     @Param('sessionId') sessionId: string,
     @Query() query: ListAgendasForNewOfficialReportQueryDto,
-  ): Promise<FoundAgendasForNewOfficialReportDto> {
+  ): Promise<FoundAgendasDto> {
     return this.docs.listAgendasForNewOfficialReport({
       sessionId,
       ignoreOfficialReportId: query.ignoreOfficialReportId,
@@ -306,17 +330,19 @@ export class DocsController {
     return this.docs.listMembersForNewOfficialReport({ sessionId });
   }
 
+  /** @deprecated */
+  @ApiOperation({ deprecated: true })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/new-official-reports/secretaries-general')
   @ZodResponse({
     status: HttpStatus.OK,
     type: FoundMembersForNewOfficialReportDto,
   })
-  listSecretariesForNewOfficialReport(
+  listSecretariesGeneralForNewOfficialReport(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Param('sessionId') _sessionId: string,
-  ): Promise<FoundMembersForNewOfficialReportDto> {
-    return this.docs.listSecretariesGeneralForNewOfficialReport();
+  ): Promise<ListedSecretariesGeneralDto> {
+    return this.docs.listSecretariesGeneral();
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -374,6 +400,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
   async updateOfficialReport(
     @Param('officialReportId') officialReportId: string,
     @AuthedUser() authUser: { id: string },
@@ -400,5 +427,148 @@ export class DocsController {
     @Param('officialReportId') officialReportId: string,
   ): Promise<void> {
     await this.docs.deleteOfficialReport({ id: officialReportId });
+  }
+
+  @Get('/presentation-plans/agendas')
+  @ApiQuery({ name: 'ignore', required: false, type: 'string', format: 'uuid' })
+  @ZodResponse({ status: HttpStatus.OK, type: FoundAgendasDto })
+  listPresentationPlanAgendas(
+    @Query('ignore', new ParseUUIDPipe({ optional: true }))
+    ignorePlanId: string | undefined,
+  ): Promise<FoundAgendasDto> {
+    return this.docs.findPresentationPlanAgendas({ ignorePlanId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/:planId.html')
+  @ApiProduces('text/html')
+  @ApiResponse({ content: { 'text/html': {} } })
+  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
+  generatePresentationPlanHtml(
+    @Param('planId') planId: string,
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
+  ): Promise<string> {
+    return this.docs.findPresentationPlanDocument({
+      forceNew,
+      id: planId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/:planId.pdf')
+  @ApiProduces(FILE_MIME_TYPES.pdf)
+  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
+  generatePresentationPlanPdf(
+    @Param('planId') planId: string,
+    @Query(
+      'force',
+      new ParseBoolPipe({ optional: true }),
+      new DefaultValuePipe(false),
+    )
+    forceNew: boolean,
+  ): Promise<StreamableFile> {
+    return this.docs.findPresentationPlanDocumentPdf({
+      forceNew,
+      id: planId,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/presented')
+  @ApiPaginated()
+  @ZodResponse({ type: ListedPresentedPlansDto, status: HttpStatus.OK })
+  listPresentedPlans(
+    @QueryPagination() pagination: Pagination,
+  ): Promise<ListedPresentedPlansDto> {
+    return this.docs.listPresentedPlans({ pagination });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/:planId')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: DetailedPresentationPlanMetadataDto,
+  })
+  detailsPresentationPlanMetadata(
+    @Param('planId') planId: string,
+  ): Promise<DetailedPresentationPlanMetadataDto> {
+    return this.docs.detailsPresentationPlanMetadata({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/presentation-plans')
+  @ZodResponse({
+    status: HttpStatus.CREATED,
+    type: CreatedJusticePresentationPlanDto,
+  })
+  @UsePipes(ZodValidationPipe)
+  createJusticePresentationPlan(
+    @Body() body: CreateOrUpdateJusticePresentationPlanDto,
+    @AuthedUser() user: { id: string },
+  ): Promise<CreatedJusticePresentationPlanDto> {
+    return this.docs.createPresentationPlan({ ...body, authorId: user.id });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/presentation-plans/:planId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateJusticePresentationPlan(
+    @Param('planId') planId: string,
+    @Body() body: CreateOrUpdateJusticePresentationPlanDto,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.docs.updatePresentationPlan({
+      ...body,
+      id: planId,
+      authorId: user.id,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/:planId/url')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: DetailedPresentationPlanPdfDocumentDto,
+  })
+  detailsJusticePresentationPlanPdfDocument(
+    @Param('planId') planId: string,
+  ): Promise<DetailedPresentationPlanPdfDocumentDto> {
+    return this.docs.detailsPresentationPlanPdfDocument({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/presentation-plans/:planId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteJusticePresentationPlan(
+    @Param('planId') planId: string,
+  ): Promise<void> {
+    return this.docs.deletePresentationPlan({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans')
+  @ZodResponse({ type: ListedNonPresentedPlansDto, status: HttpStatus.OK })
+  listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {
+    return this.docs.listNonPresentedPlans();
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/presentation-plans/:planId/presentation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  presentPlan(@Param('planId') planId: string): Promise<void> {
+    return this.docs.presentPlan({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/presentation-plans/:planId/presentation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unPresentPlan(@Param('planId') planId: string): Promise<void> {
+    return this.docs.unPresentPlan({ id: planId });
   }
 }

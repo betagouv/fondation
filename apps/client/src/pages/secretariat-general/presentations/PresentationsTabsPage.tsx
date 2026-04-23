@@ -1,0 +1,77 @@
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
+
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import { useListPresentationPlansAgendasQuery } from '@queries/agenda.queries';
+import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+
+const PresentationsBreadcrumb = React.memo(function PresentationsBreadcrumb() {
+  const { $t } = useIntl();
+  return (
+    <Breadcrumb
+      id="presentations-breadcrumb"
+      ariaLabel={$t({ defaultMessage: "Fil d'Ariane des restitutions DSJ" })}
+      breadcrumb={{
+        currentPageLabel: $t({ defaultMessage: `Restitutions` }),
+        segments: [
+          { label: $t({ defaultMessage: 'Secrétariat Général' }), to: generatePath(ROUTE_PATHS.SG.DASHBOARD) }
+        ]
+      }}
+    />
+  );
+});
+
+export function PresentationsTabsPage() {
+  const navigate = useNavigate();
+  const { formatMessage } = useIntl();
+
+  const pastPathMatch = useMatch(ROUTE_PATHS.SG.PRESENTATIONS_PAST);
+
+  const { data: agendas } = useListPresentationPlansAgendasQuery();
+
+  const tabId = pastPathMatch !== null ? 'past' : 'ready';
+  const onTabChange = React.useCallback(
+    (tabId: string) => {
+      const path = tabId === 'past' ? ROUTE_PATHS.SG.PRESENTATIONS_PAST : ROUTE_PATHS.SG.PRESENTATIONS_READY;
+      return navigate(generatePath(path));
+    },
+    [navigate]
+  );
+
+  const tabLabelPast = formatMessage({ defaultMessage: 'Passées' });
+  const tabLabelReady = formatMessage(
+    { defaultMessage: '{count, plural, =0 {À restituer} other {À restituer <counter>{count}</counter>}}' },
+    {
+      count: (agendas?.items ?? []).length,
+      counter: (label) => (
+        <Badge className="ml-1" as="span" small>
+          {label}
+        </Badge>
+      )
+    }
+  );
+
+  return (
+    <div className="fr-container pt-10">
+      <PresentationsBreadcrumb />
+      <h1>
+        <FormattedMessage defaultMessage="Restitutions" />
+      </h1>
+
+      <Tabs
+        className="shadow-none before:shadow-[inset_0_1px_0_var(--border-default-grey)] before:content-['']"
+        selectedTabId={tabId}
+        onTabChange={onTabChange}
+        tabs={[
+          { tabId: 'past', label: tabLabelPast },
+          { tabId: 'ready', label: tabLabelReady }
+        ]}
+      >
+        <Outlet />
+      </Tabs>
+    </div>
+  );
+}

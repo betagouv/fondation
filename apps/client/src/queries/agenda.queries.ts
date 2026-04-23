@@ -4,6 +4,7 @@ import * as $api from '@api/sdk';
 
 import type { FormationEnum } from '@/types/enums.types';
 
+import { useTab } from '@/hooks/useTab';
 import type { FoundJusticeContactsDto } from '@api/types';
 import type { DateOnlyJson } from 'shared-models';
 
@@ -21,8 +22,8 @@ export const agendaKeys = {
 
 export const useSearchChairmenQuery = (props: { formation: FormationEnum | undefined }) =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+
     queryKey: agendaKeys.searchChairmen(props.formation),
     queryFn: () =>
       $api.docs.searchChairmen({ query: { formation: props.formation } }).then(({ data = null }) => data)
@@ -240,15 +241,12 @@ export const useListMembersForNewOfficialReportQuery = (query: { sessionId: stri
         .then(({ data = null }) => data)
   });
 
-export const useListSecretariesForNewOfficialReportQuery = (query: { sessionId: string }) =>
+export const useListSecretariesGeneralQuery = () =>
   useQuery({
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     queryKey: officialReportKeys.listSecretaries(),
-    queryFn: () =>
-      $api.docs
-        .listSecretariesForNewOfficialReport({ path: { sessionId: query.sessionId } })
-        .then(({ data = null }) => data)
+    queryFn: () => $api.docs.listSecretariesGeneral().then(({ data = null }) => data)
   });
 
 export const useFindJusticeContacts = (query: { search: string | undefined }) =>
@@ -416,6 +414,210 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
     onSuccess: (_, { officialReportId }) => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
+    }
+  });
+}
+
+export const presentationPlanKeys = {
+  planMetadata: (query: { id: string | undefined | null }) =>
+    ['justicePresentationPlan', 'metadata', query.id ?? undefined] as const,
+  planHtml: (query: { id: string | undefined | null }) =>
+    ['justicePresentationPlan', 'html', query.id ?? undefined] as const,
+  planAgendas: (query: { ignore: string | null | undefined }) =>
+    ['justicePresentationPlan', 'agendas', query.ignore || undefined] as const,
+  nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const,
+  presented: (query: { pageIndex?: number; pageSize?: number } = {}) =>
+    ['justicePresentationPlan', 'presented', query.pageIndex, query.pageSize] as const
+};
+
+export const useListPresentationPlansAgendasQuery = (
+  options: { ignorePlanId?: string | undefined | null } = {}
+) =>
+  useQuery({
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+
+    queryKey: presentationPlanKeys.planAgendas({ ignore: options.ignorePlanId }),
+    queryFn: async () => {
+      const { data = null } = await $api.docs.listPresentationPlanAgendas({
+        query: { ignore: options.ignorePlanId ?? undefined }
+      });
+      return data;
+    }
+  });
+
+export function useCreateJusticePresentationPlanMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      chairmanId: string;
+      secretaryId: string;
+      justiceContactId: string;
+      agendas: { id: string; comment: string | null }[];
+      date: { year: number; month: number; day: number };
+      time: { hours: number; minutes: number };
+    }) =>
+      $api.docs.createJusticePresentationPlan({
+        body: body
+      }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
+      ])
+  });
+}
+
+export function useUpdateJusticePresentationPlanMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      id: string;
+      chairmanId: string;
+      secretaryId: string;
+      justiceContactId: string;
+      agendas: { id: string; comment: string | null }[];
+      date: { year: number; month: number; day: number };
+      time: { hours: number; minutes: number };
+    }) =>
+      $api.docs.updateJusticePresentationPlan({
+        body,
+        path: { planId: body.id }
+      }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
+      ])
+  });
+}
+
+export const useJusticePresentationPlanMetadataQuery = (options: {
+  presentationPlanId: string | undefined | null;
+}) =>
+  useQuery({
+    enabled: !!options.presentationPlanId,
+    queryKey: presentationPlanKeys.planMetadata({ id: options.presentationPlanId }),
+    queryFn: async () => {
+      if (!options.presentationPlanId) return null;
+      const { data = null } = await $api.docs.detailsPresentationPlanMetadata({
+        path: { planId: options.presentationPlanId }
+      });
+
+      return data;
+    }
+  });
+
+export const useJusticePresentationPlanHtmlQuery = (options: {
+  presentationPlanId: string | undefined | null;
+  force?: boolean;
+}) =>
+  useQuery({
+    enabled: !!options.presentationPlanId,
+    queryKey: presentationPlanKeys.planHtml({ id: options.presentationPlanId }),
+    queryFn: async () => {
+      if (!options.presentationPlanId) return null;
+
+      const { data = null } = await $api.docs.generatePresentationPlanHtml({
+        query: { force: options.force },
+        path: { planId: options.presentationPlanId }
+      });
+
+      return data as string | null;
+    }
+  });
+
+export function useJusticePresentationPlanPdfMutation() {
+  return useMutation({
+    mutationFn: async (options: { presentationPlanId: string }) =>
+      $api.docs
+        .generatePresentationPlanPdf({
+          path: { planId: options.presentationPlanId },
+          parseAs: 'stream'
+        })
+        .then(({ response }) => response.body?.cancel())
+  });
+}
+
+export function useDeleteJusticePresentationPlanMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: { presentationPlanId: string }) =>
+      $api.docs.deleteJusticePresentationPlan({ path: { planId: mutation.presentationPlanId } }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
+      ])
+  });
+}
+
+export function usePresentPlanMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { presentationPlanId: string }) =>
+      $api.docs.presentPlan({ path: { planId: mutation.presentationPlanId } }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
+      ])
+  });
+}
+
+export function useUnPresentPlanMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (mutation: { presentationPlanId: string }) =>
+      $api.docs.unPresentPlan({ path: { planId: mutation.presentationPlanId } }),
+
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
+      ])
+  });
+}
+
+export const useListNonPresentedPlansQuery = () =>
+  useQuery({
+    staleTime: Infinity,
+
+    queryKey: presentationPlanKeys.nonPresented(),
+    queryFn: async () => {
+      const { data = null } = await $api.docs.listNonPresentedPlans();
+      return data;
+    }
+  });
+
+export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
+  useQuery({
+    staleTime: Infinity,
+
+    queryKey: presentationPlanKeys.presented(query),
+    queryFn: async () => {
+      const { data = null } = await $api.docs.listPresentedPlans({
+        query: { page: (query.pageIndex ?? 0) + 1, limit: query.pageSize }
+      });
+
+      return data;
+    }
+  });
+
+export function useOpenJusticePresentationPlanPdfDocumentMutation() {
+  const tab = useTab();
+  return useMutation({
+    mutationFn: async (mutation: { planId: string }) => {
+      const { data } = await $api.docs.detailsJusticePresentationPlanPdfDocument({
+        path: { planId: mutation.planId }
+      });
+
+      if (!data) return;
+      tab.open(data.url);
     }
   });
 }

@@ -6,6 +6,7 @@ import { matchPath, useLocation } from 'react-router';
 import { useIsAdmin, useIsSg } from '@/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/help/HelpPage';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
+import { useIntl } from 'react-intl';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
@@ -23,6 +24,7 @@ function useRouteMatcher() {
 }
 
 export const AppHeader = () => {
+  const { $t } = useIntl();
   const { pathname } = useLocation();
   const routeMatches = useRouteMatcher();
   const isUserSg = useIsSg();
@@ -45,6 +47,11 @@ export const AppHeader = () => {
       text: <ManageSessionsLink />,
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID])
+    },
+    {
+      text: $t({ defaultMessage: `Restitutions` }),
+      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_READY },
+      isActive: routeMatches([ROUTE_PATHS.SG.PRESENTATIONS_PAST, ROUTE_PATHS.SG.PRESENTATIONS_READY])
     },
     {
       text: 'Gérer les membres',
