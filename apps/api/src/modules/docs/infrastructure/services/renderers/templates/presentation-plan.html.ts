@@ -174,10 +174,14 @@ function presentationPlanSessionSection(ctx: {
         </p> `
       : '';
 
+  const commentParagraph = ctx.comment?.trim()
+    ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>`
+    : '';
+
   return html`
     <h3>${ctx.sessionName}</h3>
     <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
-    ${nonValidated} ${validatedParagraph}
+    ${nonValidated} ${validatedParagraph} ${commentParagraph}
   `;
 }
 

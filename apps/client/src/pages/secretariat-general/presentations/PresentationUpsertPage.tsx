@@ -264,6 +264,7 @@ function AgendaCommentsStep(props: { className?: string }) {
             nativeTextAreaProps={{
               rows: 4,
               value: comments[agenda.id] ?? '',
+              style: { fieldSizing: 'content' },
               onChange: (e) => onCommentChange(agenda.id, e.target.value)
             }}
           />

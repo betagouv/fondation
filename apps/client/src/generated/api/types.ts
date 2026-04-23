@@ -1282,6 +1282,11 @@ export type CreatedJusticePresentationPlanDto = {
     id: string;
 };
 
+export type DetailedPresentationPlanPdfDocumentDto = {
+    id: string;
+    url: string;
+};
+
 export type ListedNonPresentedPlansDto = {
     items: Array<{
         id: string;
@@ -3070,6 +3075,21 @@ export type CreateJusticePresentationPlanResponses = {
 };
 
 export type CreateJusticePresentationPlanResponse = CreateJusticePresentationPlanResponses[keyof CreateJusticePresentationPlanResponses];
+
+export type DetailsJusticePresentationPlanPdfDocumentData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/url';
+};
+
+export type DetailsJusticePresentationPlanPdfDocumentResponses = {
+    200: DetailedPresentationPlanPdfDocumentDto;
+};
+
+export type DetailsJusticePresentationPlanPdfDocumentResponse = DetailsJusticePresentationPlanPdfDocumentResponses[keyof DetailsJusticePresentationPlanPdfDocumentResponses];
 
 export type UnPresentPlanData = {
     body?: never;

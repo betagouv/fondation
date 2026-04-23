@@ -113,12 +113,14 @@ export class JusticePresentationPlanRepository {
       justiceDepartmentContactName: justiceContact.name,
     } satisfies Prisma.JusticePresentationPlanUncheckedUpdateInput;
 
-    if (message instanceof JusticePresentationPlanUpdated) {
-      await tx.agenda.updateMany({
-        data: { justicePresentationPlanId: null },
-        where: { justicePresentationPlanId: message.id },
-      });
-    }
+    await tx.justicePresentationPlanToAgenda.deleteMany({
+      where: { planId: message.id },
+    });
+
+    await tx.agenda.updateMany({
+      data: { justicePresentationPlanId: null },
+      where: { justicePresentationPlanId: message.id },
+    });
 
     await tx.agenda.updateMany({
       data: { justicePresentationPlanId: message.id },
@@ -137,7 +139,6 @@ export class JusticePresentationPlanRepository {
       update: {
         ...data,
         agendas: {
-          deleteMany: {},
           createMany: { data: agendasCreateMany },
         },
       },

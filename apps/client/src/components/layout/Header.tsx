@@ -50,7 +50,7 @@ export const AppHeader = () => {
     },
     {
       text: $t({ defaultMessage: `Restitutions` }),
-      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_PAST },
+      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_READY },
       isActive: routeMatches([ROUTE_PATHS.SG.PRESENTATIONS_PAST, ROUTE_PATHS.SG.PRESENTATIONS_READY])
     },
     {

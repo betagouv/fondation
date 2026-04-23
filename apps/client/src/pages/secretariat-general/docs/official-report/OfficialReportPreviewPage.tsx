@@ -1,10 +1,10 @@
 import { useGenerateOfficialReportPdfMutation, useOfficialReportHtmlQuery } from '@queries/agenda.queries';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import React from 'react';
 import { useIntl } from 'react-intl';
-import { DocumentPreviewLayout } from '../DocumentPreview';
 
 export function OfficialReportPreviewPage() {
   const { $t } = useIntl();

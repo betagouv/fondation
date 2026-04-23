@@ -103,12 +103,18 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         }))
       };
 
-      const onSuccess = () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY));
+      const onSuccess = (planId: string) => {
+        navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId }));
+      };
 
       if (planId) {
-        update({ ...payload, id: planId }, { onSuccess });
+        update({ ...payload, id: planId }, { onSuccess: () => onSuccess(planId) });
       } else {
-        create(payload, { onSuccess });
+        create(payload, {
+          onSuccess: ({ data }) => {
+            if (data) return onSuccess(data.id);
+          }
+        });
       }
     },
     [state, setState, planId, update, create, navigate]
@@ -118,7 +124,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     <PresentationPlanContext
       value={{ planId, state, isDisabled, goToMetadata, initPlanCreation, setMetadata, createPlan }}
     >
-      {!isFetchingMeta && props.children}
+      {planId ? state.formation && props.children : props.children}
     </PresentationPlanContext>
   );
 }

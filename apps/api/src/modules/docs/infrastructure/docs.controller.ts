@@ -51,6 +51,7 @@ import { FoundAgendasDto } from './finders/agenda.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
 import { DetailedPresentationPlanMetadataDto } from './queries/details-presentation-plan-metadata.query';
+import { DetailedPresentationPlanPdfDocumentDto } from './queries/details-presentation-plan-pdf-document.query';
 import {
   DetailedSessionAgenda,
   DetailedSessionDoc,
@@ -511,6 +512,18 @@ export class DocsController {
       id: planId,
       authorId: user.id,
     });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/presentation-plans/:planId/url')
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: DetailedPresentationPlanPdfDocumentDto,
+  })
+  detailsJusticePresentationPlanPdfDocument(
+    @Param('planId') planId: string,
+  ): Promise<DetailedPresentationPlanPdfDocumentDto> {
+    return this.docs.detailsPresentationPlanPdfDocument({ id: planId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

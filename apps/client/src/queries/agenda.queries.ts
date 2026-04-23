@@ -4,6 +4,7 @@ import * as $api from '@api/sdk';
 
 import type { FormationEnum } from '@/types/enums.types';
 
+import { useTab } from '@/hooks/useTab';
 import type { FoundJusticeContactsDto } from '@api/types';
 import type { DateOnlyJson } from 'shared-models';
 
@@ -521,7 +522,7 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
         path: { planId: options.presentationPlanId }
       });
 
-      return data;
+      return data as string | null;
     }
   });
 
@@ -590,3 +591,17 @@ export const useListNonPresentedPlansQuery = () =>
       return data;
     }
   });
+
+export function useOpenJusticePresentationPlanPdfDocumentMutation() {
+  const tab = useTab();
+  return useMutation({
+    mutationFn: async (mutation: { planId: string }) => {
+      const { data } = await $api.docs.detailsJusticePresentationPlanPdfDocument({
+        path: { planId: mutation.planId }
+      });
+
+      if (!data) return;
+      tab.open(data.url);
+    }
+  });
+}

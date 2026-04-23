@@ -34,6 +34,7 @@ import {
   DetailedPresentationPlanMetadataDto,
   DetailsPresentationPlanMetadataQuery,
 } from './infrastructure/queries/details-presentation-plan-metadata.query';
+import { DetailsPresentationPlanPdfDocumentQuery } from './infrastructure/queries/details-presentation-plan-pdf-document.query';
 import {
   DetailedSessionAgenda,
   DetailsSessionAgendaQuery,
@@ -107,6 +108,7 @@ export class DocsService {
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
+    private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
     private readonly auth: SimpleAuthService,
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
@@ -558,5 +560,11 @@ export class DocsService {
     });
     plan.unPresent();
     await this.justicePresentationPlanRepository.persist(plan);
+  }
+
+  async detailsPresentationPlanPdfDocument(query: {
+    id: string;
+  }): Promise<{ id: string; url: string }> {
+    return this.detailsPresentationPlanPdfDocumentQuery.handle(query);
   }
 }

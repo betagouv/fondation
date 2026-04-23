@@ -31,7 +31,8 @@ export const ROUTE_PATHS = {
     PRESENTATIONS_READY: '/secretariat-general/restitutions/a-restituer',
     PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees',
     PRESENTATIONS_NEW: '/secretariat-general/restitutions/nouvelle-notice',
-    PRESENTATIONS_UPDATE: '/secretariat-general/restitutions/:planId'
+    PRESENTATIONS_UPDATE: '/secretariat-general/restitutions/:planId',
+    PRESENTATIONS_PREVIEW: '/secretariat-general/restitutions/:planId/validation'
   },
 
   ADMIN: {

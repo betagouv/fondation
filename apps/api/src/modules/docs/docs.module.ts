@@ -11,6 +11,7 @@ import { AgendaFinder } from './infrastructure/finders/agenda.finder';
 import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailsOfficialReportQuery } from './infrastructure/queries/details-official-report.query';
 import { DetailsPresentationPlanMetadataQuery } from './infrastructure/queries/details-presentation-plan-metadata.query';
+import { DetailsPresentationPlanPdfDocumentQuery } from './infrastructure/queries/details-presentation-plan-pdf-document.query';
 import { DetailsSessionAgendaQuery } from './infrastructure/queries/details-session-agenda.query';
 import { DetailsSessionOfficialReportQuery } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
@@ -45,6 +46,7 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     DetailsAgendaMetadataQuery,
     DetailsOfficialReportQuery,
     DetailsPresentationPlanMetadataQuery,
+    DetailsPresentationPlanPdfDocumentQuery,
     DetailsSessionAgendaQuery,
     DetailsSessionOfficialReportQuery,
     DocsService,
@@ -60,12 +62,12 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     FindSessionDocsQuery,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
+    ListNonPresentedPlansQuery,
     ListSecretariesGeneralQuery,
     OfficialReportRenderer,
     OfficialReportRepository,
     PdfRenderer,
     PresentationPlanRenderer,
-    ListNonPresentedPlansQuery,
   ],
   exports: [DocsService],
 })

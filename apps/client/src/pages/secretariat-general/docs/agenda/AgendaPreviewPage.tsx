@@ -4,8 +4,8 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useAgendaHtmlQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
 
+import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
 import { useIntl } from 'react-intl';
-import { DocumentPreviewLayout } from '../DocumentPreview';
 
 export function AgendaPreviewPage() {
   const { $t } = useIntl();
