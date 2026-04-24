@@ -13,6 +13,7 @@ import { FILE_MIME_TYPES } from '../framework/files';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
 import { StatutAffectation } from './domain/statut-affectation.enum';
+import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 
 describe('Session E2E', () => {
   const LODAM_FILES_FOLDER_PATH = path.join(
@@ -155,8 +156,8 @@ describe('Session E2E', () => {
             month: 9,
             year: 2020,
           },
-          grade: 'I',
-          gradeCible: 'HH',
+          grade: Magistrat.Grade.I,
+          gradeCible: Magistrat.Grade.HH,
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
@@ -168,6 +169,8 @@ describe('Session E2E', () => {
           version: 2,
           outcome: null,
           isAlertHidden: false,
+          detectedJurisdictionId: null,
+          detectedTargetedFunctionId: null,
         },
         id: expect.any(String),
         observationCount: 0,
@@ -184,7 +187,7 @@ describe('Session E2E', () => {
             lastName: 'durand',
           }),
         ],
-      });
+      } satisfies NominationFileAffectationItem);
 
       expect(nominationFiles.body.items).toContainEqual({
         comment: null,
@@ -211,8 +214,8 @@ describe('Session E2E', () => {
             month: 9,
             year: 2019,
           },
-          grade: 'I',
-          gradeCible: 'HH',
+          grade: Magistrat.Grade.I,
+          gradeCible: Magistrat.Grade.HH,
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
@@ -224,6 +227,9 @@ describe('Session E2E', () => {
           version: 2,
           outcome: null,
           isAlertHidden: false,
+
+          detectedJurisdictionId: null,
+          detectedTargetedFunctionId: null,
         },
         priority: null,
         priorities: [],
@@ -241,7 +247,7 @@ describe('Session E2E', () => {
             lastName: 'durand',
           }),
         ]),
-      });
+      } satisfies NominationFileAffectationItem);
     });
   });
 });

@@ -124,6 +124,8 @@ export class ListNominationFilesQuery {
           commentAccess: {
             select: { userId: true },
           },
+          detectedJurisdictionId: true,
+          detectedTargetedFunctionId: true,
           reporterIds: {
             where: { versionId: lastVersion.optionalId },
             select: {
@@ -191,6 +193,8 @@ export class ListNominationFilesQuery {
           datePriseDeFonctionPosteActuel:
             DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
           informationCarrière: null,
+          detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
+          detectedJurisdictionId: x.detectedJurisdictionId ?? null,
           outcome: x.outcome
             ? {
                 comment: x.outcomeComment,
@@ -366,6 +370,8 @@ const NominationFileContentSchema = z.object({
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
+  detectedJurisdictionId: z.string().nullable(),
+  detectedTargetedFunctionId: z.string().nullable(),
   outcome: z
     .object({
       value: z.enum(NominationFileOutcome.enum),
@@ -420,7 +426,7 @@ const NominationFileAffectationItemSchema = z.object({
     .nullable(),
 });
 
-type NominationFileAffectationItem = z.infer<
+export type NominationFileAffectationItem = z.infer<
   typeof NominationFileAffectationItemSchema
 >;
 
