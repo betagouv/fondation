@@ -7,10 +7,40 @@ import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+/** @see https://www.notion.so/2-Proposer-automatiquement-deux-rapporteurs-sur-certains-postes-26aa2ff25f1581848cc0eef5a4d77252 */
 function requires2Reporters(dossier: SessionNominationFile, selectedCount?: number) {
+  const hasOneReporter = selectedCount !== undefined ? selectedCount == 1 : dossier.reporters.length === 1;
+  if (!hasOneReporter) return false;
+
+  const position = dossier.content.detectedTargetedFunctionId;
+  if (
+    // procureur général
+    position === 'PG' ||
+    // procureur de la République Financier
+    position === 'PR F' ||
+    // procureur de la République antiterroriste
+    position === 'PRAT' ||
+    // premier président de chambre
+    position === '1PC'
+  ) {
+    return true;
+  }
+
+  const jurisdiction = dossier.content.detectedJurisdictionId;
+  if (
+    // premier avocat général à la CC
+    (jurisdiction === 'CC  PARIS' && position === '1AG') ||
+    // avocat général à la CC
+    (jurisdiction === 'CC  PARIS' && position === 'AG') ||
+    // procureur de la république près le tribunal judiciaire de Paris
+    (jurisdiction === 'TJ  PARIS' && position === 'PR')
+  ) {
+    return true;
+  }
+
+  // Legacy: when we don't use data from LOLFI, we don't have functions' or jurisdictions' codes
   const search = unaccent(dossier.content.posteCible || '').toLowerCase();
   return (
-    (selectedCount !== undefined ? selectedCount == 1 : dossier.reporters.length === 1) &&
     search &&
     [
       'procureur general',

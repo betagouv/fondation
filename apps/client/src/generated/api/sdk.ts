@@ -768,6 +768,10 @@ export class docs {
         return (options.client ?? client).get<GeneratePresentationPlanPdfResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/{planId}.pdf', ...options });
     }
     
+    public static listPresentedPlans<ThrowOnError extends boolean = false>(options?: Options<ListPresentedPlansData, ThrowOnError>) {
+        return (options?.client ?? client).get<ListPresentedPlansResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/presented', ...options });
+    }
+    
     public static deleteJusticePresentationPlan<ThrowOnError extends boolean = false>(options: Options<DeleteJusticePresentationPlanData, ThrowOnError>) {
         return (options.client ?? client).delete<DeleteJusticePresentationPlanResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/{planId}', ...options });
     }
@@ -804,10 +808,6 @@ export class docs {
     
     public static detailsJusticePresentationPlanPdfDocument<ThrowOnError extends boolean = false>(options: Options<DetailsJusticePresentationPlanPdfDocumentData, ThrowOnError>) {
         return (options.client ?? client).get<DetailsJusticePresentationPlanPdfDocumentResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/{planId}/url', ...options });
-    }
-    
-    public static listPresentedPlans<ThrowOnError extends boolean = false>(options?: Options<ListPresentedPlansData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListPresentedPlansResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/presented', ...options });
     }
     
     public static unPresentPlan<ThrowOnError extends boolean = false>(options: Options<UnPresentPlanData, ThrowOnError>) {

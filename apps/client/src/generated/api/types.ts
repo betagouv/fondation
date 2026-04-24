@@ -352,6 +352,8 @@ export type PaginatedNominationFiles = {
                 day: number;
             } | null;
             informationCarrière: string | null;
+            detectedJurisdictionId: string | null;
+            detectedTargetedFunctionId: string | null;
             outcome: {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
                 comment: string | null;
@@ -1235,6 +1237,31 @@ export type DetailedOfficialReportMetadataDto = {
     justiceDepartmentContactId: string | null;
 };
 
+export type ListedPresentedPlansDto = {
+    items: Array<{
+        id: string;
+        time: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        };
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        formation: 'PARQUET' | 'SIEGE';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type DetailedPresentationPlanMetadataDto = {
     id: string;
     time: {
@@ -1302,31 +1329,6 @@ export type ListedNonPresentedPlansDto = {
         };
         formation: 'PARQUET' | 'SIEGE';
     }>;
-};
-
-export type ListedPresentedPlansDto = {
-    items: Array<{
-        id: string;
-        time: {
-            hours: number;
-            minutes: number;
-            seconds: number;
-        };
-        date: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        formation: 'PARQUET' | 'SIEGE';
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
 };
 
 export type GetFileByFileUrlData = {
@@ -3030,6 +3032,22 @@ export type GeneratePresentationPlanPdfResponses = {
     200: unknown;
 };
 
+export type ListPresentedPlansData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/docs/v1/presentation-plans/presented';
+};
+
+export type ListPresentedPlansResponses = {
+    200: ListedPresentedPlansDto;
+};
+
+export type ListPresentedPlansResponse = ListPresentedPlansResponses[keyof ListPresentedPlansResponses];
+
 export type DeleteJusticePresentationPlanData = {
     body?: never;
     path: {
@@ -3115,22 +3133,6 @@ export type DetailsJusticePresentationPlanPdfDocumentResponses = {
 };
 
 export type DetailsJusticePresentationPlanPdfDocumentResponse = DetailsJusticePresentationPlanPdfDocumentResponses[keyof DetailsJusticePresentationPlanPdfDocumentResponses];
-
-export type ListPresentedPlansData = {
-    body?: never;
-    path?: never;
-    query?: {
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/docs/v1/presentation-plans/presented';
-};
-
-export type ListPresentedPlansResponses = {
-    200: ListedPresentedPlansDto;
-};
-
-export type ListPresentedPlansResponse = ListPresentedPlansResponses[keyof ListPresentedPlansResponses];
 
 export type UnPresentPlanData = {
     body?: never;
