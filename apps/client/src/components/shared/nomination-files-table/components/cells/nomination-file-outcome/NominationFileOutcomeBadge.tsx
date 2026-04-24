@@ -9,18 +9,20 @@ function InnerNominationFileOutcomeBadge(props: {
   outcome: NominationFileOutcomeEnum | null;
   short?: boolean;
 }) {
-  const { badge, acronym, icon, severity } = useNominationFileOutcome(props);
+  const { badge, acronym, icon, severity, label } = useNominationFileOutcome(props);
 
-  const label = props.short === true ? acronym : badge.toUpperCase();
+  const badgeLabel = props.short === true ? acronym : badge.toUpperCase();
 
   if (props.outcome === null) return '-';
 
+  // ts hack to add the title
+  const badgeProps = { title: props.short ? label : undefined };
   return (
-    <Badge small severity={severity} noIcon as="span">
+    <Badge {...badgeProps} small severity={severity} noIcon as="span">
       {icon && (
         <i className={`mr-1 leading-3 before:size-3 before:align-middle before:content-[""] ${icon}`} />
       )}
-      {label}
+      {badgeLabel}
     </Badge>
   );
 }

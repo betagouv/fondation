@@ -1,7 +1,7 @@
 import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import React from 'react';
 
-import { type FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+import { type FormationEnum, NominationFileOutcomeEnum, outcomeLabel } from '@/types/enums.types';
 import type { IconClassName } from '@/types/icons.types';
 
 const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
@@ -73,12 +73,19 @@ export const useNominationFileOutcome = (outcome: {
   React.useMemo(
     () =>
       outcome.outcome === null
-        ? { badge: '', acronym: '', icon: undefined, severity: undefined }
+        ? {
+            badge: '',
+            acronym: '',
+            label: '',
+            icon: undefined,
+            severity: undefined
+          }
         : {
             badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.outcome],
             acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.outcome],
             icon: NOMINATION_FILE_OUTCOME_ICON[outcome.outcome],
-            severity: NOMINATION_FILE_OUTCOME_SEVERITY[outcome.outcome]
+            severity: NOMINATION_FILE_OUTCOME_SEVERITY[outcome.outcome],
+            label: outcomeLabel({ value: outcome.outcome, formation: outcome.formation })
           },
     [outcome]
   );
