@@ -53,7 +53,6 @@ import {
   GetLolfiMagistratUrlQuery,
   LolfiMagistratUrlDto,
 } from './queries/get-lolfi-magistrat-url.query';
-import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
 import {
   type DetailedMemberSessionDto,
   InternalDetailMemberSessionQuery,
@@ -95,7 +94,6 @@ export class SessionService {
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
-    private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly internalFindAgendaNominationFilesQuery: InternalFindAgendaNominationFilesQuery,
@@ -242,36 +240,6 @@ export class SessionService {
       },
       data: { comment: command.comment },
     });
-  }
-
-  getCommentAccess(query: {
-    sessionId: string;
-    nominationFileId: string;
-  }): Promise<{ comment: string | null; userIds: string[] }> {
-    return this.getNominationFileWithCommentQuery.handle(query);
-  }
-
-  /** @deprecated */
-  async updateCommentAccess(command: {
-    sessionId: string;
-    nominationFileId: string;
-    userIds: readonly string[];
-  }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(
-      command.sessionId,
-    );
-
-    const formationMemberIds = await this.members
-      .findMembers({ formation: session.formation, ids: command.userIds })
-      .then((ids) => new Set(ids));
-
-    session.grantCommentAccess({
-      formationMemberIds,
-      userIds: command.userIds,
-      nominationFileId: command.nominationFileId,
-    });
-
-    await this.nominationSessionRepository.persist(session);
   }
 
   async createNominationSessionFromLodam(command: {

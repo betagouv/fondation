@@ -68,10 +68,6 @@ export class UploadSessionAttachmentsDto extends createZodDto(
   }),
 ) {}
 
-export class ListCommentAccessDto extends createZodDto(
-  z.object({ comment: z.string().nullable(), userIds: z.array(z.string()) }),
-) {}
-
 export class DefineNominationFileOutcomeDto extends createZodDto(
   z.object({
     outcome: z.enum(NominationFileOutcome.enum).nullable(),

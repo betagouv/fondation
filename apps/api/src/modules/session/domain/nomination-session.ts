@@ -80,14 +80,6 @@ export class NominationFilesAssociated {
   ) {}
 }
 
-export class NominationSessionFileCommentAccessGranted {
-  constructor(
-    readonly sessionId: string,
-    readonly nominationFileId: string,
-    readonly userIds: readonly string[],
-  ) {}
-}
-
 export class NominationSessionFilesObserversUpdated {
   constructor(
     readonly sessionId: string,
@@ -167,7 +159,6 @@ type NominationSessionEvent =
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
   | NominationSessionCreated
-  | NominationSessionFileCommentAccessGranted
   | NominationSessionFilePrioritiesUpdated
   | NominationSessionFileReportersAffected
   | NominationSessionFilesObserversUpdated
@@ -449,28 +440,6 @@ export class NominationSession {
       affectations,
       formationMemberIds: command.formationMemberIds,
     });
-  }
-
-  grantCommentAccess(command: {
-    formationMemberIds: Set<string>;
-    nominationFileId: string;
-    userIds: readonly string[];
-  }) {
-    const allUsersAreFormationMembers = command.userIds.every((userId) =>
-      command.formationMemberIds.has(userId),
-    );
-
-    if (!allUsersAreFormationMembers) {
-      throw new NonFormationMemberDefinedAsReporter();
-    }
-
-    this.#messages.push(
-      new NominationSessionFileCommentAccessGranted(
-        this.id,
-        command.nominationFileId,
-        command.userIds,
-      ),
-    );
   }
 
   updateNominationFileObservers(command: {

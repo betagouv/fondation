@@ -456,22 +456,9 @@ export type UpdateCommentDto = {
     comment: string | null;
 };
 
-export type ListCommentAccessDto = {
-    comment: string | null;
-    userIds: Array<string>;
-};
-
-export type UpdateCommentAccessDto = {
-    userIds: Array<string>;
-};
-
 export type DefineNominationFileOutcomeDto = {
     outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
     comment: string | null;
-};
-
-export type UploadSessionAttachmentDto = {
-    file: Blob | File;
 };
 
 export type UploadSessionAttachmentsDto = {
@@ -1804,38 +1791,6 @@ export type UpdateNominationFileCommentResponses = {
 
 export type UpdateNominationFileCommentResponse = UpdateNominationFileCommentResponses[keyof UpdateNominationFileCommentResponses];
 
-export type GetCommentAccessData = {
-    body?: never;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access';
-};
-
-export type GetCommentAccessResponses = {
-    200: ListCommentAccessDto;
-};
-
-export type GetCommentAccessResponse = GetCommentAccessResponses[keyof GetCommentAccessResponses];
-
-export type UpdateCommentAccessData = {
-    body: UpdateCommentAccessDto;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/comment-access';
-};
-
-export type UpdateCommentAccessResponses = {
-    204: void;
-};
-
-export type UpdateCommentAccessResponse = UpdateCommentAccessResponses[keyof UpdateCommentAccessResponses];
-
 export type DefineNominationFileOutcomeData = {
     body: DefineNominationFileOutcomeDto;
     path: {
@@ -1867,36 +1822,6 @@ export type HideNominationFileAlertResponses = {
 };
 
 export type HideNominationFileAlertResponse = HideNominationFileAlertResponses[keyof HideNominationFileAlertResponses];
-
-export type ListNominationSessionAttachmentsData = {
-    body?: never;
-    path: {
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/attachments';
-};
-
-export type ListNominationSessionAttachmentsResponses = {
-    200: ListedNominationSessionAttachmentDto;
-};
-
-export type ListNominationSessionAttachmentsResponse = ListNominationSessionAttachmentsResponses[keyof ListNominationSessionAttachmentsResponses];
-
-export type UploadSessionAttachmentData = {
-    body: UploadSessionAttachmentDto;
-    path: {
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/attachments';
-};
-
-export type UploadSessionAttachmentResponses = {
-    204: void;
-};
-
-export type UploadSessionAttachmentResponse = UploadSessionAttachmentResponses[keyof UploadSessionAttachmentResponses];
 
 export type UploadSessionAttachmentsData = {
     body: UploadSessionAttachmentsDto;
@@ -1944,6 +1869,21 @@ export type CreateNominationSessionAttachmentUrlResponses = {
 };
 
 export type CreateNominationSessionAttachmentUrlResponse = CreateNominationSessionAttachmentUrlResponses[keyof CreateNominationSessionAttachmentUrlResponses];
+
+export type ListNominationSessionAttachmentsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments';
+};
+
+export type ListNominationSessionAttachmentsResponses = {
+    200: ListedNominationSessionAttachmentDto;
+};
+
+export type ListNominationSessionAttachmentsResponse = ListNominationSessionAttachmentsResponses[keyof ListNominationSessionAttachmentsResponses];
 
 export type DetailsNominationSessionData = {
     body?: never;

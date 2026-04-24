@@ -16,7 +16,6 @@ import { DetailNominationSessionAffectationVersionQuery } from './infrastructure
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
-import { GetNominationFileWithCommentQuery } from './infrastructure/queries/get-nomination-file-with-comment.query';
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
 import { InternalFindAgendaNominationFilesQuery } from './infrastructure/queries/internal-find-agenda-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
@@ -48,7 +47,6 @@ import { SummaryModule } from './summary.module';
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     GetLolfiMagistratUrlQuery,
-    GetNominationFileWithCommentQuery,
     InternalDetailMemberSessionQuery,
     InternalFindAgendaNominationFilesQuery,
     InternalListMemberSessionsQuery,

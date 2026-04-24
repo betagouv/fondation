@@ -35,7 +35,6 @@ import {
   NominationSessionAttachmentAdded,
   NominationSessionAttachmentRemoved,
   NominationSessionCreated,
-  NominationSessionFileCommentAccessGranted,
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
@@ -159,13 +158,6 @@ export class NominationSessionRepository {
           message instanceof NominationSessionAffectationVersionCreated
         ) {
           await this.persistNominationSessionAffectationVersionCreated(
-            tx,
-            message,
-          );
-        } else if (
-          message instanceof NominationSessionFileCommentAccessGranted
-        ) {
-          await this.persistNominationSessionFileCommentAccessGranted(
             tx,
             message,
           );
@@ -406,39 +398,6 @@ export class NominationSessionRepository {
             userId,
           }),
         ),
-      });
-    }
-  }
-
-  private async persistNominationSessionFileCommentAccessGranted(
-    tx: Prisma.TransactionClient,
-    message: NominationSessionFileCommentAccessGranted,
-  ) {
-    // Verify the nomination file belongs to the session
-    const nominationFile = await tx.dossierDeNomination.findFirst({
-      where: {
-        id: message.nominationFileId,
-        sessionId: message.sessionId,
-      },
-    });
-
-    if (!nominationFile) {
-      throw new NotFoundException(
-        `Nomination file ${message.nominationFileId} not found in session ${message.sessionId}`,
-      );
-    }
-
-    // Delete all existing accesses and create new ones
-    await tx.commentAccess.deleteMany({
-      where: { nominationFileId: message.nominationFileId },
-    });
-
-    if (message.userIds.length > 0) {
-      await tx.commentAccess.createMany({
-        data: message.userIds.map((userId) => ({
-          nominationFileId: message.nominationFileId,
-          userId,
-        })),
       });
     }
   }
