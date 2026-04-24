@@ -27,7 +27,7 @@ export class SummaryRepository {
     nominationFileId: string;
   }): Promise<boolean> {
     const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         dossierDeNominations: {
           take: 1,
@@ -43,7 +43,7 @@ export class SummaryRepository {
   // TODO: should we rehydrate files with outcomes?
   async find(query: { sessionId: string; nominationFileId: string }) {
     const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         dossierDeNominations: {
           where: { id: query.nominationFileId },

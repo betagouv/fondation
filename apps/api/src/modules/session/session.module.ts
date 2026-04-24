@@ -8,6 +8,7 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
+import { NominationSessionFinder } from './infrastructure/finders/nomination-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
@@ -58,6 +59,7 @@ import { SummaryModule } from './summary.module';
     LolfiNominationFilesFinder,
     LolfiNominationSessionFinder,
     NominationSessionFileFinder,
+    NominationSessionFinder,
     NominationSessionRepository,
     SessionService,
     UnaffectedFilesFinder,

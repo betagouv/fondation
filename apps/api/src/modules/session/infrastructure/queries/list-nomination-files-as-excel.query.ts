@@ -25,7 +25,7 @@ export class ListNominationFilesAsExcelQuery {
       });
 
       return tx.session.findUnique({
-        where: { id: query.sessionId },
+        where: { id: query.sessionId, deletedAt: null },
         select: {
           formation: true,
           dossierDeNominations: {

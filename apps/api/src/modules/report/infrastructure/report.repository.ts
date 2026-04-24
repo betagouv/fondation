@@ -48,7 +48,7 @@ export class ReportRepository {
 
       const session = await tx.session.findUnique({
         select: { name: true },
-        where: { id: report?.sessionId },
+        where: { id: report?.sessionId, deletedAt: null },
       });
       if (!session) return null;
 

@@ -81,7 +81,7 @@ export class FindOfficialReportDocumentQuery {
       if (!agenda) throw new NotFoundException();
 
       const session = await tx.session.findUnique({
-        where: { id: agenda.sessionId },
+        where: { id: agenda.sessionId, deletedAt: null },
         select: { date: true },
       });
       if (!session) throw new NotFoundException();

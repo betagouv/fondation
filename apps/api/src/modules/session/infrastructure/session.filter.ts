@@ -7,12 +7,13 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
-  UnknownNominationFileOutcome,
   NominationFileOutcomeRequiresComment,
+  UnknownNominationFileOutcome,
 } from '../domain/nomination-file-outcome';
 import {
   NominationFilesHaveOutcome,
   NominationSessionAffectationHasUnknownReporter,
+  NominationSessionIsNotDeletable,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
 } from '../domain/nomination-session';
@@ -86,6 +87,14 @@ export class SessionExceptionFilter implements NestInterceptor {
               },
               { cause: err },
             );
+          }
+
+          if (err instanceof NominationSessionIsNotDeletable) {
+            throw new BadRequestException({
+              validationErrors: [
+                `La session ne doit plus avoir d'affectation et plus de pièces jointes avant d'être supprimé`,
+              ],
+            });
           }
 
           return err;

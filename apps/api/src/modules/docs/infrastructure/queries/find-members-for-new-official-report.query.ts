@@ -21,7 +21,7 @@ export class FindMembersForNewOfficialReportQuery {
   }): Promise<FoundMembersForNewOfficialReportDto> {
     return this.prisma.$transaction(async (tx) => {
       const session = await tx.session.findUnique({
-        where: { id: query.sessionId },
+        where: { id: query.sessionId, deletedAt: null },
         select: { formation: true },
       });
       if (!session) throw new NotFoundException();

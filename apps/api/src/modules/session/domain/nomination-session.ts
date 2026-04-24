@@ -148,6 +148,13 @@ export class NominationSessionValidated {
   ) {}
 }
 
+export class NominationSessionDeleted {
+  constructor(
+    readonly id: string,
+    readonly userId: string,
+  ) {}
+}
+
 type NominationSessionEvent =
   | LodamNominationSessionFilesCreated
   | NominationFileAlertHidden
@@ -163,7 +170,8 @@ type NominationSessionEvent =
   | NominationSessionFileReportersAffected
   | NominationSessionFilesObserversUpdated
   | NominationSessionUpdated
-  | NominationSessionValidated;
+  | NominationSessionValidated
+  | NominationSessionDeleted;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -200,6 +208,12 @@ export class UnknownNominationFiles extends Error {
 
 export class NominationFilesHaveOutcome extends Error {
   constructor(readonly nominationFileIds: readonly string[]) {
+    super();
+  }
+}
+
+export class NominationSessionIsNotDeletable extends Error {
+  constructor(readonly sessionId: string) {
     super();
   }
 }
@@ -547,6 +561,25 @@ export class NominationSession {
     this.#messages.push(
       new NominationSessionValidated(this.id, command.userId),
     );
+  }
+
+  delete(command: {
+    userId: string;
+    attachmentsCount: number;
+    affectedReportersCount: number;
+  }): void {
+    if (
+      command.attachmentsCount !== 0 ||
+      command.affectedReportersCount !== 0
+    ) {
+      throw new NominationSessionIsNotDeletable(this.id);
+    }
+
+    if (this.version?.isDraft) {
+      this.publishAffectationVersion(command);
+    }
+
+    this.#messages.push(new NominationSessionDeleted(this.id, command.userId));
   }
 
   private nominationFileHasOutcome(nominationFileId: string): boolean {

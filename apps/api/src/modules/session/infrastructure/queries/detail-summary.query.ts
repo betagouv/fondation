@@ -32,7 +32,7 @@ export class DetailSummaryQuery {
     userId: string;
   }): Promise<DetailedSummaryDto> {
     const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         id: true,
         formation: true,

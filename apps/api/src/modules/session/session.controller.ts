@@ -448,4 +448,14 @@ export class SessionController {
   ): Promise<LolfiMagistratUrlDto> {
     return this.sessions.getLolfiMagistratUrl({ sessionId, nominationFileId });
   }
+
+  @Delete('/:sessionId')
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteNominationSession(
+    @Param('sessionId') id: string,
+    @AuthedUser() { id: userId }: { id: string },
+  ): Promise<void> {
+    return this.sessions.deleteSession({ id, userId });
+  }
 }

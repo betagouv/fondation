@@ -7,7 +7,8 @@ WITH max_version AS (
   FROM nominations_context.affectation
     INNER JOIN nominations_context.session ON session.id = affectation.session_id
   WHERE (
-    "session".formation = $2::formation
+    "session"."deleted_at" IS NULL
+    AND "session".formation = $2::formation
     AND affectation.created_at >= ((EXTRACT(YEAR FROM CURRENT_DATE)) || '-01-01')::DATE
   )
   GROUP BY session_id

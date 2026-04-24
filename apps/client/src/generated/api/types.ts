@@ -361,6 +361,9 @@ export type PaginatedNominationFiles = {
             isAlertHidden: boolean;
         };
         comment: string | null;
+        /**
+         * @deprecated
+         */
         commentAccessUserIds?: Array<string>;
         reporters: Array<{
             id: string;
@@ -504,6 +507,7 @@ export type DetailedNominationSessionDto = {
     } | null;
     typeDeSaisine: 'TRANSPARENCE_GDS';
     isValidated: boolean;
+    isDeletable: boolean;
 };
 
 export type UpdateNominationSessionDto = {
@@ -1884,6 +1888,21 @@ export type ListNominationSessionAttachmentsResponses = {
 };
 
 export type ListNominationSessionAttachmentsResponse = ListNominationSessionAttachmentsResponses[keyof ListNominationSessionAttachmentsResponses];
+
+export type DeleteNominationSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}';
+};
+
+export type DeleteNominationSessionResponses = {
+    204: void;
+};
+
+export type DeleteNominationSessionResponse = DeleteNominationSessionResponses[keyof DeleteNominationSessionResponses];
 
 export type DetailsNominationSessionData = {
     body?: never;

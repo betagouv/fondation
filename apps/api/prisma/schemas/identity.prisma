@@ -44,7 +44,7 @@ model User {
   excludedJurisdictionIds             ExcludedJurisdiction[]
   reporterOnNominationFileIds         NominationFileToReporter[]
   publishedVersions                   AffectationVersion[]
-  commentAccess                       CommentAccess[]
+  commentAccess                       CommentAccess[]            @ignore
   createdObservations                 Observation[]              @relation("user_to_observation")
   observationMemberComments           ObservationMemberComment[]
   memos                               MemberMemo[]
@@ -62,6 +62,7 @@ model User {
   chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
   secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")
   authorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_author")
+  deletorOfSessions                   Session[]                  @relation("session_deletion_author")
 
   @@map("users")
   @@schema("identity_and_access_context")

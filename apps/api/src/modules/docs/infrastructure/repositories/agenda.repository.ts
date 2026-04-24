@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
@@ -48,10 +52,13 @@ export class AgendaRepository {
     tx: Prisma.TransactionClient,
     message: AgendaCreated,
   ) {
-    const { formation, name } = await tx.session.findUniqueOrThrow({
-      where: { id: message.sessionId },
+    const session = await tx.session.findUnique({
+      where: { id: message.sessionId, deletedAt: null },
       select: { formation: true, name: true },
     });
+
+    if (!session) throw new InternalServerErrorException();
+    const { formation, name } = session;
 
     return tx.agenda.create({
       data: {
