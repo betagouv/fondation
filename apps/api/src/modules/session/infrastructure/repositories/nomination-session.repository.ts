@@ -11,7 +11,6 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { MembersService } from 'src/modules/members';
 import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
@@ -35,7 +34,7 @@ import {
   NominationSessionAttachmentAdded,
   NominationSessionAttachmentRemoved,
   NominationSessionCreated,
-  NominationSessionFileCommentAccessGranted,
+  NominationSessionDeleted,
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
@@ -53,7 +52,6 @@ export class NominationSessionRepository {
   constructor(
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
-    private readonly members: MembersService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
   ) {}
@@ -73,7 +71,7 @@ export class NominationSessionRepository {
     const { tx } = options;
 
     const session = await tx.session.findUnique({
-      where: { id },
+      where: { id, deletedAt: null },
       select: {
         id: true,
         formation: true,
@@ -162,13 +160,6 @@ export class NominationSessionRepository {
             tx,
             message,
           );
-        } else if (
-          message instanceof NominationSessionFileCommentAccessGranted
-        ) {
-          await this.persistNominationSessionFileCommentAccessGranted(
-            tx,
-            message,
-          );
         } else if (message instanceof NominationSessionCreated) {
           await this.persistNominationSessionCreated(tx, message);
         } else if (message instanceof LodamNominationSessionFilesCreated) {
@@ -191,6 +182,8 @@ export class NominationSessionRepository {
           await this.persistNominationFilesAssociated(tx, message);
         } else if (message instanceof NominationSessionValidated) {
           await this.persistNominationSessionValidated(tx, message);
+        } else if (message instanceof NominationSessionDeleted) {
+          await this.persistNominationSessionDeleted(tx, message);
         } else {
           assertNever(message);
         }
@@ -262,7 +255,7 @@ export class NominationSessionRepository {
     message: NominationSessionAffectationVersionPublished,
   ) {
     const session = await tx.session.findUnique({
-      where: { id: message.sessionId },
+      where: { id: message.sessionId, deletedAt: null },
       select: {
         // TODO: remove once report.formation is removed
         formation: true,
@@ -406,39 +399,6 @@ export class NominationSessionRepository {
             userId,
           }),
         ),
-      });
-    }
-  }
-
-  private async persistNominationSessionFileCommentAccessGranted(
-    tx: Prisma.TransactionClient,
-    message: NominationSessionFileCommentAccessGranted,
-  ) {
-    // Verify the nomination file belongs to the session
-    const nominationFile = await tx.dossierDeNomination.findFirst({
-      where: {
-        id: message.nominationFileId,
-        sessionId: message.sessionId,
-      },
-    });
-
-    if (!nominationFile) {
-      throw new NotFoundException(
-        `Nomination file ${message.nominationFileId} not found in session ${message.sessionId}`,
-      );
-    }
-
-    // Delete all existing accesses and create new ones
-    await tx.commentAccess.deleteMany({
-      where: { nominationFileId: message.nominationFileId },
-    });
-
-    if (message.userIds.length > 0) {
-      await tx.commentAccess.createMany({
-        data: message.userIds.map((userId) => ({
-          nominationFileId: message.nominationFileId,
-          userId,
-        })),
       });
     }
   }
@@ -691,6 +651,16 @@ export class NominationSessionRepository {
         validatedBy: message.userId,
         validatedAt: this.clock.now(),
       },
+    });
+  }
+
+  private async persistNominationSessionDeleted(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionDeleted,
+  ) {
+    await tx.session.update({
+      where: { id: message.id },
+      data: { deletedAt: this.clock.now(), deletedBy: message.userId },
     });
   }
 }

@@ -56,7 +56,7 @@ export const sessionKeys = {
   }) => key('sessions', 'listGdsSessions', props),
   listSessionAttachments: (props: { sessionId: string }) =>
     key('sessions', 'listSessionAttachments', props.sessionId),
-  lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId: string }) =>
+  lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId?: string }) =>
     key('sessions', 'lolfiMagistratUrl', props?.sessionId, props?.nominationFileId),
   listCurrentlyAffectedReporters: (props?: { sessionId: string }) =>
     key('sessions', 'listCurrentlyAffectedReporters', props?.sessionId),
@@ -556,5 +556,29 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
           };
         }
       )
+  });
+}
+
+export function useDeleteNominationSessionMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.sessions.deleteNominationSession({ path: { sessionId: input.sessionId } }),
+    onSuccess: () =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: sessionKeys.countUsersNewSessions() }),
+
+        queryClient.removeQueries({
+          predicate: doesQueryKey.matchesAny(
+            sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
+            sessionKeys.detailSession({ sessionId: input.sessionId }),
+            sessionKeys.detailSessionAffectationVersion({ sessionId: input.sessionId }),
+            sessionKeys.listCurrentlyAffectedReporters({ sessionId: input.sessionId }),
+            sessionKeys.listSessionAttachments({ sessionId: input.sessionId }),
+            sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+            sessionKeys.lolfiMagistratUrl({ sessionId: input.sessionId }),
+            sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId })
+          )
+        })
+      ])
   });
 }

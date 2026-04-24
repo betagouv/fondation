@@ -88,14 +88,14 @@ model DossierDeNomination {
   detectedTargetedFunctionId String? @map("detected_targeted_function_id")
   detectedTargetedPositionId Int?    @map("detected_targeted_position_id")
 
-  reports           Report[]
-  reporterIds       NominationFileToReporter[]
-  session           Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  commentAccess     CommentAccess[]
-  observations      Observation[]
-  memberMemos       MemberMemo[]
-  summary           Summary?
-  agendaInclusions  AgendaNominationFile[]
+  reports          Report[]
+  reporterIds      NominationFileToReporter[]
+  session          Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  commentAccess    CommentAccess[]            @ignore
+  observations     Observation[]
+  memberMemos      MemberMemo[]
+  summary          Summary?
+  agendaInclusions AgendaNominationFile[]
 
   detectedMagistrat        Magistrat?    @relation(fields: [detectedMagistratId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   detectedJurisdiction     Jurisdiction? @relation(fields: [detectedJurisdictionId], references: [codejur], onDelete: SetNull, onUpdate: NoAction)
@@ -108,6 +108,7 @@ model DossierDeNomination {
   @@schema("nominations_context")
 }
 
+/// @deprecated
 model CommentAccess {
   nominationFileId String   @map("nomination_file_id") @db.Uuid
   userId           String   @map("user_id") @db.Uuid
@@ -119,6 +120,7 @@ model CommentAccess {
   @@id([nominationFileId, userId])
   @@index([userId])
   @@map("comment_access")
+  @@ignore
   @@schema("nominations_context")
 }
 
@@ -139,11 +141,17 @@ model Session {
   validatedBy             String?                 @map("validated_by") @db.Uuid
   validatedAt             DateTime?               @map("validated_at")
 
+  // wee need to keep the session since LOLFI could update an existing session
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
   affectationVersions  AffectationVersion[]
   dossierDeNominations DossierDeNomination[]
   attachments          SessionAttachment[]
   validator            User?                 @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletionAuthor       User?                 @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
 
+  @@index([deletedAt])
   @@map("session")
   @@schema("nominations_context")
 }

@@ -23,7 +23,7 @@ export class GetSummaryAttachmentUrlQuery {
     fileId: string;
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         dossierDeNominations: {
           where: { id: query.nominationFileId },

@@ -40,7 +40,8 @@ FROM nominations_context."session" AS s
   LEFT JOIN nominations_context.nomination_file_to_reporter AS nfr ON nfr.version_id = lpa.id
 
 WHERE (
-  s.type_de_saisine = 'TRANSPARENCE_GDS'::nominations_context.TYPE_DE_SAISINE
+  s.deleted_at IS NULL
+  AND s.type_de_saisine = 'TRANSPARENCE_GDS'::nominations_context.TYPE_DE_SAISINE
   AND ($2::FORMATION IS NULL OR s.formation = $2::FORMATION)
 )
 

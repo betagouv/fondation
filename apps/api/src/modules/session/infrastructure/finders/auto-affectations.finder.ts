@@ -35,7 +35,7 @@ export class AutoAffectationsFinder {
   }): Promise<AutoAffectations> {
     const session = await this.prisma.$transaction(async (tx) => {
       const txSession = await tx.session.findUnique({
-        where: { id: predicate.sessionId },
+        where: { id: predicate.sessionId, deletedAt: null },
         select: {
           date: true,
           formation: true,

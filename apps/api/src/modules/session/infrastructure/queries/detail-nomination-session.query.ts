@@ -6,30 +6,55 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import z from 'zod';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class DetailNominationSessionQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly affectationVersionFinder: AffectationVersionFinder,
+  ) {}
 
   async handle(query: {
     sessionId: string;
   }): Promise<DetailedNominationSessionDto> {
-    const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        observationsClosingDate: true,
-        dueDate: true,
-        positionStartDate: true,
-        formation: true,
-        typeDeSaisine: true,
-        isValidated: true,
-      },
+    const session = await this.prisma.$transaction(async (tx) => {
+      const optionalVersion = await this.affectationVersionFinder.last({
+        sessionId: query.sessionId,
+        tx,
+      });
+
+      return this.prisma.session.findUnique({
+        where: { id: query.sessionId, deletedAt: null },
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          observationsClosingDate: true,
+          dueDate: true,
+          positionStartDate: true,
+          formation: true,
+          typeDeSaisine: true,
+          isValidated: true,
+
+          _count: { select: { attachments: true } },
+
+          affectationVersions: {
+            where: { id: optionalVersion.optionalId },
+            select: {
+              _count: { select: { affectations: true } },
+            },
+          },
+        },
+      });
     });
 
     if (!session) throw new NotFoundException();
+
+    const affectationsCount =
+      session.affectationVersions[0]?._count.affectations ?? 0;
+    const isDeletable =
+      session._count.attachments === 0 && affectationsCount === 0;
 
     return {
       id: session.id,
@@ -49,6 +74,7 @@ export class DetailNominationSessionQuery {
         session.typeDeSaisine,
       ),
       isValidated: session.isValidated,
+      isDeletable,
     };
   }
 }
@@ -64,5 +90,6 @@ export class DetailedNominationSessionDto extends createZodDto(
     positionStartDate: dateOnlyJsonSchema.nullable(),
     typeDeSaisine: z.enum(TypeDeSaisine),
     isValidated: z.boolean(),
+    isDeletable: z.boolean(),
   }),
 ) {}

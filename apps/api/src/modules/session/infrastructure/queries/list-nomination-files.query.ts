@@ -121,9 +121,6 @@ export class ListNominationFilesQuery {
           outcome: true,
           outcomeComment: true,
           alertHidden: true,
-          commentAccess: {
-            select: { userId: true },
-          },
           detectedJurisdictionId: true,
           detectedTargetedFunctionId: true,
           reporterIds: {
@@ -170,8 +167,6 @@ export class ListNominationFilesQuery {
     });
 
     const items = files.map((x): NominationFileAffectationItem => {
-      const commentAccessUserIds = x.commentAccess.map(({ userId }) => userId);
-
       return {
         id: x.id,
         content: {
@@ -209,7 +204,8 @@ export class ListNominationFilesQuery {
           ? prismaPrioriteEnumToPrioriteEnum(x.priorities[0])
           : null,
         comment: x.comment,
-        commentAccessUserIds: isSG ? commentAccessUserIds : undefined,
+        /** @deprecated */
+        commentAccessUserIds: undefined,
         reporters: x.reporterIds.map(
           ({ user: { id, firstName, lastName } }) => ({
             id,
@@ -387,7 +383,10 @@ const NominationFileAffectationItemSchema = z.object({
   priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true }),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
-  commentAccessUserIds: z.array(z.string()).optional(),
+  commentAccessUserIds: z
+    .array(z.string())
+    .optional()
+    .meta({ deprecated: true }),
   reporters: z.array(
     z.object({
       id: z.string(),

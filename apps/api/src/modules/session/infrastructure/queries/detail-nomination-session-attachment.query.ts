@@ -15,31 +15,31 @@ export class DetailNominationSessionAttachmentQuery {
     sessionId: string;
     fileId: string;
   }): Promise<DetailedNominationSessionAttachmentDto> {
-    const attachment = await this.prisma.sessionAttachment.findUnique({
-      where: {
-        sessionId_fileId: { sessionId: query.sessionId, fileId: query.fileId },
-      },
+    const session = await this.prisma.session.findUnique({
+      where: { id: query.sessionId, deletedAt: null },
       select: {
-        file: {
+        attachments: {
+          where: { fileId: query.fileId },
           select: {
-            id: true,
-            name: true,
-            path: true,
+            file: {
+              select: { id: true, name: true, path: true },
+            },
           },
         },
       },
     });
 
+    const attachment = session?.attachments[0]?.file;
     if (!attachment) throw new NotFoundException();
 
-    const urlsRecord = await this.files.getPublicUrls([attachment.file.id]);
-    const url = urlsRecord[attachment.file.id];
-
+    const { [attachment.id]: url } = await this.files.getPublicUrls([
+      attachment.id,
+    ]);
     if (!url) throw new NotFoundException();
 
     return {
-      id: attachment.file.id,
-      name: attachment.file.name,
+      id: attachment.id,
+      name: attachment.name,
       url: url.toString(),
     };
   }

@@ -13,6 +13,7 @@ FROM nominations_context.dossier_de_nomination ddn
 
 WHERE (
   ddn.session_id = $2::UUID
+  AND s.deleted_at IS NULL
   AND s.type_de_saisine = $3::nominations_context.type_de_saisine
   AND r.reporter_id = $4::UUID
   AND r.is_deleted = FALSE

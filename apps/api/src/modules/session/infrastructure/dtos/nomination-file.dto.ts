@@ -86,9 +86,3 @@ export class UpdateCommentDto extends createZodDto(
     comment: z.string().max(50000).nullable(),
   }),
 ) {}
-
-export class UpdateCommentAccessDto extends createZodDto(
-  z.object({
-    userIds: z.array(z.uuid()),
-  }),
-) {}

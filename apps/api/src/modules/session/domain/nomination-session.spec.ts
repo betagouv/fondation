@@ -17,7 +17,6 @@ import {
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
   NominationSessionCreated,
-  NominationSessionFileCommentAccessGranted,
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
@@ -249,71 +248,6 @@ describe('NominationSession', () => {
         'user-id',
       ),
     ]);
-  });
-
-  it('should grant comment access to users', () => {
-    const session = NominationSession.from({
-      id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
-      version: null,
-      nominationFileIdsWithOutcome: new Set(),
-    });
-
-    session.grantCommentAccess({
-      formationMemberIds: new Set(['user-1', 'user-2']),
-      nominationFileId: 'nomination-file-id-1',
-      userIds: ['user-1', 'user-2'],
-    });
-
-    const { messages } = session;
-    expect(messages).toEqual([
-      new NominationSessionFileCommentAccessGranted(
-        'session-id',
-        'nomination-file-id-1',
-        ['user-1', 'user-2'],
-      ),
-    ]);
-  });
-
-  it('should grant comment access with empty user list', () => {
-    const session = NominationSession.from({
-      id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
-      version: null,
-      nominationFileIdsWithOutcome: new Set(),
-    });
-
-    session.grantCommentAccess({
-      formationMemberIds: new Set<string>(),
-      nominationFileId: 'nomination-file-id-1',
-      userIds: [],
-    });
-
-    const { messages } = session;
-    expect(messages).toEqual([
-      new NominationSessionFileCommentAccessGranted(
-        'session-id',
-        'nomination-file-id-1',
-        [],
-      ),
-    ]);
-  });
-
-  it('should throw when trying to grant comment access to non formation members', () => {
-    const session = NominationSession.from({
-      id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
-      version: null,
-      nominationFileIdsWithOutcome: new Set(),
-    });
-
-    expect(() =>
-      session.grantCommentAccess({
-        formationMemberIds: new Set(['user-1']),
-        nominationFileId: 'nomination-file-id-1',
-        userIds: ['user-1', 'user-2'],
-      }),
-    ).toThrow(NonFormationMemberDefinedAsReporter);
   });
 
   describe('NominationSession tree creation (LODAM)', () => {

@@ -30,7 +30,8 @@ export class ListNominationSessionsQuery {
     sorting: Sortable<ListGdsNominationSessionsQueryDto>;
     pagination: Pagination;
   }): Promise<ListedNominationSessionsDto> {
-    const where = {
+    const where: Prisma.SessionWhereInput = {
+      deletedAt: null,
       typeDeSaisine: query.typeDeSaisine,
       ...(query.formations?.length && {
         formation: { in: [...query.formations] },

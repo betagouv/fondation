@@ -8,6 +8,7 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
+import { NominationSessionFinder } from './infrastructure/finders/nomination-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
@@ -16,7 +17,6 @@ import { DetailNominationSessionAffectationVersionQuery } from './infrastructure
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
-import { GetNominationFileWithCommentQuery } from './infrastructure/queries/get-nomination-file-with-comment.query';
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
 import { InternalFindAgendaNominationFilesQuery } from './infrastructure/queries/internal-find-agenda-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
@@ -48,7 +48,6 @@ import { SummaryModule } from './summary.module';
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     GetLolfiMagistratUrlQuery,
-    GetNominationFileWithCommentQuery,
     InternalDetailMemberSessionQuery,
     InternalFindAgendaNominationFilesQuery,
     InternalListMemberSessionsQuery,
@@ -60,6 +59,7 @@ import { SummaryModule } from './summary.module';
     LolfiNominationFilesFinder,
     LolfiNominationSessionFinder,
     NominationSessionFileFinder,
+    NominationSessionFinder,
     NominationSessionRepository,
     SessionService,
     UnaffectedFilesFinder,

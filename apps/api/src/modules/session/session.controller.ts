@@ -30,7 +30,6 @@ import { SessionService } from './infrastructure/sessions.service';
 import {
   ApiExtraModels,
   ApiOkResponse,
-  ApiOperation,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -50,7 +49,6 @@ import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
-  UpdateCommentAccessDto,
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
@@ -58,11 +56,9 @@ import {
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListCommentAccessDto,
   ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
-  UploadSessionAttachmentDto,
   UploadSessionAttachmentsDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import {
@@ -323,36 +319,6 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Get('/:sessionId/files/:nominationFileId/comment-access')
-  @ZodResponse({ type: ListCommentAccessDto, status: HttpStatus.OK })
-  getCommentAccess(
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-  ): Promise<ListCommentAccessDto> {
-    return this.sessions.getCommentAccess({
-      sessionId,
-      nominationFileId,
-    });
-  }
-
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @ApiOperation({ deprecated: true })
-  @Put('/:sessionId/files/:nominationFileId/comment-access')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  async updateCommentAccess(
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Body() body: UpdateCommentAccessDto,
-  ): Promise<void> {
-    await this.sessions.updateCommentAccess({
-      sessionId,
-      nominationFileId,
-      userIds: body.userIds,
-    });
-  }
-
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/:sessionId/files/:nominationFileId/outcome')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -377,29 +343,6 @@ export class SessionController {
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<void> {
     await this.sessions.hideAlert({ sessionId, nominationFileId });
-  }
-
-  /** @deprecated */
-  @ApiOperation({
-    deprecated: true,
-    description: 'prefer uploadSessionAttachments',
-  })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Put('/:sessionId/attachments')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseMultipartBody({
-    schema: UploadSessionAttachmentDto,
-    destination: ({ request, id, mimetype }) =>
-      `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
-  })
-  async uploadSessionAttachment(
-    @Param('sessionId') sessionId: string,
-    @Body() { file }: Multipart<typeof UploadSessionAttachmentDto>,
-  ) {
-    await this.sessions.addNominationSessionAttachments({
-      sessionId,
-      files: [file],
-    });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -504,5 +447,15 @@ export class SessionController {
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<LolfiMagistratUrlDto> {
     return this.sessions.getLolfiMagistratUrl({ sessionId, nominationFileId });
+  }
+
+  @Delete('/:sessionId')
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteNominationSession(
+    @Param('sessionId') id: string,
+    @AuthedUser() { id: userId }: { id: string },
+  ): Promise<void> {
+    return this.sessions.deleteSession({ id, userId });
   }
 }

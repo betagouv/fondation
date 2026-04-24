@@ -24,10 +24,14 @@ import {
 import { NominationSession } from '../domain/nomination-session';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
-import { FoundAffectationVersion } from './finders/affectation-version.finder';
+import {
+  AffectationVersionFinder,
+  FoundAffectationVersion,
+} from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
+import { NominationSessionFinder } from './finders/nomination-session.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -53,7 +57,6 @@ import {
   GetLolfiMagistratUrlQuery,
   LolfiMagistratUrlDto,
 } from './queries/get-lolfi-magistrat-url.query';
-import { GetNominationFileWithCommentQuery } from './queries/get-nomination-file-with-comment.query';
 import {
   type DetailedMemberSessionDto,
   InternalDetailMemberSessionQuery,
@@ -95,7 +98,6 @@ export class SessionService {
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
-    private readonly getNominationFileWithCommentQuery: GetNominationFileWithCommentQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly internalFindAgendaNominationFilesQuery: InternalFindAgendaNominationFilesQuery,
@@ -111,6 +113,8 @@ export class SessionService {
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly prisma: PrismaService,
+    private readonly versions: AffectationVersionFinder,
+    private readonly sessionsFinder: NominationSessionFinder,
   ) {}
 
   /** @internal */
@@ -242,36 +246,6 @@ export class SessionService {
       },
       data: { comment: command.comment },
     });
-  }
-
-  getCommentAccess(query: {
-    sessionId: string;
-    nominationFileId: string;
-  }): Promise<{ comment: string | null; userIds: string[] }> {
-    return this.getNominationFileWithCommentQuery.handle(query);
-  }
-
-  /** @deprecated */
-  async updateCommentAccess(command: {
-    sessionId: string;
-    nominationFileId: string;
-    userIds: readonly string[];
-  }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(
-      command.sessionId,
-    );
-
-    const formationMemberIds = await this.members
-      .findMembers({ formation: session.formation, ids: command.userIds })
-      .then((ids) => new Set(ids));
-
-    session.grantCommentAccess({
-      formationMemberIds,
-      userIds: command.userIds,
-      nominationFileId: command.nominationFileId,
-    });
-
-    await this.nominationSessionRepository.persist(session);
   }
 
   async createNominationSessionFromLodam(command: {
@@ -530,5 +504,38 @@ export class SessionService {
       { name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' },
       () => this.internalFindAgendaNominationFilesQuery.handle(query),
     );
+  }
+
+  async deleteSession(command: { id: string; userId: string }): Promise<void> {
+    const { session, affectedReportersCount, attachmentsCount } =
+      await this.prisma.$transaction(async (tx) => {
+        const sessionId = command.id;
+        const session = await this.nominationSessionRepository.find(sessionId, {
+          tx,
+        });
+
+        const attachmentsCount = await this.sessionsFinder.attachmentsCount({
+          tx,
+          sessionId,
+        });
+
+        const version = await this.versions.last({ sessionId, tx });
+        const affectedReportersCount =
+          await this.sessionsFinder.affectedReportersCount({
+            tx,
+            sessionId,
+            versionId: version.optionalId,
+          });
+
+        return { session, affectedReportersCount, attachmentsCount };
+      });
+
+    session.delete({
+      attachmentsCount,
+      affectedReportersCount,
+      userId: command.userId,
+    });
+
+    await this.nominationSessionRepository.persist(session);
   }
 }

@@ -66,6 +66,7 @@ export class InternalDetailMemberSessionQuery {
             dueDate: true,
           },
           where: {
+            deletedAt: null,
             typeDeSaisine: 'TRANSPARENCE_GDS',
             id: query.sessionId,
             formation,

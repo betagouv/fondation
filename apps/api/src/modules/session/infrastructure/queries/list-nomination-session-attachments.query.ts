@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -11,14 +11,22 @@ export class ListNominationSessionAttachmentsQuery {
   async handle(query: {
     sessionId: string;
   }): Promise<ListedNominationSessionAttachmentDto> {
-    const attachments = await this.prisma.sessionAttachment.findMany({
-      where: { sessionId: query.sessionId },
-      orderBy: { file: { createdAt: 'desc' } },
-      select: { file: { select: { id: true, name: true } } },
+    const session = await this.prisma.session.findUnique({
+      where: { id: query.sessionId, deletedAt: null },
+      select: {
+        attachments: {
+          select: { file: { select: { id: true, name: true } } },
+          orderBy: { file: { createdAt: 'desc' } },
+        },
+      },
     });
 
+    if (!session) throw new NotFoundException();
     return {
-      items: attachments.map(({ file }) => ({ id: file.id, name: file.name })),
+      items: session.attachments.map(({ file }) => ({
+        id: file.id,
+        name: file.name,
+      })),
     };
   }
 }

@@ -80,14 +80,6 @@ export class NominationFilesAssociated {
   ) {}
 }
 
-export class NominationSessionFileCommentAccessGranted {
-  constructor(
-    readonly sessionId: string,
-    readonly nominationFileId: string,
-    readonly userIds: readonly string[],
-  ) {}
-}
-
 export class NominationSessionFilesObserversUpdated {
   constructor(
     readonly sessionId: string,
@@ -156,6 +148,13 @@ export class NominationSessionValidated {
   ) {}
 }
 
+export class NominationSessionDeleted {
+  constructor(
+    readonly id: string,
+    readonly userId: string,
+  ) {}
+}
+
 type NominationSessionEvent =
   | LodamNominationSessionFilesCreated
   | NominationFileAlertHidden
@@ -167,12 +166,12 @@ type NominationSessionEvent =
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
   | NominationSessionCreated
-  | NominationSessionFileCommentAccessGranted
   | NominationSessionFilePrioritiesUpdated
   | NominationSessionFileReportersAffected
   | NominationSessionFilesObserversUpdated
   | NominationSessionUpdated
-  | NominationSessionValidated;
+  | NominationSessionValidated
+  | NominationSessionDeleted;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -209,6 +208,12 @@ export class UnknownNominationFiles extends Error {
 
 export class NominationFilesHaveOutcome extends Error {
   constructor(readonly nominationFileIds: readonly string[]) {
+    super();
+  }
+}
+
+export class NominationSessionIsNotDeletable extends Error {
+  constructor(readonly sessionId: string) {
     super();
   }
 }
@@ -451,28 +456,6 @@ export class NominationSession {
     });
   }
 
-  grantCommentAccess(command: {
-    formationMemberIds: Set<string>;
-    nominationFileId: string;
-    userIds: readonly string[];
-  }) {
-    const allUsersAreFormationMembers = command.userIds.every((userId) =>
-      command.formationMemberIds.has(userId),
-    );
-
-    if (!allUsersAreFormationMembers) {
-      throw new NonFormationMemberDefinedAsReporter();
-    }
-
-    this.#messages.push(
-      new NominationSessionFileCommentAccessGranted(
-        this.id,
-        command.nominationFileId,
-        command.userIds,
-      ),
-    );
-  }
-
   updateNominationFileObservers(command: {
     existingNominationFiles: readonly { id: string; fileNumber: number }[];
     nominationFiles: readonly { fileNumber: number; observers: string[] }[];
@@ -578,6 +561,25 @@ export class NominationSession {
     this.#messages.push(
       new NominationSessionValidated(this.id, command.userId),
     );
+  }
+
+  delete(command: {
+    userId: string;
+    attachmentsCount: number;
+    affectedReportersCount: number;
+  }): void {
+    if (
+      command.attachmentsCount !== 0 ||
+      command.affectedReportersCount !== 0
+    ) {
+      throw new NominationSessionIsNotDeletable(this.id);
+    }
+
+    if (this.version?.isDraft) {
+      this.publishAffectationVersion(command);
+    }
+
+    this.#messages.push(new NominationSessionDeleted(this.id, command.userId));
   }
 
   private nominationFileHasOutcome(nominationFileId: string): boolean {
