@@ -26,6 +26,13 @@ export function openapi(app: INestApplication): void {
         ),
         { version: '3.0' },
       ),
-    { jsonDocumentUrl: '/openapi/root.json' },
+    {
+      jsonDocumentUrl: '/openapi/root.json',
+      swaggerOptions: {
+        defaultModelsExpandDepth: -1,
+        displayOperationId: true,
+        docExpansion: 'none',
+      },
+    },
   );
 }
