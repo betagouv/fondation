@@ -16,6 +16,7 @@ import type {
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import { getBaseUrl } from '@/utils/http.config';
+import { multipartJson } from '@/utils/multipart-json';
 import { agendaKeys } from './agenda.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
@@ -221,9 +222,7 @@ export const useCreateNominationSessionFromLodamMutation = () =>
         const { data = null } = await $api.sessions.createSessionFromLodam({
           body: {
             file,
-            form: new Blob([JSON.stringify(form satisfies ImportNominationSessionFromLodamXlsxDto['form'])], {
-              type: 'application/json'
-            }) as any // eslint-disable-line
+            form: multipartJson(form satisfies ImportNominationSessionFromLodamXlsxDto['form'])
           }
         });
         return data;
