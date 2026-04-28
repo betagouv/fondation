@@ -6,6 +6,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
+import { toFullName } from '@/utils/user.utils';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import {
   useCreateObservationMutation,
   useSearchMagistratsQuery,
@@ -250,12 +252,14 @@ export const ObservationForm: FC<{
                   className="w-full cursor-pointer border-b p-3 text-left hover:bg-gray-100"
                   onClick={() => handleMagistratSelect(magistrat)}
                 >
-                  <div className="font-medium">
-                    {magistrat.lastName} {magistrat.firstName}
-                  </div>
+                  <div className="font-medium">{toFullName(magistrat)}</div>
                   <div className="text-xs text-gray-500">
-                    {magistrat.grade && <span>{magistrat.grade}</span>}
-                    {magistrat.currentPosition && <span className="ml-2">- {magistrat.currentPosition}</span>}
+                    {[magistrat.grade, magistrat.currentPosition]
+                      .flatMap((x) => {
+                        const trimmed = x?.trim();
+                        return trimmed ? [trimmed] : [];
+                      })
+                      .join(' - ')}
                   </div>
                 </button>
               ))
@@ -263,18 +267,11 @@ export const ObservationForm: FC<{
           </div>
         )}
         {selectedMagistrat && (
-          <div className="mt-2 flex items-center gap-2 rounded bg-blue-50 p-2">
-            <span className="text-sm">
-              {selectedMagistrat.lastName} {selectedMagistrat.firstName}
+          <div className="mt-2 flex items-center gap-2 p-2">
+            <Tag dismissible nativeButtonProps={{ onClick: handleMagistratClear }} as="button">
+              {toFullName(selectedMagistrat)}
               {selectedMagistrat.currentPosition && ` - ${selectedMagistrat.currentPosition}`}
-            </span>
-            <button
-              type="button"
-              className="ml-auto text-red-600 hover:text-red-800"
-              onClick={handleMagistratClear}
-            >
-              <i className="ri-close-line" />
-            </button>
+            </Tag>
           </div>
         )}
       </div>

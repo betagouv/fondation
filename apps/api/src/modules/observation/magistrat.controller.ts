@@ -36,8 +36,9 @@ export class MagistratController {
     @QueryPagination({ defaultLimit: 10 }) pagination: Pagination,
   ): Promise<SearchMagistratsResponseDto> {
     return this.magistrats.searchMagistrats({
-      search: query.search,
       pagination,
+      search: query.search,
+      ignoreIds: query.ignore,
     });
   }
 
