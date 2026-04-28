@@ -22,7 +22,14 @@ export class ListObservationsQueryDto extends createZodDto(
 ) {}
 
 export class SearchMagistratsQueryDto extends createZodDto(
-  z.object({ search: z.string().min(2).optional() }),
+  z.object({
+    search: z.string().min(2).optional(),
+    ignore: z
+      .string()
+      .optional()
+      .transform((x) => (x ?? '').split(',').filter((x) => !!x))
+      .pipe(z.array(z.uuid())),
+  }),
 ) {}
 
 export class UpdateObservationDto extends createZodDto(

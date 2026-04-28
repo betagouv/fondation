@@ -2411,6 +2411,7 @@ export type SearchMagistratsData = {
     path?: never;
     query?: {
         search?: string;
+        ignore?: string;
         page?: number;
         limit?: number;
     };

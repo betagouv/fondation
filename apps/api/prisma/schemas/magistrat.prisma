@@ -40,6 +40,9 @@ model Magistrat {
   nominations               Nomination[]
   detectedInNominationFiles DossierDeNomination[]
 
+  search Unsupported("tsvector")? @default(dbgenerated("(((setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))
+
+  @@index([search], map: "magistrat_search_idx_gin", type: Gin)
   @@index([lastName, firstName])
   @@index([usedName])
   @@index([professionalEmail])
