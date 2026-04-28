@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files/files';
 import { assertNever } from 'src/utils/assert-never';
 
 import { Prisma } from 'src/generated/prisma/client';
+import { makeId } from 'src/utils/id';
 import {
   Observation,
   ObservationCreated,
   ObservationDeleted,
+  ObservationFileLinked,
   ObservationFilesAttached,
   ObservationFilesDetached,
   ObservationFollowedUp,
@@ -19,6 +26,8 @@ import {
 
 @Injectable()
 export class ObservationRepository {
+  private readonly logger = new Logger(ObservationRepository.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: Files,
@@ -69,6 +78,8 @@ export class ObservationRepository {
           );
         } else if (message instanceof ObservationFollowedUp) {
           await this.persistObservationFollowedUp(tx, message);
+        } else if (message instanceof ObservationFileLinked) {
+          await this.persistObservationFileLinked(tx, message);
         } else {
           assertNever(message);
         }
@@ -220,5 +231,40 @@ export class ObservationRepository {
         },
       });
     }
+  }
+
+  private async persistObservationFileLinked(
+    tx: Prisma.TransactionClient,
+    message: ObservationFileLinked,
+  ) {
+    const existingFile = await tx.file.findUnique({
+      select: { name: true, path: true, bucket: true },
+      where: { id: message.file.fileId },
+    });
+
+    if (!existingFile) {
+      this.logger.error(`tried linking an observation to an unknown file`);
+      throw new InternalServerErrorException();
+    }
+
+    const { bucket, path, name } = existingFile;
+    const file = await tx.file.create({
+      select: { id: true },
+      data: {
+        id: makeId('FileId'),
+        bucket,
+        path,
+        name,
+      },
+    });
+
+    await tx.observationFile.create({
+      data: {
+        fileId: file.id,
+        observationId: message.id,
+        originalFileId: message.file.fileId,
+        originalObservationId: message.file.observationId,
+      },
+    });
   }
 }

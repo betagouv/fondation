@@ -28,7 +28,8 @@ function ObservationDescriptionEditor(props: {
       magistratId: props.observation.observant.id,
       observationId: props.observation.id,
       nominationFileId: props.nominationFileId,
-      sessionId: props.sessionId
+      sessionId: props.sessionId,
+      linkedObservationsAttachments: []
     });
   }, [props, mutate, debouncedDescription]);
 

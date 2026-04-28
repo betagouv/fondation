@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -17,6 +19,7 @@ import {
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
+import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import {
   GetObservationDetailsQuery,
   GetObservationDetailsResponseDto,
@@ -26,6 +29,10 @@ import {
   GetObservationFileUrlResponseDto,
 } from './infrastructure/queries/get-observation-file-url.query';
 import {
+  ListedObservationsAttachmentsDto,
+  ListObservationsAttachmentsQuery,
+} from './infrastructure/queries/list-observations-attachments.query';
+import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
@@ -33,6 +40,8 @@ import { ObservationRepository } from './infrastructure/repositories/observation
 
 @Injectable()
 export class ObservationService {
+  private readonly logger = new Logger(ObservationService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly observationRepository: ObservationRepository,
@@ -41,6 +50,8 @@ export class ObservationService {
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly files: Files,
     private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly listObservationsAttachmentsQuery: ListObservationsAttachmentsQuery,
+    private readonly observationFinder: ObservationFinder,
   ) {}
 
   async createObservation(command: {
@@ -51,33 +62,53 @@ export class ObservationService {
     dateReception: Date;
     description: string | undefined | null;
     files: readonly { id: string }[];
+    linkedAttachments: readonly {
+      observationId: string;
+      fileId: string;
+    }[];
   }): Promise<{ id: string }> {
-    const nominationFile = await this.prisma.dossierDeNomination.findUnique({
-      where: { sessionId: command.sessionId, id: command.nominationFileId },
-      select: {
-        id: true,
-        observations: {
-          select: { id: true },
-          where: { magistratId: command.magistratId },
-        },
+    const [nominationFile, linkedFiles] = await this.prisma.$transaction(
+      async (tx) => {
+        const txNominationFile =
+          await this.observationFinder.findExistingObservation({
+            sessionId: command.sessionId,
+            nominationFileId: command.nominationFileId,
+            magistratId: command.magistratId,
+            tx,
+          });
+
+        const { items: txLinkedFiles } =
+          await this.observationFinder.findExistingFiles({
+            tx,
+            files: command.linkedAttachments.map((attachment) => ({
+              ...attachment,
+              magistratId: command.magistratId,
+            })),
+          });
+
+        return [txNominationFile, txLinkedFiles];
       },
-    });
+    );
 
     if (!nominationFile) {
       throw new NotFoundException();
     }
 
-    if (nominationFile.observations.length > 0) {
-      throw new ConflictException();
+    if (linkedFiles.length !== command.linkedAttachments.length) {
+      this.logger.warn(
+        `Did not find some linked attachments:\nCommand: \n  ${command.linkedAttachments.map((x) => '  - ' + JSON.stringify(x)).join('\n')}\n\Found:\n   ${linkedFiles.map((x) => '  -' + JSON.stringify(x)).join('\n')}`,
+      );
+      throw new BadRequestException();
     }
 
     const observation = Observation.create({
-      nominationFileId: command.nominationFileId,
-      magistratId: command.magistratId,
-      dateReception: command.dateReception,
+      linkedFiles,
+      nominationFile,
+      files: command.files,
       createdByUserId: command.userId,
       description: command.description,
-      files: command.files,
+      magistratId: command.magistratId,
+      dateReception: command.dateReception,
     });
 
     await this.observationRepository.persist(observation);
@@ -102,6 +133,7 @@ export class ObservationService {
     dateReception: Date;
     magistratId: string;
     description: string | null | undefined;
+    linkedFiles: readonly { observationId: string; fileId: string }[];
     filesToAttach: readonly { id: string }[];
     fileIdsToDetach: readonly string[];
   }): Promise<void> {
@@ -134,6 +166,7 @@ export class ObservationService {
     });
     observation.attachFiles({ files: command.filesToAttach });
     observation.detachFiles({ fileIds: command.fileIdsToDetach });
+    observation.linkFiles({ files: command.linkedFiles });
 
     await this.observationRepository.persist(observation);
   }
@@ -254,5 +287,13 @@ export class ObservationService {
     );
     observation.followUpWith(command);
     await this.observationRepository.persist(observation);
+  }
+
+  listObservationsAttachments(query: {
+    sessionId: string;
+    magistratId: string | undefined;
+    excludeObservationId: string | undefined;
+  }): Promise<ListedObservationsAttachmentsDto> {
+    return this.listObservationsAttachmentsQuery.handle(query);
   }
 }
