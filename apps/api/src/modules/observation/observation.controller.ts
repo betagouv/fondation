@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Put,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
@@ -34,6 +35,7 @@ import {
   FollowUpOnObservationDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
+import { ObservationsFilter } from './infrastructure/observation.filter';
 import { GetObservationDetailsResponseDto } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlResponseDto } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsResponseDto } from './infrastructure/queries/list-observations.query';
@@ -42,6 +44,7 @@ import { ObservationService } from './observation.service';
 @ApiTags('Observations')
 @ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
 @ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
+@UseInterceptors(ObservationsFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/observations')
 export class ObservationController {
   constructor(private readonly observations: ObservationService) {}
@@ -62,18 +65,17 @@ export class ObservationController {
     @AuthedUserId() userId: string,
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
-    @Body() body: Multipart<typeof CreateObservationDto>,
+    @Body() { files, form }: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
       userId,
       sessionId,
+      files: files ?? [],
       nominationFileId,
-      magistratId: body.magistratId,
-      dateReception: new Date(body.dateReception),
-      description: body.description,
-      files: (body.files ?? []).map((file) => ({
-        id: file.id,
-      })),
+      magistratId: form.magistratId,
+      dateReception: new Date(form.dateReception),
+      description: form.description,
+      linkedAttachments: form.linkedObservationsAttachments,
     });
   }
 
@@ -151,15 +153,16 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
     @Param('observationId') observationId: string,
-    @Body() body: Multipart<typeof UpdateObservationDto>,
+    @Body() { form, files }: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
     await this.observations.updateObservation({
       observationId,
-      dateReception: new Date(body.dateReception),
-      magistratId: body.magistratId,
-      description: body.description,
-      filesToAttach: (body.files ?? []).map((file) => ({ id: file.id })),
-      fileIdsToDetach: body.detachFileIds ?? [],
+      dateReception: new Date(form.dateReception),
+      magistratId: form.magistratId,
+      description: form.description,
+      filesToAttach: files ?? [],
+      fileIdsToDetach: form.detachFileIds ?? [],
+      linkedFiles: form.linkedObservationsAttachments,
     });
   }
 

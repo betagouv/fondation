@@ -2,10 +2,12 @@ import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type {
+  CreateObservationDto,
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   PaginatedNominationFiles,
-  SearchMagistratsResponseDto
+  SearchMagistratsResponseDto,
+  UpdateObservationDto
 } from '@api/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sessionKeys } from './nomination-sessions.queries';
@@ -19,7 +21,9 @@ export const observationKeys = {
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
-    ['searchMagistrats', props?.search, props?.ignoreIds] as const
+    ['searchMagistrats', props?.search, props?.ignoreIds] as const,
+  observationAttachments: (props?: { magistratId?: string }) =>
+    ['observation', 'attachments', props?.magistratId] as const
 };
 
 export function useObservationDetailsQuery(props: {
@@ -115,16 +119,18 @@ export function useCreateObservationMutation() {
       dateReception: string;
       description: string | undefined | null;
       files: File[];
+      linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<{ id: string } | null> => {
+      const { files, ...form } = mutation;
       const { data } = await $api.observations
         .createObservation({
-          path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
           body: {
-            files: mutation.files,
-            magistratId: mutation.magistratId,
-            dateReception: mutation.dateReception,
-            description: mutation.description
-          }
+            files,
+            form: new Blob([JSON.stringify(form satisfies CreateObservationDto['form'])], {
+              type: 'application/json'
+            }) as any // eslint-disable-line
+          },
+          path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId }
         })
         .catch((err) => {
           if (err instanceof HttpException && err.statusCode === 409) {
@@ -207,20 +213,17 @@ export function useUpdateObservationMutation() {
       description: string | undefined | null;
       files?: File[];
       detachFileIds?: string[];
+      linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<void> => {
+      const { files, sessionId, nominationFileId, observationId, ...form } = mutation;
       await $api.observations
         .updateObservation({
-          path: {
-            sessionId: mutation.sessionId,
-            nominationFileId: mutation.nominationFileId,
-            observationId: mutation.observationId
-          },
+          path: { sessionId, nominationFileId, observationId },
           body: {
-            magistratId: mutation.magistratId,
-            dateReception: mutation.dateReception,
-            detachFileIds: mutation.detachFileIds,
-            description: mutation.description,
-            files: mutation.files
+            files,
+            form: new Blob([JSON.stringify(form satisfies UpdateObservationDto['form'])], {
+              type: 'application/json'
+            }) as any // eslint-disable-line
           }
         })
         .catch((err) => {
@@ -341,3 +344,23 @@ export function useFollowUpOnObservationMutation() {
     }
   });
 }
+
+export const useListObservationsAttachments = (query: {
+  magistratId?: string | null;
+  excludeObservationId?: string | null;
+  sessionId: string;
+}) =>
+  useQuery({
+    queryKey: observationKeys.observationAttachments({ magistratId: query.magistratId ?? undefined }),
+    queryFn: () =>
+      $api.observations
+        .listObservationsAttachments({
+          priority: 'low',
+          query: {
+            magistratId: query.magistratId ?? undefined,
+            excludeObservationId: query.excludeObservationId ?? undefined
+          },
+          path: { sessionId: query.sessionId }
+        })
+        .then(({ data = null }) => data)
+  });

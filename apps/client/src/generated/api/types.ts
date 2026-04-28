@@ -799,11 +799,36 @@ export type ListedJurisdictions = {
     }>;
 };
 
+export type SearchMagistratsResponseDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string;
+        grade: string | null;
+        currentPosition: string | null;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type CreateObservationDto = {
     files?: Array<Blob | File>;
-    magistratId: string;
-    dateReception: string;
-    description?: string | null;
+    form: {
+        magistratId: string;
+        dateReception: string;
+        description?: string | null;
+        linkedObservationsAttachments?: Array<{
+            observationId: string;
+            fileId: string;
+        }>;
+    };
 };
 
 export type CreateObservationResponseDto = {
@@ -897,10 +922,16 @@ export type GetObservationFileUrlResponseDto = {
 
 export type UpdateObservationDto = {
     files?: Array<Blob | File>;
-    magistratId: string;
-    dateReception: string;
-    description?: string | null;
-    detachFileIds?: string | Array<string>;
+    form: {
+        magistratId: string;
+        dateReception: string;
+        description?: string | null;
+        detachFileIds?: string | Array<string>;
+        linkedObservationsAttachments?: Array<{
+            observationId: string;
+            fileId: string;
+        }>;
+    };
 };
 
 export type AttachMemberCommentScreenshotsDto = {
@@ -924,23 +955,12 @@ export type FollowUpOnObservationDto = {
     comment: string | null;
 };
 
-export type SearchMagistratsResponseDto = {
+export type ListedObservationsAttachmentsDto = {
     items: Array<{
-        id: string;
-        firstName: string;
-        lastName: string;
-        usedName: string;
-        grade: string | null;
-        currentPosition: string | null;
+        observationId: string;
+        fileId: string;
+        name: string;
     }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
 };
 
 export type PaginatedAdminUserListItemDto = {
@@ -2254,6 +2274,37 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
+export type SearchMagistratsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        ignore?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1';
+};
+
+export type SearchMagistratsResponses = {
+    200: SearchMagistratsResponseDto;
+};
+
+export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
+
+export type SearchFullNameData = {
+    body?: never;
+    path?: never;
+    query: {
+        search: string;
+    };
+    url: '/api/magistrats/v1/fullname';
+};
+
+export type SearchFullNameResponses = {
+    200: unknown;
+};
+
 export type ListObservationsData = {
     body?: never;
     path: {
@@ -2406,36 +2457,23 @@ export type FollowUpOnObservationResponses = {
 
 export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
 
-export type SearchMagistratsData = {
+export type ListObservationsAttachmentsData = {
     body?: never;
-    path?: never;
+    path: {
+        sessionId: string;
+    };
     query?: {
-        search?: string;
-        ignore?: string;
-        page?: number;
-        limit?: number;
+        magistratId?: string;
+        excludeObservationId?: string;
     };
-    url: '/api/magistrats/v1';
+    url: '/api/sessions/v2/{sessionId}/observations/attachments';
 };
 
-export type SearchMagistratsResponses = {
-    200: SearchMagistratsResponseDto;
+export type ListObservationsAttachmentsResponses = {
+    200: ListedObservationsAttachmentsDto;
 };
 
-export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
-
-export type SearchFullNameData = {
-    body?: never;
-    path?: never;
-    query: {
-        search: string;
-    };
-    url: '/api/magistrats/v1/fullname';
-};
-
-export type SearchFullNameResponses = {
-    200: unknown;
-};
+export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
 
 export type ListUsersData = {
     body?: never;

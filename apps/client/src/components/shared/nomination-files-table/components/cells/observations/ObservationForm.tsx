@@ -1,20 +1,23 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState, type FC } from 'react';
+import React, { useEffect, useRef, useState, type FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
+import { Mandatory } from '@/components/shared/Mandatory';
 import { toFullName } from '@/utils/user.utils';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import {
   useCreateObservationMutation,
+  useListObservationsAttachments,
   useSearchMagistratsQuery,
   useUpdateObservationMutation,
   type MagistratSearchResult,
   type Observation
 } from '@queries/observations.queries';
+import { FormattedMessage } from 'react-intl';
 
 const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 
@@ -22,7 +25,10 @@ const observationFormSchema = z.object({
   magistratId: z.string().min(1, 'Champ obligatoire'),
   dateReception: z.string().min(1, 'Champ obligatoire'),
   description: z.string().optional(),
-  files: z.array(z.instanceof(File)).optional()
+  files: z.array(z.instanceof(File)).optional(),
+  linkedFiles: z
+    .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
+    .optional()
 });
 
 type FormSchema = z.infer<typeof observationFormSchema>;
@@ -43,6 +49,7 @@ export const ObservationForm: FC<{
     handleSubmit: handleFormSubmit,
     reset,
     setValue,
+    getValues,
     watch,
     formState: { errors }
   } = useForm<FormSchema>({
@@ -51,7 +58,8 @@ export const ObservationForm: FC<{
       magistratId: observation?.magistrat?.id ?? '',
       dateReception: observation?.dateReception?.split('T')[0] ?? '',
       description: observation?.description,
-      files: []
+      files: [],
+      linkedFiles: []
     },
     mode: 'onChange'
   });
@@ -64,6 +72,12 @@ export const ObservationForm: FC<{
   const [filesToDetach, setFilesToDetach] = useState<string[]>([]);
 
   const { data: displayedMagistrats, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
+  const { data: observationsAttachments } = useListObservationsAttachments({
+    sessionId,
+    excludeObservationId: observation?.id,
+    magistratId: selectedMagistrat?.id
+  });
+
   const {
     mutate: createObservation,
     reset: resetCreateMutation,
@@ -122,7 +136,11 @@ export const ObservationForm: FC<{
           dateReception: data.dateReception,
           description: data.description,
           files: data.files,
-          detachFileIds: filesToDetach
+          detachFileIds: filesToDetach,
+          linkedObservationsAttachments: (data.linkedFiles ?? []).map(({ observationId, fileId }) => ({
+            observationId,
+            fileId
+          }))
         },
         {
           onSettled() {
@@ -142,7 +160,11 @@ export const ObservationForm: FC<{
           magistratId: data.magistratId,
           dateReception: data.dateReception,
           description: data.description,
-          files: data.files ?? []
+          files: data.files ?? [],
+          linkedObservationsAttachments: (data.linkedFiles ?? []).map(({ observationId, fileId }) => ({
+            observationId,
+            fileId
+          }))
         },
         {
           onSettled() {
@@ -170,6 +192,43 @@ export const ObservationForm: FC<{
     setSearchTerm('');
   };
 
+  const linkedFiles = watch('linkedFiles');
+  const viewObservationAttachments = React.useMemo(() => {
+    return ([] as { observationId: string; fileId: string; name: string }[]).concat(
+      observationsAttachments?.items ?? [],
+      (linkedFiles ?? []).filter((value) => {
+        const items = observationsAttachments?.items ?? [];
+        return !items.some(
+          (item) => item.observationId === value.observationId && item.fileId === value.fileId
+        );
+      })
+    );
+  }, [linkedFiles, observationsAttachments]);
+
+  const onLinkFileClicked = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+
+      const fileId = e.currentTarget.dataset.fileId;
+      const observationId = e.currentTarget.dataset.observationId;
+      const name = e.currentTarget.dataset.name;
+
+      if (!fileId || !observationId || !name) return;
+
+      const current = getValues('linkedFiles') ?? [];
+      const isPressed = e.currentTarget.getAttribute('aria-pressed') !== 'false';
+      if (isPressed) {
+        setValue('linkedFiles', current.concat({ fileId, observationId, name }));
+      } else {
+        setValue(
+          'linkedFiles',
+          current.filter((x) => x.fileId !== fileId && x.observationId !== observationId)
+        );
+      }
+    },
+    [getValues, setValue]
+  );
+
   return (
     <form id="observation-form" onSubmit={handleFormSubmit(onSubmit)} className="flex flex-col gap-6">
       {createError || updateError ? (
@@ -184,7 +243,11 @@ export const ObservationForm: FC<{
         control={control}
         render={({ field }) => (
           <Input
-            label="Date de réception"
+            label={
+              <Mandatory>
+                <FormattedMessage defaultMessage="Date de réception" />
+              </Mandatory>
+            }
             state={errors.dateReception || updateError || createError ? 'error' : 'default'}
             stateRelatedMessage={errors.dateReception?.message}
             classes={{ root: '!mb-0' }}
@@ -201,11 +264,9 @@ export const ObservationForm: FC<{
       <div className="relative">
         <Input
           label={
-            (
-              <>
-                Magistrat observant <span className="text-red-500">*</span>
-              </>
-            ) as unknown as string
+            <Mandatory>
+              <FormattedMessage defaultMessage="Magistrat observant" />
+            </Mandatory>
           }
           classes={{ root: '!mb-0' }}
           iconId="fr-icon-search-line"
@@ -278,7 +339,15 @@ export const ObservationForm: FC<{
 
       {isEditing && existingFiles.length > 0 && (
         <div>
-          <label className="fr-label mb-2 block">Fichiers existants</label>
+          <label className="fr-label mb-2 block">
+            <FormattedMessage
+              values={{ count: existingFiles.length }}
+              defaultMessage={`{count, plural,
+                one {Fichier existant}  
+                other {Fichiers existants}  
+              }`}
+            />
+          </label>
           <div className="flex flex-wrap gap-2">
             {existingFiles.map((file) => (
               <div key={file.id} className="flex items-center gap-2 rounded bg-gray-100 px-3 py-2">
@@ -312,7 +381,7 @@ export const ObservationForm: FC<{
           <Input
             textArea
             classes={{ root: '!mb-0' }}
-            label="Historique observant (optionnel)"
+            label="Historique observant"
             nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
           />
         )}
@@ -323,7 +392,7 @@ export const ObservationForm: FC<{
         control={control}
         render={({ field }) => (
           <Upload
-            label={isEditing ? 'Ajouter des fichiers (optionnel)' : 'Pièces jointes (optionnel)'}
+            label={isEditing ? 'Ajouter des fichiers' : 'Pièces jointes'}
             hint="Formats acceptés: JPEG, PNG, PDF, Word"
             nativeInputProps={{
               ref: fileInputRef,
@@ -340,10 +409,45 @@ export const ObservationForm: FC<{
       />
       {files.length > 0 && (
         <div className="text-sm text-gray-600">
-          {files.length} nouveau{files.length > 1 ? 'x' : ''} fichier{files.length > 1 ? 's' : ''} sélectionné
-          {files.length > 1 ? 's' : ''}
+          <FormattedMessage
+            values={{ count: files.length }}
+            defaultMessage={`{count, plural,
+              one {{count} nouveau fichier sélectionné}
+              other {{count} nouveaux fichiers sélectionnés}
+            }`}
+          />
         </div>
       )}
+
+      <Controller
+        name="linkedFiles"
+        control={control}
+        render={({ field }) => (
+          <ul className="m-0 flex list-none flex-row flex-wrap gap-x-2 p-0">
+            <li></li>
+            {viewObservationAttachments.map((item) => (
+              <li key={`${item.observationId}_${item.fileId}`}>
+                <Tag
+                  small
+                  title={`Lier "${item.name}"`}
+                  iconId="fr-icon-file-fill"
+                  nativeButtonProps={{
+                    onClick: onLinkFileClicked,
+                    'data-name': item.name,
+                    'data-file-id': item.fileId,
+                    'data-observation-id': item.observationId
+                  }}
+                  pressed={field.value?.some(
+                    (x) => x.observationId === item.observationId && x.fileId === item.fileId
+                  )}
+                >
+                  {item.name}
+                </Tag>
+              </li>
+            ))}
+          </ul>
+        )}
+      />
     </form>
   );
 };

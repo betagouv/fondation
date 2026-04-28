@@ -13,6 +13,15 @@ export class UserNotAllowedToWriteCommentError extends Error {
   }
 }
 
+export class ObservationAlreadyExist extends Error {
+  constructor(
+    readonly nominationFileId: string,
+    readonly magistratId: string,
+  ) {
+    super();
+  }
+}
+
 export class ObservationCreated {
   constructor(
     readonly id: string,
@@ -28,6 +37,13 @@ export class ObservationFilesAttached {
   constructor(
     readonly observationId: string,
     readonly files: readonly { id: string }[],
+  ) {}
+}
+
+export class ObservationFileLinked {
+  constructor(
+    readonly id: string,
+    readonly file: { observationId: string; fileId: string },
   ) {}
 }
 
@@ -85,7 +101,8 @@ type ObservationEvent =
   | ObservationFilesDetached
   | ObservationMemberCommentWritten
   | ObservationMemberCommentScreenshotsAttached
-  | ObservationFollowedUp;
+  | ObservationFollowedUp
+  | ObservationFileLinked;
 
 export class Observation {
   private constructor(
@@ -96,17 +113,26 @@ export class Observation {
   ) {}
 
   static create(command: {
-    nominationFileId: string;
+    nominationFile: {
+      id: string;
+      observations: readonly { magistratId: string }[];
+    };
     magistratId: string;
     dateReception: Date;
     createdByUserId: string;
     description: string | null | undefined;
+    linkedFiles: readonly { observationId: string; fileId: string }[];
     files: readonly { id: string }[];
   }): Observation {
+    this.assertNominationFileIsObservable(
+      command.magistratId,
+      command.nominationFile,
+    );
+
     const id = makeId('ObservationId');
     const observation = new Observation(
       id,
-      command.nominationFileId,
+      command.nominationFile.id,
       command.magistratId,
       command.dateReception,
     );
@@ -114,7 +140,7 @@ export class Observation {
     observation.#messages.push(
       new ObservationCreated(
         id,
-        command.nominationFileId,
+        command.nominationFile.id,
         command.magistratId,
         command.dateReception,
         command.createdByUserId,
@@ -122,9 +148,8 @@ export class Observation {
       ),
     );
 
-    if (command.files.length > 0) {
-      observation.attachFiles({ files: command.files });
-    }
+    observation.attachFiles({ files: command.files });
+    observation.linkFiles({ files: command.linkedFiles });
 
     return observation;
   }
@@ -147,6 +172,16 @@ export class Observation {
     if (command.files.length === 0) return;
 
     this.#messages.push(new ObservationFilesAttached(this.id, command.files));
+  }
+
+  linkFiles(command: {
+    files: readonly { observationId: string; fileId: string }[];
+  }): void {
+    if (command.files.length === 0) return;
+
+    for (const file of command.files) {
+      this.#messages.push(new ObservationFileLinked(this.id, file));
+    }
   }
 
   delete(): void {
@@ -227,6 +262,22 @@ export class Observation {
     this.#messages.push(
       new ObservationFollowedUp(this.id, followUp, command.userId),
     );
+  }
+
+  private static assertNominationFileIsObservable(
+    magistratId: string,
+    nominationFile: {
+      id: string;
+      observations: readonly { magistratId: string }[];
+    },
+  ): asserts nominationFile {
+    const observationExists = nominationFile.observations.some(
+      (o) => o.magistratId === magistratId,
+    );
+
+    if (observationExists) {
+      throw new ObservationAlreadyExist(nominationFile.id, magistratId);
+    }
   }
 
   readonly #messages: ObservationEvent[] = [];
