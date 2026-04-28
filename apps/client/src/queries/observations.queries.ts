@@ -1,5 +1,6 @@
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
+import { multipartJson } from '@/utils/multipart-json';
 import * as $api from '@api/sdk';
 import type {
   CreateObservationDto,
@@ -126,9 +127,7 @@ export function useCreateObservationMutation() {
         .createObservation({
           body: {
             files,
-            form: new Blob([JSON.stringify(form satisfies CreateObservationDto['form'])], {
-              type: 'application/json'
-            }) as any // eslint-disable-line
+            form: multipartJson(form satisfies CreateObservationDto['form'])
           },
           path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId }
         })
@@ -221,9 +220,7 @@ export function useUpdateObservationMutation() {
           path: { sessionId, nominationFileId, observationId },
           body: {
             files,
-            form: new Blob([JSON.stringify(form satisfies UpdateObservationDto['form'])], {
-              type: 'application/json'
-            }) as any // eslint-disable-line
+            form: multipartJson(form satisfies UpdateObservationDto['form'])
           }
         })
         .catch((err) => {
