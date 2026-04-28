@@ -24,6 +24,7 @@ import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-o
 import { FindPresentationPlanDocumentPdfQuery } from './infrastructure/queries/find-presentation-plan-document-pdf.query';
 import { FindPresentationPlanDocumentQuery } from './infrastructure/queries/find-presentation-plan-document.query';
 import { FindSessionDocsQuery } from './infrastructure/queries/find-session-docs.query';
+import { InternalFindNominationFilesLinkedDocsQuery } from './infrastructure/queries/internal-find-nomination-files-linked-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { ListNonPresentedPlansQuery } from './infrastructure/queries/list-non-presented-plans.query';
 import { ListPresentedPlansQuery } from './infrastructure/queries/list-presented-plans.query';
@@ -61,6 +62,7 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     FindPresentationPlanDocumentPdfQuery,
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
+    InternalFindNominationFilesLinkedDocsQuery,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,

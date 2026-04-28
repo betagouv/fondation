@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
@@ -10,6 +10,7 @@ import {
 } from 'shared-models';
 
 import { Prisma } from 'src/generated/prisma/client';
+import { DocsService } from 'src/modules/docs/docs.service';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   createPaginatedZodDto,
@@ -39,6 +40,9 @@ export class ListNominationFilesQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly versionFinder: AffectationVersionFinder,
+
+    @Inject(forwardRef(() => DocsService))
+    private readonly docs: DocsService,
   ) {}
 
   async handle(query: {
@@ -163,7 +167,32 @@ export class ListNominationFilesQuery {
         },
       });
 
-      return [txCount, txFiles];
+      const nominationFileIds = new Set(txFiles.map(({ id }) => id));
+      const { items: linkedDocs } =
+        await this.docs.internalFindNominationFilesLinkedDocs({
+          tx,
+          nominationFileIds,
+        });
+
+      return [
+        txCount,
+        txFiles.map((file) => {
+          const {
+            isLinkedToAgenda = false,
+            isLinkedToOfficialReport = false,
+            isLinkedToPresentationPlan = false,
+          } = linkedDocs.get(file.id) ?? {};
+
+          return {
+            ...file,
+            docs: {
+              isLinkedToAgenda,
+              isLinkedToOfficialReport,
+              isLinkedToPresentationPlan,
+            },
+          };
+        }),
+      ];
     });
 
     const items = files.map((x): NominationFileAffectationItem => {
@@ -197,6 +226,7 @@ export class ListNominationFilesQuery {
               }
             : null,
           isAlertHidden: x.alertHidden,
+          docs: x.docs,
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         // TODO: remove
@@ -375,6 +405,12 @@ const NominationFileContentSchema = z.object({
     })
     .nullable(),
   isAlertHidden: z.boolean(),
+
+  docs: z.object({
+    isLinkedToAgenda: z.boolean(),
+    isLinkedToOfficialReport: z.boolean(),
+    isLinkedToPresentationPlan: z.boolean(),
+  }),
 });
 
 const NominationFileAffectationItemSchema = z.object({

@@ -1,6 +1,13 @@
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
-import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
+import { Prisma } from 'src/generated/prisma/client';
 import { DateOnly } from 'src/utils/date-only';
 import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
@@ -67,6 +74,10 @@ import {
   FoundSessionDocsDto,
 } from './infrastructure/queries/find-session-docs.query';
 import {
+  InternalFindNominationFilesLinkedDocsQuery,
+  InternalFoundNominationFilesLinkedDocsDto,
+} from './infrastructure/queries/internal-find-nomination-files-linked-docs.query';
+import {
   DocGenerationSessionReadinessDto,
   IsSessionReadyForDocGenerationQuery,
 } from './infrastructure/queries/is-session-ready-for-doc-generation.query';
@@ -115,9 +126,12 @@ export class DocsService {
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
+    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
     private readonly auth: SimpleAuthService,
-    private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
+
+    @Inject(forwardRef(() => SessionService))
+    private readonly sessions: SessionService,
   ) {}
 
   searchChairmen(query: {
@@ -578,5 +592,12 @@ export class DocsService {
     id: string;
   }): Promise<{ id: string; url: string }> {
     return this.detailsPresentationPlanPdfDocumentQuery.handle(query);
+  }
+
+  internalFindNominationFilesLinkedDocs(query: {
+    tx?: Prisma.TransactionClient;
+    nominationFileIds: Set<string>;
+  }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
+    return this.internalFindNominationFileLinkedDocsQuery.handle(query);
   }
 }

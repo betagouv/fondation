@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 
 import { MembersModule } from '../members';
 
+import { DocsModule } from '../docs/docs.module';
 import { IngestModule } from '../ingest/ingest.module';
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
@@ -37,6 +38,7 @@ import { SummaryModule } from './summary.module';
     SummaryModule,
     forwardRef(() => MembersModule),
     forwardRef(() => IngestModule),
+    forwardRef(() => DocsModule),
   ],
   providers: [
     AffectationVersionFinder,

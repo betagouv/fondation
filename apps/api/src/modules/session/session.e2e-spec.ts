@@ -170,6 +170,11 @@ describe('Session E2E', () => {
           isAlertHidden: false,
           detectedJurisdictionId: null,
           detectedTargetedFunctionId: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
         },
         id: expect.any(String),
         observationCount: 0,
@@ -228,6 +233,11 @@ describe('Session E2E', () => {
 
           detectedJurisdictionId: null,
           detectedTargetedFunctionId: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
         },
         priority: null,
         priorities: [],
