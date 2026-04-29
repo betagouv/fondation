@@ -63,7 +63,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     data: nominationFiles,
     rowCount: data?.totalCount,
     getRowId: (row) => row.id,
-    enableRowSelection: !!edition?.isEditing && ((row) => !row.original.content.outcome),
+    enableRowSelection: !!edition?.isEditing && ((row) => row.original.content.isUpdatable),
     state: tableState,
     onStateChange: setTableState,
     meta: {

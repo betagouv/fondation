@@ -313,10 +313,6 @@ export type PaginatedNominationFiles = {
     items: Array<{
         id: string;
         priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * @deprecated
-         */
-        priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
         content: {
             /**
              * always 2
@@ -359,18 +355,20 @@ export type PaginatedNominationFiles = {
                 comment: string | null;
             } | null;
             isAlertHidden: boolean;
+            isUpdatable: boolean;
+            status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+            docs: {
+                isLinkedToAgenda: boolean;
+                isLinkedToOfficialReport: boolean;
+                isLinkedToPresentationPlan: boolean;
+            };
         };
         comment: string | null;
-        /**
-         * @deprecated
-         */
-        commentAccessUserIds?: Array<string>;
         reporters: Array<{
             id: string;
             firstName: string;
             lastName: string;
         }>;
-        observationCount: number;
         observations: Array<{
             id: string;
             date: {
@@ -387,15 +385,6 @@ export type PaginatedNominationFiles = {
                 firstName: string;
                 lastName: string;
             } | null;
-        }>;
-        /**
-         * @deprecated
-         */
-        observationMagistrats: Array<{
-            id: string;
-            firstName: string;
-            lastName: string;
-            observationId: string;
         }>;
         memo: string | null;
         summary: {
@@ -799,215 +788,6 @@ export type ListedJurisdictions = {
     }>;
 };
 
-export type SearchMagistratsResponseDto = {
-    items: Array<{
-        id: string;
-        firstName: string;
-        lastName: string;
-        usedName: string;
-        grade: string | null;
-        currentPosition: string | null;
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
-export type CreateObservationDto = {
-    files?: Array<Blob | File>;
-    form: {
-        magistratId: string;
-        dateReception: string;
-        description?: string | null;
-        linkedObservationsAttachments?: Array<{
-            observationId: string;
-            fileId: string;
-        }>;
-    };
-};
-
-export type CreateObservationResponseDto = {
-    id: string;
-};
-
-export type ListObservationsResponseDto = {
-    observations: Array<{
-        id: string;
-        dateReception: string;
-        description: string;
-        magistrat: {
-            id: string;
-            firstName: string;
-            lastName: string;
-            usedName: string | null;
-            currentPosition: string | null;
-        } | null;
-        createdBy: {
-            id: string;
-            firstName: string;
-            lastName: string;
-        } | null;
-        files: Array<{
-            id: string;
-            name: string;
-        }>;
-        createdAt: string;
-    }>;
-};
-
-export type GetObservationDetailsResponseDto = {
-    id: string;
-    receptionDate: {
-        year: number;
-        month: number;
-        day: number;
-    };
-    observant: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        usedName: string | null;
-        biography: string | null;
-        candidacy: {
-            nominationFileId: string;
-            desiredPosition: string | null;
-            rank: string | null;
-        } | null;
-        externalUrl: string;
-    };
-    observedMagistrat: {
-        name: string;
-        proposedPosition: string | null;
-    };
-    description: string;
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
-    followUpComment: string | null;
-    files: Array<{
-        id: string;
-        name: string;
-    }>;
-    relatedPropositions: Array<{
-        observationId: string;
-        nominationFileId: string;
-        number: number | null;
-        magistratName: string;
-        proposedPosition: string | null;
-        observationDate: {
-            year: number;
-            month: number;
-            day: number;
-        };
-    }>;
-    isMemberReporter: boolean;
-    memberComment: {
-        comment: string;
-        screenshots: Array<{
-            id: string;
-            name: string;
-            url: string;
-        }>;
-    } | null;
-};
-
-export type GetObservationFileUrlResponseDto = {
-    id: string;
-    name: string;
-    url: string;
-};
-
-export type UpdateObservationDto = {
-    files?: Array<Blob | File>;
-    form: {
-        magistratId: string;
-        dateReception: string;
-        description?: string | null;
-        detachFileIds?: string | Array<string>;
-        linkedObservationsAttachments?: Array<{
-            observationId: string;
-            fileId: string;
-        }>;
-    };
-};
-
-export type AttachMemberCommentScreenshotsDto = {
-    files: Array<Blob | File>;
-};
-
-export type AttachedMemberCommentScreenshotsDto = {
-    items: Array<{
-        id: string;
-        name: string;
-        url: string;
-    }>;
-};
-
-export type WriteMemberCommentDto = {
-    comment: string;
-};
-
-export type FollowUpOnObservationDto = {
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
-    comment: string | null;
-};
-
-export type ListedObservationsAttachmentsDto = {
-    items: Array<{
-        observationId: string;
-        fileId: string;
-        name: string;
-    }>;
-};
-
-export type PaginatedAdminUserListItemDto = {
-    items: Array<{
-        id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
-export type DetailedAdminUserDto = {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
-    gender: 'MALE' | 'FEMALE';
-    displayTitle: string | null;
-    isAdmin: boolean;
-};
-
-export type UpdateUserEmailDto = {
-    email: string;
-};
-
-export type UpdateUserPasswordDto = {
-    password: string;
-};
-
-export type UpdateUserRoleDto = {
-    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
-};
-
-export type UpdateUserDisplayTitleDto = {
-    displayTitle: string | null;
-};
-
 export type FoundChairmenDto = {
     items: Array<{
         id: string;
@@ -1340,6 +1120,215 @@ export type ListedNonPresentedPlansDto = {
         };
         formation: 'PARQUET' | 'SIEGE';
     }>;
+};
+
+export type SearchMagistratsResponseDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string;
+        grade: string | null;
+        currentPosition: string | null;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type CreateObservationDto = {
+    files?: Array<Blob | File>;
+    form: {
+        magistratId: string;
+        dateReception: string;
+        description?: string | null;
+        linkedObservationsAttachments?: Array<{
+            observationId: string;
+            fileId: string;
+        }>;
+    };
+};
+
+export type CreateObservationResponseDto = {
+    id: string;
+};
+
+export type ListObservationsResponseDto = {
+    observations: Array<{
+        id: string;
+        dateReception: string;
+        description: string;
+        magistrat: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            usedName: string | null;
+            currentPosition: string | null;
+        } | null;
+        createdBy: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+        files: Array<{
+            id: string;
+            name: string;
+        }>;
+        createdAt: string;
+    }>;
+};
+
+export type GetObservationDetailsResponseDto = {
+    id: string;
+    receptionDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    observant: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        usedName: string | null;
+        biography: string | null;
+        candidacy: {
+            nominationFileId: string;
+            desiredPosition: string | null;
+            rank: string | null;
+        } | null;
+        externalUrl: string;
+    };
+    observedMagistrat: {
+        name: string;
+        proposedPosition: string | null;
+    };
+    description: string;
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUpComment: string | null;
+    files: Array<{
+        id: string;
+        name: string;
+    }>;
+    relatedPropositions: Array<{
+        observationId: string;
+        nominationFileId: string;
+        number: number | null;
+        magistratName: string;
+        proposedPosition: string | null;
+        observationDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
+    }>;
+    isMemberReporter: boolean;
+    memberComment: {
+        comment: string;
+        screenshots: Array<{
+            id: string;
+            name: string;
+            url: string;
+        }>;
+    } | null;
+};
+
+export type GetObservationFileUrlResponseDto = {
+    id: string;
+    name: string;
+    url: string;
+};
+
+export type UpdateObservationDto = {
+    files?: Array<Blob | File>;
+    form: {
+        magistratId: string;
+        dateReception: string;
+        description?: string | null;
+        detachFileIds?: string | Array<string>;
+        linkedObservationsAttachments?: Array<{
+            observationId: string;
+            fileId: string;
+        }>;
+    };
+};
+
+export type AttachMemberCommentScreenshotsDto = {
+    files: Array<Blob | File>;
+};
+
+export type AttachedMemberCommentScreenshotsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteMemberCommentDto = {
+    comment: string;
+};
+
+export type FollowUpOnObservationDto = {
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    comment: string | null;
+};
+
+export type ListedObservationsAttachmentsDto = {
+    items: Array<{
+        observationId: string;
+        fileId: string;
+        name: string;
+    }>;
+};
+
+export type PaginatedAdminUserListItemDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type DetailedAdminUserDto = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    gender: 'MALE' | 'FEMALE';
+    displayTitle: string | null;
+    isAdmin: boolean;
+};
+
+export type UpdateUserEmailDto = {
+    email: string;
+};
+
+export type UpdateUserPasswordDto = {
+    password: string;
+};
+
+export type UpdateUserRoleDto = {
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+};
+
+export type UpdateUserDisplayTitleDto = {
+    displayTitle: string | null;
 };
 
 export type GetFileByFileUrlData = {
@@ -2274,335 +2263,6 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
-export type SearchMagistratsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        ignore?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/magistrats/v1';
-};
-
-export type SearchMagistratsResponses = {
-    200: SearchMagistratsResponseDto;
-};
-
-export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
-
-export type SearchFullNameData = {
-    body?: never;
-    path?: never;
-    query: {
-        search: string;
-    };
-    url: '/api/magistrats/v1/fullname';
-};
-
-export type SearchFullNameResponses = {
-    200: unknown;
-};
-
-export type ListObservationsData = {
-    body?: never;
-    path: {
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations';
-};
-
-export type ListObservationsResponses = {
-    200: ListObservationsResponseDto;
-};
-
-export type ListObservationsResponse = ListObservationsResponses[keyof ListObservationsResponses];
-
-export type CreateObservationData = {
-    body: CreateObservationDto;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations';
-};
-
-export type CreateObservationResponses = {
-    201: CreateObservationResponseDto;
-};
-
-export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
-
-export type DeleteObservationData = {
-    body?: never;
-    path: {
-        observationId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
-};
-
-export type DeleteObservationResponses = {
-    204: void;
-};
-
-export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
-
-export type GetObservationDetailsData = {
-    body?: never;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-        observationId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
-};
-
-export type GetObservationDetailsResponses = {
-    200: GetObservationDetailsResponseDto;
-};
-
-export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof GetObservationDetailsResponses];
-
-export type UpdateObservationData = {
-    body: UpdateObservationDto;
-    path: {
-        observationId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
-};
-
-export type UpdateObservationResponses = {
-    204: void;
-};
-
-export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
-
-export type GetObservationFileUrlData = {
-    body?: never;
-    path: {
-        observationId: string;
-        fileId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
-};
-
-export type GetObservationFileUrlResponses = {
-    200: GetObservationFileUrlResponseDto;
-};
-
-export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
-
-export type AttachMemberCommentScreenshotsData = {
-    body: AttachMemberCommentScreenshotsDto;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-        observationId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots';
-};
-
-export type AttachMemberCommentScreenshotsResponses = {
-    200: AttachedMemberCommentScreenshotsDto;
-};
-
-export type AttachMemberCommentScreenshotsResponse = AttachMemberCommentScreenshotsResponses[keyof AttachMemberCommentScreenshotsResponses];
-
-export type WriteMemberCommentData = {
-    body: WriteMemberCommentDto;
-    path: {
-        sessionId: string;
-        nominationFileId: string;
-        observationId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments';
-};
-
-export type WriteMemberCommentResponses = {
-    204: void;
-};
-
-export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
-
-export type FollowUpOnObservationData = {
-    body: FollowUpOnObservationDto;
-    path: {
-        observationId: string;
-        nominationFileId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
-};
-
-export type FollowUpOnObservationResponses = {
-    204: void;
-};
-
-export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
-
-export type ListObservationsAttachmentsData = {
-    body?: never;
-    path: {
-        sessionId: string;
-    };
-    query?: {
-        magistratId?: string;
-        excludeObservationId?: string;
-    };
-    url: '/api/sessions/v2/{sessionId}/observations/attachments';
-};
-
-export type ListObservationsAttachmentsResponses = {
-    200: ListedObservationsAttachmentsDto;
-};
-
-export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
-
-export type ListUsersData = {
-    body?: never;
-    path?: never;
-    query?: {
-        sortBy?: 'lastName';
-        search?: string;
-        roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/administration/v1/users';
-};
-
-export type ListUsersResponses = {
-    200: PaginatedAdminUserListItemDto;
-};
-
-export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
-
-export type DetailsUserData = {
-    body?: never;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}';
-};
-
-export type DetailsUserResponses = {
-    200: DetailedAdminUserDto;
-};
-
-export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
-
-export type UpdateEmailData = {
-    body: UpdateUserEmailDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/email';
-};
-
-export type UpdateEmailResponses = {
-    204: void;
-};
-
-export type UpdateEmailResponse = UpdateEmailResponses[keyof UpdateEmailResponses];
-
-export type UpdatePasswordData = {
-    body: UpdateUserPasswordDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/password';
-};
-
-export type UpdatePasswordResponses = {
-    204: void;
-};
-
-export type UpdatePasswordResponse = UpdatePasswordResponses[keyof UpdatePasswordResponses];
-
-export type UpdateRoleData = {
-    body: UpdateUserRoleDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/role';
-};
-
-export type UpdateRoleResponses = {
-    204: void;
-};
-
-export type UpdateRoleResponse = UpdateRoleResponses[keyof UpdateRoleResponses];
-
-export type UpdateDisplayTitle2Data = {
-    body: UpdateUserDisplayTitleDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/display-title';
-};
-
-export type UpdateDisplayTitle2Responses = {
-    204: void;
-};
-
-export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
-
-export type DemoteFromAdminData = {
-    body?: never;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/promotion';
-};
-
-export type DemoteFromAdminResponses = {
-    204: void;
-};
-
-export type DemoteFromAdminResponse = DemoteFromAdminResponses[keyof DemoteFromAdminResponses];
-
-export type PromoteToAdminData = {
-    body?: never;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/administration/v1/users/{userId}/promotion';
-};
-
-export type PromoteToAdminResponses = {
-    204: void;
-};
-
-export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
-
 export type SearchChairmenData = {
     body?: never;
     path?: never;
@@ -3161,3 +2821,332 @@ export type PresentPlanResponses = {
 };
 
 export type PresentPlanResponse = PresentPlanResponses[keyof PresentPlanResponses];
+
+export type SearchMagistratsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        ignore?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1';
+};
+
+export type SearchMagistratsResponses = {
+    200: SearchMagistratsResponseDto;
+};
+
+export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
+
+export type SearchFullNameData = {
+    body?: never;
+    path?: never;
+    query: {
+        search: string;
+    };
+    url: '/api/magistrats/v1/fullname';
+};
+
+export type SearchFullNameResponses = {
+    200: unknown;
+};
+
+export type ListObservationsData = {
+    body?: never;
+    path: {
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations';
+};
+
+export type ListObservationsResponses = {
+    200: ListObservationsResponseDto;
+};
+
+export type ListObservationsResponse = ListObservationsResponses[keyof ListObservationsResponses];
+
+export type CreateObservationData = {
+    body: CreateObservationDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations';
+};
+
+export type CreateObservationResponses = {
+    201: CreateObservationResponseDto;
+};
+
+export type CreateObservationResponse = CreateObservationResponses[keyof CreateObservationResponses];
+
+export type DeleteObservationData = {
+    body?: never;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type DeleteObservationResponses = {
+    204: void;
+};
+
+export type DeleteObservationResponse = DeleteObservationResponses[keyof DeleteObservationResponses];
+
+export type GetObservationDetailsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type GetObservationDetailsResponses = {
+    200: GetObservationDetailsResponseDto;
+};
+
+export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof GetObservationDetailsResponses];
+
+export type UpdateObservationData = {
+    body: UpdateObservationDto;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
+};
+
+export type UpdateObservationResponses = {
+    204: void;
+};
+
+export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateObservationResponses];
+
+export type GetObservationFileUrlData = {
+    body?: never;
+    path: {
+        observationId: string;
+        fileId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
+};
+
+export type GetObservationFileUrlResponses = {
+    200: GetObservationFileUrlResponseDto;
+};
+
+export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
+
+export type AttachMemberCommentScreenshotsData = {
+    body: AttachMemberCommentScreenshotsDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots';
+};
+
+export type AttachMemberCommentScreenshotsResponses = {
+    200: AttachedMemberCommentScreenshotsDto;
+};
+
+export type AttachMemberCommentScreenshotsResponse = AttachMemberCommentScreenshotsResponses[keyof AttachMemberCommentScreenshotsResponses];
+
+export type WriteMemberCommentData = {
+    body: WriteMemberCommentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments';
+};
+
+export type WriteMemberCommentResponses = {
+    204: void;
+};
+
+export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
+
+export type FollowUpOnObservationData = {
+    body: FollowUpOnObservationDto;
+    path: {
+        observationId: string;
+        nominationFileId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
+};
+
+export type FollowUpOnObservationResponses = {
+    204: void;
+};
+
+export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
+
+export type ListObservationsAttachmentsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        magistratId?: string;
+        excludeObservationId?: string;
+    };
+    url: '/api/sessions/v2/{sessionId}/observations/attachments';
+};
+
+export type ListObservationsAttachmentsResponses = {
+    200: ListedObservationsAttachmentsDto;
+};
+
+export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
+
+export type ListUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sortBy?: 'lastName';
+        search?: string;
+        roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/administration/v1/users';
+};
+
+export type ListUsersResponses = {
+    200: PaginatedAdminUserListItemDto;
+};
+
+export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
+
+export type DetailsUserData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}';
+};
+
+export type DetailsUserResponses = {
+    200: DetailedAdminUserDto;
+};
+
+export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type UpdateEmailData = {
+    body: UpdateUserEmailDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/email';
+};
+
+export type UpdateEmailResponses = {
+    204: void;
+};
+
+export type UpdateEmailResponse = UpdateEmailResponses[keyof UpdateEmailResponses];
+
+export type UpdatePasswordData = {
+    body: UpdateUserPasswordDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/password';
+};
+
+export type UpdatePasswordResponses = {
+    204: void;
+};
+
+export type UpdatePasswordResponse = UpdatePasswordResponses[keyof UpdatePasswordResponses];
+
+export type UpdateRoleData = {
+    body: UpdateUserRoleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/role';
+};
+
+export type UpdateRoleResponses = {
+    204: void;
+};
+
+export type UpdateRoleResponse = UpdateRoleResponses[keyof UpdateRoleResponses];
+
+export type UpdateDisplayTitle2Data = {
+    body: UpdateUserDisplayTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/display-title';
+};
+
+export type UpdateDisplayTitle2Responses = {
+    204: void;
+};
+
+export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
+
+export type DemoteFromAdminData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/promotion';
+};
+
+export type DemoteFromAdminResponses = {
+    204: void;
+};
+
+export type DemoteFromAdminResponse = DemoteFromAdminResponses[keyof DemoteFromAdminResponses];
+
+export type PromoteToAdminData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/promotion';
+};
+
+export type PromoteToAdminResponses = {
+    204: void;
+};
+
+export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];

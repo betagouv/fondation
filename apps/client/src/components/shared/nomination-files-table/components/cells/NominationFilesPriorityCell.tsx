@@ -9,9 +9,9 @@ const NominationFilesPriorityReadOnly = ({ file: { priorities } }: { file: Sessi
 
 export function NominationFilesPriorityCell(props: { nominationFile: SessionNominationFile }) {
   const { edition } = useNominationFilesTable();
-  const hasOutcome = !!props.nominationFile.content.outcome;
+  const isUpdatable = !!props.nominationFile.content.isUpdatable;
 
-  if (edition?.isEditing && !hasOutcome) {
+  if (edition?.isEditing && isUpdatable) {
     return <NominationFilesPrioritySelectorCell fileId={props.nominationFile.id} />;
   }
 

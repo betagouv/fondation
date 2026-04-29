@@ -140,3 +140,6 @@ export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
   RUNNING: 'en cours',
   SUCCEEDED: 'succès'
 };
+
+export type UpdatableNominationFileStatusEnum =
+  PaginatedNominationFiles['items'][number]['content']['status'];

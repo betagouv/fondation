@@ -435,158 +435,6 @@ export class jurisdictions {
     }
 }
 
-export class magistrats {
-    public static searchMagistrats<ThrowOnError extends boolean = false>(options?: Options<SearchMagistratsData, ThrowOnError>) {
-        return (options?.client ?? client).get<SearchMagistratsResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1', ...options });
-    }
-    
-    public static searchFullName<ThrowOnError extends boolean = false>(options: Options<SearchFullNameData, ThrowOnError>) {
-        return (options.client ?? client).get<SearchFullNameResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1/fullname', ...options });
-    }
-}
-
-export class observations {
-    public static listObservations<ThrowOnError extends boolean = false>(options: Options<ListObservationsData, ThrowOnError>) {
-        return (options.client ?? client).get<ListObservationsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations', ...options });
-    }
-    
-    public static createObservation<ThrowOnError extends boolean = false>(options: Options<CreateObservationData, ThrowOnError>) {
-        return (options.client ?? client).post<CreateObservationResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
-        return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}', ...options });
-    }
-    
-    public static getObservationDetails<ThrowOnError extends boolean = false>(options: Options<GetObservationDetailsData, ThrowOnError>) {
-        return (options.client ?? client).get<GetObservationDetailsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}', ...options });
-    }
-    
-    public static updateObservation<ThrowOnError extends boolean = false>(options: Options<UpdateObservationData, ThrowOnError>) {
-        return (options.client ?? client).patch<UpdateObservationResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static getObservationFileUrl<ThrowOnError extends boolean = false>(options: Options<GetObservationFileUrlData, ThrowOnError>) {
-        return (options.client ?? client).get<GetObservationFileUrlResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url', ...options });
-    }
-    
-    public static attachMemberCommentScreenshots<ThrowOnError extends boolean = false>(options: Options<AttachMemberCommentScreenshotsData, ThrowOnError>) {
-        return (options.client ?? client).post<AttachMemberCommentScreenshotsResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots',
-            ...options,
-            headers: {
-                'Content-Type': null,
-                ...options.headers
-            }
-        });
-    }
-    
-    public static writeMemberComment<ThrowOnError extends boolean = false>(options: Options<WriteMemberCommentData, ThrowOnError>) {
-        return (options.client ?? client).put<WriteMemberCommentResponses, unknown, ThrowOnError>({
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static followUpOnObservation<ThrowOnError extends boolean = false>(options: Options<FollowUpOnObservationData, ThrowOnError>) {
-        return (options.client ?? client).put<FollowUpOnObservationResponses, unknown, ThrowOnError>({
-            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static listObservationsAttachments<ThrowOnError extends boolean = false>(options: Options<ListObservationsAttachmentsData, ThrowOnError>) {
-        return (options.client ?? client).get<ListObservationsAttachmentsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/observations/attachments', ...options });
-    }
-}
-
-export class administration {
-    public static listUsers<ThrowOnError extends boolean = false>(options?: Options<ListUsersData, ThrowOnError>) {
-        return (options?.client ?? client).get<ListUsersResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users', ...options });
-    }
-    
-    public static detailsUser<ThrowOnError extends boolean = false>(options: Options<DetailsUserData, ThrowOnError>) {
-        return (options.client ?? client).get<DetailsUserResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}', ...options });
-    }
-    
-    public static updateEmail<ThrowOnError extends boolean = false>(options: Options<UpdateEmailData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateEmailResponses, unknown, ThrowOnError>({
-            url: '/api/administration/v1/users/{userId}/email',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static updatePassword<ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdatePasswordResponses, unknown, ThrowOnError>({
-            url: '/api/administration/v1/users/{userId}/password',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static updateRole<ThrowOnError extends boolean = false>(options: Options<UpdateRoleData, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateRoleResponses, unknown, ThrowOnError>({
-            url: '/api/administration/v1/users/{userId}/role',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static updateDisplayTitle<ThrowOnError extends boolean = false>(options: Options<UpdateDisplayTitle2Data, ThrowOnError>) {
-        return (options.client ?? client).put<UpdateDisplayTitle2Responses, unknown, ThrowOnError>({
-            url: '/api/administration/v1/users/{userId}/display-title',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static demoteFromAdmin<ThrowOnError extends boolean = false>(options: Options<DemoteFromAdminData, ThrowOnError>) {
-        return (options.client ?? client).delete<DemoteFromAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
-    }
-    
-    public static promoteToAdmin<ThrowOnError extends boolean = false>(options: Options<PromoteToAdminData, ThrowOnError>) {
-        return (options.client ?? client).put<PromoteToAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
-    }
-}
-
 export class docs {
     public static searchChairmen<ThrowOnError extends boolean = false>(options?: Options<SearchChairmenData, ThrowOnError>) {
         return (options?.client ?? client).get<SearchChairmenResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/chairmen', ...options });
@@ -789,5 +637,157 @@ export class docs {
     
     public static presentPlan<ThrowOnError extends boolean = false>(options: Options<PresentPlanData, ThrowOnError>) {
         return (options.client ?? client).put<PresentPlanResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/{planId}/presentation', ...options });
+    }
+}
+
+export class magistrats {
+    public static searchMagistrats<ThrowOnError extends boolean = false>(options?: Options<SearchMagistratsData, ThrowOnError>) {
+        return (options?.client ?? client).get<SearchMagistratsResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1', ...options });
+    }
+    
+    public static searchFullName<ThrowOnError extends boolean = false>(options: Options<SearchFullNameData, ThrowOnError>) {
+        return (options.client ?? client).get<SearchFullNameResponses, unknown, ThrowOnError>({ url: '/api/magistrats/v1/fullname', ...options });
+    }
+}
+
+export class observations {
+    public static listObservations<ThrowOnError extends boolean = false>(options: Options<ListObservationsData, ThrowOnError>) {
+        return (options.client ?? client).get<ListObservationsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations', ...options });
+    }
+    
+    public static createObservation<ThrowOnError extends boolean = false>(options: Options<CreateObservationData, ThrowOnError>) {
+        return (options.client ?? client).post<CreateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static deleteObservation<ThrowOnError extends boolean = false>(options: Options<DeleteObservationData, ThrowOnError>) {
+        return (options.client ?? client).delete<DeleteObservationResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}', ...options });
+    }
+    
+    public static getObservationDetails<ThrowOnError extends boolean = false>(options: Options<GetObservationDetailsData, ThrowOnError>) {
+        return (options.client ?? client).get<GetObservationDetailsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}', ...options });
+    }
+    
+    public static updateObservation<ThrowOnError extends boolean = false>(options: Options<UpdateObservationData, ThrowOnError>) {
+        return (options.client ?? client).patch<UpdateObservationResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static getObservationFileUrl<ThrowOnError extends boolean = false>(options: Options<GetObservationFileUrlData, ThrowOnError>) {
+        return (options.client ?? client).get<GetObservationFileUrlResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url', ...options });
+    }
+    
+    public static attachMemberCommentScreenshots<ThrowOnError extends boolean = false>(options: Options<AttachMemberCommentScreenshotsData, ThrowOnError>) {
+        return (options.client ?? client).post<AttachMemberCommentScreenshotsResponses, unknown, ThrowOnError>({
+            ...formDataBodySerializer,
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments/screenshots',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    public static writeMemberComment<ThrowOnError extends boolean = false>(options: Options<WriteMemberCommentData, ThrowOnError>) {
+        return (options.client ?? client).put<WriteMemberCommentResponses, unknown, ThrowOnError>({
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/member-comments',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static followUpOnObservation<ThrowOnError extends boolean = false>(options: Options<FollowUpOnObservationData, ThrowOnError>) {
+        return (options.client ?? client).put<FollowUpOnObservationResponses, unknown, ThrowOnError>({
+            url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static listObservationsAttachments<ThrowOnError extends boolean = false>(options: Options<ListObservationsAttachmentsData, ThrowOnError>) {
+        return (options.client ?? client).get<ListObservationsAttachmentsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/observations/attachments', ...options });
+    }
+}
+
+export class administration {
+    public static listUsers<ThrowOnError extends boolean = false>(options?: Options<ListUsersData, ThrowOnError>) {
+        return (options?.client ?? client).get<ListUsersResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users', ...options });
+    }
+    
+    public static detailsUser<ThrowOnError extends boolean = false>(options: Options<DetailsUserData, ThrowOnError>) {
+        return (options.client ?? client).get<DetailsUserResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}', ...options });
+    }
+    
+    public static updateEmail<ThrowOnError extends boolean = false>(options: Options<UpdateEmailData, ThrowOnError>) {
+        return (options.client ?? client).put<UpdateEmailResponses, unknown, ThrowOnError>({
+            url: '/api/administration/v1/users/{userId}/email',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static updatePassword<ThrowOnError extends boolean = false>(options: Options<UpdatePasswordData, ThrowOnError>) {
+        return (options.client ?? client).put<UpdatePasswordResponses, unknown, ThrowOnError>({
+            url: '/api/administration/v1/users/{userId}/password',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static updateRole<ThrowOnError extends boolean = false>(options: Options<UpdateRoleData, ThrowOnError>) {
+        return (options.client ?? client).put<UpdateRoleResponses, unknown, ThrowOnError>({
+            url: '/api/administration/v1/users/{userId}/role',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static updateDisplayTitle<ThrowOnError extends boolean = false>(options: Options<UpdateDisplayTitle2Data, ThrowOnError>) {
+        return (options.client ?? client).put<UpdateDisplayTitle2Responses, unknown, ThrowOnError>({
+            url: '/api/administration/v1/users/{userId}/display-title',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static demoteFromAdmin<ThrowOnError extends boolean = false>(options: Options<DemoteFromAdminData, ThrowOnError>) {
+        return (options.client ?? client).delete<DemoteFromAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
+    }
+    
+    public static promoteToAdmin<ThrowOnError extends boolean = false>(options: Options<PromoteToAdminData, ThrowOnError>) {
+        return (options.client ?? client).put<PromoteToAdminResponses, unknown, ThrowOnError>({ url: '/api/administration/v1/users/{userId}/promotion', ...options });
     }
 }

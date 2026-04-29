@@ -170,6 +170,8 @@ describe('Session E2E', () => {
           isAlertHidden: false,
           detectedJurisdictionId: null,
           detectedTargetedFunctionId: null,
+          isUpdatable: true,
+          status: 'TO_REPORT',
           docs: {
             isLinkedToAgenda: false,
             isLinkedToOfficialReport: false,
@@ -177,10 +179,7 @@ describe('Session E2E', () => {
           },
         },
         id: expect.any(String),
-        observationCount: 0,
-        observationMagistrats: [],
         observations: [],
-        priority: null,
         priorities: [],
         memo: null,
         summary: null,
@@ -197,8 +196,6 @@ describe('Session E2E', () => {
         comment: null,
         id: expect.any(String),
         observations: [],
-        observationCount: 0,
-        observationMagistrats: [],
         content: {
           numeroDeDossier: 2,
           dateDeNaissance: {
@@ -233,13 +230,14 @@ describe('Session E2E', () => {
 
           detectedJurisdictionId: null,
           detectedTargetedFunctionId: null,
+          isUpdatable: true,
+          status: 'TO_REPORT',
           docs: {
             isLinkedToAgenda: false,
             isLinkedToOfficialReport: false,
             isLinkedToPresentationPlan: false,
           },
         },
-        priority: null,
         priorities: [],
         memo: null,
         summary: null,
