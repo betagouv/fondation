@@ -24,6 +24,7 @@ export default defineConfig({
 
   webServer: [
     {
+      name: 'backend',
       command: 'pnpm run --filter api start:e2e',
       url: 'http://localhost:3000/_health',
       reuseExistingServer: !process.env.CI
