@@ -251,8 +251,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@codegouvfr/react-dsfr':
-        specifier: ^1.17.0
-        version: 1.25.3
+        specifier: ^1.31.0
+        version: 1.32.0
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
@@ -937,8 +937,8 @@ packages:
   '@bufbuild/protobuf@2.10.2':
     resolution: {integrity: sha512-uFsRXwIGyu+r6AMdz+XijIIZJYpoWeYzILt5yZ2d3mCjQrWUTVpVD9WL/jZAbvp+Ed04rOhrsk7FiTcEDseB5A==}
 
-  '@codegouvfr/react-dsfr@1.25.3':
-    resolution: {integrity: sha512-u+imx35b6cSXYw8I+t9IOEPI7WlvtLY2Ta1Y5XJC/0SdMiAVZjmjIlp6w7MdkLKYcKq8+1jVBfDR4EQhXwjFPg==}
+  '@codegouvfr/react-dsfr@1.32.0':
+    resolution: {integrity: sha512-f7J66o6Wx8Cwy+AEkxA3gNmNvZhLyWL+/IhiNeHFifrNBUd+9nyWrdaecttBhASzmOUp9nAqCVVRb5mrlRcFGQ==}
     hasBin: true
     peerDependencies:
       '@gouvfr/dsfr-chart': ^1.0.0
@@ -8176,7 +8176,7 @@ snapshots:
   '@bufbuild/protobuf@2.10.2':
     optional: true
 
-  '@codegouvfr/react-dsfr@1.25.3':
+  '@codegouvfr/react-dsfr@1.32.0':
     dependencies:
       tsafe: 1.8.5
       yargs-parser: 21.1.1
