@@ -12,6 +12,8 @@ import {
   LodamNominationFileEntity,
   NominationFile,
   NominationFileEntity,
+  UpdatableNominationFile,
+  UpdatableNominationFileState,
 } from './nomination-file';
 import {
   NominationFileOutcome,
@@ -206,8 +208,8 @@ export class UnknownNominationFiles extends Error {
   }
 }
 
-export class NominationFilesHaveOutcome extends Error {
-  constructor(readonly nominationFileIds: readonly string[]) {
+export class CantUpdateNominationFiles extends Error {
+  constructor(readonly fileIds: Set<string>) {
     super();
   }
 }
@@ -223,20 +225,24 @@ export class NominationSession {
     readonly id: string,
     readonly formation: Magistrat.Formation,
     private readonly version: NominationSessionAffectationVersion | null,
-    private readonly nominationFileIdsWithOutcome: Set<string>,
+    private nominationFiles: Map<string, UpdatableNominationFile>,
   ) {}
 
   static from(props: {
     id: string;
     formation: Magistrat.Formation;
     version: NominationSessionAffectationVersion | null;
-    nominationFileIdsWithOutcome: Set<string> | null;
+    nominationFiles: readonly UpdatableNominationFileState[];
   }) {
     return new NominationSession(
       props.id,
       props.formation,
       props.version,
-      props.nominationFileIdsWithOutcome ?? new Set<string>(),
+      new Map(
+        props.nominationFiles.map(
+          (state) => [state.id, UpdatableNominationFile.from(state)] as const,
+        ),
+      ),
     );
   }
 
@@ -254,7 +260,7 @@ export class NominationSession {
       id: makeId('NominationSessionId'),
       formation: command.formation,
       version: null,
-      nominationFileIdsWithOutcome: null,
+      nominationFiles: [],
     });
 
     const observationClosingDate =
@@ -331,6 +337,21 @@ export class NominationSession {
       );
     }
 
+    session.nominationFiles = new Map(
+      nominationFileEntities.map((x) => [
+        x.id,
+        UpdatableNominationFile.from({
+          id: x.id,
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        }),
+      ]),
+    );
+
     session.#messages.push(
       new LodamNominationSessionFilesCreated(
         session.id,
@@ -368,9 +389,7 @@ export class NominationSession {
     nominationFileId: string;
     priorities: PrioriteEnum[];
   }) {
-    if (this.nominationFileHasOutcome(props.nominationFileId)) {
-      throw new NominationFilesHaveOutcome([props.nominationFileId]);
-    }
+    this.assertsCanUpdateFiles(props.nominationFileId);
 
     this.#messages.push(
       new NominationSessionFilePrioritiesUpdated(
@@ -388,17 +407,9 @@ export class NominationSession {
       reporterIds: readonly string[];
     }[];
   }) {
-    const nominationFileIdsWithOutcome = command.affectations.filter(
-      ({ nominationFileId }) => this.nominationFileHasOutcome(nominationFileId),
+    this.assertsCanUpdateFiles(
+      ...command.affectations.map(({ nominationFileId }) => nominationFileId),
     );
-
-    if (nominationFileIdsWithOutcome.length > 0) {
-      throw new NominationFilesHaveOutcome(
-        nominationFileIdsWithOutcome.map(
-          ({ nominationFileId }) => nominationFileId,
-        ),
-      );
-    }
 
     let versionId = this.version?.id;
 
@@ -481,20 +492,9 @@ export class NominationSession {
       );
     }
 
-    const [withOutcome, knownFilesWithoutOutcome] = partition(
-      knownFiles,
-      ({ id }) => this.nominationFileHasOutcome(id),
-    );
-
-    if (withOutcome.length > 0) {
-      throw new NominationFilesHaveOutcome(withOutcome.map(({ id }) => id));
-    }
-
+    this.assertsCanUpdateFiles(...knownFiles.map(({ id }) => id));
     this.#messages.push(
-      new NominationSessionFilesObserversUpdated(
-        this.id,
-        knownFilesWithoutOutcome,
-      ),
+      new NominationSessionFilesObserversUpdated(this.id, knownFiles),
     );
   }
 
@@ -524,6 +524,8 @@ export class NominationSession {
     nominationFileId: string;
     outcome: NominationFileOutcome | null;
   }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
     this.#messages.push(
       new NominationFileOutcomeDefined(
         command.nominationFileId,
@@ -582,8 +584,16 @@ export class NominationSession {
     this.#messages.push(new NominationSessionDeleted(this.id, command.userId));
   }
 
-  private nominationFileHasOutcome(nominationFileId: string): boolean {
-    return this.nominationFileIdsWithOutcome.has(nominationFileId);
+  private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
+    const nonUpdatableIds = new Set<string>();
+    for (const id of nominationFileIds) {
+      const file = this.nominationFiles.get(id);
+      if (!file || !file.isUpdatable()) nonUpdatableIds.add(id);
+    }
+
+    if (nonUpdatableIds.size) {
+      throw new CantUpdateNominationFiles(nonUpdatableIds);
+    }
   }
 
   #messages: NominationSessionEvent[] = [];

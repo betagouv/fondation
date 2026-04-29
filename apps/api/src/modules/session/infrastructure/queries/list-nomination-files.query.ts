@@ -26,6 +26,10 @@ import {
 import { DateOnly } from 'src/utils/date-only';
 import { partition } from 'src/utils/iterables';
 import {
+  NOMINATION_SESSION_FILE_STATUSES,
+  UpdatableNominationFile,
+} from '../../domain/nomination-file';
+import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from '../../domain/nomination-file-outcome';
@@ -182,9 +186,20 @@ export class ListNominationFilesQuery {
             isLinkedToOfficialReport = false,
             isLinkedToPresentationPlan = false,
           } = linkedDocs.get(file.id) ?? {};
+          const updatable = UpdatableNominationFile.from({
+            id: file.id,
+            outcome: file.outcome,
+            docs: {
+              isLinkedToAgenda,
+              isLinkedToOfficialReport,
+              isLinkedToPresentationPlan,
+            },
+          });
 
           return {
             ...file,
+            status: updatable.status(),
+            isUpdatable: updatable.isUpdatable(),
             docs: {
               isLinkedToAgenda,
               isLinkedToOfficialReport,
@@ -226,16 +241,12 @@ export class ListNominationFilesQuery {
               }
             : null,
           isAlertHidden: x.alertHidden,
+          isUpdatable: x.isUpdatable,
+          status: x.status,
           docs: x.docs,
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
-        // TODO: remove
-        priority: x.priorities[0]
-          ? prismaPrioriteEnumToPrioriteEnum(x.priorities[0])
-          : null,
         comment: x.comment,
-        /** @deprecated */
-        commentAccessUserIds: undefined,
         reporters: x.reporterIds.map(
           ({ user: { id, firstName, lastName } }) => ({
             id,
@@ -243,16 +254,6 @@ export class ListNominationFilesQuery {
             lastName,
           }),
         ),
-        observationCount: x.observations.length,
-        /** @deprecated */
-        observationMagistrats: x.observations
-          .filter((obs) => obs.magistrat)
-          .map((obs) => ({
-            id: obs.magistrat!.id,
-            firstName: obs.magistrat!.firstName,
-            lastName: obs.magistrat!.lastName,
-            observationId: obs.id,
-          })),
         observations: x.observations.map((obs) => {
           return {
             id: obs.id,
@@ -406,6 +407,8 @@ const NominationFileContentSchema = z.object({
     .nullable(),
   isAlertHidden: z.boolean(),
 
+  isUpdatable: z.boolean(),
+  status: z.enum(NOMINATION_SESSION_FILE_STATUSES),
   docs: z.object({
     isLinkedToAgenda: z.boolean(),
     isLinkedToOfficialReport: z.boolean(),
@@ -416,13 +419,8 @@ const NominationFileContentSchema = z.object({
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
   priorities: z.array(z.enum(PrioriteEnum)),
-  priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true }),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
-  commentAccessUserIds: z
-    .array(z.string())
-    .optional()
-    .meta({ deprecated: true }),
   reporters: z.array(
     z.object({
       id: z.string(),
@@ -430,7 +428,6 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
-  observationCount: z.number(),
   observations: z.array(
     z.object({
       id: z.string(),
@@ -444,17 +441,6 @@ const NominationFileAffectationItemSchema = z.object({
         .nullable(),
     }),
   ),
-  /** @deprecated */
-  observationMagistrats: z
-    .array(
-      z.object({
-        id: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
-        observationId: z.string(),
-      }),
-    )
-    .meta({ deprecated: true }),
   memo: z.string().nullable(),
   summary: z
     .object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() })

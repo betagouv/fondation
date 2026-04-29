@@ -42,6 +42,7 @@ import {
   NominationSessionValidated,
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { NominationSessionFileFinder } from '../finders/nomination-session-file.finder';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
@@ -54,12 +55,14 @@ export class NominationSessionRepository {
     private readonly prisma: PrismaService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
+    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
   ) {}
 
   async find(
     id: string,
     options: {
       tx?: Prisma.TransactionClient;
+      nominationFileIds?: Set<string>;
     } = {},
   ): Promise<NominationSession> {
     if (!options.tx) {
@@ -84,6 +87,12 @@ export class NominationSessionRepository {
 
     if (!session) throw new NotFoundException();
 
+    const nominationFiles =
+      await this.nominationSessionFileFinder.findUpdatable({
+        tx,
+        nominationFileIds: options.nominationFileIds,
+      });
+
     const optionalVersion = await this.affectationVersionFinder.last({
       tx,
       sessionId: id,
@@ -91,10 +100,8 @@ export class NominationSessionRepository {
 
     return NominationSession.from({
       id,
+      nominationFiles,
       formation: prismaFormationEnumToFormationEnum(session.formation),
-      nominationFileIdsWithOutcome: new Set(
-        session.dossierDeNominations.map(({ id }) => id),
-      ),
       version: optionalVersion.map(({ id, status, version }) => ({
         id,
         version,
