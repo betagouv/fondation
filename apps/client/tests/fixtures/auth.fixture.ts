@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import type { APIRequestContext } from '@playwright/test';
 import type { RegisteredUserDto, RegisterUserDto } from '../../src/generated/api/types';
-import type { HttpClient } from './http-client.fixture';
 
 export type UserRole = NonNullable<RegisterUserDto['role']>;
 export type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUserDto, 'role'> & {
@@ -9,7 +9,7 @@ export type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUser
 };
 
 export class AuthHttpClient {
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: APIRequestContext) {}
 
   async registerUser<const Role extends UserRole>(options: {
     defaultUser?: Partial<Omit<RegisterUserDto, 'role'>>;
@@ -24,8 +24,7 @@ export class AuthHttpClient {
       gender: defaultUser?.gender ?? ('FEMALE' as const)
     };
 
-    const response = await this.http.request({
-      url: '/api/auth/v2/register',
+    const response = await this.http.post('/api/auth/v2/register', {
       data: { ...person, role }
     });
 

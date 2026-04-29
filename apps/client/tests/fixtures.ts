@@ -35,7 +35,18 @@ export const test = base.extend<Fixtures>({
     return use(app);
   },
 
-  http: ({ request }, use) => use(new ApiHttpClient(request)),
+  http: async ({ playwright }, use) => {
+    // see apps/api/.env.e2e
+    const token = 'FthDG8SXXzWD6eOzybymzXh1bHqHepZG';
+
+    const http = await playwright.request.newContext({
+      failOnStatusCode: true,
+      baseURL: 'http://localhost:3000',
+      extraHTTPHeaders: { authorization: `Bearer ${token}` }
+    });
+
+    return use(new ApiHttpClient(http));
+  },
 
   registerUser: async ({ http }, use) =>
     use(

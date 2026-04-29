@@ -6,7 +6,7 @@ export class ManageSessionsPage {
 
   async goto() {
     await this.app.nav.getByText('Gérer une session').click();
-    await this.app.page.locator('table thead').getByText('Type de session').waitFor();
+    await this.app.page.locator('table thead').getByText('Intitulé de la session').waitFor();
   }
 
   sessionRow(text: string): Locator {

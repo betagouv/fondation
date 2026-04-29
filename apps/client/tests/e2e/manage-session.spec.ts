@@ -38,7 +38,7 @@ test.describe('Gérer les sessions', () => {
   test.describe('soit une session importée', () => {
     let lastSession: string | undefined;
 
-    test.beforeEach(async ({ app, registerUser }) => {
+    test.beforeEach(async ({ app, registerUser, http }) => {
       if (lastSession) {
         await app.pages.manageSessions.goto();
         if ((await app.pages.manageSessions.sessionRow(lastSession).count()) > 0) {
@@ -50,30 +50,55 @@ test.describe('Gérer les sessions', () => {
         }
       }
 
-      const lodamExcel = await lodam`
-        number | name                 | targetedPosition                   | birthDate                 | currentPosition         | lastPositionDate          | lastRankingDate           | movementType | observers | reporters | career | history
-        ${1}   | ${'Pierre BOURDIEU'} | ${'Procureur CA  LYON - G3'}       | ${new Date('1930-08-01')} | ${'Président CA  LYON'} | ${new Date('2020-07-15')} | ${new Date('2020-07-20')} | ${'A'}       | ${''}     | ${''}     | ${''}  | ${''}
-        ${2}   | ${'Anna HARENDT'}    | ${'Président CA  STRASBOURG - G3'} | ${new Date('1906-10-14')} | ${'DETACHEMENT'}        | ${new Date('2020-07-15')} | ${new Date('2020-07-20')} | ${'A'}       | ${''}     | ${''}     | ${''}  | ${''}
-        ${3}   | ${'Michel FOUCAULT'} | ${'Président CA  METZ - G3'}       | ${new Date('1926-10-15')} | ${'Président CA  AGEN'} | ${new Date('2020-07-15')} | ${new Date('2020-07-20')} | ${'E'}       | ${''}     | ${''}     | ${''}  | ${''}
-      `;
-
-      const file = new File([lodamExcel], `transparence_${new Date().getTime()}.xslsx`, {
-        type: lodamExcel.type
-      });
-
+      const name = `Transparence ${crypto.randomUUID()}`;
       const today = new Date();
       today.setUTCHours(0);
       const inAWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
 
-      await app.pages.createSession.goto();
-
-      const name = `Transparence ${crypto.randomUUID()}`;
-      await app.pages.createSession.with({
+      const { id: sessionId } = await http.sessions.createSession({
         name,
-        file,
         date: today,
-        observationClosingDate: inAWeek,
-        formation: 'PARQUET'
+        formation: 'PARQUET',
+        observationClosingDate: inAWeek
+      });
+
+      await http.sessions.attachNominationFiles({
+        sessionId,
+        files: [
+          {
+            fileNumber: 1,
+            name: 'Pierre BOURDIEU',
+            birthDate: new Date('1930-08-01'),
+            currentPosition: 'Président CA  LYON',
+            grade: 'G2',
+            targetedPosition: 'Procureur CA  LYON',
+            targetedGrade: 'G3',
+            lastPositionDate: new Date('2020-07-15'),
+            lastRankingDate: new Date('2020-07-15')
+          },
+          {
+            fileNumber: 2,
+            name: 'Anna HARENDT',
+            birthDate: new Date('1906-10-14'),
+            currentPosition: 'DETACHEMENT',
+            grade: 'G2',
+            targetedPosition: 'Président CA  STRASBOURG',
+            targetedGrade: 'G3',
+            lastPositionDate: new Date('2020-07-15'),
+            lastRankingDate: new Date('2020-07-15')
+          },
+          {
+            fileNumber: 3,
+            name: 'Michel FOUCAULT',
+            birthDate: new Date('1926-10-15'),
+            currentPosition: 'Président CA  AGEN',
+            grade: 'G2',
+            targetedPosition: 'Président CA  METZ - G3',
+            targetedGrade: 'G3',
+            lastPositionDate: new Date('2020-07-15'),
+            lastRankingDate: new Date('2020-07-15')
+          }
+        ]
       });
 
       // prettier-ignore
@@ -83,6 +108,7 @@ test.describe('Gérer les sessions', () => {
         await registerUser({ firstName: 'Juste', lastName: 'DUMONT', email: `juste.dumont+${crypto.randomUUID()}@justice.fr`, gender: 'MALE', role: 'MEMBRE_DU_PARQUET' });
       }
 
+      await app.pages.manageSessions.goto();
       await app.pages.manageSessions.sessionRow(name).click();
       await app.pages.session.waitFor(name);
 
