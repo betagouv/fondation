@@ -1,1 +1,0 @@
-ALTER TABLE "reports_context"."reports" ALTER COLUMN "biography" DROP NOT NULL;

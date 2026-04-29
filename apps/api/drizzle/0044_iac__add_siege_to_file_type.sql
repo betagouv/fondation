@@ -1,1 +1,0 @@
-ALTER TYPE "identity_and_access_context"."file_type" ADD VALUE 'PIECE_JOINTE_TRANSPARENCE_POUR_SIEGE';

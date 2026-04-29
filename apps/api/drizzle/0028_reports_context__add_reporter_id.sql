@@ -1,1 +1,0 @@
-ALTER TABLE "reports_context"."reports" ADD COLUMN "reporter_id" uuid;
