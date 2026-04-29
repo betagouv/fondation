@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
@@ -15,6 +15,7 @@ import {
 @Injectable()
 export class AgendaNominationFilesFinder {
   constructor(
+    @Inject(forwardRef(() => SessionService))
     private readonly sessions: SessionService,
     private readonly prisma: PrismaService,
   ) {}

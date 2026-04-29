@@ -11,7 +11,7 @@ import {
   UnknownNominationFileOutcome,
 } from '../domain/nomination-file-outcome';
 import {
-  NominationFilesHaveOutcome,
+  CantUpdateNominationFiles,
   NominationSessionAffectationHasUnknownReporter,
   NominationSessionIsNotDeletable,
   NonFormationMemberDefinedAsReporter,
@@ -76,13 +76,13 @@ export class SessionExceptionFilter implements NestInterceptor {
             );
           }
 
-          if (err instanceof NominationFilesHaveOutcome) {
+          if (err instanceof CantUpdateNominationFiles) {
             throw new BadRequestException(
               {
                 validationErrors: [
-                  err.nominationFileIds.length === 1
-                    ? `Le dossier a déjà une issue de renseignée et ne peut pas être modifié`
-                    : `${err.nominationFileIds.length} dossiers ont déjà une issue de renseignée et ne peuvent pas être modifiés`,
+                  err.fileIds.size === 1
+                    ? `Le dossier a déjà été associé à de la documentation`
+                    : `${err.fileIds.size} dossiers ont déjà été associés à de la documentation`,
                 ],
               },
               { cause: err },

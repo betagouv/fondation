@@ -24,7 +24,7 @@ function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
 export function ReportersCell(props: { dossier: SessionNominationFile }) {
   const { edition } = useNominationFilesTable();
 
-  if (edition?.isEditing && !props.dossier.content.outcome) {
+  if (edition?.isEditing && props.dossier.content.isUpdatable) {
     return <ReportersSelector file={props.dossier} />;
   }
 

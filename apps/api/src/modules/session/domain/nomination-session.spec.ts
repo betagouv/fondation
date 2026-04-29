@@ -9,9 +9,9 @@ import {
   NominationFileOutcomeEnum,
 } from './nomination-file-outcome';
 import {
+  CantUpdateNominationFiles,
   LodamNominationSessionFilesCreated,
   NominationFileOutcomeDefined,
-  NominationFilesHaveOutcome,
   NominationSession,
   NominationSessionAffectationHasUnknownReporter,
   NominationSessionAffectationVersionCreated,
@@ -31,7 +31,17 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.affectNominationFileReporters({
@@ -55,12 +65,22 @@ describe('NominationSession', () => {
     ]);
   });
 
-  it('should throw when trying to affect on files with outcome', () => {
+  it('should throw when trying to affect on files linked to docs', () => {
     const session = NominationSession.from({
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: {
+            isLinkedToAgenda: true,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     expect(() =>
@@ -73,7 +93,7 @@ describe('NominationSession', () => {
           },
         ],
       }),
-    ).toThrow(NominationFilesHaveOutcome);
+    ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should create a new version when the version is already published', () => {
@@ -81,7 +101,17 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: false },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.affectNominationFileReporters({
@@ -118,7 +148,17 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     expect(() =>
@@ -139,7 +179,17 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.setNominationFilePriority({
@@ -157,12 +207,22 @@ describe('NominationSession', () => {
     ]);
   });
 
-  it('should throw when defining a priority on a file with outcome', () => {
+  it('should throw when defining a priority on a file linked to docs', () => {
     const session = NominationSession.from({
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: {
+            isLinkedToAgenda: true,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     expect(() =>
@@ -170,7 +230,7 @@ describe('NominationSession', () => {
         nominationFileId: 'nomination-file-id-1',
         priorities: [PrioriteEnum.OUTRE_MER],
       }),
-    ).toThrow(NominationFilesHaveOutcome);
+    ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should unset a nomination file priority', () => {
@@ -178,7 +238,17 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.setNominationFilePriority({
@@ -201,7 +271,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: true },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [],
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -221,7 +291,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: { id: 'version-id', version: 3, isDraft: false },
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [],
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -235,7 +305,7 @@ describe('NominationSession', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [],
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -267,9 +337,9 @@ describe('NominationSession', () => {
           formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
           // prettier-ignore
           files: [
-          { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
-          { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
-        ],
+            { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
+            { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
+          ],
         });
 
       expect(session.messages[0]).toEqual(
@@ -352,7 +422,17 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nf-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.updateNominationFileObservers({
@@ -373,7 +453,7 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [],
     });
 
     expect(() =>
@@ -384,12 +464,22 @@ describe('NominationSession', () => {
     ).toThrow(new UnknownNominationFiles([1]));
   });
 
-  it('should throw when updating observers on files with outcome', () => {
+  it('should throw when updating observers on files linked to docs', () => {
     const session = NominationSession.from({
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: {
+            isLinkedToAgenda: true,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     expect(() =>
@@ -399,7 +489,7 @@ describe('NominationSession', () => {
           { id: 'nomination-file-id-1', fileNumber: 1 },
         ],
       }),
-    ).toThrow(NominationFilesHaveOutcome);
+    ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should define the nomination file outcome', () => {
@@ -407,7 +497,17 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.defineNominationFileOutcome({
@@ -433,7 +533,17 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.defineNominationFileOutcome({
@@ -459,7 +569,17 @@ describe('NominationSession', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFileIdsWithOutcome: new Set(['nomination-file-id-1']),
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: {
+            isLinkedToAgenda: false,
+            isLinkedToOfficialReport: false,
+            isLinkedToPresentationPlan: false,
+          },
+        },
+      ],
     });
 
     session.defineNominationFileOutcome({

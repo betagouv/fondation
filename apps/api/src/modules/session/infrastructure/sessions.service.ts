@@ -148,6 +148,11 @@ export class SessionService {
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
+      {
+        nominationFileIds: new Set(
+          command.affectations.map(({ nominationFileId }) => nominationFileId),
+        ),
+      },
     );
 
     const memberIds = Array.from(
@@ -213,6 +218,7 @@ export class SessionService {
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
+      { nominationFileIds: new Set(command.nominationFileIds) },
     );
     const autoAffectations = await this.autoAffectationsFinder.find({
       sessionId: command.sessionId,
@@ -280,14 +286,28 @@ export class SessionService {
     sessionId: string;
     files: readonly LodamNominationFile[];
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(
-      command.sessionId,
+    const [existingNominationFiles, session] = await this.prisma.$transaction(
+      async (tx) => {
+        const txExistingNominationFiles =
+          await this.nominationSessionFileFinder.bySessionAndFileNumber({
+            tx,
+            sessionId: command.sessionId,
+            fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
+          });
+
+        const txSession = await this.nominationSessionRepository.find(
+          command.sessionId,
+          {
+            tx,
+            nominationFileIds: new Set(
+              txExistingNominationFiles.map(({ id }) => id),
+            ),
+          },
+        );
+
+        return [txExistingNominationFiles, txSession];
+      },
     );
-    const existingNominationFiles =
-      await this.nominationSessionFileFinder.bySessionAndFileNumber({
-        sessionId: session.id,
-        fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
-      });
 
     session.updateNominationFileObservers({
       existingNominationFiles,
@@ -371,6 +391,7 @@ export class SessionService {
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(
       command.sessionId,
+      { nominationFileIds: new Set([command.nominationFileId]) },
     );
 
     const outcome = isDefined(command.outcome)
