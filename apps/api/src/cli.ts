@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { CommandFactory } from 'nest-commander';
 import { AppModule } from './app.module';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
-import { MaintenanceCliModule } from './modules/maintenance/infrastructure/cli/maintenance-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
 
 @Module({
-  imports: [AppModule, AuthCliModule, MaintenanceCliModule, IngestCliModule],
+  imports: [AppModule, AuthCliModule, IngestCliModule],
 })
 class CliAppModule {}
 
