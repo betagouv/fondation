@@ -1,1 +1,0 @@
-ALTER TYPE "public"."transparency" ADD VALUE 'DU_30_AVRIL_2025' BEFORE 'MARCH_2026';

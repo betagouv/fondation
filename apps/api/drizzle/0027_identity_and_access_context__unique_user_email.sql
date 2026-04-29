@@ -1,1 +1,0 @@
-ALTER TABLE "identity_and_access_context"."users" ADD CONSTRAINT "users_email_unique" UNIQUE("email");
