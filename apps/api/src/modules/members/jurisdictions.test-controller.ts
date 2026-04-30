@@ -34,6 +34,7 @@ export class JurisdictionTestController {
   @UsePipes(ZodValidationPipe)
   async createJurisdictions(@Body() body: CreateJurisdictionsTestDto) {
     await this.prisma.jurisdiction.createMany({
+      skipDuplicates: true,
       data: body.items.map((item) => ({ ...item, ville_jur: item.villeJur })),
     });
   }

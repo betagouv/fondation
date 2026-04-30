@@ -11,11 +11,16 @@ import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-me
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
 import { JurisdictionsController } from './jurisdictions.controller';
+import { JurisdictionTestController } from './jurisdictions.test-controller';
 import { MembersController } from './members.controller';
 
 @Module({
   imports: [forwardRef(() => SessionModule)],
-  controllers: [MembersController, JurisdictionsController],
+  controllers: [
+    MembersController,
+    JurisdictionsController,
+    JurisdictionTestController,
+  ],
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,
