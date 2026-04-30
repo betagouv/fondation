@@ -12,4 +12,8 @@ export class ManageSessionsPage {
   sessionRow(text: string): Locator {
     return this.app.page.locator('table').getByRole('link', { name: text });
   }
+
+  get dateHeader(): Locator {
+    return this.app.page.getByRole('columnheader', { name: 'Date de publication' });
+  }
 }
