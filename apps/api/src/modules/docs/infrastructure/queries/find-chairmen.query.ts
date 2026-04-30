@@ -7,8 +7,10 @@ import {
   PrismaUserDutyEnum,
   PrismaUserTitleEnum,
 } from 'src/generated/prisma/enums';
+import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
+import { formationToUserTitle } from 'src/modules/shared/formation-to-user-title';
 import { roleEnumToPrismaRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
@@ -38,20 +40,28 @@ export class FindChairmenQuery {
     });
 
     return {
-      items: users
-        .filter(
-          (u): u is typeof u & { duty: 'PRESIDENT' } => u.duty === 'PRESIDENT',
-        )
-        .map((u) => ({
-          id: u.id,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          duty: u.duty,
-          title: u.title,
-          displayTitle: u.displayTitle ?? null,
-        })),
+      items: users.filter(isUserChairman(query.formation)).map((u) => ({
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        duty: u.duty,
+        title: u.title,
+        displayTitle: u.displayTitle ?? null,
+      })),
     };
   }
+}
+
+// prettier-ignore
+type TitledPrismaUser = { duty: PrismaUserDutyEnum | null; title: PrismaUserTitleEnum | null };
+
+// prettier-ignore
+type Chairman<User> = User & { title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'>; duty: 'PRESIDENT' };
+
+function isUserChairman(formation: Magistrat.Formation | undefined) {
+  const titles = formationToUserTitle(formation);
+  return <U extends TitledPrismaUser>(user: U): user is Chairman<U> =>
+    user.duty === 'PRESIDENT' && titles.includes(user.title);
 }
 
 export class SearchChairmenQueryDto extends createZodDto(
@@ -66,7 +76,10 @@ export class FoundChairmenDto extends createZodDto(
         firstName: z.string(),
         lastName: z.string(),
         duty: z.enum([PrismaUserDutyEnum.PRESIDENT]),
-        title: z.enum(PrismaUserTitleEnum).nullable(),
+        title: z
+          .enum(PrismaUserTitleEnum)
+          .exclude(['FIRST_SECRETARY'])
+          .nullable(),
         displayTitle: z.string().nullable(),
       }),
     ),
