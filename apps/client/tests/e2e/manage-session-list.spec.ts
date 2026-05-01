@@ -47,6 +47,7 @@ test.describe('Gérer une liste de sessions', () => {
       // Et que je trie par "Date de publication"
       await app.pages.manageSessions.dateHeader.click();
       await expect(app.pages.manageSessions.dateHeader).toHaveAttribute('aria-sort', 'ascending');
+      await app.page.waitForLoadState('networkidle');
 
       const texts = await app.page.getByRole('row').allInnerTexts();
 
