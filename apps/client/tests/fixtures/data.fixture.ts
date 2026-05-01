@@ -1,6 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
 
-export class JurisdictionHttpClient {
+export class DataHttpClient {
   constructor(private readonly http: APIRequestContext) {}
 
   /** @see apps/api/src/modules/members/jurisdictions.test-controller.ts */
@@ -18,6 +18,6 @@ export class JurisdictionHttpClient {
       ville?: string | null;
     }[]
   ): Promise<void> {
-    await this.http.post('/_/jurisdictions', { data: { items: data } });
+    await this.http.post('/_/data/jurisdictions', { data: { items: data } });
   }
 }

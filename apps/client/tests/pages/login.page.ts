@@ -1,9 +1,8 @@
 import type { Locator } from '@playwright/test';
-
-import type { TestApp } from './test-app';
+import type { TestAnonymousApp } from './test-anonymous-app';
 
 export class LoginPage {
-  constructor(private readonly app: TestApp) {}
+  constructor(private readonly app: TestAnonymousApp) {}
 
   async goto(): Promise<void> {
     await this.app.page.goto('/login');

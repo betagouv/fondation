@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { SessionModule } from '../session/session.module';
+import { DataTestController } from './data.test-controller';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -11,16 +12,11 @@ import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-me
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
 import { JurisdictionsController } from './jurisdictions.controller';
-import { JurisdictionTestController } from './jurisdictions.test-controller';
 import { MembersController } from './members.controller';
 
 @Module({
   imports: [forwardRef(() => SessionModule)],
-  controllers: [
-    MembersController,
-    JurisdictionsController,
-    JurisdictionTestController,
-  ],
+  controllers: [MembersController, JurisdictionsController, DataTestController],
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,

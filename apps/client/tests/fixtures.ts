@@ -4,19 +4,21 @@ import { test as base } from '@playwright/test';
 import type { RegisterUserDto } from '../src/generated/api/types';
 import { ApiHttpClient } from './fixtures/api.fixture';
 import { type RegisteredUser, type UserRole } from './fixtures/auth.fixture';
+import { TestAnonymousApp } from './pages/test-anonymous-app';
 import { TestApp } from './pages/test-app';
+import { TestMemberApp } from './pages/test-member-app';
 
 export { expect } from '@playwright/test';
 
 type Fixtures = {
-  // same as anonymousApp, but the login phase is already done with the userSg
   app: TestApp;
-  anonymousApp: TestApp;
+  anonymousApp: TestAnonymousApp;
+
+  newMemberApp: <Role extends UserRole>(
+    dto: Partial<RegisterUserDto> & { role: Role }
+  ) => Promise<TestMemberApp<Role>>;
 
   userSg: RegisteredUser<'ADJOINT_SECRETAIRE_GENERAL'>;
-  memberCommon: RegisteredUser<'MEMBRE_COMMUN'>;
-  memberSiege: RegisteredUser<'MEMBRE_DU_SIEGE'>;
-  memberParquet: RegisteredUser<'MEMBRE_DU_PARQUET'>;
 
   http: ApiHttpClient;
 
@@ -26,13 +28,13 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  anonymousApp: ({ page }, use) => use(new TestApp(page)),
+  anonymousApp: ({ page }, use) => use(new TestAnonymousApp(page)),
 
-  app: async ({ anonymousApp: app, userSg }, use) => {
+  app: async ({ page, anonymousApp: app, userSg }, use) => {
     await app.pages.login.goto();
     await app.pages.login.with({ email: userSg.email, password: userSg.password });
 
-    return use(app);
+    return use(new TestApp(page));
   },
 
   http: async ({ playwright }, use) => {
@@ -59,9 +61,22 @@ export const test = base.extend<Fixtures>({
 
   userSg: async ({ registerUser }, use) => use(await registerUser({ role: 'ADJOINT_SECRETAIRE_GENERAL' })),
 
-  memberCommon: async ({ registerUser }, use) => use(await registerUser({ role: 'MEMBRE_COMMUN' })),
+  newMemberApp: async ({ browser, registerUser }, use) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const app = new TestAnonymousApp(page);
 
-  memberSiege: async ({ registerUser }, use) => use(await registerUser({ role: 'MEMBRE_DU_SIEGE' })),
+    return use(
+      async <Role extends UserRole>(dto: Partial<Omit<RegisterUserDto, 'role'>> & { role: Role }) => {
+        const user = await registerUser<Role>(dto);
+        await app.pages.login.goto();
+        await app.pages.login.with({ email: user.email, password: user.password });
 
-  memberParquet: async ({ registerUser }, use) => use(await registerUser({ role: 'MEMBRE_DU_PARQUET' }))
+        const memberApp = new TestMemberApp<Role>(page, user);
+        await memberApp.pages.home.goto();
+
+        return memberApp;
+      }
+    );
+  }
 });

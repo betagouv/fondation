@@ -25,12 +25,12 @@ class CreateJurisdictionsTestDto extends createZodDto(
 ) {}
 
 @ApiExcludeController()
-@Controller('/_/jurisdictions')
+@Controller('/_/data')
 @UseGuards(DevelopmentEnvironmentGuard)
-export class JurisdictionTestController {
+export class DataTestController {
   constructor(private readonly prisma: PrismaService) {}
 
-  @Post()
+  @Post('/jurisdictions')
   @UsePipes(ZodValidationPipe)
   async createJurisdictions(@Body() body: CreateJurisdictionsTestDto) {
     await this.prisma.jurisdiction.createMany({

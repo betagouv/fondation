@@ -3,7 +3,7 @@ import { test } from '../fixtures';
 test.describe('Gérer les membres', () => {
   test("j'exclus une juridiction", async ({ registerUser, app, http }) => {
     // Soit une juridiction "Cours d'appel de Lyon"
-    await http.jurisdictions.createJurisdiction([
+    await http.Data.createJurisdiction([
       { codejur: 'CA  LYON', typeJur: 'CA', ville: 'Lyon', libelle: "Cours d'appel de Lyon" }
     ]);
 
