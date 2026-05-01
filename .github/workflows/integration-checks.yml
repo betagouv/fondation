@@ -5,7 +5,7 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [ opened, synchronize ]
     branches-ignore:
       - "dependabot/*"
 
@@ -38,9 +38,7 @@ jobs:
         ports:
           - 5435:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s
           --health-retries 5
 
       minio:
@@ -75,7 +73,8 @@ jobs:
         run: pnpm run --filter api prisma migrate deploy
 
       - name: Generate prisma
-        run: pnpm --filter api prisma generate --generator client --sql --config prisma.config.ts
+        run: pnpm --filter api prisma generate --generator client --sql --config
+          prisma.config.ts
 
       - name: Types check
         run: pnpm types:check
@@ -89,11 +88,14 @@ jobs:
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
+      - name: Test Api
+        run: pnpm --filter api test:all
+
       - name: Install Playwright
         uses: ./.github/playwright
 
-      - name: Test
-        run: pnpm test:all
+      - name: Test Client
+        run: pnpm --filter client test:all
 
       - name: Build
         run: pnpm build

@@ -49,7 +49,6 @@ test.describe('Gérer une liste de sessions', () => {
       await expect(app.pages.manageSessions.dateHeader).toHaveAttribute('aria-sort', 'ascending');
 
       const texts = await app.page.getByRole('row').allInnerTexts();
-      console.debug(texts);
 
       const transparence1Index = texts.findIndex((txt) => txt.includes(transparence1));
       const transparence2Index = texts.findIndex((txt) => txt.includes(transparence2));

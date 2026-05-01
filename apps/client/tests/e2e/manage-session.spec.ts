@@ -102,11 +102,7 @@ test.describe('Gérer les sessions', () => {
       });
 
       // prettier-ignore
-      {
-        await registerUser({ firstName: 'Antonio', lastName: 'GRAMSCI', email: `antonio.gramsci+${crypto.randomUUID()}@justice.fr`, gender: 'MALE', role: 'MEMBRE_COMMUN' });
-        await registerUser({ firstName: 'Julie', lastName: 'PERRIN', email: `julie.perrin+${crypto.randomUUID()}@justice.fr`, gender: 'FEMALE', role: 'MEMBRE_DU_SIEGE' });
-        await registerUser({ firstName: 'Juste', lastName: 'DUMONT', email: `juste.dumont+${crypto.randomUUID()}@justice.fr`, gender: 'MALE', role: 'MEMBRE_DU_PARQUET' });
-      }
+      await registerUser({ firstName: 'Antonio', lastName: 'GRAMSCI', email: `antonio.gramsci+${crypto.randomUUID()}@justice.fr`, gender: 'MALE', role: 'MEMBRE_COMMUN' });
 
       await app.pages.manageSessions.goto();
       await app.pages.manageSessions.sessionRow(name).click();
