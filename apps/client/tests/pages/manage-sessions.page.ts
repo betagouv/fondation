@@ -7,6 +7,7 @@ export class ManageSessionsPage {
   async goto() {
     await this.app.nav.getByText('Gérer une session').click();
     await this.app.page.locator('table thead').getByText('Intitulé de la session').waitFor();
+    await this.app.page.getByRole('cell', { name: 'Chargement...' }).isHidden();
   }
 
   sessionRow(text: string): Locator {

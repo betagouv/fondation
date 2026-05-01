@@ -1,5 +1,68 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import type { TestApp } from './test-app';
+
+class ObservationModal {
+  private readonly page: Page;
+  constructor(app: TestApp) {
+    this.page = app.page;
+  }
+
+  get dialog(): Locator {
+    return this.page.getByRole('dialog');
+  }
+
+  get inputDate(): Locator {
+    return this.page.getByLabel('Date de réception');
+  }
+
+  async fillDate(date: Date = new Date()): Promise<void> {
+    await this.inputDate.fill(date.toISOString().split('T')[0]);
+  }
+
+  get inputMagistrat(): Locator {
+    return this.page.getByLabel('Magistrat observant');
+  }
+
+  async searchMagistrat(toSearch: string): Promise<void> {
+    await this.inputMagistrat.fill(toSearch);
+  }
+
+  get magistratsListbox(): Locator {
+    return this.page.getByRole('listbox');
+  }
+
+  magistratsOption(name?: string | RegExp): Locator {
+    return this.page.getByRole('option', { name });
+  }
+
+  magistratsSelectedButton(name?: string | RegExp): Locator {
+    return this.page.getByRole('button', { name });
+  }
+
+  get inputHistory(): Locator {
+    return this.page.getByLabel('Historique observant');
+  }
+
+  get inputAttachments(): Locator {
+    return this.page.getByLabel('Pièces jointes', {});
+  }
+
+  get saveButton(): Locator {
+    return this.page.getByRole('button', { name: /(?:Créer|Enregistrer)/ });
+  }
+
+  get cancelButton(): Locator {
+    return this.page.getByRole('button', { name: 'Annuler' });
+  }
+
+  get backButton(): Locator {
+    return this.page.getByRole('button', { name: 'Annuler' });
+  }
+
+  get closeButton(): Locator {
+    return this.dialog.locator(this.page.getByRole('button', { name: 'Fermer' })).first();
+  }
+}
 
 export class ManageSingleSessionPage {
   constructor(private readonly app: TestApp) {}
@@ -50,5 +113,23 @@ export class ManageSingleSessionPage {
 
   get publishAffectationsButton(): Locator {
     return this.app.page.getByRole('button', { name: 'Publier aux membres' });
+  }
+
+  get createObservationButton(): Locator {
+    return this.app.page.getByRole('button', { name: 'Ajouter' });
+  }
+
+  get editObservationButton(): Locator {
+    return this.app.page.getByRole('button', { name: /Voir \(\d+\)/ });
+  }
+
+  async openObservationModal(locator: { name: string } | { number: number }): Promise<ObservationModal> {
+    const modal = new ObservationModal(this.app);
+
+    const row = this.sessionRow(locator);
+    await row.locator(this.createObservationButton).or(row.locator(this.editObservationButton)).click();
+
+    await modal.dialog.waitFor({ state: 'visible' });
+    return modal;
   }
 }

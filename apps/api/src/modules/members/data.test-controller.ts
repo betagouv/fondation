@@ -24,6 +24,30 @@ class CreateJurisdictionsTestDto extends createZodDto(
   }),
 ) {}
 
+const magistratNameSchema = z
+  .string()
+  .trim()
+  .nonempty()
+  .transform((x) => x.toLowerCase());
+class CreateMagistratTestDto extends createZodDto(
+  z.object({
+    items: z.array(
+      z.object({
+        externalId: z
+          .number()
+          .int()
+          .gt(0)
+          .transform((x) => x.toString()),
+        civilite: z.enum(['M.', 'MME']).default('M.'),
+        firstName: magistratNameSchema,
+        lastName: magistratNameSchema,
+        usedName: magistratNameSchema.nullish(),
+        marriedName: magistratNameSchema.nullish(),
+      }),
+    ),
+  }),
+) {}
+
 @ApiExcludeController()
 @Controller('/_/data')
 @UseGuards(DevelopmentEnvironmentGuard)
@@ -36,6 +60,17 @@ export class DataTestController {
     await this.prisma.jurisdiction.createMany({
       skipDuplicates: true,
       data: body.items.map((item) => ({ ...item, ville_jur: item.villeJur })),
+    });
+  }
+
+  @Post('/magistrats')
+  @UsePipes(ZodValidationPipe)
+  async createMagistrats(
+    @Body() { items: data }: CreateMagistratTestDto,
+  ): Promise<void> {
+    await this.prisma.magistrat.createMany({
+      data,
+      skipDuplicates: true,
     });
   }
 }

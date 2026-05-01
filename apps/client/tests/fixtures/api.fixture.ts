@@ -6,11 +6,11 @@ import { SessionsHttpClient } from './sessions.fixture';
 export class ApiHttpClient {
   readonly auth: AuthHttpClient;
   readonly sessions: SessionsHttpClient;
-  readonly Data: DataHttpClient;
+  readonly data: DataHttpClient;
 
   constructor(http: APIRequestContext) {
     this.auth = new AuthHttpClient(http);
     this.sessions = new SessionsHttpClient(http);
-    this.Data = new DataHttpClient(http);
+    this.data = new DataHttpClient(http);
   }
 }
