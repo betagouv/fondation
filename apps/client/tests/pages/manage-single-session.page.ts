@@ -43,6 +43,11 @@ class ObservationModal {
     return this.page.getByLabel('Historique observant');
   }
 
+  async fillHistory(history: string): Promise<void> {
+    await this.inputHistory.pressSequentially(history);
+    await this.inputHistory.blur();
+  }
+
   get inputAttachments(): Locator {
     return this.page.getByLabel('Pièces jointes', {});
   }
@@ -61,6 +66,10 @@ class ObservationModal {
 
   get closeButton(): Locator {
     return this.dialog.locator(this.page.getByRole('button', { name: 'Fermer' })).first();
+  }
+
+  get editObservationButton(): Locator {
+    return this.page.getByRole('button', { name: 'Éditer' });
   }
 }
 

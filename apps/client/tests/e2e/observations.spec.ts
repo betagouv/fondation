@@ -1,7 +1,7 @@
 import { test } from '../fixtures';
 
 test.describe('observations', () => {
-  test.describe('soit une transparence', () => {
+  test.describe.serial('soit une transparence', () => {
     let sessionName: string;
 
     let magistrats: {
@@ -10,7 +10,17 @@ test.describe('observations', () => {
     };
 
     test.beforeEach(async ({ http, app }) => {
-      test.setTimeout(5_000);
+      if (sessionName && magistrats) {
+        await app.pages.manageSessions.goto();
+        await app.pages.manageSessions.sessionRow(sessionName).click();
+        await test.expect(app.page.getByRole('heading', { name: sessionName })).toBeVisible();
+        await test.expect(app.page.getByRole('cell', { name: 'chargement...' })).toBeHidden();
+
+        console.debug('SKIPPED');
+
+        return;
+      }
+
       sessionName = `Transparence annuelle ${crypto.randomUUID()}`;
       const { id: sessionId } = await http.sessions.createSession({
         name: sessionName,
@@ -52,9 +62,7 @@ test.describe('observations', () => {
       await app.pages.manageSessions.sessionRow(sessionName).click();
       await app.page.getByRole('heading', { name: sessionName }).waitFor();
       await test.expect(app.page.getByRole('cell', { name: 'Chargement...' })).toBeHidden();
-    });
 
-    test('je crée une observation sur un dossier', async ({ app }) => {
       // Quand je bascule en édition
       await app.pages.session.switchToEditModeButton.click();
       // Et que j'ouvre la boite de dialogue d'ajout d'une observation
@@ -77,13 +85,36 @@ test.describe('observations', () => {
       // Et que je ferme la boite de dialogue
       await modal.closeButton.click();
       await test.expect(modal.dialog).toBeHidden();
+    });
 
+    test('je crée une observation sur un dossier', async ({ app }) => {
       // Et que je bascule en mode lecture
       await app.pages.session.switchToReadModeButton.click();
 
       // Alors la colonne "Observant(s)" doit contenir "Michel Foucault"
       const row = app.pages.session.sessionRow({ number: 1 });
       await test.expect(row.getByRole('link', { name: magistrats.michelFoucault.firstName })).toBeVisible();
+    });
+
+    test("j'édite une observation", async ({ app }) => {
+      await app.page.reload();
+      await test.expect(app.page.getByRole('heading', { name: sessionName })).toBeVisible();
+      await test.expect(app.page.getByRole('cell', { name: 'Chargement...' })).toBeHidden();
+
+      await app.pages.session.switchToEditModeButton.click();
+
+      const modal = await app.pages.session.openObservationModal({ number: 1 });
+      await modal.editObservationButton.click();
+      await modal.fillHistory('Mise à jour');
+
+      await modal.saveButton.click();
+      await test.expect(modal.saveButton).toBeHidden();
+      await modal.closeButton.click();
+
+      const modalWithEdition = await app.pages.session.openObservationModal({ number: 1 });
+      modalWithEdition.editObservationButton.click();
+
+      await test.expect(modalWithEdition.inputHistory).toHaveValue(/Mise à jour/);
     });
   });
 });
