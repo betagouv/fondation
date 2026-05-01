@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { SessionModule } from '../session/session.module';
+import { DataTestController } from './data.test-controller';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -15,7 +16,7 @@ import { MembersController } from './members.controller';
 
 @Module({
   imports: [forwardRef(() => SessionModule)],
-  controllers: [MembersController, JurisdictionsController],
+  controllers: [MembersController, JurisdictionsController, DataTestController],
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,

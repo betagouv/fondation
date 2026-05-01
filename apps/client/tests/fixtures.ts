@@ -1,75 +1,80 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 
-import { faker } from '@faker-js/faker/locale/fr';
-import { test as base, type APIRequestContext } from '@playwright/test';
-import type { RegisteredUserDto, RegisterUserDto } from '../src/generated/api/types';
+import { test as base } from '@playwright/test';
+import type { RegisterUserDto } from '../src/generated/api/types';
+import { ApiHttpClient } from './fixtures/api.fixture';
+import { type RegisteredUser, type UserRole } from './fixtures/auth.fixture';
+import { TestAnonymousApp } from './pages/test-anonymous-app';
 import { TestApp } from './pages/test-app';
+import { TestMemberApp } from './pages/test-member-app';
 
 export { expect } from '@playwright/test';
 
-type UserRole = NonNullable<RegisterUserDto['role']>;
-export type RegisteredUser<Role extends UserRole = UserRole> = Omit<RegisterUserDto, 'role'> & {
-  id: string;
-  role: Role;
-};
-
-async function registerUser<const Role extends UserRole>(
-  request: APIRequestContext,
-  role: Role,
-  defaultUser?: Partial<Omit<RegisterUserDto, 'role'>>
-): Promise<RegisteredUser<Role>> {
-  // see apps/api/.env.e2e
-  const token = 'FthDG8SXXzWD6eOzybymzXh1bHqHepZG';
-
-  const person = {
-    email: (defaultUser?.email || `test_email+e2e-${crypto.randomUUID()}-e2e@justice.fr`).toLowerCase(),
-    firstName: (defaultUser?.firstName || faker.person.firstName()).toLowerCase(),
-    lastName: (defaultUser?.lastName || faker.person.lastName()).toLowerCase(),
-    password: defaultUser?.password || faker.string.alphanumeric(20),
-    gender: defaultUser?.gender ?? ('FEMALE' as const)
-  };
-
-  const result = await request.post('/api/auth/v2/register', {
-    data: { ...person, role },
-    headers: { authorization: `Bearer ${token}` },
-    failOnStatusCode: true
-  });
-
-  const { id }: RegisteredUserDto = await result.json();
-  return { ...person, role: (role ?? 'MEMBRE_COMMUN') as Role, id };
-}
-
 type Fixtures = {
-  // same as anonymousApp, but the login phase is already done with the userSg
+  http: ApiHttpClient;
+
   app: TestApp;
-  anonymousApp: TestApp;
+  anonymousApp: TestAnonymousApp;
 
-  userSg: RegisteredUser<'ADJOINT_SECRETAIRE_GENERAL'>;
-  memberCommon: RegisteredUser<'MEMBRE_COMMUN'>;
-  memberSiege: RegisteredUser<'MEMBRE_DU_SIEGE'>;
-  memberParquet: RegisteredUser<'MEMBRE_DU_PARQUET'>;
+  newMemberApp: <Role extends UserRole>(
+    dto: Partial<RegisterUserDto> & { role: Role }
+  ) => Promise<TestMemberApp<Role>>;
 
-  registerUser: (dto?: Partial<RegisterUserDto>) => Promise<RegisteredUser>;
+  registerUser: <Role extends UserRole = 'MEMBRE_COMMUN'>(
+    dto?: Partial<RegisterUserDto>
+  ) => Promise<RegisteredUser<Role>>;
 };
 
 export const test = base.extend<Fixtures>({
-  anonymousApp: ({ page }, use) => use(new TestApp(page)),
+  anonymousApp: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
 
-  app: async ({ anonymousApp: app, userSg }, use) => {
-    await app.pages.login.goto();
-    await app.pages.login.with({ email: userSg.email, password: userSg.password });
-
-    return use(app);
+    use(new TestAnonymousApp(page));
   },
 
-  registerUser: async ({ request }, use) =>
-    use((dto?: Partial<RegisterUserDto>) => registerUser(request, dto?.role ?? 'MEMBRE_COMMUN', dto)),
+  app: async ({ page, baseURL }, use) => {
+    if (!baseURL || !page.url().startsWith(baseURL)) {
+      await page.goto('/');
+    }
 
-  userSg: async ({ request }, use) => use(await registerUser(request, 'ADJOINT_SECRETAIRE_GENERAL')),
+    use(new TestApp(page));
+  },
 
-  memberCommon: async ({ request }, use) => use(await registerUser(request, 'MEMBRE_COMMUN')),
+  http: async ({ playwright }, use) => {
+    // see apps/api/.env.e2e
+    const token = 'FthDG8SXXzWD6eOzybymzXh1bHqHepZG';
 
-  memberSiege: async ({ request }, use) => use(await registerUser(request, 'MEMBRE_DU_SIEGE')),
+    const http = await playwright.request.newContext({
+      failOnStatusCode: true,
+      baseURL: 'http://localhost:3000',
+      extraHTTPHeaders: { authorization: `Bearer ${token}` }
+    });
 
-  memberParquet: async ({ request }, use) => use(await registerUser(request, 'MEMBRE_DU_PARQUET'))
+    return use(new ApiHttpClient(http));
+  },
+
+  registerUser: async ({ http }, use) =>
+    use(
+      (dto?: Partial<RegisterUserDto>) =>
+        http.auth.registerUser({
+          defaultUser: dto,
+          role: dto?.role ?? 'MEMBRE_COMMUN'
+        }) as any // eslint-disable-line
+    ),
+
+  newMemberApp: async ({ anonymousApp: app, registerUser }, use) => {
+    return use(
+      async <Role extends UserRole>(dto: Partial<Omit<RegisterUserDto, 'role'>> & { role: Role }) => {
+        const user = await registerUser<Role>(dto);
+        await app.pages.login.goto();
+        await app.pages.login.with({ email: user.email, password: user.password });
+
+        const memberApp = new TestMemberApp<Role>(app.page, user);
+        await memberApp.pages.home.goto();
+
+        return memberApp;
+      }
+    );
+  }
 });

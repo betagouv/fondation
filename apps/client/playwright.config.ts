@@ -8,7 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1, // process.env.CI ? 1 : undefined,
   reporter: 'html',
-  timeout: 10_000,
+  timeout: process.env.CI ? 10_000 : 5_000,
 
   use: {
     baseURL: 'http://localhost:5173',
@@ -16,14 +16,17 @@ export default defineConfig({
   },
 
   projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts$/ },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
+      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
+      dependencies: ['setup']
     }
   ],
 
   webServer: [
     {
+      name: 'backend',
       command: 'pnpm run --filter api start:e2e',
       url: 'http://localhost:3000/_health',
       reuseExistingServer: !process.env.CI
