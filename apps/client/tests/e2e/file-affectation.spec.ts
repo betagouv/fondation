@@ -77,7 +77,7 @@ test.describe('Affectations', () => {
 
       // Et que je sauvegarde l'affectation
       await page.saveAffectationsButton.click();
-      await test.expect(page.saveAffectationsButton).toBeDisabled();
+      await test.expect(page.saveAffectationsButton).toBeHidden();
 
       await page
         .sessionRow({ number: 1 })
