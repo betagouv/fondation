@@ -8,7 +8,7 @@ export class ApiHttpClient {
   readonly sessions: SessionsHttpClient;
   readonly data: DataHttpClient;
 
-  constructor(http: APIRequestContext) {
+  constructor(readonly http: APIRequestContext) {
     this.auth = new AuthHttpClient(http);
     this.sessions = new SessionsHttpClient(http);
     this.data = new DataHttpClient(http);

@@ -1,5 +1,6 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
+import React from 'react';
 import { Link } from 'react-router';
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
@@ -31,7 +32,7 @@ export function ObservationLinks(props: {
         <div className="text-sm">
           <span>
             {props.nominationFile.observations.map((obs, i) => (
-              <>
+              <React.Fragment key={obs.id}>
                 {i > 0 ? <span>, </span> : null}
                 <Link
                   key={obs.id}
@@ -48,7 +49,7 @@ export function ObservationLinks(props: {
                     <i className={clsx(cx('ri-message-3-line'), 'ml-1')} />
                   )}
                 </Link>
-              </>
+              </React.Fragment>
             ))}
           </span>
         </div>

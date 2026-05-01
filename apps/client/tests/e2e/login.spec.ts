@@ -1,8 +1,10 @@
 import { test } from '../fixtures';
 
 test.describe('Se connecter', () => {
-  test("L'utilisateur peut se connecter", async ({ userSg, anonymousApp: app }) => {
-    // Soit un profile SG existant
+  test("L'utilisateur peut se connecter", async ({ registerUser, anonymousApp: app }) => {
+    // Soit un profile SG
+    const userSg = await registerUser({ role: 'ADJOINT_SECRETAIRE_GENERAL' });
+
     // Lorsque l'on accède à la page d'authentification
     await app.pages.login.goto();
 

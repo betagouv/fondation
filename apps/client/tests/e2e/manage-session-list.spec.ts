@@ -7,7 +7,6 @@ test.describe('Gérer une liste de sessions', () => {
 
     test.beforeAll(async ({ http }) => {
       if (transparence1 && transparence2) {
-        console.log('SKIPPED');
         return;
       }
 

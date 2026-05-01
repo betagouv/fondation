@@ -11,6 +11,8 @@ import { TestMemberApp } from './pages/test-member-app';
 export { expect } from '@playwright/test';
 
 type Fixtures = {
+  http: ApiHttpClient;
+
   app: TestApp;
   anonymousApp: TestAnonymousApp;
 
@@ -18,23 +20,25 @@ type Fixtures = {
     dto: Partial<RegisterUserDto> & { role: Role }
   ) => Promise<TestMemberApp<Role>>;
 
-  userSg: RegisteredUser<'ADJOINT_SECRETAIRE_GENERAL'>;
-
-  http: ApiHttpClient;
-
   registerUser: <Role extends UserRole = 'MEMBRE_COMMUN'>(
     dto?: Partial<RegisterUserDto>
   ) => Promise<RegisteredUser<Role>>;
 };
 
 export const test = base.extend<Fixtures>({
-  anonymousApp: ({ page }, use) => use(new TestAnonymousApp(page)),
+  anonymousApp: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
 
-  app: async ({ page, anonymousApp: app, userSg }, use) => {
-    await app.pages.login.goto();
-    await app.pages.login.with({ email: userSg.email, password: userSg.password });
+    use(new TestAnonymousApp(page));
+  },
 
-    return use(new TestApp(page));
+  app: async ({ page, baseURL }, use) => {
+    if (!baseURL || !page.url().startsWith(baseURL)) {
+      await page.goto('/');
+    }
+
+    use(new TestApp(page));
   },
 
   http: async ({ playwright }, use) => {
@@ -59,20 +63,14 @@ export const test = base.extend<Fixtures>({
         }) as any // eslint-disable-line
     ),
 
-  userSg: async ({ registerUser }, use) => use(await registerUser({ role: 'ADJOINT_SECRETAIRE_GENERAL' })),
-
-  newMemberApp: async ({ browser, registerUser }, use) => {
-    const ctx = await browser.newContext();
-    const page = await ctx.newPage();
-    const app = new TestAnonymousApp(page);
-
+  newMemberApp: async ({ anonymousApp: app, registerUser }, use) => {
     return use(
       async <Role extends UserRole>(dto: Partial<Omit<RegisterUserDto, 'role'>> & { role: Role }) => {
         const user = await registerUser<Role>(dto);
         await app.pages.login.goto();
         await app.pages.login.with({ email: user.email, password: user.password });
 
-        const memberApp = new TestMemberApp<Role>(page, user);
+        const memberApp = new TestMemberApp<Role>(app.page, user);
         await memberApp.pages.home.goto();
 
         return memberApp;

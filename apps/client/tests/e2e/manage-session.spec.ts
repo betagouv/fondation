@@ -44,8 +44,6 @@ test.describe('Gérer les sessions', () => {
         if ((await app.pages.manageSessions.sessionRow(lastSession).count()) > 0) {
           await app.pages.manageSessions.sessionRow(lastSession).click();
           await app.pages.session.waitFor(lastSession);
-
-          console.debug('SKIPPED');
           return;
         }
       }

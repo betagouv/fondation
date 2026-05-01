@@ -16,8 +16,6 @@ test.describe('observations', () => {
         await test.expect(app.page.getByRole('heading', { name: sessionName })).toBeVisible();
         await test.expect(app.page.getByRole('cell', { name: 'chargement...' })).toBeHidden();
 
-        console.debug('SKIPPED');
-
         return;
       }
 
@@ -84,7 +82,7 @@ test.describe('observations', () => {
       await modal.saveButton.click();
       // Et que je ferme la boite de dialogue
       await modal.closeButton.click();
-      await test.expect(modal.dialog).toBeHidden();
+      await modal.dialog.waitFor({ state: 'hidden' });
     });
 
     test('je crée une observation sur un dossier', async ({ app }) => {
