@@ -16,6 +16,6 @@ export class TestApp {
   constructor(readonly page: Page) {}
 
   get nav(): Locator {
-    return this.page.getByRole(`navigation`);
+    return this.page.getByRole(`navigation`, { name: 'Menu principal' });
   }
 }
