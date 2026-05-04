@@ -11,10 +11,7 @@
     "src/generated/prisma": true
   },
   "search.useIgnoreFiles": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
+  "[typescript][javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

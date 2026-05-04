@@ -9,6 +9,8 @@ onlyBuiltDependencies:
 catalog:
   zod: 4.1.12
   '@faker-js/faker': 9.9.0
+  oxlint: 1.60.0
+  'oxlint-tsgolint': 0.22.0
 
 injectWorkspacePackages: true
 preferFrozenLockfile: true

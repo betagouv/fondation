@@ -1,6 +1,6 @@
 import ExifTransformer from 'exif-be-gone';
+import { type Duplex } from 'node:stream';
 import { FILE_MIME_TYPES, FileMimeType } from '../mime-type';
-import { type Duplex } from 'stream';
 
 /** this is a wrapper around [exif-be-gone](http://npmjs.com/package/exif-be-gone) */
 export class ImageSanitizer {

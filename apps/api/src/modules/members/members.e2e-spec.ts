@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { Gender, Role } from 'shared-models';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';

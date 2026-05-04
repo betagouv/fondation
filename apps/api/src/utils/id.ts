@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 const BRAND = Symbol();
 export type Id<Brand extends string> = string & { [BRAND]: Brand };
