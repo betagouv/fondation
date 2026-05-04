@@ -26,7 +26,7 @@ export function AgendaNominationFile(props: {
           label: (
             <div className="flex w-full items-start gap-1 py-4">
               <div className="w-[3ch] flex-shrink-0">{props.file.number}</div>
-              <div>
+              <div className="w-[10%]">
                 <NominationFileOutcomeBadge formation={props.formation} outcome={props.file.outcome.value} />
               </div>
               <div
