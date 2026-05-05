@@ -9,58 +9,72 @@ import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import { defineMessage } from 'react-intl';
-import { AdminUserRoleLabel, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
+import React from 'react';
+import { defineMessage, useIntl } from 'react-intl';
+import { ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
+import { AdminUserRole } from './AdminUserRole';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
 const h = createColumnHelper<AdminUserItem>();
 
-const columns = [
-  h.accessor('lastName', {
-    id: 'lastName',
-    enableSorting: true,
-    enableHiding: false,
-    header: 'Nom',
-    sortDescFirst: true,
-    cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
-  }),
+function useAdminUserColumns() {
+  const { formatMessage } = useIntl();
 
-  h.accessor('firstName', {
-    id: 'firstName',
-    enableSorting: false,
-    enableHiding: false,
-    header: 'Prénom',
-    cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>
-  }),
+  return React.useMemo(
+    () => [
+      h.accessor('lastName', {
+        id: 'lastName',
+        enableSorting: true,
+        enableHiding: false,
+        header: 'Nom',
+        sortDescFirst: true,
+        cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
+      }),
 
-  h.accessor('email', {
-    id: 'email',
-    enableSorting: false,
-    header: 'Email'
-  }),
+      h.accessor('firstName', {
+        id: 'firstName',
+        enableSorting: false,
+        enableHiding: false,
+        header: 'Prénom',
+        cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>
+      }),
 
-  h.accessor('role', {
-    id: 'role',
-    enableSorting: false,
-    header: 'Rôle',
-    cell: ({ cell }) => AdminUserRoleLabel[cell.getValue()],
-    meta: {
-      filters: {
-        type: 'enum',
-        filterId: 'role',
-        label: 'Rôle',
-        values: ROLE_OPTIONS.flatMap((group) => group.options as { id: string; label: string }[])
-      }
-    }
-  }),
+      h.accessor('email', {
+        id: 'email',
+        enableSorting: false,
+        header: 'Email'
+      }),
 
-  h.display({
-    id: 'edit',
-    enableSorting: false,
-    enableHiding: false,
-    cell: ({ row }) => <EditButton row={row.original} />
-  })
-];
+      h.accessor('role', {
+        id: 'role',
+        enableSorting: false,
+        header: 'Rôle',
+        cell: ({ cell, row }) => <AdminUserRole value={cell.getValue()} gender={row.original.gender} />,
+        meta: {
+          filters: {
+            type: 'enum',
+            filterId: 'role',
+            label: 'Rôle',
+            values: ROLE_OPTIONS.flatMap((group) =>
+              group.options.map(({ id, label }) => ({
+                id,
+                label: formatMessage(label, { gender: undefined })
+              }))
+            )
+          }
+        }
+      }),
+
+      h.display({
+        id: 'edit',
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => <EditButton row={row.original} />
+      })
+    ],
+    [formatMessage]
+  );
+}
 
 function EditButton(props: { row: AdminUserItem }) {
   return (
@@ -88,6 +102,8 @@ export function AdminUserListPage() {
     sorting: tableState.sorting,
     roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value
   });
+
+  const columns = useAdminUserColumns();
 
   const table = useDataTable({
     columns,

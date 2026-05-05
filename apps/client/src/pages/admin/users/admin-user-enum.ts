@@ -1,31 +1,59 @@
 import type { DetailedAdminUserDto } from '@api/types';
+import { defineMessage, type MessageDescriptor } from 'react-intl';
 
 export type AdminUserRoleEnum = DetailedAdminUserDto['role'];
 export const AdminUserRoleLabel = {
-  PRESIDENT_SIEGE: 'Président(e) du Siège',
-  PRESIDENT_PARQUET: 'Président(e) du Parquet',
-  FIRST_SECRETARY: 'Secrétaire Général(e)',
-  DEPUTY_PRESIDENT_PARQUET: 'Président(e) du Parquet suppléant(e)',
-  DEPUTY_PRESIDENT_SIEGE: 'Président(e) du Siège suppléant(e)',
-  MEMBRE_COMMUN: 'Membre commun',
-  MEMBRE_PARQUET: 'Membre du Parquet',
-  MEMBRE_SIEGE: 'Membre du Siège',
-  OFFICER: 'Agent Pôle Nomination',
-  SECRETARY: 'Secrétaire Adjoint(e)'
-} as const satisfies Record<AdminUserRoleEnum, string>;
+  PRESIDENT_SIEGE: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Président du Siège}
+      FEMALE {Présidente du Siège}
+      other {Président(e) du Siège}}`
+  }),
+  PRESIDENT_PARQUET: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Président du Parquet}
+      FEMALE {Présidente du Parquet}
+      other {Président(e) du Parquet}}`
+  }),
+  FIRST_SECRETARY: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Secrétaire Général}
+      FEMALE {Secrétaire Générale}
+      other {Secrétaire Général(e)}}`
+  }),
+  DEPUTY_PRESIDENT_PARQUET: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Président du Parquet suppléant}
+      FEMALE {Présidente du Parquet suppléante}
+      other {Président(e) du Parquet suppléant(e)}}`
+  }),
+  DEPUTY_PRESIDENT_SIEGE: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Président du Siège suppléant}
+      FEMALE {Présidente du Siège suppléante}
+      other {Président(e) du Siège suppléant(e)}}`
+  }),
+  MEMBRE_COMMUN: defineMessage({ defaultMessage: `Membre commun` }),
+  MEMBRE_PARQUET: defineMessage({ defaultMessage: `Membre du Parquet` }),
+  MEMBRE_SIEGE: defineMessage({ defaultMessage: `Membre du Siège` }),
+  OFFICER: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Agent Pôle Nomination}
+      FEMALE {Agente Pôle Nomination}
+      other {Agent(e) Pôle Nomination}}`
+  }),
+  SECRETARY: defineMessage({
+    defaultMessage: `{gender, select,
+      MALE {Secrétaire Général Adjoint}
+      FEMALE {Secrétaire Générale Adjointe}
+      other {Secrétaire Général(e) Adjoint(e)}}`
+  })
+} as const satisfies Record<AdminUserRoleEnum, MessageDescriptor>;
 
-type Labelize<
-  Ids extends readonly AdminUserRoleEnum[],
-  Labelized extends { id: AdminUserRoleEnum; label: string }[] = []
-> = Ids extends never[]
-  ? Labelized
-  : Ids extends [infer Head extends AdminUserRoleEnum, ...infer Tail extends AdminUserRoleEnum[]]
-    ? Labelize<Tail, [...Labelized, { id: Head; label: (typeof AdminUserRoleLabel)[Head] }]>
-    : Labelized;
-
-function labelize<const Ids extends AdminUserRoleEnum[]>(...ids: Ids): Labelize<Ids> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ids.map((id) => ({ id, label: AdminUserRoleLabel[id] })) as any;
+function labelize(
+  ...ids: readonly AdminUserRoleEnum[]
+): { id: AdminUserRoleEnum; label: MessageDescriptor }[] {
+  return ids.map((id) => ({ id, label: AdminUserRoleLabel[id] }));
 }
 
 export const ROLE_OPTIONS = [
