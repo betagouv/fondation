@@ -989,6 +989,7 @@ export type FoundAgendasDto = {
             day: number;
         };
         formation: 'PARQUET' | 'SIEGE';
+        chairmanId: string | null;
         session: {
             id: string | null;
             name: string;
