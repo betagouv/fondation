@@ -24,12 +24,8 @@ import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { FormattedMessage, useIntl } from 'react-intl';
-import {
-  AdminUserRoleLabel,
-  PROMOTABLE_ROLES,
-  ROLE_OPTIONS,
-  type AdminUserRoleEnum
-} from './admin-user-enum';
+import { PROMOTABLE_ROLES, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
+import { AdminUserRole } from './AdminUserRole';
 
 function EmailField(props: { user: DetailedAdminUserDto }) {
   const [isEditing, setEditing] = React.useState(false);
@@ -328,6 +324,7 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
 }
 
 function RoleField(props: { user: DetailedAdminUserDto }) {
+  const intl = useIntl();
   const [isEditing, setEditing] = React.useState(false);
 
   const { mutate: updateRole, isPending, error } = useUpdateUserRoleMutation(props.user.id);
@@ -388,7 +385,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             <optgroup label={name}>
               {options.map(({ id, label }) => (
                 <option key={id} value={id}>
-                  {label}
+                  {intl.formatMessage(label, { gender: props.user.gender })}
                 </option>
               ))}
             </optgroup>
@@ -396,7 +393,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
         </Select>
       ) : (
         <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
-          {AdminUserRoleLabel[props.user.role]}
+          <AdminUserRole value={props.user.role} gender={props.user.gender} />
         </dd>
       )}
       <AdminUserPromotionToggle className="ml-4 mt-2" user={props.user} />

@@ -76,7 +76,8 @@ export function ComboboxContent(props: React.PropsWithChildren) {
             'transition-[transform,scale,opacity]',
             'data-[ending-style]:scale-90 data-[starting-style]:scale-90 data-[ending-style]:opacity-0',
             'data-[starting-style]:opacity-0',
-            'max-h-[min(var(--available-height),24rem)] w-[var(--anchor-width)] max-w-[var(--available-width)]'
+            'max-h-[min(var(--available-height),24rem)] w-[var(--anchor-width)] max-w-[var(--available-width)]',
+            'data-[empty]:py-4 data-[empty]:pl-4 data-[empty]:pr-2'
           )}
         >
           {props.children}

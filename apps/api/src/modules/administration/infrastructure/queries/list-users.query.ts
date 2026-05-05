@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Gender } from 'shared-models';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import {
@@ -7,6 +8,7 @@ import {
   Pagination,
 } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { assertIsDefined } from 'src/utils/is-defined';
 import z from 'zod';
@@ -78,6 +80,7 @@ export class ListUsersQuery {
           role: true,
           title: true,
           duty: true,
+          gender: true,
         },
         where,
         orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
@@ -88,8 +91,9 @@ export class ListUsersQuery {
 
     return paginate({
       totalCount,
-      items: items.map(({ role, title, duty, ...u }) => ({
+      items: items.map(({ role, title, duty, gender, ...u }) => ({
         ...u,
+        gender: prismaGenderEnumToGenderEnum(gender),
         role: AdminUserRole.from({
           role: prismaRoleEnumToRoleEnum(role),
           title: title ?? null,
@@ -107,6 +111,7 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
+    gender: z.enum(Gender),
     role: z.enum(ADMIN_USER_ROLES_ENUM),
   }),
 ) {}

@@ -113,7 +113,9 @@ export function JusticeContactSelector(props: {
 
       <ComboboxContent>
         <ComboboxEmpty>
-          <FormattedMessage defaultMessage={`Créer à la volée`} />
+          <span className="text-[0.925rem] italic text-gray-500">
+            <FormattedMessage defaultMessage={`Pas de représentant existant`} />
+          </span>
         </ComboboxEmpty>
 
         <ComboboxList>

@@ -794,7 +794,7 @@ export type FoundChairmenDto = {
         firstName: string;
         lastName: string;
         duty: 'PRESIDENT';
-        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
         displayTitle: string | null;
     }>;
 };
@@ -1292,6 +1292,7 @@ export type PaginatedAdminUserListItemDto = {
         firstName: string;
         lastName: string;
         email: string;
+        gender: 'MALE' | 'FEMALE';
         role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
     }>;
     totalCount: number;

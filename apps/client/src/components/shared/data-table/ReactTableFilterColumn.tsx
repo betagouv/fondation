@@ -19,7 +19,10 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 
   const options = (
     props.filter.emptyValue ? [props.filter.emptyValue].concat(props.filter.values) : props.filter.values
-  ).map(({ id, label }) => ({ value: id, label }));
+  ).map(({ id: value, label }) => ({
+    value,
+    label
+  }));
 
   const onSelectionChange = React.useCallback(
     (selection: string[]) => {
