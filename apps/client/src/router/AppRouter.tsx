@@ -12,7 +12,7 @@ import { AdminUserListPage } from '@/pages/admin/users/AdminUserListPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UserManualPage } from '@/pages/help/UserManualPage';
 import { AgendaPreviewPage } from '@/pages/secretariat-general/docs/agenda/AgendaPreviewPage';
-import { CreateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
+import { CreateOrUpdateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
 import { OfficialReportPreviewPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage';
 import { PresentationUpsertPage } from '@/pages/secretariat-general/presentations/PresentationUpsertPage';
 import { PresentationsLayout } from '@/pages/secretariat-general/presentations/PresentationsLayout';
@@ -147,11 +147,11 @@ const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
-            element: <CreateOfficialReportPage />
+            element: <CreateOrUpdateOfficialReportPage />
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
-            element: <CreateOfficialReportPage />
+            element: <CreateOrUpdateOfficialReportPage />
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,

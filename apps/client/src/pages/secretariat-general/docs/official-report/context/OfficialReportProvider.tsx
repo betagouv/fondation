@@ -10,12 +10,7 @@ import {
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { OfficialReportContext } from './OfficialReportContext';
-import type { OfficialReportMetadata, OfficialReportStep } from './OfficialReportContext.types';
-
-const STEPS = {
-  1: { index: 1, title: 'Métadonnées', nextTitle: 'Sélection des ordres du jour' },
-  2: { index: 2, title: 'Sélection des ordres du jour' }
-} as const satisfies Record<1 | 2, OfficialReportStep>;
+import type { OfficialReport } from './OfficialReportContext.types';
 
 export function OfficialReportProvider(props: React.PropsWithChildren) {
   const { sessionId = '', officialReportId = null } = useParams<{
@@ -34,11 +29,7 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
     isFetched: metadataFetched
   } = useDetailsOfficialReportQuery({ officialReportId });
 
-  const [state, setState] = React.useState({
-    stepIndex: 1 as 1 | 2,
-    metadata: null as OfficialReportMetadata | null,
-    agendaIds: undefined as string[] | undefined
-  });
+  const [state, setState] = React.useState(null as OfficialReport | null);
 
   React.useEffect(() => {
     if (!officialReportMetadata) return;
@@ -46,16 +37,14 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
     const { hours, minutes } = officialReportMetadata.sessionMeetingStartingTime;
     setState((s) => ({
       ...s,
-      agendaIds: officialReportMetadata.agendas,
-      metadata: {
-        sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
-        sessionMeetingTime: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
-        hasRenunciation: officialReportMetadata.hasRenunciation,
-        justiceDepartmentContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
-        chairmanId: officialReportMetadata.chairmanId ?? '',
-        secretaryId: officialReportMetadata.secretaryId ?? '',
-        memberIds: officialReportMetadata.members
-      }
+      agendaId: officialReportMetadata.agendas[0],
+      sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
+      sessionMeetingTime: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+      hasRenunciation: officialReportMetadata.hasRenunciation,
+      justiceDepartmentContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
+      chairmanId: officialReportMetadata.chairmanId ?? '',
+      secretaryId: officialReportMetadata.secretaryId ?? '',
+      memberIds: officialReportMetadata.members
     }));
   }, [officialReportMetadata]);
 
@@ -63,15 +52,8 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
     () =>
       sessionFetching ||
       officialReportMetadataFetching ||
-      (metadataFetched && state.metadata?.chairmanId !== officialReportMetadata?.chairmanId),
+      (metadataFetched && state?.chairmanId !== officialReportMetadata?.chairmanId),
     [sessionFetching, officialReportMetadataFetching, state, metadataFetched, officialReportMetadata]
-  );
-
-  const goToMetadata = React.useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), []);
-
-  const goToSelections = React.useCallback(
-    (metadata: OfficialReportMetadata) => setState((s) => ({ ...s, metadata, stepIndex: 2 })),
-    []
   );
 
   const cancel = React.useCallback(
@@ -80,20 +62,18 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
   );
 
   const submit = React.useCallback(
-    (agendaIds: string[]) => {
-      if (!state.metadata) return;
-
-      const [hours, minutes] = state.metadata.sessionMeetingTime.split(':').map(Number);
+    (metadata: OfficialReport) => {
+      const [hours, minutes] = metadata.sessionMeetingTime.split(':').map(Number);
 
       const payload = {
-        sessionMeetingDate: state.metadata.sessionMeetingDate,
+        sessionMeetingDate: metadata.sessionMeetingDate,
         sessionMeetingTime: { hours, minutes },
-        hasRenunciation: state.metadata.hasRenunciation,
-        justiceDepartmentContactId: state.metadata.justiceDepartmentContactId,
-        chairmanId: state.metadata.chairmanId,
-        secretaryId: state.metadata.secretaryId,
-        agendas: agendaIds,
-        members: state.metadata.memberIds
+        hasRenunciation: metadata.hasRenunciation,
+        justiceDepartmentContactId: metadata.justiceDepartmentContactId,
+        chairmanId: metadata.chairmanId,
+        secretaryId: metadata.secretaryId,
+        agendas: [metadata.agendaId],
+        members: metadata.memberIds
       };
 
       if (officialReportId) {
@@ -114,22 +94,18 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
         );
       }
     },
-    [state, officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate]
+    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate]
   );
 
   return (
     <OfficialReportContext
       value={{
-        officialReportId,
-        agendaIds: state.agendaIds,
-        step: STEPS[state.stepIndex],
-        session: { id: sessionId, formation: session?.formation ?? 'SIEGE' },
-        metadata: state.metadata,
-        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending,
-        goToSelections,
-        goToMetadata,
+        cancel,
         submit,
-        cancel
+        officialReportId,
+        report: state,
+        session: { id: sessionId, formation: session?.formation ?? 'SIEGE' },
+        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending
       }}
     >
       {isFetching ? <span className="ri-loader-4-line animate-spin" /> : props.children}

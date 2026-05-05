@@ -78,6 +78,7 @@ export class AgendaFinder {
         date: true,
         formation: true,
         sessionId: true,
+        chairmanId: true,
         sessionName: true,
         sessionMeetingDate: true,
       },
@@ -93,6 +94,7 @@ export class AgendaFinder {
     return {
       items: items.map((item) => ({
         id: item.id,
+        chairmanId: item.chairmanId,
         date: DateOnly.fromDate(item.date).toJson(),
         session: { id: item.sessionId, name: item.sessionName },
         formation: prismaFormationEnumToFormationEnum(item.formation),
@@ -110,6 +112,7 @@ export class FoundAgendasDto extends createZodDto(
         date: dateOnlyJsonSchema,
         sessionMeetingDate: dateOnlyJsonSchema,
         formation: z.enum(Magistrat.Formation),
+        chairmanId: z.string().nullable(),
         session: z.object({ id: z.string().nullable(), name: z.string() }),
       }),
     ),

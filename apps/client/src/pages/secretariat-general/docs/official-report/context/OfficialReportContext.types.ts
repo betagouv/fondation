@@ -1,13 +1,7 @@
 import type { FormationEnum } from '@/types/enums.types';
 import type { DateOnlyJson } from 'shared-models';
 
-export type OfficialReportStep = {
-  index: 1 | 2;
-  title: string;
-  nextTitle?: string;
-};
-
-export type OfficialReportMetadata = {
+export type OfficialReport = {
   sessionMeetingDate: DateOnlyJson;
   sessionMeetingTime: string;
   hasRenunciation: boolean;
@@ -15,17 +9,14 @@ export type OfficialReportMetadata = {
   chairmanId: string;
   secretaryId: string;
   memberIds: string[];
+  agendaId: string;
 };
 
 export type OfficialReportContextType = {
-  step: OfficialReportStep;
   officialReportId: string | null;
   session: { id: string; formation: FormationEnum };
-  metadata: OfficialReportMetadata | null;
-  agendaIds: string[] | undefined;
+  report: OfficialReport | null;
   isSubmitting: boolean;
-  goToSelections(values: OfficialReportMetadata): void;
-  goToMetadata(): void;
-  submit(agendaIds: string[]): void;
+  submit(form: OfficialReport): void;
   cancel(): void;
 };

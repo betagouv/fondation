@@ -2,7 +2,6 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import clsx from 'clsx';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
@@ -10,6 +9,7 @@ import z from 'zod';
 import { DateOnly } from '@/models/date-only.model';
 import { toFullName } from '@/utils/user.utils';
 import {
+  useListAgendasForNewOfficialReportQuery,
   useListMembersForNewOfficialReportQuery,
   useListSecretariesGeneralQuery
 } from '@queries/agenda.queries';
@@ -18,24 +18,30 @@ import { Mandatory } from '@/components/shared/Mandatory';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage } from 'react-intl';
-import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { useOfficialReport } from '../context/OfficialReportContext';
+import { JusticeContactSelector } from './JusticeContactSelector';
 
 const OfficialReportMetadataSchema = z.object({
   sessionMeetingDate: DateOnly.codec(),
   sessionMeetingTime: z.string().regex(/^\d{2}:\d{2}$/, 'Format HH:MM requis'),
   hasRenunciation: z.boolean(),
-  justiceDepartmentContactId: z.string(),
+  justiceDepartmentContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
   chairmanId: z.uuid('Veuillez sélectionner un président'),
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
-  memberIds: z.array(z.uuid()).nonempty('Veuillez sélectionner au moins un membre')
+  memberIds: z.array(z.uuid()).nonempty('Veuillez sélectionner au moins un membre'),
+  agendaId: z.string().nonempty('Veuillez sélectionner un ordre du jour')
 });
 
-export function OfficialReportMetadataStep(props: { className?: string }) {
-  const { session, metadata, goToSelections, cancel } = useOfficialReport();
+export function OfficialReportForm() {
+  const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
 
   const { data: membersData } = useListMembersForNewOfficialReportQuery({ sessionId: session.id });
   const { data: secretariesData } = useListSecretariesGeneralQuery();
+
+  const { data: agendas } = useListAgendasForNewOfficialReportQuery({
+    sessionId: session.id,
+    ignoreOfficialReportId: officialReportId ?? undefined
+  });
 
   const secretaries = React.useMemo(() => secretariesData?.items ?? [], [secretariesData]);
   const members = React.useMemo(() => membersData?.items ?? [], [membersData]);
@@ -59,7 +65,8 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
       justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? '',
       chairmanId: metadata?.chairmanId ?? '',
       secretaryId: metadata?.secretaryId ?? '',
-      memberIds: metadata?.memberIds ?? ([] as string[])
+      memberIds: metadata?.memberIds ?? ([] as string[]),
+      agendaId: metadata?.agendaId ?? ''
     }),
     [metadata]
   );
@@ -72,8 +79,8 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
     formState: { errors, isValid }
   } = useForm({
     mode: 'all',
-    resolver: zodResolver(OfficialReportMetadataSchema),
-    defaultValues
+    defaultValues,
+    resolver: zodResolver(OfficialReportMetadataSchema)
   });
 
   React.useEffect(() => {
@@ -105,6 +112,27 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
     }
   }, [members, metadata, setValue]);
 
+  const onAgendaSelected = React.useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const agendaId: string = event.currentTarget.value;
+      if (!agendaId) return;
+
+      setValue('agendaId', agendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+
+      const agenda = agendas?.items.find(({ id }) => id === agendaId);
+      if (!agenda || !agenda.chairmanId) return;
+
+      if (!chairmen.length || !chairmen.some(({ id }) => id === agenda.chairmanId)) return;
+
+      setValue('chairmanId', agenda.chairmanId, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true
+      });
+    },
+    [agendas, chairmen, setValue]
+  );
+
   const onMemberChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const currentMemberIds = getValues('memberIds');
@@ -121,7 +149,37 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
   );
 
   return (
-    <form onSubmit={handleSubmit(goToSelections)} className={clsx('mx-auto max-w-2xl', props.className)}>
+    <form onSubmit={handleSubmit(submit)} className="mx-auto max-w-2xl">
+      <Controller
+        name="agendaId"
+        control={control}
+        render={({ field }) => (
+          <Select
+            disabled={(agendas?.items ?? []).length === 0}
+            state={errors.agendaId ? 'error' : 'default'}
+            stateRelatedMessage={errors.agendaId?.message}
+            nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
+            label={
+              <Mandatory>
+                <FormattedMessage defaultMessage="Ordre du jour" />
+              </Mandatory>
+            }
+          >
+            <option value="" disabled>
+              <FormattedMessage defaultMessage="Sélectionner un ordre du jour" />
+            </option>
+            {(agendas?.items ?? []).map((agenda) => (
+              <option value={agenda.id} key={agenda.id}>
+                <FormattedMessage
+                  defaultMessage={`{name} - ODJ du {date, date, short}`}
+                  values={{ date: DateOnly.fromStoreModel(agenda.date).toDate(), name: agenda.session.name }}
+                />
+              </option>
+            ))}
+          </Select>
+        )}
+      />
+
       <Controller
         name="sessionMeetingDate"
         control={control}
@@ -280,7 +338,11 @@ export function OfficialReportMetadataStep(props: { className?: string }) {
         inlineLayoutWhen="md and up"
         buttons={[
           { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
-          { children: 'Sélectionner les ordres du jour', type: 'submit', disabled: !isValid }
+          {
+            type: 'submit',
+            disabled: !isValid,
+            children: <FormattedMessage defaultMessage="Générer le PV" />
+          }
         ]}
       />
     </form>
