@@ -4,7 +4,7 @@ SELECT
   n.is_designated AS "isDesignated",
   n.rank,
 
-  COALESCE(m.formation, target_position.formation) AS "formation",
+  COALESCE(target_position.formation, m.formation) AS "formation",
   m.id AS "magistratId",
   m.external_id::INT AS "magistratExternalId", 
   m.first_name AS "magistratFirstName", 
